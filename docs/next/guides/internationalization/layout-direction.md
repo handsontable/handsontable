@@ -24,10 +24,7 @@ Configure Handsontable's layout direction, to properly handle right-to-left (RTL
 
 ## About layout direction
 
-To properly display Handsontable's UI and data in LTR languages (such as English, Chinese, or Russian) and RTL languages (such as Arabic, Persian, or Hebrew), 
-you can configure your grid's layout direction.
-
-We advise to use the RTL direction with a right-to-left language of the user interface. You can use a built-in Arabic [language](@/guides/internationalization/language.md) translation, which is right-to-left, or make a custom translation to include any other language.
+To properly display Handsontable's UI and data in LTR languages (such as English, Chinese, or Russian) and RTL languages (such as Arabic, Persian, or Hebrew), configure your grid's layout direction.
 
 By default, Handsontable's layout direction is set automatically, based on on the value of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute.
 
@@ -36,7 +33,13 @@ You can:
 - [Set the layout direction to RTL](#setting-the-layout-direction-to-rtl)
 - [Set the layout direction to LTR](#setting-the-layout-direction-to-ltr)
 
-### RTL demo
+### RTL support
+
+If your app uses an RTL language, we recommend [setting Handsontable's layout direction to RTL](#setting-the-layout-direction-to-rtl).
+
+For Arabic, use Handsontable's built-in [Arabic translation](@/guides/internationalization/language.md#list-of-available-languages). For any other RTL language, [add your own translation](@/guides/internationalization/language.md#creating-custom-languages).
+
+#### RTL demo
 
 To try out Handsontable's RTL support, check out the demo below:
 
@@ -44,21 +47,45 @@ To try out Handsontable's RTL support, check out the demo below:
 ```js
 const container = document.querySelector('#example1');
 
+// generate random RTL data (e.g. Arabic)
+function generateArabicData() {
+  const randomName = () =>
+  ["عمر", "علي", "عبد الله", "معتصم"][Math.floor(Math.random() * 3)];
+  const randomCountry = () =>
+    ["تركيا", "مصر", "لبنان", "العراق"][Math.floor(Math.random() * 3)];
+  const randomDate = () =>
+    new Date(Math.floor(Math.random() * Date.now())).toLocaleDateString()
+  const randomBool = () => Math.random() > 0.5;
+  const randomNumber = (a = 0, b = 1000) => a + Math.floor(Math.random() * b);
+  const randomPhrase = () =>
+    `${randomCountry()} ${randomName()} ${randomNumber()}`;
+  
+  const arr = Array.from({ length: 10 }, () => [
+    randomBool(),
+    randomName(),
+    randomCountry(),
+    randomPhrase(),
+    randomDate(),
+    randomPhrase(),
+    randomBool(),
+    randomNumber(0, 200).toString(),
+    randomNumber(0, 10),
+    randomNumber(0, 5),
+  ]);
+
+  return arr;
+}
+
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: [
-  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-  ['2019', 10, 11, 12, 13],
-  ['2020', 20, 11, 14, 13],
-  ['2021', 30, 15, 12, 13]
-  ],
+  data: generateArabicData(),
   colHeaders: true,
   rowHeaders: true,
   // render Handsontable from the right to the left
   layoutDirection: 'rtl',
-  // load a RTL language
+  // load an RTL language (e.g. Arabic)
   language: 'ar-AR',
-  // enable some options that exemplify the layout direction
+  // enable a few options that exemplify the layout direction
   dropdownMenu: true,
   filters: true,
   contextMenu: true
@@ -70,20 +97,21 @@ const hot = new Handsontable(container, {
 
 Setting a different layout direction affects the behavior of the following areas of Handsontable:
 
-| Element                                                                                           | Behavior in the LTR layout direction                                                                                                                             | Behavior in the RTL layout direction
-| ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------
-| Starting and ending edges                                                                         | The left-hand edge is considered the starting edge of the grid, and the right-hand edge is considered the ending edge of the grid.                               | The right-hand edge is considered the starting edge of the grid, and the left-hand edge is considered the ending edge of the grid.
-| The order of columns on the screen                                                                | The cell rendering flows from the left-hand side of the screen to the right-hand side. Thus, the cell at coordinates (0, 0) is rendered in the top-left corner.  | The cell rendering flows from the right-hand side of the screen to the left-hand side. Thus, the cell at coordinates (0, 0) is rendered in the top-right corner.
-| The text direction in the cells                                                                   | All cells inherit the LTR direction from the container element.                                                                                                  | All cells inherit the RTL direction from the container element.
-| The position of the row headers                                                                   | The row headers are rendered on the left-hand edge of the grid.                                                                                                  | The row headers are rendered on the right-hand edge of the grid.
-| The position of the [frozen columns](@/guides/columns/column-freezing.md)                         | The columns are frozen at the left-hand edge of the grid.                                                                                                        | The columns are frozen at the right-hand edge of the grid.
-| [Keyboard navigation](@/guides/accessories-and-menus/keyboard-navigation.md)                      | <kbd>Tab</kbd> moves to the right, and <kbd>Shift</kbd> + <kbd>Tab</kbd> moves to the left.                                                                      | <kbd>Tab</kbd> moves to the left, and <kbd>Shift</kbd> + <kbd>Tab</kbd> moves to the right.
-| The position of the [selection](@/guides/cell-features/selection.md) handles                      | The circular selection handles on mobile devices appear in the top-left and bottom-right corners of the selection border.                                        | The circular selection handles on mobile devices appear in the top-right and bottom-left corners of the selection border.
-| The position of the selection [fill handler](@/api/options.md#fillHandle) corner                  | The fill handle rectangle corner appears on the bottom-right corner of the selection.                                                                            | The fill handle rectangle corner appears on the bottom-left corner of the selection
-| [Custom borders](@/guides/cell-features/formatting-cells.md)                                      | In the [`customBorders`](@/api/options.md#customborders) option, the property `start` is _left_, and the property `end` is _right_.                              | In the [`customBorders`](@/api/options.md#customborders) option, the property `start` is _right_, and the property `end` is _left_.
-| The [context menu](@/guides/accessories-and-menus/context-menu.md) and the [column menus](@/guides/accessories-and-menus/column-menu.md) | The layout of these elements is left-to-right, and the submenus expand to the right-hand side.                            | The layout of these elements is right-to-left, and the submenus expand to the left-hand side.
+| Element                                                                                                            | LTR layout direction                                                                                                                                                                              | RTL layout direction                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Starting edge                                                                                                      | The left-hand edge is treated as the starting edge of the grid.                                                                                                                                   | The right-hand edge is treated as the starting edge of the grid.                                                                                                                                  |
+| Ending edge                                                                                                        | The right-hand edge is treated as the ending edge of the grid.                                                                                                                                    | The left-hand edge is treated as the ending edge of the grid.                                                                                                                                     |
+| Order of columns on the screen                                                                                     | Cell rendering flows from the left-hand side of the screen to right-hand side.<br><br>Cell (0, 0) is rendered in the grid's top-left corner.                                                      | Cell rendering flows from the right-hand side of the screen to left-hand side.<br><br>Cell (0, 0) is rendered in the grid's top-right corner.                                                     |
+| Text direction in cells                                                                                            | All cells inherit the LTR direction from the container element.                                                                                                                                   | All cells inherit the RTL direction from the container element.                                                                                                                                   |
+| Position of row headers                                                                                            | Row headers are rendered on the left-hand edge of the grid.                                                                                                                                       | Row headers are rendered on the right-hand edge of the grid.                                                                                                                                      |
+| Position of [frozen columns](@/guides/columns/column-freezing.md)                                                  | Columns are frozen at the left-hand edge of the grid.                                                                                                                                             | Columns are frozen at the right-hand edge of the grid.                                                                                                                                            |
+| [Keyboard navigation](@/guides/accessories-and-menus/keyboard-navigation.md)                                       | <kbd>Tab</kbd> moves to the right.<br><br><kbd>Shift</kbd> + <kbd>Tab</kbd> moves to the left.                                                                                                    | <kbd>Tab</kbd> moves to the left.<br><br><kbd>Shift</kbd> + <kbd>Tab</kbd> moves to the right.                                                                                                    |
+| Position of the [fill handle](@/api/options.md#fillHandle)                                                         | The fill handle displays in the bottom-right corner of the selection border.                                                                                                                      | The fill handle displays in the bottom-left corner of the selection border.                                                                                                                       |
+| Position of the [selection](@/guides/cell-features/selection.md) handles, on mobile devices                        | On mobile devices, the selection handles display in the top-left and bottom-right corners of the selection border.                                                                                | On mobile devices, the selection handles display in the top-right and bottom-left corners of the selection border.                                                                                |
+| [Custom borders](@/guides/cell-features/formatting-cells.md)                                                       | In the [`customBorders`](@/api/options.md#customborders) option:<br><br>- The left-hand border is treated as the starting border.<br><br>- The right-hand border is treated as the ending border. | In the [`customBorders`](@/api/options.md#customborders) option:<br><br>- The right-hand border is treated as the starting border.<br><br>- The left-hand border is treated as the ending border. |
+| [Context menu](@/guides/accessories-and-menus/context-menu.md) and [column menus](@/guides/columns/column-menu.md) | Menus' layout direction is left-to-right.<br><br>Submenus expand to the right.                                                                                                                    | Menus' layout direction is right-to-left.<br><br>Submenus expand to the left.                                                                                                                     |
 
-The above list is not exhaustive. There might be other areas of Handsontable affected by the layout direction in a suitable way.
+The list above is not exhaustive. Setting a different layout direction might affect other areas of Handsontable as well.
 
 ## Setting the layout direction
 
@@ -97,9 +125,9 @@ This is the default setting.
 
 At Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid),
 add [`layoutDirection`](@/api/options.md#layoutdirection) as a [top-level grid option](@/guides/getting-started/setting-options.md#setting-grid-options),
-and set it to `'inherit'` or skip defining `layoutDirection` altogether, because it is the default setting. 
+and set it to `'inherit'`. As this is the default setting, you can also skip setting the `layoutDirection` option altogether.
 
-In the below example, an RTL layout direction is inherited from a `dir` attribute up in the DOM tree:
+In the example below, the RTL layout direction is inherited from a `dir` attribute up in the DOM tree:
 
 ::: example #example2 --html 1 --js 2
 ```html
@@ -186,11 +214,11 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-## Setting the text alignment in cells
+## Setting the horizontal text alignment
 
-For the cell content, it is possible to overwrite the horizontal alignment that comes out of the layout direction by using the [text alignment](@/guides/cell-features/text-alignment.md) setting.
+You can apply different horizontal [text alignment](@/guides/cell-features/text-alignment.md) settings, overwriting the horizontal text alignment resulting from your grid's [layout direction](#about-layout-direction).
 
-In the below example, some columns are explicitly aligned to the left, center, or right:
+In the example below, some columns are explicitly aligned to the left, center, or right:
 
 ::: example #example5
 ```js
@@ -211,11 +239,18 @@ const hot = new Handsontable(container, {
   layoutDirection: 'rtl',
   columns: [
     {},
-    { className: 'htRight' },
-    { className: 'htCenter' },
     { className: 'htLeft' },
+    { className: 'htCenter' },
+    { className: 'htRight' },
     {},
   ]
 });
 ```
 :::
+
+You can overwrite the horizontal [text alignment](@/guides/cell-features/text-alignment.md) settings for:
+- [The entire grid](@/guides/getting-started/setting-options.md#setting-grid-options)
+- [Individual columns](@/guides/getting-started/setting-options.md#setting-column-options)
+- [Individual rows](@/guides/getting-started/setting-options.md#setting-row-options)
+- [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options)
+- [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic)

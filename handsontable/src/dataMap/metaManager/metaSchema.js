@@ -1315,10 +1315,10 @@ export default () => {
      * | -------- | ------------------ | ---------------------------------- | ----------------------------------------------------------------- |
      * | `row`    | -                  | `row`: Number                      | The cell's row coordinate.                                        |
      * | `col`    | -                  | `col`: Number                      | The cell's column coordinate.                                     |
-     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _starting_ border's width (`width`) and color (`color`). The word _starting_ refers to starting edge of the [layout direction](@/guides/internationalization/layout-direction.md), and means _left_ (in LTR, default), or _right_ (in RTL).
-     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _starting_ border's width (`width`) and color (`color`). The word _ending_ refers to ending edge of the [layout direction](@/guides/internationalization/layout-direction.md), and means _right_ (in LTR, default), or _left_ (in RTL).
-     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _top_ border's width (`width`) and color (`color`).
-     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _bottom_ border's width (`width`) and color (`color`).
+     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the starting border's width (`width`) and color (`color`).<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), the left-hand border is treated as the starting border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL, the right-hand border is treated as the starting border. |
+     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the ending border's width (`width`) and color (`color`).<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), the right-hand border is treated as the ending border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL, the left-hand border is treated as the ending border. |
+     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the top border's width (`width`) and color (`color`).
+     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the bottom border's width (`width`) and color (`color`).
      *
      * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
      * and add a predefined border around a range of cells,
@@ -1328,8 +1328,8 @@ export default () => {
      * | Property | Sub-properties                               | Types                                                            | Description                                                                                  |
      * | -------- | -------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
      * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` selects the range's top-start (top-_left_ in LTR and top-_right_ in RTL [layout direction](@/guides/internationalization/layout-direction.md)) corner.<br>`to` selects the range's bottom-end (bottom-_left_ in LTR and bottom-_right_ in RTL [layout direction](@/guides/internationalization/layout-direction.md)) corner.
-     * | `start`  | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the _starting_ border's width (`width`) and color (`color`). The word _starting_ refers to starting edge of the [layout direction](@/guides/internationalization/layout-direction.md), and means _left_ (in LTR, default), or _right_ (in RTL).
-     * | `end`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the _starting_ border's width (`width`) and color (`color`). The word _ending_ refers to ending edge of the [layout direction](@/guides/internationalization/layout-direction.md), and means _right_ (in LTR, default), or _left_ (in RTL).
+     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the starting border's width (`width`) and color (`color`).<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), the left-hand border is treated as the starting border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL, the right-hand border is treated as the starting border. |
+     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the ending border's width (`width`) and color (`color`).<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), the right-hand border is treated as the ending border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL, the left-hand border is treated as the ending border. |
      * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the _top_ border's width (`width`) and color (`color`).
      * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the _bottom_ border's width (`width`) and color (`color`).
      *
@@ -1337,6 +1337,8 @@ export default () => {
      * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
      * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
      * - [Plugins: `CustomBorders` &#8594;](@/api/customBorders.md)
+     * - [Layout direction](@/guides/internationalization/layout-direction.md)
+     * - [`layoutDirection`](#layoutDirection)
      *
      * @memberof Options#
      * @type {boolean|object[]}
