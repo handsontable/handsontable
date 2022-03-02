@@ -20,7 +20,7 @@ export const EDITOR_STATE = Object.freeze({
   FINISHED: 'STATE_FINISHED'
 });
 
-const SHORTCUTS_GROUP_EDITOR = 'baseEditor';
+export const SHORTCUTS_GROUP_EDITOR = 'baseEditor';
 
 /**
  * @class BaseEditor

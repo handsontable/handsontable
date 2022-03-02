@@ -14,6 +14,7 @@ import { KEY_CODES } from '../../helpers/unicode';
 import { autoResize } from '../../3rdparty/autoResize';
 import { isDefined } from '../../helpers/mixed';
 import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
+import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
@@ -498,6 +499,7 @@ export class TextEditor extends BaseEditor {
 
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_NAVIGATION);
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
   }
 
   /**
