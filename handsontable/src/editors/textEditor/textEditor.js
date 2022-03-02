@@ -484,7 +484,6 @@ export class TextEditor extends BaseEditor {
       callback: () => {
         setNewValue();
       },
-      runOnlyIf: () => true,
     }], contextConfig);
   }
 

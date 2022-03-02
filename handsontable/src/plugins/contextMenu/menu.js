@@ -282,7 +282,6 @@ class Menu {
         this.close();
         this.keyEvent = false;
       },
-      runOnlyIf: () => true,
     }, {
       keys: [['ArrowDown']],
       callback: () => {
@@ -363,6 +362,20 @@ class Menu {
 
         this.keyEvent = false;
       }
+    }, {
+      keys: [['PageUp']],
+      callback: () => {
+        this.hotMenu.selection.transformStart(-this.hotMenu.countVisibleRows(), 0);
+
+        this.keyEvent = false;
+      },
+    }, {
+      keys: [['PageDown']],
+      callback: () => {
+        this.hotMenu.selection.transformStart(this.hotMenu.countVisibleRows(), 0);
+
+        this.keyEvent = false;
+      },
     }], menuContextConfig);
 
     this.blockMainTableCallbacks();
