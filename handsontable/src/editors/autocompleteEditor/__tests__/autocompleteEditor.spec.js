@@ -2983,56 +2983,6 @@ describe('AutocompleteEditor', () => {
     expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
   });
 
-  xit('should change textarea caret position (pressing up arrow)', async() => {
-    const syncSources = jasmine.createSpy('syncSources');
-
-    syncSources.and.callFake((query, process) => {
-      process(choices.filter(choice => choice.indexOf(query) !== -1));
-    });
-
-    handsontable({
-      data: [
-        ['one', 'two'],
-        ['three', 'four']
-      ],
-      editor: 'autocomplete',
-    });
-
-    selectCell(0, 0);
-    keyDownUp('enter');
-
-    const $editorInput = $('.handsontableInput');
-
-    keyDownUp('arrowup');
-
-    expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(0);
-  });
-
-  xit('should change textarea caret position (pressing up arrow) #2', async() => {
-    const syncSources = jasmine.createSpy('syncSources');
-
-    syncSources.and.callFake((query, process) => {
-      process(choices.filter(choice => choice.indexOf(query) !== -1));
-    });
-
-    handsontable({
-      data: [
-        ['one\ntwo', 'two'],
-        ['three', 'four']
-      ],
-      editor: 'autocomplete',
-    });
-
-    selectCell(0, 0);
-    keyDownUp('enter');
-
-    const $editorInput = $('.handsontableInput');
-
-    keyDownUp('arrowup');
-
-    expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(3);
-  });
-
   it('should keep textarea selection, after moving the selection to the suggestion list (pressing down arrow)', async() => {
     const syncSources = jasmine.createSpy('syncSources');
 
