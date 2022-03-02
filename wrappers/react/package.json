@@ -10,6 +10,12 @@
   "jsdelivr": "./dist/react-handsontable.min.js",
   "unpkg": "./dist/react-handsontable.min.js",
   "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./es/react-handsontable.js",
+      "require": "./commonjs/react-handsontable.js"
+    }
+  },
   "keywords": [
     "handsontable",
     "component",
