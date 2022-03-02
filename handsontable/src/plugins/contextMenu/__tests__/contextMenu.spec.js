@@ -2865,6 +2865,25 @@ describe('ContextMenu', () => {
         expect(itemAction).toHaveBeenCalled();
         expect($(hot.getPlugin('contextMenu').menu).is(':visible')).toBe(false);
       });
+
+      it('should navigate using `PageDown` and `PageUp` after selecting some item', () => {
+        const hot = handsontable({
+          contextMenu: ['row_above', 'row_below', 'remove_row', 'col_left', 'col_right'],
+        });
+
+        contextMenu();
+
+        const menuHot = hot.getPlugin('contextMenu').menu.hotMenu;
+
+        keyDownUp('arrowdown');
+        keyDownUp('pagedown');
+
+        expect(menuHot.getSelected()).toEqual([[4, 0, 4, 0]]);
+
+        keyDownUp('pageup');
+
+        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
+      });
     });
 
     it('should close menu when user hits ESC', () => {
