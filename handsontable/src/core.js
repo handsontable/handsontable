@@ -129,23 +129,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.executionSuspendedCounter = 0;
 
-  const shortcutManager = createShortcutManager({
-    beforeKeyDown: (event) => {
-      if (this.isListening() === false) { // Performing action (executing a callback) and triggering hook only for listening Handsontable.
-        return false;
-      }
-
-      return this.runHooks('beforeKeyDown', event);
-    },
-    afterKeyDown: (event) => {
-      if (this.isDestroyed) { // Handsontable could be destroyed after performing action (executing a callback).
-        return;
-      }
-
-      this.runHooks('afterDocumentKeyDown', event);
-    },
-    ownerWindow: this.rootWindow,
-  });
   const layoutDirection = userSettings?.layoutDirection ?? 'inherit';
   const rootElementDirection = ['rtl', 'ltr'].includes(layoutDirection) ?
     layoutDirection : this.rootWindow.getComputedStyle(this.rootElement).direction;
