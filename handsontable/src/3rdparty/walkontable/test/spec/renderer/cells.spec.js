@@ -95,6 +95,66 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     expect(cellRenderer).toHaveBeenCalledTimes(4);
   });
 
+  it('should clear "style" and "dir" attributes from the cell element each render cycle', () => {
+    const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
+
+    tableMock.rowsToRender = 2;
+    tableMock.columnsToRender = 3;
+    tableMock.rowHeadersCount = 0;
+    tableMock.cellRenderer = (sourceRowIndex, sourceColumnIndex, TD) => {
+      TD.style.width = '60px';
+      TD.dir = 'rtl';
+    };
+
+    rowsRenderer.adjust();
+    rowHeadersRenderer.adjust();
+    cellsRenderer.adjust();
+
+    rowsRenderer.render();
+    rowHeadersRenderer.render();
+    cellsRenderer.render();
+
+    expect(rootNode.outerHTML).toMatchHTML(`
+      <tbody>
+        <tr>
+          <td class="" dir="rtl" style="width: 60px;"></td>
+          <td class="" dir="rtl" style="width: 60px;"></td>
+          <td class="" dir="rtl" style="width: 60px;"></td>
+        </tr>
+        <tr>
+          <td class="" dir="rtl" style="width: 60px;"></td>
+          <td class="" dir="rtl" style="width: 60px;"></td>
+          <td class="" dir="rtl" style="width: 60px;"></td>
+        </tr>
+      </tbody>
+      `);
+
+    tableMock.cellRenderer = () => {}; // reset the cell renderer function
+
+    rowsRenderer.adjust();
+    rowHeadersRenderer.adjust();
+    cellsRenderer.adjust();
+
+    rowsRenderer.render();
+    rowHeadersRenderer.render();
+    cellsRenderer.render();
+
+    expect(rootNode.outerHTML).toMatchHTML(`
+      <tbody>
+        <tr>
+          <td class=""></td>
+          <td class=""></td>
+          <td class=""></td>
+        </tr>
+        <tr>
+          <td class=""></td>
+          <td class=""></td>
+          <td class=""></td>
+        </tr>
+      </tbody>
+      `);
+  });
+
   it('should generate cells properly after rerendering the cells from 0 to N cells', () => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 

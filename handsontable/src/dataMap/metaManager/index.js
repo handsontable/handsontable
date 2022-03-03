@@ -42,7 +42,6 @@ export default class MetaManager {
      * @type {GlobalMeta}
      */
     this.globalMeta = new GlobalMeta(hot);
-    this.globalMeta.updateMeta(customSettings);
     /**
      * @type {TableMeta}
      */
@@ -57,6 +56,8 @@ export default class MetaManager {
     this.cellMeta = new CellMeta(this.columnMeta);
 
     metaMods.forEach(ModifierClass => new ModifierClass(this));
+
+    this.globalMeta.updateMeta(customSettings);
   }
 
   /**
@@ -84,7 +85,7 @@ export default class MetaManager {
    * default settings inherited from the GlobalMeta layer merged with settings passed by the developer.
    * Adding, removing, or changing property in that object has no direct reflection on any other layers.
    *
-   * @returns {object}
+   * @returns {TableMeta}
    */
   getTableMeta() {
     return this.tableMeta.getMeta();

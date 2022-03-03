@@ -1,0 +1,7 @@
+{
+  "title": "Added a new configuration option: `fixedColumnsStart`",
+  "type": "added",
+  "issue": 8760,
+  "breaking": false,
+  "framework": "none"
+}

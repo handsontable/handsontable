@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue with TopOverlay position for RTL",
+  "type": "fixed",
+  "issue": 8764,
+  "breaking": false,
+  "framework": "none"
+}

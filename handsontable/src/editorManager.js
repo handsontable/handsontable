@@ -85,7 +85,69 @@ class EditorManager {
       }
     });
 
-    this.instance.view.wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
+    this.instance.view._wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
+  }
+
+  /**
+   * Register shortcuts responsible for handling some actions related to an editor.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    const shortcutManager = this.instance.getShortcutManager();
+    const gridContext = shortcutManager.getContext('grid');
+    const editorContext = shortcutManager.getContext('editor');
+    const config = { group: SHORTCUTS_GROUP_EDITOR };
+
+    editorContext.addShortcuts([{
+      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Meta'],
+        ['Enter', 'Control', 'Shift'], ['Enter', 'Meta', 'Shift']],
+      callback: (event, keys) => {
+        this.closeEditorAndSaveChanges(shortcutManager.isCtrlPressed());
+        this.moveSelectionAfterEnter(keys.includes('shift'));
+      }
+    }, {
+      keys: [['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']],
+      callback: (event, keys) => {
+        this.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));
+        this.activeEditor.focus();
+      },
+    }], config);
+
+    gridContext.addShortcuts([{
+      keys: [['F2']],
+      callback: (event) => {
+        if (this.activeEditor) {
+          this.activeEditor.enableFullEditMode();
+        }
+
+        this.openEditor(null, event);
+      },
+    }, {
+      keys: [['Backspace'], ['Delete']],
+      callback: () => {
+        this.instance.emptySelectedCells();
+        this.prepareEditor();
+      },
+    }, {
+      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
+      callback: (event, keys) => {
+        if (this.instance.getSettings().enterBeginsEditing) {
+          if (this.cellProperties.readOnly) {
+            this.moveSelectionAfterEnter();
+
+          } else if (this.activeEditor) {
+            this.activeEditor.enableFullEditMode();
+            this.openEditor(null, event);
+          }
+
+        } else {
+          this.moveSelectionAfterEnter(keys.includes('shift'));
+        }
+
+        stopImmediatePropagation(event); // required by HandsontableEditor
+      },
+    }], config);
   }
 
   /**

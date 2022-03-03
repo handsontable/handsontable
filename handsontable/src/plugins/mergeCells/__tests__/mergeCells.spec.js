@@ -662,7 +662,7 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      const mainHolder = hot.view.wt.wtTable.holder;
+      const mainHolder = hot.view._wt.wtTable.holder;
 
       mainHolder.scrollTop = 130;
       hot.render();
@@ -717,7 +717,7 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      const mainHolder = hot.view.wt.wtTable.holder;
+      const mainHolder = hot.view._wt.wtTable.holder;
 
       $(mainHolder).scrollTop(99999);
       hot.render();
@@ -1380,7 +1380,7 @@ describe('MergeCells', () => {
         mergeCells: true,
       });
 
-      const corner = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
+      const corner = $('.ht_clone_top_inline_start_corner .htCore').find('thead').find('th').eq(0);
 
       simulateClick(corner, 'RMB');
       contextMenu();

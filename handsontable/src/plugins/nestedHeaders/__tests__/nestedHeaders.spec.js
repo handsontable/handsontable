@@ -23,7 +23,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      expect(hot.view.wt.wtTable.THEAD.querySelectorAll('tr').length).toEqual(2);
+      expect(hot.view._wt.wtTable.THEAD.querySelectorAll('tr').length).toEqual(2);
     });
 
     it('should adjust headers widths', () => {
@@ -36,7 +36,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      const headers = hot.view.wt.wtTable.THEAD.querySelectorAll('tr:first-of-type th');
+      const headers = hot.view._wt.wtTable.THEAD.querySelectorAll('tr:first-of-type th');
 
       expect(hot.getColWidth(1)).toBeGreaterThan(50);
       expect(headers[1].offsetWidth).toBeGreaterThan(100);
@@ -243,11 +243,11 @@ describe('NestedHeaders', () => {
   });
 
   describe('The \'colspan\' property', () => {
-    it('should allow creating a more complex nested setup when fixedColumnsLeft option is enabled', () => {
+    it('should allow creating a more complex nested setup when fixedColumnsStart option is enabled', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
-        fixedColumnsLeft: 2,
+        fixedColumnsStart: 2,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1'],
           ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2']
@@ -274,11 +274,11 @@ describe('NestedHeaders', () => {
           </tbody>
           `;
 
-        expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
-        expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getTopInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
-      updateSettings({ fixedColumnsLeft: 3 });
+      updateSettings({ fixedColumnsStart: 3 });
 
       {
         const htmlPattern = `
@@ -303,11 +303,11 @@ describe('NestedHeaders', () => {
           </tbody>
           `;
 
-        expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
-        expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getTopInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
-      updateSettings({ fixedColumnsLeft: 6 });
+      updateSettings({ fixedColumnsStart: 6 });
 
       {
         const htmlPattern = `
@@ -341,8 +341,8 @@ describe('NestedHeaders', () => {
           </tbody>
           `;
 
-        expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
-        expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getTopInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
     });
 
@@ -357,7 +357,7 @@ describe('NestedHeaders', () => {
       });
 
       const allTHs = function allTHs(row) {
-        const headerRows = hot.view.wt.wtTable.THEAD.querySelectorAll('tr');
+        const headerRows = hot.view._wt.wtTable.THEAD.querySelectorAll('tr');
 
         return headerRows[row].querySelectorAll('th');
       };

@@ -11,6 +11,9 @@ import { mixin } from './../../../../helpers/object';
 
 /**
  * Subclass of `Table` that provides the helper methods relevant to the master table (not overlays), implemented through mixins.
+ *
+ * @mixes calculatedRows
+ * @mixes calculatedColumns
  */
 class MasterTable extends Table {
   /**

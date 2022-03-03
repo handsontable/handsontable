@@ -407,7 +407,7 @@ describe('Filters UI', () => {
         height: 300
       });
 
-      const button = hot().view.wt.wtTable.getColumnHeader(1).querySelector('.changeType');
+      const button = hot().view._wt.wtTable.getColumnHeader(1).querySelector('.changeType');
 
       $(button).simulate('mousedown');
 
@@ -447,7 +447,7 @@ describe('Filters UI', () => {
         height: 300
       });
 
-      const button = hot().view.wt.wtTable.getColumnHeader(1).querySelector('.changeType');
+      const button = hot().view._wt.wtTable.getColumnHeader(1).querySelector('.changeType');
 
       $(button).simulate('mousedown');
 
@@ -824,7 +824,7 @@ describe('Filters UI', () => {
       });
 
       const plugin = hot.getPlugin('filters');
-      const th = hot.view.wt.wtTable.getColumnHeader(1);
+      const th = hot.view._wt.wtTable.getColumnHeader(1);
       const filterButton = $(th).find('button');
 
       plugin.addCondition(1, 'begins_with', ['a', 'b', 'c', 'd']);
@@ -1556,7 +1556,7 @@ describe('Filters UI', () => {
     expect(hot2.getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
     expect(hot2.getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
 
-    const th = hot2.view.wt.wtTable.getColumnHeader(1);
+    const th = hot2.view._wt.wtTable.getColumnHeader(1);
     const button = th.querySelector('.changeType');
 
     $(button).simulate('mousedown');
@@ -4370,5 +4370,20 @@ describe('Filters UI', () => {
     keyDownUp(['shift', 'tab']);
 
     expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[0, 0, 0, 0]]);
+  });
+
+  it('should inherit the actual layout direction option from the root Handsontable instance to the multiple ' +
+    'select component', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
+      colHeaders: true,
+      filters: true,
+      dropdownMenu: true,
+      layoutDirection: 'inherit',
+    });
+
+    dropdownMenu(0);
+
+    expect(byValueMultipleSelect().itemsBox.getSettings().layoutDirection).toBe('ltr');
   });
 });

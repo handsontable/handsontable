@@ -74,6 +74,34 @@ describe('NestedRows', () => {
     });
   });
 
+  describe('UI', () => {
+    using('configuration object', [
+      { htmlDir: 'ltr', layoutDirection: 'inherit' },
+      { htmlDir: 'rtl', layoutDirection: 'ltr' },
+    ], ({ htmlDir, layoutDirection }) => {
+      beforeEach(() => {
+        $('html').attr('dir', htmlDir);
+      });
+
+      afterEach(() => {
+        $('html').attr('dir', 'ltr');
+      });
+
+      it('should display indicators properly located', () => {
+        const hot = handsontable({
+          layoutDirection,
+          data: getMoreComplexNestedData(),
+          nestedRows: true,
+          rowHeaders: true
+        });
+
+        expect(hot.countRows()).toEqual(13);
+        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('left');
+        expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).right).toEqual('-2px');
+      });
+    });
+  });
+
   describe('integration', () => {
     describe('formulas', () => {
       it('should process formula in a child row', () => {
@@ -442,9 +470,9 @@ describe('NestedRows', () => {
         height: 1000
       });
 
-      let firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-      let secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(3) th:eq(0)');
-      let $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(5) th:eq(0)');
+      let firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(2) th:eq(0)');
+      let secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(3) th:eq(0)');
+      let $targetHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(5) th:eq(0)');
 
       firstBaseHeader.simulate('mousedown');
       secondBaseHeader.simulate('mouseover');
@@ -466,9 +494,9 @@ describe('NestedRows', () => {
       expect(getDataAtCell(4, 1)).toEqual('Foo Fighters');
       expect(getDataAtCell(5, 1)).toEqual('Wolf Alice');
 
-      firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(7) th:eq(0)');
-      secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(9) th:eq(0)');
-      $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(5) th:eq(0)');
+      firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(7) th:eq(0)');
+      secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(9) th:eq(0)');
+      $targetHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(5) th:eq(0)');
 
       firstBaseHeader.simulate('mousedown');
       secondBaseHeader.simulate('mouseover');
@@ -548,9 +576,9 @@ describe('NestedRows', () => {
         height: 500
       });
 
-      const firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)');
-      const secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-      const $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(12) th:eq(0)');
+      const firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)');
+      const secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(2) th:eq(0)');
+      const $targetHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(12) th:eq(0)');
 
       firstBaseHeader.simulate('mousedown');
       secondBaseHeader.simulate('mouseover');
@@ -588,9 +616,9 @@ describe('NestedRows', () => {
 
       hot.getPlugin('nestedRows').collapsingUI.collapseChildren(6);
 
-      const firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(10) th:eq(0)');
-      const secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(11) th:eq(0)');
-      const $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(6) th:eq(0)');
+      const firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(10) th:eq(0)');
+      const secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(11) th:eq(0)');
+      const $targetHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(6) th:eq(0)');
 
       firstBaseHeader.simulate('mousedown');
       secondBaseHeader.simulate('mouseover');
@@ -625,9 +653,9 @@ describe('NestedRows', () => {
       hot.setCellMeta(1, 0, 'className', 'htSearchResult');
       hot.setCellMeta(2, 0, 'className', 'htSearchResult');
 
-      const firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)');
-      const secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-      const $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(6) th:eq(0)');
+      const firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)');
+      const secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(2) th:eq(0)');
+      const $targetHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(6) th:eq(0)');
 
       firstBaseHeader.simulate('mousedown');
       secondBaseHeader.simulate('mouseover');
@@ -659,9 +687,9 @@ describe('NestedRows', () => {
 
       hot.getPlugin('nestedRows').collapsingUI.collapseChildren(6);
 
-      const firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(11) th:eq(0)');
-      const secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(12) th:eq(0)');
-      const $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(6) th:eq(0)');
+      const firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(11) th:eq(0)');
+      const secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(12) th:eq(0)');
+      const $targetHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(6) th:eq(0)');
 
       firstBaseHeader.simulate('mousedown');
       secondBaseHeader.simulate('mouseover');
@@ -701,9 +729,9 @@ describe('NestedRows', () => {
       hot.getPlugin('nestedRows').collapsingUI.collapseChildren(6);
       hot.getPlugin('nestedRows').collapsingUI.collapseChildren(12);
 
-      const firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)');
-      const secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-      const $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(7) th:eq(0)');
+      const firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)');
+      const secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(2) th:eq(0)');
+      const $targetHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(7) th:eq(0)');
 
       firstBaseHeader.simulate('mousedown');
       secondBaseHeader.simulate('mouseover');
@@ -769,9 +797,9 @@ describe('NestedRows', () => {
       hot.getPlugin('nestedRows').collapsingUI.collapseChildren(6);
       hot.getPlugin('nestedRows').collapsingUI.collapseChildren(12);
 
-      let firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)');
-      let secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-      let $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(7) th:eq(0)');
+      let firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)');
+      let secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(2) th:eq(0)');
+      let $targetHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(7) th:eq(0)');
 
       firstBaseHeader.simulate('mousedown');
       secondBaseHeader.simulate('mouseover');
@@ -789,9 +817,9 @@ describe('NestedRows', () => {
 
       expect(getSelected()[0]).toEqual([4, 0, 4, 3]);
 
-      firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)');
-      secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
-      $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(5) th:eq(0)');
+      firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)');
+      secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(2) th:eq(0)');
+      $targetHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(5) th:eq(0)');
 
       firstBaseHeader.simulate('mousedown');
       secondBaseHeader.simulate('mouseover');
@@ -1076,7 +1104,7 @@ describe('NestedRows', () => {
     });
 
     // Test with the `getColHeader` passed, but rendered headers weren't proper.
-    let rowHeaders = $('.ht_clone_left').find('span.rowHeader').toArray().map(element => $(element).text());
+    let rowHeaders = $('.ht_clone_inline_start').find('span.rowHeader').toArray().map(element => $(element).text());
 
     expect(rowHeaders).toEqual([
       'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S']);
@@ -1085,7 +1113,7 @@ describe('NestedRows', () => {
     $('.ht_nestingButton').eq(0).simulate('click');
     $('.ht_nestingButton').eq(0).simulate('mouseup');
 
-    rowHeaders = $('.ht_clone_left').find('span.rowHeader').toArray().map(element => $(element).text());
+    rowHeaders = $('.ht_clone_inline_start').find('span.rowHeader').toArray().map(element => $(element).text());
 
     expect(rowHeaders).toEqual(['A', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S']);
   });

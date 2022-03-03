@@ -137,6 +137,38 @@ afterEach(() => {
   specContext.spec = null;
 });
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+/**
+ * The function allows to run the test suites based on different parameters (object configuration, datasets etc).
+ *
+ * For example:
+ * ```
+ * describe('TextEditor', () => {
+ *   using('input value', [1, '1', true], (value) => {
+ *     it('should correctly display the value in the textarea element', {
+ *        // expect()
+ *     });
+ *   })
+ * })
+ * // The jasmine will generate following test cases:
+ * //   * "TextEditor using input value: `1` should correctly display the value in the textarea element";
+ * //   * "TextEditor using input value: `'1'` should correctly display the value in the textarea element"
+ * //   * "TextEditor using input value: `true` should correctly display the value in the textarea element"
+ * ```
+ *
+ * @param {string} name The parameter name to be used within the tests.
+ * @param {Array<*>} parameters An array of parameters.
+ * @param {Function} func Function to execute where the test suite
+ */
+export function using(name, parameters, func) {
+  parameters.forEach((param) => {
+    describe(`using ${name}: \`${JSON.stringify(param)}\``, function() {
+      func.call(this, param);
+    });
+  });
+}
+/* eslint-enable jsdoc/require-description-complete-sentence */
+
 /**
  * @returns {object} Returns the spec object for currently running test.
  */
@@ -154,7 +186,7 @@ export function hot() {
 /**
  * Creates the Handsontable instance.
  *
- * @param {object} options The Handsontale options.
+ * @param {object} options The Handsontable options.
  * @returns {Handsontable}
  */
 export function handsontable(options) {
@@ -196,15 +228,15 @@ export function getTopClone() {
 /**
  * @returns {jQuery}
  */
-export function getTopLeftClone() {
-  return spec().$container.find('.ht_clone_top_left_corner');
+export function getTopInlineStartClone() {
+  return spec().$container.find('.ht_clone_top_inline_start_corner');
 }
 
 /**
  * @returns {jQuery}
  */
-export function getLeftClone() {
-  return spec().$container.find('.ht_clone_left');
+export function getInlineStartClone() {
+  return spec().$container.find('.ht_clone_inline_start');
 }
 
 /**
@@ -217,8 +249,8 @@ export function getBottomClone() {
 /**
  * @returns {jQuery}
  */
-export function getBottomLeftClone() {
-  return spec().$container.find('.ht_clone_bottom_left_corner');
+export function getBottomInlineStartClone() {
+  return spec().$container.find('.ht_clone_bottom_inline_start_corner');
 }
 
 /**
@@ -228,6 +260,14 @@ export function getBottomLeftClone() {
  */
 export function countCells() {
   return getHtCore().find('tbody td').length;
+}
+
+/**
+ * @param {number} columnIndex Visual column index.
+ * @returns {HTMLTableCellElement}
+ */
+export function getColumnHeader(columnIndex = 0) {
+  return hot().view._wt.wtTable.getColumnHeader(columnIndex);
 }
 
 /**
@@ -302,22 +342,32 @@ export function contextMenu(cell, instance) {
 }
 
 /**
- * Shows context menu.
+ * Open (and not close) the sub menu of the context menu.
+ *
+ * @param {string} submenuName The context menu item name (it has to be a submenu) to hover.
+ * @param {HTMLElement} [cell] The cell element to check.
+ */
+export function openContextSubmenuOption(submenuName, cell) {
+  contextMenu(cell);
+
+  const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
+
+  item.simulate('mouseover');
+}
+
+/**
+ * Open, execute the sub menu action and close the context menu.
  *
  * @param {string} submenuName The context menu item name (it has to be a submenu) to hover.
  * @param {string} optionName The context menu subitem name to click.
  * @param {HTMLElement} [cell] The cell element to check.
  */
 export async function selectContextSubmenuOption(submenuName, optionName, cell) {
-  contextMenu(cell);
-
-  const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
-
-  item.simulate('mouseover');
+  openContextSubmenuOption(submenuName, cell);
 
   await sleep(300);
 
-  const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+  const contextSubMenu = $(`.htContextMenuSub_${submenuName}`);
   const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
 
   button.simulate('mousedown').simulate('mouseup');
@@ -334,11 +384,17 @@ export function closeContextMenu() {
 /**
  * Shows dropdown menu.
  *
- * @param {number} columnIndex The column index under which the dropdown menu is triggered.
+ * @param {number|HTMLTableCellElement} columnIndexOrCell The column index or TD element under which the dropdown menu is triggered.
  */
-export function dropdownMenu(columnIndex) {
-  const hotInstance = spec().$container.data('handsontable');
-  const th = hotInstance.view.wt.wtTable.getColumnHeader(columnIndex || 0);
+export function dropdownMenu(columnIndexOrCell) {
+  let th = columnIndexOrCell;
+
+  if (!(columnIndexOrCell instanceof HTMLTableCellElement)) {
+    const hotInstance = spec().$container.data('handsontable');
+
+    th = hotInstance.view._wt.wtTable.getColumnHeader(columnIndexOrCell || 0);
+  }
+
   const button = th.querySelector('.changeType');
 
   if (button) {
@@ -346,6 +402,20 @@ export function dropdownMenu(columnIndex) {
     $(button).simulate('mouseup');
     $(button).simulate('click');
   }
+}
+
+/**
+ * Open (and not close) the sub menu of the dropdown menu.
+ *
+ * @param {string} submenuName The dropdown menu item name (it has to be a submenu) to hover.
+ * @param {HTMLElement} [cell] The cell element to check.
+ */
+export function openDropdownSubmenuOption(submenuName, cell) {
+  dropdownMenu(cell);
+
+  const item = $(`.htDropdownMenu .ht_master .htCore tbody td:contains(${submenuName})`);
+
+  item.simulate('mouseover');
 }
 
 /**
@@ -608,7 +678,7 @@ export function resizeColumn(renderableColumnIndex, width) {
  */
 export function resizeRow(renderableRowIndex, height) {
   const $container = spec().$container;
-  const $th = getLeftClone().find(`tbody tr:eq(${renderableRowIndex}) th:eq(0)`);
+  const $th = getInlineStartClone().find(`tbody tr:eq(${renderableRowIndex}) th:eq(0)`);
   const newHeight = renderableRowIndex !== 0 ? height + 1 : height; // compensate border
 
   $th.simulate('mouseover');

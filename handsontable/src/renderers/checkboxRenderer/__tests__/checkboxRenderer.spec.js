@@ -1125,7 +1125,7 @@ describe('CheckboxRenderer', () => {
       rowHeaders: ['<input type="checkbox"/> 1'],
     });
 
-    const headerCheckbox = getLeftClone().find('input[type="checkbox"]')[0];
+    const headerCheckbox = getInlineStartClone().find('input[type="checkbox"]')[0];
 
     expect(headerCheckbox.checked).toBe(false);
 
@@ -1135,6 +1135,15 @@ describe('CheckboxRenderer', () => {
     expect(spy.test.calls.count()).toBe(0);
 
     window.onerror = prevError;
+  });
+
+  it('should render the cell without messing with "dir" attribute', () => {
+    handsontable({
+      data: [['foo']],
+      renderer: 'checkbox'
+    });
+
+    expect(getCell(0, 0).getAttribute('dir')).toBeNull();
   });
 
   describe('CheckboxRenderer with ContextMenu', () => {

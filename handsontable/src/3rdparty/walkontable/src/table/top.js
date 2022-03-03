@@ -6,6 +6,9 @@ import { CLONE_TOP } from '../overlay';
 
 /**
  * Subclass of `Table` that provides the helper methods relevant to TopOverlay, implemented through mixins.
+ *
+ * @mixes stickyRowsTop
+ * @mixes calculatedColumns
  */
 class TopOverlayTable extends Table {
   /**

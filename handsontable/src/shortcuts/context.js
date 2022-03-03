@@ -8,8 +8,8 @@ import { toSingleLine } from '../helpers/templateLiteralTag';
 /**
  * Create shortcuts' context.
  *
- * @alias Context
- * @class Context
+ * @alias ShortcutContext
+ * @class ShortcutContext
  * @param {string} name Context's name.
  * @returns {object}
  */

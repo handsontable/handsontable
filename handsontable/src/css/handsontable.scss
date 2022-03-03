@@ -70,13 +70,15 @@
 
 .handsontable .manualColumnResizerGuide {
   position: absolute;
-  right: 0;
+  inset-inline-end: unset;
   top: 0;
   background-color: #34a9db;
   display: none;
   width: 0;
-  border-right: 1px dashed #777;
-  margin-left: 5px;
+  border-inline-end: 1px dashed #777;
+  border-inline-start: none;
+  margin-inline-start: 5px;
+  margin-inline-end: unset;
 }
 
 .handsontable .manualRowResizerGuide {
@@ -112,16 +114,18 @@
   /* Centering end */
 
   /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
-  padding-left: 8px;
+  padding-inline-start: 8px;
+  padding-inline-end: 0;
   position: absolute;
-  right: -9px;
+  inset-inline-end: -9px;
+  inset-inline-start: unset;
 
   content: '';
   height: 10px;
   width: 5px;
   background-size: contain;
   background-repeat: no-repeat;
-  background-position-x: right;
+  background-position-x: inline-end;
 }
 
 .handsontable span.colHeader.columnSorting.ascending::before {
@@ -273,7 +277,7 @@ TextRenderer readOnly cell
   position: relative;
 }
 
-.handsontable .htSubmenu :after{
+.handsontable .htSubmenu :after {
   content: '\25B6';
   color: #777;
   position: absolute;
@@ -281,32 +285,43 @@ TextRenderer readOnly cell
   font-size: 9px;
 }
 
+[dir=rtl].handsontable .htSubmenu :after {
+  content: '';
+}
+
+[dir=rtl].handsontable .htSubmenu :before {
+  content: '\25C0';
+  color: #777;
+  position: absolute;
+  left: 5px;
+  font-size: 9px;
+}
 
 /*
 TextRenderer horizontal alignment
 */
-.handsontable .htLeft{
+.handsontable .htLeft {
   text-align: left;
 }
-.handsontable .htCenter{
+.handsontable .htCenter {
   text-align: center;
 }
-.handsontable .htRight{
+.handsontable .htRight {
   text-align: right;
 }
-.handsontable .htJustify{
+.handsontable .htJustify {
   text-align: justify;
 }
 /*
 TextRenderer vertical alignment
 */
-.handsontable .htTop{
+.handsontable .htTop {
   vertical-align: top;
 }
-.handsontable .htMiddle{
+.handsontable .htMiddle {
   vertical-align: middle;
 }
-.handsontable .htBottom{
+.handsontable .htBottom {
   vertical-align: bottom;
 }
 
@@ -337,7 +352,7 @@ TextRenderer placeholder value
 .handsontable.listbox tr:last-child th,
 .handsontable.listbox tr:first-child td,
 .handsontable.listbox td {
-  border-color: transparent;
+  border-color: transparent !important;
 }
 
 .handsontable.listbox th,
@@ -374,11 +389,12 @@ TextRenderer placeholder value
   color: #583707;
 }
 
-.collapsibleIndicator {
+.handsontable .collapsibleIndicator {
   position: absolute;
   top: 50%;
   transform: translate(0% ,-50%);
-  right: 5px;
+  inset-inline-start: unset;
+  inset-inline-end: 5px;
   border: 1px solid #A6A6A6;
   line-height: 8px;
   color: #222;

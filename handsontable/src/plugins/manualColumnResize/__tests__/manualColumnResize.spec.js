@@ -685,7 +685,7 @@ describe('manualColumnResize', () => {
       width: 200
     });
 
-    const mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view._wt.wtTable.holder;
     const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)'); // Header "C"
 
     $colHeader.simulate('mouseover');
@@ -814,7 +814,7 @@ describe('manualColumnResize', () => {
         width: 400
       });
 
-      const mainHolder = hot.view.wt.wtTable.holder;
+      const mainHolder = hot.view._wt.wtTable.holder;
       let $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
 
       $colHeader.simulate('mouseover');
@@ -881,7 +881,7 @@ describe('manualColumnResize', () => {
         viewportColumnRenderingOffset: 20
       });
 
-      const mainHolder = hot.view.wt.wtTable.holder;
+      const mainHolder = hot.view._wt.wtTable.holder;
 
       $(mainHolder).scrollLeft(200);
 
@@ -1027,50 +1027,65 @@ describe('manualColumnResize', () => {
   });
 
   describe('handle and guide', () => {
-    it('should display the resize handle in the proper position and with a proper size', () => {
-      handsontable({
-        data: [
-          { id: 1, name: 'Ted', lastName: 'Right' },
-          { id: 2, name: 'Frank', lastName: 'Honest' },
-          { id: 3, name: 'Joan', lastName: 'Well' },
-          { id: 4, name: 'Sid', lastName: 'Strong' },
-          { id: 5, name: 'Jane', lastName: 'Neat' }
-        ],
-        colHeaders: true,
-        manualColumnResize: true
+    using('configuration object', [
+      { htmlDir: 'ltr', layoutDirection: 'inherit' },
+      { htmlDir: 'rtl', layoutDirection: 'ltr' },
+    ], ({ htmlDir, layoutDirection }) => {
+      beforeEach(() => {
+        $('html').attr('dir', htmlDir);
       });
 
-      const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
-
-      $headerTH.simulate('mouseover');
-
-      const $handle = $('.manualColumnResizer');
-
-      expect($handle.offset().left)
-        .toEqual($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
-      expect($handle.height()).toEqual($headerTH.outerHeight());
-    });
-
-    it('should display the resize handle in the proper z-index and be greater than top overlay z-index', () => {
-      handsontable({
-        data: [
-          { id: 1, name: 'Ted', lastName: 'Right' },
-          { id: 2, name: 'Frank', lastName: 'Honest' },
-          { id: 3, name: 'Joan', lastName: 'Well' },
-          { id: 4, name: 'Sid', lastName: 'Strong' },
-          { id: 5, name: 'Jane', lastName: 'Neat' }
-        ],
-        colHeaders: true,
-        manualColumnResize: true
+      afterEach(() => {
+        $('html').attr('dir', 'ltr');
       });
 
-      const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
+      it('should display the resize handle in the proper position and with a proper size', () => {
+        handsontable({
+          layoutDirection,
+          data: [
+            { id: 1, name: 'Ted', lastName: 'Right' },
+            { id: 2, name: 'Frank', lastName: 'Honest' },
+            { id: 3, name: 'Joan', lastName: 'Well' },
+            { id: 4, name: 'Sid', lastName: 'Strong' },
+            { id: 5, name: 'Jane', lastName: 'Neat' }
+          ],
+          colHeaders: true,
+          manualColumnResize: true
+        });
 
-      $headerTH.simulate('mouseover');
+        const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
 
-      const $handle = $('.manualColumnResizer');
+        $headerTH.simulate('mouseover');
 
-      expect($handle.css('z-index')).toBeGreaterThan(getTopClone().css('z-index'));
+        const $handle = $('.manualColumnResizer');
+
+        expect($handle.offset().left)
+          .toEqual($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+        expect($handle.height()).toEqual($headerTH.outerHeight());
+      });
+
+      it('should display the resize handle in the proper z-index and be greater than top overlay z-index', () => {
+        handsontable({
+          layoutDirection,
+          data: [
+            { id: 1, name: 'Ted', lastName: 'Right' },
+            { id: 2, name: 'Frank', lastName: 'Honest' },
+            { id: 3, name: 'Joan', lastName: 'Well' },
+            { id: 4, name: 'Sid', lastName: 'Strong' },
+            { id: 5, name: 'Jane', lastName: 'Neat' }
+          ],
+          colHeaders: true,
+          manualColumnResize: true
+        });
+
+        const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
+
+        $headerTH.simulate('mouseover');
+
+        const $handle = $('.manualColumnResizer');
+
+        expect($handle.css('z-index')).toBeGreaterThan(getTopClone().css('z-index'));
+      });
     });
   });
 });

@@ -16,7 +16,7 @@ import {
   SEPARATOR
 } from '../contextMenu/predefinedItems';
 
-import './dropdownMenu.css';
+import './dropdownMenu.scss';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');

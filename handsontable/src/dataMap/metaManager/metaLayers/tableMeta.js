@@ -33,7 +33,7 @@ export default class TableMeta {
     /**
      * Main object (instance of the internal TableMeta class from GlobalMeta), holder for all settings defined in the table scope.
      *
-     * @type {object}
+     * @type {TableMeta}
      */
     this.meta = new MetaCtor();
   }
@@ -41,7 +41,7 @@ export default class TableMeta {
   /**
    * Gets settings object for this layer.
    *
-   * @returns {object}
+   * @returns {TableMeta}
    */
   getMeta() {
     return this.meta;

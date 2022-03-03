@@ -147,7 +147,7 @@ describe('HandsontableEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       type: 'handsontable',
       handsontable: {
         colHeaders: ['Marque', 'Country', 'Parent company'],
@@ -262,7 +262,7 @@ describe('HandsontableEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       hiddenColumns: {
         indicators: true,
         columns: [0],
@@ -700,6 +700,32 @@ describe('HandsontableEditor', () => {
     });
   });
 
+  it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      editor: 'handsontable',
+    });
+
+    selectCell(0, 0);
+
+    const editableElement = getActiveEditor().TEXTAREA;
+
+    expect(editableElement.getAttribute('dir')).toBeNull();
+  });
+
+  it('should inherit the actual layout direction option from the root Handsontable instance', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
+      editor: 'handsontable',
+      layoutDirection: 'inherit',
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    expect(getActiveEditor().htEditor.getSettings().layoutDirection).toBe('ltr');
+  });
+
   describe('IME support', () => {
     it('should focus editable element after selecting the cell', async() => {
       handsontable({
@@ -719,5 +745,57 @@ describe('HandsontableEditor', () => {
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
+  });
+
+  it('should open editors properly and handle keydown event properly (does not close editor)', async() => {
+    handsontable({
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [
+        ['Tesla', 2017, 'black', 'black'],
+        ['Nissan', 2018, 'blue', 'blue'],
+        ['Chrysler', 2019, 'yellow', 'black'],
+        ['Volvo', 2020, 'white', 'gray']
+      ],
+      colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        },
+        {},
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        },
+        {},
+      ]
+    });
+
+    $(getCell(2, 0)).find('.htAutocompleteArrow').simulate('mousedown');
+    $(getCell(2, 0)).find('.htAutocompleteArrow').simulate('mouseup');
+    $(getCell(1, 2)).find('.htAutocompleteArrow').simulate('mousedown');
+    $(getCell(1, 2)).find('.htAutocompleteArrow').simulate('mouseup');
+
+    keyDownUp('arrowup');
+
+    expect(getSelected()).toEqual([[1, 2, 1, 2]]);
+
+    keyDownUp('arrowright');
+
+    expect(getSelected()).toEqual([[1, 2, 1, 2]]);
+
+    keyDownUp('arrowleft');
+
+    expect(getSelected()).toEqual([[1, 2, 1, 2]]);
+
+    keyDownUp('arrowdown');
+
+    expect(getSelected()).toEqual([[1, 2, 1, 2]]);
   });
 });

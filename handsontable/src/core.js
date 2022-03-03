@@ -26,12 +26,12 @@ import DataSource from './dataSource';
 import { cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
-import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
+import { ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
-import { MetaManager, DynamicCellMetaMod, replaceData } from './dataMap';
+import { MetaManager, DynamicCellMetaMod, ExtendMetaPropertiesMod, replaceData } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 
@@ -72,13 +72,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let grid;
   let editorManager;
   let firstRun = true;
-
-  userSettings.language = getValidLanguageCode(userSettings.language);
-
-  const metaManager = new MetaManager(instance, userSettings, [DynamicCellMetaMod]);
-  const tableMeta = metaManager.getTableMeta();
-  const globalMeta = metaManager.getGlobalMeta();
-  const pluginsRegistry = createUniqueMap();
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -153,6 +146,57 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
     ownerWindow: this.rootWindow,
   });
+  const layoutDirection = userSettings?.layoutDirection ?? 'inherit';
+  const rootElementDirection = ['rtl', 'ltr'].includes(layoutDirection) ?
+    layoutDirection : this.rootWindow.getComputedStyle(this.rootElement).direction;
+
+  this.rootElement.setAttribute('dir', rootElementDirection);
+
+  /**
+   * Check if currently it is RTL direction.
+   *
+   * @private
+   * @memberof Core#
+   * @function isRtl
+   * @returns {boolean} True if RTL.
+   */
+  this.isRtl = function() {
+    return rootElementDirection === 'rtl';
+  };
+
+  /**
+   * Check if currently it is LTR direction.
+   *
+   * @private
+   * @memberof Core#
+   * @function isLtr
+   * @returns {boolean} True if LTR.
+   */
+  this.isLtr = function() {
+    return !instance.isRtl();
+  };
+
+  /**
+   * Returns 1 for LTR; -1 for RTL. Useful for calculations.
+   *
+   * @private
+   * @memberof Core#
+   * @function getDirectionFactor
+   * @returns {number} Returns 1 for LTR; -1 for RTL.
+   */
+  this.getDirectionFactor = function() {
+    return instance.isLtr() ? 1 : -1;
+  };
+
+  userSettings.language = getValidLanguageCode(userSettings.language);
+
+  const metaManager = new MetaManager(instance, userSettings, [
+    DynamicCellMetaMod,
+    ExtendMetaPropertiesMod,
+  ]);
+  const tableMeta = metaManager.getTableMeta();
+  const globalMeta = metaManager.getGlobalMeta();
+  const pluginsRegistry = createUniqueMap();
 
   this.container = this.rootDocument.createElement('div');
   this.renderCall = false;
@@ -191,7 +235,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const visualToRenderableCoords = (coords) => {
     const { row: visualRow, col: visualColumn } = coords;
 
-    return new CellCoords(
+    return instance._createCellCoords(
       // We just store indexes for rows and columns without headers.
       visualRow >= 0 ? instance.rowIndexMapper.getRenderableFromVisualIndex(visualRow) : visualRow,
       visualColumn >= 0 ? instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumn) : visualColumn
@@ -201,7 +245,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const renderableToVisualCoords = (coords) => {
     const { row: renderableRow, col: renderableColumn } = coords;
 
-    return new CellCoords(
+    return instance._createCellCoords(
       // We just store indexes for rows and columns without headers.
       renderableRow >= 0 ? instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow) : renderableRow,
       renderableColumn >= 0 ? instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn) : renderableColumn // eslint-disable-line max-len
@@ -216,6 +260,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     countColsTranslated: () => this.view.countRenderableColumns(),
     countRowsTranslated: () => this.view.countRenderableRows(),
     getShortcutManager: () => instance.getShortcutManager(),
+    createCellCoords: (row, column) => instance._createCellCoords(row, column),
+    createCellRange: (highlight, from, to) => instance._createCellRange(highlight, from, to),
     visualToRenderableCoords,
     renderableToVisualCoords,
     isDisabledCellSelection: (visualRow, visualColumn) =>
@@ -245,10 +291,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('beforeSetRangeEnd', cellCoords);
 
     if (cellCoords.row < 0) {
-      cellCoords.row = this.view.wt.wtTable.getFirstVisibleRow();
+      cellCoords.row = this.view._wt.wtTable.getFirstVisibleRow();
     }
     if (cellCoords.col < 0) {
-      cellCoords.col = this.view.wt.wtTable.getFirstVisibleColumn();
+      cellCoords.col = this.view._wt.wtTable.getFirstVisibleColumn();
     }
   });
 
@@ -450,8 +496,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               selection.getSelectedRange().pop();
 
               // I can't use transforms as they don't work in negative indexes.
-              selection.setRangeStartOnly(new CellCoords(currentFromRow + delta, currentFromColumn), true);
-              selection.setRangeEnd(new CellCoords(currentToRow + delta, currentToColumn)); // will call render() internally
+              selection.setRangeStartOnly(instance._createCellCoords(currentFromRow + delta, currentFromColumn), true);
+              selection.setRangeEnd(instance._createCellCoords(currentToRow + delta, currentToColumn)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
             }
@@ -491,8 +537,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               selection.getSelectedRange().pop();
 
               // I can't use transforms as they don't work in negative indexes.
-              selection.setRangeStartOnly(new CellCoords(currentFromRow, currentFromColumn + delta), true);
-              selection.setRangeEnd(new CellCoords(currentToRow, currentToColumn + delta)); // will call render() internally
+              selection.setRangeStartOnly(instance._createCellCoords(currentFromRow, currentFromColumn + delta), true);
+              selection.setRangeEnd(instance._createCellCoords(currentToRow, currentToColumn + delta)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
             }
@@ -579,10 +625,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               metaManager.removeColumn(physicalColumnIndex, groupAmount);
 
-              const fixedColumnsLeft = tableMeta.fixedColumnsLeft;
+              const fixedColumnsStart = tableMeta.fixedColumnsStart;
 
-              if (fixedColumnsLeft >= calcIndex + 1) {
-                tableMeta.fixedColumnsLeft -= Math.min(groupAmount, fixedColumnsLeft - calcIndex);
+              if (fixedColumnsStart >= calcIndex + 1) {
+                tableMeta.fixedColumnsStart -= Math.min(groupAmount, fixedColumnsStart - calcIndex);
               }
 
               if (Array.isArray(tableMeta.colHeaders)) {
@@ -1280,6 +1326,36 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   /**
+   * Creates and returns the CellCoords object.
+   *
+   * @private
+   * @memberof Core#
+   * @function _createCellCoords
+   * @param {number} row The row index.
+   * @param {number} column The column index.
+   * @returns {CellCoords}
+   */
+  this._createCellCoords = function(row, column) {
+    return instance.view._wt.createCellCoords(row, column);
+  };
+
+  /**
+   * Creates and returns the CellRange object.
+   *
+   * @private
+   * @memberof Core#
+   * @function _createCellRange
+   * @param {CellCoords} highlight Defines the border around a cell where selection was started and to edit the cell
+   *                               when you press Enter. The highlight cannot point to headers (negative values).
+   * @param {CellCoords} from Initial coordinates.
+   * @param {CellCoords} to Final coordinates.
+   * @returns {CellRange}
+   */
+  this._createCellRange = function(highlight, from, to) {
+    return instance.view._wt.createCellRange(highlight, from, to);
+  };
+
+  /**
    * Validate a single cell.
    *
    * @memberof Core#
@@ -1315,7 +1391,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         const renderableRow = instance.rowIndexMapper.getRenderableFromVisualIndex(row);
         const renderableColumn = instance.columnIndexMapper.getRenderableFromVisualIndex(col);
 
-        instance.view.wt.getSetting('cellRenderer', renderableRow, renderableColumn, td);
+        instance.view._wt.getSetting('cellRenderer', renderableRow, renderableColumn, td);
       }
 
       callback(valid);
@@ -1543,9 +1619,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       throw new Error('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
     }
 
-    const c = typeof endRow === 'number' ? new CellCoords(endRow, endCol) : null;
+    const c = typeof endRow === 'number' ? instance._createCellCoords(endRow, endCol) : null;
 
-    return grid.populateFromArray(new CellCoords(row, column), input, c, source, method, direction, deltas);
+    return grid.populateFromArray(instance._createCellCoords(row, column), input, c, source, method, direction, deltas);
   };
 
   /**
@@ -1668,11 +1744,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const changes = [];
 
     arrayEach(selection.getSelectedRange(), (cellRange) => {
-      const topLeft = cellRange.getTopLeftCorner();
-      const bottomRight = cellRange.getBottomRightCorner();
+      const topStart = cellRange.getTopStartCorner();
+      const bottomEnd = cellRange.getBottomEndCorner();
 
-      rangeEach(topLeft.row, bottomRight.row, (row) => {
-        rangeEach(topLeft.col, bottomRight.col, (column) => {
+      rangeEach(topStart.row, bottomEnd.row, (row) => {
+        rangeEach(topStart.col, bottomEnd.col, (column) => {
           if (!this.getCellMeta(row, column).readOnly) {
             changes.push([row, column, null]);
           }
@@ -2019,7 +2095,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return;
     }
 
-    if (isSizeChanged || instance.view.wt.wtOverlays.scrollableElement === instance.rootWindow) {
+    if (isSizeChanged || instance.view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       instance.view.setLastSize(width, height);
       instance.render();
     }
@@ -2208,7 +2284,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return datamap.getAll();
     }
 
-    return datamap.getRange(new CellCoords(row, column), new CellCoords(row2, column2), datamap.DESTINATION_RENDERER);
+    return datamap.getRange(instance._createCellCoords(row, column),
+      instance._createCellCoords(row2, column2), datamap.DESTINATION_RENDERER);
   };
 
   /**
@@ -2224,7 +2301,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {string}
    */
   this.getCopyableText = function(startRow, startCol, endRow, endCol) {
-    return datamap.getCopyableText(new CellCoords(startRow, startCol), new CellCoords(endRow, endCol));
+    return datamap.getCopyableText(instance._createCellCoords(startRow, startCol),
+      instance._createCellCoords(endRow, endCol));
   };
 
   /**
@@ -2296,14 +2374,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
       if (i === 'data') {
-        /* eslint-disable-next-line no-continue */
-        continue; // loadData will be triggered later
-
+        // Do nothing. loadData will be triggered later
       } else if (i === 'language') {
         setLanguage(settings.language);
-
-        /* eslint-disable-next-line no-continue */
-        continue;
 
       } else if (i === 'className') {
         setClassName('className', settings.className);
@@ -2311,7 +2384,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       } else if (i === 'tableClassName' && instance.table) {
         setClassName('tableClassName', settings.tableClassName);
 
-        instance.view.wt.wtOverlays.syncOverlayTableClassNames();
+        instance.view._wt.wtOverlays.syncOverlayTableClassNames();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
 
@@ -2423,8 +2496,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (!init) {
       if (instance.view) {
-        instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
-        instance.view.wt.exportSettingsAsClassNames();
+        instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
+        instance.view._wt.exportSettingsAsClassNames();
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -2436,13 +2509,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.forceFullRender = true; // used when data was changed
       editorManager.lockEditor();
       instance._refreshBorders(null);
-      instance.view.wt.wtOverlays.adjustElementsSize();
+      instance.view._wt.wtOverlays.adjustElementsSize();
       editorManager.unlockEditor();
     }
 
     if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) &&
         currentHeight !== height) {
-      instance.view.wt.wtOverlays.updateMainScrollableElements();
+      instance.view._wt.wtOverlays.updateMainScrollableElements();
     }
   };
 
@@ -2472,7 +2545,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getSettings
-   * @returns {object} Object containing the current table settings.
+   * @returns {TableMeta} Object containing the current table settings.
    */
   this.getSettings = function() {
     return tableMeta;
@@ -2559,7 +2632,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return null;
     }
 
-    return instance.view.getCellAtCoords(new CellCoords(renderableRowIndex, renderableColumnIndex), topmost);
+    return instance.view
+      .getCellAtCoords(instance._createCellCoords(renderableRowIndex, renderableColumnIndex), topmost);
   };
 
   /**
@@ -2576,7 +2650,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.getCoords = function(element) {
-    const renderableCoords = this.view.wt.wtTable.getCoords(element);
+    const renderableCoords = this.view._wt.wtTable.getCoords(element);
 
     if (renderableCoords === null) {
       return null;
@@ -2595,7 +2669,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       visualColumn = this.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn);
     }
 
-    return new CellCoords(visualRow, visualColumn);
+    return instance._createCellCoords(visualRow, visualColumn);
   };
 
   /**
@@ -2719,8 +2793,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getDataAtCol = function(column) {
     return [].concat(...datamap.getRange(
-      new CellCoords(0, column),
-      new CellCoords(tableMeta.data.length - 1, column),
+      instance._createCellCoords(0, column),
+      instance._createCellCoords(tableMeta.data.length - 1, column),
       datamap.DESTINATION_RENDERER
     ));
   };
@@ -2737,8 +2811,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   // TODO: Getting data from `datamap` should work on visual indexes.
   this.getDataAtProp = function(prop) {
     const range = datamap.getRange(
-      new CellCoords(0, datamap.propToCol(prop)),
-      new CellCoords(tableMeta.data.length - 1, datamap.propToCol(prop)),
+      instance._createCellCoords(0, datamap.propToCol(prop)),
+      instance._createCellCoords(tableMeta.data.length - 1, datamap.propToCol(prop)),
       datamap.DESTINATION_RENDERER);
 
     return [].concat(...range);
@@ -2766,7 +2840,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (row === void 0) {
       data = dataSource.getData();
     } else {
-      data = dataSource.getByRange(new CellCoords(row, column), new CellCoords(row2, column2));
+      data = dataSource
+        .getByRange(instance._createCellCoords(row, column), instance._createCellCoords(row2, column2));
     }
 
     return data;
@@ -2794,7 +2869,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (row === void 0) {
       data = dataSource.getData(true);
     } else {
-      data = dataSource.getByRange(new CellCoords(row, column), new CellCoords(row2, column2), true);
+      data = dataSource
+        .getByRange(instance._createCellCoords(row, column), instance._createCellCoords(row2, column2), true);
     }
 
     return data;
@@ -2900,8 +2976,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getDataAtRow = function(row) {
     const data = datamap.getRange(
-      new CellCoords(row, 0),
-      new CellCoords(row, this.countCols() - 1),
+      instance._createCellCoords(row, 0),
+      instance._createCellCoords(row, this.countCols() - 1),
       datamap.DESTINATION_RENDERER
     );
 
@@ -3641,7 +3717,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedRows = function() {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedRowsCount() : -1;
+    return instance.view._wt.drawn ? instance.view._wt.wtTable.getRenderedRowsCount() : -1;
   };
 
   /**
@@ -3652,7 +3728,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Number of visible rows or -1.
    */
   this.countVisibleRows = function() {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleRowsCount() : -1;
+    return instance.view._wt.drawn ? instance.view._wt.wtTable.getVisibleRowsCount() : -1;
   };
 
   /**
@@ -3663,7 +3739,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedCols = function() {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedColumnsCount() : -1;
+    return instance.view._wt.drawn ? instance.view._wt.wtTable.getRenderedColumnsCount() : -1;
   };
 
   /**
@@ -3674,7 +3750,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Number of visible columns or -1.
    */
   this.countVisibleCols = function() {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleColumnsCount() : -1;
+    return instance.view._wt.drawn ? instance.view._wt.wtTable.getVisibleColumnsCount() : -1;
   };
 
   /**
@@ -3967,7 +4043,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (isRowInteger && isColumnInteger) {
       return instance.view.scrollViewport(
-        new CellCoords(renderableRow, renderableColumn),
+        instance._createCellCoords(renderableRow, renderableColumn),
         snapToTop,
         snapToRight,
         snapToBottom,
@@ -4385,6 +4461,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return instance.isLtr() ? 1 : -1;
   };
 
+  const shortcutManager = createShortcutManager({
+    beforeKeyDown: (event) => {
+      if (this.isListening() === false) { // Performing action (executing a callback) and triggering hook only for listening Handsontable.
+        return false;
+      }
+
+      return this.runHooks('beforeKeyDown', event);
+    },
+    afterKeyDown: (event) => {
+      if (this.isDestroyed) { // Handsontable could be destroyed after performing action (executing a callback).
+        return;
+      }
+
+      instance.runHooks('afterDocumentKeyDown', event);
+    },
+    ownerWindow: this.rootWindow,
+  });
+
   /**
    * Returns instance of a manager responsible for handling shortcuts stored in some contexts. It run actions after
    * pressing key combination in active Handsontable instance.
@@ -4454,7 +4548,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['Home']],
     callback: () => {
-      selection.setRangeStart(new CellCoords(
+      selection.setRangeStart(instance._createCellCoords(
         selection.selectedRange.current().from.row,
         instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
       ));
@@ -4462,7 +4556,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['Home', 'Shift']],
     callback: () => {
-      selection.setRangeEnd(new CellCoords(
+      selection.setRangeEnd(instance._createCellCoords(
         selection.selectedRange.current().from.row,
         instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
       ));
@@ -4470,7 +4564,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['Home', 'Control'], ['Home', 'Meta']],
     callback: () => {
-      selection.setRangeStart(new CellCoords(
+      selection.setRangeStart(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
         selection.selectedRange.current().from.col,
       ));
@@ -4478,7 +4572,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['Home', 'Control', 'Shift'], ['Home', 'Meta', 'Shift']],
     callback: () => {
-      selection.setRangeEnd(new CellCoords(
+      selection.setRangeEnd(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
         selection.selectedRange.current().from.col,
       ));
@@ -4486,7 +4580,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['End']],
     callback: () => {
-      selection.setRangeStart(new CellCoords(
+      selection.setRangeStart(instance._createCellCoords(
         selection.selectedRange.current().from.row,
         instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
       ));
@@ -4494,7 +4588,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['End', 'Shift']],
     callback: () => {
-      selection.setRangeEnd(new CellCoords(
+      selection.setRangeEnd(instance._createCellCoords(
         selection.selectedRange.current().from.row,
         instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
       ));
@@ -4502,7 +4596,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['End', 'Control'], ['End', 'Meta']],
     callback: () => {
-      selection.setRangeStart(new CellCoords(
+      selection.setRangeStart(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
         selection.selectedRange.current().from.col,
       ));
@@ -4510,7 +4604,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['End', 'Control', 'Shift'], ['End', 'Meta', 'Shift']],
     callback: () => {
-      selection.setRangeEnd(new CellCoords(
+      selection.setRangeEnd(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
         selection.selectedRange.current().from.col,
       ));

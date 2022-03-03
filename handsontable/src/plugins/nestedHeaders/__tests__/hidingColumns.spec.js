@@ -880,7 +880,7 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should work with multiple levels of nested headers configuration with cooperation with the fixedColumnsLeft option', () => {
+    it('should work with multiple levels of nested headers configuration with cooperation with the fixedColumnsStart option', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 13),
         colHeaders: true,
@@ -891,7 +891,7 @@ describe('NestedHeaders', () => {
           ['A4', { label: 'B4', colspan: 2 }, { label: 'D4', colspan: 2 }, { label: 'F4', colspan: 2 },
             { label: 'H4', colspan: 2 }, 'J4', 'K4', { label: 'L4', colspan: 2 }],
         ],
-        fixedColumnsLeft: 6,
+        fixedColumnsStart: 6,
       });
 
       const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
@@ -938,8 +938,8 @@ describe('NestedHeaders', () => {
           </tbody>
           `;
 
-        expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
-        expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getTopInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
       hidingMap.setValueAtIndex(4, true); // Hide column that contains cells E{n}
@@ -978,8 +978,8 @@ describe('NestedHeaders', () => {
           </tbody>
           `;
 
-        expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
-        expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getTopInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
       hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
@@ -1013,8 +1013,8 @@ describe('NestedHeaders', () => {
           </tbody>
           `;
 
-        expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
-        expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getTopInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
       hidingMap.setValueAtIndex(2, true); // Hide column that contains cells C{n}
@@ -1043,8 +1043,8 @@ describe('NestedHeaders', () => {
           </tbody>
           `;
 
-        expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
-        expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getTopInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
       hidingMap.setValueAtIndex(5, true); // Hide column that contains cells F{n}
@@ -1070,8 +1070,8 @@ describe('NestedHeaders', () => {
           </tbody>
           `;
 
-        expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
-        expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getTopInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
     });
 

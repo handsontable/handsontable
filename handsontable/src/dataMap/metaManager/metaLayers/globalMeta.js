@@ -3,6 +3,9 @@ import { expandMetaType } from '../utils';
 import metaSchemaFactory from '../metaSchema';
 
 /**
+ * @typedef {Options} TableMeta
+ */
+/**
  * @returns {TableMeta} Returns an empty object. The holder for global meta object.
  */
 function createTableMetaEmptyClass() {

@@ -72,7 +72,7 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
     let extraModifierKeys = [];
 
     if (isModifierKey(pressedKey)) {
-      modifierKeysObserver.press(normalizeEventKey(event.key));
+      modifierKeysObserver.press(pressedKey);
 
     } else {
       extraModifierKeys = getModifierKeys(event);

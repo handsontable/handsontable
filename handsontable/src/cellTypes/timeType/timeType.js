@@ -1,12 +1,11 @@
-import { TextEditor } from '../../editors/textEditor';
-import { textRenderer } from '../../renderers/textRenderer';
+import { TimeEditor } from '../../editors/timeEditor';
+import { timeRenderer } from '../../renderers/timeRenderer';
 import { timeValidator } from '../../validators/timeValidator';
 
 export const CELL_TYPE = 'time';
 export const TimeCellType = {
   CELL_TYPE,
-  editor: TextEditor,
-  // displays small gray arrow on right side of the cell
-  renderer: textRenderer,
+  editor: TimeEditor,
+  renderer: timeRenderer,
   validator: timeValidator,
 };

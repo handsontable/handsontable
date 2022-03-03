@@ -155,7 +155,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     const config = { group: SHORTCUTS_GROUP };
 
     gridContext.addShortcuts([{
-      keys: [[' ']],
+      keys: [['space']],
       callback: () => {
         changeSelectedCheckboxesState();
 
@@ -195,8 +195,8 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     }
 
     for (let key = 0; key < selRange.length; key++) {
-      const { row: startRow, col: startColumn } = selRange[key].getTopLeftCorner();
-      const { row: endRow, col: endColumn } = selRange[key].getBottomRightCorner();
+      const { row: startRow, col: startColumn } = selRange[key].getTopStartCorner();
+      const { row: endRow, col: endColumn } = selRange[key].getBottomEndCorner();
       const changes = [];
 
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
@@ -255,8 +255,8 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     }
 
     for (let key = 0; key < selRange.length; key++) {
-      const topLeft = selRange[key].getTopLeftCorner();
-      const bottomRight = selRange[key].getBottomRightCorner();
+      const topLeft = selRange[key].getTopStartCorner();
+      const bottomRight = selRange[key].getBottomEndCorner();
 
       for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
