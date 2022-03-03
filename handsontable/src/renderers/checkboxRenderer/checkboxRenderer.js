@@ -1,13 +1,8 @@
 import { baseRenderer } from '../baseRenderer';
 import EventManager from '../../eventManager';
 import { empty, addClass } from '../../helpers/dom/element';
-import {
-  stopImmediatePropagation,
-  isImmediatePropagationStopped,
-} from '../../helpers/dom/event';
-import { partial } from '../../helpers/function';
 import { isEmpty, stringify } from '../../helpers/mixed';
-import { isKey } from '../../helpers/unicode';
+import { SHORTCUTS_GROUP_EDITOR } from '../../editorManager';
 
 import './checkboxRenderer.css';
 import Hooks from '../../pluginHooks';
@@ -17,6 +12,7 @@ const isCheckboxListenerAdded = new WeakMap();
 const BAD_VALUE_CLASS = 'htBadValue';
 const ATTR_ROW = 'data-row';
 const ATTR_COLUMN = 'data-col';
+const SHORTCUTS_GROUP = 'checkboxRenderer';
 
 export const RENDERER_TYPE = 'checkbox';
 
@@ -145,35 +141,44 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
   if (!isListeningKeyDownEvent.has(instance)) {
     isListeningKeyDownEvent.set(instance, true);
-    instance.addHook('beforeKeyDown', onBeforeKeyDown);
+    registerShortcuts();
   }
 
   /**
-   * On before key down DOM listener.
+   * Register shortcuts responsible for toggling checkbox state.
    *
    * @private
-   * @param {Event} event The keyboard event object.
    */
-  function onBeforeKeyDown(event) {
-    const toggleKeys = 'SPACE|ENTER';
-    const switchOffKeys = 'DELETE|BACKSPACE';
-    const isKeyCode = partial(isKey, event.keyCode);
+  function registerShortcuts() {
+    const shortcutManager = instance.getShortcutManager();
+    const gridContext = shortcutManager.getContext('grid');
+    const config = { group: SHORTCUTS_GROUP };
 
-    if (!instance.getSettings().enterBeginsEditing && isKeyCode('ENTER')) {
-      return;
-    }
-    if (isKeyCode(`${toggleKeys}|${switchOffKeys}`) && !isImmediatePropagationStopped(event)) {
-      eachSelectedCheckboxCell(() => {
-        stopImmediatePropagation(event);
-        event.preventDefault();
-      });
-    }
-    if (isKeyCode(toggleKeys)) {
-      changeSelectedCheckboxesState();
-    }
-    if (isKeyCode(switchOffKeys)) {
-      changeSelectedCheckboxesState(true);
-    }
+    gridContext.addShortcuts([{
+      keys: [['space']],
+      callback: () => {
+        changeSelectedCheckboxesState();
+
+        return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
+      },
+    }, {
+      keys: [['enter']],
+      callback: () => {
+        changeSelectedCheckboxesState();
+
+        return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
+      },
+      runOnlyIf: () => instance.getSettings().enterBeginsEditing
+    }, {
+      keys: [['delete'], ['backspace']],
+      callback: () => {
+        changeSelectedCheckboxesState(true);
+
+        return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
+      },
+      relativeToGroup: SHORTCUTS_GROUP_EDITOR,
+      position: 'before',
+    }], config);
   }
 
   /**
@@ -237,12 +242,12 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
   }
 
   /**
-   * Call callback for each found selected cell with checkbox type.
+   * Check whether all selected cells are with checkbox type.
    *
+   * @returns {boolean}
    * @private
-   * @param {Function} callback The callback function.
    */
-  function eachSelectedCheckboxCell(callback) {
+  function areSelectedCheckboxCells() {
     const selRange = instance.getSelectedRange();
 
     if (!selRange) {
@@ -258,24 +263,26 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
           const cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
 
           if (cachedCellProperties.type !== 'checkbox') {
-            return;
+            return false;
           }
 
           const cell = instance.getCell(visualRow, visualColumn);
 
           if (cell === null || cell === void 0) {
-            callback(visualRow, visualColumn, cachedCellProperties);
+            return true;
 
           } else {
             const checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
             if (checkboxes.length > 0 && !cachedCellProperties.readOnly) {
-              callback(checkboxes);
+              return true;
             }
           }
         }
       }
     }
+
+    return false;
   }
 }
 

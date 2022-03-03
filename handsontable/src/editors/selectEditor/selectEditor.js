@@ -6,11 +6,10 @@ import {
   hasClass,
   removeClass,
 } from '../../helpers/dom/element';
-import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { objectEach } from '../../helpers/object';
-import { KEY_CODES } from '../../helpers/unicode';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
+const SHORTCUTS_GROUP = 'selectEditor';
 
 export const EDITOR_TYPE = 'select';
 
@@ -60,7 +59,12 @@ export class SelectEditor extends BaseEditor {
     this._opened = true;
     this.refreshDimensions();
     this.select.style.display = '';
-    this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
+
+    const shortcutManager = this.hot.getShortcutManager();
+
+    shortcutManager.setActiveContextName('editor');
+
+    this.registerShortcuts();
   }
 
   /**
@@ -73,6 +77,8 @@ export class SelectEditor extends BaseEditor {
     if (hasClass(this.select, EDITOR_VISIBLE_CLASS_NAME)) {
       removeClass(this.select, EDITOR_VISIBLE_CLASS_NAME);
     }
+
+    this.unregisterShortcuts();
     this.clearHooks();
   }
 
@@ -202,35 +208,53 @@ export class SelectEditor extends BaseEditor {
   }
 
   /**
-   * OnBeforeKeyDown callback.
+   * Register shortcuts responsible for handling editor.
    *
    * @private
    */
-  onBeforeKeyDown() {
-    const previousOptionIndex = this.select.selectedIndex - 1;
-    const nextOptionIndex = this.select.selectedIndex + 1;
+  registerShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
 
-    switch (event.keyCode) {
-      case KEY_CODES.ARROW_UP:
+    const contextConfig = {
+      group: SHORTCUTS_GROUP,
+    };
+
+    // Actions from fast edit works.
+    if (this.isInFullEditMode() === false) {
+      return;
+    }
+
+    editorContext.addShortcuts([{
+      keys: [['ArrowUp']],
+      callback: () => {
+        const previousOptionIndex = this.select.selectedIndex - 1;
+
         if (previousOptionIndex >= 0) {
           this.select[previousOptionIndex].selected = true;
         }
+      },
+    }, {
+      keys: [['ArrowDown']],
+      callback: () => {
+        const nextOptionIndex = this.select.selectedIndex + 1;
 
-        stopImmediatePropagation(event);
-        event.preventDefault();
-        break;
-
-      case KEY_CODES.ARROW_DOWN:
         if (nextOptionIndex <= this.select.length - 1) {
           this.select[nextOptionIndex].selected = true;
         }
+      }
+    }], contextConfig);
+  }
 
-        stopImmediatePropagation(event);
-        event.preventDefault();
-        break;
+  /**
+   * Unregister shortcuts responsible for handling editor.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
 
-      default:
-        break;
-    }
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 }

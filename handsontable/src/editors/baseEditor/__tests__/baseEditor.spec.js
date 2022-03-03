@@ -57,8 +57,8 @@ describe('BaseEditor', () => {
     document.body.removeChild(externalInputElement);
   });
 
-  describe('ctrl + enter when editor is active', () => {
-    it('should populate value from the currently active cell to every cell in the selected range', () => {
+  describe('should populate value from the currently active cell to every cell in the selected range', () => {
+    it('ctrl + enter when editor is active', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(6, 6)
       });
@@ -68,8 +68,8 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(1, 1)).toEqual('B2');
       expect(getDataAtCell(2, 2)).toEqual('C3');
 
-      keyDown(Handsontable.helper.KEY_CODES.ENTER);
-      keyDown('ctrl+enter');
+      keyDownUp('enter');
+      keyDownUp(['control', 'enter']);
 
       expect(getDataAtCell(1, 1)).toEqual('B2');
       expect(getDataAtCell(1, 2)).toEqual('B2');
@@ -83,8 +83,8 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(1, 2)).toEqual('C2');
       expect(getDataAtCell(2, 1)).toEqual('B3');
 
-      keyDown(Handsontable.helper.KEY_CODES.ENTER);
-      keyDown('ctrl+enter');
+      keyDownUp('enter');
+      keyDownUp(['control', 'enter']);
 
       expect(getDataAtCell(1, 1)).toEqual('C2');
       expect(getDataAtCell(1, 2)).toEqual('C2');
@@ -95,8 +95,8 @@ describe('BaseEditor', () => {
       selectCell(2, 2, 1, 1);
       expect(getDataAtCell(2, 2)).toEqual('C3');
 
-      keyDown(Handsontable.helper.KEY_CODES.ENTER);
-      keyDown('ctrl+enter');
+      keyDownUp('enter');
+      keyDownUp(['control', 'enter']);
 
       expect(getDataAtCell(1, 1)).toEqual('C3');
       expect(getDataAtCell(1, 2)).toEqual('C3');
@@ -107,8 +107,66 @@ describe('BaseEditor', () => {
       selectCell(2, 1, 1, 2);
       expect(getDataAtCell(2, 1)).toEqual('B3');
 
-      keyDown(Handsontable.helper.KEY_CODES.ENTER);
-      keyDown('ctrl+enter');
+      keyDownUp('enter');
+      keyDownUp(['control', 'enter']);
+
+      expect(getDataAtCell(1, 1)).toEqual('B3');
+      expect(getDataAtCell(1, 2)).toEqual('B3');
+      expect(getDataAtCell(2, 1)).toEqual('B3');
+      expect(getDataAtCell(2, 2)).toEqual('B3');
+    });
+
+    it('meta + enter when editor is active', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6)
+      });
+
+      selectCell(1, 1, 2, 2);
+
+      expect(getDataAtCell(1, 1)).toEqual('B2');
+      expect(getDataAtCell(2, 2)).toEqual('C3');
+
+      keyDownUp('enter');
+      keyDownUp(['meta', 'enter']);
+
+      expect(getDataAtCell(1, 1)).toEqual('B2');
+      expect(getDataAtCell(1, 2)).toEqual('B2');
+      expect(getDataAtCell(2, 1)).toEqual('B2');
+      expect(getDataAtCell(2, 2)).toEqual('B2');
+
+      loadData(Handsontable.helper.createSpreadsheetData(6, 6));
+
+      selectCell(1, 2, 2, 1);
+
+      expect(getDataAtCell(1, 2)).toEqual('C2');
+      expect(getDataAtCell(2, 1)).toEqual('B3');
+
+      keyDownUp('enter');
+      keyDownUp(['meta', 'enter']);
+
+      expect(getDataAtCell(1, 1)).toEqual('C2');
+      expect(getDataAtCell(1, 2)).toEqual('C2');
+      expect(getDataAtCell(2, 1)).toEqual('C2');
+      expect(getDataAtCell(2, 2)).toEqual('C2');
+
+      loadData(Handsontable.helper.createSpreadsheetData(6, 6));
+      selectCell(2, 2, 1, 1);
+      expect(getDataAtCell(2, 2)).toEqual('C3');
+
+      keyDownUp('enter');
+      keyDownUp(['meta', 'enter']);
+
+      expect(getDataAtCell(1, 1)).toEqual('C3');
+      expect(getDataAtCell(1, 2)).toEqual('C3');
+      expect(getDataAtCell(2, 1)).toEqual('C3');
+      expect(getDataAtCell(2, 2)).toEqual('C3');
+
+      loadData(Handsontable.helper.createSpreadsheetData(6, 6));
+      selectCell(2, 1, 1, 2);
+      expect(getDataAtCell(2, 1)).toEqual('B3');
+
+      keyDownUp('enter');
+      keyDownUp(['meta', 'enter']);
 
       expect(getDataAtCell(1, 1)).toEqual('B3');
       expect(getDataAtCell(1, 2)).toEqual('B3');

@@ -2,10 +2,11 @@ import { TextEditor } from '../textEditor';
 import { setCaretPosition } from '../../helpers/dom/element';
 import {
   stopImmediatePropagation,
-  isImmediatePropagationStopped,
 } from '../../helpers/dom/event';
-import { KEY_CODES } from '../../helpers/unicode';
 import { extend } from '../../helpers/object';
+import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
+
+const SHORTCUTS_GROUP = 'handsontableEditor';
 
 export const EDITOR_TYPE = 'handsontable';
 
@@ -173,67 +174,105 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * OnBeforeKeyDown callback.
+   * Register shortcuts responsible for handling editor.
    *
    * @private
-   * @param {Event} event The keyboard event object.
    */
-  onBeforeKeyDown(event) {
-    if (isImmediatePropagationStopped(event)) {
-      return;
-    }
+  registerShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
 
-    const innerHOT = this.htEditor.getInstance();
+    super.registerShortcuts();
 
-    let rowToSelect;
-    let selectedRow;
+    const contextConfig = {
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: SHORTCUTS_GROUP_NAVIGATION,
+      position: 'before',
+    };
 
-    if (event.keyCode === KEY_CODES.ARROW_DOWN) {
-      if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
-        rowToSelect = 0;
+    const action = (rowToSelect, event) => {
+      const innerHOT = this.htEditor.getInstance();
 
-      } else if (innerHOT.getSelectedLast()) {
-        if (innerHOT.flipped) {
-          rowToSelect = innerHOT.getSelectedLast()[0] + 1;
-
-        } else if (!innerHOT.flipped) {
-          const lastRow = innerHOT.countRows() - 1;
-
-          selectedRow = innerHOT.getSelectedLast()[0];
-          rowToSelect = Math.min(lastRow, selectedRow + 1);
-        }
-      }
-
-    } else if (event.keyCode === KEY_CODES.ARROW_UP) {
-      if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
-        rowToSelect = innerHOT.countRows() - 1;
-
-      } else if (innerHOT.getSelectedLast()) {
-        if (innerHOT.flipped) {
-          selectedRow = innerHOT.getSelectedLast()[0];
-          rowToSelect = Math.max(0, selectedRow - 1);
+      if (rowToSelect !== void 0) {
+        if (rowToSelect < 0 || (innerHOT.flipped && rowToSelect > innerHOT.countRows() - 1)) {
+          innerHOT.deselectCell();
         } else {
-          selectedRow = innerHOT.getSelectedLast()[0];
-          rowToSelect = selectedRow - 1;
+          innerHOT.selectCell(rowToSelect, 0);
+        }
+        if (innerHOT.getData().length) {
+          event.preventDefault();
+          stopImmediatePropagation(event);
+
+          this.hot.listen();
+          this.TEXTAREA.focus();
+
+          return false;
         }
       }
-    }
+    };
 
-    if (rowToSelect !== void 0) {
-      if (rowToSelect < 0 || (innerHOT.flipped && rowToSelect > innerHOT.countRows() - 1)) {
-        innerHOT.deselectCell();
-      } else {
-        innerHOT.selectCell(rowToSelect, 0);
-      }
-      if (innerHOT.getData().length) {
-        event.preventDefault();
-        stopImmediatePropagation(event);
+    editorContext.addShortcuts([{
+      keys: [['ArrowUp']],
+      callback: (event) => {
+        const innerHOT = this.htEditor.getInstance();
+        let rowToSelect;
+        let selectedRow;
 
-        this.hot.listen();
-        this.TEXTAREA.focus();
-      }
-    }
+        if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
+          rowToSelect = innerHOT.countRows() - 1;
 
-    super.onBeforeKeyDown(event);
+        } else if (innerHOT.getSelectedLast()) {
+          if (innerHOT.flipped) {
+            selectedRow = innerHOT.getSelectedLast()[0];
+            rowToSelect = Math.max(0, selectedRow - 1);
+          } else {
+            selectedRow = innerHOT.getSelectedLast()[0];
+            rowToSelect = selectedRow - 1;
+          }
+        }
+
+        return action(rowToSelect, event);
+      },
+      preventDefault: false, // Doesn't block default behaviour (navigation) for a `textArea` HTMLElement.
+    }, {
+      keys: [['ArrowDown']],
+      callback: (event) => {
+        const innerHOT = this.htEditor.getInstance();
+        let rowToSelect;
+        let selectedRow;
+
+        if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
+          rowToSelect = 0;
+
+        } else if (innerHOT.getSelectedLast()) {
+          if (innerHOT.flipped) {
+            rowToSelect = innerHOT.getSelectedLast()[0] + 1;
+
+          } else if (!innerHOT.flipped) {
+            const lastRow = innerHOT.countRows() - 1;
+
+            selectedRow = innerHOT.getSelectedLast()[0];
+            rowToSelect = Math.min(lastRow, selectedRow + 1);
+          }
+        }
+
+        return action(rowToSelect, event);
+      },
+      preventDefault: false, // Doesn't block default behaviour (navigation) for a `textArea` HTMLElement.
+    }], contextConfig);
+  }
+
+  /**
+   * Unregister shortcuts responsible for handling editor.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    super.unregisterShortcuts();
+
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 }

@@ -5,7 +5,6 @@ import {
   CELL_TYPE,
 } from './highlight/constants';
 import SelectionRange from './range';
-import { isPressedCtrlKey } from './../utils/keyStateObserver';
 import { createObjectPropListener, mixin } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
 import { arrayEach } from './../helpers/array';
@@ -161,13 +160,14 @@ class Selection {
    * @param {CellCoords} coords Visual coords.
    * @param {boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
    *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
-   *                                      the default trigger will be used (isPressedCtrlKey() helper).
+   *                                      the default trigger will be used.
    * @param {boolean} [fragment=false] If `true`, the selection will be treated as a partial selection where the
    *                                   `setRangeEnd` method won't be called on every `setRangeStart` call.
    */
   setRangeStart(coords, multipleSelection, fragment = false) {
     const isMultipleMode = this.settings.selectionMode === 'multiple';
-    const isMultipleSelection = isUndefined(multipleSelection) ? isPressedCtrlKey() : multipleSelection;
+    const isMultipleSelection = isUndefined(multipleSelection) ?
+      this.tableProps.getShortcutManager().isCtrlPressed() : multipleSelection;
     const isRowNegative = coords.row < 0;
     const isColumnNegative = coords.col < 0;
     const selectedByCorner = isRowNegative && isColumnNegative;
@@ -208,7 +208,7 @@ class Selection {
    * @param {CellCoords} coords Visual coords.
    * @param {boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
    *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
-   *                                      the default trigger will be used (isPressedCtrlKey() helper).
+   *                                      the default trigger will be used.
    */
   setRangeStartOnly(coords, multipleSelection) {
     this.setRangeStart(coords, multipleSelection, true);

@@ -1812,12 +1812,19 @@ describe('HiddenRows', () => {
 
       const mergeArea = spec().$container.find('tr:eq(2) td:eq(1)');
 
+      // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
+      // Please keep in mind that selectColumns/selectRows doesn't set instance to listening (see #7290).
+      listen();
+
       // Selected 2 ranges containing together merged area.
       selectRows(1);
-      keyDown('ctrl');
+
+      keyDown('control');
+
       selectRows(3);
-      keyDown('ctrl');
       selectRows(2);
+
+      keyUp('control');
 
       expect(`
       |   ║ - : - : - : - : - |

@@ -12,6 +12,7 @@ import LinkUI from './link';
 import { createArrayAssertion } from '../utils';
 
 const privatePool = new WeakMap();
+const SHORTCUTS_GROUP = 'multipleSelect.itemBox';
 
 /**
  * @private
@@ -185,10 +186,21 @@ class MultipleSelectUI extends BaseUI {
         fillHandle: false,
         fragmentSelection: 'cell',
         tabMoves: { row: 1, col: 0 },
-        beforeKeyDown: event => this.onItemsBoxBeforeKeyDown(event),
         layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       });
       this.itemsBox.init();
+
+      const shortcutManager = this.itemsBox.getShortcutManager();
+      const gridContext = shortcutManager.getContext('grid');
+
+      gridContext.addShortcut({
+        // TODO: Is this shortcut really needed? We have one test for that case, but focus is performed programmatically.
+        keys: [['Escape']],
+        callback: (event) => {
+          this.runLocalHooks('keydown', event, this);
+        },
+        group: SHORTCUTS_GROUP
+      });
     };
 
     hotInitializer(itemsBoxWrapper);
@@ -269,27 +281,6 @@ class MultipleSelectUI extends BaseUI {
       stopImmediatePropagation(event);
       this.itemsBox.listen();
       this.itemsBox.selectCell(0, 0);
-    }
-  }
-
-  /**
-   * On before key down listener (internal Handsontable).
-   *
-   * @private
-   * @param {Event} event DOM event.
-   */
-  onItemsBoxBeforeKeyDown(event) {
-    const isKeyCode = partial(isKey, event.keyCode);
-
-    if (isKeyCode('ESCAPE')) {
-      this.runLocalHooks('keydown', event, this);
-    }
-    // for keys different than below, unfocus Handsontable and focus search input
-    if (!isKeyCode('ARROW_UP|ARROW_DOWN|ARROW_LEFT|ARROW_RIGHT|TAB|SPACE|ENTER')) {
-      stopImmediatePropagation(event);
-      this.itemsBox.unlisten();
-      this.itemsBox.deselectCell();
-      this.searchInput.focus();
     }
   }
 

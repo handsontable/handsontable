@@ -31,7 +31,7 @@ describe('Text Editor', () => {
 
     selectCell(0, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     const editor = getActiveEditor();
 

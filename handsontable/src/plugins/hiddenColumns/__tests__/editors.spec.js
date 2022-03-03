@@ -52,7 +52,7 @@ describe('HiddenColumns', () => {
       simulateClick(firstHeader, 'LMB');
 
       keyDownUp('enter');
-      keyDownUp('ctrl+enter');
+      keyDownUp(['control', 'enter']);
 
       expect(getData()).toEqual([
         ['C1', 'C1', 'C1', 'C1', 'C1'],
@@ -79,7 +79,7 @@ describe('HiddenColumns', () => {
       simulateClick(corner, 'LMB');
 
       keyDownUp('enter');
-      keyDownUp('ctrl+enter');
+      keyDownUp(['control', 'enter']);
 
       expect(getData()).toEqual([
         ['C1', 'C1', 'C1', 'C1', 'C1'],
@@ -115,7 +115,7 @@ describe('HiddenColumns', () => {
       document.activeElement.value = 'aa'; // type incorect value
       keyDownUp('enter'); // confirm change the value
       await sleep(200);
-      keyDownUp('esc'); // close the editor
+      keyDownUp('escape'); // close the editor
       await sleep(200);
 
       expect(hot.getDataAtCell(0, 1)).toBe(2);

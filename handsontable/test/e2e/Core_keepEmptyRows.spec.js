@@ -217,7 +217,7 @@ describe('Core_keepEmptyRows', () => {
     keyDownUp('enter');
 
     setTimeout(() => {
-      keyDown('arrow_down');
+      keyDownUp('arrowdown');
       keyDownUp('enter');
 
       expect(data.length).toEqual(3);
@@ -265,7 +265,7 @@ describe('Core_keepEmptyRows', () => {
     keyDownUp('enter');
 
     setTimeout(() => {
-      keyDown('arrow_down');
+      keyDownUp('arrowdown');
       keyDownUp('enter');
 
       expect(data.length).toEqual(3);

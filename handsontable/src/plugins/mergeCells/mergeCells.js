@@ -1,6 +1,5 @@
 import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
-import { stopImmediatePropagation } from '../../helpers/dom/event';
 import MergedCellsCollection from './cellsCollection';
 import MergedCellCoords from './cellCoords';
 import AutofillCalculations from './calculations/autofill';
@@ -21,6 +20,7 @@ Hooks.getSingleton().register('afterUnmergeCells');
 export const PLUGIN_KEY = 'mergeCells';
 export const PLUGIN_PRIORITY = 150;
 const privatePool = new WeakMap();
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
  * @plugin MergeCells
@@ -103,7 +103,6 @@ export class MergeCells extends BasePlugin {
     this.selectionCalculations = new SelectionCalculations(this);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
-    this.addHook('beforeKeyDown', (...args) => this.onBeforeKeyDown(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
     this.addHook('afterModifyTransformStart', (...args) => this.onAfterModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.onModifyTransformEnd(...args));
@@ -134,6 +133,8 @@ export class MergeCells extends BasePlugin {
       }
     });
 
+    this.registerShortcuts();
+
     super.enablePlugin();
   }
 
@@ -142,6 +143,7 @@ export class MergeCells extends BasePlugin {
    */
   disablePlugin() {
     this.clearCollections();
+    this.unregisterShortcuts();
     this.hot.render();
     super.disablePlugin();
   }
@@ -526,20 +528,35 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * `beforeKeyDown` hook callback.
+   * Register shortcuts responsible for toggling a merge.
    *
    * @private
-   * @param {KeyboardEvent} event The `keydown` event object.
    */
-  onBeforeKeyDown(event) {
-    const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+  registerShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const gridContext = shortcutManager.getContext('grid');
 
-    if (ctrlDown && event.keyCode === 77) { // CTRL + M
-      this.toggleMerge(this.hot.getSelectedRangeLast());
+    gridContext.addShortcut({
+      keys: [['control', 'm'], ['meta', 'm']],
+      callback: () => {
+        this.toggleMerge(this.hot.getSelectedRangeLast());
+        this.hot.render();
+      },
+      runOnlyIf: event => !event.altKey, // right ALT in some systems triggers ALT+CTRL
+      group: SHORTCUTS_GROUP,
+    });
+  }
 
-      this.hot.render();
-      stopImmediatePropagation(event);
-    }
+  /**
+   * Unregister shortcuts responsible for toggling a merge.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const gridContext = shortcutManager.getContext('grid');
+
+    gridContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -1141,7 +1158,7 @@ export class MergeCells extends BasePlugin {
 
       arrayEach(mergedCellsWithinRange, (mergedCell) => {
         if (selectedRange.getBottomEndCorner().row === mergedCell.getLastRow() &&
-            selectedRange.getBottomEndCorner().col === mergedCell.getLastColumn()) {
+          selectedRange.getBottomEndCorner().col === mergedCell.getLastColumn()) {
           corners[2] = mergedCell.row;
           corners[3] = mergedCell.col;
         }

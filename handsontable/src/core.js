@@ -30,14 +30,12 @@ import { ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
-import {
-  startObserving as keyStateStartObserving,
-  stopObserving as keyStateStopObserving
-} from './utils/keyStateObserver';
 import { Selection } from './selection';
 import { MetaManager, DynamicCellMetaMod, ExtendMetaPropertiesMod, replaceData } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
+import { createShortcutManager } from './shortcuts';
 
+const SHORTCUTS_GROUP = 'gridDefault';
 let activeGuid = null;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -183,8 +181,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const globalMeta = metaManager.getGlobalMeta();
   const pluginsRegistry = createUniqueMap();
 
-  keyStateStartObserving(this.rootDocument);
-
   this.container = this.rootDocument.createElement('div');
   this.renderCall = false;
 
@@ -246,6 +242,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
     countColsTranslated: () => this.view.countRenderableColumns(),
     countRowsTranslated: () => this.view.countRenderableRows(),
+    getShortcutManager: () => instance.getShortcutManager(),
     createCellCoords: (row, column) => instance._createCellCoords(row, column),
     createCellRange: (highlight, from, to) => instance._createCellRange(highlight, from, to),
     visualToRenderableCoords,
@@ -4067,9 +4064,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     dataSource = null;
 
+    this.getShortcutManager().destroy();
     metaManager.clearCache();
-
-    keyStateStopObserving();
 
     if (isRootInstance(instance)) {
       const licenseInfo = this.rootDocument.querySelector('#hot-display-license-info');
@@ -4411,6 +4407,220 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.prepareEditor();
     }
   };
+
+  /**
+   * Check if currently it is RTL direction.
+   *
+   * @private
+   * @memberof Core#
+   * @function isRtl
+   * @returns {boolean} True if RTL.
+   */
+  this.isRtl = function() {
+    return instance.rootWindow.getComputedStyle(instance.rootElement).direction === 'rtl';
+  };
+
+  /**
+   * Check if currently it is LTR direction.
+   *
+   * @private
+   * @memberof Core#
+   * @function isLtr
+   * @returns {boolean} True if LTR.
+   */
+  this.isLtr = function() {
+    return !instance.isRtl();
+  };
+
+  /**
+   * Returns 1 for LTR; -1 for RTL. Useful for calculations.
+   *
+   * @private
+   * @memberof Core#
+   * @function getDirectionFactor
+   * @returns {number} Returns 1 for LTR; -1 for RTL.
+   */
+  this.getDirectionFactor = function() {
+    return instance.isLtr() ? 1 : -1;
+  };
+
+  const shortcutManager = createShortcutManager({
+    beforeKeyDown: (event) => {
+      if (this.isListening() === false) { // Performing action (executing a callback) and triggering hook only for listening Handsontable.
+        return false;
+      }
+
+      return this.runHooks('beforeKeyDown', event);
+    },
+    afterKeyDown: (event) => {
+      if (this.isDestroyed) { // Handsontable could be destroyed after performing action (executing a callback).
+        return;
+      }
+
+      instance.runHooks('afterDocumentKeyDown', event);
+    },
+    ownerWindow: this.rootWindow,
+  });
+
+  /**
+   * Returns instance of a manager responsible for handling shortcuts stored in some contexts. It run actions after
+   * pressing key combination in active Handsontable instance.
+   *
+   * @memberof Core#
+   * @since 12.0.0
+   * @function getShortcutManager
+   * @returns {ShortcutManager} Instance of {@link ShortcutManager}
+   */
+  this.getShortcutManager = function() {
+    return shortcutManager;
+  };
+
+  const gridContext = shortcutManager.addContext('grid');
+  const gridConfig = {
+    runOnlyIf: () => isDefined(instance.getSelected()),
+    group: SHORTCUTS_GROUP,
+  };
+
+  shortcutManager.setActiveContextName('grid');
+
+  gridContext.addShortcuts([{
+    keys: [['Control', 'A'], ['Meta', 'A']],
+    callback: () => {
+      instance.selectAll();
+    },
+  }, {
+    keys: [['ArrowUp'], ['Control', 'ArrowUp'], ['Meta', 'ArrowUp']],
+    callback: () => {
+      selection.transformStart(-1, 0);
+    },
+  }, {
+    keys: [['ArrowUp', 'Shift']],
+    callback: () => {
+      selection.transformEnd(-1, 0);
+    },
+  }, {
+    keys: [['ArrowDown'], ['Control', 'ArrowDown'], ['Meta', 'ArrowDown']],
+    callback: () => {
+      selection.transformStart(1, 0);
+    },
+  }, {
+    keys: [['ArrowDown', 'Shift']],
+    callback: () => {
+      selection.transformEnd(1, 0);
+    },
+  }, {
+    keys: [['ArrowLeft'], ['Control', 'ArrowLeft'], ['Meta', 'ArrowLeft']],
+    callback: () => {
+      selection.transformStart(0, -1 * instance.getDirectionFactor());
+    },
+  }, {
+    keys: [['ArrowLeft', 'Shift']],
+    callback: () => {
+      selection.transformEnd(0, -1 * instance.getDirectionFactor());
+    },
+  }, {
+    keys: [['ArrowRight'], ['Control', 'ArrowRight'], ['Meta', 'ArrowRight']],
+    callback: () => {
+      selection.transformStart(0, instance.getDirectionFactor());
+    },
+  }, {
+    keys: [['ArrowRight', 'Shift']],
+    callback: () => {
+      selection.transformEnd(0, instance.getDirectionFactor());
+    },
+  }, {
+    keys: [['Home']],
+    callback: () => {
+      selection.setRangeStart(instance._createCellCoords(
+        selection.selectedRange.current().from.row,
+        instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
+      ));
+    },
+  }, {
+    keys: [['Home', 'Shift']],
+    callback: () => {
+      selection.setRangeEnd(instance._createCellCoords(
+        selection.selectedRange.current().from.row,
+        instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
+      ));
+    },
+  }, {
+    keys: [['Home', 'Control'], ['Home', 'Meta']],
+    callback: () => {
+      selection.setRangeStart(instance._createCellCoords(
+        instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
+        selection.selectedRange.current().from.col,
+      ));
+    },
+  }, {
+    keys: [['Home', 'Control', 'Shift'], ['Home', 'Meta', 'Shift']],
+    callback: () => {
+      selection.setRangeEnd(instance._createCellCoords(
+        instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
+        selection.selectedRange.current().from.col,
+      ));
+    },
+  }, {
+    keys: [['End']],
+    callback: () => {
+      selection.setRangeStart(instance._createCellCoords(
+        selection.selectedRange.current().from.row,
+        instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
+      ));
+    },
+  }, {
+    keys: [['End', 'Shift']],
+    callback: () => {
+      selection.setRangeEnd(instance._createCellCoords(
+        selection.selectedRange.current().from.row,
+        instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
+      ));
+    },
+  }, {
+    keys: [['End', 'Control'], ['End', 'Meta']],
+    callback: () => {
+      selection.setRangeStart(instance._createCellCoords(
+        instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
+        selection.selectedRange.current().from.col,
+      ));
+    },
+  }, {
+    keys: [['End', 'Control', 'Shift'], ['End', 'Meta', 'Shift']],
+    callback: () => {
+      selection.setRangeEnd(instance._createCellCoords(
+        instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
+        selection.selectedRange.current().from.col,
+      ));
+    },
+  }, {
+    keys: [['PageUp']],
+    callback: () => {
+      selection.transformStart(-instance.countVisibleRows(), 0);
+    },
+  }, {
+    keys: [['PageDown']],
+    callback: () => {
+      selection.transformStart(instance.countVisibleRows(), 0);
+    },
+  }, {
+    keys: [['Tab']],
+    callback: (event) => {
+      const tabMoves = typeof tableMeta.tabMoves === 'function'
+        ? tableMeta.tabMoves(event)
+        : tableMeta.tabMoves;
+
+      selection.transformStart(tabMoves.row, tabMoves.col, true);
+    },
+  }, {
+    keys: [['Shift', 'Tab']],
+    callback: (event) => {
+      const tabMoves = typeof tableMeta.tabMoves === 'function'
+        ? tableMeta.tabMoves(event)
+        : tableMeta.tabMoves;
+
+      selection.transformStart(-tabMoves.row, -tabMoves.col);
+    },
+  }], gridConfig);
 
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);

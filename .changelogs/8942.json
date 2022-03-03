@@ -1,0 +1,7 @@
+{
+  "title": "Introducing the ShortcutManager - a new API for handling shortcuts.",
+  "type": "added",
+  "issue": 8942,
+  "breaking": true,
+  "framework": "none"
+}

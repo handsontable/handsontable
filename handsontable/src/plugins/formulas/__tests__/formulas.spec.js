@@ -2245,8 +2245,7 @@ describe('Formulas general', () => {
 
     selectCell(1, 1, 5, 5);
 
-    spec().$container.find('textarea.handsontableInput').simulate('keydown', { keyCode: 46 });
-    spec().$container.find('textarea.handsontableInput').simulate('keyup', { keyCode: 46 });
+    keyDownUp('delete');
 
     expect(afterViewRender).toHaveBeenCalledTimes(2);
   });

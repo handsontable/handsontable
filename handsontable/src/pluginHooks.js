@@ -232,8 +232,7 @@ const REGISTERED_HOOKS = [
   'afterDestroy',
 
   /**
-   * General hook which captures `keydown` events attached to the document body. These events are delegated to the
-   * hooks system and consumed by Core and internal modules (e.g plugins, editors).
+   * Hook fired after keydown event is handled.
    *
    * @event Hooks#afterDocumentKeyDown
    * @param {Event} event A native `keydown` event object.
@@ -834,10 +833,9 @@ const REGISTERED_HOOKS = [
   'beforeUpdateData',
 
   /**
-   * Fired before keydown event is handled. It can be used to overwrite default key bindings.
+   * Hook fired before keydown event is handled. It can be used to stop default key bindings.
    *
-   * __Note__: To prevent default behavior you need to call `event.stopImmediatePropagation()` in your `beforeKeyDown`
-   * handler.
+   * __Note__: To prevent default behavior you need to call `false` in your `beforeKeyDown` handler.
    *
    * @event Hooks#beforeKeyDown
    * @param {Event} event Original DOM event.

@@ -9,13 +9,16 @@ import {
   hasClass,
   removeClass,
 } from '../../helpers/dom/element';
-import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
 import { autoResize } from '../../3rdparty/autoResize';
+import { isDefined } from '../../helpers/mixed';
+import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
+import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
+const SHORTCUTS_GROUP = 'textEditor';
 
 export const EDITOR_TYPE = 'text';
 
@@ -114,7 +117,13 @@ export class TextEditor extends BaseEditor {
     this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
     this.showEditableElement();
 
-    this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
+    const shortcutManager = this.hot.getShortcutManager();
+
+    shortcutManager.setActiveContextName('editor');
+
+    this.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
+
+    this.registerShortcuts();
   }
 
   /**
@@ -128,7 +137,8 @@ export class TextEditor extends BaseEditor {
     }
 
     this.hideEditableElement();
-    this.removeHooksByKey('beforeKeyDown');
+    this.unregisterShortcuts();
+    this.removeHooksByKey('afterDocumentKeyDown');
   }
 
   /**
@@ -417,78 +427,87 @@ export class TextEditor extends BaseEditor {
   }
 
   /**
-   * OnBeforeKeyDown callback.
+   * Register shortcuts responsible for handling editor.
    *
-   * @param {Event} event The keyboard event object.
+   * @private
    */
-  onBeforeKeyDown(event) {
-    // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+  registerShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+    const contextConfig = {
+      runOnlyIf: () => isDefined(this.hot.getSelected()),
+      group: SHORTCUTS_GROUP,
+    };
 
-    // Process only events that have been fired in the editor
-    if (event.target !== this.TEXTAREA || isImmediatePropagationStopped(event)) {
-      return;
-    }
+    const setNewValue = () => {
+      const caretPosition = getCaretPosition(this.TEXTAREA);
+      const value = this.getValue();
+      const newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
 
-    switch (event.keyCode) {
-      case KEY_CODES.ARROW_RIGHT:
-        if (this.isInFullEditMode()) {
-          if (!this.isWaiting() && !this.allowKeyEventPropagation(event.keyCode)) {
-            stopImmediatePropagation(event);
-          }
-        }
-        break;
+      this.setValue(newValue);
 
-      case KEY_CODES.ARROW_LEFT:
-        if (this.isInFullEditMode()) {
-          if (!this.isWaiting() && !this.allowKeyEventPropagation(event.keyCode)) {
-            stopImmediatePropagation(event);
-          }
-        }
-        break;
+      setCaretPosition(this.TEXTAREA, caretPosition + 1);
+    };
 
-      case KEY_CODES.ARROW_UP:
-      case KEY_CODES.ARROW_DOWN:
-        if (this.isInFullEditMode()) {
-          if (!this.isWaiting() && !this.allowKeyEventPropagation(event.keyCode)) {
-            stopImmediatePropagation(event);
-          }
-        }
-        break;
+    editorContext.addShortcuts([{
+      keys: [['Tab']],
+      // TODO: Duplicated part of code.
+      callback: (event) => {
+        const tableMeta = this.hot.getSettings();
+        const tabMoves = typeof tableMeta.tabMoves === 'function'
+          ? tableMeta.tabMoves(event)
+          : tableMeta.tabMoves;
 
-      case KEY_CODES.ENTER: {
-        const isMultipleSelection = this.hot.selection.isMultiple();
+        this.hot.selection.transformStart(tabMoves.row, tabMoves.col, true);
+      },
+    }, {
+      keys: [['Shift', 'Tab']],
+      // TODO: Duplicated part of code.
+      callback: (event) => {
+        const tableMeta = this.hot.getSettings();
+        const tabMoves = typeof tableMeta.tabMoves === 'function'
+          ? tableMeta.tabMoves(event)
+          : tableMeta.tabMoves;
 
-        if ((ctrlDown && !isMultipleSelection) || event.altKey) { // if ctrl+enter or alt+enter, add new line
-          if (this.isOpened()) {
-            const caretPosition = getCaretPosition(this.TEXTAREA);
-            const value = this.getValue();
-            const newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
+        this.hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
+      },
+    }, {
+      keys: [['Control', 'Enter']],
+      callback: () => {
+        setNewValue();
+      },
+      runOnlyIf: event => !this.hot.selection.isMultiple() &&
+        // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+        !event.altKey,
+    }, {
+      keys: [['Alt', 'Enter']],
+      callback: () => {
+        setNewValue();
+      },
+    }], contextConfig);
+  }
 
-            this.setValue(newValue);
+  /**
+   * Unregister shortcuts responsible for handling editor.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
 
-            setCaretPosition(this.TEXTAREA, caretPosition + 1);
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_NAVIGATION);
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
+  }
 
-          } else {
-            this.beginEditing(`${this.originalValue}\n`);
-          }
-          stopImmediatePropagation(event);
-        }
-        event.preventDefault(); // don't add newline to field
-        break;
-      }
-
-      case KEY_CODES.BACKSPACE:
-      case KEY_CODES.DELETE:
-      case KEY_CODES.HOME:
-      case KEY_CODES.END:
-        stopImmediatePropagation(event); // backspace, delete, home, end should only work locally when cell is edited (not in table context)
-        break;
-
-      default:
-        break;
-    }
-
+  /**
+   * OnAfterDocumentKeyDown callback.
+   *
+   * @private
+   * @param {KeyboardEvent} event The keyboard event object.
+   */
+  onAfterDocumentKeyDown(event) {
     const arrowKeyCodes = [KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT];
 
     if (arrowKeyCodes.indexOf(event.keyCode) === -1) {

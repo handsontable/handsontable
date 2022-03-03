@@ -16,6 +16,7 @@ import { BaseRenderer } from './renderers/base';
 import { BaseValidator } from './validators/base';
 import { Plugins } from './plugins';
 import { CellType } from './cellTypes';
+import { ShortcutManager } from './shortcuts';
 
 export default class Core {
   addHook<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>): void;
@@ -82,6 +83,7 @@ export default class Core {
   getSelectedRange(): CellRange[] | undefined;
   getSelectedRangeLast(): CellRange | undefined;
   getSettings(): GridSettings;
+  getShortcutManager(): ShortcutManager;
   getSourceData(row?: number, column?: number, row2?: number, column2?: number): CellValue[][] | RowObject[];
   getSourceDataArray(row?: number, column?: number, row2?: number, ccolumn2?: number): CellValue[][];
   getSourceDataAtCell(row: number, column: number): CellValue;
