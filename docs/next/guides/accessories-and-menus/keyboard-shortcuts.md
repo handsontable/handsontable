@@ -56,57 +56,55 @@ By default, Handsontable features the following keyboard shortcuts:
 
 #### SELECTION
 
-| Windows                                              | macOS                                                                                                                              | Action                                                                                                    |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| <kbd>Ctrl</kbd> + <kbd>A</kbd>                       | <kbd>Cmd</kbd> + <kbd>A</kbd>                                                                                                      | Select all cells and headers                                                                              |
-| <kbd>Shift</kbd> + <kbd>Up↑</kbd>                    | <kbd>Shift</kbd> + <kbd>Up↑</kbd>                                                                                                  | Extend selection by one cell above                                                                        |
-| <kbd>Shift</kbd> + <kbd>Down↓</kbd>                  | <kbd>Shift</kbd> + <kbd>Down↓</kbd>                                                                                                | Extend selection by one cell below                                                                        |
-| <kbd>Shift</kbd> + <kbd>Right→</kbd>                 | <kbd>Shift</kbd> + <kbd>Right→</kbd>                                                                                               | Extend selection by one cell to the right                                                                 |
-| <kbd>Shift</kbd> + <kbd>Left←</kbd>                  | <kbd>Shift</kbd> + <kbd>Left←</kbd>                                                                                                | Extend selection by one cell to the left                                                                  |
-| <kbd>Shift</kbd> + <kbd>Home</kbd>                   | <kbd>Shift</kbd> + <kbd>Fn</kbd> + <kbd>Left←</kbd><br>or<br><kbd>Shift</kbd> + <kbd>Home</kbd>                                    | Extend selection to the first cell of the current row                                                     |
-| <kbd>Shift</kbd> + <kbd>End</kbd>                    | <kbd>Shift</kbd> + <kbd>Fn</kbd> + <kbd>Right→</kbd><br>or<br><kbd>Shift</kbd> + <kbd>End</kbd>                                    | Extend selection to the last cell of the current row                                                      |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Home</kbd> | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Fn</kbd> + <kbd>Left←</kbd><br>or<br><kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Home</kbd> | Extend selection to the first cell of the current column                                                  |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>End</kbd>  | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Fn</kbd> + <kbd>Right→</kbd><br>or<br><kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>End</kbd> | Extend selection to the last cell of the current column                                                   |
-| <kbd>Ctrl</kbd> + <kbd>M</kbd>                       | <kbd>Cmd</kbd> + <kbd>M</kbd>                                                                                                      | When the [`MergeCells`](@/api/mergeCells.md) plugin is enabled:<br>merge/unmerge currently-selected cells |
+| Windows                                              | macOS                                                                                                                              | Action                                                   |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| <kbd>Ctrl</kbd> + <kbd>A</kbd>                       | <kbd>Cmd</kbd> + <kbd>A</kbd>                                                                                                      | Select all cells and headers                             |
+| <kbd>Shift</kbd> + <kbd>Up↑</kbd>                    | <kbd>Shift</kbd> + <kbd>Up↑</kbd>                                                                                                  | Extend selection by one cell above                       |
+| <kbd>Shift</kbd> + <kbd>Down↓</kbd>                  | <kbd>Shift</kbd> + <kbd>Down↓</kbd>                                                                                                | Extend selection by one cell below                       |
+| <kbd>Shift</kbd> + <kbd>Right→</kbd>                 | <kbd>Shift</kbd> + <kbd>Right→</kbd>                                                                                               | Extend selection by one cell to the right                |
+| <kbd>Shift</kbd> + <kbd>Left←</kbd>                  | <kbd>Shift</kbd> + <kbd>Left←</kbd>                                                                                                | Extend selection by one cell to the left                 |
+| <kbd>Shift</kbd> + <kbd>Home</kbd>                   | <kbd>Shift</kbd> + <kbd>Fn</kbd> + <kbd>Left←</kbd><br>or<br><kbd>Shift</kbd> + <kbd>Home</kbd>                                    | Extend selection to the first cell of the current row    |
+| <kbd>Shift</kbd> + <kbd>End</kbd>                    | <kbd>Shift</kbd> + <kbd>Fn</kbd> + <kbd>Right→</kbd><br>or<br><kbd>Shift</kbd> + <kbd>End</kbd>                                    | Extend selection to the last cell of the current row     |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Home</kbd> | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Fn</kbd> + <kbd>Left←</kbd><br>or<br><kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Home</kbd> | Extend selection to the first cell of the current column |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>End</kbd>  | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Fn</kbd> + <kbd>Right→</kbd><br>or<br><kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>End</kbd> | Extend selection to the last cell of the current column  |
 
 <br>
 <br>
 
-#### EDITING
+#### EDITION
 
-| Windows                                                                      | macOS                               | Action                                                                                                |
-| ---------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| <kbd>Enter</kbd>                                                             | <kbd>Enter</kbd>                    | Edit the current cell<br><br>When editing:<br>stop editing, save your changes, and move one cell down |
-| <kbd>Shift</kbd> + <kbd>Enter</kbd>                                          | <kbd>Shift</kbd> + <kbd>Enter</kbd> | Edit the current cell<br><br>When editing:<br>stop editing, save your changes, and move one cell up   |
-| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                                           | <kbd>Ctrl</kbd> + <kbd>Enter</kbd>  | Edit the current cell<br><br>When editing:<br>add a new line inside the cell                          |
-| <kbd>F2</kbd>                                                                | <kbd>F2</kbd>                       | Edit the current cell                                                                                 |
-| <kbd>Esc</kbd>                                                               | <kbd>Esc</kbd>                      | When editing:<br>stop editing, and cancel your changes                                                |
-| <kbd>Backspace</kbd>                                                         | <kbd>Backspace</kbd>                | Clear the cell's contents                                                                             |
-| <kbd>Delete</kbd>                                                            | <kbd>Delete</kbd>                   | Clear the cell's contents                                                                             |
-| <kbd>Ctrl</kbd> + <kbd>C</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Insert</kbd>  | <kbd>Cmd</kbd> + <kbd>C</kbd>       | Copy the cell's contents                                                                              |
-| <kbd>Ctrl</kbd> + <kbd>X</kbd>                                               | <kbd>Cmd</kbd> + <kbd>X</kbd>       | Cut the cell's contents                                                                               |
-| <kbd>Ctrl</kbd> + <kbd>V</kbd><br>or<br><kbd>Shift</kbd> + <kbd>Insert</kbd> | <kbd>Cmd</kbd> + <kbd>V</kbd>       | Paste into the current cell                                                                           |
-| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                                           | <kbd>Cmd</kbd> + <kbd>Enter</kbd>   | When editing:<br>fill all currently-selected cells with the contents of the currently-edited cell     |
-| <kbd>Ctrl</kbd> + <kbd>Z</kbd>                                               | <kbd>Cmd</kbd> + <kbd>Z</kbd>       | Undo                                                                                                  |
-| <kbd>Ctrl</kbd> + <kbd>Y</kbd>                                               | <kbd>Cmd</kbd> + <kbd>Y</kbd>       | Redo                                                                                                  |
-
-<br>
-<br>
-
-#### CONTEXT MENU AND DROP-DOWN MENU
-
-| Windows          | macOS            | Action                                          |
-| ---------------- | ---------------- | ----------------------------------------------- |
-| <kbd>Down↓</kbd> | <kbd>Cmd</kbd> + <kbd>Enter</kbd> | Move to the next option of the context menu     |
+| Windows                                                                      | macOS                                           | Action                                                                                                |
+| ---------------------------------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| <kbd>Enter</kbd>                                                             | <kbd>Enter</kbd>                                | Edit the current cell<br><br>When editing:<br>stop editing, save your changes, and move one cell down |
+| <kbd>Shift</kbd> + <kbd>Enter</kbd>                                          | <kbd>Shift</kbd> + <kbd>Enter</kbd>             | Edit the current cell<br><br>When editing:<br>stop editing, save your changes, and move one cell up   |
+| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                                           | <kbd>Ctrl</kbd> + <kbd>Enter</kbd>              | Edit the current cell<br><br>When editing:<br>add a new line inside the cell                          |
+| <kbd>F2</kbd>                                                                | <kbd>F2</kbd>                                   | Edit the current cell                                                                                 |
+| <kbd>Esc</kbd>                                                               | <kbd>Esc</kbd>                                  | When editing:<br>stop editing, and cancel your changes                                                |
+| <kbd>Backspace</kbd><br>or<br><kbd>Delete</kbd>                              | <kbd>Backspace</kbd><br>or<br><kbd>Delete</kbd> | Clear the cell's contents                                                                             |
+| <kbd>Ctrl</kbd> + <kbd>C</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Insert</kbd>  | <kbd>Cmd</kbd> + <kbd>C</kbd>                   | Copy the cell's contents                                                                              |
+| <kbd>Ctrl</kbd> + <kbd>X</kbd>                                               | <kbd>Cmd</kbd> + <kbd>X</kbd>                   | Cut the cell's contents                                                                               |
+| <kbd>Ctrl</kbd> + <kbd>V</kbd><br>or<br><kbd>Shift</kbd> + <kbd>Insert</kbd> | <kbd>Cmd</kbd> + <kbd>V</kbd>                   | Paste into the current cell                                                                           |
+| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                                           | <kbd>Cmd</kbd> + <kbd>Enter</kbd>               | When editing:<br>fill all currently-selected cells with the contents of the currently-edited cell     |
+| <kbd>Ctrl</kbd> + <kbd>Z</kbd>                                               | <kbd>Cmd</kbd> + <kbd>Z</kbd>                   | Undo                                                                                                  |
+| <kbd>Ctrl</kbd> + <kbd>Y</kbd>                                               | <kbd>Cmd</kbd> + <kbd>Y</kbd>                   | Redo                                                                                                  |
 
 <br>
 <br>
 
-#### MERGE CELLS
+#### CONTEXT MENU AND DROPDOWN MENU
 
-| Windows          | macOS            | Action                                          |
-| ---------------- | ---------------- | ----------------------------------------------- |
-| <kbd>Ctrl</kbd> + <kbd>M</kbd> | <kbd>Cmd</kbd> + <kbd>M</kbd> | Merge selected cells     |
+| Windows          | macOS                             | Action                                      |
+| ---------------- | --------------------------------- | ------------------------------------------- |
+| <kbd>Down↓</kbd> | <kbd>Cmd</kbd> + <kbd>Enter</kbd> | Move to the next option of the context menu |
+
+<br>
+<br>
+
+#### MERGING CELLS
+
+| Windows                        | macOS                         | Action                         |
+| ------------------------------ | ----------------------------- | ------------------------------ |
+| <kbd>Ctrl</kbd> + <kbd>M</kbd> | <kbd>Cmd</kbd> + <kbd>M</kbd> | Merge currently-selected cells |
 
 ## Managing keyboard shortcuts
 
