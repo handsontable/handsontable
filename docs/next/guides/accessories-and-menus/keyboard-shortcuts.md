@@ -26,11 +26,11 @@ Use and manage Handsontable's keyboard shortcuts.
 
 You can intuitively navigate Handsontable with a keyboard, using the out-of-the-box [default keyboard shortcuts](#default-keyboard-shortcuts).
 
-You can also customize the entire set of keyboard shortcuts, and handle actions assigned to them, by:
-- [Adding custom keyboard shortcuts](#adding-custom-keyboard-shortcuts)
-- [Removing keyboard shortcuts](#removing-keyboard-shortcuts)
-- [Replacing default keyboard shortcuts](#replacing-default-keyboard-shortcuts)
-- [Using beforeKeyDown hook](#using-beforekeydown-hook)
+You can also completely [customize your keyboard shortcuts](#customizing-keyboard-shortcuts), using Handsontable's dedicated [`ShortcutManager` API](@/api/shortcutmanager.md) that lets you:
+- [Add custom keyboard shortcuts](#adding-a-custom-keyboard-shortcut)
+- [Remove keyboard shortcuts](#removing-keyboard-shortcuts)
+- [Replace keyboard shortcuts](#replacing-a-keyboard-shortcut)
+- [Block keyboard shortcuts' actions](#blocking-a-keyboard-shortcut-s-action)
 
 ## Default keyboard shortcuts
 
@@ -45,7 +45,7 @@ By default, Handsontable features the following keyboard shortcuts:
 | <kbd>Right→</kbd>                 | <kbd>Right→</kbd>                                                                            | Move one cell to the right                   |
 | <kbd>Left←</kbd>                  | <kbd>Left←</kbd>                                                                             | Move one cell to the left                    |
 | <kbd>Tab</kbd>                    | <kbd>Tab</kbd>                                                                               | Move one cell to the right                   |
-| <kbd>Tab</kbd> + <kbd>Shift</kbd> | <kbd>Tab</kbd> + <kbd>Shift</kbd>                                                            | Move one cell to the left                    |
+| <kbd>Shift</kbd> + <kbd>Tab</kbd> | <kbd>Shift</kbd> + <kbd>Tab</kbd>                                                            | Move one cell to the left                    |
 | <kbd>Home</kbd>                   | <kbd>Fn</kbd> + <kbd>Left←</kbd>                                                             | Move to the first cell of the current row    |
 | <kbd>End</kbd>                    | <kbd>Fn</kbd> + <kbd>Right→</kbd>                                                            | Move to the last cell of the current row     |
 | <kbd>Ctrl</kbd> + <kbd>Home</kbd> | <kbd>Ctrl</kbd> + <kbd>Fn</kbd> + <kbd>Left←</kbd><br>or<br><kbd>Cmd</kbd> + <kbd>Home</kbd> | Move to the first cell of the current column |
@@ -106,98 +106,162 @@ By default, Handsontable features the following keyboard shortcuts:
 | ------------------------------ | ----------------------------- | ------------------------------ |
 | <kbd>Ctrl</kbd> + <kbd>M</kbd> | <kbd>Cmd</kbd> + <kbd>M</kbd> | Merge currently-selected cells |
 
-## Managing keyboard shortcuts
+## Customizing keyboard shortcuts
 
-It is possible to add, change and remove keyboard shortcuts by managing the registered actions programmatically using the [Shortcut Manager](@/api/shortcut-manager.md) API. The API is accessible through the method [getShortcutManager](@/api/core.md/#getshortcutmanager) on a Handsontable instance.
+You can customize your keyboard shortcuts, using the [`ShortcutManager` API](@/api/shortcutmanager.md).
 
-Each keyboard shortcut action is registered in a particular context. There are three built-in contexts:
+1. Access the [`ShortcutManager`](@/api/shortcutmanager.md) API:
+    ```js
+    hot.getShortcutManager()
+    ```
+2. Select a [keyboard shortcut context](#keyboard-shortcut-contexts), for example:
+    ```js
+    const gridContext = hot.getShortcutManager().getContext('grid');
+    ```
+3. Use the selected context's [methods](@/api/context.md).<br>
+    For example, to use the [`addShortcut()`](@/api/context.md#addshortcut) method in the `grid` context:
+    ```js
+    const gridContext = hot.getShortcutManager().getContext('grid');
 
-- `grid` - activated when the user is browsing the data grid (initial)
-- `editor` - activated when the user opens a cell editor
-- `menu` - activated when the user opens the cell's context menu
+    gridContext.addShortcut({
+      group: 'group_ID',
+      keys: [['enter']],
+      callback: () => {},
+    });
+    ```
 
-When the user interacts presses a key or a key combination keyboard, only the actions registered for the active context are executed. Only one context is active at a time.
+### Keyboard shortcut contexts
 
-To manage keyboard shortcuts programmatically, you need to obtain the relevant context object from the API using the [getContext](@/api/create-shortcut-manager/#getcontext) and execute one of its methods as explained below.
+Every keyboard action is registered in a particular context:
 
-### Adding custom keyboard shortcuts
+| Context  | Description                                                                                           | Type     |
+| -------- | ----------------------------------------------------------------------------------------------------- | -------- |
+| `grid`   | Activates when the user navigates the data grid (initial context)                                     | Built-in |
+| `editor` | Activates when the user opens a [cell editor](@/guides/cell-functions/cell-editor.md)                 | Built-in |
+| `menu`   | Activates when the user opens a cell's [context menu](@/guides/accessories-and-menus/context-menu.md) | Built-in |
+| Custom   | Your [custom context](#managing-the-keyboard-shortcut-contexts)                                       | Custom   |
 
-Use the context's [addShortcut](@/api/context.md#addshortcut) method to register an action for a given keyboard shortcut.
+When the user interacts with the keyboard, only actions registered for the currently-active context are executed.
 
-Within a single context, there might be multiple actions registered for the same keyboard shortcut. Your action will be simply added at the end of the stack of already defined actions.
+Only one context is active at a time.
+
+#### Managing the keyboard shortcut contexts
+
+Using the [`ShortcutManager`](@/api/shortcutmanager.md) API methods, you can:
+
+- Get the name of the currently-active context: [`getActiveContextName()`](@/api/shortcutmanager.md#getactivecontextname)
+- Switch to a different context: [`setActiveContextName(<name>)`](@/api/shortcutmanager.md#setactivecontextname)
+- Get an already-registered context: [`getContext(<name>)`](@/api/shortcutmanager.md#getcontext)
+- Create and register a new context: [`addContext(<name>)`](@/api/shortcutmanager.md#addcontext)
+
+### Adding a custom keyboard shortcut
+
+To add a custom keyboard shortcut:
+1. Select a [context](#keyboard-shortcut-contexts) in which you want to add a shortcut, for example:
+    ```js
+    const gridContext = hot.getShortcutManager().getContext('grid');
+    ```
+2. Using the selected context's [`addShortcut()`](@/api/context.md#addshortcut) method, add your keyboard shortcut:
+    ```js
+    const gridContext = hot.getShortcutManager().getContext('grid');
+
+    gridContext.addShortcut({
+      group: 'group_ID',
+      keys: [['enter']],
+      callback: () => {},
+    });
+    ```
+
+#### Setting the order of keyboard actions
+
+You can assign multiple actions to a single keyboard shortcut. By default, when you assign a new action, it runs after any already-assigned actions.
+
+To set your own order of actions, use the `position` and `relativeToGroup` properties:
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
-gridContext.addShortcut({ group: 'group_ID', keys: [['enter']], callback: () => {} });
+gridContext.addShortcut({
+  group: 'customNumericEditor',
+  position: 'before',
+  relativeToGroup: 'editorManager.handlingEditor',
+  runOnlyIf: () => { hot.getSelected !== void 0 },
+  keys: [['F2']],
+  callback: () => {
+    if (hot.getActiveEditor().cellProperties.type === 'numeric') {
+      return false; // the `F2` shortcut won't work for `numeric` cells
+    }
+    
+    // another action
+  },
+});
 ```
 
-If your action must run before a certain other action, you can refer to the other action by its group:
+#### Adding a conditional keyboard action
+
+To make a keyboard action run on a certain condition, provide a function to the `runOnlyIf` property:
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
-gridContext.addShortcut({ group: 'group_ID', keys: [['enter']], callback: () => {}, position: 'before', relativeToGroup: 'ANOTHER_group_ID' });
-```
-
-If your action must run only if some specific precondition is met, you can check for the precondition using a function provided to the `runOnlyIf` property:
-
-
-```js
-const gridContext = hot.getShortcutManager().getContext('grid');
-
-gridContext.addShortcut({ group: 'group_ID', keys: [['enter']], callback: () => {}, runOnlyIf: () => hot.getSelected() !== void 0 });
+gridContext.addShortcut({
+  group: 'group_ID',
+  runOnlyIf: () => hot.getSelected() !== void 0,
+  keys: [['enter']],
+  callback: () => {},
+});
 ```
 
 ### Removing keyboard shortcuts
-To remove an already registered keyboard shortcut (such as one of the default keyboard shortcuts), you need to search for it in the relevant context and refer to it by:
 
-- Either the key combination
-- Or the group
-
-Use the context's method [removeShortcutsByKeys](@/api/context.md#removeshortcutsbykeys) to remove all shortcuts registered for given keys combination (note that it is possible that there are multiple actions registered for a single keyboard shortcut):
-
+To remove a keyboard shortcut (e.g. one of the [default keyboard shortcuts](#default-keyboard-shortcuts)):
+1. Select a [context](#keyboard-shortcut-contexts) in which you want to remove a keyboard shortcut.
+2. Use the selected context's [`removeShortcutsByKeys()`](@/api/context.md#removeshortcutsbykeys) method.
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
 gridContext.removeShortcutsByKeys(['enter']);
 ```
 
-Use the context's method [removeShortcutsByGroup](@/api/context.md#removeshortcutsbygroup) to remove all shortcuts registered in a certain group:
-
+To remove all keyboard shortcuts registered in a certain group:
+1. Select a [context](#keyboard-shortcut-contexts).
+2. Use the selected context's [`removeShortcutsByGroup()`](@/api/context.md#removeshortcutsbygroup) method.
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
 gridContext.removeShortcutsByGroup('group_ID');
 ```
 
-### Replacing default keyboard shortcuts
-To replace some keyboards shortcut's action by another one action you have to choose proper context, remove already registered shortcut and register another one.
+### Replacing a keyboard shortcut
 
+To replace a keyboard shortcut:
+1. Select a [context](#keyboard-shortcut-contexts) in which you want to replace a keyboard shortcut.
+2. Using the selected context's [`getShortcuts()`](@/api/context.md#getshortcuts) method, get the old keyboard shortcut.
+3. Remove the old keyboard shortcut, using the selected context's [`removeShortcutsByKeys()`](@/api/context.md#removeshortcutsbykeys) method.
+4. Replace the `keys` property of the old keyboard shortcut with your new array of keys.
+5. Add your new keyboard shortcut, using the selected context's [`addShortcuts()`](@/api/context.md#addshortcuts) method.
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
+const undoShortcut = gridContext.getShortcuts(['meta', 'z']);
 
-gridContext.removeShortcutBykeys(['enter']);
-gridContext.addShortcut({ group: 'group_ID', keys: [['enter']], callback: () => {} });
+gridContext.removeShortcutsByKeys(['meta', 'z']);
+
+undoShortcut.map((shortcut) => {
+  shortcut.keys = [['shift', 'meta', 'z']];
+});
+
+gridContext.addShortcuts(undoShortcut);
 ```
 
-### Managing contexts
+### Blocking a keyboard shortcut's actions
 
-Apart from the possibility of managing the built-in contexts listed above (`grid`, `editor`, `menu`), you are also free to create custom contexts.
-
-The shortcut manager object, obtainable through [getShortcutManager](@/api/core.md/#getshortcutmanager) exposes the following methods for context management:
-
-- `getContext(<name>)` - get an already registered context object
-- `addContext(<name>)` - create a new context object and register it
-- `setActiveContextName(<name>)` - switches to a context
-- `getActiveContextName()` - get the name of the active context
-
-### Using `beforeKeyDown` hook
-Please keep im mind that there is an extra possibility to stop shortcut's action execution. You can return `false` in callback
-to the hook for doing it.
+To block a keyboard shortcut's actions, return `false` in the [`beforeKeyDown`](@/api/hooks.md#beforekeydown) hook's callback:
 
 ```js
-hot.addHook('beforeKeyDown', () => {
-  return false; // Will not execute callback for pressed keys.
+hot.addHook('beforeKeyDown', (event) => {
+  // the `Enter` shortcut won't work
+  if (event.key === 'enter') {
+    return false;
+  }
 });
 ```
