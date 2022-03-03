@@ -133,6 +133,7 @@ const formulasItems = [
 const accessoriesAndMenusItems = [
   'guides/accessories-and-menus/context-menu',
   'guides/accessories-and-menus/undo-redo',
+  'guides/accessories-and-menus/keyboard-shortcuts',
   'guides/accessories-and-menus/searching-values',
   'guides/accessories-and-menus/icon-pack',
   'guides/accessories-and-menus/export-to-csv',
@@ -143,10 +144,6 @@ const internationalizationItems = [
   'guides/internationalization/internationalization-i18n',
   // TODO 'guides/internationalization/rtl',
   'guides/internationalization/ime-support',
-];
-
-const accessibilityItems = [
-  'guides/accessibility/keyboard-shortcuts',
 ];
 
 const buildingAndTestingItems = [
@@ -203,7 +200,6 @@ module.exports = {
     { title: 'Formulas', children: formulasItems },
     { title: 'Accessories and Menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
-    { title: 'Accessibility', children: accessibilityItems },
     { title: 'Building and Testing', children: buildingAndTestingItems },
     { title: 'Advanced Topics', children: advancedTopicsItems },
     { title: 'Security', children: securityItems },
