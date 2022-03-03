@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue with context menu in RTL mode",
-  "type": "fixed",
-  "issue": 8825,
-  "breaking": false,
-  "framework": "none"
-}
