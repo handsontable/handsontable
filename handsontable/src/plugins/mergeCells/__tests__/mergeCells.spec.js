@@ -411,19 +411,19 @@ describe('MergeCells', () => {
 
       hot.selectCell(2, 1);
 
-      keyDownUp('shift+enter');
-      keyDownUp('shift+enter');
-      keyDownUp('shift+enter');
+      keyDownUp(['shift', 'enter']);
+      keyDownUp(['shift', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
 
-      keyDownUp('shift+enter');
-      keyDownUp('shift+enter');
+      keyDownUp(['shift', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
 
-      keyDownUp('shift+enter');
-      keyDownUp('shift+enter');
+      keyDownUp(['shift', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
     });
@@ -443,19 +443,19 @@ describe('MergeCells', () => {
 
       hot.selectCell(1, 2);
 
-      keyDownUp('shift+enter');
-      keyDownUp('shift+tab');
-      keyDownUp('shift+enter');
+      keyDownUp(['shift', 'enter']);
+      keyDownUp(['shift', 'tab']);
+      keyDownUp(['shift', 'enter']);
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
 
-      keyDownUp('shift+tab');
-      keyDownUp('shift+enter');
+      keyDownUp(['shift', 'tab']);
+      keyDownUp(['shift', 'enter']);
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('J1');
 
-      keyDownUp('shift+tab');
-      keyDownUp('shift+enter');
+      keyDownUp(['shift', 'tab']);
+      keyDownUp(['shift', 'enter']);
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('I1');
     });
@@ -492,13 +492,13 @@ describe('MergeCells', () => {
 
         selectCell(0, 2);
 
-        keyDownUp('arrow_down');
+        keyDownUp('arrowdown');
 
         lastSelectedRange = getSelectedRangeLast();
 
         expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
 
-        keyDownUp('arrow_down');
+        keyDownUp('arrowdown');
 
         lastSelectedRange = getSelectedRangeLast();
 
@@ -520,15 +520,15 @@ describe('MergeCells', () => {
 
         selectCell(3, 2);
 
-        keyDownUp('shift+enter');
-        keyDownUp('shift+enter');
+        keyDownUp(['shift', 'enter']);
+        keyDownUp(['shift', 'enter']);
 
         let lastSelectedRange = getSelectedRangeLast();
 
         expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
 
-        keyDownUp('shift+enter');
-        keyDownUp('shift+enter');
+        keyDownUp(['shift', 'enter']);
+        keyDownUp(['shift', 'enter']);
 
         lastSelectedRange = getSelectedRangeLast();
 
@@ -536,13 +536,13 @@ describe('MergeCells', () => {
 
         selectCell(3, 2);
 
-        keyDownUp('arrow_up');
+        keyDownUp('arrowup');
 
         lastSelectedRange = getSelectedRangeLast();
 
         expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
 
-        keyDownUp('arrow_up');
+        keyDownUp('arrowup');
 
         lastSelectedRange = getSelectedRangeLast();
 
@@ -578,13 +578,13 @@ describe('MergeCells', () => {
 
         selectCell(2, 0);
 
-        keyDownUp('arrow_right');
+        keyDownUp('arrowright');
 
         lastSelectedRange = getSelectedRangeLast();
 
         expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
 
-        keyDownUp('arrow_right');
+        keyDownUp('arrowright');
 
         lastSelectedRange = getSelectedRangeLast();
 
@@ -606,13 +606,13 @@ describe('MergeCells', () => {
 
         selectCell(2, 3);
 
-        keyDownUp('shift+tab');
+        keyDownUp(['shift', 'tab']);
 
         let lastSelectedRange = getSelectedRangeLast();
 
         expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
 
-        keyDownUp('shift+tab');
+        keyDownUp(['shift', 'tab']);
 
         lastSelectedRange = getSelectedRangeLast();
 
@@ -620,13 +620,13 @@ describe('MergeCells', () => {
 
         selectCell(2, 3);
 
-        keyDownUp('arrow_left');
+        keyDownUp('arrowleft');
 
         lastSelectedRange = getSelectedRangeLast();
 
         expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
 
-        keyDownUp('arrow_left');
+        keyDownUp('arrowleft');
 
         lastSelectedRange = getSelectedRangeLast();
 

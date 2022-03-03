@@ -6,6 +6,7 @@ describe('createUniqueSet', () => {
 
     expect(uniqueSet.addItem).toBeInstanceOf(Function);
     expect(uniqueSet.getItems).toBeInstanceOf(Function);
+    expect(uniqueSet.clear).toBeInstanceOf(Function);
   });
 
   describe('operations', () => {
@@ -49,6 +50,19 @@ describe('createUniqueSet', () => {
       uniqueSet.addItem('B');
 
       expect(uniqueSet.getItems()).toEqual(['D', 'A', 'C', 'B']);
+    });
+
+    it('should clear every entry from the set', () => {
+      const uniqueSet = createUniqueSet();
+
+      uniqueSet.addItem('D');
+      uniqueSet.addItem('A');
+      uniqueSet.addItem('C');
+      uniqueSet.addItem('B');
+
+      uniqueSet.clear();
+
+      expect(uniqueSet.getItems()).toEqual([]);
     });
   });
 });

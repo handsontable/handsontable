@@ -970,11 +970,18 @@ describe('manualColumnResize', () => {
         manualColumnResize: true
       });
 
+      // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
+      // Please keep in mind that selectColumns/selectRows doesn't set instance to listening (see #7290).
+      listen();
       selectColumns(3);
-      keyDown('ctrl');
+
+      keyDown('control');
+
       selectColumns(7);
       selectColumns(10);
-      keyUp('ctrl');
+
+      keyUp('control');
+
       getTopClone().find('thead tr:eq(0) th:eq(11)').simulate('mouseover'); // Select 10th Column
 
       const $resizer = spec().$container.find('.manualColumnResizer');

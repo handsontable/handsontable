@@ -82,8 +82,8 @@ describe('Core_beforechange', () => {
     expect(getDataAtCell(0, 0)).toEqual('a');
 
     selectCell(0, 0);
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(false);
   });
@@ -112,8 +112,8 @@ describe('Core_beforechange', () => {
     expect(getDataAtCell(0, 0)).toEqual('a');
 
     selectCell(0, 0);
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(false);
   });
@@ -133,8 +133,8 @@ describe('Core_beforechange', () => {
     expect(getDataAtCell(0, 0)).toEqual('a');
 
     selectCell(0, 0);
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(true);
   });
@@ -154,8 +154,8 @@ describe('Core_beforechange', () => {
     expect(getDataAtCell(0, 0)).toEqual('a');
 
     selectCell(0, 0);
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(false);
   });
@@ -175,13 +175,13 @@ describe('Core_beforechange', () => {
       setDataAtCell(0, 0, 'test');
       selectCell(0, 0);
 
-      keyDown(keyCode);
+      keyDownUp([keyCode]);
 
       expect(called).toEqual(true);
     };
   }
 
-  it('should be called on Delete key', beforechangeOnKeyFactory(46)); // 46 = Delete key
+  it('should be called on Delete key', beforechangeOnKeyFactory('delete'));
 
-  it('should be called on Backspace key', beforechangeOnKeyFactory(8)); // 8 = Backspace key
+  it('should be called on Backspace key', beforechangeOnKeyFactory('backspace'));
 });

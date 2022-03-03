@@ -283,6 +283,7 @@ class TableView {
     });
 
     this.eventManager.addEventListener(documentElement, 'keyup', (event) => {
+      // TODO: is it the best place and way to finish cell selection?
       if (selection.isInProgress() && !event.shiftKey) {
         selection.finish();
       }

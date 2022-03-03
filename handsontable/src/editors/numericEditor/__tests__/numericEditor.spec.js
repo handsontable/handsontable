@@ -40,7 +40,7 @@ describe('NumericEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -61,7 +61,7 @@ describe('NumericEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -86,13 +86,13 @@ describe('NumericEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
-    keyDown('enter');
+    keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -102,40 +102,40 @@ describe('NumericEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDown('enter');
+    keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDown('enter');
+    keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDown('enter');
+    keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDown('enter');
+    keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
 
-    keyDown('enter');
+    keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDown('enter');
+    keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -154,13 +154,13 @@ describe('NumericEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
     selectCell(0, 1);
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -172,19 +172,19 @@ describe('NumericEditor', () => {
 
     selectCell(0, 2);
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     selectCell(0, 3);
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -213,14 +213,14 @@ describe('NumericEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     // First renderable row index.
     expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDown('enter');
+    keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -230,28 +230,28 @@ describe('NumericEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDown('enter');
+    keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDown('enter');
+    keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDown('enter');
+    keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDown('enter');
+    keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -274,14 +274,14 @@ describe('NumericEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     // First renderable column index.
     expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
 
     selectCell(0, 2);
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -293,13 +293,13 @@ describe('NumericEditor', () => {
 
     selectCell(0, 3);
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
     await sleep(100); // Caused by async DateEditor close.
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -310,7 +310,7 @@ describe('NumericEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDown('enter');
+    keyDownUp('enter');
 
     const editor = getActiveEditor().TEXTAREA;
 
@@ -328,7 +328,7 @@ describe('NumericEditor', () => {
     });
     selectCell(2, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
     document.activeElement.value = '999';
 
     destroyEditor();
@@ -351,7 +351,7 @@ describe('NumericEditor', () => {
     });
 
     selectCell(0, 1);
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '100.000,0';
 
@@ -360,7 +360,7 @@ describe('NumericEditor', () => {
     await sleep(100);
 
     selectCell(1, 1);
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '200,000.5';
 
@@ -369,7 +369,7 @@ describe('NumericEditor', () => {
     await sleep(100);
 
     selectCell(0, 2);
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '300,000.5';
 
@@ -378,7 +378,7 @@ describe('NumericEditor', () => {
     await sleep(100);
 
     selectCell(1, 2);
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '300.000,5';
 
@@ -387,7 +387,7 @@ describe('NumericEditor', () => {
     await sleep(100);
 
     selectCell(0, 3);
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '400.000,5';
 
@@ -396,7 +396,7 @@ describe('NumericEditor', () => {
     await sleep(100);
 
     selectCell(1, 3);
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '400,000.5';
 
@@ -423,7 +423,7 @@ describe('NumericEditor', () => {
     });
     selectCell(2, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
     document.activeElement.value = '77.70';
 
     destroyEditor();
@@ -445,7 +445,7 @@ describe('NumericEditor', () => {
     });
     selectCell(2, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
     document.activeElement.value = '77,70';
 
     destroyEditor();
@@ -467,7 +467,7 @@ describe('NumericEditor', () => {
     });
 
     selectCell(2, 0);
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '.74';
 
@@ -487,7 +487,7 @@ describe('NumericEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDown('delete');
+    keyDownUp('delete');
 
     await sleep(100);
 
@@ -507,7 +507,7 @@ describe('NumericEditor', () => {
     // Column with default formatting
 
     selectCell(0, 0);
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '12aaa34';
 
@@ -516,7 +516,7 @@ describe('NumericEditor', () => {
     await sleep(100);
 
     selectCell(1, 0);
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = 'aaa34';
 
@@ -525,7 +525,7 @@ describe('NumericEditor', () => {
     await sleep(100);
 
     selectCell(2, 0);
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '12aaa';
 
@@ -536,7 +536,7 @@ describe('NumericEditor', () => {
     await sleep(100);
 
     selectCell(0, 1);
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '12aaa34';
 
@@ -545,7 +545,7 @@ describe('NumericEditor', () => {
     await sleep(100);
 
     selectCell(1, 1);
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = 'aaa34';
 
@@ -554,7 +554,7 @@ describe('NumericEditor', () => {
     await sleep(100);
 
     selectCell(2, 1);
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '12aaa';
 
@@ -593,7 +593,7 @@ describe('NumericEditor', () => {
     });
     selectCell(2, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '2456.22';
 
@@ -616,7 +616,7 @@ describe('NumericEditor', () => {
     });
     selectCell(2, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '2456,22';
 
@@ -642,7 +642,7 @@ describe('NumericEditor', () => {
     });
     selectCell(2, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '2456.22';
 
@@ -678,7 +678,7 @@ describe('NumericEditor', () => {
 
     selectCell(2, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '2456,220';
 
@@ -690,7 +690,7 @@ describe('NumericEditor', () => {
 
     selectCell(2, 3);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     document.activeElement.value = '2456.220';
 
@@ -716,42 +716,42 @@ describe('NumericEditor', () => {
     });
 
     selectCell(0, 1);
-    keyDown('enter');
+    keyDownUp('enter');
 
     await sleep(100);
 
     expect(document.activeElement.value).toEqual('222.5');
 
     // closing editor
-    keyDown('enter');
+    keyDownUp('enter');
 
     await sleep(100);
 
     expect(getDataAtCell(0, 1)).toEqual(222.5);
 
     selectCell(0, 2);
-    keyDown('enter');
+    keyDownUp('enter');
 
     await sleep(100);
 
     expect(document.activeElement.value).toEqual('1222.6');
 
     // closing editor
-    keyDown('enter');
+    keyDownUp('enter');
 
     await sleep(100);
 
     expect(getDataAtCell(0, 2)).toEqual(1222.6);
 
     selectCell(0, 3);
-    keyDown('enter');
+    keyDownUp('enter');
 
     await sleep(100);
 
     expect(document.activeElement.value).toEqual('1333.5');
 
     // closing editor
-    keyDown('enter');
+    keyDownUp('enter');
 
     await sleep(100);
 
@@ -779,7 +779,7 @@ describe('NumericEditor', () => {
     expect(document.activeElement.value).toEqual('222.5');
 
     // closing editor
-    keyDown('enter');
+    keyDownUp('enter');
 
     await sleep(100);
 
@@ -792,7 +792,7 @@ describe('NumericEditor', () => {
     expect(document.activeElement.value).toEqual('1222.6');
 
     // closing editor
-    keyDown('enter');
+    keyDownUp('enter');
 
     await sleep(100);
 
@@ -805,7 +805,7 @@ describe('NumericEditor', () => {
     expect(document.activeElement.value).toEqual('1333.5');
 
     // closing editor
-    keyDown('enter');
+    keyDownUp('enter');
 
     await sleep(100);
 
@@ -848,7 +848,7 @@ describe('NumericEditor', () => {
     });
     selectCell(2, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
     document.activeElement.value = '99';
 
     destroyEditor();
@@ -894,17 +894,17 @@ describe('NumericEditor', () => {
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = '1';
-    keyDownUp('1'.charCodeAt(0));
+    keyDownUp('1');
 
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = '12';
-    keyDownUp('2'.charCodeAt(0));
+    keyDownUp('2');
 
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = '123';
-    keyDownUp('3'.charCodeAt(0));
+    keyDownUp('3');
 
     expect(document.activeElement).toBe(activeElement);
   });
@@ -925,7 +925,7 @@ describe('NumericEditor', () => {
     });
 
     selectCell(1, 0);
-    keyDown('enter');
+    keyDownUp('enter');
     document.activeElement.value = '999';
 
     expect(() => {
@@ -943,7 +943,7 @@ describe('NumericEditor', () => {
       const $corner = settings.$container.find('.wtBorder.current.corner');
 
       selectCell(moveFromRow, moveFromCol);
-      keyDown('enter');
+      keyDownUp('enter');
       selectCell(moveToRow, moveToCol);
 
       setTimeout(() => {

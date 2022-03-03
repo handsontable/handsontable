@@ -207,6 +207,7 @@
             altKey: options.altKey,
             shiftKey: options.shiftKey,
             metaKey: options.metaKey,
+            key: options.key,
             keyCode: options.keyCode,
             charCode: options.charCode
           });

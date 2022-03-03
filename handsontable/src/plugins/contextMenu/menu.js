@@ -23,14 +23,15 @@ import {
   getParentWindow,
   hasClass,
 } from '../../helpers/dom/element';
-import { stopImmediatePropagation, isRightClick } from '../../helpers/dom/event';
+import { isRightClick } from '../../helpers/dom/event';
 import { debounce, isFunction } from '../../helpers/function';
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { mixin, hasOwnProperty } from '../../helpers/object';
-import { KEY_CODES } from '../../helpers/unicode';
 import localHooks from '../../mixins/localHooks';
 
 const MIN_WIDTH = 215;
+const SHORTCUTS_CONTEXT = 'menu';
+const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
 
 /**
  * @typedef MenuOptions
@@ -206,7 +207,6 @@ class Menu {
       outsideClickDeselects: false,
       disableVisualSelection: 'area',
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
-      beforeKeyDown: event => this.onBeforeKeyDown(event),
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
@@ -263,6 +263,120 @@ class Menu {
     this.hotMenu.addHook('afterSelection', (...args) => this.onAfterSelection(...args));
     this.hotMenu.init();
     this.hotMenu.listen();
+
+    const shortcutManager = this.hotMenu.getShortcutManager();
+    const menuContext = shortcutManager.addContext(SHORTCUTS_GROUP);
+    const config = { group: SHORTCUTS_CONTEXT };
+    const menuContextConfig = {
+      ...config,
+      runOnlyIf: event => isInput(event.target) === false || this.container.contains(event.target) === false,
+    };
+
+    // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
+    shortcutManager.setActiveContextName('menu');
+
+    menuContext.addShortcuts([{
+      keys: [['Escape']],
+      callback: () => {
+        this.keyEvent = true;
+        this.close();
+        this.keyEvent = false;
+      },
+    }, {
+      keys: [['ArrowDown']],
+      callback: () => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (selection) {
+          this.selectNextCell(selection[0], selection[1]);
+
+        } else {
+          this.selectFirstCell();
+        }
+
+        this.keyEvent = false;
+      },
+    }, {
+      keys: [['ArrowUp']],
+      callback: () => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (selection) {
+          this.selectPrevCell(selection[0], selection[1]);
+
+        } else {
+          this.selectLastCell();
+        }
+
+        this.keyEvent = false;
+      }
+    }, {
+      keys: [['ArrowRight']],
+      callback: () => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (selection) {
+          const menu = this.openSubMenu(selection[0]);
+
+          if (menu) {
+            menu.selectFirstCell();
+          }
+        }
+
+        this.keyEvent = false;
+      }
+    }, {
+      keys: [['ArrowLeft']],
+      callback: () => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (selection && this.isSubMenu()) {
+          this.close();
+
+          if (this.parentMenu) {
+            this.parentMenu.hotMenu.listen();
+          }
+        }
+
+        this.keyEvent = false;
+      },
+    }, {
+      keys: [['Enter']],
+      callback: (event) => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (!this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
+          this.executeCommand(event);
+          this.close(true);
+        }
+
+        this.keyEvent = false;
+      }
+    }, {
+      keys: [['PageUp']],
+      callback: () => {
+        this.hotMenu.selection.transformStart(-this.hotMenu.countVisibleRows(), 0);
+
+        this.keyEvent = false;
+      },
+    }, {
+      keys: [['PageDown']],
+      callback: () => {
+        this.hotMenu.selection.transformStart(this.hotMenu.countVisibleRows(), 0);
+
+        this.keyEvent = false;
+      },
+    }], menuContextConfig);
 
     this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');
@@ -752,94 +866,6 @@ class Menu {
   }
 
   /**
-   * On before key down listener.
-   *
-   * @private
-   * @param {Event} event The keyaboard event object.
-   */
-  onBeforeKeyDown(event) {
-    // For input elements, prevent event propagation. It allows entering text into an input
-    // element freely - without steeling the key events from the menu module (#6506, #6549).
-    if (isInput(event.target) && this.container.contains(event.target)) {
-      stopImmediatePropagation(event);
-
-      return;
-    }
-
-    const selection = this.hotMenu.getSelectedLast();
-    let stopEvent = false;
-
-    this.keyEvent = true;
-
-    switch (event.keyCode) {
-      case KEY_CODES.ESCAPE:
-        this.close();
-        stopEvent = true;
-        break;
-
-      case KEY_CODES.ENTER:
-        if (selection) {
-          if (this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
-            stopEvent = true;
-          } else {
-            this.executeCommand(event);
-            this.close(true);
-          }
-        }
-        break;
-
-      case KEY_CODES.ARROW_DOWN:
-        if (selection) {
-          this.selectNextCell(selection[0], selection[1]);
-        } else {
-          this.selectFirstCell();
-        }
-        stopEvent = true;
-        break;
-
-      case KEY_CODES.ARROW_UP:
-        if (selection) {
-          this.selectPrevCell(selection[0], selection[1]);
-        } else {
-          this.selectLastCell();
-        }
-        stopEvent = true;
-        break;
-
-      case KEY_CODES.ARROW_RIGHT:
-        if (selection) {
-          const menu = this.openSubMenu(selection[0]);
-
-          if (menu) {
-            menu.selectFirstCell();
-          }
-        }
-        stopEvent = true;
-
-        break;
-
-      case KEY_CODES.ARROW_LEFT:
-        if (selection && this.isSubMenu()) {
-          this.close();
-
-          if (this.parentMenu) {
-            this.parentMenu.hotMenu.listen();
-          }
-          stopEvent = true;
-        }
-        break;
-      default:
-        break;
-    }
-    if (stopEvent) {
-      event.preventDefault();
-      stopImmediatePropagation(event);
-    }
-
-    this.keyEvent = false;
-  }
-
-  /**
    * On after init listener.
    *
    * @private
@@ -889,7 +915,7 @@ class Menu {
     if (this.options.standalone && this.hotMenu && !isChildOf(event.target, this.hotMenu.rootElement)) {
       this.close(true);
 
-    // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
+      // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) && !isChildOf(event.target, '.htMenu')) {
       this.close(true);
     }

@@ -2,8 +2,9 @@ import Hooks from '../../pluginHooks';
 import { arrayMap, arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { inherit, deepClone } from '../../helpers/object';
-import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { align } from '../contextMenu/utils';
+
+const SHORTCUTS_GROUP = 'undoRedo';
 
 export const PLUGIN_KEY = 'undoRedo';
 
@@ -361,7 +362,7 @@ UndoRedo.prototype.enable = function() {
   this.enabled = true;
   exposeUndoRedoMethods(hot);
 
-  hot.addHook('beforeKeyDown', onBeforeKeyDown);
+  this.registerShortcuts();
   hot.addHook('afterChange', onAfterChange);
 };
 
@@ -381,7 +382,7 @@ UndoRedo.prototype.disable = function() {
   this.enabled = false;
   removeExposedUndoRedoMethods(hot);
 
-  hot.removeHook('beforeKeyDown', onBeforeKeyDown);
+  this.unregisterShortcuts();
   hot.removeHook('afterChange', onAfterChange);
 };
 
@@ -848,44 +849,46 @@ UndoRedo.prototype.init = function() {
 };
 
 /**
- * @param {Event} event The keyboard event object.
+ * Registers shortcuts responsible for performing undo/redo.
+ *
+ * @private
  */
-function onBeforeKeyDown(event) {
-  if (isImmediatePropagationStopped(event)) {
-    return;
-  }
+UndoRedo.prototype.registerShortcuts = function() {
+  const shortcutManager = this.instance.getShortcutManager();
+  const gridContext = shortcutManager.getContext('grid');
+  const runOnlyIf = (event) => {
+    return !event.altKey; // right ALT in some systems triggers ALT+CTR
+  };
+  const config = {
+    runOnlyIf,
+    group: SHORTCUTS_GROUP,
+  };
 
-  const instance = this;
-  const editor = instance.getActiveEditor();
+  gridContext.addShortcuts([{
+    keys: [['meta', 'z'], ['control', 'z']],
+    callback: () => {
+      this.undo();
+    },
+  }, {
+    keys: [['control', 'y'], ['meta', 'y'],
+      ['control', 'shift', 'z'], ['meta', 'shift', 'z']],
+    callback: () => {
+      this.redo();
+    },
+  }], config);
+};
 
-  if (editor && editor.isOpened()) {
-    return;
-  }
+/**
+ * Unregister shortcuts responsible for performing undo/redo.
+ *
+ * @private
+ */
+UndoRedo.prototype.unregisterShortcuts = function() {
+  const shortutManager = this.instance.getShortcutManager();
+  const gridContext = shortutManager.getContext('grid');
 
-  const {
-    altKey,
-    ctrlKey,
-    keyCode,
-    metaKey,
-    shiftKey,
-  } = event;
-  const isCtrlDown = (ctrlKey || metaKey) && !altKey;
-
-  if (!isCtrlDown) {
-    return;
-  }
-
-  const isRedoHotkey = keyCode === 89 || (shiftKey && keyCode === 90);
-
-  if (isRedoHotkey) { // CTRL + Y or CTRL + SHIFT + Z
-    instance.undoRedo.redo();
-    stopImmediatePropagation(event);
-
-  } else if (keyCode === 90) { // CTRL + Z
-    instance.undoRedo.undo();
-    stopImmediatePropagation(event);
-  }
-}
+  gridContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+};
 
 /**
  * @param {Array} changes 2D array containing information about each of the edited cells.

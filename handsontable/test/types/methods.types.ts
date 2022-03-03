@@ -77,6 +77,7 @@ hot.getSelectedLast()![0] === 123;
 hot.getSelectedRange()![0].from.row === 123;
 hot.getSelectedRangeLast()!.to.col === 123;
 hot.getSettings().type === 'text';
+hot.getShortcutManager();
 hot.getSourceData()[0];
 hot.getSourceData(123, 123, 123, 123)[0];
 hot.getSourceDataAtCell(123, 123) === '';

@@ -281,7 +281,7 @@ describe('ContextMenu', () => {
       $(getCell(1, 0)).simulate('mouseover');
       $(getCell(1, 0)).simulate('mouseup');
 
-      keyDown('ctrl');
+      keyDown('control');
 
       $(getCell(2, 1)).simulate('mousedown');
       $(getCell(2, 1)).simulate('mouseover');
@@ -298,6 +298,8 @@ describe('ContextMenu', () => {
       $(getCell(7, 4)).simulate('mousedown');
       $(getCell(7, 4)).simulate('mouseover');
       $(getCell(7, 4)).simulate('mouseup');
+
+      keyUp('control');
 
       expect(`
         |   ║ - : - : - : - : - :   :   :   |

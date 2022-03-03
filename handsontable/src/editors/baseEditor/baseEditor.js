@@ -1,5 +1,6 @@
-import { stringify } from '../../helpers/mixed';
+import { isDefined, stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
+import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
   getScrollbarWidth,
@@ -18,6 +19,8 @@ export const EDITOR_STATE = Object.freeze({
   WAITING: 'STATE_WAITING', // waiting for async validation
   FINISHED: 'STATE_FINISHED'
 });
+
+export const SHORTCUTS_GROUP_EDITOR = 'baseEditor';
 
 /**
  * @class BaseEditor
@@ -219,6 +222,37 @@ export class BaseEditor {
       [visualRowFrom, visualColumnFrom] = modifiedCellCoords;
     }
 
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+    const contextConfig = {
+      runOnlyIf: () => isDefined(this.hot.getSelected()),
+      group: SHORTCUTS_GROUP_EDITOR,
+    };
+
+    if (this.isInFullEditMode()) {
+      editorContext.addShortcuts([{
+        keys: [['ArrowUp']],
+        callback: () => {
+          this.hot.selection.transformStart(-1, 0);
+        },
+      }, {
+        keys: [['ArrowDown']],
+        callback: () => {
+          this.hot.selection.transformStart(1, 0);
+        },
+      }, {
+        keys: [['ArrowLeft']],
+        callback: () => {
+          this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
+        },
+      }, {
+        keys: [['ArrowRight']],
+        callback: () => {
+          this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
+        },
+      }], contextConfig);
+    }
+
     // Saving values using the modified coordinates.
     this.hot.populateFromArray(visualRowFrom, visualColumnFrom, value, visualRowTo, visualColumnTo, 'edit');
   }
@@ -288,6 +322,12 @@ export class BaseEditor {
     if (this.isWaiting()) {
       return;
     }
+
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_NAVIGATION);
 
     if (this.state === EDITOR_STATE.VIRGIN) {
       this.hot._registerTimeout(() => {
@@ -365,6 +405,10 @@ export class BaseEditor {
       this._fullEditMode = false;
       this.state = EDITOR_STATE.VIRGIN;
       this._fireCallbacks(true);
+
+      const shortcutManager = this.hot.getShortcutManager();
+
+      shortcutManager.setActiveContextName('grid');
     }
   }
 
