@@ -20,9 +20,9 @@ Use and manage Handsontable's keyboard shortcuts.
 
 You can intuitively navigate Handsontable with a keyboard, using the out-of-the-box [default keyboard shortcuts](#default-keyboard-shortcuts).
 
-You can also customize the entire set of keyboard shortcuts and handle assigned actions, by:
-- [Removing default keyboard shortcuts](#removing-default-keyboard-shortcuts)
+You can also customize the entire set of keyboard shortcuts, and handle actions assigned to them, by:
 - [Adding custom keyboard shortcuts](#adding-custom-keyboard-shortcuts)
+- [Removing keyboard shortcuts](#removing-keyboard-shortcuts)
 - [Replacing default keyboard shortcuts](#replacing-default-keyboard-shortcuts)
 - [Using beforeKeyDown hook](#using-beforekeydown-hook)
 
@@ -116,28 +116,6 @@ When the user interacts presses a key or a key combination keyboard, only the ac
 
 To manage keyboard shortcuts programmatically, you need to obtain the relevant context object from the API using the [getContext](@/api/create-shortcut-manager/#getcontext) and execute one of its methods as explained below.
 
-### Removing keyboard shortcuts
-To remove an already registered keyboard shortcut (such as one of the default keyboard shortcuts), you need to search for it in the relevant context and refer to it by:
-
-- Either the key combination
-- Or the group
-
-Use the context's method [removeShortcutsByKeys](@/api/context.md#removeshortcutsbykeys) to remove all shortcuts registered for given keys combination (note that it is possible that there are multiple actions registered for a single keyboard shortcut):
-
-```js
-const gridContext = hot.getShortcutManager().getContext('grid');
-
-gridContext.removeShortcutsByKeys(['enter']);
-```
-
-Use the context's method [removeShortcutsByGroup](@/api/context.md#removeshortcutsbygroup) to remove all shortcuts registered in a certain group:
-
-```js
-const gridContext = hot.getShortcutManager().getContext('grid');
-
-gridContext.removeShortcutsByGroup('group_ID');
-```
-
 ### Adding custom keyboard shortcuts
 
 Use the context's [addShortcut](@/api/context.md#addshortcut) method to register an action for a given keyboard shortcut.
@@ -165,6 +143,28 @@ If your action must run only if some specific precondition is met, you can check
 const gridContext = hot.getShortcutManager().getContext('grid');
 
 gridContext.addShortcut({ group: 'group_ID', keys: [['enter']], callback: () => {}, runOnlyIf: () => hot.getSelected() !== void 0 });
+```
+
+### Removing keyboard shortcuts
+To remove an already registered keyboard shortcut (such as one of the default keyboard shortcuts), you need to search for it in the relevant context and refer to it by:
+
+- Either the key combination
+- Or the group
+
+Use the context's method [removeShortcutsByKeys](@/api/context.md#removeshortcutsbykeys) to remove all shortcuts registered for given keys combination (note that it is possible that there are multiple actions registered for a single keyboard shortcut):
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.removeShortcutsByKeys(['enter']);
+```
+
+Use the context's method [removeShortcutsByGroup](@/api/context.md#removeshortcutsbygroup) to remove all shortcuts registered in a certain group:
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.removeShortcutsByGroup('group_ID');
 ```
 
 ### Replacing default keyboard shortcuts
