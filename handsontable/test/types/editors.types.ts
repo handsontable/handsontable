@@ -49,6 +49,11 @@ const text = new Handsontable.editors.TextEditor(hot);
 text.focus();
 text.finishEditing();
 
+const time = new Handsontable.editors.TimeEditor(hot);
+
+time.focus();
+time.finishEditing();
+
 // Verify top-level editors API
 class CustomEditor extends Handsontable.editors.getEditor('text') {
   open() {}

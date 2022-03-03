@@ -125,7 +125,7 @@ describe('TextEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       type: 'text',
     });
 
@@ -232,7 +232,7 @@ describe('TextEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       hiddenColumns: {
         indicators: true,
         columns: [0],
@@ -394,10 +394,10 @@ describe('TextEditor', () => {
       editor: 'text',
       fixedRowsBottom: 2,
       fixedRowsTop: 2,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
     });
 
-    // .ht_clone_top_left_corner
+    // .ht_clone_top_inline_start_corner
     selectCell(0, 0);
     keyDownUp('enter');
 
@@ -405,13 +405,13 @@ describe('TextEditor', () => {
 
     expect(handsontableInputHolder.css('zIndex')).toBe('180');
 
-    // .ht_clone_left
+    // .ht_clone_inline_start
     selectCell(5, 0);
     keyDownUp('enter');
 
     expect(handsontableInputHolder.css('zIndex')).toBe('120');
 
-    // .ht_clone_bottom_left_corner
+    // .ht_clone_bottom_inline_start_corner
     selectCell(9, 0);
     keyDownUp('enter');
 
@@ -567,7 +567,7 @@ describe('TextEditor', () => {
     keyDown('enter');
     keyUp('enter');
 
-    const mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view._wt.wtTable.holder;
 
     mainHolder.scrollTop = 500;
     mainHolder.scrollLeft = 500;
@@ -590,7 +590,7 @@ describe('TextEditor', () => {
     keyDown('enter');
     keyUp('enter');
 
-    const mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view._wt.wtTable.holder;
 
     mainHolder.scrollTop = 150;
     mainHolder.scrollLeft = 100;
@@ -1288,11 +1288,11 @@ describe('TextEditor', () => {
   it('should open editor at the same coordinates as the edited cell', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(16, 8),
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
 
-    const mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view._wt.wtTable.holder;
 
     // corner
     selectCell(1, 1);
@@ -1329,14 +1329,14 @@ describe('TextEditor', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(30, 30),
       preventOverflow: 'horizontal',
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       rowHeaders: true,
       colHeaders: true,
       height: 500,
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder.scrollTop(100);
     $holder.scrollLeft(100);
@@ -1377,7 +1377,7 @@ describe('TextEditor', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(300, 300),
       preventOverflow: 'horizontal',
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       rowHeaders: true,
       colHeaders: true,
@@ -1424,11 +1424,11 @@ describe('TextEditor', () => {
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (corner)', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(16, 8),
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder.scrollTop(100);
     $holder.scrollLeft(100);
@@ -1451,11 +1451,11 @@ describe('TextEditor', () => {
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (top)', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder[0].scrollTop = 500;
     await sleep(100);
@@ -1481,11 +1481,11 @@ describe('TextEditor', () => {
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (left)', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder.scrollTop(500);
     $holder.scrollLeft(500);
@@ -1510,11 +1510,11 @@ describe('TextEditor', () => {
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (non-fixed)', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder.scrollTop(500);
     $holder.scrollLeft(500);
@@ -1696,13 +1696,13 @@ describe('TextEditor', () => {
     const $editedCell = $(hot.getCell(1, 1));
 
     expect($editorInput.outerWidth())
-      .toEqual(hot.view.wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
+      .toEqual(hot.view._wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
 
     hot.scrollViewportTo(void 0, 3);
     hot.render();
 
     expect($editorInput.width() + $editorInput.offset().left)
-      .toBeLessThan(hot.view.wt.wtTable.holder.clientWidth);
+      .toBeLessThan(hot.view._wt.wtTable.holder.clientWidth);
   });
 
   it('should resize editor to properly size after focus', async() => {
@@ -1847,6 +1847,19 @@ describe('TextEditor', () => {
     keyDownUp('enter');
 
     expect(hot.getActiveEditor()).toBe(void 0);
+  });
+
+  it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      editor: 'text',
+    });
+
+    selectCell(0, 0);
+
+    const editableElement = getActiveEditor().TEXTAREA;
+
+    expect(editableElement.getAttribute('dir')).toBeNull();
   });
 
   describe('IME support', () => {

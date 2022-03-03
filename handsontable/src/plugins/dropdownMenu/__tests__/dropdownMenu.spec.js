@@ -20,12 +20,12 @@ describe('DropdownMenu', () => {
         height: 100
       });
 
-      expect(hot.view.wt.wtTable.getColumnHeader(0).querySelector('.changeType')).not.toBe(null);
+      expect(hot.view._wt.wtTable.getColumnHeader(0).querySelector('.changeType')).not.toBe(null);
 
       hot.getPlugin('dropdownMenu').disablePlugin();
       hot.render();
 
-      expect(hot.view.wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
+      expect(hot.view._wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
     });
 
     it('should enable plugin after call enablePlugin method', () => {
@@ -35,12 +35,12 @@ describe('DropdownMenu', () => {
         height: 100
       });
 
-      expect(hot.view.wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
+      expect(hot.view._wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
 
       hot.getPlugin('dropdownMenu').enablePlugin();
       hot.render();
 
-      expect(hot.view.wt.wtTable.getColumnHeader(0).querySelector('.changeType')).not.toBe(null);
+      expect(hot.view._wt.wtTable.getColumnHeader(0).querySelector('.changeType')).not.toBe(null);
     });
   });
 
@@ -185,7 +185,7 @@ describe('DropdownMenu', () => {
       dropdownMenu(0);
 
       expect($('.htDropdownMenu').is(':visible')).toBe(false);
-      expect(hot.view.wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
+      expect(hot.view._wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
     });
 
     it('should not create dropdowm menu if it\'s disabled in constructor options', () => {
@@ -196,7 +196,7 @@ describe('DropdownMenu', () => {
       });
 
       expect(hot.getPlugin('dropdownMenu').isEnabled()).toBe(false);
-      expect(hot.view.wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
+      expect(hot.view._wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
     });
 
     it('should reenable menu', () => {

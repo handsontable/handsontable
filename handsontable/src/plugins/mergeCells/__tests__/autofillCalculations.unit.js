@@ -1,6 +1,13 @@
 import AutofillCalculations from '../calculations/autofill';
 import MergedCellCoords from '../cellCoords';
 import MergedCellsCollection from '../cellsCollection';
+import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
+
+function createMergedCellCoords(row, column, rowspan, colspan) {
+  return new MergedCellCoords(row, column, rowspan, colspan,
+    (...args) => new CellCoords(...args),
+    (...args) => new CellRange(...args));
+}
 
 describe('MergeCells-Autofill calculations', () => {
   describe('correctSelectionAreaSize', () => {
@@ -48,7 +55,7 @@ describe('MergeCells-Autofill calculations', () => {
       let baseArea = [5, 4, 6, 5];
       let dragArea = [4, 4, 6, 5];
       let dragDirection = 'up';
-      const foundMergedCells = [new MergedCellCoords(5, 4, 2, 2)];
+      const foundMergedCells = [createMergedCellCoords(5, 4, 2, 2)];
 
       expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
         .toEqual('[3,4,6,5]');
@@ -144,7 +151,7 @@ describe('MergeCells-Autofill calculations', () => {
       const baseArea = [3, 3, 10, 11];
       let dragArea = [3, 3, 13, 11];
       let direction = 'down';
-      const mergedCellArray = [new MergedCellCoords(5, 4, 2, 2), new MergedCellCoords(8, 8, 2, 3)];
+      const mergedCellArray = [createMergedCellCoords(5, 4, 2, 2), createMergedCellCoords(8, 8, 2, 3)];
 
       expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray))
         .toEqual(mergedCellArray[0]);
@@ -181,8 +188,8 @@ describe('MergeCells-Autofill calculations', () => {
 
   describe('isFarther', () => {
     it('Should check if the second provided merged cell is \'farther\' in the provided direction.', () => {
-      const first = new MergedCellCoords(5, 4, 2, 2);
-      const second = new MergedCellCoords(8, 8, 2, 3);
+      const first = createMergedCellCoords(5, 4, 2, 2);
+      const second = createMergedCellCoords(8, 8, 2, 3);
       let direction = 'up';
 
       expect(second.isFarther(first, direction)).toEqual(false);
@@ -205,7 +212,9 @@ describe('MergeCells-Autofill calculations', () => {
         },
         countCols: () => 100,
         countRows: () => 100,
-        propToCol: el => el
+        propToCol: el => el,
+        _createCellCoords: (row, column) => new CellCoords(row, column),
+        _createCellRange: (highlight, from, to) => new CellRange(highlight, from, to),
       };
       const instance = new AutofillCalculations({
         mergedCellsCollection: new MergedCellsCollection({ hot: hotMock }),
@@ -237,7 +246,7 @@ describe('MergeCells-Autofill calculations', () => {
 
       instance.currentFillData = {
         dragDirection: 'down',
-        foundMergedCells: [new MergedCellCoords(5, 4, 2, 2), new MergedCellCoords(8, 8, 2, 3)],
+        foundMergedCells: [createMergedCellCoords(5, 4, 2, 2), createMergedCellCoords(8, 8, 2, 3)],
         cycleLength: 5
       };
 
@@ -272,7 +281,9 @@ describe('MergeCells-Autofill calculations', () => {
         },
         countCols: () => 100,
         countRows: () => 100,
-        propToCol: string => parseInt(string.replace('propFor', ''), 10)
+        propToCol: string => parseInt(string.replace('propFor', ''), 10),
+        _createCellCoords: (row, column) => new CellCoords(row, column),
+        _createCellRange: (highlight, from, to) => new CellRange(highlight, from, to),
       };
       const instance = new AutofillCalculations({
         mergedCellsCollection: new MergedCellsCollection({ hot: hotMock }),
@@ -288,7 +299,7 @@ describe('MergeCells-Autofill calculations', () => {
 
       instance.currentFillData = {
         dragDirection: 'right',
-        foundMergedCells: [new MergedCellCoords(2, 2, 2, 2)],
+        foundMergedCells: [createMergedCellCoords(2, 2, 2, 2)],
         cycleLength: 2
       };
 

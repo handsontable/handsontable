@@ -20,7 +20,7 @@ import {
   SEPARATOR,
 } from './predefinedItems';
 
-import './contextMenu.css';
+import './contextMenu.scss';
 
 export const PLUGIN_KEY = 'contextMenu';
 export const PLUGIN_PRIORITY = 70;
@@ -107,6 +107,9 @@ export class ContextMenu extends BasePlugin {
     ];
   }
 
+  /**
+   * @param {Core} hotInstance Handsontable instance.
+   */
   constructor(hotInstance) {
     super(hotInstance);
     /**

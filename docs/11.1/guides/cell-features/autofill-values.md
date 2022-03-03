@@ -44,8 +44,8 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-hot.loadData(data);
 // or, use `updateData()` to replace `data` without resetting states
+hot.loadData(data);
 ```
 :::
 

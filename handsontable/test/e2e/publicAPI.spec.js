@@ -81,6 +81,7 @@ describe('Public API', () => {
       expect(Handsontable.editors.PasswordEditor).toBeFunction();
       expect(Handsontable.editors.SelectEditor).toBeFunction();
       expect(Handsontable.editors.TextEditor).toBeFunction();
+      expect(Handsontable.editors.TimeEditor).toBeFunction();
     });
   });
 
@@ -104,6 +105,7 @@ describe('Public API', () => {
       expect(Handsontable.renderers.NumericRenderer).toBeFunction();
       expect(Handsontable.renderers.PasswordRenderer).toBeFunction();
       expect(Handsontable.renderers.TextRenderer).toBeFunction();
+      expect(Handsontable.renderers.TimeRenderer).toBeFunction();
     });
   });
 
@@ -166,8 +168,8 @@ describe('Public API', () => {
       expect(Handsontable.cellTypes.text.renderer).toBe(Handsontable.renderers.TextRenderer);
       expect(Handsontable.cellTypes.text.validator).not.toBeDefined();
 
-      expect(Handsontable.cellTypes.time.editor).toBe(Handsontable.editors.TextEditor);
-      expect(Handsontable.cellTypes.time.renderer).toBe(Handsontable.renderers.TextRenderer);
+      expect(Handsontable.cellTypes.time.editor).toBe(Handsontable.editors.TimeEditor);
+      expect(Handsontable.cellTypes.time.renderer).toBe(Handsontable.renderers.TimeRenderer);
       expect(Handsontable.cellTypes.time.validator).toBe(Handsontable.validators.TimeValidator);
     });
   });

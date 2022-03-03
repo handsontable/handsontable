@@ -7,7 +7,7 @@ import { rootComparator } from './rootComparator';
 import { warnAboutPluginsConflict } from './utils';
 import { getClassesToAdd, getClassesToRemove } from './domHelpers';
 
-import './multiColumnSorting.css';
+import './multiColumnSorting.scss';
 
 export const PLUGIN_KEY = 'multiColumnSorting';
 export const PLUGIN_PRIORITY = 170;

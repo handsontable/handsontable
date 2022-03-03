@@ -6,6 +6,9 @@ import { CLONE_BOTTOM } from '../overlay';
 
 /**
  * Subclass of `Table` that provides the helper methods relevant to BottomOverlay, implemented through mixins.
+ *
+ * @mixes stickyRowsBottom
+ * @mixes calculatedColumns
  */
 class BottomOverlayTable extends Table {
   /**

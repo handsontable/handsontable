@@ -5,16 +5,9 @@ import {
   addClass,
   getCaretPosition,
   getComputedStyle,
-  getCssTransform,
-  getScrollbarWidth,
-  innerWidth,
-  offset,
-  resetCssTransform,
   setCaretPosition,
-  hasVerticalScrollbar,
-  hasHorizontalScrollbar,
   hasClass,
-  removeClass
+  removeClass,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
@@ -162,7 +155,7 @@ export class TextEditor extends BaseEditor {
       } = cellProperties;
 
       if (allowInvalid) {
-        // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste
+        // Remove an empty space from textarea (added by copyPaste plugin to make copy/paste
         // functionality work with IME)
         this.TEXTAREA.value = '';
       }
@@ -192,7 +185,7 @@ export class TextEditor extends BaseEditor {
       return;
     }
 
-    this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME).
+    this.TEXTAREA.value = ''; // Remove an empty space from textarea (added by copyPaste plugin to make copy/paste functionality work with IME).
     super.beginEditing(newInitialValue, event);
   }
 
@@ -202,7 +195,7 @@ export class TextEditor extends BaseEditor {
   focus() {
     // For IME editor textarea element must be focused using ".select" method.
     // Using ".focus" browser automatically scroll into the focused element which
-    // is undesire effect.
+    // is undesired effect.
     this.TEXTAREA.select();
     setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
   }
@@ -254,10 +247,7 @@ export class TextEditor extends BaseEditor {
     this.textareaParentStyle.opacity = '0';
     this.textareaParentStyle.height = '1px';
 
-    if (hasClass(this.TEXTAREA_PARENT, this.layerClass)) {
-      removeClass(this.TEXTAREA_PARENT, this.layerClass);
-    }
-
+    removeClass(this.TEXTAREA_PARENT, this.layerClass);
     addClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME);
   }
 
@@ -270,7 +260,7 @@ export class TextEditor extends BaseEditor {
     this.textareaParentStyle.height = '';
     this.textareaParentStyle.overflow = '';
     this.textareaParentStyle.position = '';
-    this.textareaParentStyle.right = 'auto';
+    this.textareaParentStyle[this.hot.isRtl() ? 'left' : 'right'] = 'auto';
     this.textareaParentStyle.opacity = '1';
 
     this.textareaStyle.textIndent = '';
@@ -341,100 +331,43 @@ export class TextEditor extends BaseEditor {
       return;
     }
 
-    const { wtOverlays, wtViewport } = this.hot.view.wt;
-    const currentOffset = offset(this.TD);
-    const containerOffset = offset(this.hot.rootElement);
-    const scrollableContainerTop = wtOverlays.topOverlay.holder;
-    const scrollableContainerLeft = wtOverlays.leftOverlay.holder;
-    const containerScrollTop = scrollableContainerTop !== this.hot.rootWindow ?
-      scrollableContainerTop.scrollTop : 0;
-    const containerScrollLeft = scrollableContainerLeft !== this.hot.rootWindow ?
-      scrollableContainerLeft.scrollLeft : 0;
-    const editorSection = this.checkEditorSection();
+    const {
+      top,
+      start,
+      width,
+      maxWidth,
+      height,
+      maxHeight
+    } = this.getEditedCellRect();
 
-    const scrollTop = ['', 'left'].includes(editorSection) ? containerScrollTop : 0;
-    const scrollLeft = ['', 'top', 'bottom'].includes(editorSection) ? containerScrollLeft : 0;
-
-    // If colHeaders is disabled, cells in the first row have border-top
-    const editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
-    const backgroundColor = this.TD.style.backgroundColor;
-
-    let editTop = currentOffset.top - containerOffset.top - editTopModifier - scrollTop;
-    let editLeft = currentOffset.left - containerOffset.left - 1 - scrollLeft;
-    let cssTransformOffset;
-
-    // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
-    switch (editorSection) {
-      case 'top':
-        cssTransformOffset = getCssTransform(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
-        break;
-      case 'left':
-        cssTransformOffset = getCssTransform(wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
-        break;
-      case 'top-left-corner':
-        cssTransformOffset = getCssTransform(wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
-        break;
-      case 'bottom-left-corner':
-        cssTransformOffset = getCssTransform(wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
-        break;
-      case 'bottom':
-        cssTransformOffset = getCssTransform(wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
-        break;
-      default:
-        break;
-    }
-
-    const hasColumnHeaders = this.hot.hasColHeaders();
-    const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
-    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
-    const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
-    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view.wt.getSetting('fixedRowsBottom');
-
-    if (hasColumnHeaders && renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
-      editTop += 1;
-    }
-
-    if (renderableColumn <= 0) {
-      editLeft += 1;
-    }
-
-    if (cssTransformOffset && cssTransformOffset !== -1) {
-      this.textareaParentStyle[cssTransformOffset[0]] = cssTransformOffset[1];
-    } else {
-      resetCssTransform(this.TEXTAREA_PARENT);
-    }
-
-    this.textareaParentStyle.top = `${editTop}px`;
-    this.textareaParentStyle.left = `${editLeft}px`;
+    this.textareaParentStyle.top = `${top}px`;
+    this.textareaParentStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
     this.showEditableElement();
-
-    const firstRowOffset = wtViewport.rowsRenderCalculator.startPosition;
-    const firstColumnOffset = wtViewport.columnsRenderCalculator.startPosition;
-    const horizontalScrollPosition = wtOverlays.leftOverlay.getScrollPosition();
-    const verticalScrollPosition = wtOverlays.topOverlay.getScrollPosition();
-    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
-
-    const cellTopOffset = this.TD.offsetTop + firstRowOffset - verticalScrollPosition;
-    const cellLeftOffset = this.TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
-
-    const width = innerWidth(this.TD) - 8;
-    const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
-    const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
-    const maxWidth = this.hot.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
-    const height = this.TD.scrollHeight + 1;
-    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23); // eslint-disable-line max-len
 
     const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
 
     this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
     this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
-    this.TEXTAREA.style.backgroundColor = backgroundColor;
+    this.TEXTAREA.style.backgroundColor = this.TD.style.backgroundColor;
+
+    const textareaComputedStyle = getComputedStyle(this.TEXTAREA);
+
+    const horizontalPadding = parseInt(textareaComputedStyle.paddingLeft, 10) +
+      parseInt(textareaComputedStyle.paddingRight, 10);
+    const verticalPadding = parseInt(textareaComputedStyle.paddingTop, 10) +
+      parseInt(textareaComputedStyle.paddingBottom, 10);
+
+    const finalWidth = width - horizontalPadding;
+    const finalHeight = height - verticalPadding;
+    const finalMaxWidth = maxWidth - horizontalPadding;
+    const finalMaxHeight = maxHeight - verticalPadding;
 
     this.autoResize.init(this.TEXTAREA, {
-      minHeight: Math.min(height, maxHeight),
-      maxHeight, // TEXTAREA should never be higher than visible part of the viewport (should not cover the scrollbar)
-      minWidth: Math.min(width, maxWidth),
-      maxWidth // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+      minWidth: Math.min(finalWidth, finalMaxWidth),
+      minHeight: Math.min(finalHeight, finalMaxHeight),
+      // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+      maxWidth: finalMaxWidth,
+      maxHeight: finalMaxHeight,
     }, true);
   }
 

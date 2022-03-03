@@ -2258,13 +2258,13 @@ describe('Core_validate', () => {
       ]
     });
 
-    spyOn(hot.view.wt.wtSettings.settings, 'cellRenderer');
+    spyOn(hot.view._wt.wtSettings.settings, 'cellRenderer');
 
     hot.validateCells();
 
     await sleep(200);
 
-    const mostRecentRendererCallArgs = hot.view.wt.wtSettings.settings.cellRenderer.calls.mostRecent().args;
+    const mostRecentRendererCallArgs = hot.view._wt.wtSettings.settings.cellRenderer.calls.mostRecent().args;
 
     // The `date` column (the one that is being validated) should be described as the `1` (renderable) column.
     expect(mostRecentRendererCallArgs[1]).toEqual(1);

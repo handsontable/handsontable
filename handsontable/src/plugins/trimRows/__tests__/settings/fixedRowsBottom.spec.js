@@ -49,7 +49,7 @@ describe('TrimRows', () => {
           </tr>
         </tbody>
         `);
-      expect(extractDOMStructure(getBottomLeftClone())).toMatchHTML(`
+      expect(extractDOMStructure(getBottomInlineStartClone())).toMatchHTML(`
         <tbody>
           <tr>
             <th class="">1</th>
@@ -78,7 +78,7 @@ describe('TrimRows', () => {
           </tr>
         </tbody>
         `);
-      expect(extractDOMStructure(getBottomLeftClone())).toMatchHTML(`
+      expect(extractDOMStructure(getBottomInlineStartClone())).toMatchHTML(`
         <tbody>
           <tr>
             <th class="">1</th>
@@ -98,7 +98,7 @@ describe('TrimRows', () => {
       expect(extractDOMStructure(getBottomClone())).toMatchHTML(`
         <tbody></tbody>
         `);
-      expect(extractDOMStructure(getBottomLeftClone())).toMatchHTML(`
+      expect(extractDOMStructure(getBottomInlineStartClone())).toMatchHTML(`
         <tbody></tbody>
         `);
     });
