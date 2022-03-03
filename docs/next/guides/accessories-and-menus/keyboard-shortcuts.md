@@ -28,7 +28,7 @@ You can intuitively navigate Handsontable with a keyboard, using the out-of-the-
 
 You can also completely [customize your keyboard shortcuts](#customizing-keyboard-shortcuts), using Handsontable's dedicated [`ShortcutManager` API](@/api/shortcutmanager.md) that lets you:
 - [Add custom keyboard shortcuts](#adding-a-custom-keyboard-shortcut)
-- [Remove keyboard shortcuts](#removing-keyboard-shortcuts)
+- [Remove keyboard shortcuts](#removing-a-keyboard-shortcut)
 - [Replace keyboard shortcuts](#replacing-a-keyboard-shortcut)
 - [Block keyboard shortcuts' actions](#blocking-a-keyboard-shortcut-s-action)
 
@@ -139,13 +139,13 @@ Every keyboard action is registered in a particular context:
 | `grid`   | Activates when the user navigates the data grid (initial context)                                     | Built-in |
 | `editor` | Activates when the user opens a [cell editor](@/guides/cell-functions/cell-editor.md)                 | Built-in |
 | `menu`   | Activates when the user opens a cell's [context menu](@/guides/accessories-and-menus/context-menu.md) | Built-in |
-| Custom   | Your [custom context](#managing-the-keyboard-shortcut-contexts)                                       | Custom   |
+| Custom   | Your [custom context](#managing-keyboard-shortcut-contexts)                                       | Custom   |
 
 When the user interacts with the keyboard, only actions registered for the currently-active context are executed.
 
 Only one context is active at a time.
 
-#### Managing the keyboard shortcut contexts
+#### Managing keyboard shortcut contexts
 
 Using the [`ShortcutManager`](@/api/shortcutmanager.md) API methods, you can:
 
@@ -153,6 +153,9 @@ Using the [`ShortcutManager`](@/api/shortcutmanager.md) API methods, you can:
 - Switch to a different context: [`setActiveContextName(<name>)`](@/api/shortcutmanager.md#setactivecontextname)
 - Get an already-registered context: [`getContext(<name>)`](@/api/shortcutmanager.md#getcontext)
 - Create and register a new context: [`addContext(<name>)`](@/api/shortcutmanager.md#addcontext)
+
+For example, if you're using a complex [custom editor](@/guides/cell-functions/cell-editor.md##how-to-create-a-custom-editor), 
+creating a custom keyboard shortcut context can let you navigate your editor's UI with the arrow keys (normally used for navigating the grid).
 
 ### Adding a custom keyboard shortcut
 
@@ -212,7 +215,7 @@ gridContext.addShortcut({
 });
 ```
 
-### Removing keyboard shortcuts
+### Removing a keyboard shortcut
 
 To remove a keyboard shortcut (e.g. one of the [default keyboard shortcuts](#default-keyboard-shortcuts)):
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to remove a keyboard shortcut.
