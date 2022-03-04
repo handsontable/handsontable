@@ -156,39 +156,75 @@ describe('context', () => {
       group: 'helloWorld'
     };
 
-    expect(context.hasShortcut(['control', 'a'])).toBe(false);
-    expect(context.hasShortcut(['Control', 'A'])).toBe(false);
-    expect(context.hasShortcut(['a', 'control'])).toBe(false);
-    expect(context.hasShortcut(['A', 'Control'])).toBe(false);
+    expect(context.hasShortcut(['meta', 'c'])).toBe(false);
+    expect(context.hasShortcut(['Meta', 'C'])).toBe(false);
+    expect(context.hasShortcut(['c', 'meta'])).toBe(false);
+    expect(context.hasShortcut(['C', 'Meta'])).toBe(false);
 
     context.addShortcut({
-      keys: [['control', 'a']],
+      keys: [['meta', 'C']],
       callback,
       ...options
     });
 
-    expect(context.hasShortcut(['control', 'a'])).toBe(true);
-    expect(context.hasShortcut(['Control', 'A'])).toBe(true);
-    expect(context.hasShortcut(['a', 'control'])).toBe(true);
-    expect(context.hasShortcut(['A', 'Control'])).toBe(true);
+    expect(context.hasShortcut(['meta', 'c'])).toBe(true);
+    expect(context.hasShortcut(['Meta', 'C'])).toBe(true);
+    expect(context.hasShortcut(['c', 'meta'])).toBe(true);
+    expect(context.hasShortcut(['C', 'Meta'])).toBe(true);
 
     context.addShortcut({
-      keys: [['control', 'a']],
+      keys: [['meta', 'c']],
       callback: callback2,
       ...options
     });
 
-    expect(context.hasShortcut(['control', 'a'])).toBe(true);
-    expect(context.hasShortcut(['Control', 'A'])).toBe(true);
-    expect(context.hasShortcut(['a', 'control'])).toBe(true);
-    expect(context.hasShortcut(['A', 'Control'])).toBe(true);
+    expect(context.hasShortcut(['meta', 'c'])).toBe(true);
+    expect(context.hasShortcut(['Meta', 'C'])).toBe(true);
+    expect(context.hasShortcut(['c', 'meta'])).toBe(true);
+    expect(context.hasShortcut(['C', 'Meta'])).toBe(true);
 
-    context.removeShortcutsByKeys(['control', 'a']);
+    context.removeShortcutsByKeys(['meta', 'c']);
 
-    expect(context.hasShortcut(['control', 'a'])).toBe(false);
-    expect(context.hasShortcut(['Control', 'A'])).toBe(false);
-    expect(context.hasShortcut(['a', 'control'])).toBe(false);
-    expect(context.hasShortcut(['A', 'Control'])).toBe(false);
+    expect(context.hasShortcut(['meta', 'c'])).toBe(false);
+    expect(context.hasShortcut(['Meta', 'C'])).toBe(false);
+    expect(context.hasShortcut(['c', 'meta'])).toBe(false);
+    expect(context.hasShortcut(['C', 'Meta'])).toBe(false);
+
+    context.addShortcut({
+      keys: [['Meta', 'c']],
+      callback,
+      ...options
+    });
+
+    expect(context.hasShortcut(['meta', 'c'])).toBe(true);
+    expect(context.hasShortcut(['Meta', 'C'])).toBe(true);
+    expect(context.hasShortcut(['c', 'meta'])).toBe(true);
+    expect(context.hasShortcut(['C', 'Meta'])).toBe(true);
+
+    context.removeShortcutsByKeys(['meta', 'c']);
+
+    expect(context.hasShortcut(['meta', 'c'])).toBe(false);
+    expect(context.hasShortcut(['Meta', 'C'])).toBe(false);
+    expect(context.hasShortcut(['c', 'meta'])).toBe(false);
+    expect(context.hasShortcut(['C', 'Meta'])).toBe(false);
+
+    context.addShortcut({
+      keys: [['Meta', 'C']],
+      callback,
+      ...options
+    });
+
+    expect(context.hasShortcut(['meta', 'c'])).toBe(true);
+    expect(context.hasShortcut(['Meta', 'C'])).toBe(true);
+    expect(context.hasShortcut(['c', 'meta'])).toBe(true);
+    expect(context.hasShortcut(['C', 'Meta'])).toBe(true);
+
+    context.removeShortcutsByKeys(['meta', 'c']);
+
+    expect(context.hasShortcut(['meta', 'c'])).toBe(false);
+    expect(context.hasShortcut(['Meta', 'C'])).toBe(false);
+    expect(context.hasShortcut(['c', 'meta'])).toBe(false);
+    expect(context.hasShortcut(['C', 'Meta'])).toBe(false);
   });
 
   it('should give a possibility to remove registered shortcuts by group', () => {
