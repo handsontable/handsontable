@@ -6,10 +6,11 @@ import { arrayEach } from '../helpers/array';
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
- * Create a {@link ShortcutContext} manager instance,
- * used for storing and managing [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts).
+ * The `ShortcutManager` class lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutcontext.md)).
  *
- * The context manager listens to the `KeyboardEvent` events and runs actions for them.
+ * Each `ShortcutManager` object:
+ * - Stores and manages its own set of keyboard shortcut contexts.
+ * - Listens to the [`KeyboardEvent`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent) events and runs actions for them.
  *
  * @alias ShortcutManager
  * @class ShortcutManager
@@ -28,17 +29,17 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
     errorIdExists: keys => `The "${keys}" context name is already registered.`
   });
   /**
-   * The name of the active {@link ShortcutContext}.
+   * The name of the active [`ShortcutContext`](@/api/shortcutcontext.md).
    *
    * @type {string}
    */
   let activeContextName = 'grid';
 
   /**
-   * Create a new {@link ShortcutContext}.
+   * Create a new [`ShortcutContext`](@/api/shortcutcontext.md) object.
    *
    * @memberof ShortcutManager#
-   * @param {string} contextName The name of the new {@link ShortcutContext}
+   * @param {string} contextName The name of the new shortcut context
    * @returns {object}
    */
   const addContext = (contextName) => {
@@ -50,7 +51,7 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
   };
 
   /**
-   * Get the ID of the active {@link ShortcutContext}.
+   * Get the ID of the active [`ShortcutContext`](@/api/shortcutcontext.md).
    *
    * @memberof ShortcutManager#
    * @returns {string}
@@ -60,21 +61,21 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
   };
 
   /**
-   * Get a {@link ShortcutContext} by its name.
+   * Get a [`ShortcutContext`](@/api/shortcutcontext.md) by its name.
    *
    * @memberof ShortcutManager#
-   * @param {string} contextName The name of the {@link ShortcutContext}
-   * @returns {object|undefined} A {@link ShortcutContext} that stores registered shortcuts
+   * @param {string} contextName The name of the shortcut context
+   * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutcontext.md) that stores registered shortcuts
    */
   const getContext = (contextName) => {
     return CONTEXTS.getItem(contextName);
   };
 
   /**
-   * Start listening to keyboard shortcuts within a given {@link ShortcutContext}.
+   * Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/shortcutcontext.md).
    *
    * @memberof ShortcutManager#
-   * @param {string} contextName The name of the context to activate
+   * @param {string} contextName The name of the shortcut context
    */
   const setActiveContextName = (contextName) => {
     activeContextName = contextName;

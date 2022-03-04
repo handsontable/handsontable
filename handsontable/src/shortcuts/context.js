@@ -7,11 +7,13 @@ import { toSingleLine } from '../helpers/templateLiteralTag';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
- * Create a [keyboard shortcut context](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts).
+ * The `ShortcutContext` class lets you store and manage [keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md) in a given [context](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts).
+ *
+ * Each `ShortcutContext` object stores and manages its own set of keyboard shortcuts.
  *
  * @alias ShortcutContext
  * @class ShortcutContext
- * @param {string} name The name of the keyboard shortcut context.
+ * @param {string} name The name of the keyboard shortcut context
  * @returns {object}
  */
 export const createContext = (name) => {
@@ -20,7 +22,7 @@ export const createContext = (name) => {
   });
 
   /**
-   * Add a keyboard shortcut to the shortcut context.
+   * Add a keyboard shortcut to this `ShortcutContext`.
    *
    * @memberof ShortcutContext#
    * @param {object} options The shortcut's options
@@ -29,7 +31,7 @@ export const createContext = (name) => {
    * in lowercase or uppercase, unified across browsers
    * @param {Function} options.callback The shortcut's action
    * @param {object} options.group A group of shortcuts to which the shortcut belongs
-   * @param {object} [options.runOnlyIf] A condition on which the shortcut's action runs or not
+   * @param {object} [options.runOnlyIf] A condition on which the shortcut's action runs
    * @param {object} [options.stopPropagation=true] If set to `true`: stops the event's propagation
    * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
    * @param {object} [options.position='after'] The order in which the shortcut's action runs:
@@ -59,8 +61,7 @@ export const createContext = (name) => {
 
     if (Array.isArray(keys) === false) {
       throw new Error(toSingleLine`Pass the shortcut\'s keys as an array of arrays,\x20
-      using the KeyboardEvent\'s\ key properties.\x20
-      Full list of values is available here:\x20
+      using the KeyboardEvent.key properties:\x20
       https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.`);
     }
 
@@ -103,14 +104,14 @@ export const createContext = (name) => {
   };
 
   /**
-   * Add keyboard shortcuts to this shortcut context.
+   * Add multiple keyboard shortcuts to this `ShortcutContext`.
    *
    * @memberof ShortcutContext#
    * @param {Array<object>} shortcuts List of shortcuts to add to this shortcut context
    * @param {object} [options] A shortcut's options
    * @param {Function} [options.callback] A shortcut's action
    * @param {object} [options.group] A group of shortcuts to which a shortcut belongs
-   * @param {object} [options.runOnlyIf] A condition on which a shortcut's action runs or not
+   * @param {object} [options.runOnlyIf] A condition on which a shortcut's action runs
    * @param {object} [options.stopPropagation=true] If set to `true`: stops the event's propagation
    * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
    * @param {object} [options.position='after'] The order in which a shortcut's action runs:
@@ -130,7 +131,7 @@ export const createContext = (name) => {
   };
 
   /**
-   * Remove a shortcut from this shortcut context.
+   * Remove a shortcut from this `ShortcutContext`.
    *
    * @memberof ShortcutContext#
    * @param {Array<string>} keys Names of the shortcut's keys,
@@ -144,7 +145,7 @@ export const createContext = (name) => {
   };
 
   /**
-   * Remove a group of shortcuts from this shortcut context.
+   * Remove a group of shortcuts from this `ShortcutContext`.
    *
    * @memberof ShortcutContext#
    * @param {string} group The name of the group of shortcuts
@@ -183,7 +184,7 @@ export const createContext = (name) => {
   };
 
   /**
-   * Check if a shortcut exists in this shortcut context.
+   * Check if a shortcut exists in this `ShortcutContext`.
    *
    * @memberof ShortcutContext#
    * @param {Array<string>} keys Names of the shortcut's keys,
