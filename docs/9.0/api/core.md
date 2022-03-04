@@ -28,7 +28,7 @@ hot.setDataAtCell(0, 0, 'new value');
 ## Members
 
 ### columnIndexMapper
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L154
 
 :::

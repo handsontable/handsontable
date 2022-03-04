@@ -34,7 +34,7 @@ hot.setDataAtCell(0, 0, 'new value');
 
 :::
 
-_core.columnIndexMapper : [IndexMapper](@/api/indexMapper.md)_
+_core.columnIndexMapper : indexMapper_
 
 Instance of index mapper which is responsible for managing the column indexes.
 
@@ -59,7 +59,7 @@ after `afterDestroy` hook is called.
 
 :::
 
-_core.rowIndexMapper : [IndexMapper](@/api/indexMapper.md)_
+_core.rowIndexMapper : indexMapper_
 
 Instance of index mapper which is responsible for managing the row indexes.
 
@@ -76,8 +76,8 @@ _core.addHook(key, callback)_
 
 Adds listener to the specified hook name (only for this Handsontable instance).
 
-**See**: [Hooks#add](@/api/hooks.md#add)  
-**Example**  
+**See**: [Hooks#add](@/api/hooks.md#add)
+**Example**
 ```js
 hot.addHook('beforeInit', myCallback);
 ```
@@ -100,8 +100,8 @@ _core.addHookOnce(key, callback)_
 Adds listener to specified hook name (only for this Handsontable instance). After the listener is triggered,
 it will be automatically removed.
 
-**See**: [Hooks#once](@/api/hooks.md#once)  
-**Example**  
+**See**: [Hooks#once](@/api/hooks.md#once)
+**Example**
 ```js
 hot.addHookOnce('beforeInit', myCallback);
 ```
