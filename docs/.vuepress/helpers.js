@@ -7,38 +7,44 @@ const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
 
 const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
 
+function getVersions(buildMode) {
+  const next = buildMode !== 'production' ? ['next'] : [];
+
+  return [...next, ...availableVersions];
+}
+
+function getLatestVersion() {
+  return availableVersions[0];
+}
+
+function getSidebars(buildMode) {
+  const sidebars = { };
+  const versions = getVersions(buildMode);
+
+  versions.forEach((version) => {
+    // eslint-disable-next-line
+    const s = require(path.join(__dirname, `../${version}/sidebars.js`));
+
+    sidebars[`/${version}/examples/`] = s.examples;
+    sidebars[`/${version}/api/`] = s.api;
+    sidebars[`/${version}/`] = s.guides;
+  });
+
+  return sidebars;
+}
+
+function parseVersion(url) {
+  return url.split('/')[1] || this.getLatestVersion();
+}
+
+function getBuildDocsVersion() {
+  return process.env.DOCS_VERSION;
+}
+
 module.exports = {
-  getVersions(buildMode) {
-    const next = buildMode !== 'production' ? ['next'] : [];
-
-    return [...next, ...availableVersions];
-  },
-
-  getLatestVersion() {
-    return availableVersions[0];
-  },
-
-  getSidebars(buildMode) {
-    const sidebars = { };
-    const versions = this.getVersions(buildMode);
-
-    versions.forEach((version) => {
-      // eslint-disable-next-line
-      const s = require(path.join(__dirname, `../${version}/sidebars.js`));
-
-      sidebars[`/${version}/examples/`] = s.examples;
-      sidebars[`/${version}/api/`] = s.api;
-      sidebars[`/${version}/`] = s.guides;
-    });
-
-    return sidebars;
-  },
-
-  parseVersion(url) {
-    return url.split('/')[1] || this.getLatestVersion();
-  },
-
-  getBuildDocsVersion() {
-    return process.env.DOCS_VERSION;
-  },
+  getVersions,
+  getLatestVersion,
+  getSidebars,
+  parseVersion,
+  getBuildDocsVersion,
 };
