@@ -22,7 +22,7 @@ export const createContext = (name) => {
   /**
    * Add a keyboard shortcut to the shortcut context.
    *
-   * @memberof Context#
+   * @memberof ShortcutContext#
    * @param {object} options The shortcut's options
    * @param {Array<Array<string>>} options.keys Names of the shortcut's keys,
    * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
@@ -105,7 +105,7 @@ export const createContext = (name) => {
   /**
    * Add keyboard shortcuts to this shortcut context.
    *
-   * @memberof Context#
+   * @memberof ShortcutContext#
    * @param {Array<object>} shortcuts List of shortcuts to add to this shortcut context
    * @param {object} [options] A shortcut's options
    * @param {Function} [options.callback] A shortcut's action
@@ -132,7 +132,7 @@ export const createContext = (name) => {
   /**
    * Remove a shortcut from this shortcut context.
    *
-   * @memberof Context#
+   * @memberof ShortcutContext#
    * @param {Array<string>} keys Names of the shortcut's keys,
    * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
    * in lowercase or uppercase, unified across browsers
@@ -146,7 +146,7 @@ export const createContext = (name) => {
   /**
    * Remove a group of shortcuts from this shortcut context.
    *
-   * @memberof Context#
+   * @memberof ShortcutContext#
    * @param {string} group The name of the group of shortcuts
    */
   const removeShortcutsByGroup = (group) => {
@@ -169,7 +169,7 @@ export const createContext = (name) => {
   /**
    * Get a shortcut's details.
    *
-   * @memberof Context#
+   * @memberof ShortcutContext#
    * @param {Array<string>} keys Names of the shortcut's keys,
    * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
    * in lowercase or uppercase, unified across browsers
@@ -185,7 +185,7 @@ export const createContext = (name) => {
   /**
    * Check if a shortcut exists in this shortcut context.
    *
-   * @memberof Context#
+   * @memberof ShortcutContext#
    * @param {Array<string>} keys Names of the shortcut's keys,
    * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
    * in lowercase or uppercase, unified across browsers

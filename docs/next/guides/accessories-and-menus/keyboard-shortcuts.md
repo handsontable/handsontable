@@ -118,8 +118,8 @@ You can customize your keyboard shortcuts, using the [`ShortcutManager` API](@/a
     ```js
     const gridContext = hot.getShortcutManager().getContext('grid');
     ```
-3. Use the selected context's [methods](@/api/context.md).<br>
-    For example, to use the [`addShortcut()`](@/api/context.md#addshortcut) method in the `grid` context:
+3. Use the selected context's [methods](@/api/shortcutcontext.md).<br>
+    For example, to use the [`addShortcut()`](@/api/shortcutcontext.md#addshortcut) method in the `grid` context:
     ```js
     const gridContext = hot.getShortcutManager().getContext('grid');
 
@@ -129,10 +129,6 @@ You can customize your keyboard shortcuts, using the [`ShortcutManager` API](@/a
       callback: () => {},
     });
     ```
-    The [`keys`](@/api/context.md#addshortcut) parameter:
-    - Accepts the official [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) key names.
-    - Accepts key names in both lowercase and uppercase (e.g. both `Enter` and `enter` work)
-    - Unifies key-name discrepancies between browsers (e.g. both `'Spacebar'` and `' '` work)
 
 ### Keyboard shortcut contexts
 
@@ -168,7 +164,7 @@ To add a custom keyboard shortcut:
     ```js
     const gridContext = hot.getShortcutManager().getContext('grid');
     ```
-2. Using the selected context's [`addShortcut()`](@/api/context.md#addshortcut) method, add your keyboard shortcut:
+2. Using the selected context's [`addShortcut()`](@/api/shortcutcontext.md#addshortcut) method, add your keyboard shortcut:
     ```js
     const gridContext = hot.getShortcutManager().getContext('grid');
 
@@ -178,6 +174,18 @@ To add a custom keyboard shortcut:
       callback: () => {},
     });
     ```
+    The [`keys`](@/api/shortcutcontext.md#addshortcut) parameter:
+    - Accepts all the [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) key names.
+    - Accepts key names in both lowercase and uppercase (e.g. both `Enter` and `enter` work)
+    - Handles key-name discrepancies between browsers (e.g. both `'Spacebar'` and `' '` work)
+    ::: tip
+    **Using the <kbd>Alt</kbd> (<kbd>⎇</kbd>) modifier key**
+    
+    <kbd>Alt</kbd> (<kbd>⎇</kbd>) is often used for typing special characters (e.g. letters wich diacritical marks),
+    and its behavior may vary depending on the user's language and keyboard settings.
+    
+    To properly use <kbd>Alt</kbd> (<kbd>⎇</kbd>) in your shortcut, you may need to pass language-specific signs (such as `à` or `ś`) to the [`keys`](@/api/shortcutcontext.md#addshortcut) parameter.
+    :::
 
 #### Setting the order of keyboard actions
 
@@ -223,7 +231,7 @@ gridContext.addShortcut({
 
 To remove a keyboard shortcut (e.g. one of the [default keyboard shortcuts](#default-keyboard-shortcuts)):
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to remove a keyboard shortcut.
-2. Use the selected context's [`removeShortcutsByKeys()`](@/api/context.md#removeshortcutsbykeys) method.
+2. Use the selected context's [`removeShortcutsByKeys()`](@/api/shortcutcontext.md#removeshortcutsbykeys) method.
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
@@ -232,7 +240,7 @@ gridContext.removeShortcutsByKeys(['enter']);
 
 To remove all keyboard shortcuts registered in a certain group:
 1. Select a [context](#keyboard-shortcut-contexts).
-2. Use the selected context's [`removeShortcutsByGroup()`](@/api/context.md#removeshortcutsbygroup) method.
+2. Use the selected context's [`removeShortcutsByGroup()`](@/api/shortcutcontext.md#removeshortcutsbygroup) method.
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
@@ -243,10 +251,10 @@ gridContext.removeShortcutsByGroup('group_ID');
 
 To replace a keyboard shortcut:
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to replace a keyboard shortcut.
-2. Using the selected context's [`getShortcuts()`](@/api/context.md#getshortcuts) method, get the old keyboard shortcut.
-3. Remove the old keyboard shortcut, using the selected context's [`removeShortcutsByKeys()`](@/api/context.md#removeshortcutsbykeys) method.
+2. Using the selected context's [`getShortcuts()`](@/api/shortcutcontext.md#getshortcuts) method, get the old keyboard shortcut.
+3. Remove the old keyboard shortcut, using the selected context's [`removeShortcutsByKeys()`](@/api/shortcutcontext.md#removeshortcutsbykeys) method.
 4. Replace the `keys` property of the old keyboard shortcut with your new array of keys.
-5. Add your new keyboard shortcut, using the selected context's [`addShortcuts()`](@/api/context.md#addshortcuts) method.
+5. Add your new keyboard shortcut, using the selected context's [`addShortcuts()`](@/api/shortcutcontext.md#addshortcuts) method.
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 const undoShortcut = gridContext.getShortcuts(['meta', 'z']);

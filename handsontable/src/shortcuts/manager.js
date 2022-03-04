@@ -6,7 +6,7 @@ import { arrayEach } from '../helpers/array';
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
- * Create a {@link context} manager instance,
+ * Create a {@link ShortcutContext} manager instance,
  * used for storing and managing [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts).
  *
  * The context manager listens to the `KeyboardEvent` events and runs actions for them.
@@ -28,17 +28,17 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
     errorIdExists: keys => `The "${keys}" context name is already registered.`
   });
   /**
-   * The name of the active {@link context}.
+   * The name of the active {@link ShortcutContext}.
    *
    * @type {string}
    */
   let activeContextName = 'grid';
 
   /**
-   * Create a new {@link context}.
+   * Create a new {@link ShortcutContext}.
    *
    * @memberof ShortcutManager#
-   * @param {string} contextName The name of the new {@link context}
+   * @param {string} contextName The name of the new {@link ShortcutContext}
    * @returns {object}
    */
   const addContext = (contextName) => {
@@ -50,7 +50,7 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
   };
 
   /**
-   * Get the ID of the active {@link context}.
+   * Get the ID of the active {@link ShortcutContext}.
    *
    * @memberof ShortcutManager#
    * @returns {string}
@@ -60,18 +60,18 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
   };
 
   /**
-   * Get a {@link context} by its name.
+   * Get a {@link ShortcutContext} by its name.
    *
    * @memberof ShortcutManager#
-   * @param {string} contextName The name of the {@link context}
-   * @returns {object|undefined} A {@link context} that stores registered shortcuts
+   * @param {string} contextName The name of the {@link ShortcutContext}
+   * @returns {object|undefined} A {@link ShortcutContext} that stores registered shortcuts
    */
   const getContext = (contextName) => {
     return CONTEXTS.getItem(contextName);
   };
 
   /**
-   * Start listening to keyboard shortcuts within a given {@link context}.
+   * Start listening to keyboard shortcuts within a given {@link ShortcutContext}.
    *
    * @memberof ShortcutManager#
    * @param {string} contextName The name of the context to activate
