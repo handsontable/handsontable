@@ -1,5 +1,7 @@
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
- * Create keys' observer.
+ * Create a key observer.
  *
  * @returns {object}
  */
@@ -8,17 +10,19 @@ export function createKeysObserver() {
 
   return {
     /**
-     * Press the given key.
+     * Press a key.
      *
-     * @param {string} key Key name based on `KeyboardEvent.key`.
+     * @param {string} key The name of the key
+     * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
      */
     press(key) {
       PRESSED_KEYS.add(key);
     },
     /**
-     * Press the given key.
+     * Release a pressed key.
      *
-     * @param {string} key Key name based on `KeyboardEvent.key`.
+     * @param {string} key The name of the key
+     * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
      */
     release(key) {
       PRESSED_KEYS.delete(key);
@@ -30,9 +34,10 @@ export function createKeysObserver() {
       PRESSED_KEYS.clear();
     },
     /**
-     * Check if the given key is pressed.
+     * Check if a key is pressed.
      *
-     * @param {string} key Key name based on `KeyboardEvent.key`.
+     * @param {string} key The name of the key
+     * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
      * @returns {boolean}
      */
     isPressed(key) {

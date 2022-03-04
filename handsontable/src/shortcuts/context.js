@@ -5,34 +5,34 @@ import { isFunction } from '../helpers/function';
 import { objectEach } from '../helpers/object';
 import { toSingleLine } from '../helpers/templateLiteralTag';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
- * Create shortcuts' context.
+ * Create a [keyboard shortcut context](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts).
  *
  * @alias ShortcutContext
  * @class ShortcutContext
- * @param {string} name Context's name.
+ * @param {string} name The name of the keyboard shortcut context.
  * @returns {object}
  */
 export const createContext = (name) => {
   const SHORTCUTS = createUniqueMap({
-    errorIdExists: keys => `The passed keys combination "${keys}" is already registered in the "${name}" context.`
+    errorIdExists: keys => `The "${keys}" shortcut is already registered in the "${name}" context.`
   });
 
   /**
-   * Add shortcut to the context.
+   * Add a keyboard shortcut to the shortcut context.
    *
    * @memberof Context#
-   * @param {object} options Options for shortcut's keys.
-   * @param {Array<Array<string>>} options.keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
-   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
-   * @param {Function} options.callback The callback.
-   * @param {object} options.group Group for shortcut.
-   * @param {object} [options.runOnlyIf]  Option determine whether assigned callback should be performed.
-   * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
-   * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
-   * @param {object} [options.relativeToGroup] Group name, relative which the shortcut is placed.
-   * @param {object} [options.position='after'] Position where shortcut is placed. It may be added before or after
-   * another group.
+   * @param {object} options The shortcut's options
+   * @param {Array<Array<string>>} options.keys The shortcut's keys
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
+   * @param {Function} options.callback The shortcut's action
+   * @param {object} options.group A group of shortcuts to which the shortcut belongs
+   * @param {object} [options.runOnlyIf] A condition on which the shortcut's action runs or not
+   * @param {object} [options.stopPropagation=true] If set to `true`: stops the event's propagation
+   * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
+   * @param {object} [options.position='after'] The order in which the shortcut's action runs: `'before'` or `'after'` the `relativeToGroup` group of actions
+   * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
    *
    */
   const addShortcut = (
@@ -48,17 +48,18 @@ export const createContext = (name) => {
     } = {}) => {
 
     if (isUndefined(group)) {
-      throw new Error('Please define a group for added shortcut.');
+      throw new Error('You need to define the shortcut\'s group.');
     }
 
     if (isFunction(callback) === false) {
-      throw new Error('Please define a callback for added shortcut as function.');
+      throw new Error('The shortcut\'s callback needs to be a function.');
     }
 
     if (Array.isArray(keys) === false) {
-      throw new Error(toSingleLine`Please define key for added shortcut as array of arrays with KeyboardEvent\'s\x20
-      key properties. Full list of values is available here:\x20
-      https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key.`);
+      throw new Error(toSingleLine`Pass the shortcut\'s keys as an array of arrays,\x20
+      using the KeyboardEvent\'s\ key properties.\x20
+      Full list of values is available here:\x20
+      https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.`);
     }
 
     const newShortcut = {
@@ -100,19 +101,18 @@ export const createContext = (name) => {
   };
 
   /**
-   * Add shortcuts to the context.
+   * Add keyboard shortcuts to this shortcut context.
    *
    * @memberof Context#
-   * @param {Array<object>} shortcuts List of shortcuts added to the context.
-   * @param {object} [options] Options for every shortcut.
-   * @param {Function} [options.callback] The callback.
-   * @param {object} [options.group] Group for shortcut.
-   * @param {object} [options.runOnlyIf]  Option determine whether assigned callback should be performed.
-   * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
-   * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
-   * @param {object} [options.relativeToGroup] Group name, relative to which the shortcut is placed.
-   * @param {object} [options.position='after'] Position where shortcut is placed. It may be added before or after
-   * another group.
+   * @param {Array<object>} shortcuts List of shortcuts to add to this shortcut context
+   * @param {object} [options] A shortcut's options
+   * @param {Function} [options.callback] A shortcut's action
+   * @param {object} [options.group] A group of shortcuts to which a shortcut belongs
+   * @param {object} [options.runOnlyIf] A condition on which a shortcut's action runs or not
+   * @param {object} [options.stopPropagation=true] If set to `true`: stops the event's propagation
+   * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
+   * @param {object} [options.position='after'] The order in which a shortcut's action runs: `'before'` or `'after'` a `relativeToGroup` group of actions
+   * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
    */
   const addShortcuts = (shortcuts, options = {}) => {
     shortcuts.forEach((shortcut) => {
@@ -127,10 +127,11 @@ export const createContext = (name) => {
   };
 
   /**
-   * Removes shortcuts from the context.
+   * Remove a shortcut from this shortcut context.
    *
    * @memberof Context#
-   * @param {Array<string>} keys A shortcut keys.
+   * @param {Array<string>} keys The shortcut's keys
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
    */
   const removeShortcutsByKeys = (keys) => {
     const normalizedKeys = normalizeKeys(keys);
@@ -139,10 +140,10 @@ export const createContext = (name) => {
   };
 
   /**
-   * Removes shortcuts from the context.
+   * Remove a group of shortcuts from this shortcut context.
    *
    * @memberof Context#
-   * @param {string} group Group for shortcuts.
+   * @param {string} group The name of the group of shortcuts
    */
   const removeShortcutsByGroup = (group) => {
     const shortcuts = SHORTCUTS.getItems();
@@ -162,11 +163,11 @@ export const createContext = (name) => {
   };
 
   /**
-   * Get shortcut details.
+   * Get a shortcut's details.
    *
    * @memberof Context#
-   * @param {Array<string>} keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
-   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
+   * @param {Array<string>} keys The shortcut's keys
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
    * @returns {Array}
    */
   const getShortcuts = (keys) => {
@@ -177,11 +178,11 @@ export const createContext = (name) => {
   };
 
   /**
-   * Check if given shortcut is added.
+   * Check if a shortcut exists in this shortcut context.
    *
    * @memberof Context#
-   * @param {Array<string>} keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
-   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
+   * @param {Array<string>} keys The shortcut's keys
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
    * @returns {boolean}
    */
   const hasShortcut = (keys) => {

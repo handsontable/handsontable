@@ -1,7 +1,7 @@
-// Please keep in mind that there are some key discrepancies in browsers. That's why there are some mappings.
-// There is a list which show some exceptions: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
+// This file contains key mappings that help Handsontable handle browser differences.
+// For the list of browser differences, go to: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
 const mappings = new Map([
-  [' ', 'space'], // Custom mapping.
+  [' ', 'space'], // custom mapping
   ['spacebar', 'space'],
   ['scroll', 'scrolllock'],
   ['del', 'delete'],
@@ -22,9 +22,9 @@ const mappings = new Map([
 ]);
 
 /**
- * Get single, normalized string from list of KeyboardEvent's key properties.
+ * Get a single, normalized string from the list of `KeyboardEvent`'s `key` properties.
  *
- * @param {Array<string>} keys List of KeyboardEvent's key properties.
+ * @param {Array<string>} keys The list of `KeyboardEvent`'s `key` properties.
  * @returns {string}
  */
 export const normalizeKeys = (keys) => {
@@ -40,9 +40,9 @@ export const normalizeKeys = (keys) => {
 };
 
 /**
- * Get list of KeyboardEvent's key properties from single, normalized string.
+ * Get the list of `KeyboardEvent`'s `key` properties from a single, normalized string.
  *
- * @param {string} normalizedKeys Single, normalized string from list of KeyboardEvent's key properties.
+ * @param {string} normalizedKeys A single, normalized string that contains the list of `KeyboardEvent`'s `key` properties
  * @returns {Array<string>}
  */
 export const getKeysList = (normalizedKeys) => {
@@ -50,7 +50,7 @@ export const getKeysList = (normalizedKeys) => {
 };
 
 /**
- * Normalize KeyboardEvent's key property being the basis of keyboard shortcuts.
+ * Normalize a `KeyboardEvent`'s `key` property, to use it for keyboard shortcuts.
  *
  * @param {string} key KeyboardEvent's key property.
  * @returns {string}
