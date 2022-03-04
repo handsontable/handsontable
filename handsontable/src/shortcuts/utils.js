@@ -28,7 +28,7 @@ const mappings = new Map([
  * @returns {string}
  */
 export const normalizeKeys = (keys) => {
-  return keys.sort().map((key) => {
+  return keys.map((key) => {
     const lowercaseKey = key.toLowerCase();
 
     if (mappings.has(lowercaseKey)) {
@@ -36,7 +36,7 @@ export const normalizeKeys = (keys) => {
     }
 
     return lowercaseKey;
-  }).join('+');
+  }).sort().join('+');
 };
 
 /**
