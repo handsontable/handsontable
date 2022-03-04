@@ -12,8 +12,9 @@ export function createKeysObserver() {
     /**
      * Press a key.
      *
-     * @param {string} key The name of the key
-     * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
+     * @param {string} key Names of the shortcut's keys,
+     * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+     * in lowercase or uppercase, unified across browsers
      */
     press(key) {
       PRESSED_KEYS.add(key);
@@ -21,8 +22,9 @@ export function createKeysObserver() {
     /**
      * Release a pressed key.
      *
-     * @param {string} key The name of the key
-     * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
+     * @param {string} key Names of the shortcut's keys,
+     * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+     * in lowercase or uppercase, unified across browsers
      */
     release(key) {
       PRESSED_KEYS.delete(key);
@@ -36,8 +38,9 @@ export function createKeysObserver() {
     /**
      * Check if a key is pressed.
      *
-     * @param {string} key The name of the key
-     * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
+     * @param {string} key Names of the shortcut's keys,
+     * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+     * in lowercase or uppercase, unified across browsers
      * @returns {boolean}
      */
     isPressed(key) {

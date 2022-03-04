@@ -129,6 +129,10 @@ You can customize your keyboard shortcuts, using the [`ShortcutManager` API](@/a
       callback: () => {},
     });
     ```
+    The [`keys`](@/api/context.md#addshortcut) parameter:
+    - Accepts the official [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) key names.
+    - Accepts key names in both lowercase and uppercase (e.g. both `Enter` and `enter` work)
+    - Unifies key-name discrepancies between browsers (e.g. both `'Spacebar'` and `' '` work)
 
 ### Keyboard shortcut contexts
 

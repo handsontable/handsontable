@@ -24,14 +24,16 @@ export const createContext = (name) => {
    *
    * @memberof Context#
    * @param {object} options The shortcut's options
-   * @param {Array<Array<string>>} options.keys The shortcut's keys
-   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
+   * @param {Array<Array<string>>} options.keys Names of the shortcut's keys,
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+   * in lowercase or uppercase, unified across browsers
    * @param {Function} options.callback The shortcut's action
    * @param {object} options.group A group of shortcuts to which the shortcut belongs
    * @param {object} [options.runOnlyIf] A condition on which the shortcut's action runs or not
    * @param {object} [options.stopPropagation=true] If set to `true`: stops the event's propagation
    * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
-   * @param {object} [options.position='after'] The order in which the shortcut's action runs: `'before'` or `'after'` the `relativeToGroup` group of actions
+   * @param {object} [options.position='after'] The order in which the shortcut's action runs:
+   * `'before'` or `'after'` the `relativeToGroup` group of actions
    * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
    *
    */
@@ -111,7 +113,8 @@ export const createContext = (name) => {
    * @param {object} [options.runOnlyIf] A condition on which a shortcut's action runs or not
    * @param {object} [options.stopPropagation=true] If set to `true`: stops the event's propagation
    * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
-   * @param {object} [options.position='after'] The order in which a shortcut's action runs: `'before'` or `'after'` a `relativeToGroup` group of actions
+   * @param {object} [options.position='after'] The order in which a shortcut's action runs:
+   * `'before'` or `'after'` a `relativeToGroup` group of actions
    * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
    */
   const addShortcuts = (shortcuts, options = {}) => {
@@ -130,8 +133,9 @@ export const createContext = (name) => {
    * Remove a shortcut from this shortcut context.
    *
    * @memberof Context#
-   * @param {Array<string>} keys The shortcut's keys
-   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
+   * @param {Array<string>} keys Names of the shortcut's keys,
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+   * in lowercase or uppercase, unified across browsers
    */
   const removeShortcutsByKeys = (keys) => {
     const normalizedKeys = normalizeKeys(keys);
@@ -166,8 +170,9 @@ export const createContext = (name) => {
    * Get a shortcut's details.
    *
    * @memberof Context#
-   * @param {Array<string>} keys The shortcut's keys
-   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
+   * @param {Array<string>} keys Names of the shortcut's keys,
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+   * in lowercase or uppercase, unified across browsers
    * @returns {Array}
    */
   const getShortcuts = (keys) => {
@@ -181,8 +186,9 @@ export const createContext = (name) => {
    * Check if a shortcut exists in this shortcut context.
    *
    * @memberof Context#
-   * @param {Array<string>} keys The shortcut's keys
-   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values))
+   * @param {Array<string>} keys Names of the shortcut's keys,
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+   * in lowercase or uppercase, unified across browsers
    * @returns {boolean}
    */
   const hasShortcut = (keys) => {
