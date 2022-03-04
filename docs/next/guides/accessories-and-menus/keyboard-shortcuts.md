@@ -30,7 +30,7 @@ You can also completely [customize your keyboard shortcuts](#customizing-keyboar
 - [Add custom keyboard shortcuts](#adding-a-custom-keyboard-shortcut)
 - [Remove keyboard shortcuts](#removing-a-keyboard-shortcut)
 - [Replace keyboard shortcuts](#replacing-a-keyboard-shortcut)
-- [Block keyboard shortcuts' actions](#blocking-a-keyboard-shortcut-s-action)
+- [Block keyboard shortcuts' actions](#blocking-a-keyboard-shortcut-s-actions)
 
 ## Default keyboard shortcuts
 
