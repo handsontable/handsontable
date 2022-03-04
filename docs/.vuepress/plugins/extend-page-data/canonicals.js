@@ -40,7 +40,7 @@ function collectAllUrls() {
  * Gets the full canonical URL (with protocol, domain, etc.). The function returns the URL to the
  * latest version of docs where the page exists.
  *
- * @param {string} canonicalUrl The canonical URL
+ * @param {string} canonicalUrl The canonical URL.
  * @returns {string}
  */
 function getCanonicalUrl(canonicalUrl) {
@@ -71,4 +71,4 @@ function coerceVersion(docsVersion) {
 module.exports = {
   collectAllUrls,
   getCanonicalUrl,
-}
+};
