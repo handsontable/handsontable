@@ -14,7 +14,7 @@ tags:
 
 [[toc]]
 
-You can easily summarize your columns, using the [`ColumnSummary`](@/api/columnSummary.md) plugin.
+Summarize your columns' data, using the [`ColumnSummary`](@/api/columnSummary.md) plugin.
 
 ## About column summary
 

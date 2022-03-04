@@ -20,8 +20,8 @@ tags:
 | <kbd>Arrow Down ↓</kbd> | <kbd>Arrow Down ↓</kbd> | Move to cell below the current active cell if exists |
 | <kbd>Arrow Right →</kbd> | <kbd>Arrow Right →</kbd> | Move to the cell on the right side of the current active cell if exists |
 | <kbd>Arrow Left ←</kbd> | <kbd>Arrow Left ←</kbd> | Move to the cell on the left side of current active cell if exists |
-| <kbd>Tab</kbd> | <kbd>Tab</kbd> | Move to the cell on the right side of the current active cell if exists |
-| <kbd>Tab</kbd> + <kbd>Shift</kbd> | <kbd>Tab</kbd> + <kbd>Shift</kbd> | Move to the cell on the left side of current active cell if exists |
+| <kbd>Tab</kbd> | <kbd>Tab</kbd> | Move to the next cell (normally on the right side, unless the [layout direction](@/guides/internationalization/layout-direction.md) is RTL) |
+| <kbd>Shift</kbd> + <kbd>Tab</kbd> | <kbd>Shift</kbd> + <kbd>Tab</kbd> | Move to the previous cell (normally on the left side, unless the [layout direction](@/guides/internationalization/layout-direction.md) is RTL) |
 | <kbd>Home</kbd> | <kbd>Fn</kbd> + <kbd>Arrow Left ←</kbd> | Move to the first cell in a row |
 | <kbd>End</kbd> | <kbd>Fn</kbd> + <kbd>Arrow Right →</kbd> | Move to the last cell in a row |
 | <kbd>Ctrl</kbd> + <kbd>Home</kbd> | <kbd>Ctrl</kbd> + <kbd>Fn</kbd> + <kbd>Arrow Left ←</kbd><br>or<br><kbd>Cmd</kbd> + <kbd>Home</kbd> | Move to the first cell in a column |
