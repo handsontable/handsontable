@@ -155,7 +155,7 @@ Using the [`ShortcutManager`](@/api/shortcutmanager.md) API methods, you can:
 - Create and register a new context: [`addContext(<name>)`](@/api/shortcutmanager.md#addcontext)
 
 For example, if you're using a complex [custom editor](@/guides/cell-functions/cell-editor.md##how-to-create-a-custom-editor), 
-creating a custom keyboard shortcut context can let you navigate your editor's UI with the arrow keys (normally used for navigating the grid).
+creating a new shortcut context can let you navigate your editor's UI with arrow keys (normally used for navigating the grid).
 
 ### Adding a custom keyboard shortcut
 
@@ -191,7 +191,7 @@ To add a custom keyboard shortcut:
 
 You can assign multiple actions to a single keyboard shortcut. By default, when you assign a new action, it runs after any already-assigned actions.
 
-To set your own order of actions, use the `position` and `relativeToGroup` properties:
+To set your own order of actions, use the `position` and `relativeToGroup` parameters of the [`addShortcut()`](@/api/shortcutcontext.md#addshortcut) method:
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
@@ -214,7 +214,7 @@ gridContext.addShortcut({
 
 #### Adding a conditional keyboard action
 
-To make a keyboard action run on a certain condition, provide a function to the `runOnlyIf` property:
+To make a keyboard action run on a certain condition, set the `runOnlyIf` parameter to a function:
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
