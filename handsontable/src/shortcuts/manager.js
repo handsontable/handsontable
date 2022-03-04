@@ -6,7 +6,7 @@ import { arrayEach } from '../helpers/array';
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
- * The `ShortcutManager` class lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutcontext.md)).
+ * The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutcontext.md)).
  *
  * Each `ShortcutManager` object:
  * - Stores and manages its own set of keyboard shortcut contexts.

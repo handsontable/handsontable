@@ -7,7 +7,7 @@ import { toSingleLine } from '../helpers/templateLiteralTag';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
- * The `ShortcutContext` class lets you store and manage [keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md) in a given [context](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts).
+ * The `ShortcutContext` API lets you store and manage [keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md) in a given [context](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts).
  *
  * Each `ShortcutContext` object stores and manages its own set of keyboard shortcuts.
  *
