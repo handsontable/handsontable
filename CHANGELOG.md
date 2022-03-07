@@ -10,31 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [12.0.0] - 2022-03-10
 
-### Fixed
-- Filter cells with formulas using values not source [#5455](https://github.com/handsontable/handsontable/issues/5455)
-- Fixed not working docs building script on Windows [#8677](https://github.com/handsontable/handsontable/issues/8677)
-- Fixed an issue with BottomOverlay position for RTL [#8761](https://github.com/handsontable/handsontable/issues/8761)
-- Fixed an issue with TopOverlay position for RTL [#8764](https://github.com/handsontable/handsontable/issues/8764)
-- Fixed an issue with numeric cell formatting for RTL [#8791](https://github.com/handsontable/handsontable/issues/8791)
-- Fixed an issue with htAutocompleteArrow position for RTL [#8795](https://github.com/handsontable/handsontable/issues/8795)
-- Fixed an issue with checkboxes positions. [#8797](https://github.com/handsontable/handsontable/issues/8797)
-- Fixed an issue with opening position of the dropdown (autocomplete) editor. [#8802](https://github.com/handsontable/handsontable/issues/8802)
-- Fixed an issue with time cell rendering for RTL [#8805](https://github.com/handsontable/handsontable/issues/8805)
-- Fixed an issue with context menu in RTL mode [#8825](https://github.com/handsontable/handsontable/issues/8825)
-- Fixed an issue with filters menu UX for RTL [#8828](https://github.com/handsontable/handsontable/issues/8828)
-- Wrong TypeScript definition in the BasePlugin class [#9175](https://github.com/handsontable/handsontable/issues/9175)
-- Fixed an issue with the code examples' deployment workflow, where not all example directories were deployed to gh-pages. [#9182](https://github.com/handsontable/handsontable/issues/9182)
-- *React:* Fixed an issue with registering modules for React wrapper [#9140](https://github.com/handsontable/handsontable/issues/9140)
+### Added
+- **Breaking change**: Added `ShortcutManager`, a new API for customizing keyboard shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942)
+- Added support for RTL languages, by introducing a new configuration option: `layoutDirection`. [#8997](https://github.com/handsontable/handsontable/issues/8997)
+- Added an Arabic translation. [#9208](https://github.com/handsontable/handsontable/issues/9208)
+- Added a new configuration option: `fixedColumnsStart`. [#8760](https://github.com/handsontable/handsontable/issues/8760)
 
 ### Changed
-- **Breaking change**: Changed the way `updateSettings` handles data by introducing `updateData` instead of `loadData` in the majority of cases. [#7263](https://github.com/handsontable/handsontable/issues/7263)
-- **Breaking change**: Changed the way the plugins' `updatePlugin` method reacts to `updateSettings` calls. [#9021](https://github.com/handsontable/handsontable/issues/9021)
-- Changed the Code Examples Deployment workflow to make a dry-run on feature branches (without the actual deployment) [#8980](https://github.com/handsontable/handsontable/issues/8980)
+- **Breaking change**: Changed the way `updateSettings()` handles data, by introducing `updateData()` instead of `loadData()` in most cases. [#7263](https://github.com/handsontable/handsontable/issues/7263)
+- **Breaking change**: Changed the way each plugin's `updatePlugin()` method reacts to `updateSettings()` calls. [#9021](https://github.com/handsontable/handsontable/issues/9021)
+- Changed the Code Examples Deployment workflow to make a dry run (without actual deployment) on each feature branch. [#8980](https://github.com/handsontable/handsontable/issues/8980)
 
-### Added
-- **Breaking change**: Introducing the ShortcutManager - a new API for handling shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942)
-- Added a new configuration option: `fixedColumnsStart` [#8760](https://github.com/handsontable/handsontable/issues/8760)
-- Add Arabic Language [#9208](https://github.com/handsontable/handsontable/issues/9208)
+### Fixed
+- Fixed an issue where cell filtering used formula results instead of source values. [#5455](https://github.com/handsontable/handsontable/issues/5455)
+- Fixed an issue where the Handsontable documentation didn't build locally on Windows. [#8677](https://github.com/handsontable/handsontable/issues/8677)
+- Fixed a wrong TypeScript definition in the `BasePlugin` class. [#8677](https://github.com/handsontable/handsontable/issues/8677)
+- Fixed an issue where the  Code Examples Deployment workflow didn't deploy all examples to GitHub Pages. [#9182](https://github.com/handsontable/handsontable/issues/9182)
+- *React:* Fixed an issue with registering modules for the React wrapper [#9140](https://github.com/handsontable/handsontable/issues/9140)
 
 ### Removed
 - *React:* Removed the `enzyme` dependency from the React wrapper. [#9151](https://github.com/handsontable/handsontable/issues/9151)
