@@ -12,17 +12,17 @@ pageClass: migration-guide
 
 To upgrade your Handsontable version from 11.x.x to 12.x.x, follow this guide.
 
-## Step 1: `updateSettings()` changes
+## Step 1: `updateSettings()`
 
 Handsontable [12.0.0](https://github.com/handsontable/handsontable/releases/tag/12.0.0) changes the way the [`updateSettings()`](@/api/core.md#updatesettings) method handles your grid's [`data`](@/api/options.md#data).
 
 #### Before
 
-Every [`updateSettings()`](@/api/core.md#updatesettings) call that included [`data`](@/api/options.md#data), triggered the [`loadData()`](@/api/core.md#loaddata) method. This caused Handsontable's [indexes](@/api/indexmapper.md) and [configuration options](@/guides/getting-started/setting-options.md) to reset.
+Every [`updateSettings()`](@/api/core.md#updatesettings) call that includes [`data`](@/api/options.md#data), triggers the [`loadData()`](@/api/core.md#loaddata) method. This causes Handsontable's [indexes](@/api/indexmapper.md) and [configuration options](@/guides/getting-started/setting-options.md) to reset.
 
 #### After
 
-Instead of calling [`loadData()`](@/api/core.md#loaddata), [`updateSettings()`](@/api/core.md#updatesettings) now uses the [`updateData()`](@/api/core.md#updatedata) method (introduced in Handsontable [11.1.0](https://github.com/handsontable/handsontable/releases/tag/11.1.0)).
+Instead of calling [`loadData()`](@/api/core.md#loaddata), [`updateSettings()`](@/api/core.md#updatesettings) uses [`updateData()`](@/api/core.md#updatedata) (a method added in Handsontable [11.1.0](https://github.com/handsontable/handsontable/releases/tag/11.1.0)).
 
 This means that when you change your [`data`](@/api/options.md#data) with [`updateSettings()`](@/api/core.md#updatesettings), your [indexes](@/api/indexmapper.md) and [configuration options](@/guides/getting-started/setting-options.md) stay the same.
 
@@ -53,11 +53,11 @@ hot.updateSettings({
     ['G', 'H', 'J']
   ]
 });
-// Handsontable 11: the first column's cells are copyable again
+// Handsontable 11: the first column's cells become copyable again
 // Handsontable 12: the first column's cells still aren't copyable
 ```
 
-#### What to do
+#### How to upgrade
 
 If you want to stick to the previous behavior, call [`loadData()`](@/api/core.md#loaddata) separately from updating your other options:
 
@@ -90,33 +90,65 @@ hot.updateSettings({
 });
 ```
 
-## Step 2: `updatePlugin()` changes
+## Step 2: `updatePlugin()`
 
-Handsontable [12.0.0](https://github.com/handsontable/handsontable/releases/tag/12.0.0) changes the way the [`updatePlugin()`](@/api/core.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls.
+Handsontable [12.0.0](https://github.com/handsontable/handsontable/releases/tag/12.0.0) changes the way the [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls.
 
 #### Before
 
-Every [`updateSettings()`](@/api/core.md#updatesettings) call (even with an empty object passed as new settings) triggered 
-the [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method of each enabled plugin.
+Every [`updateSettings()`](@/api/core.md#updatesettings) call (even with an empty object passed as new settings) triggers 
+the [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method for each enabled plugin.
 
-As a result, whenever you called [`updateSettings()`](@/api/core.md#updatesettings), all enabled plugins got updated.
+As a result, whenever you call [`updateSettings()`](@/api/core.md#updatesettings), all enabled plugins get updated.
 
 #### After
 
-A plugin gets updated only if you update settings related to that plugin.
+A plugin gets updated only if you update settings related to that particular plugin.
 
-But, the following plugins still update on every [`updateSettings()`](@/api/core.md#updatesettings) call:
+Only the following plugins still get updated on every [`updateSettings()`](@/api/core.md#updatesettings) call:
   - [`AutoColumnSize`](@/api/autocolumnsize.md)
   - [`AutoRowSize`](@/api/autorowsize.md)
-  - [`TouchScroll`](@/api/touchscroll.md)
+  - `TouchScroll`
   - [`UndoRedo`](@/api/undoredo.md)
 
-#### What to do
+#### How to upgrade
 
-If you want an enabled plugin (e.g. [`ContextMenu`](@/api/contextmenu.md)) to update every time you call [`updateSettings()`](@/api/core.md#updatesettings), set the [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) hook to call your plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method:
+If you want a plugin (e.g. [`ContextMenu`](@/api/contextmenu.md)) to still get updated every time you call [`updateSettings()`](@/api/core.md#updatesettings), use the [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) hook to call your plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method:
 
 ```js
-hot.addHook('afterUpdateSettings', contextMenu.updatePlugin())
+afterUpdateSettings() {
+  contextMenu.updatePlugin();
+}
 ```
 
-## Step 3: shortcutmanager
+## Step 3: `afterDocumentKeyDown`
+
+Handsontable [12.0.0](https://github.com/handsontable/handsontable/releases/tag/12.0.0) changes the way the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook works.
+
+#### Before
+
+When you navigate the [context menu](@/guides/accessories-and-menus/context-menu.md) with a keyboard, every key press fires the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook.
+
+```js
+afterDocumentKeyDown() {
+  // when you navigate the grid, the console message gets logged on every key press
+  // when you navigate the context menu, the console message also gets logged on every key press
+  console.log('key pressed');
+}
+```
+
+#### After
+
+When you navigate the [context menu](@/guides/accessories-and-menus/context-menu.md) with a keyboard, the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook doesn't get fired anymore.
+
+```js
+afterDocumentKeyDown() {
+  // when you navigate the grid, the console message gets logged on every key press
+  // when you navigate the context menu, the console message doesn't get logged at all
+  console.log('key pressed');
+}
+```
+
+#### How to upgrade
+
+You can't change this behavior by using any of Handsontable's APIs.
