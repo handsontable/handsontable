@@ -188,6 +188,21 @@ To add a custom keyboard shortcut:
     To properly use <kbd>Alt</kbd> (<kbd>⎇</kbd>) in your shortcut, you may need to pass language-specific signs (such as `à` or `ś`) to the [`keys`](@/api/shortcutcontext.md#addshortcut) parameter.
     :::
 
+#### Adding a conditional keyboard action
+
+To make a keyboard action run on a certain condition, set the `runOnlyIf` parameter to a function:
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.addShortcut({
+  group: 'group_ID',
+  runOnlyIf: () => hot.getSelected() !== void 0,
+  keys: [['enter']],
+  callback: () => {},
+});
+```
+
 #### Setting the order of keyboard actions
 
 You can assign multiple actions to a single keyboard shortcut. By default, when you assign a new action, it runs after any already-assigned actions.
@@ -201,7 +216,7 @@ gridContext.addShortcut({
   group: 'customNumericEditor',
   position: 'before',
   relativeToGroup: 'editorManager.handlingEditor',
-  runOnlyIf: () => { hot.getSelected !== void 0 },
+  runOnlyIf: () => { hot.getSelected() !== void 0 },
   keys: [['F2']],
   callback: () => {
     if (hot.getActiveEditor().cellProperties.type === 'numeric') {
@@ -210,21 +225,6 @@ gridContext.addShortcut({
     
     // another action
   },
-});
-```
-
-#### Adding a conditional keyboard action
-
-To make a keyboard action run on a certain condition, set the `runOnlyIf` parameter to a function:
-
-```js
-const gridContext = hot.getShortcutManager().getContext('grid');
-
-gridContext.addShortcut({
-  group: 'group_ID',
-  runOnlyIf: () => hot.getSelected() !== void 0,
-  keys: [['enter']],
-  callback: () => {},
 });
 ```
 
