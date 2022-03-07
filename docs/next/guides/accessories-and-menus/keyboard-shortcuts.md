@@ -178,6 +178,7 @@ To add a custom keyboard shortcut:
     - Accepts all the [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) key names.
     - Accepts key names in both lowercase and uppercase (e.g. both `Enter` and `enter` work)
     - Handles key-name discrepancies between browsers (e.g. both `'Spacebar'` and `' '` work)
+    - Accepts key names in any order (e.g. both `[['control', 'a']]` and `[['a', 'control']]`) work)
     ::: tip
     **Using the <kbd>Alt</kbd> (<kbd>⎇</kbd>) modifier key**
     
