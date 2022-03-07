@@ -157,9 +157,6 @@ export class CustomPlugin extends BasePlugin {
   }
 
   /**
-   * The `updatePlugin` method is called on the `afterUpdateSettings` hook
-   * (unless the `updateSettings` method turned the plugin off).
-   *
    * The `updatePlugin` method should contain anything that your plugin needs to do to work correctly
    * after updating the Handsontable instance settings.
    */

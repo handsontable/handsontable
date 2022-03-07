@@ -75,7 +75,8 @@ export class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin state.
+   * This method is executed when {@link Core#updateSettings} is invoked with this plugin's `PLUGIN_KEY` or `SETTING_KEYS`.
    */
   updatePlugin() {
     this.disablePlugin();

@@ -158,7 +158,8 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin state.
+   * This method is executed when {@link Core#updateSettings} is invoked with this plugin's `PLUGIN_KEY` or `SETTING_KEYS`.
    */
   updatePlugin() {
     // @TODO: Workaround for broken plugin initialization abstraction (#6806).
