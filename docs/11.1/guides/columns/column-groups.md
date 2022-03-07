@@ -63,7 +63,7 @@ The **Collapsible Columns** plugin enables columns and their headers to be colla
 
 This plugin adds multi-column headers which have buttons. Clicking these buttons will collapse or expand all "child" headers, leaving the first one visible.
 
-The [Nested Headers](#nested-headers.md) plugin needs to be enabled for this to work properly.
+The [Nested Headers](@/guides/columns/column-groups.md#nested-headers) plugin needs to be enabled for this to work properly.
 
 ### Configuration
 
