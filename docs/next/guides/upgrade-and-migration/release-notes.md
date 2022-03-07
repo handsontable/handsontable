@@ -27,7 +27,7 @@ Released on 10th of March, 2022
 
 **Changed**
 - **Breaking change**: Changed the way [`updateSettings()`](@/api/core.md#updatesettings) handles data, by introducing [`updateData()`](@/api/core.md#updatedata) instead of [`loadData()`](@/api/core.md#loaddata) in most cases. [#7263](https://github.com/handsontable/handsontable/issues/7263)
-- **Breaking change**: Changed the way each plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls. [#9021](https://github.com/handsontable/handsontable/issues/9021)
+- **Breaking change**: Changed the way any plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls. [#9021](https://github.com/handsontable/handsontable/issues/9021)
 - Changed the [Code Examples Deployment](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml) workflow to make a dry run (without actual deployment) on each feature branch. [#8980](https://github.com/handsontable/handsontable/issues/8980)
 
 **Fixed**

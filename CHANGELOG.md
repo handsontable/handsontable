@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **Breaking change**: Changed the way `updateSettings()` handles data, by introducing `updateData()` instead of `loadData()` in most cases. [#7263](https://github.com/handsontable/handsontable/issues/7263)
-- **Breaking change**: Changed the way each plugin's `updatePlugin()` method reacts to `updateSettings()` calls. [#9021](https://github.com/handsontable/handsontable/issues/9021)
+- **Breaking change**: Changed the way any plugin's `updatePlugin()` method reacts to `updateSettings()` calls. [#9021](https://github.com/handsontable/handsontable/issues/9021)
 - Changed the Code Examples Deployment workflow to make a dry run (without actual deployment) on each feature branch. [#8980](https://github.com/handsontable/handsontable/issues/8980)
 
 ### Fixed
