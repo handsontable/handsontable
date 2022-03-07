@@ -4,9 +4,10 @@ import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
 import { extend } from '../../helpers/object';
-import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
+import { SHORTCUTS_GROUP_NAVIGATION, SHORTCUTS_GROUP_EDITOR } from '../../editorManager';
 
 const SHORTCUTS_GROUP = 'handsontableEditor';
+const SHORTCUT_ENTERING_VALUE_GROUP = 'handsontableEditor.enteringValue';
 
 export const EDITOR_TYPE = 'handsontable';
 
@@ -15,6 +16,18 @@ export const EDITOR_TYPE = 'handsontable';
  * @class HandsontableEditor
  */
 export class HandsontableEditor extends TextEditor {
+  constructor(instance) {
+    super(instance);
+
+    /**
+     * Flag determining whether value from an editor's Textarea element is preserved after closing it. Currently, it's
+     * used for handling saving text stored in already opened Textarea after click outside the editor's element.
+     *
+     * @type {boolean}
+     */
+    this.preserveTextareaValue = true;
+  }
+
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
@@ -43,6 +56,10 @@ export class HandsontableEditor extends TextEditor {
     } else {
       this.htEditor.deselectCell();
     }
+
+    this.htEditor.addHook('beforeOnCellMouseDown', () => {
+      this.preserveTextareaValue = false;
+    });
 
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
     this.refreshDimensions();
@@ -150,7 +167,14 @@ export class HandsontableEditor extends TextEditor {
     }
 
     if (this.htEditor && this.htEditor.getSelectedLast()) {
-      const value = this.htEditor.getInstance().getValue();
+      let value;
+
+      if (this.preserveTextareaValue === true) {
+        value = this.TEXTAREA.value;
+
+      } else {
+        value = this.htEditor.getInstance().getValue();
+      }
 
       if (value !== void 0) { // if the value is undefined then it means we don't want to set the value
         this.setValue(value);
@@ -260,6 +284,16 @@ export class HandsontableEditor extends TextEditor {
       },
       preventDefault: false, // Doesn't block default behaviour (navigation) for a `textArea` HTMLElement.
     }], contextConfig);
+
+    editorContext.addShortcut({
+      group: SHORTCUT_ENTERING_VALUE_GROUP,
+      relativeToGroup: SHORTCUTS_GROUP_EDITOR,
+      position: 'before',
+      keys: [['enter']],
+      callback: () => {
+        this.preserveTextareaValue = false;
+      }
+    });
   }
 
   /**
@@ -274,5 +308,6 @@ export class HandsontableEditor extends TextEditor {
     const editorContext = shortcutManager.getContext('editor');
 
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    editorContext.removeShortcutsByGroup(SHORTCUT_ENTERING_VALUE_GROUP);
   }
 }
