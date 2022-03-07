@@ -38,18 +38,18 @@ By default, Handsontable features the following keyboard shortcuts:
 
 #### NAVIGATION
 
-| Windows                           | macOS                                                                                        | Action                                       |
-| --------------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| <kbd>Up↑</kbd>                    | <kbd>Up↑</kbd>                                                                               | Move one cell up                             |
-| <kbd>Down↓</kbd>                  | <kbd>Down↓</kbd>                                                                             | Move one cell down                           |
-| <kbd>Right→</kbd>                 | <kbd>Right→</kbd>                                                                            | Move one cell to the right                   |
-| <kbd>Left←</kbd>                  | <kbd>Left←</kbd>                                                                             | Move one cell to the left                    |
-| <kbd>Tab</kbd>                    | <kbd>Tab</kbd>                                                                               | Move one cell to the right                   |
-| <kbd>Shift</kbd> + <kbd>Tab</kbd> | <kbd>Shift</kbd> + <kbd>Tab</kbd>                                                            | Move one cell to the left                    |
-| <kbd>Home</kbd>                   | <kbd>Fn</kbd> + <kbd>Left←</kbd>                                                             | Move to the first cell of the current row    |
-| <kbd>End</kbd>                    | <kbd>Fn</kbd> + <kbd>Right→</kbd>                                                            | Move to the last cell of the current row     |
-| <kbd>Ctrl</kbd> + <kbd>Home</kbd> | <kbd>Ctrl</kbd> + <kbd>Fn</kbd> + <kbd>Left←</kbd><br>or<br><kbd>Cmd</kbd> + <kbd>Home</kbd> | Move to the first cell of the current column |
-| <kbd>Ctrl</kbd> + <kbd>End</kbd>  | <kbd>Ctrl</kbd> + <kbd>Fn</kbd> + <kbd>Right→</kbd><br>or<br><kbd>Cmd</kbd> + <kbd>End</kbd> | Move to the last cell of the current column  |
+| Windows                           | macOS                                                                                        | Action                                                                                                                                                 |
+| --------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| <kbd>Up↑</kbd>                    | <kbd>Up↑</kbd>                                                                               | Move one cell up                                                                                                                                       |
+| <kbd>Down↓</kbd>                  | <kbd>Down↓</kbd>                                                                             | Move one cell down                                                                                                                                     |
+| <kbd>Right→</kbd>                 | <kbd>Right→</kbd>                                                                            | Move one cell to the right                                                                                                                             |
+| <kbd>Left←</kbd>                  | <kbd>Left←</kbd>                                                                             | Move one cell to the left                                                                                                                              |
+| <kbd>Tab</kbd>                    | <kbd>Tab</kbd>                                                                               | Move one cell to the right<br>(depends on [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction)) |
+| <kbd>Shift</kbd> + <kbd>Tab</kbd> | <kbd>Shift</kbd> + <kbd>Tab</kbd>                                                            | Move one cell to the left<br>(depends on [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))  |
+| <kbd>Home</kbd>                   | <kbd>Fn</kbd> + <kbd>Left←</kbd>                                                             | Move to the first cell of the current row                                                                                                              |
+| <kbd>End</kbd>                    | <kbd>Fn</kbd> + <kbd>Right→</kbd>                                                            | Move to the last cell of the current row                                                                                                               |
+| <kbd>Ctrl</kbd> + <kbd>Home</kbd> | <kbd>Ctrl</kbd> + <kbd>Fn</kbd> + <kbd>Left←</kbd><br>or<br><kbd>Cmd</kbd> + <kbd>Home</kbd> | Move to the first cell of the current column                                                                                                           |
+| <kbd>Ctrl</kbd> + <kbd>End</kbd>  | <kbd>Ctrl</kbd> + <kbd>Fn</kbd> + <kbd>Right→</kbd><br>or<br><kbd>Cmd</kbd> + <kbd>End</kbd> | Move to the last cell of the current column                                                                                                            |
 
 <br>
 <br>
@@ -139,7 +139,7 @@ Every keyboard action is registered in a particular context:
 | `grid`   | Activates when the user navigates the data grid (initial context)                                     | Built-in |
 | `editor` | Activates when the user opens a [cell editor](@/guides/cell-functions/cell-editor.md)                 | Built-in |
 | `menu`   | Activates when the user opens a cell's [context menu](@/guides/accessories-and-menus/context-menu.md) | Built-in |
-| Custom   | Your [custom context](#managing-keyboard-shortcut-contexts)                                       | Custom   |
+| Custom   | Your [custom context](#managing-keyboard-shortcut-contexts)                                           | Custom   |
 
 When the user interacts with the keyboard, only actions registered for the currently-active context are executed.
 
