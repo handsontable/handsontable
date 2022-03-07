@@ -5,13 +5,40 @@ permalink: /next/release-notes
 canonicalUrl: /release-notes
 tags:
   - change log
+  - changelog
   - update
   - upgrade
+  - breaking change
 ---
 
 # Release notes
 
 [[toc]]
+
+## 12.0.0
+
+Released on 10th of March, 2022
+
+**Added**
+- **Breaking change**: Added [`ShortcutManager`](@/api/shortcutmanager.md), a new API for [customizing keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#customizing-keyboard-shortcuts). [#8942](https://github.com/handsontable/handsontable/issues/8942)
+- Added [support for RTL languages](@/guides/internationalization/layout-direction.md), by introducing a new configuration option: [`layoutDirection`](@/api/options.md#layoutdirection). [#8997](https://github.com/handsontable/handsontable/issues/8997)
+- Added an Arabic translation. [#9208](https://github.com/handsontable/handsontable/issues/9208)
+- Added a new configuration option: [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart). [#8760](https://github.com/handsontable/handsontable/issues/8760)
+
+**Changed**
+- **Breaking change**: Changed the way [`updateSettings()`](@/api/core.md#updatesettings) handles data, by introducing [`updateData()`](@/api/core.md#updatedata) instead of [`loadData()`](@/api/core.md#loaddata) in most cases. [#7263](https://github.com/handsontable/handsontable/issues/7263)
+- **Breaking change**: Changed the way each plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls. [#9021](https://github.com/handsontable/handsontable/issues/9021)
+- Changed the [Code Examples Deployment](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml) workflow to make a dry run (without actual deployment) on each feature branch. [#8980](https://github.com/handsontable/handsontable/issues/8980)
+
+**Fixed**
+- Fixed an issue where cell filtering used formula results instead of source values. [#5455](https://github.com/handsontable/handsontable/issues/5455)
+- Fixed an issue where the Handsontable documentation didn't build locally on Windows. [#8677](https://github.com/handsontable/handsontable/issues/8677)
+- Fixed a wrong TypeScript definition in the [`BasePlugin`](@/api/baseplugin.md) class. [#8677](https://github.com/handsontable/handsontable/issues/8677)
+- Fixed an issue where the [Code Examples Deployment](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml) workflow didn't deploy all examples to GitHub Pages. [#9182](https://github.com/handsontable/handsontable/issues/9182)
+- *React:* Fixed an issue with registering modules for the React wrapper [#9140](https://github.com/handsontable/handsontable/issues/9140)
+
+**Removed**
+- *React:* Removed the `enzyme` dependency from the React wrapper. [#9151](https://github.com/handsontable/handsontable/issues/9151)
 
 ## 11.1.0
 
