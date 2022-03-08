@@ -25,7 +25,7 @@ export default {
     },
     getLink(version) {
       if (version === this.$page.latestVersion) {
-        return `/docs/`;
+        return '/docs/';
       }
 
       return `/docs/${version}/`;
