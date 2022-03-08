@@ -149,7 +149,7 @@ afterDocumentKeyDown() {
 }
 ```
 
-This change may affect navigating the following areas of Handsontable:
+This change may affect the following areas of Handsontable:
 - [Context menu](@/api/contextmenu.md)
 - [Dropdown menu](@/api/dropdownmenu.md)
 - [Handsontable editor](@/guides/cell-types/handsontable-cell-type.md)
