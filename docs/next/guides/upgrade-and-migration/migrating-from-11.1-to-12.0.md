@@ -139,7 +139,7 @@ afterDocumentKeyDown() {
 
 #### After
 
-When you use a keyboard to navigate an internal Handsontable instance (e.g. a [context menu](@/guides/accessories-and-menus/context-menu.md)), the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook may not get fired anymore.
+When you use a keyboard to navigate some internal instances of Handsontable (e.g. a [context menu](@/guides/accessories-and-menus/context-menu.md)), the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook may not get fired anymore.
 
 ```js
 afterDocumentKeyDown() {
@@ -149,10 +149,9 @@ afterDocumentKeyDown() {
 }
 ```
 
-This change may affect navigating the following areas of Handsontable:
+This change may affect the following areas of Handsontable:
 - [Context menu](@/api/contextmenu.md)
 - [Dropdown menu](@/api/dropdownmenu.md)
-- [Handsontable editor](@/guides/cell-types/handsontable-cell-type.md)
 
 #### How to upgrade
 
