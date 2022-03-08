@@ -247,7 +247,6 @@ describe('settings', () => {
       expect(getTopClone().height()).toBe(27);
     });
 
-
     describe('should display synchronized layers', () => {
       it('when table\'s height is not set by settings', () => {
         handsontable({
