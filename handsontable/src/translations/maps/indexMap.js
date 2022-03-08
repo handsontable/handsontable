@@ -5,6 +5,8 @@ import localHooks from '../../mixins/localHooks';
 
 /**
  * Map for storing mappings from an index to a value.
+ *
+ * @class IndexMap
  */
 export class IndexMap {
   constructor(initValueOrFn = null) {
