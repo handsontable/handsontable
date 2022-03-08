@@ -133,7 +133,7 @@ const formulasItems = [
 const accessoriesAndMenusItems = [
   'guides/accessories-and-menus/context-menu',
   'guides/accessories-and-menus/undo-redo',
-  'guides/accessories-and-menus/keyboard-navigation',
+  'guides/accessories-and-menus/keyboard-shortcuts',
   'guides/accessories-and-menus/searching-values',
   'guides/accessories-and-menus/icon-pack',
   'guides/accessories-and-menus/export-to-csv',
@@ -157,7 +157,6 @@ const buildingAndTestingItems = [
 ];
 
 const advancedTopicsItems = [
-  // TODO 'guides/advanced-topics/accessibility',
   'guides/advanced-topics/batch-operations',
   // TODO 'guides/advanced-topics/touch-events',
   'guides/advanced-topics/performance',

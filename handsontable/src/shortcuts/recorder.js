@@ -4,22 +4,24 @@ import { isImmediatePropagationStopped } from '../helpers/dom/event';
 
 const modifierKeysObserver = createKeysObserver();
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
- * Keys recorder tracking key events.
+ * A key recorder, used for tracking key events.
  *
- * @param {EventTarget} ownerWindow The starting window element.
- * @param {Function} beforeKeyDown Hook fired before keydown event is handled. It can be used to stop default key bindings.
- * @param {Function} afterKeyDown Hook fired after keydown event is handled.
- * @param {Function} callback The KeyEvent's listener callback.
+ * @param {EventTarget} ownerWindow A starting `window` element
+ * @param {Function} beforeKeyDown A hook fired before the `keydown` event is handled. You can use it to [block a keyboard shortcut's actions](@/guides/accessories-and-menus/keyboard-shortcuts.md#blocking-a-keyboard-shortcut-s-actions).
+ * @param {Function} afterKeyDown A hook fired after the `keydown` event is handled
+ * @param {Function} callback `KeyEvent`'s listener's callback function
  * @returns {object}
  */
 export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) {
   const modifierKeys = ['meta', 'alt', 'shift', 'control'];
 
   /**
-   * Get whether pressed key is observed key.
+   * Check if a pressed key is tracked or not.
    *
-   * @param {string} pressedKey Pressed keyboard key.
+   * @param {string} pressedKey A pressed key
    * @returns {boolean}
    */
   const isModifierKey = (pressedKey) => {
@@ -27,10 +29,10 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
   };
 
   /**
-   * Get every pressed modifier key from performed `KeyboardEvent`.
+   * Get every pressed modifier key from the performed `KeyboardEvent`.
    *
    * @private
-   * @param {KeyboardEvent} event The event object.
+   * @param {KeyboardEvent} event The event object
    * @returns {Array}
    */
   const getModifierKeys = (event) => {
@@ -56,10 +58,10 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
   };
 
   /**
-   * KeyboardEvent's callback.
+   * `KeyboardEvent`'s callback function
    *
    * @private
-   * @param {KeyboardEvent} event The event object.
+   * @param {KeyboardEvent} event The event object
    */
   const onkeydown = (event) => {
     const result = beforeKeyDown(event);
@@ -86,10 +88,10 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
   };
 
   /**
-   * KeyboardEvent's callback.
+   * `KeyboardEvent`'s callback function
    *
    * @private
-   * @param {KeyboardEvent} event The event object.
+   * @param {KeyboardEvent} event The event object
    */
   const onkeyup = (event) => {
     const pressedKey = normalizeEventKey(event.key);
@@ -102,7 +104,7 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
   };
 
   /**
-   * FocusEvent's callback.
+   * `FocusEvent`'s callback function
    *
    * @private
    */
