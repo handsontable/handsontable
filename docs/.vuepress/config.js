@@ -4,6 +4,7 @@ const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
+const extendPageDataPlugin = require('./plugins/extend-page-data');
 const { getBuildDocsVersion, getLatestVersion } = require('./helpers');
 
 const buildMode = process.env.BUILD_MODE;
@@ -56,6 +57,7 @@ module.exports = {
     },
   },
   plugins: [
+    extendPageDataPlugin,
     'tabs',
     ['sitemap', {
       hostname: 'https://handsontable.com',
