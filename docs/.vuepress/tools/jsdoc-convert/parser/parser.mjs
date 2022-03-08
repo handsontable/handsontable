@@ -23,6 +23,7 @@ export const buildParser = ({ logger, parseJsdoc }) => function* () {
     'editors/!(__tests__)/!(index).js',
     'plugins/!(__tests__)/!(index).js',
     'translations/!(__tests__)/!(index).js',
+    'translations/indexMapper.js',
   ]);
 
   logger.success('Jsdoc comments parsed successfully.');
