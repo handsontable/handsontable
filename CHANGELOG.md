@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where the Handsontable documentation didn't build locally on Windows. [#8677](https://github.com/handsontable/handsontable/issues/8677)
 - Fixed a wrong TypeScript definition in the `BasePlugin` class. [#9175](https://github.com/handsontable/handsontable/issues/9175)
 - Fixed an issue where the  Code Examples Deployment workflow didn't deploy all examples to GitHub Pages. [#9182](https://github.com/handsontable/handsontable/issues/9182)
-- Fixed an issue where the `afterDocumentKeyDown` hook was triggered before the `beforeKeyDown` hook. [#8942](https://github.com/handsontable/handsontable/issues/8942)
+- Fixed an issue where the `afterDocumentKeyDown` hook was triggered before the `beforeKeyDown` hook. [#6236](https://github.com/handsontable/handsontable/issues/6236)
 - *React:* Fixed an issue with registering modules for the React wrapper [#9140](https://github.com/handsontable/handsontable/issues/9140)
 
 ### Removed
