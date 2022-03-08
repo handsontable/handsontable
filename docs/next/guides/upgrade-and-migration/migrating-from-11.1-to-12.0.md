@@ -127,7 +127,7 @@ Handsontable [12.0.0](https://github.com/handsontable/handsontable/releases/tag/
 
 #### Before
 
-When you navigate the [context menu](@/guides/accessories-and-menus/context-menu.md) with a keyboard, every key press fires the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook.
+When you use a keyboard to navigate an internal Handsontable instance (e.g. a [context menu](@/guides/accessories-and-menus/context-menu.md)), the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook gets fired on every key press.
 
 ```js
 afterDocumentKeyDown() {
@@ -139,7 +139,7 @@ afterDocumentKeyDown() {
 
 #### After
 
-When you navigate the [context menu](@/guides/accessories-and-menus/context-menu.md) with a keyboard, the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook doesn't get fired anymore.
+When you use a keyboard to navigate an internal Handsontable instance (e.g. a [context menu](@/guides/accessories-and-menus/context-menu.md)), the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook may not get fired anymore.
 
 ```js
 afterDocumentKeyDown() {
@@ -148,6 +148,11 @@ afterDocumentKeyDown() {
   console.log('key pressed');
 }
 ```
+
+This change may affect navigating the following areas of Handsontable:
+- [Context menu](@/api/contextmenu.md)
+- [Dropdown menu](@/api/dropdownmenu.md)
+- [Handsontable editor](@/guides/cell-types/handsontable-cell-type.md)
 
 #### How to upgrade
 
