@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [12.0.0] - 2022-03-10
 
 ### Added
-- **Breaking change**: Added `ShortcutManager`, a new API for customizing keyboard shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942)
+- Added `ShortcutManager`, a new API for customizing keyboard shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942)
 - Added support for RTL languages, by introducing a new configuration option: `layoutDirection`. [#8760](https://github.com/handsontable/handsontable/issues/8760)
 - Added an Arabic translation. [#9208](https://github.com/handsontable/handsontable/issues/9208)
 - Added a new configuration option: `fixedColumnsStart`. [#8760](https://github.com/handsontable/handsontable/issues/8760)
@@ -19,17 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Breaking change**: Changed the way `updateSettings()` handles data, by introducing `updateData()` instead of `loadData()` in most cases. [#7263](https://github.com/handsontable/handsontable/issues/7263)
 - **Breaking change**: Changed the way any plugin's `updatePlugin()` method reacts to `updateSettings()` calls. [#9021](https://github.com/handsontable/handsontable/issues/9021)
-- Changed the Code Examples Deployment workflow to make a dry run (without actual deployment) on each feature branch. [#8980](https://github.com/handsontable/handsontable/issues/8980)
+- **Breaking change**: Changed the order of execution for two hooks: now, `beforeKeyDown` is properly fired before `afterDocumentKeyDown`. [#6236](https://github.com/handsontable/handsontable/issues/6236)
 
 ### Fixed
 - Fixed an issue where cell filtering used formula results instead of source values. [#5455](https://github.com/handsontable/handsontable/issues/5455)
 - Fixed an issue where the Handsontable documentation didn't build locally on Windows. [#8677](https://github.com/handsontable/handsontable/issues/8677)
 - Fixed a wrong TypeScript definition in the `BasePlugin` class. [#9175](https://github.com/handsontable/handsontable/issues/9175)
-- Fixed an issue where the  Code Examples Deployment workflow didn't deploy all examples to GitHub Pages. [#9182](https://github.com/handsontable/handsontable/issues/9182)
-- Fixed an issue where the `afterDocumentKeyDown` hook was triggered before the `beforeKeyDown` hook. [#6236](https://github.com/handsontable/handsontable/issues/6236)
 - *React, Vue 2, Vue 3:* Fixed an issue with registering modules for the React, Vue 2, and Vue 3 wrappers. [#9140](https://github.com/handsontable/handsontable/issues/9140)
 
 ### Removed
+- Dropped support for Internet Explorer 11: Handsontable 11.x becomes the LTS version for supporting Internet Explorer 11. [#7026](https://github.com/handsontable/handsontable/issues/7026)
 - *React:* Removed the `enzyme` dependency from the React wrapper. [#9151](https://github.com/handsontable/handsontable/issues/9151)
 
 ## [11.1.0] - 2022-01-13

@@ -20,25 +20,24 @@ tags:
 Released on 10th of March, 2022
 
 **Added**
-- **Breaking change**: Added [`ShortcutManager`](@/api/shortcutmanager.md), a new API for [customizing keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#customizing-keyboard-shortcuts). [#8942](https://github.com/handsontable/handsontable/issues/8942) [[migration guide &#8594;](migrating-from-11.1-to-12.0.md#step-3-afterdocumentkeydown)]
+- Added [`ShortcutManager`](@/api/shortcutmanager.md), a new API for [customizing keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#customizing-keyboard-shortcuts). [#8942](https://github.com/handsontable/handsontable/issues/8942)
 - Added [support for RTL languages](@/guides/internationalization/layout-direction.md), by introducing a new configuration option: [`layoutDirection`](@/api/options.md#layoutdirection). [#8760](https://github.com/handsontable/handsontable/issues/8760)
 - Added an Arabic translation. [#9208](https://github.com/handsontable/handsontable/issues/9208)
 - Added a new configuration option: [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart). [#8760](https://github.com/handsontable/handsontable/issues/8760)
 
 **Changed**
-- **Breaking change**: Changed the way [`updateSettings()`](@/api/core.md#updatesettings) handles data, by introducing [`updateData()`](@/api/core.md#updatedata) instead of [`loadData()`](@/api/core.md#loaddata) in most cases. [#7263](https://github.com/handsontable/handsontable/issues/7263) [[migration guide &#8594;](migrating-from-11.1-to-12.0.md#step-1-updatesettings)]
-- **Breaking change**: Changed the way any plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls. [#9021](https://github.com/handsontable/handsontable/issues/9021) [[migration guide &#8594;](migrating-from-11.1-to-12.0.md#step-2-updateplugin)]
-- Changed the [Code Examples Deployment](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml) workflow to make a dry run (without actual deployment) on each feature branch. [#8980](https://github.com/handsontable/handsontable/issues/8980)
+- **Breaking change**: Changed the way [`updateSettings()`](@/api/core.md#updatesettings) handles data, by introducing [`updateData()`](@/api/core.md#updatedata) instead of [`loadData()`](@/api/core.md#loaddata) in most cases. [#7263](https://github.com/handsontable/handsontable/issues/7263) [[migration guide &#8594;](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#step-1-verify-your-updatesettings-calls)]
+- **Breaking change**: Changed the way any plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls. [#9021](https://github.com/handsontable/handsontable/issues/9021) [[migration guide &#8594;](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#step-2-adjust-to-the-updateplugin-changes)]
+- **Breaking change**: Changed the order of execution for two hooks: now, [`beforeKeyDown`](@/api/hooks.md#beforekeydown) is properly fired before [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown). [#6236](https://github.com/handsontable/handsontable/issues/6236) [[migration guide &#8594;](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#step-3-adjust-to-the-afterdocumentkeydown-changes)]
 
 **Fixed**
 - Fixed an issue where cell filtering used formula results instead of source values. [#5455](https://github.com/handsontable/handsontable/issues/5455)
 - Fixed an issue where the Handsontable documentation didn't build locally on Windows. [#8677](https://github.com/handsontable/handsontable/issues/8677)
 - Fixed a wrong TypeScript definition in the [`BasePlugin`](@/api/baseplugin.md) class. [#9175](https://github.com/handsontable/handsontable/issues/9175)
-- Fixed an issue where the [Code Examples Deployment](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml) workflow didn't deploy all examples to GitHub Pages. [#9182](https://github.com/handsontable/handsontable/issues/9182)
-- Fixed an issue where the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook was triggered before the [`beforeKeyDown`](@/api/hooks.md#beforedocumentkeydown) hook. [#6236](https://github.com/handsontable/handsontable/issues/6236)
 - *React, Vue 2, Vue 3:* Fixed an issue with registering modules for the React, Vue 2, and Vue 3 wrappers. [#9140](https://github.com/handsontable/handsontable/issues/9140)
 
 **Removed**
+- Dropped support for Internet Explorer 11: Handsontable 11.x becomes the LTS version for supporting Internet Explorer 11. [#7026](https://github.com/handsontable/handsontable/issues/7026)
 - *React:* Removed the `enzyme` dependency from the React wrapper. [#9151](https://github.com/handsontable/handsontable/issues/9151)
 
 ## 11.1.0
