@@ -5,6 +5,8 @@ import { arrayEach, arrayReduce } from '../../helpers/array';
 export const PLUGIN_KEY = 'trimRows';
 export const PLUGIN_PRIORITY = 330;
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin TrimRows
  * @class TrimRows
@@ -92,8 +94,10 @@ export class TrimRows extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state.
-   * This method is executed when {@link Core#updateSettings} is invoked with this plugin's `PLUGIN_KEY` or `SETTING_KEYS`.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`trimRows`](@/api/options.md#trimrows)
    */
   updatePlugin() {
     const trimmedRows = this.hot.getSettings()[PLUGIN_KEY];

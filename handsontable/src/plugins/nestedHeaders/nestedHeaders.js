@@ -21,6 +21,8 @@ import './nestedHeaders.css';
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin NestedHeaders
  * @class NestedHeaders
@@ -131,8 +133,10 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state.
-   * This method is executed when {@link Core#updateSettings} is invoked with this plugin's `PLUGIN_KEY` or `SETTING_KEYS`.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`nestedHeaders`](@/api/options.md#nestedheaders)
    */
   updatePlugin() {
     if (!this.hot.view) { // @TODO: Workaround for broken plugin initialization abstraction.

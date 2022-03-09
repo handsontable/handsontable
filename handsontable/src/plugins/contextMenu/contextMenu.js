@@ -70,7 +70,6 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  *
  * @plugin ContextMenu
  */
-/* eslint-enable jsdoc/require-description-complete-sentence */
 export class ContextMenu extends BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -183,8 +182,10 @@ export class ContextMenu extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state.
-   * This method is executed when {@link Core#updateSettings} is invoked with this plugin's `PLUGIN_KEY` or `SETTING_KEYS`.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`contextMenu`](@/api/options.md#contextmenu)
    */
   updatePlugin() {
     this.disablePlugin();

@@ -20,6 +20,8 @@ const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--rows';
 const CSS_AFTER_SELECTION = 'after-selection--rows';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin ManualRowMove
  * @class ManualRowMove
@@ -127,8 +129,10 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state.
-   * This method is executed when {@link Core#updateSettings} is invoked with this plugin's `PLUGIN_KEY` or `SETTING_KEYS`.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`manualRowMove`](@/api/options.md#manualrowmove)
    */
   updatePlugin() {
     this.disablePlugin();

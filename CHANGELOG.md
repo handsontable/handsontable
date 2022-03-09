@@ -17,14 +17,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a new configuration option: `fixedColumnsStart`. [#8760](https://github.com/handsontable/handsontable/issues/8760)
 
 ### Changed
-- **Breaking change**: Changed the way `updateSettings()` handles data, by introducing `updateData()` instead of `loadData()` in most cases. [#7263](https://github.com/handsontable/handsontable/issues/7263)
-- **Breaking change**: Changed the way any plugin's `updatePlugin()` method reacts to `updateSettings()` calls. [#9021](https://github.com/handsontable/handsontable/issues/9021)
+- **Breaking change**: Changed the way `updateSettings()` handles data updates, to improve performance and consistency of user experience. Now, when provided with a new data object, `updateSettings()` updates the data without resetting any states. [#7263](https://github.com/handsontable/handsontable/issues/7263)
+- **Breaking change**: Changed the way `updatePlugin()` reacts to `updateSettings()` calls, to improve performance and consistency of user experience. Now, calls to `updateSettings()` update a plugin's state only when the options object contains a configuration option that's relevant to that particular plugin. [#9021](https://github.com/handsontable/handsontable/issues/9021)
 - **Breaking change**: Changed the order of execution for two hooks: now, `beforeKeyDown` is properly fired before `afterDocumentKeyDown`. [#6236](https://github.com/handsontable/handsontable/issues/6236)
 
 ### Fixed
 - Fixed an issue where cell filtering used formula results instead of source values. [#5455](https://github.com/handsontable/handsontable/issues/5455)
 - Fixed an issue where the Handsontable documentation didn't build locally on Windows. [#8677](https://github.com/handsontable/handsontable/issues/8677)
 - Fixed a wrong TypeScript definition in the `BasePlugin` class. [#9175](https://github.com/handsontable/handsontable/issues/9175)
+- Fixed an issue where using `updateSettings()` caused configuration options to disappear. [#6552](https://github.com/handsontable/handsontable/issues/6552)
+- Fixed an issue where using `updateSettings()` caused hidden columns to reappear. [#7165](https://github.com/handsontable/handsontable/issues/7165)
+- *React:* Fixed an issue where using `setState()` within the `afterFilter` hook broke filtering. [#7567](https://github.com/handsontable/handsontable/issues/7567)
+- *React, Angular, Vue 2, Vue 3:* Fixed an issue where using `updateSettings()` caused problems for state managers. [#8372](https://github.com/handsontable/handsontable/issues/8372)
 - *React, Vue 2, Vue 3:* Fixed an issue with registering modules for the React, Vue 2, and Vue 3 wrappers. [#9140](https://github.com/handsontable/handsontable/issues/9140)
 
 ### Removed

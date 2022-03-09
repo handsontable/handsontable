@@ -30,9 +30,5 @@ Tests are run in [BrowserStack](https://www.browserstack.com/) as well as on a l
 | QQ browser            |                     |
 
 ::: tip
-**Internet Explorer 11**
-
-The long-term support (LTS) version for supporting Internet Explorer 11 is Handsontable `11.x`, until at least the end of 2023.
-
-The latest Handsontable version that supports Internet Explorer 11 is [Handsontable `11.1`](https://github.com/handsontable/handsontable/releases/tag/11.1.0).
+The LTS version for supporting Internet Explorer 11 is Handsontable `11.x`, and will be supported until at least the end of 2023.
 :::

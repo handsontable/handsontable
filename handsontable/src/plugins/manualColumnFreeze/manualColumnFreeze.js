@@ -8,6 +8,8 @@ export const PLUGIN_KEY = 'manualColumnFreeze';
 export const PLUGIN_PRIORITY = 110;
 const privatePool = new WeakMap();
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin ManualColumnFreeze
  * @class ManualColumnFreeze
@@ -75,8 +77,10 @@ export class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state.
-   * This method is executed when {@link Core#updateSettings} is invoked with this plugin's `PLUGIN_KEY` or `SETTING_KEYS`.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze)
    */
   updatePlugin() {
     this.disablePlugin();

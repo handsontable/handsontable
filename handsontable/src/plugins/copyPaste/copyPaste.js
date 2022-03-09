@@ -65,7 +65,6 @@ const META_HEAD = [
  * @class CopyPaste
  * @plugin CopyPaste
  */
-/* eslint-enable jsdoc/require-description-complete-sentence */
 export class CopyPaste extends BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -182,8 +181,11 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state.
-   * This method is executed when {@link Core#updateSettings} is invoked with this plugin's `PLUGIN_KEY` or `SETTING_KEYS`.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`copyPaste`](@/api/options.md#copypaste)
+   *  - [`fragmentSelection`](@/api/options.md#fragmentselection)
    */
   updatePlugin() {
     this.disablePlugin();

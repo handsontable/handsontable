@@ -23,6 +23,8 @@ const DEFAULT_QUERY_METHOD = function(query, value, cellProperties) {
     .indexOf(query.toLocaleLowerCase(cellProperties.locale)) !== -1;
 };
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin Search
  * @class Search
@@ -130,8 +132,10 @@ export class Search extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state.
-   * This method is executed when {@link Core#updateSettings} is invoked with this plugin's `PLUGIN_KEY` or `SETTING_KEYS`.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`search`](@/api/options.md#search)
    */
   updatePlugin() {
     this.disablePlugin();

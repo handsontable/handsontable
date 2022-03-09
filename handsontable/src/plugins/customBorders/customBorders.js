@@ -27,6 +27,8 @@ import { detectSelectionType, normalizeSelectionFactory } from '../../selection'
 export const PLUGIN_KEY = 'customBorders';
 export const PLUGIN_PRIORITY = 90;
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin CustomBorders
  * @class CustomBorders
@@ -131,8 +133,10 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state.
-   * This method is executed when {@link Core#updateSettings} is invoked with this plugin's `PLUGIN_KEY` or `SETTING_KEYS`.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`customBorders`](@/api/options.md#customborders)
    */
   updatePlugin() {
     this.disablePlugin();
