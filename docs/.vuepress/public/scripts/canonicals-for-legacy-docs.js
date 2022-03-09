@@ -142,7 +142,7 @@
     [/\/docs\/\d+\.\d+\.\d+\/ManualColumnMove.html$/, '/docs/api/manual-column-move/'],
     [/\/docs\/\d+\.\d+\.\d+\/ManualColumnResize.html$/, '/docs/api/manual-column-resize/'],
     [/\/docs\/\d+\.\d+\.\d+\/ManualRowMove.html$/, '/docs/api/manual-row-move/'],
-    [/\/docs\/\d+\.\d+\.\d+\/ManualRowResize.html$/, '/docs/api/manual-row-resie/'],
+    [/\/docs\/\d+\.\d+\.\d+\/ManualRowResize.html$/, '/docs/api/manual-row-resize/'],
     [/\/docs\/\d+\.\d+\.\d+\/MergeCells.html$/, '/docs/api/merge-cells/'],
     [/\/docs\/\d+\.\d+\.\d+\/MultiColumnSorting.html$/, '/docs/api/multi-column-sorting/'],
     [/\/docs\/\d+\.\d+\.\d+\/NestedHeaders.html$/, '/docs/api/nested-headers/'],
