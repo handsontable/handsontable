@@ -7,6 +7,7 @@
   }
 
   var urlsMap = [
+    // tutorials
     [/\/docs\/\d+\.\d+\.\d+\/tutorial-introduction.html$/, '/docs/'],
     [/\/docs\/\d+\.\d+\.\d+\/tutorial-compatibility.html$/, '/docs/supported-browsers/'],
     [/\/docs\/\d+\.\d+\.\d+\/tutorial-licensing.html$/, '/docs/software-license/'],
@@ -29,6 +30,7 @@
     [/\/docs\/\d+\.\d+\.\d+\/tutorial-suspend-rendering.html$/, '/docs/batch-operations/'],
     [/\/docs\/\d+\.\d+\.\d+\/tutorial-testing.html$/, '/docs/testing/'],
     [/\/docs\/\d+\.\d+\.\d+\/tutorial-migration-guide.html$/, '/docs/migration-from-7.4-to-8.0/'],
+    // frameworks React
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-react-installation.html$/, '/docs/react-installation/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-react-simple-examples.html$/, '/docs/react-simple-example/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-react-hot-column.html$/, '/docs/react-hot-column/'],
@@ -39,6 +41,7 @@
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-react-language-change-example.html$/, '/docs/react-language-change-example/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-react-redux-example.html$/, '/docs/react-redux-example/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-react-hot-reference.html$/, '/docs/react-hot-reference/'],
+    // frameworks Angular
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-angular-installation.html$/, '/docs/angular-installation/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-angular-simple-example.html$/, '/docs/angular-simple-example/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-angular-custom-id.html$/, '/docs/angular-custom-id/'],
@@ -48,6 +51,7 @@
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-angular-custom-renderer-example.html$/, '/docs/angular-custom-renderer-example/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-angular-language-change-example.html$/, '/docs/angular-language-change-example/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-angular-hot-reference.html$/, '/docs/angular-hot-reference/'],
+    // frameworks Vue
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-vue-installation.html$/, '/docs/vue-installation/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-vue-simple-example.html$/, '/docs/vue-simple-example/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-vue-hot-column.html$/, '/docs/vue-hot-column/'],
@@ -59,6 +63,7 @@
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-vue-language-change-example.html$/, '/docs/vue-language-change-example/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-vue-vuex-example.html$/, '/docs/vue-vuex-example/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-vue-hot-reference.html$/, '/docs/vue-hot-reference/'],
+    // demos
     [/\/docs\/\d+\.\d+\.\d+\/demo-scrolling.html$/, '/docs/row-virtualization/'],
     [/\/docs\/\d+\.\d+\.\d+\/demo-fixing.html$/, '/docs/column-freezing/'],
     [/\/docs\/\d+\.\d+\.\d+\/demo-resizing.html$/, '/docs/column-width/'],
@@ -109,6 +114,44 @@
     [/\/docs\/\d+\.\d+\.\d+\/demo-highlighting-selection.html$/, '/docs/8.4.0/demo-highlighting-selection.html'],
     [/\/docs\/\d+\.\d+\.\d+\/demo-mobiles-and-tablets.html$/, '/docs/8.4.0/demo-mobiles-and-tablets.html'],
     [/\/docs\/\d+\.\d+\.\d+\/demo-formula-support.html$/, '/docs/formula-calculation/'],
+    // core
+    [/\/docs\/\d+\.\d+\.\d+\/Core.html$/, '/docs/api/core/'],
+    [/\/docs\/\d+\.\d+\.\d+\/Hooks.html$/, '/docs/api/hooks/'],
+    [/\/docs\/\d+\.\d+\.\d+\/Options.html$/, '/docs/api/options/'],
+    // plugins
+    [/\/docs\/\d+\.\d+\.\d+\/AutoColumnSize.html$/, '/docs/api/auto-column-size/'],
+    [/\/docs\/\d+\.\d+\.\d+\/AutoRowSize.html$/, '/docs/api/auto-row-size/'],
+    [/\/docs\/\d+\.\d+\.\d+\/Autofill.html$/, '/docs/api/autofill/'],
+    [/\/docs\/\d+\.\d+\.\d+\/BindRowsWithHeaders.html$/, '/docs/api/bind-rows-with-headers/'],
+    [/\/docs\/\d+\.\d+\.\d+\/CollapsibleColumns.html$/, '/docs/api/collapsible-columns/'],
+    [/\/docs\/\d+\.\d+\.\d+\/ColumnSorting.html$/, '/docs/api/column-sorting/'],
+    [/\/docs\/\d+\.\d+\.\d+\/ColumnSummary.html$/, '/docs/api/column-summary/'],
+    [/\/docs\/\d+\.\d+\.\d+\/Comments.html$/, '/docs/api/comments/'],
+    [/\/docs\/\d+\.\d+\.\d+\/ContextMenu.html$/, '/docs/api/context-menu/'],
+    [/\/docs\/\d+\.\d+\.\d+\/CopyPaste.html$/, '/docs/api/copy-paste/'],
+    [/\/docs\/\d+\.\d+\.\d+\/CustomBorders.html$/, '/docs/api/custom-borders/'],
+    [/\/docs\/\d+\.\d+\.\d+\/DragToScroll.html$/, '/docs/api/drag-to-scroll/'],
+    [/\/docs\/\d+\.\d+\.\d+\/DropdownMenu.html$/, '/docs/api/dropdown-menu/'],
+    [/\/docs\/\d+\.\d+\.\d+\/ExportFile.html$/, '/docs/api/export-file/'],
+    [/\/docs\/\d+\.\d+\.\d+\/Filters.html$/, '/docs/api/filters/'],
+    [/\/docs\/\d+\.\d+\.\d+\/Formulas.html$/, '/docs/api/formulas/'],
+    [/\/docs\/\d+\.\d+\.\d+\/HeaderTooltips.html$/, '/docs/8.4.0/HeaderTooltips.html'],
+    [/\/docs\/\d+\.\d+\.\d+\/HiddenColumns.html$/, '/docs/api/hidden-columns/'],
+    [/\/docs\/\d+\.\d+\.\d+\/HiddenRows.html$/, '/docs/api/hidden-rows/'],
+    [/\/docs\/\d+\.\d+\.\d+\/ManualColumnFreeze.html$/, '/docs/api/manual-column-freeze/'],
+    [/\/docs\/\d+\.\d+\.\d+\/ManualColumnMove.html$/, '/docs/api/manual-column-move/'],
+    [/\/docs\/\d+\.\d+\.\d+\/ManualColumnResize.html$/, '/docs/api/manual-column-resize/'],
+    [/\/docs\/\d+\.\d+\.\d+\/ManualRowMove.html$/, '/docs/api/manual-row-move/'],
+    [/\/docs\/\d+\.\d+\.\d+\/ManualRowResize.html$/, '/docs/api/manual-row-resie/'],
+    [/\/docs\/\d+\.\d+\.\d+\/MergeCells.html$/, '/docs/api/merge-cells/'],
+    [/\/docs\/\d+\.\d+\.\d+\/MultiColumnSorting.html$/, '/docs/api/multi-column-sorting/'],
+    [/\/docs\/\d+\.\d+\.\d+\/NestedHeaders.html$/, '/docs/api/nested-headers/'],
+    [/\/docs\/\d+\.\d+\.\d+\/NestedRows.html$/, '/docs/api/nested-rows/'],
+    [/\/docs\/\d+\.\d+\.\d+\/ObserveChanges.html$/, '/docs/8.4.0/ObserveChanges.html'],
+    [/\/docs\/\d+\.\d+\.\d+\/PersistentState.html$/, '/docs/api/persistent-state/'],
+    [/\/docs\/\d+\.\d+\.\d+\/Search.html$/, '/docs/api/search/'],
+    [/\/docs\/\d+\.\d+\.\d+\/TrimRows.html$/, '/docs/api/trim-rows/'],
+    [/\/docs\/\d+\.\d+\.\d+\/UndoRedo.html$/, '/docs/api/undo-redo/'],
   ];
 
   function getURLPathname(pathname) {
