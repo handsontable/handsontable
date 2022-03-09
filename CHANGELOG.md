@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a wrong TypeScript definition in the `BasePlugin` class. [#9175](https://github.com/handsontable/handsontable/issues/9175)
 - Fixed an issue where the  Code Examples Deployment workflow didn't deploy all examples to GitHub Pages. [#9182](https://github.com/handsontable/handsontable/issues/9182)
 - Fixed an issue where the `afterDocumentKeyDown` hook was triggered before the `beforeKeyDown` hook. [#6236](https://github.com/handsontable/handsontable/issues/6236)
-- *React:* Fixed an issue with registering modules for the React wrapper [#9140](https://github.com/handsontable/handsontable/issues/9140)
+- *React, Vue 2, Vue 3:* Fixed an issue with registering modules for the React, Vue 2, and Vue 3 wrappers. [#9140](https://github.com/handsontable/handsontable/issues/9140)
 
 ### Removed
 - *React:* Removed the `enzyme` dependency from the React wrapper. [#9151](https://github.com/handsontable/handsontable/issues/9151)

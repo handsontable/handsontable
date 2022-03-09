@@ -36,7 +36,7 @@ Released on 10th of March, 2022
 - Fixed a wrong TypeScript definition in the [`BasePlugin`](@/api/baseplugin.md) class. [#9175](https://github.com/handsontable/handsontable/issues/9175)
 - Fixed an issue where the [Code Examples Deployment](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml) workflow didn't deploy all examples to GitHub Pages. [#9182](https://github.com/handsontable/handsontable/issues/9182)
 - Fixed an issue where the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook was triggered before the [`beforeKeyDown`](@/api/hooks.md#beforedocumentkeydown) hook. [#6236](https://github.com/handsontable/handsontable/issues/6236)
-- *React:* Fixed an issue with registering modules for the React wrapper [#9140](https://github.com/handsontable/handsontable/issues/9140)
+- *React, Vue 2, Vue 3:* Fixed an issue with registering modules for the React, Vue 2, and Vue 3 wrappers. [#9140](https://github.com/handsontable/handsontable/issues/9140)
 
 **Removed**
 - *React:* Removed the `enzyme` dependency from the React wrapper. [#9151](https://github.com/handsontable/handsontable/issues/9151)
