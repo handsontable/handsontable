@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue with no ability to delete content while editing and leaving cell blank after editor gets closed ",
+  "type": "fixed",
+  "issue": 4703,
+  "breaking": false,
+  "framework": "none"
+}
