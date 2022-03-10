@@ -1,4 +1,4 @@
-import { TextEditor } from '../textEditor';
+import { TextEditor, SHORTCUTS_GROUP as TEXT_EDITOR_SHORTCUTS_GROUP } from '../textEditor';
 import { setCaretPosition } from '../../helpers/dom/element';
 import {
   stopImmediatePropagation,
@@ -20,12 +20,12 @@ export class HandsontableEditor extends TextEditor {
     super(instance);
 
     /**
-     * Flag determining whether value from an editor's Textarea element is preserved after closing it. Currently, it's
-     * used for handling saving text stored in already opened Textarea after click outside the editor's element.
+     * Flag determining whether value should be took from the selected editor's element. Otherwise, it's took
+     * from the `textArea` HTMLElement.
      *
      * @type {boolean}
      */
-    this.preserveTextareaValue = true;
+    this.valueFromSelection = false;
   }
 
   static get EDITOR_TYPE() {
@@ -58,7 +58,7 @@ export class HandsontableEditor extends TextEditor {
     }
 
     this.htEditor.addHook('beforeOnCellMouseDown', () => {
-      this.preserveTextareaValue = false;
+      this.valueFromSelection = true;
     });
 
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
@@ -169,11 +169,11 @@ export class HandsontableEditor extends TextEditor {
     if (this.htEditor && this.htEditor.getSelectedLast()) {
       let value;
 
-      if (this.preserveTextareaValue === true) {
-        value = this.TEXTAREA.value;
+      if (this.valueFromSelection === true) {
+        value = this.htEditor.getInstance().getValue();
 
       } else {
-        value = this.htEditor.getInstance().getValue();
+        value = this.TEXTAREA.value;
       }
 
       if (value !== void 0) { // if the value is undefined then it means we don't want to set the value
@@ -291,7 +291,17 @@ export class HandsontableEditor extends TextEditor {
       position: 'before',
       keys: [['enter']],
       callback: () => {
-        this.preserveTextareaValue = false;
+        this.valueFromSelection = true;
+      }
+    });
+
+    editorContext.addShortcut({
+      group: SHORTCUT_ENTERING_VALUE_GROUP,
+      relativeToGroup: TEXT_EDITOR_SHORTCUTS_GROUP,
+      position: 'before',
+      keys: [['tab'], ['shift', 'tab']],
+      callback: () => {
+        this.valueFromSelection = true;
       }
     });
   }

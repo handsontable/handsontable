@@ -18,8 +18,8 @@ import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
-const SHORTCUTS_GROUP = 'textEditor';
 
+export const SHORTCUTS_GROUP = 'textEditor';
 export const EDITOR_TYPE = 'text';
 
 /**

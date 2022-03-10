@@ -1074,6 +1074,36 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toEqual('green');
     });
 
+    it('should destroy editor when value change with Tab on suggestion', async() => {
+      const syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.and.callFake((query, process) => {
+        process(choices);
+      });
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      await sleep(200);
+
+      keyDownUp('arrowdown');
+      keyDownUp('arrowdown');
+      keyDownUp('arrowdown');
+      keyDownUp('arrowdown');
+      keyDownUp('tab');
+
+      expect(getDataAtCell(0, 0)).toEqual('green');
+    });
+
     it('should destroy editor when pressed Enter then Esc', async() => {
       const syncSources = jasmine.createSpy('syncSources');
 
@@ -1642,6 +1672,151 @@ describe('AutocompleteEditor', () => {
       await sleep(200);
 
       expect(getDataAtCell(0, 0)).toEqual('blue');
+    });
+
+    it('should select the best matching option after hitting SHIFT + TAB', async() => {
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.and.callFake((query, process) => {
+        process(choices.filter(choice => choice.indexOf(query) !== -1));
+      });
+
+      const hot = handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources,
+            strict: true
+          }
+        ],
+        afterValidate: onAfterValidate
+      });
+
+      selectCell(0, 0);
+      const editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      await sleep(200);
+
+      syncSources.calls.reset();
+
+      editorInput.val('b');
+      keyDownUp('b');
+
+      await sleep(200);
+
+      const ac = hot.getActiveEditor();
+      const innerHot = ac.htEditor;
+
+      expect(innerHot.getData()).toEqual([
+        ['blue'],
+        ['black']
+      ]);
+
+      const selected = innerHot.getSelected()[0];
+      const selectedData = innerHot.getDataAtCell(selected[0], selected[1]);
+
+      expect(selectedData).toEqual('blue');
+
+      onAfterValidate.calls.reset();
+
+      keyDownUp(['shift', 'tab']);
+
+      await sleep(200);
+
+      expect(getDataAtCell(0, 0)).toEqual('blue');
+    });
+
+    it('should select first option after hitting TAB in previously cleared cell', async() => {
+      const syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.and.callFake((query, process) => {
+        process(choices.filter(choice => choice.indexOf(query) !== -1));
+      });
+
+      const hot = handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources,
+            strict: true
+          }
+        ],
+        data: [
+          ['yellow'],
+          ['red'],
+          ['blue']
+        ],
+      });
+
+      selectCell(0, 0);
+      const editorInput = $('.handsontableInput');
+
+      keyDownUp('enter');
+
+      await sleep(200);
+
+      syncSources.calls.reset();
+
+      editorInput.val('');
+      keyDownUp('backspace');
+
+      await sleep(200);
+
+      keyDownUp('tab');
+
+      await sleep(200);
+
+      expect(hot.getDataAtCell(0, 0)).toEqual('yellow');
+    });
+
+    it('should preserve empty value from textarea after selecting another cell', async() => {
+      const syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.and.callFake((query, process) => {
+        process(choices.filter(choice => choice.indexOf(query) !== -1));
+      });
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources,
+            strict: true
+          },
+          {},
+          {}
+        ],
+        data: [
+          ['yellow', 'blue', 'red'],
+          ['red', 'yellow', 'blue'],
+          ['blue', 'red', 'yellow'],
+        ],
+      });
+
+      selectCell(0, 0);
+      const editorInput = $('.handsontableInput');
+
+      keyDownUp('enter');
+
+      await sleep(200);
+
+      syncSources.calls.reset();
+
+      editorInput.val('');
+      keyDownUp('backspace');
+
+      await sleep(200);
+
+      selectCell(0, 1);
+
+      await sleep(200);
+
+      expect(getDataAtCell(0, 0)).toEqual('');
     });
 
     it('should mark list item corresponding to current cell value as selected', async() => {
