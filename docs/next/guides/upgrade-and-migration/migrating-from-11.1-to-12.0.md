@@ -64,7 +64,11 @@ As a result, whenever you called [`updateSettings()`](@/api/core.md#updatesettin
 
 #### After
 
-A plugin gets updated only if you update settings related to that particular plugin.
+A plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method gets triggered only when the object passed to [`updateSettings()`](@/api/core.md#updatesettings) contains at least one of the following:
+- The plugin's [`PLUGIN_KEY`](@/guides/building-and-testing/plugins.md#_2-extend-the-baseplugin) (the plugin's main alias)
+- An entry from the plugin's [`SETTING_KEYS`](@/api/baseplugin.md#setting-keys) (a property that stores all additional settings related to the plugin)
+
+As a result, a plugin gets updated only if you update settings related to that particular plugin.
 
 Only the following plugins still get updated on every [`updateSettings()`](@/api/core.md#updatesettings) call:
   - [`AutoColumnSize`](@/api/autocolumnsize.md)
@@ -74,13 +78,15 @@ Only the following plugins still get updated on every [`updateSettings()`](@/api
 
 #### Migrating to Handsontable 12.0
 
-If you want a plugin (e.g. a [custom plugin](@/guides/building-and-testing/plugins.md)) to still get updated every time you call [`updateSettings()`](@/api/core.md#updatesettings), use the [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) hook to call your plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method:
+If you want your [custom plugin](@/guides/building-and-testing/plugins.md) to still get updated on every [`updateSettings()`](@/api/core.md#updatesettings) call, set your plugin's [`SETTING_KEYS`](@/api/baseplugin.md#setting-keys) to `true`:
 
 ```js
-afterUpdateSettings() {
-  customPluginInstance.updatePlugin();
+static get SETTING_KEYS() {
+  return true;
 }
 ```
+
+To configure your custom plugin in a different way, see the [Plugins](@/guides/building-and-testing/plugins.md) guide.
 
 ## Step 3: Adjust to the `afterDocumentKeyDown` changes
 

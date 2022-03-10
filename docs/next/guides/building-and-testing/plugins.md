@@ -45,6 +45,8 @@ export class CustomPlugin extends BasePlugin {
   * Define a unique key (a string) for your plugin.
   * The key becomes the plugin's alias.
   * Handsontable registers the plugin under that alias.
+  * When an `updateSettings()` call includes the plugin's alias,
+  * your plugin's state gets updated.
   * You can also use the alias to recognize the plugin's
   * options passed through the Setting object at Handsontable's initialization.
   *
@@ -52,6 +54,19 @@ export class CustomPlugin extends BasePlugin {
   */
   static get PLUGIN_KEY() {
     return 'customPlugin';
+  }
+
+ /**
+  * Define additional setting keys (an array of strings) for your plugin.
+  * When an `updateSettings()` call includes at least one of those setting keys,
+  * your plugin's state gets updated.
+  * If you set SETTING_KEYS() to `true`, your plugin updates on every `updateSettings()` call.
+  * If you set SETTING_KEYS() to `false`, your plugin never updates on any `updateSettings()` call.
+  *
+  * @returns {Array|boolean}
+  */
+  static get SETTING_KEYS() {
+    return true;
   }
 
   /**
