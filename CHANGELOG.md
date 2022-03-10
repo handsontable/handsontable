@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
-## [12.0.0] - 2022-03-10
+## [12.0.0] - 2022-03-14
 
 ### Added
 - Added `ShortcutManager`, a new API for customizing keyboard shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942)
