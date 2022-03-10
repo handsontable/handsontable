@@ -24,7 +24,6 @@ Each [`updateSettings()`](@/api/core.md#updatesettings) call with the [`data`](@
 | Reset [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`)      | Doesn't reset [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`)                                                                                                                                                               |
 | Reset [index mappings](@/api/indexmapper.md)                                                 | Doesn't reset [index mappings](@/api/indexmapper.md)                                                                                                                                                                                                          |
 
-
 #### Migrating to Handsontable 12.0
 
 If you need to reset your [index mappings](@/api/indexmapper.md) and [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`) along with updating your [`data`](@/api/options.md#data):
