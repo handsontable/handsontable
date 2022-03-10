@@ -16,21 +16,14 @@ To upgrade your Handsontable version from 11.x.x to 12.x.x, follow this guide.
 
 Handsontable [12.0.0](https://github.com/handsontable/handsontable/releases/tag/12.0.0) changes the way the [`updateSettings()`](@/api/core.md#updatesettings) method handles your grid's [`data`](@/api/options.md#data).
 
-#### Before
+Each [`updateSettings()`](@/api/core.md#updatesettings) call with the [`data`](@/api/options.md#data) option defined:
 
-[`updateSettings()`](@/api/core.md#updatesettings) calls that included the [`data`](@/api/options.md#data) option automatically reset Handsontable's [index mappings](@/api/indexmapper.md) and [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`).
+| Before                                                                                       | After                                                                                                                                                                                                                                                         |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Always replaced [`data`](@/api/options.md#data) using [`loadData()`](@/api/core.md#loaddata) | At Handsontable's initialization, replaces [`data`](@/api/options.md#data) using [`loadData()`](@/api/core.md#loaddata)<br><br>After Handsontable's initialization, replaces [`data`](@/api/options.md#data) using [`updateData()`](@/api/core.md#updatedata) |
+| Reset [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`)      | Doesn't reset [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`)                                                                                                                                                               |
+| Reset [index mappings](@/api/indexmapper.md)                                                 | Doesn't reset [index mappings](@/api/indexmapper.md)                                                                                                                                                                                                          |
 
-#### After
-
-[`updateSettings()`](@/api/core.md#updatesettings) calls that include the [`data`](@/api/options.md#data) option don't automatically reset Handsontable's [index mappings](@/api/indexmapper.md) and [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`).
-
-This table summarizes the changes:
-
-| Type of call                                                                                                                                  | Before                                                                                                                                                                                                                                               | After                                                                                                                                                                                                                                                                                                                                                                |
-| --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| <span style="white-space: nowrap;">[`updateSettings()`](@/api/core.md#updatesettings)</span><br> with [`data`](@/api/options.md#data) defined | <ul><li>Always replaces [`data`](@/api/options.md#data) using [`loadData()`](@/api/core.md#loaddata)</li><li>[Options](@/guides/getting-started/setting-options.md) are reset</li><li>Index mappings are reset</li></ul>                             | <ul><li>At initialization, replaces [`data`](@/api/options.md#data) using [`loadData()`](@/api/core.md#loaddata)</li><li>After initialization, replaces [`data`](@/api/options.md#data) using [`updateData()`](@/api/core.md#updatedata)</li><li>[Options](@/guides/getting-started/setting-options.md) are not reset</li><li>Index mappings are not reset</li></ul> |
-| <span style="white-space: nowrap;">[`loadData()`](@/api/core.md#loaddata)</span>                                                              | Hooks triggered:<ul><li>[`beforeLoadData`](@/api/hooks.md#beforeloaddata)</li><li>[`afterLoadData`](@/api/hooks.md#afterloaddata)</li><li>[`afterChange`](@/api/hooks.md#afterchange), with the `source` argument declared as `loadData()`</li></ul> | Same as before                                                                                                                                                                                                                                                                                                                                                       |
-| <span style="white-space: nowrap;">[`updateData()`](@/api/core.md#updatedata)</span>                                                          | N/A                                                                                                                                                                                                                                                  | Hooks triggered:<ul><li>[`beforeLoadData`](@/api/hooks.md#beforeloaddata)</li><li>[`afterLoadData`](@/api/hooks.md#afterloaddata)</li><li>[`afterChange`](@/api/hooks.md#afterchange), with the `source` argument declared as `updateData()`</li></ul>                                                                                                               |
 
 #### Migrating to Handsontable 12.0
 
@@ -82,11 +75,11 @@ Only the following plugins still get updated on every [`updateSettings()`](@/api
 
 #### Migrating to Handsontable 12.0
 
-If you want a plugin (e.g. [`ContextMenu`](@/api/contextmenu.md)) to still get updated every time you call [`updateSettings()`](@/api/core.md#updatesettings), use the [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) hook to call your plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method:
+If you want a plugin (e.g. a [custom plugin](@/guides/building-and-testing/plugins.md)) to still get updated every time you call [`updateSettings()`](@/api/core.md#updatesettings), use the [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) hook to call your plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method:
 
 ```js
 afterUpdateSettings() {
-  contextMenu.updatePlugin();
+  customPluginInstance.updatePlugin();
 }
 ```
 
