@@ -55,12 +55,14 @@ If any of those events is triggered, `EditorManager` calls editor's `beginEditin
 When editor is opened the `EditorManager` waits for user event that should end cell edition. Those events are:
 
 * clicking on another cell (saves changes)
-* pressing <kbd>ENTER</kbd> (saves changes)
-* pressing <kbd>ESC</kbd> (abort changes)
-* pressing <kbd>ARROW_UP</kbd>, <kbd>ARROW_DOWN</kbd>, <kbd>ARROW_LEFT</kbd>, <kbd>ARROW_RIGHT</kbd> (saves changes)
-* pressing <kbd>TAB</kbd> (saves changes)
-* pressing <kbd>HOME</kbd>, <kbd>END</kbd> (saved changes)
-* pressing <kbd>PAGE_UP</kbd>, <kbd>PAGE_DOWN</kbd> (saved changes)
+* pressing <kbd>ENTER</kbd> (saves changes and moves selection one cell down)
+* pressing <kbd>SHIFT</kbd> + <kbd>ENTER</kbd> (saves changes and moves selection one cell up)
+* pressing <kbd>CTRL</kbd> + <kbd>ENTER</kbd> (adds a new line inside the cell)
+* pressing <kbd>ESC</kbd> (aborts changes)
+* pressing <kbd>TAB</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
+* pressing <kbd>SHIFT</kbd> + <kbd>TAB</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
+* pressing <kbd>HOME</kbd>, <kbd>END</kbd> (saves changes)
+* pressing <kbd>PAGE_UP</kbd>, <kbd>PAGE_DOWN</kbd> (saves changes and moves one screen up/down)
 
 If any of those events is triggered, `EditorManager` calls editor's `finishEditing()` method, which should try to save changes (unless ESC key has been pressed) and close the editor.
 
