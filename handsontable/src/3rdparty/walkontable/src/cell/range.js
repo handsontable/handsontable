@@ -272,17 +272,17 @@ class CellRange {
       return false;
     }
 
-    const topLeft = this.getOuterTopLeftCorner();
-    const bottomRight = this.getOuterBottomRightCorner();
+    const topStart = this.getOuterTopStartCorner();
+    const bottomEnd = this.getOuterBottomEndCorner();
     const initialDirection = this.getDirection();
 
-    const expandingTopLeft = expandingRange.getOuterTopLeftCorner();
-    const expandingBottomRight = expandingRange.getOuterBottomRightCorner();
+    const expandingTopStart = expandingRange.getOuterTopStartCorner();
+    const expandingBottomEnd = expandingRange.getOuterBottomEndCorner();
 
-    const resultTopRow = Math.min(topLeft.row, expandingTopLeft.row);
-    const resultTopCol = Math.min(topLeft.col, expandingTopLeft.col);
-    const resultBottomRow = Math.max(bottomRight.row, expandingBottomRight.row);
-    const resultBottomCol = Math.max(bottomRight.col, expandingBottomRight.col);
+    const resultTopRow = Math.min(topStart.row, expandingTopStart.row);
+    const resultTopCol = Math.min(topStart.col, expandingTopStart.col);
+    const resultBottomRow = Math.max(bottomEnd.row, expandingBottomEnd.row);
+    const resultBottomCol = Math.max(bottomEnd.col, expandingBottomEnd.col);
 
     const finalFrom = this._createCellCoords(resultTopRow, resultTopCol);
     const finalTo = this._createCellCoords(resultBottomRow, resultBottomCol);
