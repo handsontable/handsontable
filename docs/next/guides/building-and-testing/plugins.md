@@ -60,8 +60,8 @@ export class CustomPlugin extends BasePlugin {
   * Define additional setting keys (an array of strings) for your plugin.
   * When an `updateSettings()` call includes at least one of those setting keys,
   * your plugin's state gets updated.
-  * If you set SETTING_KEYS() to `true`, your plugin updates on every `updateSettings()` call.
-  * If you set SETTING_KEYS() to `false`, your plugin never updates on any `updateSettings()` call.
+  * If you set SETTING_KEYS() to return `true`, your plugin updates on every `updateSettings()` call.
+  * If you set SETTING_KEYS() to return `false`, your plugin never updates on any `updateSettings()` call.
   *
   * @returns {Array|boolean}
   */
