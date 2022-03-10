@@ -18,11 +18,11 @@ Handsontable [12.0.0](https://github.com/handsontable/handsontable/releases/tag/
 
 Each [`updateSettings()`](@/api/core.md#updatesettings) call with the [`data`](@/api/options.md#data) option defined:
 
-| Before                                                                                       | After                                                                                                                                                                                                                                                         |
-| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Always replaced [`data`](@/api/options.md#data) using [`loadData()`](@/api/core.md#loaddata) | At Handsontable's initialization, replaces [`data`](@/api/options.md#data) using [`loadData()`](@/api/core.md#loaddata)<br><br>After Handsontable's initialization, replaces [`data`](@/api/options.md#data) using [`updateData()`](@/api/core.md#updatedata) |
-| Reset [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`)      | Doesn't reset [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`)                                                                                                                                                               |
-| Reset [index mappings](@/api/indexmapper.md)                                                 | Doesn't reset [index mappings](@/api/indexmapper.md)                                                                                                                                                                                                          |
+| Before                                                                                  | After                                                                                           |
+| --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Replaced [`data`](@/api/options.md#data) using [`loadData()`](@/api/core.md#loaddata)   | Replaces [`data`](@/api/options.md#data) using [`updateData()`](@/api/core.md#updatedata)       |
+| Reset [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`) | Doesn't reset [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`) |
+| Reset [index mappings](@/api/indexmapper.md)                                            | Doesn't reset [index mappings](@/api/indexmapper.md)                                            |
 
 #### Migrating to Handsontable 12.0
 
