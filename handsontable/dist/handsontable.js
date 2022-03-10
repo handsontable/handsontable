@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.0.0
- * Release date: 10/03/2022 (built at 03/03/2022 14:45:57)
+ * Release date: 14/03/2022 (built at 10/03/2022 16:01:00)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3194,7 +3194,7 @@ function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("10/03/2022", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("14/03/2022", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
 
       var keyValidityDays = _extractTime(key);
@@ -17117,6 +17117,8 @@ var _localHooks = _interopRequireDefault(__webpack_require__(74));
 
 /**
  * Map for storing mappings from an index to a value.
+ *
+ * @class IndexMap
  */
 var IndexMap = /*#__PURE__*/function () {
   function IndexMap() {
@@ -20012,6 +20014,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
  * Map for storing mappings from an physical index to a value.
  *
  * Does not update stored values on remove/add row or column action.
+ *
+ * @class PhysicalIndexToValueMap
  */
 var PhysicalIndexToValueMap = /*#__PURE__*/function (_IndexMap) {
   (0, _inherits2.default)(PhysicalIndexToValueMap, _IndexMap);
@@ -31374,15 +31378,15 @@ var CellRange = /*#__PURE__*/function () {
         return false;
       }
 
-      var topLeft = this.getOuterTopLeftCorner();
-      var bottomRight = this.getOuterBottomRightCorner();
+      var topStart = this.getOuterTopStartCorner();
+      var bottomEnd = this.getOuterBottomEndCorner();
       var initialDirection = this.getDirection();
-      var expandingTopLeft = expandingRange.getOuterTopLeftCorner();
-      var expandingBottomRight = expandingRange.getOuterBottomRightCorner();
-      var resultTopRow = Math.min(topLeft.row, expandingTopLeft.row);
-      var resultTopCol = Math.min(topLeft.col, expandingTopLeft.col);
-      var resultBottomRow = Math.max(bottomRight.row, expandingBottomRight.row);
-      var resultBottomCol = Math.max(bottomRight.col, expandingBottomRight.col);
+      var expandingTopStart = expandingRange.getOuterTopStartCorner();
+      var expandingBottomEnd = expandingRange.getOuterBottomEndCorner();
+      var resultTopRow = Math.min(topStart.row, expandingTopStart.row);
+      var resultTopCol = Math.min(topStart.col, expandingTopStart.col);
+      var resultBottomRow = Math.max(bottomEnd.row, expandingBottomEnd.row);
+      var resultBottomCol = Math.max(bottomEnd.col, expandingBottomEnd.col);
 
       var finalFrom = this._createCellCoords(resultTopRow, resultTopCol);
 
@@ -36725,10 +36729,10 @@ var _default = function _default() {
      * | -------- | ------------------ | ---------------------------------- | ----------------------------------------------------------------- |
      * | `row`    | -                  | `row`: Number                      | The cell's row coordinate.                                        |
      * | `col`    | -                  | `col`: Number                      | The cell's column coordinate.                                     |
-     * | `left`   | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the left border's width (`width`)<br> and color (`color`).   |
-     * | `right`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the right border's width (`width`)<br> and color (`color`).  |
-     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the top border's width (`width`)<br> and color (`color`).    |
-     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the bottom border's width (`width`)<br> and color (`color`). |
+     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `start` sets the width (`width`) and color (`color`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `start` sets the width (`width`) and color (`color`) of the right-hand border. |
+     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `end` sets the width (`width`) and color (`color`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `end` sets the width (`width`) and color (`color`) of the left-hand border. |
+     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the width (`width`) and color (`color`) of the top border. |
+     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the width (`width`) and color (`color`) of the bottom border. |
      *
      * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
      * and add a predefined border around a range of cells,
@@ -36737,16 +36741,18 @@ var _default = function _default() {
      *
      * | Property | Sub-properties                               | Types                                                            | Description                                                                                  |
      * | -------- | -------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-     * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` selects the range's top-left corner.<br>`to` selects the range's bottom-right corner. |
-     * | `left`   | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the left border's `width` and `color`.                                                  |
-     * | `right`  | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the right border's `width` and `color`.                                                 |
-     * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the top border's `width` and `color`.                                                   |
-     * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the bottom border's `width` and `color`.                                                |
+     * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default):<br>- `from` selects the range's top-left corner.<br>- `to` selects the range's bottom-right corner.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: <br>- `from` selects the range's top-right corner.<br>- `to` selects the range's bottom-left corner. |
+     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `start` sets the width (`width`) and color (`color`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `start` sets the width (`width`) and color (`color`) of the right-hand border. |
+     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `end` sets the width (`width`) and color (`color`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `end` sets the width (`width`) and color (`color`) of the left-hand border. |
+     * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the width (`width`) and color (`color`) of the top border. |
+     * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the width (`width`) and color (`color`) of the bottom border. |
      *
      * Read more:
      * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
      * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
      * - [Plugins: `CustomBorders` &#8594;](@/api/customBorders.md)
+     * - [Layout direction](@/guides/internationalization/layout-direction.md)
+     * - [`layoutDirection`](#layoutDirection)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -36767,13 +36773,13 @@ var _default = function _default() {
      *     row: 2,
      *     // set the cell's column coordinate
      *     col: 2,
-     *     // set the left border's width and color
-     *     left: {
+     *     // set the left/right border's width and color
+     *     start: {
      *       width: 2,
      *       color: 'red'
      *     },
-     *     // set the right border's width and color
-     *     right: {
+     *     // set the right/left border's width and color
+     *     end: {
      *       width: 1,
      *       color: 'green'
      *     },
@@ -36802,13 +36808,13 @@ var _default = function _default() {
      *         col: 4
      *       }
      *     },
-     *     // set the left border's width and color
-     *     left: {
+     *     // set the left/right border's width and color
+     *     start: {
      *       width: 2,
      *       color: 'red'
      *     },
-     *     // set the right border's width and color
-     *     right: {},
+     *     // set the right/left border's width and color
+     *     end: {},
      *     // set the top border's width and color
      *     top: {},
      *     // set the bottom border's width and color
@@ -36823,7 +36829,7 @@ var _default = function _default() {
      * @description
      * The `data` option sets the initial [data](@/guides/getting-started/binding-to-data.md) of your Handsontable instance.
      *
-     * Handsontable's data is bound to your source data __by reference__ (i.e. when you edit Handsontable's data, your source data alters as well).
+     * Handsontable's data is bound to your source data by reference (i.e. when you edit Handsontable's data, your source data alters as well).
      *
      * You can set the `data` option:
      * - Either to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
@@ -37406,12 +37412,16 @@ var _default = function _default() {
     filters: void 0,
 
     /**
-     * The `fixedColumnsLeft` option is an alias for the [`fixedColumnsStart`](#fixedColumnsStart) option.
+     * `fixedColumnsLeft` is a legacy option.
      *
-     * In the RTL mode, don't use the `fixedColumnsLeft` option: use the [`fixedColumnsStart`](#fixedColumnsStart) option instead.
+     * If your grid's [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), `fixedColumnsLeft` acts like the [`fixedColumnsStart`](#fixedColumnsStart) option.
+     *
+     * If your grid's [layout direction](@/guides/internationalization/layout-direction.md) is RTL, using `fixedColumnsLeft` throws an error.
+     *
+     * Use [`fixedColumnsStart`](#fixedColumnsStart), which works in any layout direction.
      *
      * Read more:
-     * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
+     * - [`fixedColumnsStart`](#fixedcolumnsstart)
      *
      * @memberof Options#
      * @type {number}
@@ -37427,11 +37437,15 @@ var _default = function _default() {
     fixedColumnsLeft: 0,
 
     /**
-     * The `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the start edge of the grid.
-     * By default, the start edge is the left-hand edge. In the RTL mode, the start edge is the right-hand edge.
+     * If your grid's [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the left-hand edge of the grid.
+     *
+     * If your grid's [layout direction](@/guides/internationalization/layout-direction.md) is RTL, the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the right-hand edge of the grid.
      *
      * Read more:
      * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
+     * - [Layout direction &#8594;](@/guides/internationalization/layout-direction.md)
+     * - [`fixedColumnsLeft`](#fixedcolumnsleft)
+     * - [`layoutDirection`](#layoutDirection)
      *
      * @memberof Options#
      * @type {number}
@@ -37440,7 +37454,22 @@ var _default = function _default() {
      *
      * @example
      * ```js
+     * // when `layoutDirection` is set to `inherit` (default)
+     * // freeze the first 3 columns from the left or from the right
+     * // depending on your HTML document's `dir` attribute
+     * layoutDirection: 'inherit',
+     * fixedColumnsStart: 3,
+     *
+     * // when `layoutDirection` is set to `rtl`
+     * // freeze the first 3 columns from the right
+     * // regardless of your HTML document's `dir` attribute
+     * layoutDirection: 'rtl',
+     * fixedColumnsStart: 3,
+     *
+     * // when `layoutDirection` is set to `ltr`
      * // freeze the first 3 columns from the left
+     * // regardless of your HTML document's `dir` attribute
+     * layoutDirection: 'ltr',
      * fixedColumnsStart: 3,
      * ```
      */
@@ -37862,14 +37891,14 @@ var _default = function _default() {
     label: void 0,
 
     /**
-     * The `language` option configures Handsontable's [language settings](@/guides/internationalization/internationalization-i18n.md#language-settings).
+     * The `language` option configures Handsontable's [language](@/guides/internationalization/language.md) settings.
      *
      * You can set the `language` option to one of the following:
      *
      * | Setting             | Description                 |
      * | ------------------- | --------------------------- |
      * | `'en-US'` (default) | English - United States     |
-     * | `'ar-AR'`           | Arabic - Global             |
+     * | `'ar-AR'`           | Arabic - Global.<br><br>To properly render this language, set the [layout direction](@/guides/internationalization/layout-direction.md) to RTL. |
      * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |
@@ -37887,8 +37916,9 @@ var _default = function _default() {
      * | `'zh-TW'`           | Chinese - Taiwan            |
      *
      * Read more:
-     * - [Internationalization (i18n): Language settings &#8594;](@/guides/internationalization/internationalization-i18n.md#language-settings)
+     * - [Language &#8594;](@/guides/internationalization/language.md)
      * - [`locale`](#locale)
+     * - [`layoutDirection`](#layoutdirection)
      *
      * @memberof Options#
      * @type {string}
@@ -37902,6 +37932,52 @@ var _default = function _default() {
      * ```
      */
     language: 'en-US',
+
+    /**
+     * The `layoutDirection` option configures whether Handsontable renders from the left to the right, or from the right to the left.
+     *
+     * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
+     *
+     * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/setting-options.md#setting-grid-options).
+     * You can't set it for individual columns, rows, or cells.
+     *
+     * You can set the `layoutDirection` option to one of the following strings:
+     *
+     * | Setting             | Description                                                                                                                                                                                  |
+     * | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `inherit` (default) | Set Handsontable's layout direction automatically,<br>based on the value of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute  |
+     * | `rtl`               | Render Handsontable from the right to the left,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `ltr` |
+     * | `ltr`               | Render Handsontable from the left to the right,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `rtl` |
+     *
+     * Read more:
+     * - [Layout direction &#8594;](@/guides/internationalization/layout-direction.md)
+     * - [Language &#8594;](@/guides/internationalization/language.md)
+     * - [`language`](#language)
+     * - [`locale`](#locale)
+     * - [`fixedColumnsStart`](#fixedcolumnsstart)
+     * - [`customBorders`](#customBorders)
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'inherit'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // inherit Handsontable's layout direction
+     * // from the value of your HTML document's `dir` attribute
+     * layoutDirection: 'inherit',
+     *
+     * // render Handsontable from the right to the left
+     * // regardless of your HTML document's `dir`
+     * layoutDirection: 'rtl',
+     *
+     * // render Handsontable from the left to the right
+     * // regardless of your HTML document's `dir`
+     * layoutDirection: 'ltr',
+     * ```
+     */
+    layoutDirection: 'inherit',
 
     /**
      * The `licenseKey` option sets your Handsontable license key.
@@ -37933,15 +38009,16 @@ var _default = function _default() {
     licenseKey: void 0,
 
     /**
-     * The `locale` option configures Handsontable's [locale settings](@/guides/internationalization/internationalization-i18n.md#locale-settings).
+     * The `locale` option configures Handsontable's [locale](@/guides/internationalization/locale.md) settings.
      *
      * You can set the `locale` option to any valid and canonicalized Unicode BCP 47 locale tag,
-     * both for the [entire grid](@/guides/internationalization/internationalization-i18n.md#setting-the-grid-s-locale),
-     * and for [individual columns](@/guides/internationalization/internationalization-i18n.md#setting-a-column-s-locale).
+     * both for the [entire grid](@/guides/internationalization/locale.md#setting-the-grid-s-locale),
+     * and for [individual columns](@/guides/internationalization/locale.md#setting-a-column-s-locale).
      *
      * Read more:
-     * - [Internationalization (i18n): Locale settings &#8594;](@/guides/internationalization/internationalization-i18n.md#locale-settings)
+     * - [Locale &#8594;](@/guides/internationalization/locale.md)
      * - [`language`](#language)
+     * - [`layoutDirection`](#layoutdirection)
      *
      * @memberof Options#
      * @type {string}
@@ -39955,33 +40032,7 @@ var _default = function _default() {
      * ],
      * ```
      */
-    wordWrap: true,
-
-    /**
-     * The `layoutDirection` option configures whether Handsontable should be rendered from Left-to-right or
-     * Right-to-left depending on the passed settings.
-     *
-     * __Warning:__ The `layoutDirection` option can only be passed when Handsontable is initialized. Nothing
-     * will happen when the option is passed to the `updateSettings` method. Every time the setting is passed
-     * to the method warning message is printed in the console to prevent confusion.
-     *
-     * | Setting          | Description                                             |
-     * | ---------------- | ------------------------------------------------------- |
-     * | `inherit` (default) | Handsontable detects automatically the document layout direction |
-     * | `rtl`            | Renders the table in Right-to-left mode even when the document is served as LTR |
-     * | `ltr`            | Renders the table in Left-to-right mode even when the document is served as RTL |
-     *
-     * @memberof Options#
-     * @type {string}
-     * @default 'inherit'
-     * @category Core
-     *
-     * @example
-     * ```js
-     * layoutDirection: 'rtl',
-     * ```
-     */
-    layoutDirection: 'inherit'
+    wordWrap: true
     /* eslint-enable jsdoc/require-description-complete-sentence */
 
   };
@@ -40425,14 +40476,16 @@ __webpack_require__(36);
 
 __webpack_require__(66);
 
-// Please keep in mind that there are some key discrepancies in browsers. That's why there are some mappings.
-// There is a list which show some exceptions: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
-var mappings = new Map([[' ', 'space'], // Custom mapping.
+// This file handles key-name discrepancies between browsers.
+// For the list of discrepancies, go to: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
+var mappings = new Map([[' ', 'space'], // custom mapping
 ['spacebar', 'space'], ['scroll', 'scrolllock'], ['del', 'delete'], ['esc', 'escape'], ['medianexttrack', 'mediatracknext'], ['mediaprevioustrack', 'mediatrackprevious'], ['volumeup', 'audiovolumeup'], ['volumedown', 'audiovolumedown'], ['volumemute', 'audiovolumemute'], ['multiply', '*'], ['add', '+'], ['divide', '/'], ['subtract', '-'], ['left', 'arrowleft'], ['right', 'arrowright'], ['up', 'arrowup'], ['down', 'arrowdown']]);
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
- * Get single, normalized string from list of KeyboardEvent's key properties.
+ * Get a single, normalized string from the list of the `KeyboardEvent.key` properties.
  *
- * @param {Array<string>} keys List of KeyboardEvent's key properties.
+ * @param {Array<string>} keys The list of the `KeyboardEvent.key` properties
  * @returns {string}
  */
 
@@ -40448,9 +40501,9 @@ var normalizeKeys = function normalizeKeys(keys) {
   }).sort().join('+');
 };
 /**
- * Get list of KeyboardEvent's key properties from single, normalized string.
+ * Get the list of the `KeyboardEvent.key` properties from a single, normalized string.
  *
- * @param {string} normalizedKeys Single, normalized string from list of KeyboardEvent's key properties.
+ * @param {string} normalizedKeys A single, normalized string that contains the list of the `KeyboardEvent.key` properties
  * @returns {Array<string>}
  */
 
@@ -40461,7 +40514,7 @@ var getKeysList = function getKeysList(normalizedKeys) {
   return normalizedKeys.split('+');
 };
 /**
- * Normalize KeyboardEvent's key property being the basis of keyboard shortcuts.
+ * Normalize a `KeyboardEvent.key` property, to use it for keyboard shortcuts.
  *
  * @param {string} key KeyboardEvent's key property.
  * @returns {string}
@@ -44864,7 +44917,7 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "03/03/2022 14:45:57";
+Handsontable.buildDate = "10/03/2022 16:01:00";
 Handsontable.version = "12.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -53173,6 +53226,10 @@ var Viewport = /*#__PURE__*/function () {
       var docOffsetWidth = rootDocument.documentElement.offsetWidth;
       var totalColumns = wtSettings.getSetting('totalColumns');
       var preventOverflow = wtSettings.getSetting('preventOverflow');
+      var isRtl = wtSettings.getSetting('rtlMode');
+      var tableRect = this.wtTable.TABLE.getBoundingClientRect();
+      var inlineStart = isRtl ? tableRect.right - docOffsetWidth : tableRect.left;
+      var tableOffset = docOffsetWidth - inlineStart;
       var width;
       var overflow;
 
@@ -53181,9 +53238,9 @@ var Viewport = /*#__PURE__*/function () {
       }
 
       if (wtSettings.getSetting('freezeOverlays')) {
-        width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
+        width = Math.min(tableOffset, docOffsetWidth);
       } else {
-        width = Math.min(this.getContainerFillWidth(), docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
+        width = Math.min(this.getContainerFillWidth(), tableOffset, docOffsetWidth);
       }
 
       if (trimmingContainer === rootWindow && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
@@ -56235,6 +56292,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 /**
  * Map for storing mappings from an physical index to a boolean value. It stores information whether physical index is
  * included in a dataset, but skipped in the process of rendering.
+ *
+ * @class HidingMap
  */
 var HidingMap = /*#__PURE__*/function (_PhysicalIndexToValue) {
   (0, _inherits2.default)(HidingMap, _PhysicalIndexToValue);
@@ -56356,6 +56415,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
  *
  * It does not update stored values on remove/add row or column action. Otherwise, order of entries is updated after
  * such changes.
+ *
+ * @class LinkedPhysicalIndexToValueMap
  */
 var LinkedPhysicalIndexToValueMap = /*#__PURE__*/function (_IndexMap) {
   (0, _inherits2.default)(LinkedPhysicalIndexToValueMap, _IndexMap);
@@ -56567,6 +56628,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 /**
  * Map for storing mappings from an physical index to a boolean value. It stores information whether physical index is
  * NOT included in a dataset and skipped in the process of rendering.
+ *
+ * @class TrimmingMap
  */
 var TrimmingMap = /*#__PURE__*/function (_PhysicalIndexToValue) {
   (0, _inherits2.default)(TrimmingMap, _PhysicalIndexToValue);
@@ -56646,6 +56709,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
  * Map for storing mappings from an index to a physical index.
  *
  * It also updates the physical indexes (remaining in the map) on remove/add row or column action.
+ *
+ * @class IndexesSequence
  */
 var IndexesSequence = /*#__PURE__*/function (_IndexMap) {
   (0, _inherits2.default)(IndexesSequence, _IndexMap);
@@ -57149,7 +57214,6 @@ var _currentInitialChanges = /*#__PURE__*/new WeakMap();
  * The ChangesObserver module is an object that represents a disposable resource
  * provided by the ChangesObservable module.
  *
- * @private
  * @class ChangesObserver
  */
 var ChangesObserver = /*#__PURE__*/function () {
@@ -60854,16 +60918,21 @@ var _recorder = __webpack_require__(470);
 
 var _array = __webpack_require__(13);
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
- * Create manager instance responsible for managing with contexts and stored inside them shortcuts. It listens for
- * `KeyboardEvent`s and run proper actions for them.
+ * The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutcontext.md)).
+ *
+ * Each `ShortcutManager` object:
+ * - Stores and manages its own set of keyboard shortcut contexts.
+ * - Listens to the [`KeyboardEvent`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent) events and runs actions for them.
  *
  * @alias ShortcutManager
  * @class ShortcutManager
- * @param {object} options Settings for the manager.
- * @param {EventTarget} options.ownerWindow The starting window element.
- * @param {Function} options.beforeKeyDown Hook fired before keydown event is handled. It can be used to stop default key bindings.
- * @param {Function} options.afterKeyDown Hook fired after keydown event is handled.
+ * @param {object} options The manager's options
+ * @param {EventTarget} options.ownerWindow A starting `window` element
+ * @param {Function} options.beforeKeyDown A hook fired before the `keydown` event is handled. You can use it to [block a keyboard shortcut's actions](@/guides/accessories-and-menus/keyboard-shortcuts.md#blocking-a-keyboard-shortcut-s-actions).
+ * @param {Function} options.afterKeyDown A hook fired after the `keydown` event is handled
  */
 var createShortcutManager = function createShortcutManager(_ref) {
   var ownerWindow = _ref.ownerWindow,
@@ -60871,27 +60940,27 @@ var createShortcutManager = function createShortcutManager(_ref) {
       afterKeyDown = _ref.afterKeyDown;
 
   /**
-   * UniqueMap to storing contexts.
+   * A unique map that stores keyboard shortcut contexts.
    *
    * @type {UniqueMap}
    */
   var CONTEXTS = (0, _uniqueMap.createUniqueMap)({
     errorIdExists: function errorIdExists(keys) {
-      return "The passed context name \"".concat(keys, "\" is already registered.");
+      return "The \"".concat(keys, "\" context name is already registered.");
     }
   });
   /**
-   * Name of active context.
+   * The name of the active [`ShortcutContext`](@/api/shortcutcontext.md).
    *
    * @type {string}
    */
 
   var activeContextName = 'grid';
   /**
-   * Create a new {@link Context} with a given name.
+   * Create a new [`ShortcutContext`](@/api/shortcutcontext.md) object.
    *
    * @memberof ShortcutManager#
-   * @param {string} contextName A new context's name.
+   * @param {string} contextName The name of the new shortcut context
    * @returns {object}
    */
 
@@ -60901,7 +60970,7 @@ var createShortcutManager = function createShortcutManager(_ref) {
     return context;
   };
   /**
-   * Get ID of active context.
+   * Get the ID of the active [`ShortcutContext`](@/api/shortcutcontext.md).
    *
    * @memberof ShortcutManager#
    * @returns {string}
@@ -60912,11 +60981,11 @@ var createShortcutManager = function createShortcutManager(_ref) {
     return activeContextName;
   };
   /**
-   * Get context by name.
+   * Get a [`ShortcutContext`](@/api/shortcutcontext.md) by its name.
    *
    * @memberof ShortcutManager#
-   * @param {string} contextName Context's name to get.
-   * @returns {object|undefined} A {@link Context} which stores registered shortcuts.
+   * @param {string} contextName The name of the shortcut context
+   * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutcontext.md) that stores registered shortcuts
    */
 
 
@@ -60924,10 +60993,10 @@ var createShortcutManager = function createShortcutManager(_ref) {
     return CONTEXTS.getItem(contextName);
   };
   /**
-   * Activate shortcuts' listening within given contexts.
+   * Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/shortcutcontext.md).
    *
    * @memberof ShortcutManager#
-   * @param {string} contextName Context to activate.
+   * @param {string} contextName The name of the shortcut context
    */
 
 
@@ -60979,7 +61048,7 @@ var createShortcutManager = function createShortcutManager(_ref) {
     setActiveContextName: setActiveContextName,
 
     /**
-     * Returns whether `control` key is pressed.
+     * Check if the `control` key is pressed.
      *
      * @memberof ShortcutManager#
      * @type {Function}
@@ -60990,7 +61059,7 @@ var createShortcutManager = function createShortcutManager(_ref) {
     },
 
     /**
-     * Destroys instance of the manager.
+     * Destroy a context manager instance.
      *
      * @type {Function}
      * @memberof ShortcutManager#
@@ -61053,35 +61122,40 @@ var _templateLiteralTag = __webpack_require__(58);
 
 var _templateObject;
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
- * Create shortcuts' context.
+ * The `ShortcutContext` API lets you store and manage [keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md) in a given [context](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts).
+ *
+ * Each `ShortcutContext` object stores and manages its own set of keyboard shortcuts.
  *
  * @alias ShortcutContext
  * @class ShortcutContext
- * @param {string} name Context's name.
+ * @param {string} name The name of the keyboard shortcut context
  * @returns {object}
  */
 var createContext = function createContext(name) {
   var SHORTCUTS = (0, _uniqueMap.createUniqueMap)({
     errorIdExists: function errorIdExists(keys) {
-      return "The passed keys combination \"".concat(keys, "\" is already registered in the \"").concat(name, "\" context.");
+      return "The \"".concat(keys, "\" shortcut is already registered in the \"").concat(name, "\" context.");
     }
   });
   /**
-   * Add shortcut to the context.
+   * Add a keyboard shortcut to this `ShortcutContext`.
    *
-   * @memberof Context#
-   * @param {object} options Options for shortcut's keys.
-   * @param {Array<Array<string>>} options.keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
-   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
-   * @param {Function} options.callback The callback.
-   * @param {object} options.group Group for shortcut.
-   * @param {object} [options.runOnlyIf]  Option determine whether assigned callback should be performed.
-   * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
-   * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
-   * @param {object} [options.relativeToGroup] Group name, relative which the shortcut is placed.
-   * @param {object} [options.position='after'] Position where shortcut is placed. It may be added before or after
-   * another group.
+   * @memberof ShortcutContext#
+   * @param {object} options The shortcut's options
+   * @param {Array<Array<string>>} options.keys Names of the shortcut's keys,
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+   * in lowercase or uppercase, unified across browsers
+   * @param {Function} options.callback The shortcut's action
+   * @param {object} options.group A group of shortcuts to which the shortcut belongs
+   * @param {object} [options.runOnlyIf] A condition on which the shortcut's action runs
+   * @param {object} [options.stopPropagation=true] If set to `true`: stops the event's propagation
+   * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
+   * @param {object} [options.position='after'] The order in which the shortcut's action runs:
+   * `'before'` or `'after'` the `relativeToGroup` group of actions
+   * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
    *
    */
 
@@ -61104,15 +61178,15 @@ var createContext = function createContext(name) {
         position = _ref$position === void 0 ? 'after' : _ref$position;
 
     if ((0, _mixed.isUndefined)(group)) {
-      throw new Error('Please define a group for added shortcut.');
+      throw new Error('You need to define the shortcut\'s group.');
     }
 
     if ((0, _function.isFunction)(callback) === false) {
-      throw new Error('Please define a callback for added shortcut as function.');
+      throw new Error('The shortcut\'s callback needs to be a function.');
     }
 
     if (Array.isArray(keys) === false) {
-      throw new Error((0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["Please define key for added shortcut as array of arrays with KeyboardEvent's \n      key properties. Full list of values is available here: \n      https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key."], ["Please define key for added shortcut as array of arrays with KeyboardEvent\\'s\\x20\n      key properties. Full list of values is available here:\\x20\n      https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key."]))));
+      throw new Error((0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["Pass the shortcut's keys as an array of arrays, \n      using the KeyboardEvent.key properties: \n      https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values."], ["Pass the shortcut\\'s keys as an array of arrays,\\x20\n      using the KeyboardEvent.key properties:\\x20\n      https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values."]))));
     }
 
     var newShortcut = {
@@ -61151,19 +61225,19 @@ var createContext = function createContext(name) {
     });
   };
   /**
-   * Add shortcuts to the context.
+   * Add multiple keyboard shortcuts to this `ShortcutContext`.
    *
-   * @memberof Context#
-   * @param {Array<object>} shortcuts List of shortcuts added to the context.
-   * @param {object} [options] Options for every shortcut.
-   * @param {Function} [options.callback] The callback.
-   * @param {object} [options.group] Group for shortcut.
-   * @param {object} [options.runOnlyIf]  Option determine whether assigned callback should be performed.
-   * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
-   * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
-   * @param {object} [options.relativeToGroup] Group name, relative to which the shortcut is placed.
-   * @param {object} [options.position='after'] Position where shortcut is placed. It may be added before or after
-   * another group.
+   * @memberof ShortcutContext#
+   * @param {Array<object>} shortcuts List of shortcuts to add to this shortcut context
+   * @param {object} [options] A shortcut's options
+   * @param {Function} [options.callback] A shortcut's action
+   * @param {object} [options.group] A group of shortcuts to which a shortcut belongs
+   * @param {object} [options.runOnlyIf] A condition on which a shortcut's action runs
+   * @param {object} [options.stopPropagation=true] If set to `true`: stops the event's propagation
+   * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
+   * @param {object} [options.position='after'] The order in which a shortcut's action runs:
+   * `'before'` or `'after'` a `relativeToGroup` group of actions
+   * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
    */
 
 
@@ -61179,10 +61253,12 @@ var createContext = function createContext(name) {
     });
   };
   /**
-   * Removes shortcuts from the context.
+   * Remove a shortcut from this `ShortcutContext`.
    *
-   * @memberof Context#
-   * @param {Array<string>} keys A shortcut keys.
+   * @memberof ShortcutContext#
+   * @param {Array<string>} keys Names of the shortcut's keys,
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+   * in lowercase or uppercase, unified across browsers
    */
 
 
@@ -61191,10 +61267,10 @@ var createContext = function createContext(name) {
     SHORTCUTS.removeItem(normalizedKeys);
   };
   /**
-   * Removes shortcuts from the context.
+   * Remove a group of shortcuts from this `ShortcutContext`.
    *
-   * @memberof Context#
-   * @param {string} group Group for shortcuts.
+   * @memberof ShortcutContext#
+   * @param {string} group The name of the group of shortcuts
    */
 
 
@@ -61218,11 +61294,12 @@ var createContext = function createContext(name) {
     });
   };
   /**
-   * Get shortcut details.
+   * Get a shortcut's details.
    *
-   * @memberof Context#
-   * @param {Array<string>} keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
-   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
+   * @memberof ShortcutContext#
+   * @param {Array<string>} keys Names of the shortcut's keys,
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+   * in lowercase or uppercase, unified across browsers
    * @returns {Array}
    */
 
@@ -61233,11 +61310,12 @@ var createContext = function createContext(name) {
     return (0, _mixed.isDefined)(shortcuts) ? shortcuts.slice() : [];
   };
   /**
-   * Check if given shortcut is added.
+   * Check if a shortcut exists in this `ShortcutContext`.
    *
-   * @memberof Context#
-   * @param {Array<string>} keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
-   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
+   * @memberof ShortcutContext#
+   * @param {Array<string>} keys Names of the shortcut's keys,
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+   * in lowercase or uppercase, unified across browsers
    * @returns {boolean}
    */
 
@@ -61280,22 +61358,24 @@ var _utils = __webpack_require__(302);
 var _event = __webpack_require__(59);
 
 var modifierKeysObserver = (0, _keyObserver.createKeysObserver)();
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
- * Keys recorder tracking key events.
+ * A key recorder, used for tracking key events.
  *
- * @param {EventTarget} ownerWindow The starting window element.
- * @param {Function} beforeKeyDown Hook fired before keydown event is handled. It can be used to stop default key bindings.
- * @param {Function} afterKeyDown Hook fired after keydown event is handled.
- * @param {Function} callback The KeyEvent's listener callback.
+ * @param {EventTarget} ownerWindow A starting `window` element
+ * @param {Function} beforeKeyDown A hook fired before the `keydown` event is handled. You can use it to [block a keyboard shortcut's actions](@/guides/accessories-and-menus/keyboard-shortcuts.md#blocking-a-keyboard-shortcut-s-actions).
+ * @param {Function} afterKeyDown A hook fired after the `keydown` event is handled
+ * @param {Function} callback `KeyEvent`'s listener's callback function
  * @returns {object}
  */
 
 function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) {
   var modifierKeys = ['meta', 'alt', 'shift', 'control'];
   /**
-   * Get whether pressed key is observed key.
+   * Check if a pressed key is tracked or not.
    *
-   * @param {string} pressedKey Pressed keyboard key.
+   * @param {string} pressedKey A pressed key
    * @returns {boolean}
    */
 
@@ -61303,10 +61383,10 @@ function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) {
     return modifierKeys.includes(pressedKey);
   };
   /**
-   * Get every pressed modifier key from performed `KeyboardEvent`.
+   * Get every pressed modifier key from the performed `KeyboardEvent`.
    *
    * @private
-   * @param {KeyboardEvent} event The event object.
+   * @param {KeyboardEvent} event The event object
    * @returns {Array}
    */
 
@@ -61333,10 +61413,10 @@ function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) {
     return pressedModifierKeys;
   };
   /**
-   * KeyboardEvent's callback.
+   * `KeyboardEvent`'s callback function
    *
    * @private
-   * @param {KeyboardEvent} event The event object.
+   * @param {KeyboardEvent} event The event object
    */
 
 
@@ -61361,10 +61441,10 @@ function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) {
     afterKeyDown(event);
   };
   /**
-   * KeyboardEvent's callback.
+   * `KeyboardEvent`'s callback function
    *
    * @private
-   * @param {KeyboardEvent} event The event object.
+   * @param {KeyboardEvent} event The event object
    */
 
 
@@ -61378,7 +61458,7 @@ function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) {
     modifierKeysObserver.release(pressedKey);
   };
   /**
-   * FocusEvent's callback.
+   * `FocusEvent`'s callback function
    *
    * @private
    */
@@ -61447,8 +61527,10 @@ __webpack_require__(5);
 
 __webpack_require__(6);
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
- * Create keys' observer.
+ * Create a key observer.
  *
  * @returns {object}
  */
@@ -61456,18 +61538,22 @@ function createKeysObserver() {
   var PRESSED_KEYS = new Set();
   return {
     /**
-     * Press the given key.
+     * Press a key.
      *
-     * @param {string} key Key name based on `KeyboardEvent.key`.
+     * @param {string} key Names of the shortcut's keys,
+     * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+     * in lowercase or uppercase, unified across browsers
      */
     press: function press(key) {
       PRESSED_KEYS.add(key);
     },
 
     /**
-     * Press the given key.
+     * Release a pressed key.
      *
-     * @param {string} key Key name based on `KeyboardEvent.key`.
+     * @param {string} key Names of the shortcut's keys,
+     * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+     * in lowercase or uppercase, unified across browsers
      */
     release: function release(key) {
       PRESSED_KEYS.delete(key);
@@ -61481,9 +61567,11 @@ function createKeysObserver() {
     },
 
     /**
-     * Check if the given key is pressed.
+     * Check if a key is pressed.
      *
-     * @param {string} key Key name based on `KeyboardEvent.key`.
+     * @param {string} key Names of the shortcut's keys,
+     * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+     * in lowercase or uppercase, unified across browsers
      * @returns {boolean}
      */
     isPressed: function isPressed(key) {
@@ -78786,7 +78874,8 @@ var PLUGIN_PRIORITY = 90;
  * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
  * of an array.
  *
- * See [Custom Borders](@/guides/cell-features/formatting-cells.md#custom-cell-borders) demo for more examples.
+ * See [`customBorders` configuration option](@/api/options.md#customBorders) or go to
+ * [Custom cell borders demo](@/guides/cell-features/formatting-cells.md#custom-cell-borders) for more examples.
  *
  * @example
  * ```js
