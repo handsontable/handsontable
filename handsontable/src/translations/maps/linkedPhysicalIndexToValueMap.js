@@ -9,6 +9,8 @@ import { isFunction } from '../../helpers/function';
  *
  * It does not update stored values on remove/add row or column action. Otherwise, order of entries is updated after
  * such changes.
+ *
+ * @class LinkedPhysicalIndexToValueMap
  */
 export class LinkedPhysicalIndexToValueMap extends IndexMap {
   /**

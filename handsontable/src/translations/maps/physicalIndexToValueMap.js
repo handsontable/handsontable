@@ -5,6 +5,8 @@ import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physi
  * Map for storing mappings from an physical index to a value.
  *
  * Does not update stored values on remove/add row or column action.
+ *
+ * @class PhysicalIndexToValueMap
  */
 export class PhysicalIndexToValueMap extends IndexMap {
   /**
