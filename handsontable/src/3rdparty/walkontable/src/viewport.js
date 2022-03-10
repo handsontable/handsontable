@@ -75,6 +75,10 @@ class Viewport {
     const docOffsetWidth = rootDocument.documentElement.offsetWidth;
     const totalColumns = wtSettings.getSetting('totalColumns');
     const preventOverflow = wtSettings.getSetting('preventOverflow');
+    const isRtl = wtSettings.getSetting('rtlMode');
+    const tableRect = this.wtTable.TABLE.getBoundingClientRect();
+    const inlineStart = isRtl ? tableRect.right - docOffsetWidth : tableRect.left;
+    const tableOffset = docOffsetWidth - inlineStart;
     let width;
     let overflow;
 
@@ -83,9 +87,9 @@ class Viewport {
     }
 
     if (wtSettings.getSetting('freezeOverlays')) {
-      width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
+      width = Math.min(tableOffset, docOffsetWidth);
     } else {
-      width = Math.min(this.getContainerFillWidth(), docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
+      width = Math.min(this.getContainerFillWidth(), tableOffset, docOffsetWidth);
     }
 
     if (trimmingContainer === rootWindow && totalColumns > 0 && this.sumColumnWidths(0, totalColumns - 1) > width) {
