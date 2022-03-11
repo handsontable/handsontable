@@ -77,7 +77,7 @@ The change above affects most of Handsontable's [built-in plugins](@/api/plugins
 
 Starting with Handsontable 12.0.0, a built-in plugin gets updated on a call to [`updateSettings()`](@/api/core.md#updatesettings) only if the passed configuration object contains an [option](@/api/options.md) relevant to that particular plugin. For example, the [`Autofill`](@/api/autofill.md) plugin gets updated if your call to [`updateSettings()`](@/api/core.md#updatesettings) updates the [`fillHandle`](@/api/options.md#fillhandle) option.
 
-To find out which [options](@/api/options.md) trigger a given plugin's update, see that plugin's [`updatePlugin()`](@/api/autofill.md#updateplugin) API reference.
+To find out which [options](@/api/options.md) a given plugin observes, see that plugin's [`updatePlugin()` API reference](@/api/autofill.md#updateplugin).
 
 ::: tip
 The following built-in plugins still get updated on every [`updateSettings()`](@/api/core.md#updatesettings) call:
@@ -97,7 +97,7 @@ static get SETTING_KEYS() {
 }
 ```
 
-To configure your custom plugin in a different way, see the [Plugins](@/guides/building-and-testing/plugins.md) guide.
+However, in most cases, it's better to provide an explicit list of configuration options that your custom plugin observes. For details, see the [Plugins](@/guides/building-and-testing/plugins.md) guide.
 
 ## Step 3: Adjust to the `afterDocumentKeyDown` changes
 
