@@ -61,11 +61,11 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
   };
 
   /**
-   * Get a [`ShortcutContext`](@/api/shortcutcontext.md) by its name.
+   * Get a keyboard shortcut context by its name.
    *
    * @memberof ShortcutManager#
    * @param {string} contextName The name of the shortcut context
-   * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutcontext.md) that stores registered shortcuts
+   * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutcontext.md) object that stores registered shortcuts
    */
   const getContext = (contextName) => {
     return CONTEXTS.getItem(contextName);

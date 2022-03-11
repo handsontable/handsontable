@@ -22,7 +22,7 @@ export const createContext = (name) => {
   });
 
   /**
-   * Add a keyboard shortcut to this `ShortcutContext`.
+   * Add a keyboard shortcut to this context.
    *
    * @memberof ShortcutContext#
    * @param {object} options The shortcut's options
@@ -104,7 +104,7 @@ export const createContext = (name) => {
   };
 
   /**
-   * Add multiple keyboard shortcuts to this `ShortcutContext`.
+   * Add multiple keyboard shortcuts to this context.
    *
    * @memberof ShortcutContext#
    * @param {Array<object>} shortcuts List of shortcuts to add to this shortcut context
@@ -131,7 +131,7 @@ export const createContext = (name) => {
   };
 
   /**
-   * Remove a shortcut from this `ShortcutContext`.
+   * Remove a shortcut from this context.
    *
    * @memberof ShortcutContext#
    * @param {Array<string>} keys Names of the shortcut's keys,
@@ -145,7 +145,7 @@ export const createContext = (name) => {
   };
 
   /**
-   * Remove a group of shortcuts from this `ShortcutContext`.
+   * Remove a group of shortcuts from this context.
    *
    * @memberof ShortcutContext#
    * @param {string} group The name of the group of shortcuts
@@ -184,7 +184,7 @@ export const createContext = (name) => {
   };
 
   /**
-   * Check if a shortcut exists in this `ShortcutContext`.
+   * Check if a shortcut exists in this context.
    *
    * @memberof ShortcutContext#
    * @param {Array<string>} keys Names of the shortcut's keys,
