@@ -20,7 +20,8 @@ Each [`updateSettings()`](@/api/core.md#updatesettings) call with the [`data`](@
 
 | Before                                                                                  | After                                                                                           |
 | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Replaced [`data`](@/api/options.md#data) using [`loadData()`](@/api/core.md#loaddata)   | Replaces [`data`](@/api/options.md#data) using [`updateData()`](@/api/core.md#updatedata)       |
+| Replaced [`data`](@/api/options.md#data)                                                | Replaces [`data`](@/api/options.md#data)                                                        |
+| Triggered the same hooks as [`loadData()`](@/api/core.md#loaddata)                       | Triggers the same hooks as [`updateData()`](@/api/core.md#updatedata)                           |
 | Reset [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`) | Doesn't reset [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`) |
 | Reset [index mappings](@/api/indexmapper.md)                                            | Doesn't reset [index mappings](@/api/indexmapper.md)                                            |
 
