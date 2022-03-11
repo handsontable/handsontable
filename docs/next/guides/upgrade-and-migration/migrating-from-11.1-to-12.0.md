@@ -14,7 +14,7 @@ To upgrade your Handsontable version from 11.x.x to 12.x.x, follow this guide.
 
 ## Step 1: Verify your `updateSettings()` calls
 
-Handsontable [12.0.0](https://github.com/handsontable/handsontable/releases/tag/12.0.0) changes the way the [`updateSettings()`](@/api/core.md#updatesettings) method handles your grid's [`data`](@/api/options.md#data).
+Handsontable 12.0.0 changes the way the [`updateSettings()`](@/api/core.md#updatesettings) method handles your grid's [`data`](@/api/options.md#data).
 
 Each [`updateSettings()`](@/api/core.md#updatesettings) call with the [`data`](@/api/options.md#data) option defined:
 
@@ -54,7 +54,7 @@ Read more on referencing the Handsontable instance:
 
 ## Step 2: Adjust to the `updatePlugin()` changes
 
-Handsontable [12.0.0](https://github.com/handsontable/handsontable/releases/tag/12.0.0) changes the way the [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls.
+Handsontable 12.0.0 changes the way the [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls.
 
 #### Before
 
@@ -67,15 +67,25 @@ As a result, whenever you called [`updateSettings()`](@/api/core.md#updatesettin
 
 A plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method gets triggered only when the object passed to [`updateSettings()`](@/api/core.md#updatesettings) contains at least one of the following:
 - The plugin's [`PLUGIN_KEY`](@/guides/building-and-testing/plugins.md#_2-extend-the-baseplugin) (the plugin's main alias)
-- An entry from the plugin's [`SETTING_KEYS`](@/api/baseplugin.md#setting-keys) (a property that stores all additional settings related to the plugin)
+- An entry from the plugin's [`SETTING_KEYS`](@/api/baseplugin.md#setting-keys) (a property that stores all additional settings relevant to the plugin)
 
 As a result, a plugin gets updated only if you update settings related to that particular plugin.
 
-Only the following plugins still get updated on every [`updateSettings()`](@/api/core.md#updatesettings) call:
+##### Built-in plugins
+
+The change above affects most of Handsontable's [built-in plugins](@/api/plugins.md) as well.
+
+Starting with Handsontable 12.0.0, a built-in plugin gets updated on a call to [`updateSettings()`](@/api/core.md#updatesettings) only if the passed configuration object contains an [option](@/api/options.md) relevant to that particular plugin. For example, the [`Autofill`](@/api/autofill.md) plugin gets updated if your call to [`updateSettings()`](@/api/core.md#updatesettings) updates the [`fillHandle`](@/api/options.md#fillhandle) option.
+
+To find out which [options](@/api/options.md) trigger a given plugin's update, see that plugin's [`updatePlugin()`](@/api/autofill.md#updateplugin) API reference.
+
+::: tip
+The following built-in plugins still get updated on every [`updateSettings()`](@/api/core.md#updatesettings) call:
   - [`AutoColumnSize`](@/api/autocolumnsize.md)
   - [`AutoRowSize`](@/api/autorowsize.md)
   - `TouchScroll`
   - [`UndoRedo`](@/api/undoredo.md)
+:::
 
 #### Migrating to Handsontable 12.0
 
@@ -91,7 +101,7 @@ To configure your custom plugin in a different way, see the [Plugins](@/guides/b
 
 ## Step 3: Adjust to the `afterDocumentKeyDown` changes
 
-Handsontable [12.0.0](https://github.com/handsontable/handsontable/releases/tag/12.0.0) changes the way the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook works.
+Handsontable 12.0.0 changes the way the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook works.
 
 #### Before
 
