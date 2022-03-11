@@ -17,7 +17,7 @@ tags:
 
 ## 12.0.0
 
-Released on 14th of March, 2022
+Released on 16th of March, 2022
 
 **Added**
 - Added [`ShortcutManager`](@/api/shortcutmanager.md), a new API for [customizing keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#customizing-keyboard-shortcuts). [#8942](https://github.com/handsontable/handsontable/issues/8942)
