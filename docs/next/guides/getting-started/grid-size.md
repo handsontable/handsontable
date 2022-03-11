@@ -55,7 +55,9 @@ Changes called in `updateSettings` will re-render the grid with the new properti
 
 ## What if the size is not set
 
-If you don't define the dimensions, Handsontable will generate as many rows and columns as possible to fill available space.
+If you don't define any dimensions, Handsontable generates as many rows and columns as needed to fill the available space. 
+
+If the grid's content doesn't fit inside the viewport, the browser's native scrollbars are used for scrolling. For this to work properly, Handsontable's [layout direction](@/guides/internationalization/layout-direction.md) (e.g. [`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)) must be the same as your HTML document's layout direction (`<html dir='rtl'>`). Otherwise, horizontal scrolling doesn't work.
 
 ## Autoresizing
 
