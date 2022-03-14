@@ -255,8 +255,8 @@ describe('settings', () => {
           fixedRowsBottom: 1,
         });
 
-        const { bottom: tdBottom, left: tdLeft } = getMaster().find('td').eq(20)[0].getBoundingClientRect();
-        const { bottom: thBottom, left: thLeft } = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect();
+        let { bottom: tdBottom, left: tdLeft } = getMaster().find('td').eq(20)[0].getBoundingClientRect();
+        let { bottom: thBottom, left: thLeft } = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect();
 
         expect(getBottomClone().find('th').eq(0)[0].getBoundingClientRect().left).toEqual(thLeft);
         expect(getBottomClone().find('th').eq(0)[0].getBoundingClientRect().bottom).toEqual(thBottom);
@@ -266,6 +266,22 @@ describe('settings', () => {
 
         expect(getBottomInlineStartClone().find('th').eq(0)[0].getBoundingClientRect().left).toEqual(thLeft);
         expect(getBottomInlineStartClone().find('th').eq(0)[0].getBoundingClientRect().bottom).toEqual(thBottom);
+
+        updateSettings({ fixedRowsBottom: 2 });
+
+        tdBottom = getMaster().find('td').eq(20)[0].getBoundingClientRect().bottom;
+        tdLeft = getMaster().find('td').eq(20)[0].getBoundingClientRect().left;
+        thBottom = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect().bottom;
+        thLeft = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect().left;
+
+        expect(getBottomClone().find('th').eq(1)[0].getBoundingClientRect().left).toEqual(thLeft);
+        expect(getBottomClone().find('th').eq(1)[0].getBoundingClientRect().bottom).toEqual(thBottom);
+
+        expect(getBottomClone().find('td').eq(5)[0].getBoundingClientRect().left).toEqual(tdLeft);
+        expect(getBottomClone().find('td').eq(5)[0].getBoundingClientRect().bottom).toEqual(tdBottom);
+
+        expect(getBottomInlineStartClone().find('th').eq(1)[0].getBoundingClientRect().left).toEqual(thLeft);
+        expect(getBottomInlineStartClone().find('th').eq(1)[0].getBoundingClientRect().bottom).toEqual(thBottom);
       });
 
       it('when table\'s height set by settings is greater than all cells within the table', () => {
@@ -320,6 +336,22 @@ describe('settings', () => {
 
         expect(getBottomInlineStartClone().find('th').eq(0)[0].getBoundingClientRect().left).toEqual(thLeft);
         expect(getBottomInlineStartClone().find('th').eq(0)[0].getBoundingClientRect().bottom).toEqual(thBottom);
+
+        updateSettings({ fixedRowsBottom: 2 });
+
+        tdBottom = getMaster().find('td').eq(20)[0].getBoundingClientRect().bottom;
+        tdLeft = getMaster().find('td').eq(20)[0].getBoundingClientRect().left;
+        thBottom = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect().bottom;
+        thLeft = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect().left;
+
+        expect(getBottomClone().find('th').eq(1)[0].getBoundingClientRect().left).toEqual(thLeft);
+        expect(getBottomClone().find('th').eq(1)[0].getBoundingClientRect().bottom).toEqual(thBottom);
+
+        expect(getBottomClone().find('td').eq(5)[0].getBoundingClientRect().left).toEqual(tdLeft);
+        expect(getBottomClone().find('td').eq(5)[0].getBoundingClientRect().bottom).toEqual(tdBottom);
+
+        expect(getBottomInlineStartClone().find('th').eq(1)[0].getBoundingClientRect().left).toEqual(thLeft);
+        expect(getBottomInlineStartClone().find('th').eq(1)[0].getBoundingClientRect().bottom).toEqual(thBottom);
       });
     });
   });
