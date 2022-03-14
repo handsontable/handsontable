@@ -727,6 +727,68 @@ describe('CellRange', () => {
     });
   });
 
+  describe('expandByRange()', () => {
+    it('should not expand a cell range when the passed range is not bigger than that expanded one', () => {
+      const range = createRange(0, 0, 0, 0, 2, 2);
+      const newRange = createRange(1, 1, 1, 1, 2, 2);
+
+      expect(range.expandByRange(newRange)).toBe(false);
+      expect(range.highlight).toEqual({ row: 0, col: 0 });
+      expect(range.from).toEqual({ row: 0, col: 0 });
+      expect(range.to).toEqual({ row: 2, col: 2 });
+    });
+
+    it('should not expand a cell range when the passed range does not overlap that range', () => {
+      const range = createRange(0, 0, 0, 0, 2, 2);
+      const newRange = createRange(3, 3, 3, 3, 4, 4);
+
+      expect(range.expandByRange(newRange)).toBe(false);
+      expect(range.highlight).toEqual({ row: 0, col: 0 });
+      expect(range.from).toEqual({ row: 0, col: 0 });
+      expect(range.to).toEqual({ row: 2, col: 2 });
+    });
+
+    it('should expand a cell range in top-left direction', () => {
+      const range = createRange(1, 1, 1, 1, 3, 3);
+      const newRange = createRange(0, 0, 0, 0, 1, 1);
+
+      expect(range.expandByRange(newRange)).toBe(true);
+      expect(range.highlight).toEqual({ row: 1, col: 1 });
+      expect(range.from).toEqual({ row: 0, col: 0 });
+      expect(range.to).toEqual({ row: 3, col: 3 });
+    });
+
+    it('should expand a cell range in top-right direction', () => {
+      const range = createRange(1, 1, 1, 1, 3, 3);
+      const newRange = createRange(0, 3, 0, 3, 1, 4);
+
+      expect(range.expandByRange(newRange)).toBe(true);
+      expect(range.highlight).toEqual({ row: 1, col: 1 });
+      expect(range.from).toEqual({ row: 0, col: 1 });
+      expect(range.to).toEqual({ row: 3, col: 4 });
+    });
+
+    it('should expand a cell range in bottom-left direction', () => {
+      const range = createRange(1, 1, 1, 1, 3, 3);
+      const newRange = createRange(3, 0, 3, 0, 4, 1);
+
+      expect(range.expandByRange(newRange)).toBe(true);
+      expect(range.highlight).toEqual({ row: 1, col: 1 });
+      expect(range.from).toEqual({ row: 1, col: 0 });
+      expect(range.to).toEqual({ row: 4, col: 3 });
+    });
+
+    it('should expand a cell range in bottom-right direction', () => {
+      const range = createRange(1, 1, 1, 1, 3, 3);
+      const newRange = createRange(0, 3, 0, 3, 1, 4);
+
+      expect(range.expandByRange(newRange)).toBe(true);
+      expect(range.highlight).toEqual({ row: 1, col: 1 });
+      expect(range.from).toEqual({ row: 0, col: 1 });
+      expect(range.to).toEqual({ row: 3, col: 4 });
+    });
+  });
+
   describe('isSingle()', () => {
     it('should return `true` when `from` and `to` are equals and there is no header selected', () => {
       {
@@ -1365,6 +1427,68 @@ describe('CellRange', () => {
 
         expect(bottomRight.row).toBe(5);
         expect(bottomRight.col).toBe(0);
+      });
+    });
+
+    describe('expandByRange()', () => {
+      it('should not expand a cell range when the passed range is not bigger than that expanded one', () => {
+        const range = createRangeRTL(0, 0, 0, 0, 2, 2);
+        const newRange = createRangeRTL(1, 1, 1, 1, 2, 2);
+
+        expect(range.expandByRange(newRange)).toBe(false);
+        expect(range.highlight).toEqual({ row: 0, col: 0 });
+        expect(range.from).toEqual({ row: 0, col: 0 });
+        expect(range.to).toEqual({ row: 2, col: 2 });
+      });
+
+      it('should not expand a cell range when the passed range does not overlap that range', () => {
+        const range = createRangeRTL(0, 0, 0, 0, 2, 2);
+        const newRange = createRangeRTL(3, 3, 3, 3, 4, 4);
+
+        expect(range.expandByRange(newRange)).toBe(false);
+        expect(range.highlight).toEqual({ row: 0, col: 0 });
+        expect(range.from).toEqual({ row: 0, col: 0 });
+        expect(range.to).toEqual({ row: 2, col: 2 });
+      });
+
+      it('should expand a cell range in top-right direction', () => {
+        const range = createRangeRTL(1, 1, 1, 1, 3, 3);
+        const newRange = createRangeRTL(0, 0, 0, 0, 1, 1);
+
+        expect(range.expandByRange(newRange)).toBe(true);
+        expect(range.highlight).toEqual({ row: 1, col: 1 });
+        expect(range.from).toEqual({ row: 0, col: 0 });
+        expect(range.to).toEqual({ row: 3, col: 3 });
+      });
+
+      it('should expand a cell range in top-left direction', () => {
+        const range = createRangeRTL(1, 1, 1, 1, 3, 3);
+        const newRange = createRangeRTL(0, 3, 0, 3, 1, 4);
+
+        expect(range.expandByRange(newRange)).toBe(true);
+        expect(range.highlight).toEqual({ row: 1, col: 1 });
+        expect(range.from).toEqual({ row: 0, col: 1 });
+        expect(range.to).toEqual({ row: 3, col: 4 });
+      });
+
+      it('should expand a cell range in bottom-right direction', () => {
+        const range = createRangeRTL(1, 1, 1, 1, 3, 3);
+        const newRange = createRangeRTL(3, 0, 3, 0, 4, 1);
+
+        expect(range.expandByRange(newRange)).toBe(true);
+        expect(range.highlight).toEqual({ row: 1, col: 1 });
+        expect(range.from).toEqual({ row: 1, col: 0 });
+        expect(range.to).toEqual({ row: 4, col: 3 });
+      });
+
+      it('should expand a cell range in bottom-left direction', () => {
+        const range = createRangeRTL(1, 1, 1, 1, 3, 3);
+        const newRange = createRangeRTL(0, 3, 0, 3, 1, 4);
+
+        expect(range.expandByRange(newRange)).toBe(true);
+        expect(range.highlight).toEqual({ row: 1, col: 1 });
+        expect(range.from).toEqual({ row: 0, col: 1 });
+        expect(range.to).toEqual({ row: 3, col: 4 });
       });
     });
   });
