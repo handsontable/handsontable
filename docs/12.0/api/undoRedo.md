@@ -26,7 +26,7 @@ undo: true
 
 ### undo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/dataMap/metaManager/metaSchema.js#L2434
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/dataMap/metaManager/metaSchema.js#L4390
 
 :::
 
@@ -60,7 +60,7 @@ undo: true,
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/undoRedo/undoRedo.js#L326
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/undoRedo/undoRedo.js#L327
 
 :::
 
@@ -72,7 +72,7 @@ Clears undo history.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/undoRedo/undoRedo.js#L388
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/undoRedo/undoRedo.js#L389
 
 :::
 
@@ -84,7 +84,7 @@ Destroys the instance.
 
 ### disable
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/undoRedo/undoRedo.js#L368
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/undoRedo/undoRedo.js#L369
 
 :::
 
@@ -96,7 +96,7 @@ Disables the plugin.
 
 ### done
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/undoRedo/undoRedo.js#L167
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/undoRedo/undoRedo.js#L168
 
 :::
 
@@ -115,7 +115,7 @@ Stash information about performed actions.
 
 ### enable
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/undoRedo/undoRedo.js#L348
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/undoRedo/undoRedo.js#L349
 
 :::
 
@@ -127,7 +127,7 @@ Enables the plugin.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/undoRedo/undoRedo.js#L337
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/undoRedo/undoRedo.js#L338
 
 :::
 
@@ -139,7 +139,7 @@ Checks if the plugin is enabled.
 
 ### isRedoAvailable
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/undoRedo/undoRedo.js#L315
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/undoRedo/undoRedo.js#L316
 
 :::
 
@@ -152,7 +152,7 @@ Checks if redo action is available.
 
 ### isUndoAvailable
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/undoRedo/undoRedo.js#L304
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/undoRedo/undoRedo.js#L305
 
 :::
 
@@ -165,7 +165,7 @@ Checks if undo action is available.
 
 ### redo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/undoRedo/undoRedo.js#L257
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/undoRedo/undoRedo.js#L258
 
 :::
 
@@ -178,7 +178,7 @@ Redo the previous action performed to the table (used to reverse an undo).
 
 ### undo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/undoRedo/undoRedo.js#L210
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/undoRedo/undoRedo.js#L211
 
 :::
 

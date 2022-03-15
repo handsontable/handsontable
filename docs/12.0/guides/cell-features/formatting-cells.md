@@ -90,12 +90,13 @@ const hot = new Handsontable(container, {
 
 ## Custom cell borders
 
-To enable the custom borders feature, set the `customBorders` option. This can either be set as `true` or initialized as an array with a pre-defined setup.
+To enable the custom borders feature, set the `customBorders` option. This can either be set as `true` or initialized as an array with a pre-defined setup. For the list of available settings and methods, visit the [API reference](@/api/customBorders.md).
 
-To initialize Handsontable with predefined custom borders, provide the cell coordinates and border styles in form of an array:
+In the names of the API properties, the words `start` and `end` refer to the starting and ending edges of the [layout direction](@/guides/internationalization/layout-direction.md).
 
-- with row/col pairs: `{ row: 2, col: 2, left: { /*...*/ } }`
-- or with range details: `{ range: { from: { row: 1, col: 1 }, to: { row: 3, col: 4 } }, left: { /*...*/ } }`
+::: warning
+The `start` and `end` properties used to be called `left` and `right` before Handsontable 12.0.0. The old names `left` and `right` work in the LTR [layout direction](@/guides/internationalization/layout-direction.md) but throw an error when the layout direction is set to RTL.
+:::
 
 ::: example #example3
 ```js
@@ -124,15 +125,15 @@ const hot = Handsontable(container, {
         width: 2,
         color: '#5292F7'
       },
-      left: {
-        width: 2,
-        color: 'orange'
-      },
       bottom: {
         width: 2,
         color: 'red'
       },
-      right: {
+      start: {
+        width: 2,
+        color: 'orange'
+      },
+      end: {
         width: 2,
         color: 'magenta'
       }
@@ -140,11 +141,11 @@ const hot = Handsontable(container, {
     {
       row: 2,
       col: 2,
-      left: {
+      start: {
         width: 2,
         color: 'red'
       },
-      right: {
+      end: {
         width: 1,
         color: 'green'
       }

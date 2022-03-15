@@ -46,7 +46,7 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 ## Internationalization
 It is possible to include files which will register languages dictionaries. They allow to translate parts of Handsontable UI. You can either use only particular languages files or include all of them at once as a single file.
 
-All the information about the API and additional options can be found at our [official documentation](@/guides/internationalization/internationalization-i18n.md).
+All the information about the API and additional options can be found at our [official documentation](@/guides/internationalization/language.md).
 
 ```html
 <!-- Internationalization, Polish - Poland language-country file -->

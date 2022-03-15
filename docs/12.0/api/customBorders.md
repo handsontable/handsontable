@@ -19,7 +19,8 @@ This plugin enables an option to apply custom borders through the context menu (
 To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
 of an array.
 
-See [Custom Borders](@/guides/cell-features/formatting-cells.md#custom-cell-borders) demo for more examples.
+See [`customBorders` configuration option](@/api/options.md#customborders) or go to
+[Custom cell borders demo](@/guides/cell-features/formatting-cells.md#custom-cell-borders) for more examples.
 
 **Example**  
 ```js
@@ -35,8 +36,8 @@ customBorders: [
        col: 4
      },
    },
-   left: {},
-   right: {},
+   start: {},
+   end: {},
    top: {},
    bottom: {},
   },
@@ -46,11 +47,11 @@ customBorders: [
 customBorders: [
   { row: 2,
     col: 2,
-    left: {
+    start: {
       width: 2,
       color: 'red',
     },
-    right: {
+    end: {
       width: 1,
       color: 'green',
     },
@@ -64,7 +65,7 @@ customBorders: [
 
 ### customBorders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/dataMap/metaManager/metaSchema.js#L721
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/dataMap/metaManager/metaSchema.js#L1412
 
 :::
 
@@ -85,10 +86,10 @@ Each object represents a border configuration for one cell, and has the followin
 | -------- | ------------------ | ---------------------------------- | ----------------------------------------------------------------- |
 | `row`    | -                  | `row`: Number                      | The cell's row coordinate.                                        |
 | `col`    | -                  | `col`: Number                      | The cell's column coordinate.                                     |
-| `left`   | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the left border's width (`width`)<br> and color (`color`).   |
-| `right`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the right border's width (`width`)<br> and color (`color`).  |
-| `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the top border's width (`width`)<br> and color (`color`).    |
-| `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the bottom border's width (`width`)<br> and color (`color`). |
+| `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `start` sets the width (`width`) and color (`color`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `start` sets the width (`width`) and color (`color`) of the right-hand border. |
+| `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `end` sets the width (`width`) and color (`color`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `end` sets the width (`width`) and color (`color`) of the left-hand border. |
+| `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the width (`width`) and color (`color`) of the top border. |
+| `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the width (`width`) and color (`color`) of the bottom border. |
 
 To enable the [`CustomBorders`](@/api/customBorders.md) plugin
 and add a predefined border around a range of cells,
@@ -97,16 +98,18 @@ Each object represents a border configuration for a single range of cells, and h
 
 | Property | Sub-properties                               | Types                                                            | Description                                                                                  |
 | -------- | -------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` selects the range's top-left corner.<br>`to` selects the range's bottom-right corner. |
-| `left`   | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the left border's `width` and `color`.                                                  |
-| `right`  | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the right border's `width` and `color`.                                                 |
-| `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the top border's `width` and `color`.                                                   |
-| `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the bottom border's `width` and `color`.                                                |
+| `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default):<br>- `from` selects the range's top-left corner.<br>- `to` selects the range's bottom-right corner.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: <br>- `from` selects the range's top-right corner.<br>- `to` selects the range's bottom-left corner. |
+| `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `start` sets the width (`width`) and color (`color`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `start` sets the width (`width`) and color (`color`) of the right-hand border. |
+| `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `end` sets the width (`width`) and color (`color`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `end` sets the width (`width`) and color (`color`) of the left-hand border. |
+| `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the width (`width`) and color (`color`) of the top border. |
+| `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the width (`width`) and color (`color`) of the bottom border. |
 
 Read more:
 - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
 - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
 - [Plugins: `CustomBorders` &#8594;](@/api/customBorders.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [`layoutDirection`](#layoutdirection)
 
 **Default**: <code>false</code>  
 **Example**  
@@ -123,13 +126,13 @@ customBorders: [
     row: 2,
     // set the cell's column coordinate
     col: 2,
-    // set the left border's width and color
-    left: {
+    // set the left/right border's width and color
+    start: {
       width: 2,
       color: 'red'
     },
-    // set the right border's width and color
-    right: {
+    // set the right/left border's width and color
+    end: {
       width: 1,
       color: 'green'
     },
@@ -158,13 +161,13 @@ customBorders: [
         col: 4
       }
     },
-    // set the left border's width and color
-    left: {
+    // set the left/right border's width and color
+    start: {
       width: 2,
       color: 'red'
     },
-    // set the right border's width and color
-    right: {},
+    // set the right/left border's width and color
+    end: {},
     // set the top border's width and color
     top: {},
     // set the bottom border's width and color
@@ -177,7 +180,7 @@ customBorders: [
 
 ### clearBorders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/customBorders/customBorders.js#L250
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/customBorders/customBorders.js#L265
 
 :::
 
@@ -205,7 +208,7 @@ customBordersPlugin.clearBorders();
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/customBorders/customBorders.js#L767
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/customBorders/customBorders.js#L813
 
 :::
 
@@ -217,7 +220,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/customBorders/customBorders.js#L120
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/customBorders/customBorders.js#L127
 
 :::
 
@@ -229,7 +232,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/customBorders/customBorders.js#L106
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/customBorders/customBorders.js#L113
 
 :::
 
@@ -241,7 +244,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getBorders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/customBorders/customBorders.js#L207
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/customBorders/customBorders.js#L222
 
 :::
 
@@ -270,7 +273,7 @@ customBordersPlugin.getBorders();
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/customBorders/customBorders.js#L99
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/customBorders/customBorders.js#L106
 
 :::
 
@@ -283,7 +286,7 @@ hook and if it returns `true` than the [CustomBorders#enablePlugin](@/api/custom
 
 ### setBorders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/customBorders/customBorders.js#L158
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/customBorders/customBorders.js#L165
 
 :::
 
@@ -296,25 +299,25 @@ Set custom borders.
 const customBordersPlugin = hot.getPlugin('customBorders');
 
 // Using an array of arrays (produced by `.getSelected()` method).
-customBordersPlugin.setBorders([[1, 1, 2, 2], [6, 2, 0, 2]], {left: {width: 2, color: 'blue'}});
+customBordersPlugin.setBorders([[1, 1, 2, 2], [6, 2, 0, 2]], {start: {width: 2, color: 'blue'}});
 
 // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
 //  Selecting a cell range.
 hot.selectCell(0, 0, 2, 2);
 // Returning selected cells' range with the getSelectedRange method.
-customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, width: 2, color: 'blue'}});
+customBordersPlugin.setBorders(hot.getSelectedRange(), {start: {hide: false, width: 2, color: 'blue'}});
 ```
 
 | Param | Type | Description |
 | --- | --- | --- |
 | selectionRanges | `Array<Array>` <br/> `Array<CellRange>` | Array of selection ranges. |
-| borderObject | `object` | Object with `top`, `right`, `bottom` and `left` properties. |
+| borderObject | `object` | Object with `top`, `right`, `bottom` and `start` properties. |
 
 
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/customBorders/customBorders.js#L129
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/customBorders/customBorders.js#L136
 
 :::
 
