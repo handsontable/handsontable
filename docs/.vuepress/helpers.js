@@ -6,6 +6,7 @@ const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
   .filter(f => semver.valid(semver.coerce(f)));
 
 const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
+const defaultFramework = 'javascript';
 
 /**
  * Gets all available docs versions.
@@ -61,6 +62,16 @@ function parseVersion(url) {
 }
 
 /**
+ * Parses the docs framework from the URL.
+ *
+ * @param {string} url The URL to parse.
+ * @returns {string}
+ */
+function parseFramework(url) {
+  return defaultFramework;
+}
+
+/**
  * Gets docs version that is currently building (based on the environment variable).
  *
  * @returns {string}
@@ -74,5 +85,6 @@ module.exports = {
   getLatestVersion,
   getSidebars,
   parseVersion,
+  parseFramework,
   getBuildDocsVersion,
 };
