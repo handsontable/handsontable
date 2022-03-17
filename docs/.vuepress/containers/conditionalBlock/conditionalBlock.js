@@ -26,14 +26,15 @@ module.exports = {
   render(tokens, index, opts, env) {
     const framework = env.frontmatter.framework || 'js';
     const args = tokens[index].info.trim().split(' ');
-    const firstBlockTokenIndex = index + 1;
-    let lastBlockTokenIndex = firstBlockTokenIndex;
-
-    while (tokens[lastBlockTokenIndex + 1].markup !== ':::') {
-      lastBlockTokenIndex += 1;
-    }
 
     if (tokens[index].nesting === 1 && !args.includes(framework)) {
+      const firstBlockTokenIndex = index + 1;
+      let lastBlockTokenIndex = firstBlockTokenIndex;
+
+      while (tokens[lastBlockTokenIndex + 1].markup !== ':::') {
+        lastBlockTokenIndex += 1;
+      }
+
       tokens.splice(firstBlockTokenIndex, lastBlockTokenIndex - firstBlockTokenIndex + 1);
     }
 
