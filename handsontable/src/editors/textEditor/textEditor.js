@@ -432,6 +432,8 @@ export class TextEditor extends BaseEditor {
    * @private
    */
   registerShortcuts() {
+    console.log(EDITOR_MANAGER_GROUP);
+    
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
     const contextConfig = {
@@ -476,20 +478,30 @@ export class TextEditor extends BaseEditor {
       callback: () => {
         setNewValue();
 
-        return false;
+        return false; // Will block closing editor.
       },
-      runOnlyIf: event => !this.hot.selection.isMultiple() &&
+      runOnlyIf: event => !this.hot.selection.isMultiple() && // We trigger a data population for multiple selection.
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
         !event.altKey,
       relativeToGroup: EDITOR_MANAGER_GROUP,
       position: 'before',
     }, {
-      keys: [['Alt', 'Enter'], ['Meta', 'Enter']],
+      keys: [['Alt', 'Enter']],
       callback: () => {
         setNewValue();
 
-        return false;
+        return false; // Will block closing editor.
       },
+      relativeToGroup: EDITOR_MANAGER_GROUP,
+      position: 'before',
+    }, {
+      keys: [['Meta', 'Enter']],
+      callback: () => {
+        setNewValue();
+
+        return false; // Will block closing editor.
+      },
+      runOnlyIf: () => !this.hot.selection.isMultiple(), // We trigger a data population for multiple selection.
       relativeToGroup: EDITOR_MANAGER_GROUP,
       position: 'before',
     }], contextConfig);

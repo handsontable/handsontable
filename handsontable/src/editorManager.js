@@ -108,8 +108,8 @@ class EditorManager {
       }
     }, {
       keys: [['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']],
-      callback: (event, keys) => {
-        this.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));
+      callback: () => {
+        this.closeEditorAndRestoreOriginalValue(shortcutManager.isCtrlPressed());
         this.activeEditor.focus();
       },
     }], config);
