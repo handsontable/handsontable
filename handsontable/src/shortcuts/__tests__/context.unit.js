@@ -295,8 +295,6 @@ describe('context', () => {
     const defaultOptions = {
       preventDefault: true,
       stopPropagation: false,
-      position: 'after',
-      relativeToGroup: '',
     };
     const config = {
       group: 'namespace1',
