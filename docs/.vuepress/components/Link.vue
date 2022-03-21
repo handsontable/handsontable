@@ -40,7 +40,7 @@ export default {
       let href = this.href;
 
       if (!this.isExternal && this.hideLatestVersion && this.$page.currentVersion === this.$page.latestVersion) {
-        href = href.replace(this.$page.currentVersion + '/', '');
+        href = href.replace(`${this.$page.currentVersion}/`, '');
       }
 
       return href;
