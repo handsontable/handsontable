@@ -130,7 +130,7 @@ class EditorManager {
         this.prepareEditor();
       },
     }, {
-      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
+      keys: [['Enter'], ['Enter', 'Shift']],
       callback: (event, keys) => {
         if (this.instance.getSettings().enterBeginsEditing) {
           if (this.cellProperties.readOnly) {
