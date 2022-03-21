@@ -13,7 +13,7 @@ import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
 import { autoResize } from '../../3rdparty/autoResize';
 import { isDefined } from '../../helpers/mixed';
-import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
+import { SHORTCUTS_GROUP_NAVIGATION, SHORTCUTS_GROUP_EDITOR as EDITOR_MANAGER_GROUP } from '../../editorManager';
 import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
@@ -475,15 +475,23 @@ export class TextEditor extends BaseEditor {
       keys: [['Control', 'Enter']],
       callback: () => {
         setNewValue();
+
+        return false;
       },
       runOnlyIf: event => !this.hot.selection.isMultiple() &&
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
         !event.altKey,
+      relativeToGroup: EDITOR_MANAGER_GROUP,
+      position: 'before',
     }, {
-      keys: [['Alt', 'Enter']],
+      keys: [['Alt', 'Enter'], ['Meta', 'Enter']],
       callback: () => {
         setNewValue();
+
+        return false;
       },
+      relativeToGroup: EDITOR_MANAGER_GROUP,
+      position: 'before',
     }], contextConfig);
   }
 
