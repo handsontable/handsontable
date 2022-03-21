@@ -432,8 +432,6 @@ export class TextEditor extends BaseEditor {
    * @private
    */
   registerShortcuts() {
-    console.log(EDITOR_MANAGER_GROUP);
-    
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
     const contextConfig = {
