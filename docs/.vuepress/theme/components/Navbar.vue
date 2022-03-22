@@ -39,7 +39,7 @@ import SidebarButton from '@theme/components/SidebarButton.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import Versions from '@theme/components/Versions.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
-import { ensureExt } from './util';
+import { ensureExt } from '@vuepress/theme-default/util';
 import Logo from './Logo.vue';
 
 export default {

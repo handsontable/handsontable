@@ -34,7 +34,7 @@ import DropdownLink from '@theme/components/DropdownLink.vue';
 import NavLink from '@theme/components/NavLink.vue';
 import NavVersionedLink from '@theme/components/NavVersionedLink.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
-import { resolveNavLinkItem } from './util';
+import { resolveNavLinkItem } from '@vuepress/theme-default/util';
 
 export default {
   name: 'NavLinks',
