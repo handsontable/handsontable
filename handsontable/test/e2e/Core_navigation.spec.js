@@ -62,6 +62,42 @@ describe('Core_navigation LTR', () => {
     expect(getSelected()).toEqual([[2, 2, 2, 2]]);
   });
 
+  it('should move to the first cell in the row', () => {
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+
+    selectCell(4, 4);
+    keyDownUp('pageup');
+
+    expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+
+    selectCell(4, 4);
+    keyDownUp(['shift', 'pageup']);
+
+    // Temporary, for compatibility with Handsontable 11.0.x.
+    expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+  });
+
+  it('should move to the last cell in the row', () => {
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+
+    selectCell(0, 0);
+    keyDownUp('pagedown');
+
+    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+
+    selectCell(0, 0);
+    keyDownUp(['shift', 'pagedown']);
+
+    // Temporary, for compatibility with Handsontable 11.0.x.
+    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+  });
+
   describe('autoWrap disabled', () => {
     it('should NOT move to the next cell, if already at the last cell in row', () => {
       handsontable({
@@ -362,6 +398,42 @@ describe('Core_navigation RTL', () => {
     keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+  });
+
+  it('should move to the first cell in the row', () => {
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+
+    selectCell(4, 4);
+    keyDownUp('pageup');
+
+    expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+
+    selectCell(4, 4);
+    keyDownUp(['shift', 'pageup']);
+
+    // Temporary, for compatibility with Handsontable 11.0.x.
+    expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+  });
+
+  it('should move to the last cell in the row', () => {
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+
+    selectCell(0, 0);
+    keyDownUp('pagedown');
+
+    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+
+    selectCell(0, 0);
+    keyDownUp(['shift', 'pagedown']);
+
+    // Temporary, for compatibility with Handsontable 11.0.x.
+    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
   });
 
   describe('autoWrap disabled', () => {
