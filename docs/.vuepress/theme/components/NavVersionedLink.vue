@@ -1,6 +1,5 @@
 <template>
   <RouterLink
-    v-else
     class="nav-link"
     :to="this.versionedLink"
     :exact="exact"
@@ -11,7 +10,7 @@
 </template>
 
 <script>
-import { ensureExt } from './util';
+import { ensureExt } from '@vuepress/theme-default/util';
 
 export default {
   name: 'NavLink',
