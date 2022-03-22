@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.0.0
- * Release date: 14/03/2022 (built at 10/03/2022 16:01:00)
+ * Release date: 14/03/2022 (built at 22/03/2022 16:37:41)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -14698,8 +14698,8 @@ var EditorManager = /*#__PURE__*/function () {
         }
       }, {
         keys: [['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']],
-        callback: function callback(event, keys) {
-          _this2.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));
+        callback: function callback() {
+          _this2.closeEditorAndRestoreOriginalValue(shortcutManager.isCtrlPressed());
 
           _this2.activeEditor.focus();
         }
@@ -14721,7 +14721,7 @@ var EditorManager = /*#__PURE__*/function () {
           _this2.prepareEditor();
         }
       }, {
-        keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
+        keys: [['Enter'], ['Enter', 'Shift']],
         callback: function callback(event, keys) {
           if (_this2.instance.getSettings().enterBeginsEditing) {
             if (_this2.cellProperties.readOnly) {
@@ -29844,7 +29844,8 @@ function Core(rootElement, userSettings) {
       selection.transformStart(-1, 0);
     }
   }, {
-    keys: [['ArrowUp', 'Shift']],
+    keys: [['ArrowUp', 'Shift'], // Added according to specification, not the target behaviour.
+    ['ArrowUp', 'Shift', 'Control'], ['ArrowUp', 'Shift', 'Meta']],
     callback: function callback() {
       selection.transformEnd(-1, 0);
     }
@@ -29854,7 +29855,8 @@ function Core(rootElement, userSettings) {
       selection.transformStart(1, 0);
     }
   }, {
-    keys: [['ArrowDown', 'Shift']],
+    keys: [['ArrowDown', 'Shift'], // Added according to specification, not the target behaviour.
+    ['ArrowDown', 'Shift', 'Control'], ['ArrowDown', 'Shift', 'Meta']],
     callback: function callback() {
       selection.transformEnd(1, 0);
     }
@@ -29864,7 +29866,8 @@ function Core(rootElement, userSettings) {
       selection.transformStart(0, -1 * instance.getDirectionFactor());
     }
   }, {
-    keys: [['ArrowLeft', 'Shift']],
+    keys: [['ArrowLeft', 'Shift'], // Added according to specification, not the target behaviour.
+    ['ArrowLeft', 'Shift', 'Control'], ['ArrowLeft', 'Shift', 'Meta']],
     callback: function callback() {
       selection.transformEnd(0, -1 * instance.getDirectionFactor());
     }
@@ -29874,7 +29877,8 @@ function Core(rootElement, userSettings) {
       selection.transformStart(0, instance.getDirectionFactor());
     }
   }, {
-    keys: [['ArrowRight', 'Shift']],
+    keys: [['ArrowRight', 'Shift'], // Added according to specification, not the target behaviour.
+    ['ArrowRight', 'Shift', 'Control'], ['ArrowRight', 'Shift', 'Meta']],
     callback: function callback() {
       selection.transformEnd(0, instance.getDirectionFactor());
     }
@@ -29919,12 +29923,14 @@ function Core(rootElement, userSettings) {
       selection.setRangeEnd(instance._createCellCoords(instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1), selection.selectedRange.current().from.col));
     }
   }, {
-    keys: [['PageUp']],
+    keys: [['PageUp'], // Added according to specification, not the target behaviour.
+    ['Shift', 'PageUp']],
     callback: function callback() {
       selection.transformStart(-instance.countVisibleRows(), 0);
     }
   }, {
-    keys: [['PageDown']],
+    keys: [['PageDown'], // Added according to specification, not the target behaviour.
+    ['Shift', 'PageDown']],
     callback: function callback() {
       selection.transformStart(instance.countVisibleRows(), 0);
     }
@@ -44917,7 +44923,7 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "10/03/2022 16:01:00";
+Handsontable.buildDate = "22/03/2022 16:37:41";
 Handsontable.version = "12.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -61172,10 +61178,8 @@ var createContext = function createContext(name) {
         preventDefault = _ref$preventDefault === void 0 ? true : _ref$preventDefault,
         _ref$stopPropagation = _ref.stopPropagation,
         stopPropagation = _ref$stopPropagation === void 0 ? false : _ref$stopPropagation,
-        _ref$relativeToGroup = _ref.relativeToGroup,
-        relativeToGroup = _ref$relativeToGroup === void 0 ? '' : _ref$relativeToGroup,
-        _ref$position = _ref.position,
-        position = _ref$position === void 0 ? 'after' : _ref$position;
+        relativeToGroup = _ref.relativeToGroup,
+        position = _ref.position;
 
     if ((0, _mixed.isUndefined)(group)) {
       throw new Error('You need to define the shortcut\'s group.');
@@ -61194,10 +61198,15 @@ var createContext = function createContext(name) {
       group: group,
       runOnlyIf: runOnlyIf,
       preventDefault: preventDefault,
-      stopPropagation: stopPropagation,
-      relativeToGroup: relativeToGroup,
-      position: position
+      stopPropagation: stopPropagation
     };
+
+    if ((0, _mixed.isDefined)(relativeToGroup)) {
+      var _ref2 = [relativeToGroup, position];
+      newShortcut.relativeToGroup = _ref2[0];
+      newShortcut.position = _ref2[1];
+    }
+
     keys.forEach(function (keyCombination) {
       var normalizedKeys = (0, _utils.normalizeKeys)(keyCombination);
       var hasKeyCombination = SHORTCUTS.hasItem(normalizedKeys);
@@ -61276,10 +61285,10 @@ var createContext = function createContext(name) {
 
   var removeShortcutsByGroup = function removeShortcutsByGroup(group) {
     var shortcuts = SHORTCUTS.getItems();
-    shortcuts.forEach(function (_ref2) {
-      var _ref3 = (0, _slicedToArray2.default)(_ref2, 2),
-          normalizedKeys = _ref3[0],
-          shortcutOptions = _ref3[1];
+    shortcuts.forEach(function (_ref3) {
+      var _ref4 = (0, _slicedToArray2.default)(_ref3, 2),
+          normalizedKeys = _ref4[0],
+          shortcutOptions = _ref4[1];
 
       var leftOptions = shortcutOptions.filter(function (option) {
         return option.group !== group;
@@ -62162,16 +62171,35 @@ var TextEditor = /*#__PURE__*/function (_BaseEditor) {
         keys: [['Control', 'Enter']],
         callback: function callback() {
           setNewValue();
+          return false; // Will block closing editor.
         },
         runOnlyIf: function runOnlyIf(event) {
-          return !_this4.hot.selection.isMultiple() && // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+          return !_this4.hot.selection.isMultiple() && // We trigger a data population for multiple selection.
+          // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
           !event.altKey;
-        }
+        },
+        relativeToGroup: _editorManager.SHORTCUTS_GROUP_EDITOR,
+        position: 'before'
       }, {
         keys: [['Alt', 'Enter']],
         callback: function callback() {
           setNewValue();
-        }
+          return false; // Will block closing editor.
+        },
+        relativeToGroup: _editorManager.SHORTCUTS_GROUP_EDITOR,
+        position: 'before'
+      }, {
+        keys: [['Meta', 'Enter']],
+        callback: function callback() {
+          setNewValue();
+          return false; // Will block closing editor.
+        },
+        runOnlyIf: function runOnlyIf() {
+          return !_this4.hot.selection.isMultiple();
+        },
+        // We trigger a data population for multiple selection.
+        relativeToGroup: _editorManager.SHORTCUTS_GROUP_EDITOR,
+        position: 'before'
       }], contextConfig);
     }
     /**
