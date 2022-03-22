@@ -1601,7 +1601,7 @@ describe('TextEditor', () => {
     expect(getDataAtCell(0, 2).length).toEqual(37);
   });
 
-  it('should insert new line on caret position when pressing ALT + ENTER', () => {
+  it('should insert new line on caret position when pressing ALT + ENTER, CTRL + ENTER or META + ENTER', () => {
     const data = [
       ['Maserati', 'Mazda'],
       ['Honda', 'Mini']
@@ -1621,9 +1621,17 @@ describe('TextEditor', () => {
     keyDownUp(['alt', 'enter']);
 
     expect(hot.getActiveEditor().TEXTAREA.value).toEqual('Ma\nserati');
+
+    keyDownUp(['control', 'enter']);
+
+    expect(hot.getActiveEditor().TEXTAREA.value).toEqual('Ma\n\nserati');
+
+    keyDownUp(['meta', 'enter']);
+
+    expect(hot.getActiveEditor().TEXTAREA.value).toEqual('Ma\n\n\nserati');
   });
 
-  it('should exceed the editor height only for one line when pressing ALT + ENTER', () => {
+  it('should exceed the editor height only for one line when pressing ALT + ENTER, CTRL + ENTER or META + ENTER', () => {
     const data = [
       ['Maserati', 'Mazda'],
       ['Honda', 'Mini']
@@ -1640,9 +1648,21 @@ describe('TextEditor', () => {
     const editorTextarea = hot.getActiveEditor().TEXTAREA;
     const editorComputedStyle = getComputedStyle(editorTextarea);
     const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
-    const editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
+    let editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
 
     expect(editorTextareaHeight).toBe(2 * editorTextareaLineHeight);
+
+    keyDownUp(['control', 'enter']);
+
+    editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
+
+    expect(editorTextareaHeight).toBe(3 * editorTextareaLineHeight);
+
+    keyDownUp(['meta', 'enter']);
+
+    editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
+
+    expect(editorTextareaHeight).toBe(4 * editorTextareaLineHeight);
   });
 
   it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', () => {

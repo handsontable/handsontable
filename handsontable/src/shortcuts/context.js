@@ -47,8 +47,8 @@ export const createContext = (name) => {
       runOnlyIf = () => true,
       preventDefault = true,
       stopPropagation = false,
-      relativeToGroup = '',
-      position = 'after',
+      relativeToGroup,
+      position,
     } = {}) => {
 
     if (isUndefined(group)) {
@@ -71,9 +71,11 @@ export const createContext = (name) => {
       runOnlyIf,
       preventDefault,
       stopPropagation,
-      relativeToGroup,
-      position,
     };
+
+    if (isDefined(relativeToGroup)) {
+      [newShortcut.relativeToGroup, newShortcut.position] = [relativeToGroup, position];
+    }
 
     keys.forEach((keyCombination) => {
       const normalizedKeys = normalizeKeys(keyCombination);
