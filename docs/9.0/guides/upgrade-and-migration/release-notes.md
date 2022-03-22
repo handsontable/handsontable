@@ -241,7 +241,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 **Breaking changes**
 
 * Modifying the table's data by reference and calling `render()` will not work properly anymore. From this point onward, all the data-related operations need to be performed using the API methods, such as `populateFromArray` or `setDataAtCell`.
-* The `modifyRow`, `modifyCol`, `unmodifyRow`, `unmodifyCol` hooks are no longer needed and were removed. Their functionality can be achived by using API. [More information in the 8.0.0 migration guide](https://handsontable.com/docs/8.0.0/migration-guide.html).
+* The `modifyRow`, `modifyCol`, `unmodifyRow`, `unmodifyCol` hooks are no longer needed and were removed. Their functionality can be achived by using API. [More information in the 8.0.0 migration guide](https://handsontable.com/docs/8.0.0/tutorial-migration-guide.html).
 * `skipLengthCache` hook was removed, `indexMapper` is now responsible for the cache and length.
 * The `manualColumnFreeze` plugin doesn't use the `manualColumnMove` plugin anymore.
 * The `collapsibleColumns` plugin doesn't use the `hiddenColumns` plugin anymore.
