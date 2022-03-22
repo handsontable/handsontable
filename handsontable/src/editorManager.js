@@ -108,8 +108,8 @@ class EditorManager {
       }
     }, {
       keys: [['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']],
-      callback: (event, keys) => {
-        this.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));
+      callback: () => {
+        this.closeEditorAndRestoreOriginalValue(shortcutManager.isCtrlPressed());
         this.activeEditor.focus();
       },
     }], config);
@@ -130,7 +130,7 @@ class EditorManager {
         this.prepareEditor();
       },
     }, {
-      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
+      keys: [['Enter'], ['Enter', 'Shift']],
       callback: (event, keys) => {
         if (this.instance.getSettings().enterBeginsEditing) {
           if (this.cellProperties.readOnly) {
