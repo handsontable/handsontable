@@ -4,17 +4,25 @@ import {
   getScrollLeft,
   getScrollTop,
   offset,
-} from './../../../helpers/dom/element';
+} from '../../../helpers/dom/element';
 
 /**
  * @class Scroll
  */
 class Scroll {
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * Tha data access object.
+   *
+   * @protected
+   * @type {ScrollDao}
    */
-  constructor(wotInstance) {
-    this.wot = wotInstance;
+  dataAccessObject;
+
+  /**
+   * @param {ScrollDao} dataAccessObject Tha data access object.
+   */
+  constructor(dataAccessObject) {
+    this.dataAccessObject = dataAccessObject;
   }
 
   /**
@@ -31,6 +39,7 @@ class Scroll {
     if (coords.col < 0 || coords.row < 0) {
       return false;
     }
+
     const scrolledHorizontally = this.scrollViewportHorizontally(coords.col, snapToRight, snapToLeft);
     const scrolledVertically = this.scrollViewportVertically(coords.row, snapToTop, snapToBottom);
 
@@ -46,25 +55,25 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
-    if (!this.wot.drawn) {
+    if (!this.dataAccessObject.drawn) {
       return false;
     }
 
     const {
-      fixedColumnsLeft,
-      leftOverlay,
+      fixedColumnsStart,
+      inlineStartOverlay,
       totalColumns,
-    } = this._getVariables();
+    } = this.dataAccessObject;
     let result = false;
 
     if (column >= 0 && column <= Math.max(totalColumns - 1, 0)) {
       const firstVisibleColumn = this.getFirstVisibleColumn();
       const lastVisibleColumn = this.getLastVisibleColumn();
 
-      if (column >= fixedColumnsLeft && firstVisibleColumn > -1 && (column < firstVisibleColumn || snapToLeft)) {
-        result = leftOverlay.scrollTo(column);
+      if (column >= fixedColumnsStart && firstVisibleColumn > -1 && (column < firstVisibleColumn || snapToLeft)) {
+        result = inlineStartOverlay.scrollTo(column);
       } else if (lastVisibleColumn === -1 || lastVisibleColumn > -1 && (column > lastVisibleColumn || snapToRight)) {
-        result = leftOverlay.scrollTo(column, true);
+        result = inlineStartOverlay.scrollTo(column, true);
       }
     }
 
@@ -80,7 +89,7 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewportVertically(row, snapToTop, snapToBottom) {
-    if (!this.wot.drawn) {
+    if (!this.dataAccessObject.drawn) {
       return false;
     }
 
@@ -89,7 +98,7 @@ class Scroll {
       fixedRowsTop,
       topOverlay,
       totalRows,
-    } = this._getVariables();
+    } = this.dataAccessObject;
     let result = false;
 
     if (row >= 0 && row <= Math.max(totalRows - 1, 0)) {
@@ -119,8 +128,8 @@ class Scroll {
       wtViewport,
       totalRows,
       fixedRowsTop,
-    } = this._getVariables();
-    const rootWindow = this.wot.rootWindow;
+      rootWindow,
+    } = this.dataAccessObject;
 
     let firstVisibleRow = wtTable.getFirstVisibleRow();
 
@@ -162,8 +171,8 @@ class Scroll {
       wtTable,
       wtViewport,
       totalRows,
-    } = this._getVariables();
-    const rootWindow = this.wot.rootWindow;
+      rootWindow,
+    } = this.dataAccessObject;
     let lastVisibleRow = wtTable.getLastVisibleRow();
 
     if (topOverlay.mainTableScrollableElement === rootWindow) {
@@ -197,27 +206,27 @@ class Scroll {
    */
   getFirstVisibleColumn() {
     const {
-      leftOverlay,
+      inlineStartOverlay,
       wtTable,
       wtViewport,
       totalColumns,
-    } = this._getVariables();
-    const rootWindow = this.wot.rootWindow;
+      rootWindow,
+    } = this.dataAccessObject;
 
     let firstVisibleColumn = wtTable.getFirstVisibleColumn();
 
-    if (leftOverlay.mainTableScrollableElement === rootWindow) {
+    if (inlineStartOverlay.mainTableScrollableElement === rootWindow) {
       const rootElementOffset = offset(wtTable.wtRootElement);
       const totalTableWidth = innerWidth(wtTable.hider);
       const windowWidth = innerWidth(rootWindow);
-      const windowScrollLeft = getScrollLeft(rootWindow, rootWindow);
+      const windowScrollLeft = Math.abs(getScrollLeft(rootWindow, rootWindow));
 
       // Only calculate firstVisibleColumn when table didn't filled (from left) whole viewport space
       if (rootElementOffset.left + totalTableWidth - windowWidth <= windowScrollLeft) {
         let columnsWidth = wtViewport.getRowHeaderWidth();
 
         for (let column = totalColumns; column > 0; column--) {
-          columnsWidth += leftOverlay.sumCellSizes(column - 1, column);
+          columnsWidth += inlineStartOverlay.sumCellSizes(column - 1, column);
 
           if (rootElementOffset.left + totalTableWidth - columnsWidth <= windowScrollLeft) {
             // Return physical column + 1
@@ -238,18 +247,18 @@ class Scroll {
    */
   getLastVisibleColumn() {
     const {
-      leftOverlay,
+      inlineStartOverlay,
       wtTable,
       wtViewport,
       totalColumns,
-    } = this._getVariables();
-    const rootWindow = this.wot.rootWindow;
+      rootWindow,
+    } = this.dataAccessObject;
 
     let lastVisibleColumn = wtTable.getLastVisibleColumn();
 
-    if (leftOverlay.mainTableScrollableElement === rootWindow) {
+    if (inlineStartOverlay.mainTableScrollableElement === rootWindow) {
       const rootElementOffset = offset(wtTable.wtRootElement);
-      const windowScrollLeft = getScrollLeft(rootWindow, rootWindow);
+      const windowScrollLeft = Math.abs(getScrollLeft(rootWindow, rootWindow));
 
       // Only calculate lastVisibleColumn when table didn't filled (from right) whole viewport space
       if (rootElementOffset.left > windowScrollLeft) {
@@ -257,7 +266,7 @@ class Scroll {
         let columnsWidth = wtViewport.getRowHeaderWidth();
 
         for (let column = 1; column <= totalColumns; column++) {
-          columnsWidth += leftOverlay.sumCellSizes(column - 1, column);
+          columnsWidth += inlineStartOverlay.sumCellSizes(column - 1, column);
 
           if (rootElementOffset.left + columnsWidth - windowScrollLeft >= windowWidth) {
             // Return physical column - 1 (-2 because rangeEach gives column index + 1 - sumCellSizes requirements)
@@ -269,37 +278,6 @@ class Scroll {
     }
 
     return lastVisibleColumn;
-  }
-
-  /**
-   * Returns collection of variables used to rows and columns visibility calculations.
-   *
-   * @returns {object}
-   * @private
-   */
-  _getVariables() {
-    const { wot } = this;
-    const topOverlay = wot.wtOverlays.topOverlay;
-    const leftOverlay = wot.wtOverlays.leftOverlay;
-    const wtTable = wot.wtTable;
-    const wtViewport = wot.wtViewport;
-    const totalRows = wot.getSetting('totalRows');
-    const totalColumns = wot.getSetting('totalColumns');
-    const fixedRowsTop = wot.getSetting('fixedRowsTop');
-    const fixedRowsBottom = wot.getSetting('fixedRowsBottom');
-    const fixedColumnsLeft = wot.getSetting('fixedColumnsLeft');
-
-    return {
-      topOverlay,
-      leftOverlay,
-      wtTable,
-      wtViewport,
-      totalRows,
-      totalColumns,
-      fixedRowsTop,
-      fixedRowsBottom,
-      fixedColumnsLeft
-    };
   }
 }
 

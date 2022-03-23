@@ -55,9 +55,16 @@ describe('Core.selectRows', () => {
       rowHeaders: true,
     });
 
+    // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
+    // Please keep in mind that selectColumns/selectRows doesn't set instance to listening (see #7290).
+    listen();
     selectRows(2);
-    keyDown('ctrl');
+
+    keyDown('control');
+
     selectRows(0);
+
+    keyUp('control');
 
     expect(`
       |   ║ - : - : - : - |
@@ -285,11 +292,11 @@ describe('Core.selectRows', () => {
 
     selectCell(1, 15); // Scroll to the bottom of the Hot viewport.
 
-    const scrollTop = hot.view.wt.wtTable.holder.scrollTop;
+    const scrollTop = hot.view._wt.wtTable.holder.scrollTop;
 
     selectRows(1);
 
-    expect(hot.view.wt.wtTable.holder.scrollTop).toBe(scrollTop);
+    expect(hot.view._wt.wtTable.holder.scrollTop).toBe(scrollTop);
   });
 
   it('should fire hooks with proper context', () => {

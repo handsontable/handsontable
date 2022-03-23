@@ -174,8 +174,8 @@ describe('HiddenRows', () => {
         <tbody>
         </tbody>
       `);
-      expect(getBottomLeftClone().find('tbody tr').length).toBe(0);
-      expect(extractDOMStructure(getBottomLeftClone())).toMatchHTML(`
+      expect(getBottomInlineStartClone().find('tbody tr').length).toBe(0);
+      expect(extractDOMStructure(getBottomInlineStartClone())).toMatchHTML(`
         <tbody>
         </tbody>
       `);
@@ -215,8 +215,8 @@ describe('HiddenRows', () => {
         <tbody>
         </tbody>
       `);
-      expect(getBottomLeftClone().find('tbody tr').length).toBe(0);
-      expect(extractDOMStructure(getBottomLeftClone())).toMatchHTML(`
+      expect(getBottomInlineStartClone().find('tbody tr').length).toBe(0);
+      expect(extractDOMStructure(getBottomInlineStartClone())).toMatchHTML(`
         <tbody>
         </tbody>
       `);

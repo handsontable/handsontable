@@ -66,6 +66,18 @@ logger.log('\n-----------------------------------------------------\n');
     from: /permalink: \/next\//g,
     to: `permalink: /${version}/`,
   });
+  // replace all BigExample and BigExampleSource links to the new version
+  // we must add .0 at the end, because the folder in the examples has schema [major].[minor].[patch]
+  //
+  // For example, if "version" is 11.1, we change from:
+  // /examples/next/docs/
+  // To:
+  // /examples/11.1.0/docs/
+  await replaceInFiles({
+    files: path.join(workingDir, version, '**/*.md'),
+    from: /\/examples\/next\/docs\//g,
+    to: `/examples/${version}.0/docs/`,
+  });
   // replace all versioning assets to the new version
   await replaceInFiles({
     files: path.join(workingDir, version, '**/*.md'),

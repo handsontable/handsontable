@@ -343,6 +343,7 @@ import {
 // import translations
 import {
   registerLanguageDictionary,
+  arAR,
   deCH,
   deDE,
   enUS,
@@ -373,6 +374,7 @@ import {
 } from 'handsontable/registry'
 
 // register individual translations
+registerLanguageDictionary(arAR);
 registerLanguageDictionary(deCH);
 registerLanguageDictionary(deDE);
 registerLanguageDictionary(enUS);

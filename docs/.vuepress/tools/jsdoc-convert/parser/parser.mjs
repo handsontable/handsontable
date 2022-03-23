@@ -14,6 +14,8 @@ export const buildParser = ({ logger, parseJsdoc }) => function* () {
     '3rdparty/walkontable/src/cell/range.js',
     'dataMap/metaManager/metaSchema.js',
     'dataMap/dataMap.js',
+    'shortcuts/manager.js',
+    'shortcuts/context.js',
     'utils/ghostTable.js',
     'utils/samplesGenerator.js',
     'pluginHooks.js',
@@ -21,6 +23,7 @@ export const buildParser = ({ logger, parseJsdoc }) => function* () {
     'editors/!(__tests__)/!(index).js',
     'plugins/!(__tests__)/!(index).js',
     'translations/!(__tests__)/!(index).js',
+    'translations/indexMapper.js',
   ]);
 
   logger.success('Jsdoc comments parsed successfully.');

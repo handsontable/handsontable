@@ -10,6 +10,7 @@ const DEFAULT_ERROR_ID_EXISTS = id => `The id '${id}' is already declared in a m
  * @property {Function} getItem Gets item from the passed ID.
  * @property {Function} getItems Gets all items from the map.
  * @property {Function} hasItem Verifies if the passed ID exists in a map.
+ * @property {Function} removeItem Removes item from the passed id if exists.
  */
 /**
  * Creates a new unique map.
@@ -35,6 +36,16 @@ export function createUniqueMap({ errorIdExists } = {}) {
     }
 
     uniqueMap.set(id, item);
+  }
+
+  /**
+   * Removes item from the passed id if exists.
+   *
+   * @param {*} id The ID to remove.
+   * @returns {boolean}
+   */
+  function removeItem(id) {
+    return uniqueMap.delete(id);
   }
 
   /**
@@ -98,5 +109,6 @@ export function createUniqueMap({ errorIdExists } = {}) {
     getItem,
     getItems,
     hasItem,
+    removeItem,
   };
 }

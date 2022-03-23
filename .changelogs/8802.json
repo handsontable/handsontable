@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue with opening position of the dropdown (autocomplete) editor.",
+  "type": "fixed",
+  "issue": 8802,
+  "breaking": false,
+  "framework": "none"
+}

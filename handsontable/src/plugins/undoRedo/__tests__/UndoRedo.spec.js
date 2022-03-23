@@ -2847,7 +2847,7 @@ describe('UndoRedo', () => {
         selectCell(0, 0);
         setDataAtCell(0, 0, 'new value');
 
-        keyDownUp('ctrl+z');
+        keyDownUp(['control', 'z']);
         expect(getDataAtCell(0, 0)).toBe('A1');
       });
 
@@ -2865,7 +2865,7 @@ describe('UndoRedo', () => {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        keyDownUp('ctrl+y');
+        keyDownUp(['control', 'y']);
 
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
@@ -2884,7 +2884,7 @@ describe('UndoRedo', () => {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        keyDownUp('ctrl+shift+z');
+        keyDownUp(['control', 'shift', 'z']);
 
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
@@ -2904,7 +2904,7 @@ describe('UndoRedo', () => {
         selectCell(0, 0);
         setDataAtCell(0, 0, 'new value');
 
-        keyDownUp('ctrl+z');
+        keyDownUp(['control', 'z']);
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
 
@@ -2918,7 +2918,7 @@ describe('UndoRedo', () => {
 
         selectCell(1, 0);
         keyDownUp('enter');
-        keyDownUp('ctrl+z');
+        keyDownUp(['control', 'z']);
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
     });
@@ -3126,13 +3126,13 @@ describe('UndoRedo', () => {
         data: Handsontable.helper.createSpreadsheetData(3, 3),
         colHeaders: true,
         rowHeaders: true,
-        fixedColumnsLeft: 1,
+        fixedColumnsStart: 1,
       });
 
       alter('remove_col', 0, 3);
       undo();
 
-      expect(hot.getSettings().fixedColumnsLeft).toBe(1);
+      expect(hot.getSettings().fixedColumnsStart).toBe(1);
     });
   });
 });

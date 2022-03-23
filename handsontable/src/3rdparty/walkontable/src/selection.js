@@ -1,14 +1,12 @@
 import { addClass, hasClass } from './../../../helpers/dom/element';
 import Border from './border';
-import CellCoords from './cell/coords';
-import CellRange from './cell/range';
 
 /**
  * @class Selection
  */
 class Selection {
   /**
-   * @param {object} settings The selection settings object.
+   * @param {object} settings The selection settings object. @todo type.
    * @param {CellRange} cellRange The cell range instance.
    */
   constructor(settings, cellRange) {
@@ -23,7 +21,7 @@ class Selection {
    * Each Walkontable clone requires it's own border for every selection. This method creates and returns selection
    * borders per instance.
    *
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {WalkontableFacade} wotInstance The Walkontable instance.
    * @returns {Border}
    */
   getBorder(wotInstance) {
@@ -51,7 +49,7 @@ class Selection {
    */
   add(coords) {
     if (this.isEmpty()) {
-      this.cellRange = new CellRange(coords);
+      this.cellRange = this.settings.createCellRange(coords);
 
     } else {
       this.cellRange.expand(coords);
@@ -97,26 +95,26 @@ class Selection {
   }
 
   /**
-   * Returns the top left (TL) and bottom right (BR) selection coordinates.
+   * Returns the top left (or top right in RTL) and bottom right (or bottom left in RTL) selection coordinates.
    *
    * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
   getCorners() {
-    const topLeft = this.cellRange.getOuterTopLeftCorner();
-    const bottomRight = this.cellRange.getOuterBottomRightCorner();
+    const topStart = this.cellRange.getOuterTopStartCorner();
+    const bottomEnd = this.cellRange.getOuterBottomEndCorner();
 
     return [
-      topLeft.row,
-      topLeft.col,
-      bottomRight.row,
-      bottomRight.col,
+      topStart.row,
+      topStart.col,
+      bottomEnd.row,
+      bottomEnd.col,
     ];
   }
 
   /**
    * Adds class name to cell element at given coords.
    *
-   * @param {Walkontable} wotInstance Walkontable instance.
+   * @param {WalkontableFacade} wotInstance Walkontable instance.
    * @param {number} sourceRow Cell row coord.
    * @param {number} sourceColumn Cell column coord.
    * @param {string} className Class name.
@@ -125,7 +123,7 @@ class Selection {
    * @returns {Selection}
    */
   addClassAtCoords(wotInstance, sourceRow, sourceColumn, className, markIntersections = false) {
-    const TD = wotInstance.wtTable.getCell(new CellCoords(sourceRow, sourceColumn));
+    const TD = wotInstance.wtTable.getCell(this.settings.createCellCoords(sourceRow, sourceColumn));
 
     if (typeof TD === 'object') {
       let cellClassName = className;
@@ -182,7 +180,7 @@ class Selection {
   }
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {WalkontableFacade} wotInstance The Walkontable instance.
    */
   draw(wotInstance) {
     if (this.isEmpty()) {

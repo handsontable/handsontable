@@ -1,5 +1,3 @@
-import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
-
 /**
  * Class responsible for all of the Selection-related operations on merged cells.
  *
@@ -14,6 +12,12 @@ class SelectionCalculations {
      * @type {MergeCells}
      */
     this.plugin = plugin;
+    /**
+     * Reference to the Handsontable instance.
+     *
+     * @type {Handsontable}
+     */
+    this.hot = plugin.hot;
     /**
      * Class name used for fully selected merged cells.
      *
@@ -96,10 +100,10 @@ class SelectionCalculations {
    * @returns {CellRange} A new `CellRange` object.
    */
   getUpdatedSelectionRange(oldSelectionRange, delta) {
-    return new CellRange(
+    return this.hot._createCellRange(
       oldSelectionRange.highlight,
       oldSelectionRange.from,
-      new CellCoords(oldSelectionRange.to.row + delta.row, oldSelectionRange.to.col + delta.col)
+      this.hot._createCellCoords(oldSelectionRange.to.row + delta.row, oldSelectionRange.to.col + delta.col)
     );
   }
 
@@ -166,7 +170,7 @@ class SelectionCalculations {
 
     for (let r = 0; r < mergedCell.rowspan; r += 1) {
       for (let c = 0; c < mergedCell.colspan; c += 1) {
-        mergedCellIndividualCoords.push(new CellCoords(mergedCell.row + r, mergedCell.col + c));
+        mergedCellIndividualCoords.push(this.hot._createCellCoords(mergedCell.row + r, mergedCell.col + c));
       }
     }
 

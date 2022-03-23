@@ -6,7 +6,7 @@ describe('ColumnSorting', () => {
 
     this.sortByClickOnColumnHeader = (columnIndex) => {
       const hot = this.$container.data('handsontable');
-      const $columnHeader = $(hot.view.wt.wtTable.getColumnHeader(columnIndex));
+      const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(columnIndex));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
       if ($spanInsideHeader.length === 0) {
@@ -190,29 +190,44 @@ describe('ColumnSorting', () => {
     expect(getPlugin('columnSorting').getSortConfig(1)).toEqual({ column: 1, sortOrder: 'asc' });
   });
 
-  it('should display indicator properly after changing sorted column sequence', () => {
-    const hot = handsontable({
-      data: [
-        [1, 9, 3, 4, 5, 6, 7, 8, 9],
-        [9, 8, 7, 6, 5, 4, 3, 2, 1],
-        [8, 7, 6, 5, 4, 3, 3, 1, 9],
-        [0, 3, 0, 5, 6, 7, 8, 9, 1]
-      ],
-      colHeaders: true,
-      columnSorting: {
-        indicator: true
-      }
+  using('configuration object', [
+    { htmlDir: 'ltr', layoutDirection: 'inherit' },
+    { htmlDir: 'rtl', layoutDirection: 'ltr' },
+  ], ({ htmlDir, layoutDirection }) => {
+    beforeEach(() => {
+      $('html').attr('dir', htmlDir);
     });
 
-    getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+    afterEach(() => {
+      $('html').attr('dir', 'ltr');
+    });
 
-    // changing column sequence: 0 <-> 1
-    hot.columnIndexMapper.moveIndexes([1], 0);
-    hot.render();
+    it('should display indicator properly after changing sorted column sequence', () => {
+      const hot = handsontable({
+        layoutDirection,
+        data: [
+          [1, 9, 3, 4, 5, 6, 7, 8, 9],
+          [9, 8, 7, 6, 5, 4, 3, 2, 1],
+          [8, 7, 6, 5, 4, 3, 3, 1, 9],
+          [0, 3, 0, 5, 6, 7, 8, 9, 1]
+        ],
+        colHeaders: true,
+        columnSorting: {
+          indicator: true
+        }
+      });
 
-    const sortedColumn = spec().$container.find('th span.columnSorting')[1];
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+      // changing column sequence: 0 <-> 1
+      hot.columnIndexMapper.moveIndexes([1], 0);
+      hot.render();
+
+      const sortedColumn = spec().$container.find('th span.columnSorting')[1];
+
+      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('-9px');
+    });
   });
 
   it('should clear indicator after disabling plugin', () => {
@@ -314,9 +329,9 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    $('.ht_clone_top_left_corner .htCore span').simulate('mousedown');
-    $('.ht_clone_top_left_corner .htCore span').simulate('click');
-    $('.ht_clone_top_left_corner .htCore span').simulate('mouseup');
+    $('.ht_clone_top_inline_start_corner .htCore span').simulate('mousedown');
+    $('.ht_clone_top_inline_start_corner .htCore span').simulate('click');
+    $('.ht_clone_top_inline_start_corner .htCore span').simulate('mouseup');
 
     expect(onErrorSpy).not.toHaveBeenCalled();
   });
@@ -1915,7 +1930,7 @@ describe('ColumnSorting', () => {
     spec().$container2.handsontable();
 
     selectCell(0, 1);
-    keyDown('enter');
+    keyDownUp('enter');
     expect($('.handsontableInput').val()).toEqual('A');
 
     spec().$container2.handsontable('destroy');
@@ -2305,7 +2320,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    hot.view.wt.wtOverlays.leftOverlay.scrollTo(15);
+    hot.view._wt.wtOverlays.inlineStartOverlay.scrollTo(15);
     render();
     getPlugin('columnSorting').sort({ column: 15, sortOrder: 'asc' });
 
@@ -2728,7 +2743,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      const $columnHeader = $(hot.view.wt.wtTable.getColumnHeader(0));
+      const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(0));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
       $spanInsideHeader.simulate('mousedown', { button: 2 });
@@ -3057,7 +3072,7 @@ describe('ColumnSorting', () => {
     it('should not break the ability to freeze column', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 3),
-        fixedColumnsLeft: 1,
+        fixedColumnsStart: 1,
         columnSorting: true,
         manualColumnFreeze: true,
         contextMenu: true
@@ -3072,7 +3087,7 @@ describe('ColumnSorting', () => {
 
       simulateClick(freezeColumn);
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(2);
       expect(hot.toPhysicalColumn(0)).toEqual(0);
       expect(hot.toPhysicalColumn(1)).toEqual(2);
       expect(hot.toPhysicalColumn(2)).toEqual(1);

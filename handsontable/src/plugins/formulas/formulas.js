@@ -589,13 +589,13 @@ export class Formulas extends BasePlugin {
     const withSheetId = range => ({ ...range, sheet: this.sheetId });
 
     const engineSourceRange = {
-      start: withSheetId(sourceRange.getTopLeftCorner()),
-      end: withSheetId(sourceRange.getBottomRightCorner())
+      start: withSheetId(sourceRange.getTopStartCorner()),
+      end: withSheetId(sourceRange.getBottomEndCorner())
     };
 
     const engineTargetRange = {
-      start: withSheetId(targetRange.getTopLeftCorner()),
-      end: withSheetId(targetRange.getBottomRightCorner())
+      start: withSheetId(targetRange.getTopStartCorner()),
+      end: withSheetId(targetRange.getBottomEndCorner())
     };
 
     // Blocks the autofill operation if HyperFormula says that at least one of

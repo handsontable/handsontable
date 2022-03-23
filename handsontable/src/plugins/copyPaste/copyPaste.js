@@ -24,6 +24,7 @@ Hooks.getSingleton().register('afterCopy');
 
 export const PLUGIN_KEY = 'copyPaste';
 export const PLUGIN_PRIORITY = 80;
+const SETTING_KEYS = ['fragmentSelection'];
 const ROWS_LIMIT = Infinity;
 const COLUMNS_LIMIT = Infinity;
 const privatePool = new WeakMap();
@@ -68,6 +69,13 @@ const META_HEAD = [
 export class CopyPaste extends BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
+  }
+
+  static get SETTING_KEYS() {
+    return [
+      PLUGIN_KEY,
+      ...SETTING_KEYS
+    ];
   }
 
   static get PLUGIN_PRIORITY() {
@@ -331,12 +339,12 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    const topLeft = selRange.getTopLeftCorner();
-    const bottomRight = selRange.getBottomRightCorner();
-    const startRow = topLeft.row;
-    const startCol = topLeft.col;
-    const endRow = bottomRight.row;
-    const endCol = bottomRight.col;
+    const topStart = selRange.getTopStartCorner();
+    const bottomEnd = selRange.getBottomEndCorner();
+    const startRow = topStart.row;
+    const startCol = topStart.col;
+    const endRow = bottomEnd.row;
+    const endCol = bottomEnd.col;
     const finalEndRow = Math.min(endRow, startRow + this.rowsLimit - 1);
     const finalEndCol = Math.min(endCol, startCol + this.columnsLimit - 1);
 
@@ -402,8 +410,8 @@ export class CopyPaste extends BasePlugin {
     const populatedColumnsLength = inputArray[0].length;
     const newRows = [];
 
-    const { row: startRow, col: startColumn } = selection.getTopLeftCorner();
-    const { row: endRowFromSelection, col: endColumnFromSelection } = selection.getBottomRightCorner();
+    const { row: startRow, col: startColumn } = selection.getTopStartCorner();
+    const { row: endRowFromSelection, col: endColumnFromSelection } = selection.getBottomEndCorner();
 
     let visualRowForPopulatedData = startRow;
     let visualColumnForPopulatedData = startColumn;

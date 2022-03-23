@@ -1,7 +1,7 @@
 describe('Core_navigation LTR', () => {
   const id = 'testContainer';
-  const ARROW_NEXT_COLUMN = 'arrow_right';
-  const ARROW_PREV_COLUMN = 'arrow_left';
+  const ARROW_NEXT_COLUMN = ['arrowright'];
+  const ARROW_PREV_COLUMN = ['arrowleft'];
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -21,7 +21,7 @@ describe('Core_navigation LTR', () => {
     });
 
     selectCell(0, 0);
-    keyDown(ARROW_NEXT_COLUMN);
+    keyDownUp(ARROW_NEXT_COLUMN);
 
     expect(getSelected()).toEqual([[0, 1, 0, 1]]);
   });
@@ -33,7 +33,7 @@ describe('Core_navigation LTR', () => {
     });
 
     selectCell(1, 2);
-    keyDown(ARROW_PREV_COLUMN);
+    keyDownUp(ARROW_PREV_COLUMN);
 
     expect(getSelected()).toEqual([[1, 1, 1, 1]]);
   });
@@ -45,7 +45,7 @@ describe('Core_navigation LTR', () => {
     });
 
     selectCell(1, 2);
-    keyDown('arrow_up');
+    keyDownUp('arrowup');
 
     expect(getSelected()).toEqual([[0, 2, 0, 2]]);
   });
@@ -57,9 +57,45 @@ describe('Core_navigation LTR', () => {
     });
 
     selectCell(1, 2);
-    keyDown('arrow_down');
+    keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+  });
+
+  it('should move to the first cell in the row', () => {
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+
+    selectCell(4, 4);
+    keyDownUp('pageup');
+
+    expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+
+    selectCell(4, 4);
+    keyDownUp(['shift', 'pageup']);
+
+    // Temporary, for compatibility with Handsontable 11.0.x.
+    expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+  });
+
+  it('should move to the last cell in the row', () => {
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+
+    selectCell(0, 0);
+    keyDownUp('pagedown');
+
+    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+
+    selectCell(0, 0);
+    keyDownUp(['shift', 'pagedown']);
+
+    // Temporary, for compatibility with Handsontable 11.0.x.
+    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
   });
 
   describe('autoWrap disabled', () => {
@@ -71,7 +107,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(0, 4);
-      keyDown(ARROW_NEXT_COLUMN);
+      keyDownUp(ARROW_NEXT_COLUMN);
 
       expect(getSelected()).toEqual([[0, 4, 0, 4]]);
     });
@@ -84,7 +120,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(1, 0);
-      keyDown(ARROW_PREV_COLUMN);
+      keyDownUp(ARROW_PREV_COLUMN);
 
       expect(getSelected()).toEqual([[1, 0, 1, 0]]);
     });
@@ -97,7 +133,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(4, 0);
-      keyDown('arrow_down');
+      keyDownUp('arrowdown');
 
       expect(getSelected()).toEqual([[4, 0, 4, 0]]);
     });
@@ -110,7 +146,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(0, 1);
-      keyDown('arrow_up');
+      keyDownUp('arrowup');
 
       expect(getSelected()).toEqual([[0, 1, 0, 1]]);
     });
@@ -126,7 +162,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(0, 4);
-      keyDown(ARROW_NEXT_COLUMN);
+      keyDownUp(ARROW_NEXT_COLUMN);
 
       expect(getSelected()).toEqual([[1, 0, 1, 0]]);
     });
@@ -139,7 +175,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(1, 0);
-      keyDown(ARROW_PREV_COLUMN);
+      keyDownUp(ARROW_PREV_COLUMN);
 
       expect(getSelected()).toEqual([[0, 4, 0, 4]]);
     });
@@ -152,7 +188,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(4, 1);
-      keyDown('arrow_down');
+      keyDownUp('arrowdown');
 
       expect(getSelected()).toEqual([[0, 2, 0, 2]]);
     });
@@ -165,7 +201,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(0, 1);
-      keyDown('arrow_up');
+      keyDownUp('arrowup');
 
       expect(getSelected()).toEqual([[4, 0, 4, 0]]);
     });
@@ -178,7 +214,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(4, 4);
-      keyDown(ARROW_NEXT_COLUMN);
+      keyDownUp(ARROW_NEXT_COLUMN);
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     });
@@ -191,7 +227,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(4, 4);
-      keyDown('arrow_down');
+      keyDownUp('arrowdown');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     });
@@ -204,7 +240,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(0, 0);
-      keyDown(ARROW_PREV_COLUMN);
+      keyDownUp(ARROW_PREV_COLUMN);
 
       expect(getSelected()).toEqual([[4, 4, 4, 4]]);
     });
@@ -217,7 +253,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(0, 0);
-      keyDown('arrow_up');
+      keyDownUp('arrowup');
 
       expect(getSelected()).toEqual([[4, 4, 4, 4]]);
     });
@@ -234,7 +270,7 @@ describe('Core_navigation LTR', () => {
       for (let row = 0, rlen = countRows(); row < rlen; row++) {
         for (let col = 0, clen = countCols(); col < clen; col++) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
-          keyDown(ARROW_NEXT_COLUMN);
+          keyDownUp(ARROW_NEXT_COLUMN);
         }
       }
 
@@ -253,7 +289,7 @@ describe('Core_navigation LTR', () => {
       for (let row = countRows() - 1; row >= 0; row--) {
         for (let col = countCols() - 1; col >= 0; col--) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
-          keyDown(ARROW_PREV_COLUMN);
+          keyDownUp(ARROW_PREV_COLUMN);
         }
       }
 
@@ -272,7 +308,7 @@ describe('Core_navigation LTR', () => {
       for (let col = 0, clen = countCols(); col < clen; col++) {
         for (let row = 0, rlen = countRows(); row < rlen; row++) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
-          keyDown('arrow_down');
+          keyDownUp('arrowdown');
         }
       }
 
@@ -291,7 +327,7 @@ describe('Core_navigation LTR', () => {
       for (let col = countCols() - 1; col >= 0; col--) {
         for (let row = countRows() - 1; row >= 0; row--) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
-          keyDown('arrow_up');
+          keyDownUp('arrowup');
         }
       }
 
@@ -301,8 +337,8 @@ describe('Core_navigation LTR', () => {
 });
 describe('Core_navigation RTL', () => {
   const id = 'testContainer';
-  const ARROW_NEXT_COLUMN = 'arrow_left';
-  const ARROW_PREV_COLUMN = 'arrow_right';
+  const ARROW_NEXT_COLUMN = ['arrowleft'];
+  const ARROW_PREV_COLUMN = ['arrowright'];
 
   beforeEach(function() {
     $('html').attr('dir', 'rtl');
@@ -324,7 +360,7 @@ describe('Core_navigation RTL', () => {
     });
 
     selectCell(0, 0);
-    keyDown(ARROW_NEXT_COLUMN);
+    keyDownUp(ARROW_NEXT_COLUMN);
 
     expect(getSelected()).toEqual([[0, 1, 0, 1]]);
   });
@@ -335,7 +371,7 @@ describe('Core_navigation RTL', () => {
     });
 
     selectCell(1, 2);
-    keyDown(ARROW_PREV_COLUMN);
+    keyDownUp(ARROW_PREV_COLUMN);
 
     expect(getSelected()).toEqual([[1, 1, 1, 1]]);
   });
@@ -347,7 +383,7 @@ describe('Core_navigation RTL', () => {
     });
 
     selectCell(1, 2);
-    keyDown('arrow_up');
+    keyDownUp('arrowup');
 
     expect(getSelected()).toEqual([[0, 2, 0, 2]]);
   });
@@ -359,9 +395,45 @@ describe('Core_navigation RTL', () => {
     });
 
     selectCell(1, 2);
-    keyDown('arrow_down');
+    keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+  });
+
+  it('should move to the first cell in the row', () => {
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+
+    selectCell(4, 4);
+    keyDownUp('pageup');
+
+    expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+
+    selectCell(4, 4);
+    keyDownUp(['shift', 'pageup']);
+
+    // Temporary, for compatibility with Handsontable 11.0.x.
+    expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+  });
+
+  it('should move to the last cell in the row', () => {
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+
+    selectCell(0, 0);
+    keyDownUp('pagedown');
+
+    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+
+    selectCell(0, 0);
+    keyDownUp(['shift', 'pagedown']);
+
+    // Temporary, for compatibility with Handsontable 11.0.x.
+    expect(getSelected()).toEqual([[4, 0, 4, 0]]);
   });
 
   describe('autoWrap disabled', () => {
@@ -373,7 +445,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(0, 4);
-      keyDown(ARROW_NEXT_COLUMN);
+      keyDownUp(ARROW_NEXT_COLUMN);
 
       expect(getSelected()).toEqual([[0, 4, 0, 4]]);
     });
@@ -386,7 +458,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(1, 0);
-      keyDown(ARROW_PREV_COLUMN);
+      keyDownUp(ARROW_PREV_COLUMN);
 
       expect(getSelected()).toEqual([[1, 0, 1, 0]]);
     });
@@ -399,7 +471,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(4, 0);
-      keyDown('arrow_down');
+      keyDownUp('arrowdown');
 
       expect(getSelected()).toEqual([[4, 0, 4, 0]]);
     });
@@ -412,7 +484,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(0, 1);
-      keyDown('arrow_up');
+      keyDownUp('arrowup');
 
       expect(getSelected()).toEqual([[0, 1, 0, 1]]);
     });
@@ -428,7 +500,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(0, 4);
-      keyDown(ARROW_NEXT_COLUMN);
+      keyDownUp(ARROW_NEXT_COLUMN);
 
       expect(getSelected()).toEqual([[1, 0, 1, 0]]);
     });
@@ -441,7 +513,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(1, 0);
-      keyDown(ARROW_PREV_COLUMN);
+      keyDownUp(ARROW_PREV_COLUMN);
 
       expect(getSelected()).toEqual([[0, 4, 0, 4]]);
     });
@@ -454,7 +526,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(4, 1);
-      keyDown('arrow_down');
+      keyDownUp('arrowdown');
 
       expect(getSelected()).toEqual([[0, 2, 0, 2]]);
     });
@@ -467,7 +539,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(0, 1);
-      keyDown('arrow_up');
+      keyDownUp('arrowup');
 
       expect(getSelected()).toEqual([[4, 0, 4, 0]]);
     });
@@ -480,7 +552,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(4, 4);
-      keyDown(ARROW_NEXT_COLUMN);
+      keyDownUp(ARROW_NEXT_COLUMN);
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     });
@@ -493,7 +565,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(4, 4);
-      keyDown('arrow_down');
+      keyDownUp('arrowdown');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     });
@@ -506,7 +578,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(0, 0);
-      keyDown(ARROW_PREV_COLUMN);
+      keyDownUp(ARROW_PREV_COLUMN);
 
       expect(getSelected()).toEqual([[4, 4, 4, 4]]);
     });
@@ -519,7 +591,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(0, 0);
-      keyDown('arrow_up');
+      keyDownUp('arrowup');
 
       expect(getSelected()).toEqual([[4, 4, 4, 4]]);
     });
@@ -536,7 +608,7 @@ describe('Core_navigation RTL', () => {
       for (let row = 0, rlen = countRows(); row < rlen; row++) {
         for (let col = 0, clen = countCols(); col < clen; col++) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
-          keyDown(ARROW_NEXT_COLUMN);
+          keyDownUp(ARROW_NEXT_COLUMN);
         }
       }
 
@@ -555,7 +627,7 @@ describe('Core_navigation RTL', () => {
       for (let row = countRows() - 1; row >= 0; row--) {
         for (let col = countCols() - 1; col >= 0; col--) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
-          keyDown(ARROW_PREV_COLUMN);
+          keyDownUp(ARROW_PREV_COLUMN);
         }
       }
 
@@ -574,7 +646,7 @@ describe('Core_navigation RTL', () => {
       for (let col = 0, clen = countCols(); col < clen; col++) {
         for (let row = 0, rlen = countRows(); row < rlen; row++) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
-          keyDown('arrow_down');
+          keyDownUp('arrowdown');
         }
       }
 
@@ -593,7 +665,7 @@ describe('Core_navigation RTL', () => {
       for (let col = countCols() - 1; col >= 0; col--) {
         for (let row = countRows() - 1; row >= 0; row--) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
-          keyDown('arrow_up');
+          keyDownUp('arrowup');
         }
       }
 

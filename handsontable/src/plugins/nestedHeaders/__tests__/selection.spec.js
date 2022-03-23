@@ -771,11 +771,13 @@ describe('NestedHeaders', () => {
 
       expect(getSelected()).toEqual([[-2, 1, 9, 1]]);
 
-      keyDown('ctrl');
+      keyDown('control');
 
       $(getCell(-3, 5)) // Header "F2"
         .simulate('mousedown')
         .simulate('mouseup');
+
+      keyUp('control');
 
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
@@ -835,9 +837,13 @@ describe('NestedHeaders', () => {
         [-3, 5, 9, 5],
       ]);
 
+      keyDown('control');
+
       $(getCell(-3, 1)) // Header "B2"
         .simulate('mousedown')
         .simulate('mouseup');
+
+      keyUp('control');
 
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
@@ -951,7 +957,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      const $cornerHeader = this.$container.find('.ht_clone_top_left_corner thead tr:eq(0) th:eq(0)');
+      const $cornerHeader = this.$container.find('.ht_clone_top_inline_start_corner thead tr:eq(0) th:eq(0)');
 
       $cornerHeader.simulate('mousedown');
       $cornerHeader.simulate('mouseup');

@@ -114,7 +114,7 @@ describe('HiddenRows', () => {
         },
       });
 
-      const header = $('.ht_clone_left .htCore thead tr th').eq(0); // The corner
+      const header = $('.ht_clone_inline_start .htCore thead tr th').eq(0); // The corner
 
       simulateClick(header, 'LMB');
 
@@ -179,12 +179,12 @@ describe('HiddenRows', () => {
       mouseDown(startColumn, 'LMB');
       mouseUp(startColumn);
 
-      keyDown('ctrl');
+      keyDown('control');
 
       mouseDown(endColumn, 'LMB');
       mouseUp(endColumn);
 
-      keyUp('ctrl');
+      keyUp('control');
 
       expect(getSelected()).toEqual([
         [4, -1, 4, 4],
@@ -244,10 +244,12 @@ describe('HiddenRows', () => {
         |   ║   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDown('ctrl');
+      keyDown('control');
 
       $(getCell(5, 3)).simulate('mousedown');
       $(getCell(8, 5)).simulate('mouseover').simulate('mouseup');
+
+      keyUp('control');
 
       expect(getSelected()).toEqual([[3, 1, 6, 4], [5, 3, 8, 5]]);
       expect(getSelectedRangeLast().highlight.row).toBe(5);
@@ -316,7 +318,7 @@ describe('HiddenRows', () => {
           },
         });
 
-        const corner = $('.ht_clone_top_left_corner .htCore thead th').eq(0);
+        const corner = $('.ht_clone_top_inline_start_corner .htCore thead th').eq(0);
 
         simulateClick(corner, 'LMB');
 
@@ -339,7 +341,7 @@ describe('HiddenRows', () => {
           },
         });
 
-        const corner = $('.ht_clone_top_left_corner .htCore thead th').eq(0);
+        const corner = $('.ht_clone_top_inline_start_corner .htCore thead th').eq(0);
 
         simulateClick(corner, 'LMB');
 
@@ -957,15 +959,15 @@ describe('HiddenRows', () => {
         $(getCell(3, 1)).simulate('mousedown');
         $(getCell(6, 4)).simulate('mouseover').simulate('mouseup');
 
-        keyDown('ctrl');
+        keyDown('control');
 
         $(getCell(5, 3)).simulate('mousedown');
         $(getCell(8, 5)).simulate('mouseover').simulate('mouseup');
 
-        keyDown('ctrl');
-
         $(getCell(6, 3)).simulate('mousedown');
         $(getCell(9, 6)).simulate('mouseover').simulate('mouseup');
+
+        keyUp('control');
 
         expect(getSelected()).toEqual([[3, 1, 6, 4], [5, 3, 8, 5], [6, 3, 9, 6]]);
         expect(getSelectedRangeLast().highlight.row).toBe(6);
@@ -1102,15 +1104,15 @@ describe('HiddenRows', () => {
         $(getCell(3, 1)).simulate('mousedown');
         $(getCell(6, 4)).simulate('mouseover').simulate('mouseup');
 
-        keyDown('ctrl');
+        keyDown('control');
 
         $(getCell(5, 3)).simulate('mousedown');
         $(getCell(8, 5)).simulate('mouseover').simulate('mouseup');
 
-        keyDown('ctrl');
-
         $(getCell(6, 3)).simulate('mousedown');
         $(getCell(9, 6)).simulate('mouseover').simulate('mouseup');
+
+        keyUp('control');
 
         expect(getSelected()).toEqual([[3, 1, 6, 4], [5, 3, 8, 5], [6, 3, 9, 6]]);
         expect(getSelectedRangeLast().highlight.row).toBe(6);

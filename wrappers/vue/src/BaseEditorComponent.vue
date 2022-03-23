@@ -159,6 +159,10 @@
       return (Handsontable.editors.BaseEditor.prototype as any).getEditedCell.call(this.$data.hotCustomEditorInstance, ...args);
     }
 
+    getEditedCellRect(...args) {
+      return (Handsontable.editors.BaseEditor.prototype as any).getEditedCellRect.call(this.$data.hotCustomEditorInstance, ...args);
+    }
+
     getEditedCellsZIndex(...args) {
       return (Handsontable.editors.BaseEditor.prototype as any).getEditedCellsZIndex.call(this.$data.hotCustomEditorInstance, ...args);
     }

@@ -70,7 +70,7 @@ To display a published documentation version in a browser:
 
 If you're editing the `latest` version (a version with the largest `<semver.version>` number), remember to make the same edits to the `next` version as well.
 
-## Editing the API reference
+### Editing the API reference
 
 The `next` version's API reference is generated automatically from the source code, into the `/next/api/` directory.
 
@@ -84,6 +84,23 @@ To edit the `next` version's API reference:
 To edit a published version's API reference:
 1. Go to the required version's API reference output: `/docs/<semver.version>/api` (e.g. `/docs/9.0/api`).
 2. Edit the required Markdown files.
+
+## Reviewing the documentation
+
+When reviewing someone else's changes, you can see the documentation output in a few different ways:
+- Switch to the reviewed branch, pull the latest changes, and [start a local documentation server](./README.md#getting-started-with-handsontable-documentation) ([link redirects](./docker/redirects.conf) won't work, though).
+- [Deploy the documentation to the staging environment](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment) (https://dev.handsontable.com/docs).
+- [Deploy the documentation locally at a specific commit](#deploying-the-documentation-locally-at-a-specific-commit).
+
+### Deploying the documentation locally at a specific commit
+
+To deploy the documentation locally at a `[COMMIT_HASH]` commit:
+1. If you don't have [Docker Desktop](https://www.docker.com/products/docker-desktop), install it.
+2. From the `docs` directory, run the following command:
+   ```bash
+   npm run docs:review [COMMIT_HASH]
+   ```
+3. In your browser, go to: http://localhost:8000/docs/.
 
 ## Documentation versioning
 

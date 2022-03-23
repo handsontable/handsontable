@@ -27,7 +27,7 @@ export function extractDOMStructure(overlaysTHead, overlaysTBody) {
  * @returns {HTMLTableCellElement}
  */
 export function nonHiddenTHs(hot, row) {
-  const headerRows = hot.view.wt.wtTable.THEAD.querySelectorAll('tr');
+  const headerRows = hot.view._wt.wtTable.THEAD.querySelectorAll('tr');
 
   return headerRows[row].querySelectorAll('th:not(.hiddenHeader)');
 }

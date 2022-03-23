@@ -18,7 +18,7 @@ describe('noEditor', () => {
       editor: false
     });
     selectCell(2, 2);
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(getSelected()).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(false);
@@ -29,8 +29,8 @@ describe('noEditor', () => {
       editor: false
     });
     selectCell(2, 2);
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(getSelected()).toEqual([[2, 2, 2, 2]]);
   });
@@ -41,7 +41,7 @@ describe('noEditor', () => {
       editor: false
     });
     selectCell(2, 2);
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(getSelected()).toEqual([[3, 2, 3, 2]]);
     expect(isEditorVisible()).toEqual(false);
@@ -53,7 +53,7 @@ describe('noEditor', () => {
     });
     setDataAtCell(2, 2, 'string');
     selectCell(2, 2);
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(keyProxy().length).toEqual(0);
   });
@@ -66,7 +66,7 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toEqual(false);
 
-    keyDown('f2');
+    keyDownUp('f2');
 
     expect(isEditorVisible()).toEqual(false);
   });
@@ -79,7 +79,7 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toEqual(false);
 
-    keyDown(Handsontable.helper.KEY_CODES.CAPS_LOCK);
+    keyDownUp('capslock');
 
     expect(isEditorVisible()).toEqual(false);
   });
@@ -124,7 +124,7 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    spec().$container.simulate('keydown', { keyCode: 'a'.charCodeAt(0) });
+    keyDownUp('a');
 
     expect(isEditorVisible()).toBe(false);
   });
@@ -138,7 +138,7 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    spec().$container.simulate('keydown', { keyCode: 'a'.charCodeAt(0), shiftKey: true });
+    keyDownUp(['shift', 'a']);
 
     expect(isEditorVisible()).toBe(false);
   });
@@ -151,7 +151,7 @@ describe('noEditor', () => {
     expect(getDataAtCell(0, 0)).toEqual('A1');
 
     selectCell(0, 0);
-    keyDown(Handsontable.helper.KEY_CODES.ALT);
+    keyDownUp('alt');
 
     expect(isEditorVisible()).toBe(false);
   });

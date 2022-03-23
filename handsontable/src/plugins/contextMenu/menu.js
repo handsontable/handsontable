@@ -17,27 +17,42 @@ import {
   addClass,
   empty,
   fastInnerHTML,
-  getScrollbarWidth,
   isChildOf,
   isInput,
   removeClass,
   getParentWindow,
   hasClass,
 } from '../../helpers/dom/element';
-import { stopImmediatePropagation, isRightClick } from '../../helpers/dom/event';
+import { isRightClick } from '../../helpers/dom/event';
 import { debounce, isFunction } from '../../helpers/function';
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { mixin, hasOwnProperty } from '../../helpers/object';
-import { KEY_CODES } from '../../helpers/unicode';
 import localHooks from '../../mixins/localHooks';
 
 const MIN_WIDTH = 215;
+const SHORTCUTS_CONTEXT = 'menu';
+const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
+
+/**
+ * @typedef MenuOptions
+ * @property {Menu} [parent=null] Instance of {@link Menu}.
+ * @property {string} [name=null] Name of the menu.
+ * @property {string} [className=''] Custom class name.
+ * @property {boolean} [keepInViewport=true] Determine if should be kept in viewport.
+ * @property {boolean} [standalone] Enabling closing menu when clicked element is not belongs to menu itself.
+ * @property {number} [minWidth=MIN_WIDTH] The minimum width.
+ * @property {HTMLElement} [container] The container.
+ */
 
 /**
  * @private
  * @class Menu
  */
 class Menu {
+  /**
+   * @param {Core} hotInstance Handsontable instance.
+   * @param {MenuOptions} [options] Menu options.
+   */
   constructor(hotInstance, options) {
     this.hot = hotInstance;
     this.options = options || {
@@ -191,7 +206,7 @@ class Menu {
       fragmentSelection: false,
       outsideClickDeselects: false,
       disableVisualSelection: 'area',
-      beforeKeyDown: event => this.onBeforeKeyDown(event),
+      layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
@@ -248,6 +263,120 @@ class Menu {
     this.hotMenu.addHook('afterSelection', (...args) => this.onAfterSelection(...args));
     this.hotMenu.init();
     this.hotMenu.listen();
+
+    const shortcutManager = this.hotMenu.getShortcutManager();
+    const menuContext = shortcutManager.addContext(SHORTCUTS_GROUP);
+    const config = { group: SHORTCUTS_CONTEXT };
+    const menuContextConfig = {
+      ...config,
+      runOnlyIf: event => isInput(event.target) === false || this.container.contains(event.target) === false,
+    };
+
+    // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
+    shortcutManager.setActiveContextName('menu');
+
+    menuContext.addShortcuts([{
+      keys: [['Escape']],
+      callback: () => {
+        this.keyEvent = true;
+        this.close();
+        this.keyEvent = false;
+      },
+    }, {
+      keys: [['ArrowDown']],
+      callback: () => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (selection) {
+          this.selectNextCell(selection[0], selection[1]);
+
+        } else {
+          this.selectFirstCell();
+        }
+
+        this.keyEvent = false;
+      },
+    }, {
+      keys: [['ArrowUp']],
+      callback: () => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (selection) {
+          this.selectPrevCell(selection[0], selection[1]);
+
+        } else {
+          this.selectLastCell();
+        }
+
+        this.keyEvent = false;
+      }
+    }, {
+      keys: [['ArrowRight']],
+      callback: () => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (selection) {
+          const menu = this.openSubMenu(selection[0]);
+
+          if (menu) {
+            menu.selectFirstCell();
+          }
+        }
+
+        this.keyEvent = false;
+      }
+    }, {
+      keys: [['ArrowLeft']],
+      callback: () => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (selection && this.isSubMenu()) {
+          this.close();
+
+          if (this.parentMenu) {
+            this.parentMenu.hotMenu.listen();
+          }
+        }
+
+        this.keyEvent = false;
+      },
+    }, {
+      keys: [['Enter']],
+      callback: (event) => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (!this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
+          this.executeCommand(event);
+          this.close(true);
+        }
+
+        this.keyEvent = false;
+      }
+    }, {
+      keys: [['PageUp']],
+      callback: () => {
+        this.hotMenu.selection.transformStart(-this.hotMenu.countVisibleRows(), 0);
+
+        this.keyEvent = false;
+      },
+    }, {
+      keys: [['PageDown']],
+      callback: () => {
+        this.hotMenu.selection.transformStart(this.hotMenu.countVisibleRows(), 0);
+
+        this.keyEvent = false;
+      },
+    }], menuContextConfig);
 
     this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');
@@ -432,14 +561,41 @@ class Menu {
       } else {
         this.setPositionBelowCursor(cursor);
       }
-      if (cursor.fitsOnRight(this.container)) {
-        this.setPositionOnRightOfCursor(cursor);
+
+      if (this.hot.isLtr()) {
+        this.setHorizontalPositionForLtr(cursor);
       } else {
-        this.setPositionOnLeftOfCursor(cursor);
+        this.setHorizontalPositionForRtl(cursor);
       }
     } else {
       this.setPositionBelowCursor(cursor);
       this.setPositionOnRightOfCursor(cursor);
+    }
+  }
+
+  /**
+   * Set menu horizontal position for RTL mode.
+   *
+   * @param {Cursor} cursor `Cursor` object.
+   */
+  setHorizontalPositionForRtl(cursor) {
+    if (cursor.fitsOnLeft(this.container)) {
+      this.setPositionOnLeftOfCursor(cursor);
+    } else {
+      this.setPositionOnRightOfCursor(cursor);
+    }
+  }
+
+  /**
+   * Set menu horizontal position for LTR mode.
+   *
+   * @param {Cursor} cursor `Cursor` object.
+   */
+  setHorizontalPositionForLtr(cursor) {
+    if (cursor.fitsOnRight(this.container)) {
+      this.setPositionOnRightOfCursor(cursor);
+    } else {
+      this.setPositionOnLeftOfCursor(cursor);
     }
   }
 
@@ -477,12 +633,15 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnRightOfCursor(cursor) {
-    let left;
+    let left = cursor.left;
 
     if (this.isSubMenu()) {
-      left = 1 + cursor.left + cursor.cellWidth;
+      const { right: parentMenuRight } = this.parentMenu.container.getBoundingClientRect();
+
+      // move the sub menu by the width of the parent's border (usually by 1-2 pixels)
+      left += cursor.cellWidth + parentMenuRight - (cursor.left + cursor.cellWidth);
     } else {
-      left = this.offset.right + 1 + cursor.left;
+      left += this.offset.right;
     }
 
     this.container.style.left = `${left}px`;
@@ -494,8 +653,14 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
-    const left = this.offset.left + cursor.left - this.container.offsetWidth + scrollbarWidth + 4;
+    let left = this.offset.left + cursor.left - this.container.offsetWidth;
+
+    if (this.isSubMenu()) {
+      const { left: parentMenuLeft } = this.parentMenu.container.getBoundingClientRect();
+
+      // move the sub menu by the width of the parent's border (usually by 1-2 pixels)
+      left -= cursor.left - parentMenuLeft;
+    }
 
     this.container.style.left = `${left}px`;
   }
@@ -701,100 +866,12 @@ class Menu {
   }
 
   /**
-   * On before key down listener.
-   *
-   * @private
-   * @param {Event} event The keyaboard event object.
-   */
-  onBeforeKeyDown(event) {
-    // For input elements, prevent event propagation. It allows entering text into an input
-    // element freely - without steeling the key events from the menu module (#6506, #6549).
-    if (isInput(event.target) && this.container.contains(event.target)) {
-      stopImmediatePropagation(event);
-
-      return;
-    }
-
-    const selection = this.hotMenu.getSelectedLast();
-    let stopEvent = false;
-
-    this.keyEvent = true;
-
-    switch (event.keyCode) {
-      case KEY_CODES.ESCAPE:
-        this.close();
-        stopEvent = true;
-        break;
-
-      case KEY_CODES.ENTER:
-        if (selection) {
-          if (this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
-            stopEvent = true;
-          } else {
-            this.executeCommand(event);
-            this.close(true);
-          }
-        }
-        break;
-
-      case KEY_CODES.ARROW_DOWN:
-        if (selection) {
-          this.selectNextCell(selection[0], selection[1]);
-        } else {
-          this.selectFirstCell();
-        }
-        stopEvent = true;
-        break;
-
-      case KEY_CODES.ARROW_UP:
-        if (selection) {
-          this.selectPrevCell(selection[0], selection[1]);
-        } else {
-          this.selectLastCell();
-        }
-        stopEvent = true;
-        break;
-
-      case KEY_CODES.ARROW_RIGHT:
-        if (selection) {
-          const menu = this.openSubMenu(selection[0]);
-
-          if (menu) {
-            menu.selectFirstCell();
-          }
-        }
-        stopEvent = true;
-
-        break;
-
-      case KEY_CODES.ARROW_LEFT:
-        if (selection && this.isSubMenu()) {
-          this.close();
-
-          if (this.parentMenu) {
-            this.parentMenu.hotMenu.listen();
-          }
-          stopEvent = true;
-        }
-        break;
-      default:
-        break;
-    }
-    if (stopEvent) {
-      event.preventDefault();
-      stopImmediatePropagation(event);
-    }
-
-    this.keyEvent = false;
-  }
-
-  /**
    * On after init listener.
    *
    * @private
    */
   onAfterInit() {
-    const { wtTable } = this.hotMenu.view.wt;
+    const { wtTable } = this.hotMenu.view._wt;
     const data = this.hotMenu.getSettings().data;
     const hiderStyle = wtTable.hider.style;
     const holderStyle = wtTable.holder.style;
@@ -838,7 +915,7 @@ class Menu {
     if (this.options.standalone && this.hotMenu && !isChildOf(event.target, this.hotMenu.rootElement)) {
       this.close(true);
 
-    // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
+      // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) && !isChildOf(event.target, '.htMenu')) {
       this.close(true);
     }

@@ -9,26 +9,27 @@ import {
   offset,
   outerHeight,
   outerWidth,
-} from './../../../helpers/dom/element';
-import { stopImmediatePropagation } from './../../../helpers/dom/event';
-import { objectEach } from './../../../helpers/object';
-import { isMobileBrowser } from './../../../helpers/browser';
-import EventManager from './../../../eventManager';
-import CellCoords from './cell/coords';
+} from '../../../helpers/dom/element';
+import { stopImmediatePropagation } from '../../../helpers/dom/event';
+import { objectEach } from '../../../helpers/object';
+import { isMobileBrowser } from '../../../helpers/browser';
 
 /**
  *
  */
 class Border {
+  // TODO As this is an internal class, should be designed for using {Walkontable}. It uses the facade,
+  // TODO Con. Because the class is created on place where the instance reference comes from external origin.
+  // TODO Imho, the discrimination for handling both, facade and non-facade should be handled.
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {WalkontableFacade} wotInstance The Walkontable instance.
    * @param {object} settings The border settings.
    */
   constructor(wotInstance, settings) {
     if (!settings) {
       return;
     }
-    this.eventManager = new EventManager(wotInstance);
+    this.eventManager = wotInstance.eventManager;
     this.instance = wotInstance;
     this.wot = wotInstance;
     this.settings = settings;
@@ -36,14 +37,14 @@ class Border {
     this.main = null;
 
     this.top = null;
-    this.left = null;
     this.bottom = null;
-    this.right = null;
+    this.start = null;
+    this.end = null;
 
     this.topStyle = null;
-    this.leftStyle = null;
     this.bottomStyle = null;
-    this.rightStyle = null;
+    this.startStyle = null;
+    this.endStyle = null;
 
     this.cornerDefaultStyle = {
       width: '6px',
@@ -159,7 +160,7 @@ class Border {
 
     this.main = rootDocument.createElement('div');
 
-    const borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
+    const borderDivs = ['top', 'start', 'bottom', 'end', 'corner'];
     let style = this.main.style;
 
     style.position = 'absolute';
@@ -186,14 +187,14 @@ class Border {
       this.main.appendChild(div);
     }
     this.top = this.main.childNodes[0];
-    this.left = this.main.childNodes[1];
+    this.start = this.main.childNodes[1];
     this.bottom = this.main.childNodes[2];
-    this.right = this.main.childNodes[3];
+    this.end = this.main.childNodes[3];
 
     this.topStyle = this.top.style;
-    this.leftStyle = this.left.style;
+    this.startStyle = this.start.style;
     this.bottomStyle = this.bottom.style;
-    this.rightStyle = this.right.style;
+    this.endStyle = this.end.style;
 
     this.corner = this.main.childNodes[4];
     this.corner.className += ' corner';
@@ -230,24 +231,24 @@ class Border {
     const { rootDocument } = this.wot;
 
     this.selectionHandles = {
-      topLeft: rootDocument.createElement('DIV'),
-      topLeftHitArea: rootDocument.createElement('DIV'),
-      bottomRight: rootDocument.createElement('DIV'),
-      bottomRightHitArea: rootDocument.createElement('DIV')
+      top: rootDocument.createElement('DIV'),
+      topHitArea: rootDocument.createElement('DIV'),
+      bottom: rootDocument.createElement('DIV'),
+      bottomHitArea: rootDocument.createElement('DIV')
     };
     const width = 10;
     const hitAreaWidth = 40;
 
-    this.selectionHandles.topLeft.className = 'topLeftSelectionHandle';
-    this.selectionHandles.topLeftHitArea.className = 'topLeftSelectionHandle-HitArea';
-    this.selectionHandles.bottomRight.className = 'bottomRightSelectionHandle';
-    this.selectionHandles.bottomRightHitArea.className = 'bottomRightSelectionHandle-HitArea';
+    this.selectionHandles.top.className = 'topSelectionHandle topLeftSelectionHandle';
+    this.selectionHandles.topHitArea.className = 'topSelectionHandle-HitArea topLeftSelectionHandle-HitArea';
+    this.selectionHandles.bottom.className = 'bottomSelectionHandle bottomRightSelectionHandle';
+    this.selectionHandles.bottomHitArea.className = 'bottomSelectionHandle-HitArea bottomRightSelectionHandle-HitArea';
 
     this.selectionHandles.styles = {
-      topLeft: this.selectionHandles.topLeft.style,
-      topLeftHitArea: this.selectionHandles.topLeftHitArea.style,
-      bottomRight: this.selectionHandles.bottomRight.style,
-      bottomRightHitArea: this.selectionHandles.bottomRightHitArea.style
+      top: this.selectionHandles.top.style,
+      topHitArea: this.selectionHandles.topHitArea.style,
+      bottom: this.selectionHandles.bottom.style,
+      bottomHitArea: this.selectionHandles.bottomHitArea.style
     };
 
     const hitAreaStyle = {
@@ -258,8 +259,8 @@ class Border {
     };
 
     objectEach(hitAreaStyle, (value, key) => {
-      this.selectionHandles.styles.bottomRightHitArea[key] = value;
-      this.selectionHandles.styles.topLeftHitArea[key] = value;
+      this.selectionHandles.styles.bottomHitArea[key] = value;
+      this.selectionHandles.styles.topHitArea[key] = value;
     });
 
     const handleStyle = {
@@ -272,14 +273,14 @@ class Border {
     };
 
     objectEach(handleStyle, (value, key) => {
-      this.selectionHandles.styles.bottomRight[key] = value;
-      this.selectionHandles.styles.topLeft[key] = value;
+      this.selectionHandles.styles.bottom[key] = value;
+      this.selectionHandles.styles.top[key] = value;
     });
 
-    this.main.appendChild(this.selectionHandles.topLeft);
-    this.main.appendChild(this.selectionHandles.bottomRight);
-    this.main.appendChild(this.selectionHandles.topLeftHitArea);
-    this.main.appendChild(this.selectionHandles.bottomRightHitArea);
+    this.main.appendChild(this.selectionHandles.top);
+    this.main.appendChild(this.selectionHandles.bottom);
+    this.main.appendChild(this.selectionHandles.topHitArea);
+    this.main.appendChild(this.selectionHandles.bottomHitArea);
   }
 
   /**
@@ -308,46 +309,49 @@ class Border {
    * @param {number} height The height of the handler.
    */
   updateMultipleSelectionHandlesPosition(row, col, top, left, width, height) {
-    const handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10);
-    const hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
+    const isRtl = this.wot.wtSettings.getSetting('rtlMode');
+    const inlinePosProperty = isRtl ? 'right' : 'left';
+    const handleWidth = parseInt(this.selectionHandles.styles.top.width, 10);
+    const hitAreaWidth = parseInt(this.selectionHandles.styles.topHitArea.width, 10);
 
-    this.selectionHandles.styles.topLeft.top = `${parseInt(top - handleWidth, 10)}px`;
-    this.selectionHandles.styles.topLeft.left = `${parseInt(left - handleWidth, 10)}px`;
+    this.selectionHandles.styles.top.top = `${parseInt(top - handleWidth - 1, 10)}px`;
+    this.selectionHandles.styles.top[inlinePosProperty] = `${parseInt(left - handleWidth - 1, 10)}px`;
 
-    this.selectionHandles.styles.topLeftHitArea.top = `${parseInt(top - ((hitAreaWidth / 4) * 3), 10)}px`;
-    this.selectionHandles.styles.topLeftHitArea.left = `${parseInt(left - ((hitAreaWidth / 4) * 3), 10)}px`;
+    this.selectionHandles.styles.topHitArea.top = `${parseInt(top - ((hitAreaWidth / 4) * 3), 10)}px`;
+    this.selectionHandles.styles.topHitArea[inlinePosProperty] = `${parseInt(left - ((hitAreaWidth / 4) * 3), 10)}px`;
 
-    this.selectionHandles.styles.bottomRight.top = `${parseInt(top + height, 10)}px`;
-    this.selectionHandles.styles.bottomRight.left = `${parseInt(left + width, 10)}px`;
+    this.selectionHandles.styles.bottom.top = `${parseInt(top + height, 10)}px`;
+    this.selectionHandles.styles.bottom[inlinePosProperty] = `${parseInt(left + width, 10)}px`;
 
-    this.selectionHandles.styles.bottomRightHitArea.top = `${parseInt(top + height - (hitAreaWidth / 4), 10)}px`;
-    this.selectionHandles.styles.bottomRightHitArea.left = `${parseInt(left + width - (hitAreaWidth / 4), 10)}px`;
+    this.selectionHandles.styles.bottomHitArea.top = `${parseInt(top + height - (hitAreaWidth / 4), 10)}px`;
+    this.selectionHandles.styles
+      .bottomHitArea[inlinePosProperty] = `${parseInt(left + width - (hitAreaWidth / 4), 10)}px`;
 
     if (this.settings.border.cornerVisible && this.settings.border.cornerVisible()) {
-      this.selectionHandles.styles.topLeft.display = 'block';
-      this.selectionHandles.styles.topLeftHitArea.display = 'block';
+      this.selectionHandles.styles.top.display = 'block';
+      this.selectionHandles.styles.topHitArea.display = 'block';
 
       if (this.isPartRange(row, col)) {
-        this.selectionHandles.styles.bottomRight.display = 'none';
-        this.selectionHandles.styles.bottomRightHitArea.display = 'none';
+        this.selectionHandles.styles.bottom.display = 'none';
+        this.selectionHandles.styles.bottomHitArea.display = 'none';
       } else {
-        this.selectionHandles.styles.bottomRight.display = 'block';
-        this.selectionHandles.styles.bottomRightHitArea.display = 'block';
+        this.selectionHandles.styles.bottom.display = 'block';
+        this.selectionHandles.styles.bottomHitArea.display = 'block';
       }
     } else {
-      this.selectionHandles.styles.topLeft.display = 'none';
-      this.selectionHandles.styles.bottomRight.display = 'none';
-      this.selectionHandles.styles.topLeftHitArea.display = 'none';
-      this.selectionHandles.styles.bottomRightHitArea.display = 'none';
+      this.selectionHandles.styles.top.display = 'none';
+      this.selectionHandles.styles.bottom.display = 'none';
+      this.selectionHandles.styles.topHitArea.display = 'none';
+      this.selectionHandles.styles.bottomHitArea.display = 'none';
     }
 
     if (row === this.wot.wtSettings.getSetting('fixedRowsTop') ||
-        col === this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
-      this.selectionHandles.styles.topLeft.zIndex = '9999';
-      this.selectionHandles.styles.topLeftHitArea.zIndex = '9999';
+        col === this.wot.wtSettings.getSetting('fixedColumnsStart')) {
+      this.selectionHandles.styles.top.zIndex = '9999';
+      this.selectionHandles.styles.topHitArea.zIndex = '9999';
     } else {
-      this.selectionHandles.styles.topLeft.zIndex = '';
-      this.selectionHandles.styles.topLeftHitArea.zIndex = '';
+      this.selectionHandles.styles.top.zIndex = '';
+      this.selectionHandles.styles.topHitArea.zIndex = '';
     }
   }
 
@@ -361,7 +365,7 @@ class Border {
       return;
     }
 
-    const { wtTable, rootDocument, rootWindow } = this.wot;
+    const { wtTable, rootDocument, rootWindow } = this.wot; // todo refactoring: consider about using internal facade (it is given by external code)
     let fromRow;
     let toRow;
     let fromColumn;
@@ -416,24 +420,38 @@ class Border {
       return;
     }
 
-    let fromTD = wtTable.getCell(new CellCoords(fromRow, fromColumn));
+    let fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    const toTD = isMultiple ? wtTable.getCell(new CellCoords(toRow, toColumn)) : fromTD;
+    const toTD = isMultiple ? wtTable.getCell(this.wot.createCellCoords(toRow, toColumn)) : fromTD;
     const fromOffset = offset(fromTD);
     const toOffset = isMultiple ? offset(toTD) : fromOffset;
     const containerOffset = offset(wtTable.TABLE);
+    const containerWidth = outerWidth(wtTable.TABLE);
     const minTop = fromOffset.top;
     const minLeft = fromOffset.left;
+    const isRtl = this.wot.wtSettings.getSetting('rtlMode');
 
-    let left = minLeft - containerOffset.left - 1;
-    let width = toOffset.left + outerWidth(toTD) - minLeft;
+    let inlineStartPos = 0;
+    let width = 0;
+
+    if (isRtl) {
+      const fromWidth = outerWidth(fromTD);
+      const gridRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
+
+      width = minLeft + fromWidth - toOffset.left;
+      inlineStartPos = rootWindow.innerWidth - minLeft - fromWidth - gridRightPos - 1;
+
+    } else {
+      width = toOffset.left + outerWidth(toTD) - minLeft;
+      inlineStartPos = minLeft - containerOffset.left - 1;
+    }
 
     if (this.isEntireColumnSelected(fromRow, toRow)) {
       const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, rowHeader, containerOffset);
       let fromTH = null;
 
       if (modifiedValues) {
-        [fromTH, left, width] = modifiedValues;
+        [fromTH, inlineStartPos, width] = modifiedValues;
       }
 
       if (fromTH) {
@@ -463,32 +481,34 @@ class Border {
       top += 1;
       height = height > 0 ? height - 1 : 0;
     }
-    if (parseInt(style.borderLeftWidth, 10) > 0) {
-      left += 1;
+    if (parseInt(style[isRtl ? 'borderRightWidth' : 'borderLeftWidth'], 10) > 0) {
+      inlineStartPos += 1;
       width = width > 0 ? width - 1 : 0;
     }
 
+    const inlinePosProperty = isRtl ? 'right' : 'left';
+
     this.topStyle.top = `${top}px`;
-    this.topStyle.left = `${left}px`;
+    this.topStyle[inlinePosProperty] = `${inlineStartPos}px`;
     this.topStyle.width = `${width}px`;
     this.topStyle.display = 'block';
 
-    this.leftStyle.top = `${top}px`;
-    this.leftStyle.left = `${left}px`;
-    this.leftStyle.height = `${height}px`;
-    this.leftStyle.display = 'block';
+    this.startStyle.top = `${top}px`;
+    this.startStyle[inlinePosProperty] = `${inlineStartPos}px`;
+    this.startStyle.height = `${height}px`;
+    this.startStyle.display = 'block';
 
     const delta = Math.floor(this.settings.border.width / 2);
 
     this.bottomStyle.top = `${top + height - delta}px`;
-    this.bottomStyle.left = `${left}px`;
+    this.bottomStyle[inlinePosProperty] = `${inlineStartPos}px`;
     this.bottomStyle.width = `${width}px`;
     this.bottomStyle.display = 'block';
 
-    this.rightStyle.top = `${top}px`;
-    this.rightStyle.left = `${left + width - delta}px`;
-    this.rightStyle.height = `${height + 1}px`;
-    this.rightStyle.display = 'block';
+    this.endStyle.top = `${top}px`;
+    this.endStyle[inlinePosProperty] = `${inlineStartPos + width - delta}px`;
+    this.endStyle.height = `${height + 1}px`;
+    this.endStyle.display = 'block';
 
     let cornerVisibleSetting = this.settings.border.cornerVisible;
 
@@ -507,7 +527,7 @@ class Border {
 
     } else {
       this.cornerStyle.top = `${top + height + this.cornerCenterPointOffset - 1}px`;
-      this.cornerStyle.left = `${left + width + this.cornerCenterPointOffset - 1}px`;
+      this.cornerStyle[inlinePosProperty] = `${inlineStartPos + width + this.cornerCenterPointOffset - 1}px`;
       this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
       this.cornerStyle.width = this.cornerDefaultStyle.width;
 
@@ -523,12 +543,21 @@ class Border {
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
         const toTdOffsetLeft = trimToWindow ? toTD.getBoundingClientRect().left : toTD.offsetLeft;
-        const cornerRightEdge = toTdOffsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2);
-        const cornerOverlappingContainer = cornerRightEdge >= innerWidth(trimmingContainer);
+        let cornerOverlappingContainer = false;
+        let cornerEdge = 0;
+
+        if (isRtl) {
+          cornerEdge = toTdOffsetLeft - (parseInt(this.cornerDefaultStyle.width, 10) / 2);
+          cornerOverlappingContainer = cornerEdge < 0;
+
+        } else {
+          cornerEdge = toTdOffsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2);
+          cornerOverlappingContainer = cornerEdge >= innerWidth(trimmingContainer);
+        }
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle.left = `${Math.floor(left + width + this.cornerCenterPointOffset - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`; // eslint-disable-line max-len
-          this.cornerStyle.borderRightWidth = 0;
+          this.cornerStyle[inlinePosProperty] = `${Math.floor(inlineStartPos + width + this.cornerCenterPointOffset - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`; // eslint-disable-line max-len
+          this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
         }
       }
 
@@ -547,7 +576,7 @@ class Border {
     }
 
     if (isMobileBrowser()) {
-      this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, left, width, height);
+      this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, inlineStartPos, width, height);
     }
   }
 
@@ -646,7 +675,7 @@ class Border {
    * Change border style.
    *
    * @private
-   * @param {string} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @param {string} borderElement Coordinate where add/remove border: top, bottom, start, end.
    * @param {object} border The border object descriptor.
    */
   changeBorderStyle(borderElement, border) {
@@ -667,7 +696,7 @@ class Border {
         style.height = `${borderStyle.width}px`;
       }
 
-      if (borderElement === 'right' || borderElement === 'left') {
+      if (borderElement === 'start' || borderElement === 'end') {
         style.width = `${borderStyle.width}px`;
       }
     }
@@ -677,7 +706,7 @@ class Border {
    * Change border style to default.
    *
    * @private
-   * @param {string} position The position type ("top", "bottom", "left", "right") to change.
+   * @param {string} position The position type ("top", "bottom", "start", "end") to change.
    */
   changeBorderToDefaultStyle(position) {
     const defaultBorder = {
@@ -695,7 +724,7 @@ class Border {
    * Toggle class 'hidden' to element.
    *
    * @private
-   * @param {string} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @param {string} borderElement Coordinate where add/remove border: top, bottom, start, end.
    * @param {boolean} [remove] Defines type of the action to perform.
    */
   toggleHiddenClass(borderElement, remove) {
@@ -713,14 +742,14 @@ class Border {
    */
   disappear() {
     this.topStyle.display = 'none';
-    this.leftStyle.display = 'none';
     this.bottomStyle.display = 'none';
-    this.rightStyle.display = 'none';
+    this.startStyle.display = 'none';
+    this.endStyle.display = 'none';
     this.cornerStyle.display = 'none';
 
     if (isMobileBrowser()) {
-      this.selectionHandles.styles.topLeft.display = 'none';
-      this.selectionHandles.styles.bottomRight.display = 'none';
+      this.selectionHandles.styles.top.display = 'none';
+      this.selectionHandles.styles.bottom.display = 'none';
     }
   }
 

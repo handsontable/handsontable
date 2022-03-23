@@ -76,7 +76,7 @@ describe('cellTypes', () => {
     expect(getCell(1, 0).innerHTML).toBe('--10--');
 
     selectCell(0, 0);
-    keyDown('enter');
+    keyDownUp('enter');
     document.activeElement.value = 'hello';
     destroyEditor();
 
@@ -123,8 +123,8 @@ describe('cellTypes', () => {
     expect(getCellType('text').renderer).toBe(renderers.TextRenderer);
     expect(getCellType('text').validator).not.toBeDefined();
 
-    expect(getCellType('time').editor).toBe(editors.TextEditor);
-    expect(getCellType('time').renderer).toBe(renderers.TextRenderer);
+    expect(getCellType('time').editor).toBe(editors.TimeEditor);
+    expect(getCellType('time').renderer).toBe(renderers.TimeRenderer);
     expect(getCellType('time').validator).toBe(validators.TimeValidator);
   });
 

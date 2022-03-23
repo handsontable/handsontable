@@ -57,9 +57,13 @@ describe('Core.selectColumns', () => {
       rowHeaders: true,
     });
 
+    // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
+    // Please keep in mind that selectColumns/selectRows doesn't set instance to listening (see #7290).
+    listen();
     selectColumns(2);
-    keyDown('ctrl');
+    keyDown('control');
     selectColumns(0);
+    keyUp('control');
 
     expect(`
       |   ║ * :   : * :   |
@@ -73,12 +77,12 @@ describe('Core.selectColumns', () => {
       `).toBeMatchToSelectionPattern();
   });
 
-  it('should mark single column visually (default selectionMode, fixedColumnsLeft enabled)', () => {
+  it('should mark single column visually (default selectionMode, fixedColumnsStart enabled)', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
       colHeaders: true,
       rowHeaders: true,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
     });
 
     selectColumns(1, 2);
@@ -431,11 +435,11 @@ describe('Core.selectColumns', () => {
 
     selectCell(15, 1); // Scroll to the bottom of the Hot viewport.
 
-    const scrollTop = hot.view.wt.wtTable.holder.scrollTop;
+    const scrollTop = hot.view._wt.wtTable.holder.scrollTop;
 
     selectColumns(1);
 
-    expect(hot.view.wt.wtTable.holder.scrollTop).toBe(scrollTop);
+    expect(hot.view._wt.wtTable.holder.scrollTop).toBe(scrollTop);
   });
 
   it('should fire hooks with proper context', () => {

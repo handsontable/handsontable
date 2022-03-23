@@ -26,7 +26,7 @@ describe('WalkontableBorder', () => {
       totalRows: 5,
       totalColumns: 5,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 1,
             color: 'red'
@@ -46,39 +46,39 @@ describe('WalkontableBorder', () => {
 
     const $td2 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
     const $top = $(wt.selections.getCell().getBorder(wt).top);
-    const $right = $(wt.selections.getCell().getBorder(wt).right);
+    const $end = $(wt.selections.getCell().getBorder(wt).end);
     const $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
-    const $left = $(wt.selections.getCell().getBorder(wt).left);
+    const $start = $(wt.selections.getCell().getBorder(wt).start);
 
     $td1.simulate('mousedown');
 
     expect($top.css('height')).toBe('1px');
     expect($top.position().top).toBe(23);
     expect($top.position().left).toBe(0);
-    expect($right.css('width')).toBe('1px');
-    expect($right.position().top).toBe(23);
-    expect($right.position().left).toBe(49);
+    expect($end.css('width')).toBe('1px');
+    expect($end.position().top).toBe(23);
+    expect($end.position().left).toBe(49);
     expect($bottom.css('height')).toBe('1px');
     expect($bottom.position().top).toBe(46);
     expect($bottom.position().left).toBe(0);
-    expect($left.css('width')).toBe('1px');
-    expect($left.position().top).toBe(23);
-    expect($left.position().left).toBe(0);
+    expect($start.css('width')).toBe('1px');
+    expect($start.position().top).toBe(23);
+    expect($start.position().left).toBe(0);
 
     $td2.simulate('mousedown');
 
     expect($top.css('height')).toBe('1px');
     expect($top.position().top).toBe(46);
     expect($top.position().left).toBe(49);
-    expect($right.css('width')).toBe('1px');
-    expect($right.position().top).toBe(46);
-    expect($right.position().left).toBe(99);
+    expect($end.css('width')).toBe('1px');
+    expect($end.position().top).toBe(46);
+    expect($end.position().left).toBe(99);
     expect($bottom.css('height')).toBe('1px');
     expect($bottom.position().top).toBe(69);
     expect($bottom.position().left).toBe(49);
-    expect($left.css('width')).toBe('1px');
-    expect($left.position().top).toBe(46);
-    expect($left.position().left).toBe(49);
+    expect($start.css('width')).toBe('1px');
+    expect($start.position().top).toBe(46);
+    expect($start.position().left).toBe(49);
   });
 
   it('should add/remove border to selection when cell is clicked and the table has only one column', () => {
@@ -87,7 +87,7 @@ describe('WalkontableBorder', () => {
       totalRows: 5,
       totalColumns: 1,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 1,
             color: 'red'
@@ -105,24 +105,24 @@ describe('WalkontableBorder', () => {
 
     const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
     const $top = $(wt.selections.getCell().getBorder(wt).top);
-    const $right = $(wt.selections.getCell().getBorder(wt).right);
+    const $end = $(wt.selections.getCell().getBorder(wt).end);
     const $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
-    const $left = $(wt.selections.getCell().getBorder(wt).left);
+    const $start = $(wt.selections.getCell().getBorder(wt).start);
 
     $td1.simulate('mousedown');
 
     expect($top.css('height')).toBe('1px');
     expect($top.position().top).toBe(23);
     expect($top.position().left).toBe(0);
-    expect($right.css('width')).toBe('1px');
-    expect($right.position().top).toBe(23);
-    expect($right.position().left).toBe(49);
+    expect($end.css('width')).toBe('1px');
+    expect($end.position().top).toBe(23);
+    expect($end.position().left).toBe(49);
     expect($bottom.css('height')).toBe('1px');
     expect($bottom.position().top).toBe(46);
     expect($bottom.position().left).toBe(0);
-    expect($left.css('width')).toBe('1px');
-    expect($left.position().top).toBe(23);
-    expect($left.position().left).toBe(0);
+    expect($start.css('width')).toBe('1px');
+    expect($start.position().top).toBe(23);
+    expect($start.position().left).toBe(0);
   });
 
   it('should properly add a selection border on an entirely selected column', () => {
@@ -131,7 +131,7 @@ describe('WalkontableBorder', () => {
       totalRows: 5,
       totalColumns: 2,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 1,
             color: 'red'
@@ -152,22 +152,22 @@ describe('WalkontableBorder', () => {
     wt.draw(true);
 
     const $top = $(wt.selections.getCell().getBorder(wt).top);
-    const $right = $(wt.selections.getCell().getBorder(wt).right);
+    const $end = $(wt.selections.getCell().getBorder(wt).end);
     const $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
-    const $left = $(wt.selections.getCell().getBorder(wt).left);
+    const $start = $(wt.selections.getCell().getBorder(wt).start);
 
     expect($top.css('height')).toBe('1px');
     expect($top.position().top).toBe(0);
     expect($top.position().left).toBe(0);
-    expect($right.css('width')).toBe('1px');
-    expect($right.position().top).toBe(0);
-    expect($right.position().left).toBe(49);
+    expect($end.css('width')).toBe('1px');
+    expect($end.position().top).toBe(0);
+    expect($end.position().left).toBe(49);
     expect($bottom.css('height')).toBe('1px');
     expect($bottom.position().top).toBe(115);
     expect($bottom.position().left).toBe(0);
-    expect($left.css('width')).toBe('1px');
-    expect($left.position().top).toBe(0);
-    expect($left.position().left).toBe(0);
+    expect($start.css('width')).toBe('1px');
+    expect($start.position().top).toBe(0);
+    expect($start.position().left).toBe(0);
   });
 
   it('should add/remove corner to selection when cell is clicked', () => {
@@ -176,7 +176,7 @@ describe('WalkontableBorder', () => {
       totalRows: 5,
       totalColumns: 5,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 2,
             color: 'green',
@@ -185,7 +185,7 @@ describe('WalkontableBorder', () => {
             }
           }
         }),
-        area: new Walkontable.Selection({}),
+        area: createSelection({}),
       }),
       onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
@@ -215,14 +215,13 @@ describe('WalkontableBorder', () => {
     expect($corner.position().left).toBe(95);
   });
 
-  it('should properly render a selection corner on the edge of the left fixed column', () => {
+  it('should render selection corner in the correct position', () => {
     const wt = walkontable({
       data: getData,
       totalRows: 5,
       totalColumns: 5,
-      fixedColumnsLeft: 2,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 2,
             color: 'green',
@@ -231,7 +230,7 @@ describe('WalkontableBorder', () => {
             }
           }
         }),
-        area: new Walkontable.Selection({}),
+        area: createSelection({}),
       }),
       onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
@@ -244,11 +243,49 @@ describe('WalkontableBorder', () => {
 
     const $td1 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
     const $corner = $(wt.selections.getCell().getBorder(wt).corner);
-    const leftOverlay = $(wt.wtOverlays.leftOverlay.clone.wtTable.holder);
 
     $td1.simulate('mousedown');
 
-    expect(leftOverlay.position().left + leftOverlay.outerWidth())
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('width')).toBe('6px');
+    expect($corner.css('top')).toBe('65px');
+    expect($corner.css('left')).toBe('95px');
+  });
+
+  it('should properly render a selection corner on the edge of the left fixed column', () => {
+    const wt = walkontable({
+      data: getData,
+      totalRows: 5,
+      totalColumns: 5,
+      fixedColumnsStart: 2,
+      selections: createSelectionController({
+        current: createSelection({
+          border: {
+            width: 2,
+            color: 'green',
+            cornerVisible() {
+              return true;
+            }
+          }
+        }),
+        area: createSelection({}),
+      }),
+      onCellMouseDown(event, coords) {
+        wt.selections.getCell().clear();
+        wt.selections.getCell().add(coords);
+        wt.draw();
+      }
+    });
+
+    wt.draw();
+
+    const $td1 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
+    const $corner = $(wt.selections.getCell().getBorder(wt).corner);
+    const inlineStartOverlay = $(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder);
+
+    $td1.simulate('mousedown');
+
+    expect(inlineStartOverlay.position().left + inlineStartOverlay.outerWidth())
       .toBe($corner.position().left + $corner.outerWidth());
   });
 
@@ -259,7 +296,7 @@ describe('WalkontableBorder', () => {
       totalColumns: 5,
       fixedRowsTop: 2,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 2,
             color: 'green',
@@ -268,7 +305,7 @@ describe('WalkontableBorder', () => {
             }
           }
         }),
-        area: new Walkontable.Selection({}),
+        area: createSelection({}),
       }),
       onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
@@ -294,14 +331,14 @@ describe('WalkontableBorder', () => {
       data: getData,
       totalRows: 5,
       totalColumns: 5,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           className: 'current',
           border: {},
         }),
-        area: new Walkontable.Selection({
+        area: createSelection({
           className: 'area',
           border: {
             cornerVisible() {
@@ -332,7 +369,7 @@ describe('WalkontableBorder', () => {
       totalRows: 5,
       totalColumns: 4,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 2,
             color: 'green',
@@ -341,7 +378,7 @@ describe('WalkontableBorder', () => {
             }
           }
         }),
-        area: new Walkontable.Selection({}),
+        area: createSelection({}),
       }),
       onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
@@ -393,7 +430,7 @@ describe('WalkontableBorder', () => {
       totalRows: 5,
       totalColumns: 1,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 2,
             color: 'green',
@@ -402,7 +439,7 @@ describe('WalkontableBorder', () => {
             }
           }
         }),
-        area: new Walkontable.Selection({}),
+        area: createSelection({}),
       }),
       onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
@@ -441,7 +478,7 @@ describe('WalkontableBorder', () => {
       totalRows: 1,
       totalColumns: 1,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 2,
             color: 'green',
@@ -450,7 +487,7 @@ describe('WalkontableBorder', () => {
             }
           }
         }),
-        area: new Walkontable.Selection({}),
+        area: createSelection({}),
       }),
       onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
