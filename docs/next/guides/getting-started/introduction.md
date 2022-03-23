@@ -16,7 +16,6 @@ Learn how Handsontable works and what you can do with it, through:
 - Live examples
 - Step-by-step instructions
 - Real-life use cases
-- Overview diagrams
 - And much more
 
 ## Demo

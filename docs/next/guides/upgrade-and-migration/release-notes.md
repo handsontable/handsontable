@@ -20,7 +20,7 @@ tags:
 Released on 15th of March, 2022
 
 **Added**
-- Added [`ShortcutManager`](@/api/shortcutmanager.md), a new API for [customizing keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#customizing-keyboard-shortcuts). [#8942](https://github.com/handsontable/handsontable/issues/8942)
+- Added [`ShortcutManager`](@/api/shortcutmanager.md), a new API for [customizing keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#custom-keyboard-shortcuts). [#8942](https://github.com/handsontable/handsontable/issues/8942)
 - Added [support for RTL languages](@/guides/internationalization/layout-direction.md), by introducing a new configuration option: [`layoutDirection`](@/api/options.md#layoutdirection). [#8760](https://github.com/handsontable/handsontable/issues/8760)
 - Added an Arabic translation. [#9208](https://github.com/handsontable/handsontable/issues/9208)
 - Added a new configuration option: [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart). [#8760](https://github.com/handsontable/handsontable/issues/8760)
