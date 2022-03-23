@@ -2,6 +2,7 @@
 title: 'Custom context menu in Angular'
 metaTitle: 'Custom context menu in Angular - Guide - Handsontable Documentation'
 permalink: /next/angular-custom-context-menu-example
+canonicalUrl: /angular-custom-context-menu-example
 ---
 
 # Custom context menu in Angular
