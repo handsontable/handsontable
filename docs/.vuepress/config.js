@@ -61,6 +61,7 @@ module.exports = {
     'tabs',
     ['sitemap', {
       hostname: 'https://handsontable.com',
+      exclude: ['/404.html']
     }],
     ['@vuepress/active-header-links', {
       sidebarLinkSelector: '.table-of-contents a',
