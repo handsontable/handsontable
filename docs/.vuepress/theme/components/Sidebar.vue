@@ -1,7 +1,7 @@
 <template>
   <aside class="sidebar">
     <div class="theme-switcher-item">
-      Color theme: <ThemeSwitcher />
+      Choose a theme: <ThemeSwitcher />
     </div>
     <NavLinks />
 

@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import { isExternal, isMailto, isTel, ensureExt } from './util';
+import { isExternal, isMailto, isTel, ensureExt } from '@vuepress/theme-default/util';
 
 export default {
   name: 'NavLink',

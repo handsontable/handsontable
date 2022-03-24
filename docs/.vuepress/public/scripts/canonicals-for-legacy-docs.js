@@ -185,7 +185,7 @@
     [/\/docs\/\d+\.\d+\.\d+\/EventManager.html$/, '/docs/8.4.0/EventManager.html'],
     [/\/docs\/\d+\.\d+\.\d+\/ExpressionModifier.html$/, '/docs/8.4.0/ExpressionModifier.html'],
     [/\/docs\/\d+\.\d+\.\d+\/FocusableWrapper.html$/, '/docs/8.4.0/FocusableWrapper.html'],
-    [/\/docs\/\d+\.\d+\.\d+\/GhostTable.html$/, '/docs/ghost-table/'],
+    [/\/docs\/\d+\.\d+\.\d+\/GhostTable.html$/, '/docs/api/ghost-table/'],
     [/\/docs\/\d+\.\d+\.\d+\/GuidelineUI.html$/, '/docs/8.4.0/GuidelineUI.html'],
     [/\/docs\/\d+\.\d+\.\d+\/Highlight.html$/, '/docs/8.4.0/Highlight.html'],
     [/\/docs\/\d+\.\d+\.\d+\/IndexesSequence.html$/, '/docs/api/indexes-sequence/'],
