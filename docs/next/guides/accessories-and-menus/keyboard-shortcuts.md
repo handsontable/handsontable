@@ -69,29 +69,31 @@ These keyboard shortcuts help you select cells.
 
 These keyboard shortcuts help you edit cells' contents.
 
-| Windows                                                                       | macOS                                                                                                                                  | Action                                                                                                                                                                                                               |
-| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| <kbd>Enter</kbd>                                                              | <kbd>Enter ↵</kbd>                                                                                                                     | Start editing the active cell<br><br>When editing:<br>stop editing, save your changes, and move the selection one cell down                                                                                          |
-| <kbd>Shift</kbd> + <kbd>Enter</kbd>                                           | <kbd>Shift ⇧</kbd> + <kbd>Enter ↵</kbd>                                                                                                | Start editing the active cell<br><br>When editing:<br>stop editing, save your changes, and move the selection one cell up                                                                                            |
-| <kbd>F2</kbd>                                                                 | <kbd>F2</kbd>                                                                                                                          | Start editing the active cell                                                                                                                                                                                        |
-| <kbd>Esc</kbd>                                                                | <kbd>Esc ⎋</kbd>                                                                                                                       | When editing:<br>stop editing, and cancel your changes                                                                                                                                                               |
-| <kbd>Ctrl</kbd> + <kbd>Enter</kbd><br>or<br><kbd>Alt</kbd> + <kbd>Enter</kbd> | <kbd>Cmd  ⌘</kbd> + <kbd>Enter ↵</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Enter ↵</kbd><br>or<br><kbd>Option ⌥</kbd> + <kbd>Enter ↵</kbd> | When editing:<br>add a new line inside the cell                                                                                                                                                                      |
-| <kbd>Backspace</kbd>                                                          | <kbd>Delete ⌫</kbd>                                                                                                                    | Clear the cell's contents<br><br>When editing:<br>delete one character to the left<br>(depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))  |
-| <kbd>Delete</kbd>                                                             | <kbd>Forward Delete ⌦</kbd>                                                                                                            | Clear the cell's contents<br><br>When editing:<br>delete one character to the right<br>(depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction)) |
-| <kbd>Ctrl</kbd> + <kbd>C</kbd>                                                | <kbd>Cmd  ⌘</kbd> + <kbd>C</kbd>                                                                                                       | Copy the contents of the selected cell(s) into the system clipboard                                                                                                                                                  |
-| <kbd>Ctrl</kbd> + <kbd>X</kbd>                                                | <kbd>Cmd  ⌘</kbd> + <kbd>X</kbd>                                                                                                       | Cut the contents of the selected cell(s) into the system clipboard                                                                                                                                                   |
-| <kbd>Ctrl</kbd> + <kbd>V</kbd>                                                | <kbd>Cmd  ⌘</kbd> + <kbd>V</kbd>                                                                                                       | Paste the contents of the system clipboard into the active cell                                                                                                                                                      |
-| <kbd>Ctrl</kbd> + <kbd>Z</kbd>                                                | <kbd>Cmd  ⌘</kbd> + <kbd>Z</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Z</kbd>                                                               | Delete the last typed entry (one character at a time)                                                                                                                                                                |
-| <kbd>Page Up</kbd>                                                            | <kbd>Page Up ⇞</kbd>                                                                                                                   | When editing:<br>save your changes, and move the selection one screen up                                                                                                                                             |
-| <kbd>Page Down</kbd>                                                          | <kbd>Page Down ⇟</kbd>                                                                                                                 | When editing:<br>save your changes, and move the selection one screen down                                                                                                                                           |
-| <kbd>Tab</kbd>                                                                | <kbd>Tab ⇥</kbd>                                                                                                                       | When editing:<br>save your changes, and move the selection one cell to the right<br>(depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))    |
-| <kbd>Shift</kbd> + <kbd>Tab</kbd>                                             | <kbd>Shift ⇧</kbd> + <kbd>Tab ⇥</kbd>                                                                                                  | When editing:<br>save your changes, and move the selection one cell to the left<br>(depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))     |
+| Windows                                                                       | macOS                                                                                                                                  | Action                                                                                                                                                                                                            |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <kbd>Enter</kbd>                                                              | <kbd>Enter ↵</kbd>                                                                                                                     | Start editing the active cell<br><br>When editing:<br>stop editing, save your changes, and move the selection one cell down                                                                                       |
+| <kbd>Shift</kbd> + <kbd>Enter</kbd>                                           | <kbd>Shift ⇧</kbd> + <kbd>Enter ↵</kbd>                                                                                                | Start editing the active cell<br><br>When editing:<br>stop editing, save your changes, and move the selection one cell up                                                                                         |
+| <kbd>F2</kbd>                                                                 | <kbd>F2</kbd>                                                                                                                          | Start editing the active cell                                                                                                                                                                                     |
+| <kbd>Esc</kbd>                                                                | <kbd>Esc ⎋</kbd>                                                                                                                       | When editing:<br>stop editing, and cancel your changes                                                                                                                                                            |
+| <kbd>Ctrl</kbd> + <kbd>Enter</kbd><br>or<br><kbd>Alt</kbd> + <kbd>Enter</kbd> | <kbd>Cmd  ⌘</kbd> + <kbd>Enter ↵</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Enter ↵</kbd><br>or<br><kbd>Option ⌥</kbd> + <kbd>Enter ↵</kbd> | When editing:<br>add a new line inside the cell                                                                                                                                                                   |
+| <kbd>Backspace</kbd>                                                          | <kbd>Delete ⌫</kbd>                                                                                                                    | Clear the cell's contents<br><br>When editing:<br>delete one character to the left                                                                                                                                |
+| <kbd>Delete</kbd>                                                             | <kbd>Forward Delete ⌦</kbd>                                                                                                            | Clear the cell's contents<br><br>When editing:<br>delete one character to the right                                                                                                                               |
+| <kbd>Ctrl</kbd> + <kbd>C</kbd>                                                | <kbd>Cmd  ⌘</kbd> + <kbd>C</kbd>                                                                                                       | Copy the contents of the selected cell(s) into the system clipboard                                                                                                                                               |
+| <kbd>Ctrl</kbd> + <kbd>X</kbd>                                                | <kbd>Cmd  ⌘</kbd> + <kbd>X</kbd>                                                                                                       | Cut the contents of the selected cell(s) into the system clipboard                                                                                                                                                |
+| <kbd>Ctrl</kbd> + <kbd>V</kbd>                                                | <kbd>Cmd  ⌘</kbd> + <kbd>V</kbd>                                                                                                       | Paste the contents of the system clipboard into the active cell                                                                                                                                                   |
+| <kbd>Ctrl</kbd> + <kbd>Z</kbd>                                                | <kbd>Cmd  ⌘</kbd> + <kbd>Z</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Z</kbd>                                                               | Delete the last typed entry (one character at a time)                                                                                                                                                             |
+| <kbd>Page Up</kbd>                                                            | <kbd>Page Up ⇞</kbd>                                                                                                                   | When editing:<br>save your changes, and move the selection one screen up                                                                                                                                          |
+| <kbd>Page Down</kbd>                                                          | <kbd>Page Down ⇟</kbd>                                                                                                                 | When editing:<br>save your changes, and move the selection one screen down                                                                                                                                        |
+| <kbd>Tab</kbd>                                                                | <kbd>Tab ⇥</kbd>                                                                                                                       | When editing:<br>save your changes, and move the selection one cell to the right<br>(depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction)) |
+| <kbd>Shift</kbd> + <kbd>Tab</kbd>                                             | <kbd>Shift ⇧</kbd> + <kbd>Tab ⇥</kbd>                                                                                                  | When editing:<br>save your changes, and move the selection one cell to the left<br>(depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))  |
 
 ### Cell editor keyboard shortcuts
 
 These keyboard shortcuts work with particular [cell editors](@/guides/cell-functions/cell-editor.md).
 
 #### Checkbox cell editor
+
+These keyboard shortcuts work with the [checkbox](@/guides/cell-types/checkbox-cell-type.md) cell editor.
 
 | Windows                                         | macOS                                                    | Action                          |
 | ----------------------------------------------- | -------------------------------------------------------- | ------------------------------- |
@@ -100,19 +102,23 @@ These keyboard shortcuts work with particular [cell editors](@/guides/cell-funct
 
 #### Select cell editor
 
+These keyboard shortcuts work with the [select](@/guides/cell-types/select-cell-type.md) cell editor.
+
 | Windows           | macOS             | Action               |
 | ----------------- | ----------------- | -------------------- |
 | <kbd>Up ↑</kbd>   | <kbd>Up ↑</kbd>   | Move one option up   |
 | <kbd>Down ↓</kbd> | <kbd>Down ↓</kbd> | Move one option down |
 
-#### [`baseEditor`](@/guides/cell-functions/cell-editor.md#baseeditor)
+#### [`BaseEditor`](@/guides/cell-functions/cell-editor.md#baseeditor)
 
-| Windows            | macOS              | Action                     |
-| ------------------ | ------------------ | -------------------------- |
-| <kbd>Up ↑</kbd>    | <kbd>Up ↑</kbd>    | Move one cell up           |
-| <kbd>Down ↓</kbd>  | <kbd>Down ↓</kbd>  | Move one cell down         |
-| <kbd>Right →</kbd> | <kbd>Right →</kbd> | Move one cell to the right |
-| <kbd>Left ←</kbd>  | <kbd>Left ←</kbd>  | Move one cell to the left  |
+These keyboard shortcuts work with any [custom cell editor](@/guides/cell-functions/cell-editor.md#how-to-create-a-custom-editor) that's based on the [`BaseEditor`](@/guides/cell-functions/cell-editor.md#baseeditor).
+
+| Windows            | macOS              | Action                                   |
+| ------------------ | ------------------ | ---------------------------------------- |
+| <kbd>Up ↑</kbd>    | <kbd>Up ↑</kbd>    | Move the selection one cell up           |
+| <kbd>Down ↓</kbd>  | <kbd>Down ↓</kbd>  | Move the selection one cell down         |
+| <kbd>Right →</kbd> | <kbd>Right →</kbd> | Move the selection one cell to the right |
+| <kbd>Left ←</kbd>  | <kbd>Left ←</kbd>  | Move the selection one cell to the left  |
 
 ### Plugin keyboard shortcuts
 
@@ -120,12 +126,16 @@ These keyboard shortcuts work with particular [plugins](@/api/plugins.md).
 
 #### Undo and redo
 
+These keyboard shortcuts work with the [`UndoRedo`](@/api/undoredo.md) plugin.
+
 | Windows                                                                                   | macOS                                                                                                                                                                                                | Action                                    |
 | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
 | <kbd>Ctrl</kbd> + <kbd>Z</kbd>                                                            | <kbd>Cmd  ⌘</kbd> + <kbd>Z</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Z</kbd>                                                                                                                             | Undo the last action                      |
 | <kbd>Ctrl</kbd> + <kbd>Y</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | <kbd>Cmd  ⌘</kbd> + <kbd>Y</kbd><br>or<br><kbd>Cmd  ⌘</kbd> + <kbd>Shift ⇧</kbd> + <kbd>Z</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Y</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Shift ⇧</kbd> + <kbd>Z</kbd> | When not editing:<br>redo the last action |
 
 #### Context menu
+
+These keyboard shortcuts work with the [`ContextMenu`](@/api/contextmenu.md) plugin.
 
 | Windows              | macOS                  | Action                              |
 | -------------------- | ---------------------- | ----------------------------------- |
@@ -137,6 +147,14 @@ These keyboard shortcuts work with particular [plugins](@/api/plugins.md).
 | <kbd>Esc</kbd>       | <kbd>Esc ⎋</kbd>       | Close the context menu (or submenu) |
 | <kbd>Page Up</kbd>   | <kbd>Page Up ⇞</kbd>   | Move to the menu's first item       |
 | <kbd>Page Down</kbd> | <kbd>Page Down ⇟</kbd> | Move to the menu's last item        |
+
+#### Cell merging
+
+These keyboard shortcuts work with the [`MergeCells`](@/api/mergecells.md) plugin.
+
+| Windows                        | macOS                                                                   | Action                              |
+| ------------------------------ | ----------------------------------------------------------------------- | ----------------------------------- |
+| <kbd>Ctrl</kbd> + <kbd>M</kbd> | <kbd>Cmd ⌘</kbd> + <kbd>M</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>M</kbd> | Merge or unmerge the selected cells |
 
 ## Custom keyboard shortcuts
 
