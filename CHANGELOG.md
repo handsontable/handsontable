@@ -17,9 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a new configuration option: `fixedColumnsStart`. [#8760](https://github.com/handsontable/handsontable/issues/8760)
 
 ### Changed
-- **Breaking change**: Changed the way `updateSettings()` handles data updates, to improve performance and consistency of user experience. Now, when provided with a new data object, `updateSettings()` updates the data without resetting any states. [#7263](https://github.com/handsontable/handsontable/issues/7263)
-- **Breaking change**: Changed the way `updatePlugin()` reacts to `updateSettings()` calls, to improve performance and consistency of user experience. Now, calls to `updateSettings()` update a plugin's state only when the options object contains a configuration option that's relevant to that particular plugin. [#9021](https://github.com/handsontable/handsontable/issues/9021)
+- **Breaking change**: Changed how `updateSettings()` handles data updates, to improve performance and consistency of user experience. Now, when provided with a new data object, `updateSettings()` updates the data without resetting any states. [#7263](https://github.com/handsontable/handsontable/issues/7263)
+- **Breaking change**: Changed how `updatePlugin()` reacts to `updateSettings()` calls, to improve performance and consistency of user experience. Now, calls to `updateSettings()` update a plugin's state only when the options object contains a configuration option that's relevant to that particular plugin. [#9021](https://github.com/handsontable/handsontable/issues/9021)
 - **Breaking change**: Changed the order of execution for two hooks: now, `beforeKeyDown` is properly fired before `afterDocumentKeyDown`. [#6236](https://github.com/handsontable/handsontable/issues/6236)
+- **Breaking change**: Changed how Handsontable defines its keyboard shortcuts, to improve consistency of user experience. Now, all keyboard shortcuts are defined explicitly, and no longer work. [#8942](https://github.com/handsontable/handsontable/issues/8942)
 
 ### Fixed
 - Fixed an issue where cell filtering used formula results instead of source values. [#5455](https://github.com/handsontable/handsontable/issues/5455)
