@@ -27,30 +27,26 @@ Explore Handsontable's features and source code:
 ## Guides for your framework
 
 <div class="row-items-container">
-    <a href="/docs/next/binding-to-data" class="row-item">
-     <img class="integration-framework-logo" src="/docs/next/img/pages/introduction/javascript.svg" alt="JavaScript logo" />
-     <h3>JavaScript</h3>
-    </a>
-
-   <a href="/docs/next/react-simple-example" class="row-item">
-   <img class="integration-framework-logo" src="/docs/next/img/pages/introduction/react.svg" alt="React logo" />
-    <h3>React</h3>
-   </a>
-
-   <a href="/docs/next/angular-simple-example" class="row-item">
+  <Link href="/docs/next/binding-to-data/" hide-latest-version class="row-item">
+    <img class="integration-framework-logo" src="/docs/next/img/pages/introduction/javascript.svg" alt="JavaScript logo" />
+      <h3>JavaScript</h3>
+  </Link>
+  <Link href="/docs/next/react-simple-example/" hide-latest-version class="row-item">
+    <img class="integration-framework-logo" src="/docs/next/img/pages/introduction/react.svg" alt="React logo" />
+      <h3>React</h3>
+  </Link>
+  <Link href="/docs/next/angular-simple-example/" hide-latest-version class="row-item">
     <img class="integration-framework-logo" src="/docs/next/img/pages/introduction/angular.svg" alt="Angular logo" />
-    <h3>Angular</h3>
-   </a>
-
-   <a href="/docs/next/vue-simple-example" class="row-item">
+      <h3>Angular</h3>
+  </Link>
+  <Link href="/docs/next/vue-simple-example/" hide-latest-version class="row-item">
     <img class="integration-framework-logo" src="/docs/next/img/pages/introduction/vue.svg" alt="Vue logo" />
-    <h3>Vue 2</h3>
-   </a>
-
-   <a href="/docs/next/vue3-simple-example" class="row-item">
-    <img class="integration-framework-logo" src="/docs/next/img/pages/introduction/vue.svg" alt="Vue logo" />
-    <h3>Vue 3</h3>
-   </a>
+      <h3>Vue</h3>
+  </Link>
+  <Link href="/docs/next/vue3-simple-example/" hide-latest-version class="row-item">
+    <img class="integration-framework-logo" src="/docs/next/img/pages/introduction/vue.svg" alt="Vue 3 logo" />
+      <h3>Vue 3</h3>
+  </Link>
 </div>
 
 ## What's new

@@ -94,14 +94,14 @@ Released on 17th of November, 2021
 
 **Changed**
 - **Breaking change**: Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888)
-- Moved the entire Handsontable package to its own, new subdirectory: `./handsontable`. [#8759](https://github.com/handsontable/handsontable/issues/8759) 
+- Moved the entire Handsontable package to its own, new subdirectory: `./handsontable`. [#8759](https://github.com/handsontable/handsontable/issues/8759)
 - Replaced the license files with updated versions. [#8877](https://github.com/handsontable/handsontable/issues/8877)
 
-**Fixed** 
-- Fixed an issue with incorrect filtering of locale-based data while using search input from a drop-down menu. [#6095](https://github.com/handsontable/handsontable/issues/6095) 
-- Fixed an error thrown when using the `populateFromArray()` method with its `method` argument set to `shift_right`. [#6929](https://github.com/handsontable/handsontable/issues/6929) 
-- Fixed an issue with the `beforeOnCellMouseDown` and `afterOnCellMouseDown` hooks using wrong coordinates. [#8498](https://github.com/handsontable/handsontable/issues/8498) 
-- Fixed a `TypeError` thrown when calling the `updateSettings()` method in Handsontable's modularized version. [#8830](https://github.com/handsontable/handsontable/issues/8830) 
+**Fixed**
+- Fixed an issue with incorrect filtering of locale-based data while using search input from a drop-down menu. [#6095](https://github.com/handsontable/handsontable/issues/6095)
+- Fixed an error thrown when using the `populateFromArray()` method with its `method` argument set to `shift_right`. [#6929](https://github.com/handsontable/handsontable/issues/6929)
+- Fixed an issue with the `beforeOnCellMouseDown` and `afterOnCellMouseDown` hooks using wrong coordinates. [#8498](https://github.com/handsontable/handsontable/issues/8498)
+- Fixed a `TypeError` thrown when calling the `updateSettings()` method in Handsontable's modularized version. [#8830](https://github.com/handsontable/handsontable/issues/8830)
 - Fixed two issues with the documentation's `canonicalUrl` entries. [#8886](https://github.com/handsontable/handsontable/issues/8886)
 - Fixed an error thrown when autofill's source is a `date` cell. [#8894](https://github.com/handsontable/handsontable/issues/8894)
 - *React:* Fixed a React wrapper issue where it's impossible to use different sets of props in editor components reused across multiple columns. [#8527](https://github.com/handsontable/handsontable/issues/8527)
@@ -364,7 +364,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 **Breaking changes**
 
 * Modifying the table's data by reference and calling `render()` will not work properly anymore. From this point onward, all the data-related operations need to be performed using the API methods, such as `populateFromArray` or `setDataAtCell`.
-* The `modifyRow`, `modifyCol`, `unmodifyRow`, `unmodifyCol` hooks are no longer needed and were removed. Their functionality can be achived by using API. [More information in the 8.0.0 migration guide](https://handsontable.com/docs/8.0.0/migration-guide.html).
+* The `modifyRow`, `modifyCol`, `unmodifyRow`, `unmodifyCol` hooks are no longer needed and were removed. Their functionality can be achived by using API. [More information in the 8.0.0 migration guide](https://handsontable.com/docs/8.0.0/tutorial-migration-guide.html).
 * `skipLengthCache` hook was removed, `indexMapper` is now responsible for the cache and length.
 * The `ManualColumnFreeze` plugin doesn't use the `ManualColumnMove` plugin anymore.
 * The `CollapsibleColumns` plugin doesn't use the `HiddenColumns` plugin anymore.

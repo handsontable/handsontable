@@ -4497,7 +4497,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.transformStart(-1, 0);
     },
   }, {
-    keys: [['ArrowUp', 'Shift']],
+    keys: [
+      ['ArrowUp', 'Shift'],
+      // Added according to specification, not the target behaviour.
+      ['ArrowUp', 'Shift', 'Control'], ['ArrowUp', 'Shift', 'Meta']
+    ],
     callback: () => {
       selection.transformEnd(-1, 0);
     },
@@ -4507,7 +4511,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.transformStart(1, 0);
     },
   }, {
-    keys: [['ArrowDown', 'Shift']],
+    keys: [
+      ['ArrowDown', 'Shift'],
+      // Added according to specification, not the target behaviour.
+      ['ArrowDown', 'Shift', 'Control'], ['ArrowDown', 'Shift', 'Meta']
+    ],
     callback: () => {
       selection.transformEnd(1, 0);
     },
@@ -4517,7 +4525,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.transformStart(0, -1 * instance.getDirectionFactor());
     },
   }, {
-    keys: [['ArrowLeft', 'Shift']],
+    keys: [
+      ['ArrowLeft', 'Shift'],
+      // Added according to specification, not the target behaviour.
+      ['ArrowLeft', 'Shift', 'Control'], ['ArrowLeft', 'Shift', 'Meta'],
+    ],
     callback: () => {
       selection.transformEnd(0, -1 * instance.getDirectionFactor());
     },
@@ -4527,7 +4539,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.transformStart(0, instance.getDirectionFactor());
     },
   }, {
-    keys: [['ArrowRight', 'Shift']],
+    keys: [
+      ['ArrowRight', 'Shift'],
+      // Added according to specification, not the target behaviour.
+      ['ArrowRight', 'Shift', 'Control'], ['ArrowRight', 'Shift', 'Meta'],
+    ],
     callback: () => {
       selection.transformEnd(0, instance.getDirectionFactor());
     },
@@ -4596,12 +4612,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    keys: [['PageUp']],
+    keys: [
+      ['PageUp'],
+      // Added according to specification, not the target behaviour.
+      ['Shift', 'PageUp']
+    ],
     callback: () => {
       selection.transformStart(-instance.countVisibleRows(), 0);
     },
   }, {
-    keys: [['PageDown']],
+    keys: [
+      ['PageDown'],
+      // Added according to specification, not the target behaviour.
+      ['Shift', 'PageDown']
+    ],
     callback: () => {
       selection.transformStart(instance.countVisibleRows(), 0);
     },

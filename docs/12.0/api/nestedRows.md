@@ -20,7 +20,7 @@ Plugin responsible for displaying and operating on data sources with nested stru
 
 ### nestedRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/dataMap/metaManager/metaSchema.js#L4359
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/dataMap/metaManager/metaSchema.js#L3121
 
 :::
 
@@ -49,7 +49,7 @@ nestedRows: true,
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/nestedRows/nestedRows.js#L448
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/nestedRows/nestedRows.js#L448
 
 :::
 
@@ -61,7 +61,7 @@ Destroys the plugin instance.
 
 ### disableCoreAPIModifiers
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/nestedRows/nestedRows.js#L170
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/nestedRows/nestedRows.js#L170
 
 :::
 
@@ -74,7 +74,7 @@ modifications.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/nestedRows/nestedRows.js#L124
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/nestedRows/nestedRows.js#L124
 
 :::
 
@@ -86,7 +86,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enableCoreAPIModifiers
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/nestedRows/nestedRows.js#L179
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/nestedRows/nestedRows.js#L179
 
 :::
 
@@ -98,7 +98,7 @@ Disable the modify hook skipping flag.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/nestedRows/nestedRows.js#L85
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/nestedRows/nestedRows.js#L85
 
 :::
 
@@ -110,7 +110,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/nestedRows/nestedRows.js#L78
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/nestedRows/nestedRows.js#L78
 
 :::
 
@@ -123,7 +123,7 @@ hook and if it returns `true` than the [NestedRows#enablePlugin](@/api/nestedRow
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/nestedRows/nestedRows.js#L133
+::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/nestedRows/nestedRows.js#L133
 
 :::
 
