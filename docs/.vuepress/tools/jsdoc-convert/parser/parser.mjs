@@ -22,7 +22,8 @@ export const buildParser = ({ logger, parseJsdoc }) => function* () {
     'core.js',
     'editors/!(__tests__)/!(index).js',
     'plugins/!(__tests__)/!(index).js',
-    'translations/!(__tests__)/!(index).js',
+    'translations/maps/!(index).js',
+    'translations/changesObservable/!(index).js',
     'translations/indexMapper.js',
   ]);
 

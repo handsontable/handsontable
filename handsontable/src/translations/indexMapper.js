@@ -33,7 +33,7 @@ import { ChangesObservable } from './changesObservable/observable';
  * There are different kinds of index maps which may be registered in the collections and can be used by a reference.
  * They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
  *
- * These are: {@link IndexesSequence}, {@link PhysicalIndexToValueMap}, {@link HidingMap}, and {@link TrimmingMap}.
+ * These are: {@link IndexesSequence}, {@link PhysicalIndexToValueMap}, {@link LinkedPhysicalIndexToValueMap}, {@link HidingMap}, and {@link TrimmingMap}.
  */
 export class IndexMapper {
   constructor() {
