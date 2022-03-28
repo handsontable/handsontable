@@ -2526,6 +2526,7 @@ You can set the `language` option to one of the following:
 | Setting             | Description                 |
 | ------------------- | --------------------------- |
 | `'en-US'` (default) | English - United States     |
+| `'cs-CZ'`           | Czech - Czech Republic      |
 | `'de-DE'`           | German - Germany            |
 | `'es-MX'`           | Spanish - Mexico            |
 | `'fr-FR'`           | French - France             |
