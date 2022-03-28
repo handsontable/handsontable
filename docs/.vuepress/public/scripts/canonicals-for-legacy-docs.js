@@ -34,6 +34,7 @@
     [/\/docs\/\d+\.\d+\.\d+\/tutorial-release-notes.html$/, '/docs/release-notes/'],
     [/\/docs\/\d+\.\d+\.\d+\/tutorial-principles.html$/, '/docs/6.2.2/tutorial-principles.html'],
     [/\/docs\/\d+\.\d+\.\d+\/tutorial-good-practices.html$/, '/docs/6.2.2/tutorial-good-practices.html'],
+    [/\/docs\/\d+\.\d+\.\d+\/tutorial-known-limitations.html$/, '/docs/7.2.2/tutorial-known-limitations.html'],
     // frameworks React
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-react-installation.html$/, '/docs/react-installation/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-react-simple-examples.html$/, '/docs/react-simple-example/'],
