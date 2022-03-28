@@ -451,7 +451,7 @@ export class TextEditor extends BaseEditor {
 
     editorContext.addShortcuts([{
       keys: [['Tab']],
-      // TODO: Duplicated part of code.
+      // TODO: Duplicated part of code (callback to shortcut).
       callback: (event) => {
         const tableMeta = this.hot.getSettings();
         const tabMoves = typeof tableMeta.tabMoves === 'function'
@@ -462,7 +462,7 @@ export class TextEditor extends BaseEditor {
       },
     }, {
       keys: [['Shift', 'Tab']],
-      // TODO: Duplicated part of code.
+      // TODO: Duplicated part of code (callback to shortcut).
       callback: (event) => {
         const tableMeta = this.hot.getSettings();
         const tabMoves = typeof tableMeta.tabMoves === 'function'
@@ -502,6 +502,26 @@ export class TextEditor extends BaseEditor {
       runOnlyIf: () => !this.hot.selection.isMultiple(), // We trigger a data population for multiple selection.
       relativeToGroup: EDITOR_MANAGER_GROUP,
       position: 'before',
+    }, {
+      // TODO: Duplicated part of code (callback to shortcut)
+      keys: [
+        ['PageUp'],
+        // Added according to specification, not the target behaviour.
+        ['Shift', 'PageUp']
+      ],
+      callback: () => {
+        this.hot.selection.transformStart(-this.hot.countVisibleRows(), 0);
+      },
+    }, {
+      // TODO: Duplicated part of code (callback to shortcut)
+      keys: [
+        ['PageDown'],
+        // Added according to specification, not the target behaviour.
+        ['Shift', 'PageDown']
+      ],
+      callback: () => {
+        this.hot.selection.transformStart(this.hot.countVisibleRows(), 0);
+      }
     }], contextConfig);
   }
 

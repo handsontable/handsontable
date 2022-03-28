@@ -1889,4 +1889,44 @@ describe('TextEditor', () => {
       expect($(textarea).height()).toBe(23);
     });
   });
+
+  describe('navigation', () => {
+    it('should move to the first cell in the row (editor is opened)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+      keyDownUp('pageup');
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+
+      keyDownUp('enter');
+      keyDownUp(['shift', 'pageup']);
+
+      // Temporary, for compatibility with Handsontable 11.0.x.
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    });
+
+    it('should move to the last cell in the row (editor is opened)', () => {
+      handsontable({
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+      keyDownUp('pagedown');
+
+      expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+
+      keyDownUp('enter');
+      keyDownUp(['shift', 'pagedown']);
+
+      // Temporary, for compatibility with Handsontable 11.0.x.
+      expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+    });
+  });
 });
