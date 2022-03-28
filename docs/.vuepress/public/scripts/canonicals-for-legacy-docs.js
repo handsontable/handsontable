@@ -31,6 +31,7 @@
     [/\/docs\/\d+\.\d+\.\d+\/tutorial-testing.html$/, '/docs/testing/'],
     [/\/docs\/\d+\.\d+\.\d+\/tutorial-migration-guide.html$/, '/docs/migration-from-7.4-to-8.0/'],
     [/\/docs\/\d+\.\d+\.\d+\/tutorial-principles.html$/, '/docs/6.2.2/tutorial-principles.html'],
+    [/\/docs\/\d+\.\d+\.\d+\/tutorial-performance-tips.html$/, '/docs/performance/'],
     // frameworks React
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-react-installation.html$/, '/docs/react-installation/'],
     [/\/docs\/\d+\.\d+\.\d+\/frameworks-wrapper-for-react-simple-examples.html$/, '/docs/react-simple-example/'],
