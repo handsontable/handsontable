@@ -1,14 +1,20 @@
 const path = require('path');
+const fsExtra = require('fs-extra');
 const highlight = require('./highlight');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
-const { getBuildDocsVersion, getLatestVersion } = require('./helpers');
+const { getBuildDocsVersion, getLatestVersion, getVersions, getFrameworks } = require('./helpers');
+
+const EVERY_VERSION_GLOB = '**';
+const TMP_DIR_FOR_WATCH = 'tmp';
 
 const buildMode = process.env.BUILD_MODE;
-const versionPartialPath = getBuildDocsVersion() || '**';
+const nodeEnv = process.env.NODE_ENV;
+
+const versionPartialPath = getBuildDocsVersion() || EVERY_VERSION_GLOB;
 const isLatestOrMultiVersion = getBuildDocsVersion() === getLatestVersion() || !getBuildDocsVersion();
 const base = isLatestOrMultiVersion ? '/docs/' : `/docs/${versionPartialPath}/`;
 const redirectsPlugin = isLatestOrMultiVersion ?
@@ -33,8 +39,20 @@ module.exports = {
   define: {
     GA_ID: 'UA-33932793-7',
   },
+  beforeDevServer() {
+    if (nodeEnv === 'development') {
+      fsExtra.removeSync(TMP_DIR_FOR_WATCH);
+
+      getVersions().forEach((version) => {
+        getFrameworks().forEach((framework) => {
+          fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${framework}/${version}`);
+        });
+      });
+    }
+  },
   patterns: [
-    `${versionPartialPath}/*.md`, `${versionPartialPath}/**/*.md`,
+    `${nodeEnv === 'development' ? `${TMP_DIR_FOR_WATCH}/` : ''}${versionPartialPath}/*.md`,
+    `${nodeEnv === 'development' ? `${TMP_DIR_FOR_WATCH}/` : ''}${versionPartialPath}/**/*.md`,
     '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'
   ],
   description: 'Handsontable',
