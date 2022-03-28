@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [12.0.0] - 2022-03-15
 
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/)
+- [Blog post](https://handsontable.com/blog/articles/2022/4/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
+- [Migration guide](https://handsontable.com/docs/migration-from-11.1-to-12.0/)
+
 ### Added
 - Added `ShortcutManager`, a new API for customizing keyboard shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942)
 - Added support for RTL languages, by introducing a new configuration option: `layoutDirection`. [#8760](https://github.com/handsontable/handsontable/issues/8760)
