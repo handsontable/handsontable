@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.0.0
- * Release date: 14/03/2022 (built at 22/03/2022 16:37:41)
+ * Release date: 14/03/2022 (built at 28/03/2022 11:41:17)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -44923,7 +44923,7 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "22/03/2022 16:37:41";
+Handsontable.buildDate = "28/03/2022 11:41:17";
 Handsontable.version = "12.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -62149,7 +62149,7 @@ var TextEditor = /*#__PURE__*/function (_BaseEditor) {
 
       editorContext.addShortcuts([{
         keys: [['Tab']],
-        // TODO: Duplicated part of code.
+        // TODO: Duplicated part of code (callback to shortcut).
         callback: function callback(event) {
           var tableMeta = _this4.hot.getSettings();
 
@@ -62159,7 +62159,7 @@ var TextEditor = /*#__PURE__*/function (_BaseEditor) {
         }
       }, {
         keys: [['Shift', 'Tab']],
-        // TODO: Duplicated part of code.
+        // TODO: Duplicated part of code (callback to shortcut).
         callback: function callback(event) {
           var tableMeta = _this4.hot.getSettings();
 
@@ -62200,6 +62200,20 @@ var TextEditor = /*#__PURE__*/function (_BaseEditor) {
         // We trigger a data population for multiple selection.
         relativeToGroup: _editorManager.SHORTCUTS_GROUP_EDITOR,
         position: 'before'
+      }, {
+        // TODO: Duplicated part of code (callback to shortcut)
+        keys: [['PageUp'], // Added according to specification, not the target behaviour.
+        ['Shift', 'PageUp']],
+        callback: function callback() {
+          _this4.hot.selection.transformStart(-_this4.hot.countVisibleRows(), 0);
+        }
+      }, {
+        // TODO: Duplicated part of code (callback to shortcut)
+        keys: [['PageDown'], // Added according to specification, not the target behaviour.
+        ['Shift', 'PageDown']],
+        callback: function callback() {
+          _this4.hot.selection.transformStart(_this4.hot.countVisibleRows(), 0);
+        }
       }], contextConfig);
     }
     /**
