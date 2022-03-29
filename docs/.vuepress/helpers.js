@@ -67,16 +67,17 @@ function getSidebars(buildMode) {
  * @returns {string}
  */
 function parseVersion(url) {
-  return url.split('/')[1] || this.getLatestVersion();
+  return url.split('/')[3] || this.getLatestVersion();
 }
 
 /**
  * Parses the docs framework from the URL.
  *
+ * @param {string} url The URL to parse.
  * @returns {string}
  */
-function parseFramework() {
-  return defaultFramework;
+function parseFramework(url) {
+  return url.split('/')[2] || defaultFramework;
 }
 
 /**

@@ -3,6 +3,7 @@ const {
   getLatestVersion,
   getVersions,
   parseVersion,
+  parseFramework,
   getBuildDocsVersion,
 } = require('../../helpers');
 const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
@@ -40,11 +41,17 @@ module.exports = (options, context) => {
       $page.versions = getVersions(buildMode);
       $page.latestVersion = getLatestVersion();
       $page.currentVersion = parseVersion($page.path);
+      $page.currentFramework = parseFramework($page.path);
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
 
-      if ((DOCS_VERSION || $page.currentVersion === $page.latestVersion) && $page.frontmatter.permalink) {
-        $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
+      if ($page.frontmatter.permalink) {
+        if ((DOCS_VERSION || $page.currentVersion === $page.latestVersion)) {
+          $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
+
+        } else {
+          $page.frontmatter.permalink = `/${$page.currentFramework}/${$page.frontmatter.permalink}`;
+        }
       }
     },
   };

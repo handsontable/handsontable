@@ -28,7 +28,7 @@ export default {
         return '/docs/';
       }
 
-      return `/docs/${version}/`;
+      return `/docs/${this.$page.currentFramework}/${version}/`;
     },
     getLegacyVersions() {
       return [
