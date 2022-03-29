@@ -43,7 +43,7 @@ module.exports = {
     if (nodeEnv === 'development') {
       fsExtra.removeSync(TMP_DIR_FOR_WATCH);
 
-      getVersions().forEach((version) => {
+      getVersions(buildMode).forEach((version) => {
         getFrameworks().forEach((framework) => {
           fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${framework}/${version}`);
         });
