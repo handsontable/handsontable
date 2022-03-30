@@ -39,7 +39,8 @@ const build = (version, framework) => {
   return version;
 };
 const moveDir = (version, framework, index) => {
-  const prebuild = path.resolve(__dirname, '../../', `.vuepress/dist/prebuild-${framework}-${version.replace('.', '-')}`);
+  const prebuild = path.resolve(__dirname, '../../',
+    `.vuepress/dist/prebuild-${framework}-${version.replace('.', '-')}`);
   const dist = path.resolve(__dirname, '../../', `.vuepress/dist/docs${index === 0 ? '' : `/${framework}/${version}`}`);
 
   logger.info(prebuild, dist, index);
@@ -68,10 +69,10 @@ const buildApp = async() => {
 
   versions.forEach((version, versionIndex) => {
     frameworks.forEach((framework, frameworkIndex) => {
-      moveDir(version, framework, versionIndex * frameworks.length + frameworkIndex);
+      moveDir(version, framework, (versionIndex * frameworks.length) + frameworkIndex);
     });
   });
-  
+
   logger.log('Build has started at', startedAt);
   logger.success('Build finished at', new Date().toString());
 
