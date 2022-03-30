@@ -1,5 +1,6 @@
 const path = require('path');
 const highlight = require('./highlight');
+const snippets = require('./containers/snippet');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
@@ -66,6 +67,7 @@ module.exports = {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
     }],
+    ['container', snippets],
     ['container', examples],
     ['container', sourceCodeLink],
     {

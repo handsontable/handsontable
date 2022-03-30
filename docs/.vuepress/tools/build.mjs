@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import fse from 'fs-extra';
 import utils from './utils.js';
 import { getVersions } from '../helpers.js';
+import { initLog } from '../containers/snippet/helpers/previewLogger.js';
 
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,7 +25,8 @@ const buildVersion = (version) => {
   logger.info(`Version ${version} build started at`, new Date().toString());
 
   spawnProcess(
-    `node_modules/.bin/vuepress build -d .vuepress/dist/prebuild-${version.replace('.', '-')}`,
+    // TODO: check if the --no-cache is needed every time
+    `node_modules/.bin/vuepress build -d .vuepress/dist/prebuild-${version.replace('.', '-')}  --no-cache`,
     {
       cwd: path.resolve(__dirname, '../../'),
       env: {
@@ -61,5 +63,8 @@ const buildApp = async() => {
   logger.success('Build finished at', new Date().toString());
 
 };
+
+// TODO: find a better place for the line below
+initLog();
 
 buildApp();
