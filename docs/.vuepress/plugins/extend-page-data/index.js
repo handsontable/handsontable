@@ -4,6 +4,8 @@ const {
   getVersions,
   parseVersion,
   parseFramework,
+  getDefaultFramework,
+  getBuildDocsFramework,
   getBuildDocsVersion,
 } = require('../../helpers');
 const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
@@ -12,6 +14,7 @@ const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/extend-page-data';
 
 const DOCS_VERSION = getBuildDocsVersion();
+const DOCS_FRAMEWORK = getBuildDocsFramework();
 
 collectAllUrls();
 
@@ -38,6 +41,7 @@ module.exports = (options, context) => {
      */
     extendPageData($page) {
       $page.DOCS_VERSION = DOCS_VERSION;
+      $page.DOCS_FRAMEWORK = DOCS_FRAMEWORK;
       $page.versions = getVersions(buildMode);
       $page.latestVersion = getLatestVersion();
       $page.currentVersion = parseVersion($page.path);
@@ -45,11 +49,20 @@ module.exports = (options, context) => {
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
 
+      const isSingleBuild = DOCS_VERSION && DOCS_FRAMEWORK;
+      const isFrameworkLastVersion = DOCS_FRAMEWORK &&
+        $page.currentVersion === $page.latestVersion && $page.currentFramework === DOCS_FRAMEWORK;
+      const isSingleVersionFramework = DOCS_VERSION &&
+        $page.currentVersion === DOCS_VERSION && $page.currentFramework === getDefaultFramework();
+      const everyBuild = $page.currentVersion === $page.latestVersion &&
+        $page.currentFramework === getDefaultFramework();
+
       if ($page.frontmatter.permalink) {
-        if ((DOCS_VERSION || $page.currentVersion === $page.latestVersion)) {
+        if (isSingleBuild || isFrameworkLastVersion || isSingleVersionFramework || everyBuild) {
           $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
 
         } else {
+          // We store permalink in .MD file in form <VERSION>/<DASHED WORDS>.
           $page.frontmatter.permalink = `/${$page.currentFramework}/${$page.frontmatter.permalink}`;
         }
       }
