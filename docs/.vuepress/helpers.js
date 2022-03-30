@@ -75,7 +75,7 @@ function getSidebars(buildMode) {
  * @returns {string}
  */
 function parseVersion(url) {
-  return url.split('/')[3] || this.getLatestVersion();
+  return url.split('/')[3] || getLatestVersion();
 }
 
 /**
