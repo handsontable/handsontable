@@ -2,6 +2,9 @@ const { parseModule } = require('esprima');
 const { renderTemplate } = require('../templates');
 const { logger } = require('../../../tools/utils');
 
+// TODO: IMPORTANT NOTE: detached comments are NOT being tranformed (in many cases there's no way of knowing where
+//  to put them)
+
 // TODO: Add comments support
 
 // TODO: Remove the addition of the `container` variable (based on the first argument of the HOT initialization).
@@ -45,6 +48,29 @@ function parseSnippet(snippetContent, filePath, lineNumber) {
  * @returns {object}
  */
 function readParsedData(snippetContent, parsedSnippetContent) {
+  const commentsByLine = new Map();
+  const getCommentForLine = function(codeLine) {
+    const commentsForLine = [];
+    let currentLine = codeLine - 1;
+    let commentObject = null;
+
+    while (commentsByLine.has(currentLine)) {
+      commentObject = commentsByLine.get(currentLine);
+
+      switch (commentObject.type) {
+        case 'Block':
+          commentsForLine.push(`/* ${commentObject.value} */`);
+          break;
+        case 'Line':
+        default:
+          commentsForLine.push(`// ${commentObject.value}`);
+      }
+
+      currentLine -= 1;
+    }
+
+    return `${commentsForLine.reverse().join('\n')}\n`;
+  };
   const data = {
     handsontableConfigs: {
       '[no-var]': []
@@ -56,15 +82,25 @@ function readParsedData(snippetContent, parsedSnippetContent) {
 
   let refOrderId = -1;
 
+  // Map the comments to their lines.
+  parsedSnippetContent.comments.forEach((commentObject) => {
+    commentsByLine.set(commentObject.loc.end.line, {
+      type: commentObject.type,
+      value: commentObject.value
+    });
+  });
+
   parsedSnippetContent.body.forEach((node) => {
     switch (node.type) {
       case 'ImportDeclaration':
         // TODO
         break;
       case 'FunctionDeclaration':
-
         // Temporarily treat the function declaration as variable declaration
-        data.varDeclarations.push(snippetContent.slice(...node.range));
+        data.varDeclarations.push(
+          getCommentForLine(node.loc.start.line) +
+          snippetContent.slice(...node.range)
+        );
 
         break;
       case 'VariableDeclaration':
@@ -77,7 +113,10 @@ function readParsedData(snippetContent, parsedSnippetContent) {
           data.handsontableConfigs[varName] = configContents;
 
         } else {
-          data.varDeclarations.push(snippetContent.slice(...node.range));
+          data.varDeclarations.push(
+            getCommentForLine(node.loc.start.line) +
+            snippetContent.slice(...node.range)
+          );
         }
 
         break;
@@ -85,10 +124,12 @@ function readParsedData(snippetContent, parsedSnippetContent) {
 
         // Expression is a Handsontable declaration
         if (node.expression?.callee?.name === 'Handsontable') {
+          data.handsontableConfigs['[no-var]'].push(
+            getCommentForLine(node.loc.start.line) +
+            snippetContent.slice(...node.expression.arguments[1].range)
+          );
 
-          data.handsontableConfigs['[no-var]'].push(snippetContent.slice(...node.expression.arguments[1].range));
-
-        } else if (node.expression.type === 'CallExpression') {
+        } else if (node.expression.type === 'CallExpression' || node.expression.type === 'MemberExpression') {
           const getTopmostObjectName = (parsedObject) => {
             if (!parsedObject) {
               return null;
@@ -102,7 +143,11 @@ function readParsedData(snippetContent, parsedSnippetContent) {
           };
 
           // Get the name of the first object of the expression.
-          const varName = getTopmostObjectName(node.expression?.callee?.object);
+          const varName = getTopmostObjectName(
+            node.expression?.callee?.object || node.expression?.object?.callee?.object);
+
+          // TODO: check if ref expressions in useEffect work for var declaration, eg
+          // const a = hot.sth();
 
           // Check if there's a Handsontable instance stored with the same object name.
           if (Object.keys(data.handsontableConfigs).includes(varName)) {
@@ -116,11 +161,16 @@ function readParsedData(snippetContent, parsedSnippetContent) {
             // as in the original snippet.
             data.refExpressions[varName].push({
               refOrderId,
-              snippet: snippetContent.slice(...node.expression.range)
+              snippet: getCommentForLine(node.loc.start.line) +
+                snippetContent.slice(...node.expression.range)
             });
 
           } else {
-            data.callExpressions.push(snippetContent.slice(...node.expression.range));
+
+            data.callExpressions.push(
+              getCommentForLine(node.loc.start.line) +
+              snippetContent.slice(...node.expression.range)
+            );
           }
         }
 

@@ -7,6 +7,17 @@
 const getNewLine = (count = 1) => '\n'.repeat(count);
 
 /**
+ * Indent each line of the provided string by an amount specified in the `count` parameter.
+ *
+ * @param {string} content The content to be indented.
+ * @param {number} count Number of indents to be applied to each line of the content.
+ * @returns {string}
+ */
+const indentLines = (content, count = 1) => {
+  return content.split('\n').map(line => '  '.repeat(count) + line).join('\n');
+};
+
+/**
  * Return a default set of imports for the React example.
  *
  * @returns {string}
@@ -76,8 +87,10 @@ const getDeclarations = (snippetInformation) => {
     }
   }
 
-  declarationsResult += getNewLine(2);
-  declarationsResult += callExpressions.join('\n');
+  if (callExpressions.length) {
+    declarationsResult += getNewLine(2);
+    declarationsResult += callExpressions.join('\n');
+  }
 
   return declarationsResult;
 };
@@ -95,9 +108,7 @@ const getUseEffectSection = (snippetInformation) => {
 
   const declaredRefs = [];
   let refExpressionsList = [];
-  let useEffectPart = `\
-  useEffect(() => {
-`;
+  let useEffectPart = 'useEffect(() => {';
 
   // TODO: IMPORTANT NOTE: in the vanilla demos the ref expressions should be done AFTER all the other
   //  variable declarations and expressions are done, as they'll be moved to `useEffect` section.
@@ -107,9 +118,9 @@ const getUseEffectSection = (snippetInformation) => {
 
     // Add the Handsontable instance declaration based on the Ref.
     if (!declaredRefs.includes(varName)) {
-      useEffectPart += `\
-    const ${varName} = ${varName}Ref.current.hotInstance;
-`;
+      useEffectPart += getNewLine();
+      useEffectPart += indentLines(`const ${varName} = ${varName}Ref.current.hotInstance;`, 1);
+
       declaredRefs.push(varName);
     }
   });
@@ -130,11 +141,9 @@ const getUseEffectSection = (snippetInformation) => {
   }).map(el => el.snippet);
 
   // Print the ref expressions.
-  useEffectPart += `\
-    ${refExpressionsList.join(';\n\n    ')}
-`;
+  useEffectPart += indentLines(`${refExpressionsList.join(';\n\n')}`, 1);
 
-  useEffectPart += '\n  });';
+  useEffectPart += '\n});';
 
   return useEffectPart;
 };
@@ -210,13 +219,13 @@ function render(snippetInformation, includeImports = false, includeApp = false) 
   result += getDeclarations(snippetInformation);
 
   if (includeApp) {
-    result += getAppSection();
+    result += getAppSection(snippetInformation);
 
   } else if (snippetInformation.hasHotInit) {
 
     // If there are expressions based on refs
     if (Object.keys(snippetInformation.refExpressions).length) {
-      result += getNewLine(2);
+      result += getNewLine(1);
       result += getUseEffectSection(snippetInformation);
       result += getNewLine(2);
     }
