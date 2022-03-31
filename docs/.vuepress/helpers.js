@@ -6,6 +6,7 @@ const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
   .filter(f => semver.valid(semver.coerce(f)));
 
 const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
+const TMP_DIR_FOR_WATCH = 'tmp';
 
 /**
  * Gets all available docs versions.
@@ -55,14 +56,23 @@ function getLatestVersion() {
 function getSidebars(buildMode) {
   const sidebars = { };
   const versions = getVersions(buildMode);
+  const frameworks = getFrameworks();
 
   versions.forEach((version) => {
     // eslint-disable-next-line
     const s = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-    sidebars[`/${version}/examples/`] = s.examples;
-    sidebars[`/${version}/api/`] = s.api;
-    sidebars[`/${version}/`] = s.guides;
+    frameworks.forEach((framework) => {
+      const apiTransformed = JSON.parse(JSON.stringify(s.api)); // Copy sidebar definition
+      const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
+
+      // We store path in sidebars.js files in form <VERSION>/api/plugins.
+      plugins.path = `/${TMP_DIR_FOR_WATCH}/${framework}${plugins.path}`;
+
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}/${version}/examples/`] = s.examples;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}/${version}/api/`] = apiTransformed;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}/${version}/`] = s.guides;
+    });
   });
 
   return sidebars;
@@ -107,6 +117,7 @@ function getBuildDocsFramework() {
 }
 
 module.exports = {
+  TMP_DIR_FOR_WATCH,
   getVersions,
   getFrameworks,
   getLatestVersion,

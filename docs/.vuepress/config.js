@@ -6,10 +6,9 @@ const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
-const { getBuildDocsVersion, getLatestVersion, getVersions, getFrameworks } = require('./helpers');
+const { getBuildDocsVersion, getLatestVersion, getVersions, getFrameworks, TMP_DIR_FOR_WATCH } = require('./helpers');
 
 const EVERY_VERSION_GLOB = '**';
-const TMP_DIR_FOR_WATCH = 'tmp';
 
 const buildMode = process.env.BUILD_MODE;
 const nodeEnv = process.env.NODE_ENV;

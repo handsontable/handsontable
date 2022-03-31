@@ -62,7 +62,7 @@ module.exports = (options, context) => {
           $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
 
         } else {
-          // We store permalink in .MD file in form <VERSION>/<DASHED WORDS>.
+          // We store permalink in .MD files in form <VERSION>/<DASHED WORDS>.
           $page.frontmatter.permalink = `/${$page.currentFramework}${$page.frontmatter.permalink}`;
         }
       }
