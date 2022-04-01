@@ -6,12 +6,12 @@ const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
-const { getBuildDocsVersion, getLatestVersion, getVersions, getFrameworks, TMP_DIR_FOR_WATCH } = require('./helpers');
+const { getBuildDocsVersion, getLatestVersion, getVersions, getFrameworks, TMP_DIR_FOR_WATCH, isEnvDev }
+  = require('./helpers');
 
 const EVERY_VERSION_GLOB = '**';
 
 const buildMode = process.env.BUILD_MODE;
-const nodeEnv = process.env.NODE_ENV;
 
 const versionPartialPath = getBuildDocsVersion() || EVERY_VERSION_GLOB;
 const isLatestOrMultiVersion = getBuildDocsVersion() === getLatestVersion() || !getBuildDocsVersion();
@@ -39,7 +39,7 @@ module.exports = {
     GA_ID: 'UA-33932793-7',
   },
   beforeDevServer() {
-    if (nodeEnv === 'development') {
+    if (isEnvDev()) {
       fsExtra.removeSync(TMP_DIR_FOR_WATCH);
 
       getVersions(buildMode).forEach((version) => {
@@ -50,8 +50,8 @@ module.exports = {
     }
   },
   patterns: [
-    `${nodeEnv === 'development' ? `${TMP_DIR_FOR_WATCH}/` : ''}${versionPartialPath}/*.md`,
-    `${nodeEnv === 'development' ? `${TMP_DIR_FOR_WATCH}/` : ''}${versionPartialPath}/**/*.md`,
+    `${isEnvDev() ? `${TMP_DIR_FOR_WATCH}/` : ''}${versionPartialPath}/*.md`,
+    `${isEnvDev() ? `${TMP_DIR_FOR_WATCH}/` : ''}${versionPartialPath}/**/*.md`,
     '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'
   ],
   description: 'Handsontable',

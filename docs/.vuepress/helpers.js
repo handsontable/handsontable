@@ -9,6 +9,15 @@ const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver
 const TMP_DIR_FOR_WATCH = 'tmp';
 
 /**
+ * Get whether we work in dev mode (watch script).
+ *
+ * @returns {boolean}
+ */
+function isEnvDev() {
+  return process.env.NODE_ENV === 'development';
+}
+
+/**
  * Gets all available docs versions.
  *
  * @param {string} buildMode The env name.
@@ -67,11 +76,11 @@ function getSidebars(buildMode) {
       const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
 
       // We store path in sidebars.js files in form <VERSION>/api/plugins.
-      plugins.path = `/${TMP_DIR_FOR_WATCH}/${framework}${plugins.path}`;
+      plugins.path = `${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${framework}${plugins.path}`;
 
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}/${version}/examples/`] = s.examples;
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}/${version}/api/`] = apiTransformed;
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}/${version}/`] = s.guides;
+      sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${framework}/${version}/examples/`] = s.examples;
+      sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${framework}/${version}/api/`] = apiTransformed;
+      sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${framework}/${version}/`] = s.guides;
     });
   });
 
@@ -127,4 +136,5 @@ module.exports = {
   getBuildDocsFramework,
   getBuildDocsVersion,
   getDefaultFramework,
+  isEnvDev,
 };
