@@ -19,7 +19,7 @@ We use Performance Lab to measure the execution times in various configurations.
 
 ## Set constant size
 
-You can set a constant size for your table's columns. This way, Handsontable won't have to calculate the optimal width for each column. To do this, define the column widths in the `colWidths` property of your Handsontable instance configuration as shown in the example below:
+You can set a constant size for your table's columns. This way, Handsontable won't have to calculate the optimal width for each column. To do this, define the column widths by setting the [`colWidths`](@/api/options.md#colwidths) configuration option:
 
 ```js
 const hot = new Handsontable(obj, {
@@ -36,7 +36,7 @@ When using this setting, Handsontable won't perform the column width calculation
 
 ## Turn off autoRowSize and/or autoColumnSize
 
-You can configure the value of the `autoRowSize` and `autoColumnSize` options. These allow you to define the amount of width/height-related calculations made during the table's initialization.
+You can configure the value of the [`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) options. These allow you to define the amount of width/height-related calculations made during the table's initialization.
 
 For more information, see our documentation for [rows](@/api/options.md#autorowsize) and [columns](@/api/options.md#autocolumnsize).
 
@@ -79,7 +79,7 @@ If you need only a few parts of Handsontable, you can think of importing them as
 - register it
 - use it
 
-The following example shows you how to import and register the `ContextMenu`
+The following example shows you how to import and register the [`ContextMenu`](@/api/contextmenu.md) plugin.
 
 ```js
 import Handsontable from 'handsontable/base';
