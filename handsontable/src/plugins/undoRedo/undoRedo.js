@@ -865,13 +865,12 @@ UndoRedo.prototype.registerShortcuts = function() {
   };
 
   gridContext.addShortcuts([{
-    keys: [['meta', 'z'], ['control', 'z']],
+    keys: [['Mod', 'z']],
     callback: () => {
       this.undo();
     },
   }, {
-    keys: [['control', 'y'], ['meta', 'y'],
-      ['control', 'shift', 'z'], ['meta', 'shift', 'z']],
+    keys: [['Mod', 'y'], ['Mod', 'Shift', 'z']],
     callback: () => {
       this.redo();
     },

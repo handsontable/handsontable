@@ -484,15 +484,6 @@ export class TextEditor extends BaseEditor {
       relativeToGroup: EDITOR_MANAGER_GROUP,
       position: 'before',
     }, {
-      keys: [['Alt', 'Enter']],
-      callback: () => {
-        setNewValue();
-
-        return false; // Will block closing editor.
-      },
-      relativeToGroup: EDITOR_MANAGER_GROUP,
-      position: 'before',
-    }, {
       keys: [['Meta', 'Enter']],
       callback: () => {
         setNewValue();
@@ -500,6 +491,15 @@ export class TextEditor extends BaseEditor {
         return false; // Will block closing editor.
       },
       runOnlyIf: () => !this.hot.selection.isMultiple(), // We trigger a data population for multiple selection.
+      relativeToGroup: EDITOR_MANAGER_GROUP,
+      position: 'before',
+    }, {
+      keys: [['Alt', 'Enter']],
+      callback: () => {
+        setNewValue();
+
+        return false; // Will block closing editor.
+      },
       relativeToGroup: EDITOR_MANAGER_GROUP,
       position: 'before',
     }, {

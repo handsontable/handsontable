@@ -86,7 +86,7 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
 
     if (activeContext.hasShortcut(keys)) {
       // Processing just actions being in stack at the moment of shortcut pressing (without respecting additions/removals performed dynamically).
-      const shortcuts = activeContext.getShortcuts(keys).slice();
+      const shortcuts = activeContext.getShortcuts(keys);
 
       arrayEach(shortcuts, ({ callback, runOnlyIf, preventDefault, stopPropagation }) => {
         if (runOnlyIf(event) === false) {
@@ -132,4 +132,3 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
     destroy: () => keyRecorder.unmount(),
   };
 };
-
