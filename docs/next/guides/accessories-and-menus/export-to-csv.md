@@ -14,7 +14,7 @@ tags:
 
 ## Overview
 
-The plugin allows you to export data from Handsontable into a `CSV` file.
+The plugin allows you to export data from Handsontable into a CSV file.
 
 ## Available methods
 
@@ -32,7 +32,7 @@ This is required to prepare a predefined settings object. We currently allow for
 
 ### options `Object`
 
-This is an optional argument. It contains a set of supported options and extends the predefined `CSV` configuration. For the complete list of options that you can use, see [available options](#available-options-in-the-export-configuration).
+This is an optional argument. It contains a set of supported options and extends the predefined CSV configuration. For the complete list of options that you can use, see [available options](#available-options-in-the-export-configuration).
 
 ## Available options in the export configuration
 

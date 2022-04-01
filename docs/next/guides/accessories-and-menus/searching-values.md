@@ -14,7 +14,7 @@ tags:
 
 The search plugin provides an easy interface to search data across Handsontable.
 
-You should first enable the plugin by setting the `search` option to `true`. When enabled, `searchPlugin` exposes a new method `query(queryStr)`, where `queryStr` is a string to find within the table. By default, the search is case insensitive.
+You should first enable the plugin by setting the [`search`](@/api/options.md#search) option to `true`. When enabled, `searchPlugin` exposes a new method `query(queryStr)`, where `queryStr` is a string to find within the table. By default, the search is case insensitive.
 
 `query(queryStr, [callback], [queryMethod])` method does 2 things. First of all, it returns an array of search results. Every element is an objects containing 3 properties:
 

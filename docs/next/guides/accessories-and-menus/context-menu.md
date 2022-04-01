@@ -16,7 +16,7 @@ tags:
 
 ## Context menu with default options
 
-To run the basic configuration of the Context Menu, just set the `contextMenu` option to `true`.
+To run the basic configuration of the Context Menu, just set the [`contextMenu`](@/api/options.md#contextmenu) option to `true`.
 
 ::: example #example1
 ```js
@@ -42,41 +42,41 @@ const hot = new Handsontable(container, {
 
 ## Context menu with specific options
 
-You can define items in the menu by passing the `contextMenu` option as an array of keys which are strings:
+You can define items in the menu by passing the [`contextMenu`](@/api/options.md#contextmenu) option as an array of keys which are strings:
 
-| Key | Purpose | Extra conditions |
-|----|----|----|
-| `row_above` | Insert row above action | |
-| `row_below` | Insert row below action | |
-| `col_left` | Insert column left action | |
-| `col_right` | Insert column right action | |
-| `---------` | Separator | |
-| `remove_row` | Remove row action | |
-| `clear_column` | Clear column values action | |
-| `undo` | Undo action | Plugin [UndoRedo](@/api/undoRedo.md) turned on |
-| `redo` | Redo action | Plugin [UndoRedo](@/api/undoRedo.md) turned on |
-| `make_read_only` | Make read only action | |
-| `alignment` | Alignment actions | |
-| `cut` | Cut action | Plugin [CopyPaste](@/api/copyPaste.md) turned on |
-| `copy` | Copy action | Plugin [CopyPaste](@/api/copyPaste.md) turned on |
-| `freeze_column` | Freeze column action | Plugin [ManualColumnFreeze](@/api/manualColumnFreeze.md) turned on |
-| `unfreeze_column` | Unfreeze column action | Plugin [ManualColumnFreeze](@/api/manualColumnFreeze.md) turned on |
-| `borders` | Custom borders actions | Plugin [CustomBorders](@/api/customBorders.md) turned on |
-| `commentsAddEdit` | Add and edit comment actions | Plugin [Comments](@/api/comments.md) turned on |
-| `commentsRemove` | Remove comment action | Plugin [Comments](@/api/comments.md) turned on |
-| `commentsReadOnly` | Make comment read only action | Plugin [Comments](@/api/comments.md) turned on |
-| `mergeCells` | Merge and unmerge cells actions | Plugin [MergeCells](@/api/mergeCells.md) turned on |
-| `add_child` | Insert child row action | Plugin [NestedRows](@/api/nestedRows.md) turned on |
-| `detach_from_parent` | Detach from parent row action | Plugin [NestedRows](@/api/nestedRows.md) turned on |
-| `hidden_columns_hide` | Hide column(s) action | Plugin [HiddenColumns](@/api/hiddenColumns.md) turned on |
-| `hidden_columns_show` | Show hidden column(s) action | Plugin [HiddenColumns](@/api/hiddenColumns.md) turned on |
-| `hidden_rows_hide` | Hide row(s) action | Plugin [HiddenRows](@/api/hiddenRows.md) turned on |
-| `hidden_rows_show` | Show hidden row(s) action | Plugin [HiddenRows](@/api/hiddenRows.md) turned on |
-| `filter_by_condition` | First conditions select element | Plugin [Filters](@/api/filters.md) turned on |
-| `filter_operators` | Operation select element | Plugin [Filters](@/api/filters.md) turned on |
-| `filter_by_condition2` | Second conditions select element | Plugin [Filters](@/api/filters.md) turned on |
-| `filter_by_value` | Value select element | Plugin [Filters](@/api/filters.md) turned on |
-| `filter_action_bar` | Action bar element | Plugin [Filters](@/api/filters.md) turned on |
+| Key                                  | Purpose                          | Extra conditions                                                   |
+| ------------------------------------ | -------------------------------- | ------------------------------------------------------------------ |
+| [`row_above`](@/api/contextmenu.md) | Insert row above action          |                                                                    |
+| [`row_below`](@/api/contextmenu.md)                          | Insert row below action          |                                                                    |
+| [`col_left`](@/api/contextmenu.md)                           | Insert column left action        |                                                                    |
+| [`col_right`](@/api/contextmenu.md)                          | Insert column right action       |                                                                    |
+| [`---------`](@/api/contextmenu.md)                          | Separator                        |                                                                    |
+| [`remove_row`](@/api/contextmenu.md)                         | Remove row action                |                                                                    |
+| [`clear_column`](@/api/contextmenu.md)                       | Clear column values action       |                                                                    |
+| [`undo`](@/api/contextmenu.md)                               | Undo action                      | Plugin [UndoRedo](@/api/undoRedo.md) turned on                     |
+| [`redo`](@/api/contextmenu.md)                               | Redo action                      | Plugin [UndoRedo](@/api/undoRedo.md) turned on                     |
+| [`make_read_only`](@/api/contextmenu.md)                     | Make read only action            |                                                                    |
+| [`alignment`](@/api/contextmenu.md)                          | Alignment actions                |                                                                    |
+| [`cut`](@/api/contextmenu.md)                                | Cut action                       | Plugin [CopyPaste](@/api/copyPaste.md) turned on                   |
+| [`copy`](@/api/contextmenu.md)                               | Copy action                      | Plugin [CopyPaste](@/api/copyPaste.md) turned on                   |
+| [`freeze_column`](@/api/contextmenu.md)                      | Freeze column action             | Plugin [ManualColumnFreeze](@/api/manualColumnFreeze.md) turned on |
+| [`unfreeze_column`](@/api/contextmenu.md)                    | Unfreeze column action           | Plugin [ManualColumnFreeze](@/api/manualColumnFreeze.md) turned on |
+| [`borders`](@/api/contextmenu.md)                            | Custom borders actions           | Plugin [CustomBorders](@/api/customBorders.md) turned on           |
+| [`commentsAddEdit`](@/api/contextmenu.md)                    | Add and edit comment actions     | Plugin [Comments](@/api/comments.md) turned on                     |
+| [`commentsRemove`](@/api/contextmenu.md)                     | Remove comment action            | Plugin [Comments](@/api/comments.md) turned on                     |
+| [`commentsReadOnly`](@/api/contextmenu.md)                   | Make comment read only action    | Plugin [Comments](@/api/comments.md) turned on                     |
+| [`mergeCells`](@/api/contextmenu.md)                         | Merge and unmerge cells actions  | Plugin [MergeCells](@/api/mergeCells.md) turned on                 |
+| [`add_child`](@/api/contextmenu.md)                          | Insert child row action          | Plugin [NestedRows](@/api/nestedRows.md) turned on                 |
+| [`detach_from_parent`](@/api/contextmenu.md)                 | Detach from parent row action    | Plugin [NestedRows](@/api/nestedRows.md) turned on                 |
+| [`hidden_columns_hide`](@/api/contextmenu.md)                | Hide column(s) action            | Plugin [HiddenColumns](@/api/hiddenColumns.md) turned on           |
+| [`hidden_columns_show`](@/api/contextmenu.md)                | Show hidden column(s) action     | Plugin [HiddenColumns](@/api/hiddenColumns.md) turned on           |
+| [`hidden_rows_hide`](@/api/contextmenu.md)                   | Hide row(s) action               | Plugin [HiddenRows](@/api/hiddenRows.md) turned on                 |
+| [`hidden_rows_show`](@/api/contextmenu.md)                   | Show hidden row(s) action        | Plugin [HiddenRows](@/api/hiddenRows.md) turned on                 |
+| [`filter_by_condition`](@/api/contextmenu.md)                | First conditions select element  | Plugin [Filters](@/api/filters.md) turned on                       |
+| [`filter_operators`](@/api/contextmenu.md)                   | Operation select element         | Plugin [Filters](@/api/filters.md) turned on                       |
+| [`filter_by_condition2`](@/api/contextmenu.md)               | Second conditions select element | Plugin [Filters](@/api/filters.md) turned on                       |
+| [`filter_by_value`](@/api/contextmenu.md)                    | Value select element             | Plugin [Filters](@/api/filters.md) turned on                       |
+| [`filter_action_bar`](@/api/contextmenu.md)                  | Action bar element               | Plugin [Filters](@/api/filters.md) turned on                       |
 
 ::: example #example2
 ```js
