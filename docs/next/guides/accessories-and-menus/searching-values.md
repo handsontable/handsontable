@@ -14,29 +14,29 @@ tags:
 
 The search plugin provides an easy interface to search data across Handsontable.
 
-You should first enable the plugin by setting the [`search`](@/api/options.md#search) option to `true`. When enabled, `searchPlugin` exposes a new method `query(queryStr)`, where `queryStr` is a string to find within the table. By default, the search is case insensitive.
+You should first enable the plugin by setting the [`search`](@/api/options.md#search) option to `true`. When enabled, the [`Search`](@/api/search.md) plugin exposes a new method [`query(queryStr)`](@/api/search.md#query), where [`queryStr`](@/api/search.md#query) is a string to find within the table. By default, the search is case insensitive.
 
-`query(queryStr, [callback], [queryMethod])` method does 2 things. First of all, it returns an array of search results. Every element is an objects containing 3 properties:
+[`query(queryStr, [callback], [queryMethod])`](@/api/search.md#query) method does 2 things. First of all, it returns an array of search results. Every element is an objects containing 3 properties:
 
 * `row` – index of the row where the value has been found
 * `col` – index of the column where the value has been found
 * `data` – the value that has been found
 
-The second thing the `query` does is set the `isSearchResult` property for each cell. If a cell is in search results, then its `isSearchResult` is set to `true`, otherwise the property is set to `false`.
+The second thing the [`query()`](@/api/search.md#query) method does is set the `isSearchResult` property for each cell. If a cell is in search results, then its `isSearchResult` is set to `true`, otherwise the property is set to `false`.
 
-All you have to do now, is use the `query()` method inside search input listener and you're done.
+All you have to do now, is use the [`query()`](@/api/search.md#query) method inside search input listener and you're done.
 
 ## Search result class
 
-By default the `searchPlugin` adds `htSearchResult` class to every cell which `isSearchResult` property is `true`. You can change this class using `searchResultClass` option.
+By default, the [`Search`](@/api/search.md) plugin adds `htSearchResult` class to every cell which `isSearchResult` property is `true`. You can change this class using [`searchResultClass`](@/api/options.md#search) configuration option.
 
-If you wish to change the result class, you can use the `var searchPlugin = hot.getPlugin('search'); searchPlugin.setSearchResultClass(className);` method.
+To change the result class, you use the [`var searchPlugin = hot.getPlugin('search'); searchPlugin.setSearchResultClass(className);`](@/api/search.md#setsearchresultclass) method.
 
-## Custom `queryMethod`
+## Custom query method
 
-The `queryMethod` is responsible for determining whether a `queryStr` matches the value stored in a cell. It takes 2 arguments: `queryStr` and `cellData`. The first is a string passed to `query()` method. The second is a value returned by `getDataAtCell()`. The `queryMethod` function should return `true` if there is a match.
+The query method is responsible for determining whether a `queryStr` matches the value stored in a cell. It takes 2 arguments: `queryStr` and `cellData`. The first is a string passed to [`query()`](@/api/search.md#query) method. The second is a value returned by [`getDataAtCell()`](@/api/core.md#getdataatcell). The [`queryMethod`](@/api/options.md#search) function should return `true` if there is a match.
 
-The default `queryMethod` is dead simple:
+The default [`queryMethod`](@/api/options.md#search) is dead simple:
 
 ```js
 const DEFAULT_QUERY_METHOD = function(query, value) {
@@ -51,13 +51,13 @@ const DEFAULT_QUERY_METHOD = function(query, value) {
 };
 ```
 
-If you want to change the `queryMethod`, use `queryMethod` option. You can also pass the `queryMethod` as the third argument of `query()` method. To change the `queryMethod`, use `var searchPlugin = hot.getPlugin('search'); searchPlugin.setQueryMethod(myNewQueryMethod);`.
+If you want to change the [`queryMethod`](@/api/search.md#query), use the qu[`queryMethod`](@/api/options.md#search) option. You can also pass the [`queryMethod`](@/api/options.md#search) as the third argument of [`query()`](@/api/search.md#query) method. To change the [`queryMethod`](@/api/options.md#search), use [`var searchPlugin = hot.getPlugin('search'); searchPlugin.setQueryMethod(myNewQueryMethod);`](@/api/search.md#setquerymethod).
 
 ## Custom result callback
 
-After calling `queryMethod` `searchPlugin` calls `callback(instance, rowIndex, colIndex, cellData, testResult)` for every cell.
+After calling [`queryMethod`](@/api/options.md#search) the [`Search`](@/api/search.md) plugin calls `callback(instance, rowIndex, colIndex, cellData, testResult)` for every cell.
 
-Just as the `queryMethod`, you can override this callback, using `var searchPlugin = hot.getPlugin('search'); searchPlugin.setCallback(myNewCallbackFunction);`, or pass the `callback` as the second argument of `query()` method.
+Just as the [`queryMethod`](@/api/options.md#search), you can override this callback, using [`var searchPlugin = hot.getPlugin('search'); searchPlugin.setCallback(myNewCallbackFunction);`](@/api/search.md#setcallback), or passing your callback as the second argument of [`query()`](@/api/search.md#query) method.
 
 The default `callback` is responsible for setting the `isSearchResult` property.
 
@@ -70,7 +70,7 @@ const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
 ## Simplest use case
 
 The example below:
-- Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) [configuration option](@/guides/getting-started/setting-options.md) to `true`)
+- Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) configuration option to `true`)
 - Adds a search input listener
 - Inside the search input listener, gets the [`Search`](@/api/search.md) plugin's instance
 - Uses the [`Search`](@/api/search.md) plugin's [`query()`](@/api/search.md#query) method
@@ -116,12 +116,12 @@ Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
 
 ## Custom search result class
 
-You can style your search results with a custom CSS class, using the [`Search`](@/api/search.md) plugin's [`searchResultClass`](@/api/search.md) option.
+You can style your search results with a custom CSS class, using the [`Search`](@/api/search.md) plugin's [`searchResultClass`](@/api/options.md#search) option.
 
 The example below highlights its search results in bold red. To do this, it:
 - Defines a custom CSS class called `my-custom-search-result-class`
-- Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) [configuration option](@/guides/getting-started/setting-options.md) to a configuration object)
-- Sets the [`Search`](@/api/search.md) plugin's [`searchResultClass`](@/api/search.md) option to `'my-custom-search-result-class'`
+- Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) configuration option to an object)
+- Sets the [`Search`](@/api/search.md) plugin's [`searchResultClass`](@/api/options.md#search) option to `'my-custom-search-result-class'`
 
 ::: example #example2 --css 1 --html 2 --js 3
 ````css
@@ -169,12 +169,12 @@ Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
 
 ## Custom query method
 
-You can add a custom query method, using the [`Search`](@/api/search.md) plugin's [`queryMethod`](@/api/search.md) option.
+You can add a custom query method, using the [`Search`](@/api/search.md) plugin's [`queryMethod`](@/api/search.md#query).
 
 The example below searches only for exact search query matches. To do this, it:
 - Defines a custom query method called `onlyExactMatch`
-- Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) [configuration option](@/guides/getting-started/setting-options.md) to a configuration object)
-- Sets the [`Search`](@/api/search.md) plugin's [`queryMethod`](@/api/search.md) option to `onlyExactMatch`
+- Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) configuration option to an object)
+- Sets the [`Search`](@/api/search.md) plugin's [`queryMethod`](@/api/options.md#search) option to `onlyExactMatch`
 
 ::: example #example3 --html 1 --js 2
 ```html
@@ -227,7 +227,7 @@ You can add a custom callback function, using the [`Search`](@/api/search.md) pl
 
 The example below displays the number of matching search results. To do this, it:
 - Defines a custom callback function called `searchResultCounter`
-- Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) [configuration option](@/guides/getting-started/setting-options.md) to a configuration object)
+- Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) configuration option to an object)
 - Sets the [`Search`](@/api/search.md) plugin's [`callback`](@/api/search.md) option to `searchResultCounter`
 
 ::: example #example4 --html 1 --js 2
