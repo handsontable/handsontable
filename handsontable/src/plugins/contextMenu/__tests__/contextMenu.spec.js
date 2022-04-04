@@ -462,7 +462,7 @@ describe('ContextMenu', () => {
         contextMenu: ['row_above', 'remove_row', '---------', 'alignment'],
         height: 400,
         beforeOnCellContextMenu(event) {
-          // Block event priopagation to test if the "contextmenu" handler closes the menu.
+          // Block event propagation to test if the "contextmenu" handler closes the menu.
           Handsontable.dom.stopImmediatePropagation(event);
         }
       });

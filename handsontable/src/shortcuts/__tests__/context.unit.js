@@ -117,6 +117,47 @@ describe('context', () => {
     expect(shortcut2.runOnlyIf).toBe(runOnlyIf);
   });
 
+  it('should be possible to add/remove "control/meta" virtual shortcut without conflicting with ' +
+     '"control" and "meta" shortcuts', () => {
+    const context = createContext('name');
+    const options = {
+      group: 'helloWorld'
+    };
+
+    context.addShortcuts([{
+      keys: [['control/meta', 'a']],
+      callback: () => {},
+    }, {
+      keys: [['control', 'a']],
+      callback: () => {},
+    }, {
+      keys: [['meta', 'a']],
+      callback: () => {},
+    }], options);
+
+    expect(context.getShortcuts(['control/meta', 'a']).length).toBe(1);
+    expect(context.getShortcuts(['control', 'a']).length).toBe(1);
+    expect(context.getShortcuts(['meta', 'a']).length).toBe(1);
+
+    context.removeShortcutsByKeys(['meta', 'a']);
+
+    expect(context.getShortcuts(['control/meta', 'a']).length).toBe(1);
+    expect(context.getShortcuts(['control', 'a']).length).toBe(1);
+    expect(context.getShortcuts(['meta', 'a']).length).toBe(0);
+
+    context.removeShortcutsByKeys(['control', 'a']);
+
+    expect(context.getShortcuts(['control/meta', 'a']).length).toBe(1);
+    expect(context.getShortcuts(['control', 'a']).length).toBe(0);
+    expect(context.getShortcuts(['meta', 'a']).length).toBe(0);
+
+    context.removeShortcutsByKeys(['control/meta', 'a']);
+
+    expect(context.getShortcuts(['control/meta', 'a']).length).toBe(0);
+    expect(context.getShortcuts(['control', 'a']).length).toBe(0);
+    expect(context.getShortcuts(['meta', 'a']).length).toBe(0);
+  });
+
   it('should give a possibility to remove registered shortcuts by keys', () => {
     const context = createContext('name');
     const callback = () => {

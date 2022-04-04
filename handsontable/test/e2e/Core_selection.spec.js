@@ -767,8 +767,9 @@ describe('Core_selection', () => {
     $input.focus();
     expect(document.activeElement.nodeName).toBe('INPUT');
 
-    $input.simulate('keydown', { key: 'Control', ctrlKey: true, metaKey: true });
+    $input.simulate('keydown', { key: 'Control', ctrlKey: true, metaKey: false });
     expect(document.activeElement.nodeName).toBe('INPUT');
+    $input.simulate('keyup', { key: 'Control', ctrlKey: true, metaKey: false });
 
     $input.remove();
   });
@@ -3264,19 +3265,6 @@ describe('Core_selection', () => {
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
-
-        keyDownUp(['meta', 'arrowdown']);
-
-        expect(getSelected()).toEqual([[0, 0, 0, 0], [1, 0, 1, 0], [2, 0, 2, 0]]);
-        expect(`
-          |   ║ - :   :   :   :   |
-          |===:===:===:===:===:===|
-          | - ║ 0 :   :   :   :   |
-          | - ║ 0 :   :   :   :   |
-          | - ║ A :   :   :   :   |
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-        `).toBeMatchToSelectionPattern();
       });
 
       it('arrow up', () => {
@@ -3299,19 +3287,6 @@ describe('Core_selection', () => {
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
           | - ║ A :   :   :   :   |
-          | - ║ 0 :   :   :   :   |
-        `).toBeMatchToSelectionPattern();
-
-        keyDownUp(['meta', 'arrowup']);
-
-        expect(getSelected()).toEqual([[4, 0, 4, 0], [3, 0, 3, 0], [2, 0, 2, 0]]);
-        expect(`
-          |   ║ - :   :   :   :   |
-          |===:===:===:===:===:===|
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-          | - ║ A :   :   :   :   |
-          | - ║ 0 :   :   :   :   |
           | - ║ 0 :   :   :   :   |
         `).toBeMatchToSelectionPattern();
       });
@@ -3337,19 +3312,6 @@ describe('Core_selection', () => {
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
-
-        keyDownUp(['meta', 'arrowleft']);
-
-        expect(getSelected()).toEqual([[0, 4, 0, 4], [0, 3, 0, 3], [0, 2, 0, 2]]);
-        expect(`
-          |   ║   :   : - : - : - |
-          |===:===:===:===:===:===|
-          | - ║   :   : A : 0 : 0 |
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-        `).toBeMatchToSelectionPattern();
       });
 
       it('arrow right', () => {
@@ -3368,19 +3330,6 @@ describe('Core_selection', () => {
           |   ║ - : - :   :   :   |
           |===:===:===:===:===:===|
           | - ║ 0 : A :   :   :   |
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-        `).toBeMatchToSelectionPattern();
-
-        keyDownUp(['meta', 'arrowright']);
-
-        expect(getSelected()).toEqual([[0, 0, 0, 0], [0, 1, 0, 1], [0, 2, 0, 2]]);
-        expect(`
-          |   ║ - : - : - :   :   |
-          |===:===:===:===:===:===|
-          | - ║ 0 : 0 : A :   :   |
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
@@ -3427,21 +3376,6 @@ describe('Core_selection', () => {
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
-
-        keyDownUp(['shift', 'meta', 'arrowdown']);
-
-        // Temporary, for compatibility with Handsontable 11.0.x.
-        expect(getSelected()).toEqual([[0, 0, 3, 0]]);
-        // Temporary, for compatibility with Handsontable 11.0.x.
-        expect(`
-          |   ║ - :   :   :   :   |
-          |===:===:===:===:===:===|
-          | - ║ A :   :   :   :   |
-          | - ║ 0 :   :   :   :   |
-          | - ║ 0 :   :   :   :   |
-          | - ║ 0 :   :   :   :   |
-          |   ║   :   :   :   :   |
-        `).toBeMatchToSelectionPattern();
       });
 
       it('arrow up', () => {
@@ -3477,21 +3411,6 @@ describe('Core_selection', () => {
           |===:===:===:===:===:===|
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
-          | - ║ 0 :   :   :   :   |
-          | - ║ 0 :   :   :   :   |
-          | - ║ A :   :   :   :   |
-        `).toBeMatchToSelectionPattern();
-
-        keyDownUp(['shift', 'meta', 'arrowup']);
-
-        // Temporary, for compatibility with Handsontable 11.0.x.
-        expect(getSelected()).toEqual([[4, 0, 1, 0]]);
-        // Temporary, for compatibility with Handsontable 11.0.x.
-        expect(`
-          |   ║ - :   :   :   :   |
-          |===:===:===:===:===:===|
-          |   ║   :   :   :   :   |
-          | - ║ 0 :   :   :   :   |
           | - ║ 0 :   :   :   :   |
           | - ║ 0 :   :   :   :   |
           | - ║ A :   :   :   :   |
@@ -3535,21 +3454,6 @@ describe('Core_selection', () => {
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
-
-        keyDownUp(['shift', 'meta', 'arrowleft']);
-
-        // Temporary, for compatibility with Handsontable 11.0.x.
-        expect(getSelected()).toEqual([[0, 4, 0, 1]]);
-        // Temporary, for compatibility with Handsontable 11.0.x.
-        expect(`
-          |   ║   : - : - : - : - |
-          |===:===:===:===:===:===|
-          | - ║   : 0 : 0 : 0 : A |
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-        `).toBeMatchToSelectionPattern();
       });
 
       it('arrow right', () => {
@@ -3584,21 +3488,6 @@ describe('Core_selection', () => {
           |   ║ - : - : - :   :   |
           |===:===:===:===:===:===|
           | - ║ A : 0 : 0 :   :   |
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-          |   ║   :   :   :   :   |
-        `).toBeMatchToSelectionPattern();
-
-        keyDownUp(['shift', 'meta', 'arrowright']);
-
-        // Temporary, for compatibility with Handsontable 11.0.x.
-        expect(getSelected()).toEqual([[0, 0, 0, 3]]);
-        // Temporary, for compatibility with Handsontable 11.0.x.
-        expect(`
-          |   ║ - : - : - : - :   |
-          |===:===:===:===:===:===|
-          | - ║ A : 0 : 0 : 0 :   |
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
