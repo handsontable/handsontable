@@ -9,7 +9,7 @@ import {
   displayConfirmationMessage
 } from './index.mjs';
 
-import mainPackageJson from '../../package.json';
+import mainPackageJson from '../../package.json' assert { type: 'json' };
 import hotConfig from '../../hot.config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
