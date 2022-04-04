@@ -97,11 +97,6 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
       callback(event, [pressedKey].concat(getPressedModifierKeys(event, true)));
     }
 
-    if (isMacOS() && extraModifierKeys.includes('meta') || !isMacOS() && extraModifierKeys.includes('control')) {
-      // Trigger the callback for the virtual OS-dependent "mod" key
-      callback(event, [pressedKey].concat(getPressedModifierKeys(event, true)));
-    }
-
     afterKeyDown(event);
   };
 
