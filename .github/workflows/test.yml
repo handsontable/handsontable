@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: 16.13.x
+  NODE_VERSION: 16
 
 jobs:
   check-scope:
