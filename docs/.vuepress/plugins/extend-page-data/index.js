@@ -1,12 +1,13 @@
 const {
   getSidebars,
   getLatestVersion,
-  getVersions,
   parseVersion,
   parseFramework,
   getDefaultFramework,
   getBuildDocsFramework,
   getBuildDocsVersion,
+  getDocsFrameworkedVersions,
+  getDocsNonFrameworkedVersions,
 } = require('../../helpers');
 const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
 
@@ -42,7 +43,8 @@ module.exports = (options, context) => {
     extendPageData($page) {
       $page.DOCS_VERSION = DOCS_VERSION;
       $page.DOCS_FRAMEWORK = DOCS_FRAMEWORK;
-      $page.versions = getVersions(buildMode);
+      $page.frameworkedVersions = getDocsFrameworkedVersions(buildMode);
+      $page.nonFrameworkedVersions = getDocsNonFrameworkedVersions(buildMode);
       $page.latestVersion = getLatestVersion();
       $page.currentVersion = parseVersion($page.path);
       $page.currentFramework = parseFramework($page.path);
@@ -53,15 +55,16 @@ module.exports = (options, context) => {
       const isFrameworkLastVersion = DOCS_FRAMEWORK &&
         $page.currentVersion === $page.latestVersion && $page.currentFramework === DOCS_FRAMEWORK;
       const isSingleVersionFramework = DOCS_VERSION &&
-        $page.currentVersion === DOCS_VERSION && $page.currentFramework === getDefaultFramework();
+        $page.currentVersion === DOCS_VERSION &&
+        ($page.currentFramework === getDefaultFramework() || $page.currentFramework === 'none');
       const everyBuild = $page.currentVersion === $page.latestVersion &&
-        $page.currentFramework === getDefaultFramework();
+        ($page.currentFramework === getDefaultFramework() || $page.currentFramework === 'none');
 
       if ($page.frontmatter.permalink) {
         if (isSingleBuild || isFrameworkLastVersion || isSingleVersionFramework || everyBuild) {
           $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
 
-        } else {
+        } else if (getDocsFrameworkedVersions(process.env.BUILD_MODE).includes($page.currentVersion)) {
           // We store permalink in .MD files in form <VERSION>/<DASHED WORDS>.
           $page.frontmatter.permalink = `/${$page.currentFramework}${$page.frontmatter.permalink}`;
         }

@@ -23,12 +23,24 @@ export default {
 
       return version;
     },
-    getLink(version) {
+    getLink(version, isFrameworked) {
       if (version === this.$page.latestVersion) {
         return '/docs/';
       }
 
-      return `/docs/${this.$page.currentFramework}/${version}/`;
+      if (this.$page.currentFramework === 'none') {
+        if (isFrameworked) {
+          return `/docs/javascript/${version}/`;
+        }
+
+        return `/docs/${version}/`;
+      }
+
+      if (isFrameworked) {
+        return `/docs/${this.$page.currentFramework}/${version}/`;
+      }
+
+      return `/docs/${version}/`;
     },
     getLegacyVersions() {
       return [
@@ -59,9 +71,15 @@ export default {
         text: this.addLatest(this.$page.currentVersion),
         items:
           [
-            ...this.$page.versions.map(v => ({
+            ...this.$page.frameworkedVersions.map(v => ({
               text: `${this.addLatest(v)}`,
-              link: this.getLink(v),
+              link: this.getLink(v, true),
+              target: '_self',
+              isHtmlLink: true
+            })),
+            ...this.$page.nonFrameworkedVersions.map(v => ({
+              text: `${this.addLatest(v)}`,
+              link: this.getLink(v, false),
               target: '_self',
               isHtmlLink: true
             })),

@@ -6,7 +6,8 @@ const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
-const { getBuildDocsVersion, getLatestVersion, getVersions, getFrameworks, TMP_DIR_FOR_WATCH, isEnvDev }
+const { getBuildDocsVersion, getLatestVersion, getDocsFrameworkedVersions, getDocsNonFrameworkedVersions,
+  getFrameworks, TMP_DIR_FOR_WATCH, isEnvDev }
   = require('./helpers');
 
 const EVERY_VERSION_GLOB = '**';
@@ -42,7 +43,11 @@ module.exports = {
     if (isEnvDev()) {
       fsExtra.removeSync(TMP_DIR_FOR_WATCH);
 
-      getVersions(buildMode).forEach((version) => {
+      getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
+        fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${version}`);
+      });
+
+      getDocsFrameworkedVersions(buildMode).forEach((version) => {
         getFrameworks().forEach((framework) => {
           fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${framework}/${version}`);
         });

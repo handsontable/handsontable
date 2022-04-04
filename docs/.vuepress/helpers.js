@@ -7,6 +7,7 @@ const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
 
 const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
 const TMP_DIR_FOR_WATCH = 'tmp';
+const minFrameworkedDocsVersion = '12.0.0';
 
 /**
  * Get whether we work in dev mode (watch script).
@@ -15,6 +16,32 @@ const TMP_DIR_FOR_WATCH = 'tmp';
  */
 function isEnvDev() {
   return process.env.NODE_ENV === 'development';
+}
+
+/**
+ * Gets version of documentation which should be build with particular framework.
+ *
+ * @param {string} buildMode The env name.
+ * @returns {Array}
+ */
+function getDocsFrameworkedVersions(buildMode) {
+  const versions = getVersions(buildMode);
+
+  return versions.filter(version => version === 'next' ||
+    semver.gt(semver.coerce(version), semver.coerce(minFrameworkedDocsVersion)));
+}
+
+/**
+ * Gets version of documentation which should be build only in one version (no separate builds for particular framework).
+ *
+ * @param {string} buildMode The env name.
+ * @returns {Array}
+ */
+function getDocsNonFrameworkedVersions(buildMode) {
+  const versions = getVersions(buildMode);
+
+  return versions.filter(version => version !== 'next' &&
+    semver.lt(semver.coerce(version), semver.coerce(minFrameworkedDocsVersion)));
 }
 
 /**
@@ -64,10 +91,18 @@ function getLatestVersion() {
  */
 function getSidebars(buildMode) {
   const sidebars = { };
-  const versions = getVersions(buildMode);
   const frameworks = getFrameworks();
 
-  versions.forEach((version) => {
+  getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
+    // eslint-disable-next-line
+    const s = require(path.join(__dirname, `../${version}/sidebars.js`));
+
+    sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${version}/examples/`] = s.examples;
+    sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${version}/api/`] = s.api;
+    sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${version}/`] = s.guides;
+  });
+
+  getDocsFrameworkedVersions(buildMode).forEach((version) => {
     // eslint-disable-next-line
     const s = require(path.join(__dirname, `../${version}/sidebars.js`));
 
@@ -94,7 +129,11 @@ function getSidebars(buildMode) {
  * @returns {string}
  */
 function parseVersion(url) {
-  return url.split('/')[3] || getLatestVersion();
+  if (getFrameworks().includes(url.split('/')[2])) {
+    return url.split('/')[3] || getLatestVersion();
+  }
+
+  return url.split('/')[2] || getLatestVersion();
 }
 
 /**
@@ -104,7 +143,11 @@ function parseVersion(url) {
  * @returns {string}
  */
 function parseFramework(url) {
-  return url.split('/')[2] || getDefaultFramework();
+  if (getFrameworks().includes(url.split('/')[2])) {
+    return url.split('/')[2];
+  }
+
+  return 'none';
 }
 
 /**
@@ -129,6 +172,8 @@ module.exports = {
   TMP_DIR_FOR_WATCH,
   getVersions,
   getFrameworks,
+  getDocsFrameworkedVersions,
+  getDocsNonFrameworkedVersions,
   getLatestVersion,
   getSidebars,
   parseVersion,
