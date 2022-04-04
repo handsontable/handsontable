@@ -12,8 +12,8 @@ import {
   displayErrorMessage,
   displayWarningMessage
 } from '../../scripts/utils/index.mjs';
-import examplesPackageJson from '../package.json';
-import mainPackageJson from '../../package.json';
+import examplesPackageJson from '../package.json' assert { type: 'json' };
+import mainPackageJson from '../../package.json' assert { type: 'json' };
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workspaces = examplesPackageJson.workspaces;
