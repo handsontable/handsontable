@@ -506,7 +506,7 @@ export class TextEditor extends BaseEditor {
       // TODO: Duplicated part of code (callback to shortcut)
       keys: [
         ['PageUp'],
-        // Added according to specification, not the target behaviour.
+        // Added according to specification, not the target behavior.
         ['Shift', 'PageUp']
       ],
       callback: () => {

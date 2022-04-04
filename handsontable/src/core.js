@@ -4484,12 +4484,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   shortcutManager.setActiveContextName('grid');
 
   gridContext.addShortcuts([{
-    keys: [['Mod', 'A']],
+    keys: [['Control/Meta', 'A']],
     callback: () => {
       instance.selectAll();
     },
   }, {
-    keys: [['ArrowUp'], ['Mod', 'ArrowUp']],
+    keys: [['ArrowUp'], ['Control/Meta', 'ArrowUp']],
     callback: () => {
       selection.transformStart(-1, 0);
     },
@@ -4497,13 +4497,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     keys: [
       ['ArrowUp', 'Shift'],
       // Added according to specification, not the target behaviour.
-      ['ArrowUp', 'Shift', 'Mod']
+      ['ArrowUp', 'Shift', 'Control/Meta']
     ],
     callback: () => {
       selection.transformEnd(-1, 0);
     },
   }, {
-    keys: [['ArrowDown'], ['Mod', 'ArrowDown']],
+    keys: [['ArrowDown'], ['Control/Meta', 'ArrowDown']],
     callback: () => {
       selection.transformStart(1, 0);
     },
@@ -4511,13 +4511,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     keys: [
       ['ArrowDown', 'Shift'],
       // Added according to specification, not the target behaviour.
-      ['ArrowDown', 'Shift', 'Mod']
+      ['ArrowDown', 'Shift', 'Control/Meta']
     ],
     callback: () => {
       selection.transformEnd(1, 0);
     },
   }, {
-    keys: [['ArrowLeft'], ['Mod', 'ArrowLeft']],
+    keys: [['ArrowLeft'], ['Control/Meta', 'ArrowLeft']],
     callback: () => {
       selection.transformStart(0, -1 * instance.getDirectionFactor());
     },
@@ -4525,13 +4525,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     keys: [
       ['ArrowLeft', 'Shift'],
       // Added according to specification, not the target behaviour.
-      ['ArrowLeft', 'Shift', 'Mod'],
+      ['ArrowLeft', 'Shift', 'Control/Meta'],
     ],
     callback: () => {
       selection.transformEnd(0, -1 * instance.getDirectionFactor());
     },
   }, {
-    keys: [['ArrowRight'], ['Mod', 'ArrowRight']],
+    keys: [['ArrowRight'], ['Control/Meta', 'ArrowRight']],
     callback: () => {
       selection.transformStart(0, instance.getDirectionFactor());
     },
@@ -4539,7 +4539,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     keys: [
       ['ArrowRight', 'Shift'],
       // Added according to specification, not the target behaviour.
-      ['ArrowRight', 'Shift', 'Mod'],
+      ['ArrowRight', 'Shift', 'Control/Meta'],
     ],
     callback: () => {
       selection.transformEnd(0, instance.getDirectionFactor());
@@ -4561,7 +4561,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    keys: [['Home', 'Mod']],
+    keys: [['Home', 'Control/Meta']],
     callback: () => {
       selection.setRangeStart(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
@@ -4569,7 +4569,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    keys: [['Home', 'Mod', 'Shift']],
+    keys: [['Home', 'Control/Meta', 'Shift']],
     callback: () => {
       selection.setRangeEnd(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
@@ -4593,7 +4593,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    keys: [['End', 'Mod']],
+    keys: [['End', 'Control/Meta']],
     callback: () => {
       selection.setRangeStart(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
@@ -4601,7 +4601,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    keys: [['End', 'Mod', 'Shift']],
+    keys: [['End', 'Control/Meta', 'Shift']],
     callback: () => {
       selection.setRangeEnd(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),

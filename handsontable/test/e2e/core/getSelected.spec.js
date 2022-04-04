@@ -29,7 +29,7 @@ describe('Core.getSelected', () => {
 
     expect(getSelected()).toEqual([snapshot[0]]);
 
-    keyDown('control');
+    keyDown('control/meta');
 
     $(getCell(2, 2)).simulate('mousedown');
     $(getCell(7, 2)).simulate('mouseover');
@@ -47,7 +47,7 @@ describe('Core.getSelected', () => {
     $(getCell(8, 7)).simulate('mouseover');
     $(getCell(8, 7)).simulate('mouseup');
 
-    keyUp('control');
+    keyUp('control/meta');
 
     expect(getSelected()).toEqual(snapshot);
   });

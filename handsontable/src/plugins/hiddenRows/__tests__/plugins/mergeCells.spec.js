@@ -1819,12 +1819,12 @@ describe('HiddenRows', () => {
       // Selected 2 ranges containing together merged area.
       selectRows(1);
 
-      keyDown('control');
+      keyDown('control/meta');
 
       selectRows(3);
       selectRows(2);
 
-      keyUp('control');
+      keyUp('control/meta');
 
       expect(`
       |   ║ - : - : - : - : - |

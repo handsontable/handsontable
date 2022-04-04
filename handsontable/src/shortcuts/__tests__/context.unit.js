@@ -6,7 +6,7 @@ describe('context', () => {
 
     expect(() => {
       context.addShortcut({
-        keys: [['control', 'a']],
+        keys: [['control/meta', 'a']],
         callback: () => {
           // Callback for shortcut.
         },
@@ -16,7 +16,7 @@ describe('context', () => {
     expect(() => {
       context.addShortcut({
         group: 'helloWorld',
-        keys: [['control', 'a']],
+        keys: [['control/meta', 'a']],
       });
     }).toThrowError();
 
@@ -31,7 +31,7 @@ describe('context', () => {
 
     context.addShortcut({
       group: 'helloWorld',
-      keys: [['control', 'a']],
+      keys: [['control/meta', 'a']],
       callback: () => {
         // Callback for shortcut.
       },
@@ -51,12 +51,12 @@ describe('context', () => {
     };
 
     context.addShortcut({
-      keys: [['control', 'a']],
+      keys: [['control/meta', 'a']],
       callback,
       ...options
     });
 
-    let shortcuts = context.getShortcuts(['control', 'a']);
+    let shortcuts = context.getShortcuts(['control/meta', 'a']);
     let shortcut = shortcuts[0];
 
     expect(shortcuts.length).toBe(1);
@@ -64,12 +64,12 @@ describe('context', () => {
     expect(shortcut.group).toBe(options.group);
 
     context.addShortcut({
-      keys: [['control', 'a']],
+      keys: [['control/meta', 'a']],
       callback: callback2,
       ...options
     });
 
-    shortcuts = context.getShortcuts(['control', 'a']);
+    shortcuts = context.getShortcuts(['control/meta', 'a']);
 
     shortcut = shortcuts[0];
     const shortcut2 = shortcuts[1];
@@ -96,16 +96,16 @@ describe('context', () => {
     const runOnlyIf = () => true;
 
     context.addShortcuts([{
-      keys: [['control', 'a']],
+      keys: [['control/meta', 'a']],
       callback,
     }, {
-      keys: [['control', 'a']],
+      keys: [['control/meta', 'a']],
       callback: callback2,
       group: 'helloWorld2',
       runOnlyIf,
     }], options);
 
-    const shortcuts = context.getShortcuts(['control', 'a']);
+    const shortcuts = context.getShortcuts(['control/meta', 'a']);
     const shortcut = shortcuts[0];
     const shortcut2 = shortcuts[1];
 
@@ -130,16 +130,16 @@ describe('context', () => {
     };
 
     context.addShortcuts([{
-      keys: [['control', 'a']],
+      keys: [['control/meta', 'a']],
       callback,
     }, {
-      keys: [['control', 'a']],
+      keys: [['control/meta', 'a']],
       callback: callback2,
     }], options);
 
-    context.removeShortcutsByKeys(['control', 'a']);
+    context.removeShortcutsByKeys(['control/meta', 'a']);
 
-    const shortcuts = context.getShortcuts(['control', 'a']);
+    const shortcuts = context.getShortcuts(['control/meta', 'a']);
 
     expect(shortcuts).toEqual([]);
   });
@@ -249,33 +249,33 @@ describe('context', () => {
     };
 
     context.addShortcuts([{
-      keys: [['control', 'a']],
+      keys: [['control/meta', 'a']],
       callback,
     }, {
-      keys: [['control', 'b']],
+      keys: [['control/meta', 'b']],
       callback: callback2,
     }], options);
 
     context.addShortcuts([{
-      keys: [['control', 'a']],
+      keys: [['control/meta', 'a']],
       callback: callback3,
     }, {
-      keys: [['control', 'd']],
+      keys: [['control/meta', 'd']],
       callback: callback4,
     }], options2);
 
     context.removeShortcutsByGroup(options.group);
 
-    const shortcuts = context.getShortcuts(['control', 'a']);
+    const shortcuts = context.getShortcuts(['control/meta', 'a']);
 
     expect(shortcuts.length).toBe(1);
-    expect(context.hasShortcut(['control', 'b'])).toBe(false);
+    expect(context.hasShortcut(['control/meta', 'b'])).toBe(false);
 
     context.removeShortcutsByGroup(options2.group);
 
-    expect(context.hasShortcut(['control', 'a'])).toBe(false);
-    expect(context.hasShortcut(['control', 'b'])).toBe(false);
-    expect(context.hasShortcut(['control', 'd'])).toBe(false);
+    expect(context.hasShortcut(['control/meta', 'a'])).toBe(false);
+    expect(context.hasShortcut(['control/meta', 'b'])).toBe(false);
+    expect(context.hasShortcut(['control/meta', 'd'])).toBe(false);
   });
 
   it('should give an ability to place one shortcut right before/after another one', () => {
@@ -318,24 +318,24 @@ describe('context', () => {
     };
 
     context.addShortcuts([{
-      keys: [['control', 'a']],
+      keys: [['control/meta', 'a']],
       callback,
       ...config
     }, {
-      keys: [['control', 'a']],
+      keys: [['control/meta', 'a']],
       callback: callback2,
       ...config2
     }, {
-      keys: [['control', 'a']],
+      keys: [['control/meta', 'a']],
       callback: callback3,
       ...config3
     }, {
-      keys: [['control', 'a']],
+      keys: [['control/meta', 'a']],
       callback: callback4,
       ...config4
     }]);
 
-    const shortcuts = context.getShortcuts(['control', 'a']);
+    const shortcuts = context.getShortcuts(['control/meta', 'a']);
 
     // namespace2, namespace4, namespace1, namespace3
     expect(shortcuts).toEqual([

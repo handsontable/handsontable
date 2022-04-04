@@ -31,20 +31,22 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
    *
    * @private
    * @param {KeyboardEvent} event The event object.
-   * @param {boolean} [mergeOSDependentKeys=false] If `true,` the function will describe the "control" and "meta"
-   *                                               modifiers keys with the same "mod" name. This allows creating
-   *                                               keyboard shortcuts with modifier keys independently of the OS.
+   * @param {boolean} [mergeMetaKeys=false] If `true,` the function will return the "control" and "meta"
+   *                                        modifiers keys as the "control/meta" name. This allows creating
+   *                                        keyboard shortcuts with modifier key that trigger the shortcut
+   *                                        actions depend on the OS keyboard layout (the Meta key for macOS
+   *                                        and Control for non macOS system).
    * @returns {string[]}
    */
-  const getPressedModifierKeys = (event, mergeOSDependentKeys = false) => {
+  const getPressedModifierKeys = (event, mergeMetaKeys = false) => {
     const pressedModifierKeys = [];
 
     if (event.altKey) {
       pressedModifierKeys.push('alt');
     }
 
-    if (mergeOSDependentKeys && (event.ctrlKey || event.metaKey)) {
-      pressedModifierKeys.push('mod');
+    if (mergeMetaKeys && (event.ctrlKey || event.metaKey)) {
+      pressedModifierKeys.push('control/meta');
 
     } else {
       if (event.ctrlKey) {
@@ -87,11 +89,11 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
     }
 
     const pressedKeys = [pressedKey].concat(extraModifierKeys);
+    const isExecutionCancelled = callback(event, pressedKeys);
 
-    callback(event, pressedKeys);
-
-    if (isMacOS() && extraModifierKeys.includes('meta') || !isMacOS() && extraModifierKeys.includes('control')) {
-      // Trigger the callback for the virtual OS-dependent "mod" key
+    if (!isExecutionCancelled &&
+        (isMacOS() && extraModifierKeys.includes('meta') || !isMacOS() && extraModifierKeys.includes('control'))) {
+      // Trigger the callback for the virtual OS-dependent "control/meta" key
       callback(event, [pressedKey].concat(getPressedModifierKeys(event, true)));
     }
 

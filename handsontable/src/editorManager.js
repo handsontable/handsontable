@@ -100,13 +100,13 @@ class EditorManager {
     const config = { group: SHORTCUTS_GROUP_EDITOR };
 
     editorContext.addShortcuts([{
-      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Mod'], ['Enter', 'Mod', 'Shift']],
+      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control/Meta'], ['Enter', 'Control/Meta', 'Shift']],
       callback: (event, keys) => {
         this.closeEditorAndSaveChanges(shortcutManager.isCtrlPressed());
         this.moveSelectionAfterEnter(keys.includes('shift'));
       }
     }, {
-      keys: [['Escape'], ['Escape', 'Mod']],
+      keys: [['Escape'], ['Escape', 'Control/Meta']],
       callback: () => {
         this.closeEditorAndRestoreOriginalValue(shortcutManager.isCtrlPressed());
         this.activeEditor.focus();

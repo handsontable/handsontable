@@ -69,7 +69,7 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(2, 2)).toEqual('C3');
 
       keyDownUp('enter');
-      keyDownUp(['control', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       expect(getDataAtCell(1, 1)).toEqual('B2');
       expect(getDataAtCell(1, 2)).toEqual('B2');
@@ -84,7 +84,7 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(2, 1)).toEqual('B3');
 
       keyDownUp('enter');
-      keyDownUp(['control', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       expect(getDataAtCell(1, 1)).toEqual('C2');
       expect(getDataAtCell(1, 2)).toEqual('C2');
@@ -96,7 +96,7 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(2, 2)).toEqual('C3');
 
       keyDownUp('enter');
-      keyDownUp(['control', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       expect(getDataAtCell(1, 1)).toEqual('C3');
       expect(getDataAtCell(1, 2)).toEqual('C3');
@@ -108,7 +108,7 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(2, 1)).toEqual('B3');
 
       keyDownUp('enter');
-      keyDownUp(['control', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       expect(getDataAtCell(1, 1)).toEqual('B3');
       expect(getDataAtCell(1, 2)).toEqual('B3');

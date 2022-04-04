@@ -2847,7 +2847,7 @@ describe('UndoRedo', () => {
         selectCell(0, 0);
         setDataAtCell(0, 0, 'new value');
 
-        keyDownUp(['control', 'z']);
+        keyDownUp(['control/meta', 'z']);
         expect(getDataAtCell(0, 0)).toBe('A1');
       });
 
@@ -2865,7 +2865,7 @@ describe('UndoRedo', () => {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        keyDownUp(['control', 'y']);
+        keyDownUp(['control/meta', 'y']);
 
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
@@ -2884,7 +2884,7 @@ describe('UndoRedo', () => {
         HOT.undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
 
-        keyDownUp(['control', 'shift', 'z']);
+        keyDownUp(['control/meta', 'shift', 'z']);
 
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
@@ -2904,7 +2904,7 @@ describe('UndoRedo', () => {
         selectCell(0, 0);
         setDataAtCell(0, 0, 'new value');
 
-        keyDownUp(['control', 'z']);
+        keyDownUp(['control/meta', 'z']);
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
 
@@ -2918,7 +2918,7 @@ describe('UndoRedo', () => {
 
         selectCell(1, 0);
         keyDownUp('enter');
-        keyDownUp(['control', 'z']);
+        keyDownUp(['control/meta', 'z']);
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
     });
