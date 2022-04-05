@@ -4489,9 +4489,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.selectAll();
     },
   }, {
-    keys: [['ArrowUp'], ['Control/Meta', 'ArrowUp']],
+    keys: [['ArrowUp']],
     callback: () => {
       selection.transformStart(-1, 0);
+    },
+  }, {
+    keys: [['ArrowUp', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => {
+      selection.setRangeStart(instance._createCellCoords(
+        instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
+        instance.getSelectedRangeLast().highlight.col,
+      ));
     },
   }, {
     keys: [
@@ -4503,9 +4512,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.transformEnd(-1, 0);
     },
   }, {
-    keys: [['ArrowDown'], ['Control/Meta', 'ArrowDown']],
+    keys: [['ArrowDown']],
     callback: () => {
       selection.transformStart(1, 0);
+    },
+  }, {
+    keys: [['ArrowDown', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => {
+      selection.setRangeStart(instance._createCellCoords(
+        instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
+        instance.getSelectedRangeLast().highlight.col,
+      ));
     },
   }, {
     keys: [
@@ -4517,9 +4535,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.transformEnd(1, 0);
     },
   }, {
-    keys: [['ArrowLeft'], ['Control/Meta', 'ArrowLeft']],
+    keys: [['ArrowLeft']],
     callback: () => {
       selection.transformStart(0, -1 * instance.getDirectionFactor());
+    },
+  }, {
+    keys: [['ArrowLeft', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => {
+      selection.setRangeStart(instance._createCellCoords(
+        instance.getSelectedRangeLast().highlight.row,
+        instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
+      ));
     },
   }, {
     keys: [
@@ -4531,9 +4558,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.transformEnd(0, -1 * instance.getDirectionFactor());
     },
   }, {
-    keys: [['ArrowRight'], ['Control/Meta', 'ArrowRight']],
+    keys: [['ArrowRight']],
     callback: () => {
       selection.transformStart(0, instance.getDirectionFactor());
+    },
+  }, {
+    keys: [['ArrowRight', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => {
+      selection.setRangeStart(instance._createCellCoords(
+        instance.getSelectedRangeLast().highlight.row,
+        instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
+      ));
     },
   }, {
     keys: [
