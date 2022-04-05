@@ -60,11 +60,11 @@ describe('Core.selectRows', () => {
     listen();
     selectRows(2);
 
-    keyDown('control');
+    keyDown('control/meta');
 
     selectRows(0);
 
-    keyUp('control');
+    keyUp('control/meta');
 
     expect(`
       |   ║ - : - : - : - |

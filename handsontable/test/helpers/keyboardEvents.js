@@ -97,6 +97,16 @@ function triggerKeys(type) {
       keys.reverse();
     }
 
+    keys = keys.map((key) => {
+      // The key 'control/meta' allows simulate modifier keys depends on the OS that Handsontable runs on.
+      // The Meta key is used on macOS and the Control on non-macOS systems.
+      if (key === 'control/meta') {
+        key = Handsontable.helper.isMacOS() ? 'meta' : 'control';
+      }
+
+      return key;
+    });
+
     keys.forEach((key) => {
       extend.ctrlKey = isKeyUp && key === 'control' ? false : keys.includes('control');
       extend.metaKey = isKeyUp && key === 'meta' ? false : keys.includes('meta');
