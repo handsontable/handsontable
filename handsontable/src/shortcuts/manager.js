@@ -1,7 +1,6 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { createContext } from './context';
 import { useRecorder } from './recorder';
-import { arrayEach } from '../helpers/array';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -88,29 +87,35 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
    */
   const keyRecorder = useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, (event, keys) => {
     const activeContext = getContext(getActiveContextName());
+    let isExecutionCancelled = false;
 
     if (activeContext.hasShortcut(keys)) {
       // Processing just actions being in stack at the moment of shortcut pressing (without respecting additions/removals performed dynamically).
-      const shortcuts = activeContext.getShortcuts(keys).slice();
+      const shortcuts = activeContext.getShortcuts(keys);
 
-      arrayEach(shortcuts, ({ callback, runOnlyIf, preventDefault, stopPropagation }) => {
-        if (runOnlyIf(event) === false) {
-          return;
+      for (let index = 0; index < shortcuts.length; index++) {
+        const { callback, runOnlyIf, preventDefault, stopPropagation } = shortcuts[index];
+
+        if (runOnlyIf(event) !== false) {
+          // eslint-disable-next-line no-unneeded-ternary
+          isExecutionCancelled = callback(event, keys) === false ? true : false;
+
+          if (preventDefault) {
+            event.preventDefault();
+          }
+
+          if (stopPropagation) {
+            event.stopPropagation();
+          }
+
+          if (isExecutionCancelled) {
+            break;
+          }
         }
-
-        const result = callback(event, keys);
-
-        if (preventDefault) {
-          event.preventDefault();
-        }
-
-        if (stopPropagation) {
-          event.stopPropagation();
-        }
-
-        return result; // Will break loop (next callbacks execution) when some callback return `false`.
-      });
+      }
     }
+
+    return isExecutionCancelled;
   });
 
   keyRecorder.mount();
@@ -137,4 +142,3 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
     destroy: () => keyRecorder.unmount(),
   };
 };
-

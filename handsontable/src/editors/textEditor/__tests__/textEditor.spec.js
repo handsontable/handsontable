@@ -938,7 +938,6 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     keyDownUp('enter');
-
     keyDownUp(['control', 'a']); // CTRL+A should NOT select all table when cell is edited
 
     const selection = getSelected();
