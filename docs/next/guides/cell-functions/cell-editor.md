@@ -17,7 +17,7 @@ This tutorial will give you a comprehensive understanding of how the whole proce
 
 ## EditorManager
 
-`EditorManager` is a class responsible for handling all editors available in Handsontable. If `Handsontable` needs to interact with editors it uses `EditorManager` object. `EditorManager` object is instantiated in `init()` method which is run, after you invoke `Handsontable()` constructor for the first time. The reference for `EditorManager` object is kept private in Handsontable instance and you cannot access it. However, there are ways to alter the default behaviour of `EditorManager`, more on that later.
+`EditorManager` is a class responsible for handling all editors available in Handsontable. If `Handsontable` needs to interact with editors it uses `EditorManager` object. `EditorManager` object is instantiated in [`init()`(@/api/baseeditor.md#init) method which is run, after you invoke `Handsontable()` constructor for the first time. The reference for `EditorManager` object is kept private in Handsontable instance and you cannot access it. However, there are ways to alter the default behaviour of `EditorManager`, more on that later.
 
 ### EditorManager tasks
 
@@ -32,7 +32,7 @@ We will discuss each of those tasks in detail.
 
 #### Selecting proper editor for an active cell
 
-When user selects a cell `EditorManager` finds the editor class assigned to this cell, examining the value of `editor` property. You can define `editor` property globally (for all cells in table), per column (for all cells in column) or for each cell individually. For more details see [How cascading configuration works](@/guides/getting-started/setting-options.md#page-config).
+When user selects a cell `EditorManager` finds the editor class assigned to this cell, examining the value of `editor` property. You can define `editor` property globally (for all cells in table), per column (for all cells in column) or for each cell individually. For more details, see the [Configuration options](@/guides/getting-started/setting-options.md#cascading-configuration) guide.
 
 The value of `editor` property can be either a string representing an editor (such as 'text', 'autocomplete', 'checkbox' etc.), or an editor class. `EditorManager` will then get an instance of editor class and the first very important thing to remember is: **there is always one instance of certain editor class in a single table**, in other words each editor class object **is a singleton** within a single table, which means that its constructor will be invoked only once per table. If you have 3 tables on a page, each table will have its own instance of editor class. This has some important implications that you have to consider creating your own editor.
 
@@ -60,7 +60,7 @@ When editor is opened the `EditorManager` waits for user event that should end c
 * pressing <kbd>CTRL</kbd> + <kbd>ENTER</kbd> (adds a new line inside the cell)
 * pressing <kbd>ESC</kbd> (aborts changes)
 * pressing <kbd>TAB</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
-* pressing <kbd>SHIFT</kbd> + <kbd>TAB</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
+* pressing <kbd>SHIFT</kbd> + <kbd>TAB</kbd> (saves changes and moves one cell to the left or to the right, depending on your layout direction
 * pressing <kbd>HOME</kbd>, <kbd>END</kbd> (saves changes)
 * pressing <kbd>PAGE_UP</kbd>, <kbd>PAGE_DOWN</kbd> (saves changes and moves one screen up/down)
 
@@ -68,17 +68,17 @@ If any of those events is triggered, `EditorManager` calls editor's `finishEditi
 
 ### Overriding EditorManager default behaviour
 
-You may want to change the default events that causes editor to open or close. For example, your editor might use <kbd>ARROW_UP</kbd> and <kbd>ARROW_DOWN</kbd> events to perform some actions (for example increasing or decreasing cell value) and you don't want `EditorManager` to close the editor when user press those keys. That's why `EditorManager` runs `beforeKeyDown` hook before processing user events. If you register a listener for `beforeKeyDown`, that call `stopImmediatePropagation()` on `event` object `EditorManager` won perform its default action. More on overriding `EditorManager`'s behaviour in section "SelectEditor - creating editor from scratch".
+You may want to change the default events that causes editor to open or close. For example, your editor might use <kbd>ARROW_UP</kbd> and <kbd>ARROW_DOWN</kbd> events to perform some actions (for example increasing or decreasing cell value) and you don't want `EditorManager` to close the editor when user press those keys. That's why `EditorManager` runs the [`beforeKeyDown`](@/api/hooks.md#beforekeydown) hook before processing user events. If you register a listener for `beforeKeyDown`, that call `stopImmediatePropagation()` on `event` object `EditorManager` won perform its default action. More on overriding `EditorManager`'s behaviour in section "SelectEditor - creating editor from scratch".
 
 You should now have a better understanding on how `EditorManager` works. Let's go a bit deeper and see what methods every editor class must implement and what those methods do.
 
-## BaseEditor
+## [BaseEditor](@/api/baseeditor.md)
 
 `Handsontable.editors.BaseEditor` is an abstract class from which all editor classes should inherit. It implements some of the basic editor methods as well as declares some methods that should be implemented by each editor class. In this section we examine all of those methods.
 
 ### Common methods
 
-Common methods, are methods implemented by `BaseEditor` class. They contain some core logic that every editor should have. Most of the time, you shouldn't bother with those methods. However, if you are creating some more complex editors, you might want to override some of the common methods, in which case you should always invoke the original method and then perform other operations, specific to your editor.
+Common methods, are methods implemented by [`BaseEditor`](@/api/baseditor.md) class. They contain some core logic that every editor should have. Most of the time, you shouldn't bother with those methods. However, if you are creating some more complex editors, you might want to override some of the common methods, in which case you should always invoke the original method and then perform other operations, specific to your editor.
 
 **Example** - overriding common method
 
@@ -104,7 +104,7 @@ Returns: `undefined`
 
 #### beginEditing(newInitialValue: `Mixed`, event: `Mixed`)
 
-Sets editor value to `newInitialValue`. If `newInitialValue` is undefined, the editor value is set to original cell value. Calls `open()` method internally.
+Sets editor value to `newInitialValue`. If `newInitialValue` is undefined, the editor value is set to original cell value. Calls [`setvalue()`(@/api/baseeditor.md#open) method internally.
 
 Returns: `undefined`
 
@@ -116,7 +116,7 @@ Callback function contains a boolean parameter - if new value is valid or `allow
 
 #### discardEditor(result: `Boolean`)
 
-Called when cell validation ends. If new value is saved successfully (`result` is set to `true` or `allowInvalid` property is `true`) it calls `close()` method, otherwise calls `focus()` method and keeps editor opened.
+Called when cell validation ends. If new value is saved successfully (`result` is set to `true` or `allowInvalid` property is `true`) it calls [`close()`(@/api/options.md#close) method, otherwise calls [`setvalue()`(@/api/baseeditor.md#focus) method and keeps editor opened.
 
 Returns: `undefined`
 
@@ -128,7 +128,7 @@ Returns: `undefined`
 
 #### isOpened()
 
-Returns `true` if editor is opened or `false` if editor is closed. Editor is considered to be opened after `open()` has been called. Editor is considered closed `close()` after method has been called.
+Returns `true` if editor is opened or `false` if editor is closed. Editor is considered to be opened after [`setvalue()`(@/api/baseeditor.md#open) has been called. Editor is considered closed [`close()`(@/api/options.md#close) after method has been called.
 
 Returns: `Boolean`
 
@@ -136,7 +136,7 @@ Returns: `Boolean`
 
 Returns: `Function` - a class function that inherits from the current class. The `prototype` methods of the returned class can be safely overwritten, without a danger of altering the parent's `prototype`.
 
-**Example** - inheriting from `BaseEditor` and overriding its method
+**Example** - inheriting from [`BaseEditor`](@/api/baseditor.md) and overriding its method
 
 ```js
 const CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
@@ -158,7 +158,7 @@ const CustomTextEditor = Handsontable.editors.TextEditor.prototype.extend();
 
 ### Editor specific methods
 
-Editor specific methods are methods not implemented in `BaseEditor`. In order to work, every editor class has to implement those methods.
+Editor specific methods are methods not implemented in [`BaseEditor`](@/api/baseditor.md). In order to work, every editor class has to implement those methods.
 
 #### init()
 
@@ -174,7 +174,7 @@ Method should act return the current editor value, that is value that should be 
 
 Method should set editor value to `newValue`.
 
-**Example** Let's say we are implementing a DateEditor, which helps selecting date, by displaying a calendar. `getValue()` and `setValue()` method could work like so:
+**Example** Let's say we are implementing a DateEditor, which helps selecting date, by displaying a calendar. [[`getvalue()`(@/api/baseeditor.md#getvalue)](@/api/base) and [`setvalue()`(@/api/baseeditor.md#setvalue) method could work like so:
 
 ```js
 class CalendarEditor extends TextEditor {
@@ -243,15 +243,15 @@ All the undermentioned properties are available in editor instance through `this
  Property | Type        | Description
 ----------|-------------|-------------
  instance | `Handsontable.Core` | The instance of Handsontable to which this editor object belongs. Set in class constructor, immutable thorough the whole lifecycle of editor.
-row | `Number` | The active cell row index. Updated on every `prepare()` method call.
-col | `Number` | The active cell col index. Updated on every `prepare()` method call.
-prop | `String` | The property name associated with active cell (relevant only when data source is an array of objects). Updated on every `prepare()` method call.
-TD | `HTMLTableCellNode` | Node object of active cell. Updated on every `prepare()` method call.
-cellProperties | `Object` | An object representing active cell properties. Updated on every `prepare()` method call.
+row | `Number` | The active cell row index. Updated on every [`prepare()`(@/api/baseeditor.md#prepare) method call.
+col | `Number` | The active cell col index. Updated on every [`prepare()`(@/api/baseeditor.md#prepare) method call.
+prop | `String` | The property name associated with active cell (relevant only when data source is an array of objects). Updated on every [`prepare()`(@/api/baseeditor.md#prepare) method call.
+TD | `HTMLTableCellNode` | Node object of active cell. Updated on every [`prepare()`(@/api/baseeditor.md#prepare) method call.
+cellProperties | `Object` | An object representing active cell properties. Updated on every [`prepare()`(@/api/baseeditor.md#prepare) method call.
 
 ## How to create a custom editor?
 
-Now you know the philosophy behind the Handsontable editors and you're ready to write your own editor. Basically, you can build a new editor from scratch, by creating a new editor class, which inherits form `BaseEditor`, or if you just want to enhance an existing editor, you can extend its class and override only a few of its methods.
+Now you know the philosophy behind the Handsontable editors and you're ready to write your own editor. Basically, you can build a new editor from scratch, by creating a new editor class, which inherits form [`BaseEditor`](@/api/baseditor.md), or if you just want to enhance an existing editor, you can extend its class and override only a few of its methods.
 
 In this tutorial we will examine both approaches. We will create a completely new `SelectEditor` which uses `<select>` list to alter the value of cell. We will also create a `PasswordEditor` which works exactly like regular `TextEditor` except that it displays a password input instead of textarea.
 
@@ -261,7 +261,7 @@ Let's begin with `PasswordEditor` as it is a bit easier.
 
 `TextEditor` is the most complex editor available in Handsontable by default. It displays a `<textarea>` which automatically changes its size to accommodate its content. We would like to create a `PasswordEditor` which preserves all those capabilities but displays `<input type="password" />` field instead of `<textarea>`.
 
-As you may have guessed, we need to create a new editor class, that inherits from `TextEditor` and then override some of its methods to replace `<textarea>` with `input:password`. Luckily, textarea and password input have the same API, so all we have to do is replace the code responsible for creating HTML elements. If you take a look at `TextEditor` `init()` method, you'll notice that it calls internal `createElements()` method, which creates `<textarea>` node and append it to DOM during editor initialization - BINGO!
+As you may have guessed, we need to create a new editor class, that inherits from `TextEditor` and then override some of its methods to replace `<textarea>` with `input:password`. Luckily, textarea and password input have the same API, so all we have to do is replace the code responsible for creating HTML elements. If you take a look at `TextEditor` [`init()`(@/api/baseeditor.md#init) method, you'll notice that it calls internal `createElements()` method, which creates `<textarea>` node and append it to DOM during editor initialization - BINGO!
 
 Here is the code
 
@@ -316,17 +316,17 @@ Things to do:
 2. Add function creating `<select>` input and attaching to DOM.
 3. Add function that populates `<select>` with options array passed in the cell properties.
 4. Implement methods:
-    * `getValue()`
-    * `setValue()`
-    * `open()`
-    * `close()`
-    * `focus()`
+    * [`getvalue()`(@/api/baseeditor.md#getvalue)
+    * [`setvalue()`(@/api/baseeditor.md#setvalue)
+    * [`setvalue()`(@/api/baseeditor.md#open)
+    * [`close()`(@/api/options.md#close)
+    * [`setvalue()`(@/api/baseeditor.md#focus)
 5. Override the default `EditorManager` behaviour, so that pressing ARROW\_UP and ARROW\_DOWN keys won't close the editor, but instead change the currently selected value.
 6. Register editor.
 
 #### Creating new editor
 
-That's probably the easiest part. All we have to do is call `BaseEditor.prototype.extend()` function which will return a new function class that inherits from `BaseEditor`.
+That's probably the easiest part. All we have to do is call `BaseEditor.prototype.extend()` function which will return a new function class that inherits from [`BaseEditor`](@/api/baseditor.md).
 
 ```js
 const SelectEditor = Handsontable.editors.BaseEditor.prototype.extend();
@@ -338,19 +338,19 @@ Task one: **DONE**
 
 There are three potential places where we can put the function that will create `<select>` element and put it in the DOM:
 
-* `init()` method
-* `prepare()` method
-* `open()` method
+* [`init()`(@/api/baseeditor.md#init) method
+* [`prepare()`(@/api/baseeditor.md#prepare) method
+* [`setvalue()`(@/api/baseeditor.md#open) method
 
 The key to choose the best solution is to understand when each of those methods are called.
 
-`init()` method is called during creation of editor class object. That happens at most one per table instance, because once the object is created it is reused every time `EditorManager` asks for this editor class instance (see [Singleton pattern](http://en.wikipedia.org/wiki/Singleton_pattern) for details).
+[`init()`(@/api/baseeditor.md#init) method is called during creation of editor class object. That happens at most one per table instance, because once the object is created it is reused every time `EditorManager` asks for this editor class instance (see [Singleton pattern](http://en.wikipedia.org/wiki/Singleton_pattern) for details).
 
-`prepare()` method is called every time the user selects a cell that has this particular editor class set as `editor` property. So, if we set `SelectEditor` as editor for an entire column, then selecting any cell in this column will invoke `prepare()` method of `SelectEditor`. In other words, this method can be called hundreds of times during table life, especially when working with large data. Another important aspect of `prepare()` is that it should not display the editor (it's `open's` job). Displaying editor is triggered by user event such as pressing ENTER, F2 or double clicking a cell, so there is some time between calling `prepare()` and actually displaying the editor. Nevertheless, operations performed by `prepare()` should be completed as fast as possible, to provide the best user experience.
+[`prepare()`(@/api/baseeditor.md#prepare) method is called every time the user selects a cell that has this particular editor class set as `editor` property. So, if we set `SelectEditor` as editor for an entire column, then selecting any cell in this column will invoke [`prepare()`(@/api/baseeditor.md#prepare) method of `SelectEditor`. In other words, this method can be called hundreds of times during table life, especially when working with large data. Another important aspect of [`prepare()`(@/api/baseeditor.md#prepare) is that it should not display the editor (it's `open's` job). Displaying editor is triggered by user event such as pressing ENTER, F2 or double clicking a cell, so there is some time between calling [`prepare()`(@/api/baseeditor.md#prepare) and actually displaying the editor. Nevertheless, operations performed by [`prepare()`(@/api/baseeditor.md#prepare) should be completed as fast as possible, to provide the best user experience.
 
-`open()` method is called when editor needs to be displayed. In most cases this method should change the CSS `display` property to `block` or perform something similar. User expects that editor will be displayed right after the event (pressing appropriate key or double clicking a cell) has been triggered, so `open()` method should work as fast as possible.
+[`setvalue()`(@/api/baseeditor.md#open) method is called when editor needs to be displayed. In most cases this method should change the CSS `display` property to `block` or perform something similar. User expects that editor will be displayed right after the event (pressing appropriate key or double clicking a cell) has been triggered, so [`setvalue()`(@/api/baseeditor.md#open) method should work as fast as possible.
 
-Knowing all this, the most reasonable place to put the code responsible for creating `<select>` input is somewhere in `init()` method. DOM manipulation is considered to be quite expensive (regarding the resource consumption) operation, so it's best to perform it once and reuse the produced HTML nodes throughout the life of editor.
+Knowing all this, the most reasonable place to put the code responsible for creating `<select>` input is somewhere in [`init()`(@/api/baseeditor.md#init) method. DOM manipulation is considered to be quite expensive (regarding the resource consumption) operation, so it's best to perform it once and reuse the produced HTML nodes throughout the life of editor.
 
 ```js
 import Handsontable from 'handsontable';
@@ -403,9 +403,9 @@ const hot = new Handsontable(container, {
 });
 ```
 
-There is no (easy) way to get to the value of `selectOptions`. Even if we could get to this array we could only populate the list with options once, if we do this in the 'init' function. What if we have more than one column using `SelectEditor` and each of them has it's own option list? It's even possible that two cells in the same column can have different option lists (cascade configuration - remember?) It's clear that we have to find a better place for the code that creates items for our list.
+There is no (easy) way to get to the value of [`selectOptions`(@/api/options.md#selectoptions). Even if we could get to this array we could only populate the list with options once, if we do this in the 'init' function. What if we have more than one column using `SelectEditor` and each of them has it's own option list? It's even possible that two cells in the same column can have different option lists (cascade configuration - remember?) It's clear that we have to find a better place for the code that creates items for our list.
 
-We are left with two places `prepare()` and `open()`. The latter one is simpler to implement, but as we previously stated, `open()` should work as fast as possible and creating `<option>` nodes and attaching them to DOM might be time consuming, if `selectOptions` contains long list of options. Therefore, `prepare()` seems to be a safer place to do this kind of work. The only thing to keep in mind is that we should always invoke `BaseEditor's` original method when overriding `prepare()`. `BaseEditor.prototype.prepare()` sets some important properties, which are used by other editor methods.
+We are left with two places [`prepare()`(@/api/baseeditor.md#prepare) and [`setvalue()`(@/api/baseeditor.md#open). The latter one is simpler to implement, but as we previously stated, [`setvalue()`(@/api/baseeditor.md#open) should work as fast as possible and creating `<option>` nodes and attaching them to DOM might be time consuming, if [`selectOptions`(@/api/options.md#selectoptions) contains long list of options. Therefore, [`prepare()`(@/api/baseeditor.md#prepare) seems to be a safer place to do this kind of work. The only thing to keep in mind is that we should always invoke [`BaseEditor`](@/api/baseeditor.md/)'s original method when overriding [`prepare()`(@/api/baseeditor.md#prepare). `BaseEditor.prototype.prepare()` sets some important properties, which are used by other editor methods.
 
 ```js
 // Create options in prepare() method
@@ -497,7 +497,7 @@ close() {
 }
 ```
 
-The implementations of `getValue()`, `setValue()` and `close()` are self-explanatory, but `open()` requires a few words of comment. First of all, the implementation assumes that code responsible for populating the list with options is placed in `prepare()`. Secondly, before displaying the list, we sets its `height` and `min-width` so that it matches the size of corresponding cell. It's an optional step, but without it the editor will have different sizes depending on the browser. Probably a good idea would be also to limit the maximum height of `<select>`. Finally, as the `<select>` has been appended to the end of the table container, we have to change its position so that it could be displayed above the cell that is being edited. Again, this is an optional step, but it seems quite reasonable to put the editor next to the appropriate cell.
+The implementations of [`getvalue()`(@/api/baseeditor.md#getvalue), [`setvalue()`(@/api/baseeditor.md#setvalue) and [`close()`(@/api/options.md#close) are self-explanatory, but [`setvalue()`(@/api/baseeditor.md#open) requires a few words of comment. First of all, the implementation assumes that code responsible for populating the list with options is placed in [`prepare()`(@/api/baseeditor.md#prepare). Secondly, before displaying the list, we sets its `height` and `min-width` so that it matches the size of corresponding cell. It's an optional step, but without it the editor will have different sizes depending on the browser. Probably a good idea would be also to limit the maximum height of `<select>`. Finally, as the `<select>` has been appended to the end of the table container, we have to change its position so that it could be displayed above the cell that is being edited. Again, this is an optional step, but it seems quite reasonable to put the editor next to the appropriate cell.
 
 Task four: **DONE**
 
@@ -522,7 +522,7 @@ We know that our editor works, but let's add one more tweak to it. Currently, wh
 
 Don't worry. Although, you don't have a direct access to `EditorManager` instance, you can still override its behaviour. Before `EditorManager` starts to process keyboard events it triggers `beforeKeyDown` hook. If any of the listening functions invoke `stopImmediatePropagation()` method on an `event` object `EditorManager` won't process this event any further. Therefore, all we have to do is register a `beforeKeyDown` listener function that checks whether <kbd>ARROW_UP</kbd> or <kbd>ARROW_DOWN</kbd> has been pressed and if so, stops event propagation and changes the currently selected value in `<select>` list accordingly.
 
-The thing that we need to keep in mind is that our listener should work only, when our editor is opened. We want to preserve the default behaviour for other editors, as well as when no editor is opened. That's why the most reasonable place to register our listener would be the `open()` method and the `close()` method should contain code that will remove our listener.
+The thing that we need to keep in mind is that our listener should work only, when our editor is opened. We want to preserve the default behaviour for other editors, as well as when no editor is opened. That's why the most reasonable place to register our listener would be the [`setvalue()`(@/api/baseeditor.md#open) method and the [`close()`(@/api/options.md#close) method should contain code that will remove our listener.
 
 Here's how the listener function could look like:
 ```js
@@ -554,7 +554,7 @@ onBeforeKeyDown() {
   }
 }
 ```
-Active editor is the editor which `prepare()` method was called most recently. For example, if you select a cell which editor is `Handsontable.TextEditor`, then `getActiveEditor()` will return an object of this editor class. If then select a cell (presumably in another column) which editor is `Handsontable.DateEditor`, the active editor changes and now `getActiveEditor()` will return an object of `DateEditor` class.
+Active editor is the editor which [`prepare()`(@/api/baseeditor.md#prepare) method was called most recently. For example, if you select a cell which editor is `Handsontable.TextEditor`, then `getActiveEditor()` will return an object of this editor class. If then select a cell (presumably in another column) which editor is `Handsontable.DateEditor`, the active editor changes and now `getActiveEditor()` will return an object of `DateEditor` class.
 
 The rest of the code should be quite clear. Now all we have to do is register our listener.
 

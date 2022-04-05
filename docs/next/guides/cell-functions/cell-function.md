@@ -41,7 +41,7 @@ Manually defining those functions for cells or columns would be tedious, so to s
 
 ## Cell functions getters
 
-If, for some reason, you have to get the `renderer`, `editor` or `validator` function of specific cell you can use standard `getCellMeta(row, col)` method to get all properties of particular cell and then refer to cell functions like so:
+If, for some reason, you have to get the `renderer`, `editor` or `validator` function of specific cell you can use standard [`getCellMeta(row, col)`](@/api/core.md#getcellmeta) method to get all properties of particular cell and then refer to cell functions like so:
 
 ```js
 const container = document.querySelector('#container');
@@ -54,7 +54,7 @@ cellProperties.editor; // get cell editor
 cellProperties.validator; // get cell validator
 ```
 
-However, you have to remember that `getCellMeta()` return cell properties "as they are", which means that if you use cell type to set cell functions, instead of defining functions directly those cell functions will be `undefined`:
+However, you have to remember that [`getCellMeta()`](@/api/core.md#getcellmeta) return cell properties "as they are", which means that if you use cell type to set cell functions, instead of defining functions directly those cell functions will be `undefined`:
 
 ```js
 const container = document.querySelector('#container');
@@ -76,8 +76,8 @@ cellProperties.type; // "numeric"
 
 To get the actual cell function use appropriate _cell function getter_:
 
-* `getCellRenderer(row, col)`
-* `getCellEditor(row, col)`
-* `getCellValidator(row, col)`
+* [`getCellRenderer(row, col)`](@/api/core.md#getcellrenderer)
+* [`getCellEditor(row, col)`](@/api/core.md#getcelleditor)
+* [`getCellValidator(row, col)`](@/api/core.md#getcellvalidator)
 
 Those functions will always return an appropriate value, regardless of whether cell functions have been defined directly or using a cell type.
