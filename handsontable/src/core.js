@@ -4543,10 +4543,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     keys: [['ArrowLeft', 'Control/Meta']],
     captureCtrl: true,
     callback: () => {
-      selection.setRangeStart(instance._createCellCoords(
-        instance.getSelectedRangeLast().highlight.row,
-        instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
-      ));
+      const row = instance.getSelectedRangeLast().highlight.row;
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(
+        ...(instance.isRtl() ? [instance.countCols() - 1, -1] : [0, 1])
+      );
+
+      selection.setRangeStart(instance._createCellCoords(row, column));
     },
   }, {
     keys: [
@@ -4566,10 +4568,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     keys: [['ArrowRight', 'Control/Meta']],
     captureCtrl: true,
     callback: () => {
-      selection.setRangeStart(instance._createCellCoords(
-        instance.getSelectedRangeLast().highlight.row,
-        instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
-      ));
+      const row = instance.getSelectedRangeLast().highlight.row;
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(
+        ...(instance.isRtl() ? [0, 1] : [instance.countCols() - 1, -1])
+      );
+
+      selection.setRangeStart(instance._createCellCoords(row, column));
     },
   }, {
     keys: [

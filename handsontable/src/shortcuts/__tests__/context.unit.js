@@ -339,22 +339,26 @@ describe('context', () => {
     };
     const config = {
       group: 'namespace1',
+      captureCtrl: false,
       runOnlyIf: () => true,
     };
     const config2 = {
       group: 'namespace2',
       relativeToGroup: 'namespace1',
       position: 'before',
+      captureCtrl: false,
       runOnlyIf: () => true,
     };
     const config3 = {
       group: 'namespace3',
+      captureCtrl: false,
       runOnlyIf: () => true,
     };
     const config4 = {
       group: 'namespace4',
       relativeToGroup: 'namespace2',
       position: 'after',
+      captureCtrl: false,
       runOnlyIf: () => true,
     };
 
