@@ -14,12 +14,12 @@ The cell type functionality enables you to customize the appearance and validate
 
 ## Usage
 
-There are three functions associated with every table cell: `renderer`, `editor`, and optionally `validator`. These functions are mostly used all together as they are strongly connected.
+There are three functions associated with every table cell: [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor), and optionally [`validator`](@/api/options.md#validator). These functions are mostly used all together as they are strongly connected.
 
 Example scenario - To store a date in a cell, you would:
-* Use a `renderer` to display the date using appropriate formatting `dd/mm/yyyy`, `yyyy-mm-dd`, etc.
-* Use an `editor` that displays a calendar instead of the default text input, allowing the user to easily pick the right date.
-* Use a `validator` to check if the value entered by a user is valid.
+* Use a [`renderer`](@/api/options.md#renderer) to display the date using appropriate formatting `dd/mm/yyyy`, `yyyy-mm-dd`, etc.
+* Use an [`editor`](@/api/options.md#editor) that displays a calendar instead of the default text input, allowing the user to easily pick the right date.
+* Use a [`validator`](@/api/options.md#validator) to check if the value entered by a user is valid.
 
 Cell type is represented by a string i.e. `"text"`, `"numeric"`, `"date"`. Each string is internally mapped to functions associated with this type e.g., `"numeric"` type is associated with the following functions:
 
@@ -28,7 +28,7 @@ Cell type is represented by a string i.e. `"text"`, `"numeric"`, `"date"`. Each 
 * `Handsontable.validators.NumericValidator`
 
 
-When Handsontable encounters a cell with the `type` option defined, it checks which cell functions this type refers to and uses them. For example, when setting the column type to `'password'`:
+When Handsontable encounters a cell with the [`type`(@/api/options.md#type) option defined, it checks which cell functions this type refers to and uses them. For example, when setting the column type to `'password'`:
 
 ```js
 columns: [{
@@ -36,7 +36,7 @@ columns: [{
 }]
 ```
 
-the functions `editor`, `renderer`, and `copyable` are automatically set as follows:
+the functions [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`copyable`](@/api/options.md#copyable) are automatically set as follows:
 
 ```js
 columns: [{
@@ -65,7 +65,7 @@ The `text` cell type is the default type.
 
 ## Anatomy of a cell type
 
-A cell type is a predefined set of cell properties. Cell type defines which `renderer`, `editor` or `validator` should be used for a cell. They can also define any different cell property that will be assumed for each matching cell:
+A cell type is a predefined set of cell properties. Cell type defines which [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator) should be used for a cell. They can also define any different cell property that will be assumed for each matching cell:
 
 ```js
 Handsontable.cellTypes.registerCellType('custom', {
@@ -105,7 +105,7 @@ This gives users a convenient way of defining which cell type should be used for
 To register your own alias use `Handsontable.cellTypes.registerCellType()` function. It takes two arguments:
 
 * `cellTypeName` - a string representing the cell type object
-* `type` - an object with keys `editor`, `renderer`, and `validator` that will be represented by `cellTypeName`
+* [`type`(@/api/options.md#type) - an object with keys [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`validator`](@/api/options.md#validator) that will be represented by `cellTypeName`
 
 If you'd like to register `copyablePasswordType` under alias `copyable-password`, you need to call:
 
@@ -188,7 +188,7 @@ const hot = new Handsontable(container, {
 
 ## Precedence
 
-It is possible to define the `type` option together with options such as `renderer`, `editor` or `validator`. For example:
+It is possible to define the [`type`](@/api/options.md#type) option together with options such as [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator). For example:
 
 ```js
 const hot = new Handsontable(container, {
@@ -200,7 +200,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-We defined the `type` for all cells in a column to be `numeric`. We also defined a validator function directly. In Handsontable, cell functions that are defined directly always take precedence over functions associated with cell type, so the above configuration is equivalent to:
+We defined the[`type`(@/api/options.md#type) for all cells in a column to be `numeric`. We also defined a validator function directly. In Handsontable, cell functions that are defined directly always take precedence over functions associated with cell type, so the above configuration is equivalent to:
 
 ```js
 const hot = new Handsontable(container, {
@@ -227,7 +227,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-Using [cascade configuration](@/guides/getting-started/setting-options.md#page-config) we define a table with two columns, with `validator` set to `customValidator` function. The `type` of the first column is set to `password`. The `Password` cell type does not define a validator function:
+Using [cascade configuration](@/guides/getting-started/setting-options.md#cascading-configuration) we define a table with two columns, with [`validator`](@/api/options.md#validator) set to `customValidator` function. The s[`type`(@/api/options.md#type) of the first column is set to `password`. The `Password` cell type does not define a validator function:
 
 ```js
 {
@@ -355,4 +355,4 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-Empty cells may be treated in differently in different contexts, for example, the [ColumnSorting](@/api/columnSorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.
+Empty cells may be treated in differently in different contexts, for example, the [ColumnSorting](@/api/columnsorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.

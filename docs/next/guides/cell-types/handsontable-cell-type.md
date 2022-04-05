@@ -24,8 +24,8 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 **Keyboard bindings while the HOT-in-HOT is opened:**
 
 * <kbd>ESC</kbd> - close editor and cancel change.
-* <kbd>ENTER</kbd> - close editor and apply change\*, move the selection in the main HOT downwards or according to the `enterMoves` setting.
-* <kbd>TAB</kbd> - behaves as the <kbd>ENTER</kbd> key, but move the selection in the main HOT to the right or according to the `tabMoves` setting.
+* <kbd>ENTER</kbd> - close editor and apply change\*, move the selection in the main HOT downwards or according to the [`enterMoves`](@/api/options.md#enterMoves) setting.
+* <kbd>TAB</kbd> - behaves as the <kbd>ENTER</kbd> key, but move the selection in the main HOT to the right or according to the [`tabMoves`](@/api/options.md#tabmoves) setting.
 * <kbd>ARROW DOWN</kbd> - move the selection in HOT-in-HOT downwards. If the last row was selected, this has no effect.
 * <kbd>ARROW UP</kbd> - move the selection in HOT-in-HOT upwards. If the first row was selected, deselect. If HOT-in-HOT was deselected, behave as the <kbd>ENTER</kbd> key but move the selection in the main HOT upwards.
 * <kbd>ARROW RIGTH</kbd> - move the text cursor in the text field to the left. If the text cursor was at the start position, behave as the <kbd>ENTER</kbd> key but move the selection in the main HOT to the left.

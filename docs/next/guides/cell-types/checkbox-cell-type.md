@@ -50,7 +50,7 @@ const hot = new Handsontable(container, {
 
 ## Checkbox template
 
-If you want to use values other than `true` and `false`, you have to provide this information using `checkedTemplate` and `uncheckedTemplate`. Handsontable will then update your data using the appropriate template.
+If you want to use values other than `true` and `false`, you have to provide this information using [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Handsontable will then update your data using the appropriate template.
 
 ::: example #example2
 ```js
@@ -88,7 +88,7 @@ const hot = new Handsontable(container, {
 
 ## Checkbox labels
 
-To add a label to the checkbox, use the `label` option. You can declare where the label will be injected with this option - either before or after the checkbox element. You can also declare from which data source the label text will be updated.
+To add a label to the checkbox, use the [`label`](@/api/options.md#label) option. You can declare where the label will be injected with this option - either before or after the checkbox element. You can also declare from which data source the label text will be updated.
 
 ::: example #example3
 ```js
