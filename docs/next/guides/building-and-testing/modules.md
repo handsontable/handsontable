@@ -9,7 +9,7 @@ tags:
 
 # Modules
 
-To reduce the size of your app, you can use Handsontable by importing individual [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+To reduce the size of your app, you can use Handsontable by importing individual modules.
 
 [[toc]]
 
@@ -19,9 +19,9 @@ The full bundle of Handsontable consists of multiple built-in modules such as pl
 
 When you become familiar with Handsontable functionalities you may find out that some parts of it are essential in your application and some of them stay idle most of the time.
 
-Thanks to [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) the package could be split into smaller pieces and you can **import** them as you need. Essentialy it was divided into two: the base and the optional part. The base of Handsontable holds mandatory parts packed inside `handsontable/base`, and it includes vital parts for the component to run. The rest is customizable based on what you want to import. A mindful use of the modules brings a lot of optimization to the application, yet, it only needs several lines of code.
+Thanks to modules the package could be split into smaller pieces and you can **import** them as you need. Essentialy it was divided into two: the base and the optional part. The base of Handsontable holds mandatory parts packed inside `handsontable/base`, and it includes vital parts for the component to run. The rest is customizable based on what you want to import. A mindful use of the modules brings a lot of optimization to the application, yet, it only needs several lines of code.
 
-The graph presents a comparison of size in KB for a full bundle, basic optimization and with optimized translations. The sample code is avaiable just below - it shows sample countries and cities and although it looks small it will generate over 345 KB (Gzipped). [Webpack 5](https://webpack.js.org/) with a default configuration for production builds was used to prepare this example.
+The graph presents a comparison of size in KB for a full bundle, basic optimization and with optimized translations. The sample code is avaiable just below - it shows sample countries and cities and although it looks small it will generate over 345 KB (Gzipped). Webpack 5 with a default configuration for production builds was used to prepare this example.
 
 ![bundle_size_comparison](/docs/next/img/bundle_size_comparison.png)
 
@@ -151,7 +151,7 @@ Tree shaking, also called dead code elimination, allows for the removal of unuse
 
 The terms came in 2012, and currently, you can use them in most of the available and popular bundlers such as **webpack**, **rollup**, **parceljs** (with an additional flag), and **browserify**.
 
-If you want to learn more about this topic, don't hesitate to look at the official documentation of [Webpack](https://webpack.js.org/guides/tree-shaking/), [Rollup](https://rollupjs.org/guide/en/#tree-shaking), and [Parcel](https://parceljs.org/cli.html#enable-experimental-scope-hoisting/tree-shaking-support).
+To learn more about this topic, look at the official documentation of [Webpack](https://webpack.js.org/guides/tree-shaking/), [Rollup](https://rollupjs.org/guide/en/#tree-shaking), and [Parcel](https://parceljs.org/cli.html#enable-experimental-scope-hoisting/tree-shaking-support).
 
 **Important note**: this guide was prepared based on the newest version of Webpack. For the Webpack 3 and older, Parcel, and few other bundlers, those load CommonJS modules, tree shaking might not work as presented above. For the modules to be imported correctly you need to split them and import them one by one from their respective files, just like this:
 
@@ -487,7 +487,7 @@ new Handsontable(container, {});
 
 To use a specific editor you need to import it alongside the registering method. For instance, let's try adding the password editor.
 
-Start with importing the base, `PasswordEditor` and the `registerEditor` method.
+Start with importing the base, `PasswordEditor` and the `registerEditor()` method.
 
 ```js
 // remember to have the base imported
