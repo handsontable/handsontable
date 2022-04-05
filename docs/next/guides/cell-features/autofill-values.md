@@ -51,7 +51,7 @@ hot.loadData(data);
 
 ## Autofill in a vertical direction only and creating new rows
 
-In this configuration, the fill handle is restricted to move only vertically. New rows are automatically added to the bottom of the table by changing `autoInsertRow` to `true`.
+In this configuration, the fill handle is restricted to move only vertically. New rows are automatically added to the bottom of the table by changing [`autoInsertRow`](@/api/options.md#fillhandle) to `true`.
 
 ::: example #example2
 ```js

@@ -20,7 +20,7 @@ Disabling a cell makes the cell read-only or non-editable. Both have similar out
 
 In many use cases, you will need to configure a certain column to be read-only. This column will be available for keyboard navigation and <kbd>CTRL+C</kbd>. Editing and pasting data will be disabled.
 
-To make a column read-only, declare it in the `columns` setting. You can also define a special renderer function that will dim the read-only values, providing a visual cue for the user that the cells are read-only.
+To make a column read-only, declare it in the [`columns`](@/api/options.md#columns) configuration option. You can also define a special renderer function that will dim the read-only values, providing a visual cue for the user that the cells are read-only.
 
 ::: example #example1
 ```js
@@ -56,7 +56,7 @@ const hot = new Handsontable(container, {
 
 ## Read-only specific cells
 
-This example makes cells that contain the word "Nissan" read-only. It forces all cells to be processed by the `cells` function which will decide whether a cell's metadata should have the `readOnly` property set.
+This example makes cells that contain the word "Nissan" read-only. It forces all cells to be processed by the [`cells`](@/api/options.md#cells) function which will decide whether a cell's metadata should have the [`readOnly`](@/api/options.md#readonly) property set.
 
 ::: example #example2
 ```js
@@ -96,7 +96,7 @@ Non-editable cells behave like any other cells apart from preventing you from ma
 
 In many cases, you will need to configure a certain column to be non-editable. Doing this does not change its basic behaviour, apart from editing. This means that you can still use the keyboard navigation <kbd>CTRL+C</kbd>, and <kbd>CTRL+V</kbd> functionalities, and drag-to-fill, etc.
 
-To make a column non-editable, declare it in the `columns` setting. You can also define a special renderer function that will dim the `editor` value. This will provide the user with a visual cue that the cell is non-editable.
+To make a column non-editable, declare it in the [`columns`](@/api/options.md#columns) configuration option. You can also define a special renderer function that will dim the `editor` value. This will provide the user with a visual cue that the cell is non-editable.
 
 ::: example #example3
 ```js

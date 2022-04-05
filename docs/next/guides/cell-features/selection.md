@@ -25,11 +25,11 @@ Use <kbd>CMD</kbd> on Mac or <kbd>CTRL</kbd> on Windows to select non-contiguous
 
 There are different modes in which you can use this plugin. Choose between selecting a single cell, a range of adjacent cells, and multiple ranges of non-contiguous cells.
 
-Possible values of `selectionMode`:
+Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
-- `single` - A single cell can be selected.
-- `range` - Multiple cells within a single range can be selected.
-- `multiple` - Multiple non-contiguous ranges of cells can be selected.
+- [`single`](@/api/options.md#selectionmode) - A single cell can be selected.
+- [`range`](@/api/options.md#selectionmode) - Multiple cells within a single range can be selected.
+- [`multiple`](@/api/options.md#selectionmode) - Multiple non-contiguous ranges of cells can be selected.
 
 ::: example #example1 --html 1 --js 2
 ```html
@@ -71,7 +71,7 @@ selectOption.addEventListener('change', event => {
 
 ## Getting data from the selected ranges
 
-To retrieve the selected cells as an array of arrays, you should use the `getSelected()` or `getSelectedRange()` methods.
+To retrieve the selected cells as an array of arrays, you use the [`getSelected()`](@/api/core.md#getselected) or [`getSelectedRange()`](@/api/core.md#getselectedrange) methods.
 
 ::: example #example2 --css 2 --html 1 --js 3
 ```html
@@ -208,7 +208,7 @@ When you use keyboard navigation, and you cross an edge of the grid, you can set
 #### Jumping across vertical edges
 
 To enable jumping across the left and right edges:
-- Set the [`autoWrapRow` configuration option](@/api/options.md#autowraprow) to `true`.
+- Set the [`autoWrapRow`](@/api/options.md#autowraprow) configuration option to `true`.
 
 To jump across a vertical edge:
 - When cell selection is on a row's first cell, press the left arrow key.
@@ -217,7 +217,7 @@ To jump across a vertical edge:
 #### Jumping across horizontal edges
 
 To enable jumping across the top and bottom edges:
-- Set the [`autoWrapCol` configuration option](@/api/options.md#autowrapcol) to `true`.
+- Set the [`autoWrapCol`](@/api/options.md#autowrapcol) configuration option to `true`.
 
 To jump across a horizontal edge:
 - When cell selection is on a column's first cell, press the up arrow key.

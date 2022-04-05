@@ -54,7 +54,7 @@ const hot = new Handsontable(container, {
 
 ## Apply inline styles
 
-You can apply inline styles directly to the DOM element using its `style` attribute. You can use the `renderer` option to do that.
+You can apply inline styles directly to the DOM element using its `style` attribute. You can use the [`renderer`](@/api/options.md#renderer) option to do that.
 
 ::: example #example2
 ```javascript
@@ -90,12 +90,12 @@ const hot = new Handsontable(container, {
 
 ## Custom cell borders
 
-To enable the custom borders feature, set the `customBorders` option. This can either be set as `true` or initialized as an array with a pre-defined setup. For the list of available settings and methods, visit the [API reference](@/api/customBorders.md).
+To enable the custom borders feature, set the [`customBorders`](@/api/options.md#customborders) option. This can either be set as `true` or initialized as an array with a pre-defined setup. For the list of available settings and methods, visit the [API reference](@/api/customBorders.md).
 
 In the names of the API properties, the words `start` and `end` refer to the starting and ending edges of the [layout direction](@/guides/internationalization/layout-direction.md).
 
 ::: warning
-The `start` and `end` properties used to be called `left` and `right` before Handsontable 12.0.0. The old names `left` and `right` work in the LTR [layout direction](@/guides/internationalization/layout-direction.md) but throw an error when the layout direction is set to RTL.
+The `start` and `end` properties used to be called `left` and `right` before Handsontable 12.0.0. The old names `left` and `right` work in the LTR layout direction but throw an error when the layout direction is set to RTL.
 :::
 
 ::: example #example3

@@ -15,7 +15,7 @@ The merging cells feature enables you to combine the contents of two or more cel
 
 ## How to merge cells
 
-To enable the merge cells feature, set the `mergeCells` option to be `true` or an array.
+To enable the merge cells feature, set the [`mergeCells`](@/api/options.md#mergecells) option to  `true` or to an array.
 
 To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array: `mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }]`.
 
