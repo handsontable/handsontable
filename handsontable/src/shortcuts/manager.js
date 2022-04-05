@@ -106,7 +106,7 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
       if (runOnlyIf(event) !== false) {
         isCtrlKeySilenced = captureCtrl;
         // eslint-disable-next-line no-unneeded-ternary
-        isExecutionCancelled = callback(event, keys) === false ? true : false;
+        isExecutionCancelled = callback(event, keys) === false;
         isCtrlKeySilenced = false;
 
         if (preventDefault) {
