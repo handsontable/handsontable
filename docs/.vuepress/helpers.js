@@ -7,7 +7,7 @@ const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
 
 const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
 const TMP_DIR_FOR_WATCH = 'tmp';
-const minFrameworkedDocsVersion = '12.0.0';
+const MIN_FRAMEWORKED_DOCS_VERSION = '12.0.0';
 
 /**
  * Get whether we work in dev mode (watch script).
@@ -19,7 +19,7 @@ function isEnvDev() {
 }
 
 /**
- * Gets version of documentation which should be build with particular framework.
+ * Gets version of documentation which should be build for particular framework.
  *
  * @param {string} buildMode The env name.
  * @returns {Array}
@@ -28,7 +28,7 @@ function getDocsFrameworkedVersions(buildMode) {
   const versions = getVersions(buildMode);
 
   return versions.filter(version => version === 'next' ||
-    semver.gt(semver.coerce(version), semver.coerce(minFrameworkedDocsVersion)));
+    semver.gte(semver.coerce(version), semver.coerce(MIN_FRAMEWORKED_DOCS_VERSION)));
 }
 
 /**
@@ -41,7 +41,7 @@ function getDocsNonFrameworkedVersions(buildMode) {
   const versions = getVersions(buildMode);
 
   return versions.filter(version => version !== 'next' &&
-    semver.lt(semver.coerce(version), semver.coerce(minFrameworkedDocsVersion)));
+    semver.lt(semver.coerce(version), semver.coerce(MIN_FRAMEWORKED_DOCS_VERSION)));
 }
 
 /**
