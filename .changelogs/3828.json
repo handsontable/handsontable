@@ -1,0 +1,7 @@
+{
+  "title": "Fixed the dropdown/autocomplete editor's list positioning when the `preventOverflow` option was used.",
+  "type": "fixed",
+  "issue": 3828,
+  "breaking": false,
+  "framework": "none"
+}
