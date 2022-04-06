@@ -4487,62 +4487,102 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   shortcutManager.setActiveContextName('grid');
 
   gridContext.addShortcuts([{
-    keys: [['Control', 'A'], ['Meta', 'A']],
+    keys: [['Control/Meta', 'A']],
     callback: () => {
       instance.selectAll();
     },
   }, {
-    keys: [['ArrowUp'], ['Control', 'ArrowUp'], ['Meta', 'ArrowUp']],
+    keys: [['ArrowUp']],
     callback: () => {
       selection.transformStart(-1, 0);
+    },
+  }, {
+    keys: [['ArrowUp', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => {
+      selection.setRangeStart(instance._createCellCoords(
+        instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
+        instance.getSelectedRangeLast().highlight.col,
+      ));
     },
   }, {
     keys: [
       ['ArrowUp', 'Shift'],
       // Added according to specification, not the target behaviour.
-      ['ArrowUp', 'Shift', 'Control'], ['ArrowUp', 'Shift', 'Meta']
+      ['ArrowUp', 'Shift', 'Control/Meta']
     ],
     callback: () => {
       selection.transformEnd(-1, 0);
     },
   }, {
-    keys: [['ArrowDown'], ['Control', 'ArrowDown'], ['Meta', 'ArrowDown']],
+    keys: [['ArrowDown']],
     callback: () => {
       selection.transformStart(1, 0);
+    },
+  }, {
+    keys: [['ArrowDown', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => {
+      selection.setRangeStart(instance._createCellCoords(
+        instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
+        instance.getSelectedRangeLast().highlight.col,
+      ));
     },
   }, {
     keys: [
       ['ArrowDown', 'Shift'],
       // Added according to specification, not the target behaviour.
-      ['ArrowDown', 'Shift', 'Control'], ['ArrowDown', 'Shift', 'Meta']
+      ['ArrowDown', 'Shift', 'Control/Meta']
     ],
     callback: () => {
       selection.transformEnd(1, 0);
     },
   }, {
-    keys: [['ArrowLeft'], ['Control', 'ArrowLeft'], ['Meta', 'ArrowLeft']],
+    keys: [['ArrowLeft']],
     callback: () => {
       selection.transformStart(0, -1 * instance.getDirectionFactor());
+    },
+  }, {
+    keys: [['ArrowLeft', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => {
+      const row = instance.getSelectedRangeLast().highlight.row;
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(
+        ...(instance.isRtl() ? [instance.countCols() - 1, -1] : [0, 1])
+      );
+
+      selection.setRangeStart(instance._createCellCoords(row, column));
     },
   }, {
     keys: [
       ['ArrowLeft', 'Shift'],
       // Added according to specification, not the target behaviour.
-      ['ArrowLeft', 'Shift', 'Control'], ['ArrowLeft', 'Shift', 'Meta'],
+      ['ArrowLeft', 'Shift', 'Control/Meta'],
     ],
     callback: () => {
       selection.transformEnd(0, -1 * instance.getDirectionFactor());
     },
   }, {
-    keys: [['ArrowRight'], ['Control', 'ArrowRight'], ['Meta', 'ArrowRight']],
+    keys: [['ArrowRight']],
     callback: () => {
       selection.transformStart(0, instance.getDirectionFactor());
+    },
+  }, {
+    keys: [['ArrowRight', 'Control/Meta']],
+    captureCtrl: true,
+    callback: () => {
+      const row = instance.getSelectedRangeLast().highlight.row;
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(
+        ...(instance.isRtl() ? [0, 1] : [instance.countCols() - 1, -1])
+      );
+
+      selection.setRangeStart(instance._createCellCoords(row, column));
     },
   }, {
     keys: [
       ['ArrowRight', 'Shift'],
       // Added according to specification, not the target behaviour.
-      ['ArrowRight', 'Shift', 'Control'], ['ArrowRight', 'Shift', 'Meta'],
+      ['ArrowRight', 'Shift', 'Control/Meta'],
     ],
     callback: () => {
       selection.transformEnd(0, instance.getDirectionFactor());
@@ -4564,7 +4604,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    keys: [['Home', 'Control'], ['Home', 'Meta']],
+    keys: [['Home', 'Control/Meta']],
     callback: () => {
       selection.setRangeStart(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
@@ -4572,7 +4612,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    keys: [['Home', 'Control', 'Shift'], ['Home', 'Meta', 'Shift']],
+    keys: [['Home', 'Control/Meta', 'Shift']],
     callback: () => {
       selection.setRangeEnd(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
@@ -4596,7 +4636,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    keys: [['End', 'Control'], ['End', 'Meta']],
+    keys: [['End', 'Control/Meta']],
     callback: () => {
       selection.setRangeStart(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
@@ -4604,7 +4644,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    keys: [['End', 'Control', 'Shift'], ['End', 'Meta', 'Shift']],
+    keys: [['End', 'Control/Meta', 'Shift']],
     callback: () => {
       selection.setRangeEnd(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
