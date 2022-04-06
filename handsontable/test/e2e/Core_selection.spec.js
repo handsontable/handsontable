@@ -3243,7 +3243,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop25', 10]);
     });
 
-    describe('should select multiple cells while using ctrl/meta + arrow keys', () => {
+    describe('should move the selection highlight to a proper position while using ctrl/meta + arrow keys', () => {
       it('arrow down', () => {
         handsontable({
           rowHeaders: true,
@@ -3252,23 +3252,50 @@ describe('Core_selection', () => {
           startCols: 5,
         });
 
-        selectCell(0, 0);
+        selectCell(1, 1);
         keyDownUp(['control/meta', 'arrowdown']);
 
-        expect(getSelected()).toEqual([[0, 0, 0, 0], [1, 0, 1, 0]]);
+        expect(getSelected()).toEqual([[4, 1, 4, 1]]);
         expect(`
-          |   ║ - :   :   :   :   |
+          |   ║   : - :   :   :   |
           |===:===:===:===:===:===|
-          | - ║ 0 :   :   :   :   |
-          | - ║ A :   :   :   :   |
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          | - ║   : # :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        selectCells([[3, 3, 1, 1]]);
+        keyDownUp(['control/meta', 'arrowdown']);
+
+        expect(getSelected()).toEqual([[4, 3, 4, 3]]);
+        expect(`
+          |   ║   :   :   : - :   |
+          |===:===:===:===:===:===|
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          | - ║   :   :   : # :   |
+        `).toBeMatchToSelectionPattern();
+
+        selectColumns(2);
+        keyDownUp(['control/meta', 'arrowdown']);
+
+        expect(getSelected()).toEqual([[4, 2, 4, 2]]);
+        expect(`
+          |   ║   :   : - :   :   |
+          |===:===:===:===:===:===|
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          | - ║   :   : # :   :   |
         `).toBeMatchToSelectionPattern();
       });
 
       it('arrow up', () => {
-
         handsontable({
           rowHeaders: true,
           colHeaders: true,
@@ -3276,18 +3303,46 @@ describe('Core_selection', () => {
           startCols: 5,
         });
 
-        selectCell(4, 0);
+        selectCell(3, 3);
         keyDownUp(['control/meta', 'arrowup']);
 
-        expect(getSelected()).toEqual([[4, 0, 4, 0], [3, 0, 3, 0]]);
+        expect(getSelected()).toEqual([[0, 3, 0, 3]]);
         expect(`
-          |   ║ - :   :   :   :   |
+          |   ║   :   :   : - :   |
           |===:===:===:===:===:===|
+          | - ║   :   :   : # :   |
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
-          | - ║ A :   :   :   :   |
-          | - ║ 0 :   :   :   :   |
+          |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        selectCells([[3, 1, 1, 3]]);
+        keyDownUp(['control/meta', 'arrowup']);
+
+        expect(getSelected()).toEqual([[0, 1, 0, 1]]);
+        expect(`
+          |   ║   : - :   :   :   |
+          |===:===:===:===:===:===|
+          | - ║   : # :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        selectColumns(2);
+        keyDownUp(['control/meta', 'arrowup']);
+
+        expect(getSelected()).toEqual([[0, 2, 0, 2]]);
+        expect(`
+          |   ║   :   : - :   :   |
+          |===:===:===:===:===:===|
+          | - ║   :   : # :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
       });
 
@@ -3299,16 +3354,44 @@ describe('Core_selection', () => {
           startCols: 5,
         });
 
-        selectCell(0, 4);
+        selectCell(1, 3);
         keyDownUp(['control/meta', 'arrowleft']);
 
-        expect(getSelected()).toEqual([[0, 4, 0, 4], [0, 3, 0, 3]]);
+        expect(getSelected()).toEqual([[1, 0, 1, 0]]);
         expect(`
-          |   ║   :   :   : - : - |
+          |   ║ - :   :   :   :   |
           |===:===:===:===:===:===|
-          | - ║   :   :   : A : 0 |
+          |   ║   :   :   :   :   |
+          | - ║ # :   :   :   :   |
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        selectCells([[3, 3, 1, 1]]);
+        keyDownUp(['control/meta', 'arrowleft']);
+
+        expect(getSelected()).toEqual([[3, 0, 3, 0]]);
+        expect(`
+          |   ║ - :   :   :   :   |
+          |===:===:===:===:===:===|
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          | - ║ # :   :   :   :   |
+          |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        selectRows(2);
+        keyDownUp(['control/meta', 'arrowleft']);
+
+        expect(getSelected()).toEqual([[2, 0, 2, 0]]);
+        expect(`
+          |   ║ - :   :   :   :   |
+          |===:===:===:===:===:===|
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          | - ║ # :   :   :   :   |
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
@@ -3322,16 +3405,44 @@ describe('Core_selection', () => {
           startCols: 5,
         });
 
-        selectCell(0, 0);
+        selectCell(1, 3);
         keyDownUp(['control/meta', 'arrowright']);
 
-        expect(getSelected()).toEqual([[0, 0, 0, 0], [0, 1, 0, 1]]);
+        expect(getSelected()).toEqual([[1, 4, 1, 4]]);
         expect(`
-          |   ║ - : - :   :   :   |
+          |   ║   :   :   :   : - |
           |===:===:===:===:===:===|
-          | - ║ 0 : A :   :   :   |
+          |   ║   :   :   :   :   |
+          | - ║   :   :   :   : # |
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        selectCells([[3, 1, 1, 3]]);
+        keyDownUp(['control/meta', 'arrowright']);
+
+        expect(getSelected()).toEqual([[3, 4, 3, 4]]);
+        expect(`
+          |   ║   :   :   :   : - |
+          |===:===:===:===:===:===|
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          | - ║   :   :   :   : # |
+          |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        selectRows(2);
+        keyDownUp(['control/meta', 'arrowright']);
+
+        expect(getSelected()).toEqual([[2, 4, 2, 4]]);
+        expect(`
+          |   ║   :   :   :   : - |
+          |===:===:===:===:===:===|
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          | - ║   :   :   :   : # |
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
