@@ -1,239 +1,143 @@
-/**
- * Return a new line character repeated the desired amount of times.
- *
- * @param {number} [count=1] The amount of the new lines to be returned.
- * @returns {string}
- */
-const getNewLine = (count = 1) => '\n'.repeat(count);
-
-/**
- * Indent each line of the provided string by an amount specified in the `count` parameter.
- *
- * @param {string} content The content to be indented.
- * @param {number} count Number of indents to be applied to each line of the content.
- * @returns {string}
- */
-const indentLines = (content, count = 1) => {
-  return content.split('\n').map(line => '  '.repeat(count) + line).join('\n');
-};
+const {
+  indentLines
+} = require('./helpers');
 
 /**
  * Return a default set of imports for the React example.
  *
  * @returns {string}
  */
-const getImportSection = () => `\
-import React from 'react';
+function getImportsSection(includeImports) {
+  return includeImports ? `\
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
-`;
+import { registerAllModules } from 'handsontable/registry';
 
-// TODO: Decide if each of the helper functions is supposed to end with `Section`
-/**
- * Return the section containing declaration of variables representing the component refs.
- *
- * @param {object} snippetInformation The snippet information object.
- * @returns {string}
- */
-const getRefDeclarations = (snippetInformation) => {
-  const {
-    iterateHotConfigs,
-    refExpressions
-  } = snippetInformation;
-  let refDeclarationsResult = '';
+// register Handsontable's modules
+registerAllModules();
 
-  if (Object.keys(refExpressions).length) {
-    refDeclarationsResult += '// HotTable component reference\n';
-
-    iterateHotConfigs((varName) => {
-      refDeclarationsResult += `const ${varName}Ref = React.createRef();\n`;
-    });
-  }
-
-  return refDeclarationsResult;
-};
+` : '';
+}
 
 /**
- * Return the section containing the variable and function declarations.
+ * Get the initial expressions section.
  *
- * @param {object} snippetInformation The snippet information object.
+ * @param {CategorizedData} snippetInformation A CategorizedData instance containing information about the snippet.
  * @returns {string}
  */
-const getDeclarations = (snippetInformation) => {
-  const {
-    handsontableConfigs,
-    varDeclarations,
-    callExpressions,
-    hasExternalConfig,
-    hasHotInit,
-    iterateHotConfigs,
-  } = snippetInformation;
-  let declarationsResult = '';
+function getInitialExpressionsSection(snippetInformation) {
+  let refDeclarations = '';
 
-  declarationsResult += getRefDeclarations(snippetInformation);
-  declarationsResult += getNewLine();
-  declarationsResult += varDeclarations.join('\n');
-
-  if (!hasExternalConfig && hasHotInit) {
-    declarationsResult += getNewLine();
-
-    iterateHotConfigs((varName, config) => {
-      declarationsResult += `const ${varName}Settings = ${config};\n`;
-    });
-
-    // TODO: Allow multiple HOT instances without instance reference.
-    if (handsontableConfigs['[no-var]'].length) {
-      declarationsResult += `const hotSettings = ${handsontableConfigs['[no-var]'][0]};\n`;
-    }
-  }
-
-  if (callExpressions.length) {
-    declarationsResult += getNewLine(2);
-    declarationsResult += callExpressions.join('\n');
-  }
-
-  return declarationsResult;
-};
-
-/**
- * Return the `useEffects` app section containing the operations executed on the Handsontable instance.
- *
- * @param {object} snippetInformation The snippet information object.
- * @returns {string}
- */
-const getUseEffectSection = (snippetInformation) => {
-  const {
-    refExpressions
-  } = snippetInformation;
-
-  const declaredRefs = [];
-  let refExpressionsList = [];
-  let useEffectPart = 'useEffect(() => {';
-
-  // TODO: IMPORTANT NOTE: in the vanilla demos the ref expressions should be done AFTER all the other
-  //  variable declarations and expressions are done, as they'll be moved to `useEffect` section.
-
-  Object.keys(refExpressions).forEach((varName) => {
-    refExpressionsList.push(...refExpressions[varName]);
-
-    // Add the Handsontable instance declaration based on the Ref.
-    if (!declaredRefs.includes(varName)) {
-      useEffectPart += getNewLine();
-      useEffectPart += indentLines(`const ${varName} = ${varName}Ref.current.hotInstance;`, 1);
-
-      declaredRefs.push(varName);
+  snippetInformation.getNamedHotInstances().forEach((info, varName) => {
+    if (info.hasRef) {
+      refDeclarations += `const ${varName}Ref = React.createRef();\n`;
     }
   });
 
-  useEffectPart += getNewLine();
-
-  // Sort the ref expressions by the order of appearance.
-  refExpressionsList = refExpressionsList.sort((a, b) => {
-    if (a.refOrderId < b.refOrderId) {
-      return -1;
-    }
-
-    if (a.refOrderId > b.refOrderId) {
-      return 1;
-    }
-
-    return 0;
-  }).map(el => el.snippet);
-
-  // Print the ref expressions.
-  useEffectPart += indentLines(`${refExpressionsList.join(';\n\n')}`, 1);
-
-  useEffectPart += '\n});';
-
-  return useEffectPart;
-};
+  return `${refDeclarations}${snippetInformation.getInitialExpressions().join('\n')}`;
+}
 
 /**
- * Return the component section.
+ * Get the `<HotTable>` component section.
  *
- * @param {object} snippetInformation The snippet information object.
+ * @param {CategorizedData} snippetInformation A CategorizedData instance containing information about the snippet.
  * @returns {string}
  */
-const getHotComponentSection = (snippetInformation) => {
-  const {
-    handsontableConfigs,
-    hasExternalConfig,
-    refExpressions,
-    iterateHotConfigs
-  } = snippetInformation;
-  let hotComponentSectionResult = '';
+function getHotComponentSection(snippetInformation) {
+  let result = '';
 
-  iterateHotConfigs((varName) => {
-    const refPart = refExpressions[varName]?.length > 0 ? `ref={${varName}Ref} ` : '';
-
-    hotComponentSectionResult += `\
-<HotTable ${refPart}settings={${hasExternalConfig ? handsontableConfigs : `${varName}Settings`}}>
+  snippetInformation.getNamedHotInstances().forEach((info, varName) => {
+    result += `\
+<HotTable ${info.hasRef ? `ref={${varName}Ref} ` : ''}settings={${info.config}}>
 </HotTable>
 `;
   });
 
-  // TODO: Store the `[no-var]` magic string in a constant.
-  // Handsontable initialized without the instance reference.
-  if (handsontableConfigs['[no-var]'].length) {
-    hotComponentSectionResult += `\
-<HotTable settings={${hasExternalConfig ? handsontableConfigs : 'hotSettings'}}>
+  snippetInformation.getUnnamedHotInstances().forEach((info) => {
+    result += `\
+<HotTable settings={${info.config}}>
 </HotTable>
 `;
-  }
+  });
 
-  return hotComponentSectionResult;
-};
+  return result;
+}
 
 /**
- * Return the component section wrapped with the application logic.
+ * Get the `useEffect` section.
  *
- * @param {object} snippetInformation The snippet information object.
+ * @param {CategorizedData} snippetInformation A CategorizedData instance containing information about the snippet.
  * @returns {string}
  */
-const getAppSection = (snippetInformation) => {
+function getUseEffectSection(snippetInformation) {
+  let refDeclarations = '';
+
+  snippetInformation.getNamedHotInstances().forEach((info, varName) => {
+    if (info.hasRef) {
+      refDeclarations += `const ${varName} = ${varName}Ref.current.hotInstance;\n\n`;
+    }
+  });
+
+  return snippetInformation.countExpressions('ref') ? `\
+useEffect(() => {
+${indentLines(`${refDeclarations}${snippetInformation.getRefExpressions().join('\n')}`, 1)}
+});` : '';
+}
+
+/**
+ * Get the application defining section.
+ *
+ * @param {CategorizedData} snippetInformation A CategorizedData instance containing information about the snippet.
+ * @param {string} appContainerId The id of the element being used as the application DOM container.
+ * @returns {string}
+ */
+function getAppSection(snippetInformation, appContainerId = 'example') {
   return `\
-const App = () => {${getUseEffectSection(snippetInformation)}
+
+const App = () => {
+${indentLines(getUseEffectSection(snippetInformation), 1)}
+
   return (
     <div>
-${getHotComponentSection(snippetInformation)}
+${indentLines(getHotComponentSection(snippetInformation), 3)}
     </div>
   );
-`;
 };
+
+ReactDOM.render(<App />, document.getElementById('${appContainerId}'));
+`;
+}
 
 /**
  * Return the entire transformed snippet.
  *
- * @param {object} snippetInformation The snippet information object.
+ * @param {CategorizedData} snippetInformation The snippet information object.
  * @param {boolean} [includeImports=false] `true` if the final snippet should include the imports section.
  * @param {boolean} [includeApp=false] `true` if the final snippet should wrap the component with application logic.
+ * @param {string} [appContainerId] The id of the element being used as the application DOM container.
  * @returns {string}
  */
-function render(snippetInformation, includeImports = false, includeApp = false) {
-  let result = '';
+function render(snippetInformation, includeImports = false, includeApp = false, appContainerId) {
+  const insert = (strings, ...sections) => {
+    let result = '';
 
-  if (includeImports) {
-    result += getImportSection();
-  }
+    strings.forEach((string, i) => {
+      result += (sections[i] && sections[i].length) ? `\
+${string}${sections[i]}\
+` : '';
+    });
 
-  result += getDeclarations(snippetInformation);
+    return result;
+  };
 
-  if (includeApp) {
-    result += getAppSection(snippetInformation);
+  return insert`\
+${getImportsSection(includeImports)}\
+${getInitialExpressionsSection(snippetInformation)}\
 
-  } else if (snippetInformation.hasHotInit) {
-
-    // If there are expressions based on refs
-    if (Object.keys(snippetInformation.refExpressions).length) {
-      result += getNewLine(1);
-      result += getUseEffectSection(snippetInformation);
-      result += getNewLine(2);
-    }
-
-    result += getHotComponentSection(snippetInformation);
-  }
-
-  return result;
+${!includeApp ? `${getUseEffectSection(snippetInformation)}\n\n` : ''}\
+${includeApp ? getAppSection(snippetInformation, appContainerId) : getHotComponentSection(snippetInformation)}
+`;
 }
 
 module.exports = {

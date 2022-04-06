@@ -1,4 +1,6 @@
-const { makeSnippet } = require('./helpers/snippetGenerators');
+const { makeSnippet,
+  SnippetTransformer
+} = require('./snippetTransformer');
 const { logChange } = require('./helpers/previewLogger');
 
 /**
@@ -17,8 +19,10 @@ module.exports = {
         (s, key) => ((Array.isArray(env.frontmatter[key])) ? s + env.frontmatter[key].length + 1 : s + 1), 0) + 3;
       const filePath = env.relativePath;
       const lineNumber = tokens[index].map[0] + frontMatterLength;
-      const translatedSnippetContent =
-        makeSnippet(snippetContent, framework, filePath, lineNumber);
+
+      const snippetTransformer = new SnippetTransformer(framework, snippetContent, filePath, lineNumber);
+
+      const translatedSnippetContent = snippetTransformer.makeSnippet();
 
       // Log the transformation in the log file.
       logChange(
