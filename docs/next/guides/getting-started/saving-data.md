@@ -137,16 +137,16 @@ function ajax(url, method, params, callback) {
 
 ## Saving data locally
 
-You can save any type of data in local storage to preserve the table state after page reloads. The `persistentState` option must be set to `true` to enable the data storage mechanism. You can set it either during the Handsontable initialization or using the `updateSettings` method.
+You can save any type of data in local storage to preserve the table state after page reloads. The [`persistentState`](@/api/options.md#persistentstate) option must be set to `true` to enable the data storage mechanism. You can set it either during the Handsontable initialization or using the [`updateSettings()`](@/api/core.md#updatesettings) method.
 
-When `persistentState` is enabled it exposes hooks listed below:
+When [`persistentState`](@/api/options.md#persistentstate) is enabled it exposes hooks listed below:
 
-* [`persistentStateSave` &#8594;](@/api/hooks.md#persistentstatesave)
-* [`persistentStateLoad` &#8594;](@/api/hooks.md#persistentstateload)
-* [`persistentStateReset` &#8594;](@/api/hooks.md#persistentstatereset)
+* [`persistentStateSave`](@/api/hooks.md#persistentstatesave)
+* [`persistentStateLoad`](@/api/hooks.md#persistentstateload)
+* [`persistentStateReset`](@/api/hooks.md#persistentstatereset)
 
-## `persistentState` vs `LocalStorage API`
+## [`persistentState`](@/api/persistentstate.md) vs `localStorage`
 
-The main benefit of using `persistentState` hooks rather than a regular `LocalStorage API` is that it ensures separation of data stored by multiple Handsontable instances. For example, if you have two or more instances of Handsontable on one page, data saved by one instance will be inaccessible to the second instance. Those two instances can store data under the same key, and no data would be overwritten.
+The main benefit of using [`persistentState`](@/api/persistentstate.md) hooks rather than the regular `localStorage` API is that it ensures separation of data stored by multiple Handsontable instances. For example, if you have two or more instances of Handsontable on one page, data saved by one instance will be inaccessible to the second instance. Those two instances can store data under the same key, and no data would be overwritten.
 
 For the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.

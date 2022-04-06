@@ -39,17 +39,17 @@ This plugin comes with a library of 386 functions grouped into categories, such 
 
 ### HyperFormula version support
 
-Different [versions of Handsontable](https://github.com/handsontable/handsontable/releases) support different [versions of HyperFormula](https://github.com/handsontable/hyperformula/releases).
+Different versions of Handsontable support different versions of HyperFormula.
 
-To find out which [HyperFormula](https://handsontable.github.io/hyperformula/) version to use, see the table below:
+To find out which HyperFormula version to use, see the table below:
 
 ::: details HyperFormula version support
 
-| Handsontable version                                                                    | HyperFormula version                                                                                           |
-| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| [`8.x.x`](https://github.com/handsontable/handsontable/releases/tag/8.0.0) and lower    | No HyperFormula support (old [Formulas](https://handsontable.com/docs/8.0.0/demo-formula-support.html) plugin) |
-| [`9.x.x`](https://github.com/handsontable/handsontable/releases/tag/9.0.0)              | [`0.6.2`](https://github.com/handsontable/hyperformula/releases/tag/0.6.2)                                     |
-| [`10.x.x`](https://github.com/handsontable/handsontable/releases/tag/10.0.0) and higher | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
+| Handsontable version | HyperFormula version                                                                                           |
+| -------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `8.x.x` and lower    | No HyperFormula support (old [Formulas](https://handsontable.com/docs/8.0.0/demo-formula-support.html) plugin) |
+| `9.x.x`              | `0.6.2`                                                                                                        |
+| `10.x.x` and higher  | `^1.2.0`                                                                                                       |
 
 :::
 
@@ -288,7 +288,7 @@ import { HyperFormula } from 'hyperformula';
 There are also other installation methods available. Check out [HyperFormula's installation documentation](https://handsontable.github.io/hyperformula/guide/client-side-installation.html).
 
 ::: tip HyperFormula instance
-To use the `Formulas` plugin with an external HyperFormula instance,
+To use the [`Formulas`](@/api/formulas.md) plugin with an external HyperFormula instance,
 initialize HyperFormula with the `'internal-use-in-handsontable'` license key:
 
 ```js
@@ -413,7 +413,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 }
 ```
 
-## `afterFormulasValuesUpdate` hook
+## [`afterFormulasValuesUpdate](@/api/hooks.md#afterformulasvaluesupdate)` hook
 
 This hook listens for any changes to cells in the calculation engine, including dependent cells containing formulas.
 
