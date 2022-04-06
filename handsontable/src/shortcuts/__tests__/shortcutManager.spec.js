@@ -51,7 +51,7 @@ describe('shortcutManager', () => {
 
       keyDown('control');
 
-      expect(shortcutManager.isCtrlPressed()).toBe(true);
+      expect(shortcutManager.isCtrlPressed()).toBeTrue();
 
       keyUp('control');
 
@@ -82,7 +82,7 @@ describe('shortcutManager', () => {
 
       keyDown('meta');
 
-      expect(shortcutManager.isCtrlPressed()).toBe(true);
+      expect(shortcutManager.isCtrlPressed()).toBeTrue();
 
       keyUp('meta');
 
@@ -272,6 +272,40 @@ describe('shortcutManager', () => {
     keyDownUp(['control', 'b']);
 
     expect(text).toBe('12');
+  });
+
+  it('should be possible to capture the Ctrl/Meta pressed keys state using the "captureCtrl" option', () => {
+    const hot = handsontable({});
+    const shortcutManager = hot.getShortcutManager();
+    const gridContext = shortcutManager.getContext('grid');
+    const isCtrlPressedSpy = jasmine.createSpy();
+
+    gridContext.addShortcut({
+      keys: [['control', 'b']],
+      callback: () => {
+        isCtrlPressedSpy(shortcutManager.isCtrlPressed());
+      },
+      group: 'spy',
+    });
+
+    gridContext.addShortcut({
+      keys: [['control', 'k']],
+      captureCtrl: true,
+      callback: () => {
+        isCtrlPressedSpy(shortcutManager.isCtrlPressed());
+      },
+      group: 'spy',
+    });
+
+    selectCell(0, 0);
+    keyDownUp(['control', 'b']);
+
+    expect(isCtrlPressedSpy).toHaveBeenCalledWith(true);
+
+    isCtrlPressedSpy.calls.reset();
+    keyDownUp(['control', 'k']);
+
+    expect(isCtrlPressedSpy).toHaveBeenCalledWith(false);
   });
 
   it('should handle action properly when something is removed from actions stack dynamically (executing "old" list of actions)', () => {
