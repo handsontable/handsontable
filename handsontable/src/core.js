@@ -4586,11 +4586,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   }, {
     keys: [['Home']],
+    captureCtrl: true,
     callback: () => {
-      selection.setRangeStart(instance._createCellCoords(
-        selection.selectedRange.current().from.row,
-        instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
-      ));
+      const fixedColumns = parseInt(instance.getSettings().fixedColumnsStart, 10);
+      const row = instance.getSelectedRangeLast().highlight.row;
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(fixedColumns, 1);
+
+      selection.setRangeStart(instance._createCellCoords(row, column));
     },
   }, {
     keys: [['Home', 'Shift']],
@@ -4602,11 +4604,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   }, {
     keys: [['Home', 'Control/Meta']],
+    captureCtrl: true,
     callback: () => {
-      selection.setRangeStart(instance._createCellCoords(
-        instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
-        selection.selectedRange.current().from.col,
-      ));
+      const fixedRows = parseInt(instance.getSettings().fixedRowsTop, 10);
+      const fixedColumns = parseInt(instance.getSettings().fixedColumnsStart, 10);
+      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(fixedRows, 1);
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(fixedColumns, 1);
+
+      selection.setRangeStart(instance._createCellCoords(row, column));
     },
   }, {
     keys: [['Home', 'Control/Meta', 'Shift']],
@@ -4618,9 +4623,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   }, {
     keys: [['End']],
+    captureCtrl: true,
     callback: () => {
       selection.setRangeStart(instance._createCellCoords(
-        selection.selectedRange.current().from.row,
+        instance.getSelectedRangeLast().highlight.row,
         instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
       ));
     },
@@ -4634,11 +4640,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   }, {
     keys: [['End', 'Control/Meta']],
+    captureCtrl: true,
     callback: () => {
-      selection.setRangeStart(instance._createCellCoords(
-        instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
-        selection.selectedRange.current().from.col,
-      ));
+      const fixedRows = parseInt(instance.getSettings().fixedRowsBottom, 10);
+      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - fixedRows - 1, -1);
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1);
+
+      selection.setRangeStart(instance._createCellCoords(row, column));
     },
   }, {
     keys: [['End', 'Control/Meta', 'Shift']],
