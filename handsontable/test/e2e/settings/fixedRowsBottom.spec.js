@@ -29,9 +29,8 @@ describe('settings', () => {
           fixedRowsBottom: 2
         });
 
-        expect(getBottomClone().find('thead tr').length).toEqual(1);
-        expect(getBottomClone().find('thead tr').height()).toEqual(0); // header is always invisible
-        expect(getBottomClone().find('tbody tr').length).toEqual(2);
+        expect(getBottomClone().find('thead tr').length).toBe(0);
+        expect(getBottomClone().find('tbody tr').length).toBe(2);
       });
     });
 
