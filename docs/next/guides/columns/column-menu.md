@@ -18,7 +18,7 @@ The dropdown menu acts like the **Context Menu** but is triggered by clicking th
 
 ## Quick setup
 
-To enable the plugin, set the `dropdownMenu` property to `true` when initializing Handsontable.
+To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) configuration option to `true` when initializing Handsontable.
 
 ::: example #example1
 ```js

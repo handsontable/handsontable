@@ -67,7 +67,7 @@ The [Nested Headers](#nested-headers.md) plugin needs to be enabled for this to 
 
 ### Configuration
 
-To enable the Collapsible Columns plugin, either set the `collapsibleColumns` property to:
+To enable the Collapsible Columns plugin, either set the [`collapsibleColumns`](@/api/options.md#collapsiblecolumns) configuration option to:
 
 * `true` - this will enable the functionality for _all_ multi-column headers, every column with the `colspan` attribute defined will be extended with the "expand/collapse" button
 * An array of objects containing information specifying which headers should have the "expand/collapse" buttons for example:

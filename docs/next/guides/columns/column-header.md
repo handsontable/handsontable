@@ -11,7 +11,7 @@ canonicalUrl: /column-header
 
 ## Overview
 
-Column headers are gray-colored rows used to label each column or [group of columns](@/guides/columns/column-groups.md). By default, these headers are populated with letters in alphabetical order.
+Column headers are gray-colored rows used to label each column or group of columns. By default, these headers are populated with letters in alphabetical order.
 
 To reflect the type or category of data in a particular column, give it a custom name and then display it in a column header. For example, instead of letters as labels such as `A, B, C, ...` name them `ID, Full name, Country, ...`.
 
@@ -34,7 +34,7 @@ const hot = new Handsontable(container, {
 :::
 
 ## Header labels as an array
-An array of labels can be used to set the `colHeaders` as shown in the example below:
+An array of labels can be used to set the [`colHeaders`](@/api/options.md#colheaders) as shown in the example below:
 
 ::: example #example2
 ```js
@@ -51,7 +51,7 @@ const hot = new Handsontable(container, {
 :::
 
 ## Header labels as a function
-The `colHeaders` can also be populated using a function as shown in the example below:
+The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a function as shown in the example below:
 
 ::: example #example3
 ```js

@@ -72,13 +72,13 @@ You may want to change the default events that causes editor to open or close. F
 
 You should now have a better understanding on how `EditorManager` works. Let's go a bit deeper and see what methods every editor class must implement and what those methods do.
 
-## [BaseEditor](@/api/baseeditor.md)
+## [`BaseEditor`](@/api/baseeditor.md)
 
 `Handsontable.editors.BaseEditor` is an abstract class from which all editor classes should inherit. It implements some of the basic editor methods as well as declares some methods that should be implemented by each editor class. In this section we examine all of those methods.
 
 ### Common methods
 
-Common methods, are methods implemented by [`BaseEditor`](@/api/baseditor.md) class. They contain some core logic that every editor should have. Most of the time, you shouldn't bother with those methods. However, if you are creating some more complex editors, you might want to override some of the common methods, in which case you should always invoke the original method and then perform other operations, specific to your editor.
+Common methods, are methods implemented by [`BaseEditor`](@/api/baseeditor.md) class. They contain some core logic that every editor should have. Most of the time, you shouldn't bother with those methods. However, if you are creating some more complex editors, you might want to override some of the common methods, in which case you should always invoke the original method and then perform other operations, specific to your editor.
 
 **Example** - overriding common method
 
@@ -136,7 +136,7 @@ Returns: `Boolean`
 
 Returns: `Function` - a class function that inherits from the current class. The `prototype` methods of the returned class can be safely overwritten, without a danger of altering the parent's `prototype`.
 
-**Example** - inheriting from [`BaseEditor`](@/api/baseditor.md) and overriding its method
+**Example** - inheriting from [`BaseEditor`](@/api/baseeditor.md) and overriding its method
 
 ```js
 const CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
@@ -158,7 +158,7 @@ const CustomTextEditor = Handsontable.editors.TextEditor.prototype.extend();
 
 ### Editor specific methods
 
-Editor specific methods are methods not implemented in [`BaseEditor`](@/api/baseditor.md). In order to work, every editor class has to implement those methods.
+Editor specific methods are methods not implemented in [`BaseEditor`](@/api/baseeditor.md). In order to work, every editor class has to implement those methods.
 
 #### init()
 
@@ -251,7 +251,7 @@ cellProperties | `Object` | An object representing active cell properties. Updat
 
 ## How to create a custom editor?
 
-Now you know the philosophy behind the Handsontable editors and you're ready to write your own editor. Basically, you can build a new editor from scratch, by creating a new editor class, which inherits form [`BaseEditor`](@/api/baseditor.md), or if you just want to enhance an existing editor, you can extend its class and override only a few of its methods.
+Now you know the philosophy behind the Handsontable editors and you're ready to write your own editor. Basically, you can build a new editor from scratch, by creating a new editor class, which inherits form [`BaseEditor`](@/api/baseeditor.md), or if you just want to enhance an existing editor, you can extend its class and override only a few of its methods.
 
 In this tutorial we will examine both approaches. We will create a completely new `SelectEditor` which uses `<select>` list to alter the value of cell. We will also create a `PasswordEditor` which works exactly like regular `TextEditor` except that it displays a password input instead of textarea.
 
@@ -326,7 +326,7 @@ Things to do:
 
 #### Creating new editor
 
-That's probably the easiest part. All we have to do is call `BaseEditor.prototype.extend()` function which will return a new function class that inherits from [`BaseEditor`](@/api/baseditor.md).
+That's probably the easiest part. All we have to do is call `BaseEditor.prototype.extend()` function which will return a new function class that inherits from [`BaseEditor`](@/api/baseeditor.md).
 
 ```js
 const SelectEditor = Handsontable.editors.BaseEditor.prototype.extend();

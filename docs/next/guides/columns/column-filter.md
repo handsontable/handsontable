@@ -16,7 +16,7 @@ The **Filters plugin** allows filtering the data in the table's columns using a 
 
 ## Basic configuration
 
-To enable the plugin, set the `filters` property to `true` and enable the filters dependency, which is the [dropdownMenu](@/guides/columns/column-menu.md) plugin.
+To enable the plugin, set the [`filters`](@/api/options.md#filters) configuration option to `true` and enable the filters dependency, which is the [dropdownMenu](@/guides/columns/column-menu.md) plugin.
 
 ::: example #example1
 ```js
@@ -166,7 +166,7 @@ const hot = new Handsontable(container, {
 
 ### Filter from the outside the table
 
-The external Filter component is controlling the main table by passing values for particular columns. Only a fraction of the code is related to Handsontable API, for example, `addConditionsByValue`, `filter`, and `removeConditions`.
+The external Filter component is controlling the main table by passing values for particular columns. Only a fraction of the code is related to Handsontable API, for example, [`addConditionsByValue`](@/api/filters.md#addcondition), [`filter`](@/api/filters.md), and [`removeConditions`](@/api/filters.md#removeconditions).
 
 ::: tip
 Note that selecting a column in the Filter component resets the state of the table. This implementation can filter only one column at a time.
