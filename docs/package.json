@@ -17,6 +17,7 @@
     "docs:start": "npm run docs:scripts:link-assets && vuepress dev ./",
     "docs:start:no-cache": "npm run docs:scripts:link-assets && vuepress dev --no-cache ./",
     "docs:build": "npm run docs:build:no-check-links && npm run docs:check-links",
+    "docs:build:no-cache": "npm run docs:build:no-check-links -- --no-cache",
     "docs:build:no-check-links": "node .vuepress/tools/build.mjs",
     "docs:build:no-split-versions": "vuepress build -d .vuepress/dist/docs ./",
     "docs:docker:build": "npm run docs:docker:build:staging",

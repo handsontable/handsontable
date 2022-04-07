@@ -13,7 +13,8 @@ const LOG_FILE_PATH = path.join(__filename, '../../../../..', LOG_FILE_NAME);
 function escapeHtmlTags(htmlString) {
   return htmlString
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/>/g, '&gt;')
+    .replace(/\$/g, '&#36;');
 }
 
 /**

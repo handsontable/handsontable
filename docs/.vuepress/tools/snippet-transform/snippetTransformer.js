@@ -1,8 +1,12 @@
 const { parse } = require('espree');
 const { renderTemplate } = require('./templates');
-const { logger } = require('../../tools/utils');
+const { logChange } = require('./helpers/previewLogger');
+const { logger } = require('../utils');
 const { CategorizedData } = require('./helpers/categorizedData');
 const { Comments } = require('./helpers/comments');
+
+// TODO: IMPORTANT NOTE: detached comments are NOT being transformed (in many cases there's no way of knowing where
+//  to put them in the transformed code)
 
 const REF_VAR_NAMES = [
   'hot',
@@ -15,12 +19,12 @@ class SnippetTransformer {
   /**
    * Snippet Transformer constructor.
    *
-   * @param {string} framework The desired framework name.
+   * @param {string} [framework='js'] The desired framework name.
    * @param {string} content Snippet content.
    * @param {string} baseFilePath Path of the file containing the transformed snippet.
    * @param {number} baseFileLine Index of the line that the snippet lies in in the file.
    */
-  constructor(framework, content, baseFilePath, baseFileLine) {
+  constructor(framework = 'js', content, baseFilePath, baseFileLine) {
     /**
      * Snippet information object.
      *
@@ -50,9 +54,12 @@ class SnippetTransformer {
   /**
    * Make the final snippet based on the initial snippet content.
    *
-   * @returns {*|string}
+   * @param {boolean} [includeImports=false] `true` if the template should include the imports section.
+   * @param {boolean} [includeApp=false] `true` if the template should include the app-wrapping function.
+   * @param {string} [appContainerId] The id of a container to mount Handsontable in. Defaults to `example`.
+   * @returns {string|string|*}
    */
-  makeSnippet() {
+  makeSnippet(includeImports = false, includeApp = false, appContainerId) {
     const {
       content,
       framework,
@@ -74,7 +81,13 @@ class SnippetTransformer {
     } else {
       const neededData = this.readParsedData(content);
 
-      return renderTemplate(framework, neededData) || 'No template for the framework is available.';
+      return renderTemplate(
+        framework,
+        neededData,
+        includeImports,
+        includeApp,
+        appContainerId
+      ) || 'No template for the framework is available.';
     }
   }
 
@@ -261,7 +274,7 @@ ${commentForLine.length ? `${commentForLine}\n` : ''}${node.mock ? node.content 
     const getCallArgumentsVarNames = (nodeObj) => {
       const result = [];
 
-      if (nodeObj.arguments?.length) {
+      if (nodeObj?.arguments?.length) {
         nodeObj.arguments.forEach((argObj) => {
           if (argObj.type !== 'Literal') {
             result.push(this.extractTopmostObjectName(
@@ -323,6 +336,10 @@ ${commentForLine.length ? `${commentForLine}\n` : ''}${node.mock ? node.content 
         case 'ImportDeclaration':
           // TODO
           break;
+        case 'ClassDeclaration':
+          this.addExpression(CategorizedData.EXP_INITIAL, node);
+
+          break;
         case 'FunctionDeclaration':
           this.addExpression(CategorizedData.EXP_INITIAL, node);
 
@@ -359,9 +376,5 @@ ${commentForLine.length ? `${commentForLine}\n` : ''}${node.mock ? node.content 
 
 module.exports = {
   SnippetTransformer,
+  logChange
 };
-
-// TODO: IMPORTANT NOTE: detached comments are NOT being tranformed (in many cases there's no way of knowing where
-//  to put them)
-
-// TODO: we're losing comments declared above the HOT initialization, needs to be fixed

@@ -69,10 +69,20 @@ function getBuildDocsVersion() {
   return process.env.DOCS_VERSION;
 }
 
+/**
+ * Gets docs framework that is currently building (based on the environment variable).
+ *
+ * @returns {string}
+ */
+function getBuildDocsFramework() {
+  return process.env.FRAMEWORK;
+}
+
 module.exports = {
   getVersions,
   getLatestVersion,
   getSidebars,
   parseVersion,
   getBuildDocsVersion,
+  getBuildDocsFramework,
 };

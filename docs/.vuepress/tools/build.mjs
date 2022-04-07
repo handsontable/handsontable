@@ -3,7 +3,9 @@ import { fileURLToPath } from 'url';
 import fse from 'fs-extra';
 import utils from './utils.js';
 import { getVersions } from '../helpers.js';
-import { initLog } from '../containers/snippet/helpers/previewLogger.js';
+import { initLog as initSnippetTransformationLog } from './snippet-transform/helpers/previewLogger.js';
+
+const NO_CACHE = process.argv.includes('--no-cache');
 
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -25,8 +27,8 @@ const buildVersion = (version) => {
   logger.info(`Version ${version} build started at`, new Date().toString());
 
   spawnProcess(
-    // TODO: check if the --no-cache is needed every time
-    `node_modules/.bin/vuepress build -d .vuepress/dist/prebuild-${version.replace('.', '-')}  --no-cache`,
+    `node_modules/.bin/vuepress build -d\
+ .vuepress/dist/prebuild-${version.replace('.', '-')} ${NO_CACHE ? ' --no-cache' : ''}`,
     {
       cwd: path.resolve(__dirname, '../../'),
       env: {
@@ -64,7 +66,6 @@ const buildApp = async() => {
 
 };
 
-// TODO: find a better place for the line below
-initLog();
+initSnippetTransformationLog();
 
 buildApp();

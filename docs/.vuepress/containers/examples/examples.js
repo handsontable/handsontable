@@ -7,6 +7,11 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const { buildCode } = require('./code-builder');
 const { jsfiddle } = require('./jsfiddle');
+const { getBuildDocsFramework } = require('../../helpers');
+const {
+  SnippetTransformer,
+  logChange
+} = require('../../tools/snippet-transform/snippetTransformer');
 
 const tab = (tabName, token) => {
   if (!token) return [];
@@ -101,7 +106,40 @@ module.exports = {
       const jsPos = args.match(/--js (\d*)/)?.[1] || 1;
       const jsIndex = index + Number.parseInt(jsPos, 10);
       const jsToken = tokens[jsIndex];
-      const jsContent = jsToken.content;
+      let jsContent = jsToken.content;
+
+      // Transform the JS snippet to the framework-based one, where the framework is defined in the `FRAMEWORK`
+      // environmental variable.
+      if (!['angular', 'react', 'vue'].some(value => preset.includes(value))) {
+        // Adding `3` to compensate for the frontmatter syntax
+        const frontMatterLength = Object.keys(env.frontmatter).reduce(
+          (s, key) => (
+            (Array.isArray(env.frontmatter[key])) ? s + env.frontmatter[key].length + 1 : s + 1
+          ), 0) + 3;
+        const filePath = env.relativePath;
+        const lineNumber = tokens[jsIndex].map[0] + frontMatterLength;
+        const snippetTransformer = new SnippetTransformer(getBuildDocsFramework(), jsContent, filePath, lineNumber);
+        const translatedSnippetContent = snippetTransformer.makeSnippet(true, true, id);
+
+        // Log the transformation in the log file.
+        logChange(
+          jsContent,
+          translatedSnippetContent.error || translatedSnippetContent,
+          filePath,
+          lineNumber
+        );
+
+        if (!translatedSnippetContent.error) {
+          // Inject a correct preset for the framework.
+          preset = preset.replace('hot', getBuildDocsFramework());
+
+          // Workaround for `hot` presets having the `lang` postfix, while other frameworks -> `languages`.
+          preset = preset.replace('lang', 'languages');
+
+          jsContent = translatedSnippetContent;
+          jsToken.content = jsContent;
+        }
+      }
 
       const activeTab = args.match(/--tab (code|html|css|preview)/)?.[1] || 'code';
       const noEdit = !!args.match(/--no-edit/)?.[0];
