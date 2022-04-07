@@ -1,3 +1,5 @@
+const { getBuildDocsFramework } = require('../../helpers');
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * Container used to display/hide blocks of content relevant to specific frameworks.
@@ -23,8 +25,8 @@
  */
 module.exports = {
   type: 'only-for',
-  render(tokens, index, opts, env) {
-    const framework = env.frontmatter.framework || 'js';
+  render(tokens, index) {
+    const framework = getBuildDocsFramework() || 'js';
     const args = tokens[index].info.trim().split(' ');
 
     if (tokens[index].nesting === 1 && !args.includes(framework)) {
