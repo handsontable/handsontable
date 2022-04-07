@@ -91,32 +91,15 @@ function getLatestVersion() {
  */
 function getSidebars(buildMode) {
   const sidebars = { };
-  const frameworks = getFrameworks();
+  const versions = getVersions(buildMode);
 
-  getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
+  versions.forEach((version) => {
     // eslint-disable-next-line
     const s = require(path.join(__dirname, `../${version}/sidebars.js`));
 
     sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${version}/examples/`] = s.examples;
     sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${version}/api/`] = s.api;
     sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${version}/`] = s.guides;
-  });
-
-  getDocsFrameworkedVersions(buildMode).forEach((version) => {
-    // eslint-disable-next-line
-    const s = require(path.join(__dirname, `../${version}/sidebars.js`));
-
-    frameworks.forEach((framework) => {
-      const apiTransformed = JSON.parse(JSON.stringify(s.api)); // Copy sidebar definition
-      const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
-
-      // We store path in sidebars.js files in form <VERSION>/api/plugins.
-      plugins.path = `${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${framework}${plugins.path}`;
-
-      sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${framework}/${version}/examples/`] = s.examples;
-      sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${framework}/${version}/api/`] = apiTransformed;
-      sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${framework}/${version}/`] = s.guides;
-    });
   });
 
   return sidebars;
@@ -129,11 +112,11 @@ function getSidebars(buildMode) {
  * @returns {string}
  */
 function parseVersion(url) {
-  if (getFrameworks().includes(url.split('/')[2])) {
-    return url.split('/')[3] || getLatestVersion();
+  if (getFrameworks().includes(url.split('/')[1])) {
+    return url.split('/')[2] || getLatestVersion();
   }
 
-  return url.split('/')[2] || getLatestVersion();
+  return url.split('/')[1] || getLatestVersion();
 }
 
 /**
@@ -143,8 +126,8 @@ function parseVersion(url) {
  * @returns {string}
  */
 function parseFramework(url) {
-  if (getFrameworks().includes(url.split('/')[2])) {
-    return url.split('/')[2];
+  if (getFrameworks().includes(url.split('/')[1])) {
+    return url.split('/')[1];
   }
 
   return 'none';

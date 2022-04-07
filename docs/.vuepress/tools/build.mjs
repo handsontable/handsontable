@@ -44,7 +44,7 @@ const moveDir = (version, framework) => {
   let dir = '';
   let frameworkDir = '';
 
-  if (getLatestVersion() !== semver.coerce(version)) {
+  if (getLatestVersion() !== version) {
     if (typeof framework !== 'undefined') {
       frameworkDir = `-${framework}`;
       dir += `/${framework}`;
