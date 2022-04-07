@@ -4644,10 +4644,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     keys: [['Home']],
     captureCtrl: true,
     callback: () => {
-      const countColumns = instance.countCols();
-      const visualFixedColumns = Math.min(parseInt(instance.getSettings().fixedColumnsStart, 10), countColumns - 1);
+      const fixedColumns = parseInt(instance.getSettings().fixedColumnsStart, 10);
       const row = instance.getSelectedRangeLast().highlight.row;
-      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(visualFixedColumns, 1);
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(fixedColumns, 1);
 
       selection.setRangeStart(instance._createCellCoords(row, column));
     },
@@ -4664,12 +4663,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     keys: [['Home', 'Control/Meta']],
     captureCtrl: true,
     callback: () => {
-      const countRows = instance.countRows();
-      const countColumns = instance.countCols();
-      const visualFixedRows = Math.min(parseInt(instance.getSettings().fixedRowsTop, 10), countRows - 1);
-      const visualFixedColumns = Math.min(parseInt(instance.getSettings().fixedColumnsStart, 10), countColumns - 1);
-      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(visualFixedRows, 1);
-      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(visualFixedColumns, 1);
+      const fixedRows = parseInt(instance.getSettings().fixedRowsTop, 10);
+      const fixedColumns = parseInt(instance.getSettings().fixedColumnsStart, 10);
+      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(fixedRows, 1);
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(fixedColumns, 1);
 
       selection.setRangeStart(instance._createCellCoords(row, column));
     },
