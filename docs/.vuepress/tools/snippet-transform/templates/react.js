@@ -130,18 +130,6 @@ ReactDOM.render(<App />, document.getElementById('${appContainerId}'));
  * @returns {string}
  */
 function render(snippetInformation, includeImports = false, includeApp = false, appContainerId) {
-  const insert = (strings, ...sections) => {
-    let result = '';
-
-    strings.forEach((string, i) => {
-      result += (sections[i] && sections[i].length) ? `\
-${string}${sections[i]}\
-` : '';
-    });
-
-    return result;
-  };
-
   return beautify(`\
 ${getImportsSection(includeImports)}\
 ${getInitialExpressionsSection(snippetInformation)}\
