@@ -75,8 +75,7 @@ function getBuildDocsVersion() {
  * @returns {string}
  */
 function getBuildDocsFramework() {
-  // TODO: temporary change for testing only, to be removed.
-  return process.env.FRAMEWORK || 'react';
+  return process.env.FRAMEWORK;
 }
 
 module.exports = {
