@@ -1,0 +1,7 @@
+{
+  "title": "Update MomentJS dependency to 2.29.2.",
+  "type": "fixed",
+  "issue": 9381,
+  "breaking": false,
+  "framework": "none"
+}
