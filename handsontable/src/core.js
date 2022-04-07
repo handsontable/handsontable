@@ -3693,7 +3693,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the number of rendered rows (including rows partially or fully rendered outside viewport).
+   * Returns the number of rendered rows including rows that are partially or fully rendered
+   * outside the table viewport.
    *
    * @memberof Core#
    * @function countRenderedRows
@@ -3704,7 +3705,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the number of visible rows (rendered rows that fully fit inside viewport).
+   * Returns the number of rendered rows that are only visible in the table viewport.
+   * The rows that are partially visible are not counted.
    *
    * @memberof Core#
    * @function countVisibleRows
@@ -3715,7 +3717,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the number of rendered columns (including columns partially or fully rendered outside viewport).
+   * Returns the number of rendered rows including columns that are partially or fully rendered
+   * outside the table viewport.
    *
    * @memberof Core#
    * @function countRenderedCols
@@ -3726,7 +3729,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the number of visible columns. Returns -1 if table is not visible.
+   * Returns the number of rendered columns that are only visible in the table viewport.
+   * The columns that are partially visible are not counted.
    *
    * @memberof Core#
    * @function countVisibleCols
@@ -4479,8 +4483,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const gridConfig = {
     runOnlyIf: () => {
       return isDefined(instance.getSelected()) &&
-        instance.countVisibleRows() !== 0 &&
-        instance.countVisibleCols() !== 0;
+        instance.countRenderedRows() > 0 &&
+        instance.countRenderedCols() > 0;
     },
     group: SHORTCUTS_GROUP,
   };
