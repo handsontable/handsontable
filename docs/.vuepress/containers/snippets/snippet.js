@@ -23,6 +23,8 @@ module.exports = {
 
       const translatedSnippetContent = snippetTransformer.makeSnippet();
 
+      tokens[index + 1].content = translatedSnippetContent;
+
       // Log the transformation in the log file.
       logChange(
         snippetContent,

@@ -57,7 +57,7 @@ class SnippetTransformer {
    * @param {boolean} [includeImports=false] `true` if the template should include the imports section.
    * @param {boolean} [includeApp=false] `true` if the template should include the app-wrapping function.
    * @param {string} [appContainerId] The id of a container to mount Handsontable in. Defaults to `example`.
-   * @returns {string|string|*}
+   * @returns {string}
    */
   makeSnippet(includeImports = false, includeApp = false, appContainerId) {
     const {

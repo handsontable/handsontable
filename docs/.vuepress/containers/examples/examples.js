@@ -110,7 +110,10 @@ module.exports = {
 
       // Transform the JS snippet to the framework-based one, where the framework is defined in the `FRAMEWORK`
       // environmental variable.
-      if (!['angular', 'react', 'vue'].some(value => preset.includes(value))) {
+      if (
+        !['angular', 'react', 'vue'].some(value => preset.includes(value)) &&
+        getBuildDocsFramework()
+      ) {
         // Adding `3` to compensate for the frontmatter syntax
         const frontMatterLength = Object.keys(env.frontmatter).reduce(
           (s, key) => (
