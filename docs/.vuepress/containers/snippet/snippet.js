@@ -1,4 +1,4 @@
-const { makeSnippet,
+const {
   SnippetTransformer
 } = require('./snippetTransformer');
 const { logChange } = require('./helpers/previewLogger');

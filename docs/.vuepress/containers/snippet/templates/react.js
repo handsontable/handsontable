@@ -5,6 +5,7 @@ const {
 /**
  * Return a default set of imports for the React example.
  *
+ * @param {boolean} includeImports `true` if the final snippet should include the imports section.
  * @returns {string}
  */
 function getImportsSection(includeImports) {

@@ -1,4 +1,4 @@
-const { parseModule } = require('esprima');
+const { parse } = require('espree');
 const { renderTemplate } = require('./templates');
 const { logger } = require('../../tools/utils');
 const { CategorizedData } = require('./helpers/categorizedData');
@@ -13,7 +13,7 @@ const REF_VAR_NAMES = [
 
 class SnippetTransformer {
   /**
-   * Snippet Transofrmer constructor.
+   * Snippet Transformer constructor.
    *
    * @param {string} framework The desired framework name.
    * @param {string} content Snippet content.
@@ -23,6 +23,7 @@ class SnippetTransformer {
   constructor(framework, content, baseFilePath, baseFileLine) {
     /**
      * Snippet information object.
+     *
      * @type {{framework: string, parsedContent: object, baseFilePath: string, baseFileLine: number, content: string}}
      */
     this.snippet = {
@@ -93,10 +94,11 @@ class SnippetTransformer {
     let parsedSnippetContent = null;
 
     try {
-      parsedSnippetContent = parseModule(content, {
+      parsedSnippetContent = parse(content, {
         range: true,
         loc: true,
-        comment: true
+        ecmaVersion: 6,
+        comment: true,
       });
 
     } catch (error) {
@@ -111,7 +113,7 @@ class SnippetTransformer {
   /**
    * Add an expression to the categorized data.
    *
-   * @param {(CategorizedData.EXP_INITIAL|CategorizedData.EXP_REF|'auto')} type Type of the expression.
+   * @param {string} type Type of the expression.
    * @param {object} node Node returned from the parser.
    */
   addExpression(type, node) {
@@ -244,23 +246,23 @@ ${commentForLine.length ? `${commentForLine}\n` : ''}${node.mock ? node.content 
     /**
      * Extract the callee variable name.
      *
-     * @param {object} node Node returned from the parser.
+     * @param {object} nodeObj Node returned from the parser.
      * @returns {string|null}
      */
-    const getCalleeVarName = (node) => {
-      return node?.callee ? this.extractTopmostObjectName(node?.callee) : null;
+    const getCalleeVarName = (nodeObj) => {
+      return nodeObj?.callee ? this.extractTopmostObjectName(nodeObj?.callee) : null;
     };
     /**
      * Extract the variable names being used in the expression arguments.
      *
-     * @param {object} node Node returned from the parser.
+     * @param {object} nodeObj Node returned from the parser.
      * @returns {string[]}
      */
-    const getCallArgumentsVarNames = (node) => {
+    const getCallArgumentsVarNames = (nodeObj) => {
       const result = [];
 
-      if (node.arguments?.length) {
-        node.arguments.forEach((argObj) => {
+      if (nodeObj.arguments?.length) {
+        nodeObj.arguments.forEach((argObj) => {
           if (argObj.type !== 'Literal') {
             result.push(this.extractTopmostObjectName(
               argObj?.object?.callee ||
@@ -313,14 +315,10 @@ ${commentForLine.length ? `${commentForLine}\n` : ''}${node.mock ? node.content 
    */
   readParsedData() {
     const {
-      content,
       parsedContent
     } = this.snippet;
 
     parsedContent.body.forEach((node) => {
-
-      const _test = content.slice(...node.range);
-
       switch (node.type) {
         case 'ImportDeclaration':
           // TODO

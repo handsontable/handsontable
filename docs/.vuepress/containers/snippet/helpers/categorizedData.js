@@ -37,7 +37,7 @@ class CategorizedData {
 
   /**
    * Add an expression that needs to be added AFTER the initialization of Handsontable (usually because it contains
-   * operation based on the reference to the Handsontable instance.)
+   * operation based on the reference to the Handsontable instance).
    *
    * @param {string} expressionContent The string representation of the expression.
    * @returns {string} The added expression.
@@ -51,18 +51,18 @@ class CategorizedData {
   /**
    * Remove an expression from the container.
    *
-   * @param {(CategorizedData.EXP_INITIAL|CategorizedData.EXP_REF)} type Type of the expression to be removed.
+   * @param {string} type Type of the expression to be removed.
    * @param {string} pattern Pattern passed to `RegExp` to recognize the desired expression.
    * @returns {string[]|undefined} Array of matched and removed expressions (or undefined if the passed `type`
    * doesn't match any expression container).
    */
   removeExpression(type, pattern) {
     const expressionContainer = this[`${type}Expressions`];
-    let removedExpressions = [];
+    const removedExpressions = [];
 
     if (expressionContainer) {
       this[`${type}Expressions`] = expressionContainer.filter(
-        expression => {
+        (expression) => {
 
           if (!(new RegExp(pattern).test(expression))) {
             return true;
@@ -78,7 +78,7 @@ class CategorizedData {
       return removedExpressions;
 
     } else {
-      return;
+      return void 0;
     }
   }
 
@@ -197,7 +197,7 @@ class CategorizedData {
   /**
    * Count the Handsontable instances in the container, filtered by the provided `type`.
    *
-   * @param {(CategorizedData.HOT_NAMED|CategorizedData.HOT_UNNAMED)} [type] Type of the Handsontable instance.
+   * @param {string} [type] Type of the Handsontable instance.
    * @returns {number}
    */
   countHotInstances(type) {
@@ -214,7 +214,7 @@ class CategorizedData {
   /**
    * Count the expressions added to the container, filtered by the provided `type`.
    *
-   * @param {(CategorizedData.EXP_INITIAL|CategorizedData.EXP_REF)} [type] Type of the expressions.
+   * @param {string} [type] Type of the expressions.
    * @returns {number}
    */
   countExpressions(type) {
