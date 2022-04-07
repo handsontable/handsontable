@@ -26,12 +26,14 @@ export const createContext = (name) => {
    * @param {Array<Array<string>>} options.keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
    * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
    * @param {Function} options.callback The callback.
-   * @param {object} options.group Group for shortcut.
-   * @param {object} [options.runOnlyIf]  Option determine whether assigned callback should be performed.
-   * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
-   * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
-   * @param {object} [options.relativeToGroup] Group name, relative which the shortcut is placed.
-   * @param {object} [options.position='after'] Position where shortcut is placed. It may be added before or after
+   * @param {string} options.group Group for shortcut.
+   * @param {Function} [options.runOnlyIf] Option determines whether assigned callback should be performed.
+   * @param {boolean} [options.captureCtrl=false] Option determines whether the Ctrl/Meta modifier keys will be
+   *                                              blocked for other listeners while executing this shortcut action.
+   * @param {boolean} [options.stopPropagation=true] Option determines whether to stop event's propagation.
+   * @param {boolean} [options.preventDefault=true] Option determines whether to prevent default behavior.
+   * @param {string} [options.relativeToGroup] Group name, relative which the shortcut is placed.
+   * @param {string} [options.position='after'] Position where shortcut is placed. It may be added before or after
    * another group.
    *
    */
@@ -41,10 +43,11 @@ export const createContext = (name) => {
       callback,
       group,
       runOnlyIf = () => true,
+      captureCtrl = false,
       preventDefault = true,
       stopPropagation = false,
-      relativeToGroup = '',
-      position = 'after',
+      relativeToGroup,
+      position,
     } = {}) => {
 
     if (isUndefined(group)) {
@@ -65,11 +68,14 @@ export const createContext = (name) => {
       callback,
       group,
       runOnlyIf,
+      captureCtrl,
       preventDefault,
       stopPropagation,
-      relativeToGroup,
-      position,
     };
+
+    if (isDefined(relativeToGroup)) {
+      [newShortcut.relativeToGroup, newShortcut.position] = [relativeToGroup, position];
+    }
 
     keys.forEach((keyCombination) => {
       const normalizedKeys = normalizeKeys(keyCombination);

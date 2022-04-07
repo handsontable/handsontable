@@ -1,7 +1,6 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { createContext } from './context';
 import { useRecorder } from './recorder';
-import { arrayEach } from '../helpers/array';
 
 /**
  * Create manager instance responsible for managing with contexts and stored inside them shortcuts. It listens for
@@ -77,23 +76,37 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
   };
 
   /**
+   * The variable, in combination with the `captureCtrl` shortcut option, allows capturing the state
+   * of the pressed Control/Meta keys. Some keyboard shortcuts related to the selection to work
+   * correctly need to use that feature.
+   *
+   * @type {boolean}
+   */
+  let isCtrlKeySilenced = false;
+
+  /**
    * Internal key recorder.
    *
    * @private
    */
   const keyRecorder = useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, (event, keys) => {
     const activeContext = getContext(getActiveContextName());
+    let isExecutionCancelled = false;
 
-    if (activeContext.hasShortcut(keys)) {
-      // Processing just actions being in stack at the moment of shortcut pressing (without respecting additions/removals performed dynamically).
-      const shortcuts = activeContext.getShortcuts(keys).slice();
+    if (!activeContext.hasShortcut(keys)) {
+      return isExecutionCancelled;
+    }
 
-      arrayEach(shortcuts, ({ callback, runOnlyIf, preventDefault, stopPropagation }) => {
-        if (runOnlyIf(event) === false) {
-          return;
-        }
+    // Processing just actions being in stack at the moment of shortcut pressing (without respecting additions/removals performed dynamically).
+    const shortcuts = activeContext.getShortcuts(keys);
 
-        const result = callback(event, keys);
+    for (let index = 0; index < shortcuts.length; index++) {
+      const { callback, runOnlyIf, preventDefault, stopPropagation, captureCtrl } = shortcuts[index];
+
+      if (runOnlyIf(event) !== false) {
+        isCtrlKeySilenced = captureCtrl;
+        isExecutionCancelled = callback(event, keys) === false;
+        isCtrlKeySilenced = false;
 
         if (preventDefault) {
           event.preventDefault();
@@ -103,9 +116,13 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
           event.stopPropagation();
         }
 
-        return result; // Will break loop (next callbacks execution) when some callback return `false`.
-      });
+        if (isExecutionCancelled) {
+          break;
+        }
+      }
     }
+
+    return isExecutionCancelled;
   });
 
   keyRecorder.mount();
@@ -116,13 +133,13 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
     getContext,
     setActiveContextName,
     /**
-     * Returns whether `control` key is pressed.
+     * Returns whether `control` or `meta` keys are pressed.
      *
      * @memberof ShortcutManager#
      * @type {Function}
      * @returns {boolean}
      */
-    isCtrlPressed: () => keyRecorder.isPressed('control') || keyRecorder.isPressed('meta'),
+    isCtrlPressed: () => !isCtrlKeySilenced && (keyRecorder.isPressed('control') || keyRecorder.isPressed('meta')),
     /**
      * Destroys instance of the manager.
      *
@@ -132,4 +149,3 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
     destroy: () => keyRecorder.unmount(),
   };
 };
-
