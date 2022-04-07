@@ -13,6 +13,30 @@ describe('HiddenColumns', () => {
   });
 
   describe('navigation', () => {
+    it('should not throw an error when all columns are hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1, 2, 3, 4],
+        },
+      });
+
+      selectAll();
+      listen();
+
+      expect(() => keyDownUp('home')).not.toThrow();
+      expect(() => keyDownUp(['control/meta', 'home'])).not.toThrow();
+      expect(() => keyDownUp('end')).not.toThrow();
+      expect(() => keyDownUp(['control/meta', 'end'])).not.toThrow();
+      expect(() => keyDownUp('arrowtop')).not.toThrow();
+      expect(() => keyDownUp('arrowbottom')).not.toThrow();
+      expect(() => keyDownUp('arrowright')).not.toThrow();
+      expect(() => keyDownUp('arrowleft')).not.toThrow();
+      expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
+    });
+
     it('should go to the closest not hidden cell on the right side while navigating by right arrow', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
