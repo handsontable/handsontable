@@ -213,7 +213,7 @@ ${commentForLine.length ? `${commentForLine}\n` : ''}${node.mock ? node.content 
         this.addExpression(CategorizedData.EXP_INITIAL, {
           mock: true,
           line: node.loc.start.line,
-          content: `const ${varName}Settings = ${config};\n`
+          content: `const ${varName}Settings = ${config};`
         });
       }
 

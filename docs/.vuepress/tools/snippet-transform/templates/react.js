@@ -1,6 +1,5 @@
-const {
-  indentLines
-} = require('./helpers');
+const beautify = require('js-beautify').js;
+const { indentLines } = require('./helpers');
 
 /**
  * Return a default set of imports for the React example.
@@ -46,23 +45,33 @@ function getInitialExpressionsSection(snippetInformation) {
  * @returns {string}
  */
 function getHotComponentSection(snippetInformation) {
-  let result = '';
+  const namedComponents = [];
+  const unNamedComponents = [];
+  const result = [];
 
   snippetInformation.getNamedHotInstances().forEach((info, varName) => {
-    result += `\
+    namedComponents.push(`\
 <HotTable ${info.hasRef ? `ref={${varName}Ref} ` : ''}settings={${info.config}}>
-</HotTable>
-`;
+</HotTable>\
+`);
   });
 
   snippetInformation.getUnnamedHotInstances().forEach((info) => {
-    result += `\
+    unNamedComponents.push(`\
 <HotTable settings={${info.config}}>
-</HotTable>
-`;
+</HotTable>\
+`);
   });
 
-  return result;
+  if (namedComponents.length) {
+    result.push(namedComponents.join('\n'));
+  }
+
+  if (unNamedComponents.length) {
+    result.push(unNamedComponents.join('\n'));
+  }
+
+  return result.join('\n');
 }
 
 /**
@@ -82,8 +91,10 @@ function getUseEffectSection(snippetInformation) {
 
   return snippetInformation.countExpressions('ref') ? `\
 useEffect(() => {
-${indentLines(`${refDeclarations}${snippetInformation.getRefExpressions().join('\n')}`, 1)}
-});` : '';
+${`${refDeclarations}${snippetInformation.getRefExpressions().join('\n')}`}
+});
+
+` : '';
 }
 
 /**
@@ -94,12 +105,11 @@ ${indentLines(`${refDeclarations}${snippetInformation.getRefExpressions().join('
  * @returns {string}
  */
 function getAppSection(snippetInformation, appContainerId = 'example') {
+  // TODO: Keeping the `indentLines` method here, beucase of an issue with `js-beautify`
   return `\
-
 const App = () => {
-${indentLines(getUseEffectSection(snippetInformation), 1)}
-
-  return (
+${getUseEffectSection(snippetInformation)}\
+return (
     <div>
 ${indentLines(getHotComponentSection(snippetInformation), 3)}
     </div>
@@ -132,13 +142,18 @@ ${string}${sections[i]}\
     return result;
   };
 
-  return insert`\
+  return beautify(`\
 ${getImportsSection(includeImports)}\
 ${getInitialExpressionsSection(snippetInformation)}\
 
-${!includeApp ? `${getUseEffectSection(snippetInformation)}\n\n` : ''}\
-${includeApp ? getAppSection(snippetInformation, appContainerId) : getHotComponentSection(snippetInformation)}
-`;
+
+${!includeApp ? `${getUseEffectSection(snippetInformation)}` : ''}\
+${includeApp ? getAppSection(snippetInformation, appContainerId) : `${getHotComponentSection(snippetInformation)}`}
+`, {
+    brace_style: 'preserve-inline',
+    indent_size: 2,
+    e4x: true,
+  });
 }
 
 module.exports = {
