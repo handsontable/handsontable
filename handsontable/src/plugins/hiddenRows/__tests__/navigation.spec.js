@@ -925,7 +925,7 @@ describe('HiddenRows', () => {
 
         selectCell(4, 4);
 
-        keyDownUp(['control', 'home']);
+        keyDownUp(['control/meta', 'home']);
 
         expect(`
         |   :   :   :   : A |
@@ -1002,7 +1002,7 @@ describe('HiddenRows', () => {
 
         selectCell(0, 0);
 
-        keyDownUp(['control', 'end']);
+        keyDownUp(['control/meta', 'end']);
 
         expect(`
         | 0 :   :   :   :   |
