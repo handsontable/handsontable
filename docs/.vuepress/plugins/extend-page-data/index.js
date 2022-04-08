@@ -7,6 +7,7 @@ const {
   getBuildDocsVersion,
   getDocsFrameworkedVersions,
   getDocsNonFrameworkedVersions,
+  isEnvDev,
 } = require('../../helpers');
 const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
 
@@ -52,6 +53,11 @@ module.exports = (options, context) => {
 
       if ((DOCS_VERSION || $page.currentVersion === $page.latestVersion) && $page.frontmatter.permalink) {
         $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
+      }
+
+      // TODO: Check why this is needed only for dev env.
+      if (getDocsFrameworkedVersions(buildMode).includes($page.currentVersion) && isEnvDev()) {
+        $page.frontmatter.permalink = `/${$page.currentFramework}${$page.frontmatter.permalink}`;
       }
     },
   };

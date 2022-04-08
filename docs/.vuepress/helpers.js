@@ -91,15 +91,35 @@ function getLatestVersion() {
  */
 function getSidebars(buildMode) {
   const sidebars = { };
-  const versions = getVersions(buildMode);
+  const frameworks = getFrameworks();
 
-  versions.forEach((version) => {
+  getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
     // eslint-disable-next-line
     const s = require(path.join(__dirname, `../${version}/sidebars.js`));
 
     sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${version}/examples/`] = s.examples;
     sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${version}/api/`] = s.api;
     sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${version}/`] = s.guides;
+  });
+
+  // TODO: Check why this is needed only for dev env.
+  getDocsFrameworkedVersions(buildMode).forEach((version) => {
+    // eslint-disable-next-line
+    const s = require(path.join(__dirname, `../${version}/sidebars.js`));
+
+    frameworks.forEach((framework) => {
+      const apiTransformed = JSON.parse(JSON.stringify(s.api)); // Copy sidebar definition
+      const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
+
+      if (isEnvDev()) {
+        // We store path in sidebars.js files in form <VERSION>/api/plugins.
+        plugins.path = `/${TMP_DIR_FOR_WATCH}/${framework}${plugins.path}`;
+      }
+
+      sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}/${framework}` : ''}/${version}/examples/`] = s.examples;
+      sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}/${framework}` : ''}/${version}/api/`] = apiTransformed;
+      sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}/${framework}` : ''}/${version}/`] = s.guides;
+    });
   });
 
   return sidebars;
