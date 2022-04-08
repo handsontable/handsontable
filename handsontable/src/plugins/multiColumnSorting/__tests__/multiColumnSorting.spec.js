@@ -973,7 +973,7 @@ describe('MultiColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'mm/dd/yy'
+            dateFormat: 'MM/DD/YYYY'
           },
           {
             type: 'numeric'
