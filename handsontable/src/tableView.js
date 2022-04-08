@@ -274,7 +274,7 @@ class TableView {
     });
     this.eventManager.addEventListener(rootElement, 'mousemove', (event) => {
       if (priv.selectionMouseDown && !this.isTextSelectionAllowed(event.target)) {
-        // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breakes the IME editor.
+        // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breaks the IME editor.
         if (this.settings.fragmentSelection) {
           clearTextSelection(this.instance.rootWindow);
         }
