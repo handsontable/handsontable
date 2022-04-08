@@ -112,6 +112,10 @@ function getSidebars(buildMode) {
  * @returns {string}
  */
 function parseVersion(url) {
+  if (isEnvDev()) {
+    url = url.replace(TMP_DIR_FOR_WATCH, ''); // It's not needed for determining version from the URL.
+  }
+
   if (getFrameworks().includes(url.split('/')[1])) {
     return url.split('/')[2] || getLatestVersion();
   }
@@ -126,6 +130,10 @@ function parseVersion(url) {
  * @returns {string}
  */
 function parseFramework(url) {
+  if (isEnvDev()) {
+    url = url.replace(TMP_DIR_FOR_WATCH, ''); // It's not needed for determining framework from the URL.
+  }
+
   if (getFrameworks().includes(url.split('/')[1])) {
     return url.split('/')[1];
   }

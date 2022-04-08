@@ -1,7 +1,6 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fse from 'fs-extra';
-import semver from 'semver';
 import utils from './utils.js';
 import { getDocsFrameworkedVersions, getDocsNonFrameworkedVersions, getFrameworks, getLatestVersion }
   from '../helpers.js';
