@@ -105,7 +105,8 @@ ${`${refDeclarations}${snippetInformation.getRefExpressions().join('\n')}`}
  * @returns {string}
  */
 function getAppSection(snippetInformation, appContainerId = 'example') {
-  // TODO: Keeping the `indentLines` method here, beucase of an issue with `js-beautify`
+  // TODO: Keeping the `indentLines` method here, because of an issue with `js-beautify`
+  //  (https://github.com/beautify-web/js-beautify/issues/667)
   return `\
 const App = () => {
 ${getUseEffectSection(snippetInformation)}\

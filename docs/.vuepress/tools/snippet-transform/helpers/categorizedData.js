@@ -4,14 +4,16 @@
 class CategorizedData {
   constructor() {
     this.hotInstances = {
+      // Handsontable instances initialized to a variable.
       named: new Map(),
+      // Handsontable instances initialized witout a variable.
       unnamed: []
     };
     this.initialExpressions = [
-      // varDeclarations + callExpressions, with comments
+      // Variable declarations + call expressions, with comments.
     ];
     this.refExpressions = [
-      // everything that references HOT and should be triggered after it's been initialized
+      // Everything that references HOT and should be triggered after it's been initialized.
     ];
   }
 

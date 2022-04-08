@@ -8,6 +8,12 @@ const { Comments } = require('./helpers/comments');
 // TODO: IMPORTANT NOTE: detached comments are NOT being transformed (in many cases there's no way of knowing where
 //  to put them in the transformed code)
 
+/**
+ * Variable names for which the expressions that are based on them are automatically moved to the `refExpressions`
+ * section (expressions which are executed after the Handsontable initialization).
+ *
+ * @type {string[]}
+ */
 const REF_VAR_NAMES = [
   'hot',
   'hotInstance',
@@ -15,16 +21,26 @@ const REF_VAR_NAMES = [
   'plugin'
 ];
 
+/**
+ * Framework constants.
+ *
+ * @type {{js: string, react: string}}
+ */
+const FRAMEWORKS = {
+  js: 'js',
+  react: 'react'
+};
+
 class SnippetTransformer {
   /**
    * Snippet Transformer constructor.
    *
-   * @param {string} [framework='js'] The desired framework name.
+   * @param {string} [framework=FRAMEWORKS.js] The desired framework name.
    * @param {string} content Snippet content.
    * @param {string} baseFilePath Path of the file containing the transformed snippet.
    * @param {number} baseFileLine Index of the line that the snippet lies in in the file.
    */
-  constructor(framework = 'js', content, baseFilePath, baseFileLine) {
+  constructor(framework = FRAMEWORKS.js, content, baseFilePath, baseFileLine) {
     /**
      * Snippet information object.
      *
@@ -67,7 +83,8 @@ class SnippetTransformer {
       baseFileLine,
     } = this.snippet;
 
-    if (framework === 'js') {
+    // If the framework is set as `js`, skip the transformation.
+    if (framework === FRAMEWORKS.js) {
       return content;
     }
 
@@ -79,15 +96,15 @@ class SnippetTransformer {
       return this.snippet.parsedContent.error;
 
     } else {
-      const neededData = this.readParsedData(content);
+      const expectedData = this.readParsedData(content);
 
       return renderTemplate(
         framework,
-        neededData,
+        expectedData,
         includeImports,
         includeApp,
         appContainerId
-      ) || 'No template for the framework is available.';
+      ) || `No template for a "${framework}" framework is available.`;
     }
   }
 
@@ -103,7 +120,7 @@ class SnippetTransformer {
       baseFileLine
     } = this.snippet;
 
-    const errorMessage = `Snippet parse error in ${baseFilePath} at ${baseFileLine}`;
+    const errorMessage = `Snippet parse error at ${baseFilePath}:${baseFileLine}.`;
     let parsedSnippetContent = null;
 
     try {
@@ -135,7 +152,8 @@ class SnippetTransformer {
     } = this.snippet;
     const commentForLine = this.comments.getCommentForLine(node.mock ? node.line : node.loc.start.line);
     const expressionContent = `\
-${commentForLine.length ? `${commentForLine}\n` : ''}${node.mock ? node.content : content.slice(...node.range)}\
+${commentForLine.length ? `${commentForLine}\n` : ''}\
+${node.mock ? node.content : content.slice(...node.range)}\
 `;
     let varName = null;
     let argumentVarNames = null;
