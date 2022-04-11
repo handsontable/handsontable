@@ -58,7 +58,7 @@ For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) ce
   ```
 
 ### Step 3: Register the modules
-Register your modules, using the registering functions that you imported (for the full list of Handsontable's registering functions, see the [modules cheatsheet](@/guides/building-and-testing/modules.md#modules-cheatsheet)):
+Register your modules, using the registering functions that you imported (for the full list of Handsontable's registering functions, see the modules cheatsheet):
   ```jsx
   import React from 'react';
   import ReactDOM from 'react-dom';

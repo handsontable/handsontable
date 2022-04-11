@@ -54,7 +54,7 @@ For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) ce
   ```
 
 ### Step 3: Register the modules
-Register your modules, using the registering functions that you imported (for the full list of Handsontable's registering functions, see the see the [modules cheatsheet](@/guides/building-and-testing/modules.md#modules-cheatsheet)):
+Register your modules, using the registering functions that you imported (for the full list of Handsontable's registering functions, see the see the modules cheatsheet):
   ```js
   import Vue from 'vue';
   import App from './App.vue';
