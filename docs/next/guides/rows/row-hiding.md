@@ -21,7 +21,7 @@ When you're hiding a row:
 
 ## Enabling row hiding
 
-To simply enable row hiding (without further configuration), set the [`hiddenRows`](@/api/options.md#hiddenrows) [configuration option](@/guides/getting-started/setting-options.md) to `true`:
+To simply enable row hiding (without further configuration), set the [`hiddenRows`](@/api/options.md#hiddenrows) configuration option to `true`:
 
 ::: example #example1
 ```js
@@ -44,7 +44,7 @@ To set up your row hiding configuration, follow the steps below.
 
 ### Step 1: Specify rows hidden by default
 
-To both enable row hiding and specify rows hidden by default, set the [`hiddenRows`](@/api/options.md#hiddenrows) [configuration option](@/guides/getting-started/setting-options.md)  to an object.
+To both enable row hiding and specify rows hidden by default, set the [`hiddenRows`](@/api/options.md#hiddenrows) configuration option  to an object.
 
 In the object, add a `rows` property, and set it to an array of row indexes.
 

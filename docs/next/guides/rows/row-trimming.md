@@ -15,7 +15,7 @@ The _Trim Rows_ plugin allows the trimming of specific rows from the table. Rows
 
 ## Setup
 
-The `trimRows` property needs to be set to an array of row indexes to enable the plugin.
+The [`trimRows`](@/api/options.md#trimrows) option needs to be set to an array of row indexes to enable the plugin.
 See the [examples](#example) section for a live demo.
 
 ## Example
@@ -45,12 +45,12 @@ The plugin instance can be accessed by calling:
 const plugin = hot.getPlugin('trimRows');
 ```
 
-To trim a single row, call the `trimRow` method of the plugin object:
+To trim a single row, call the [`trimRow()`](@/api/trimrows.md#trimrow) method of the plugin object:
 
 ```js
 plugin.trimRow(4);
 ```
-To trim multiple rows, either pass them as arguments to the `trimRow` method, or pass an array of indexes to the `trimRows` method:
+To trim multiple rows, either pass them as arguments to the [`trimRow()`](@/api/trimrows.md#trimrow) method, or pass an array of indexes to the [`trimRows()`](@/api/trimrows.md#trimrows) method:
 
 ```js
 plugin.trimRow(0, 4, 6);

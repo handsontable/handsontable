@@ -18,16 +18,16 @@ Handsontable 12.0.0 changes the way the [`updateSettings()`](@/api/core.md#updat
 
 Each [`updateSettings()`](@/api/core.md#updatesettings) call with the [`data`](@/api/options.md#data) option defined:
 
-| Before                                                                                  | After                                                                                           |
-| --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Replaced [`data`](@/api/options.md#data)                                                | Replaces [`data`](@/api/options.md#data)                                                        |
-| Triggered the same hooks as [`loadData()`](@/api/core.md#loaddata)                       | Triggers the same hooks as [`updateData()`](@/api/core.md#updatedata)                           |
-| Reset [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`) | Doesn't reset [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`) |
-| Reset [index mappings](@/api/indexmapper.md)                                            | Doesn't reset [index mappings](@/api/indexmapper.md)                                            |
+| Before                                                             | After                                                                 |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| Replaced [`data`](@/api/options.md#data)                           | Replaces [`data`](@/api/options.md#data)                              |
+| Triggered the same hooks as [`loadData()`](@/api/core.md#loaddata) | Triggers the same hooks as [`updateData()`](@/api/core.md#updatedata) |
+| Reset configuration options (`CellMeta`)                           | Doesn't reset configuration options (`CellMeta`)                      |
+| Reset index mappings                                               | Doesn't reset index mappings                                          |
 
 #### Migrating to Handsontable 12.0
 
-If you need to reset your [index mappings](@/api/indexmapper.md) and [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`) along with updating your [`data`](@/api/options.md#data):
+If you need to reset your index mappings and configuration options (`CellMeta`) along with updating your [`data`](@/api/options.md#data):
 
 - Instead of passing the [`data`](@/api/options.md#data) option to the [`updateSettings()`](@/api/core.md#updatesettings) method, run [`loadData()`](@/api/core.md#loadData) and provide the new dataset as its argument:
 ```js
@@ -42,7 +42,7 @@ hotInstance.loadData(newDataset);
 
 #### Framework wrappers
 
-Updating your [`data`](@/api/options.md#data) through a component property no longer resets your [index mappings](@/api/indexmapper.md) and [configuration options](@/guides/getting-started/setting-options.md) (`CellMeta`).
+Updating your [`data`](@/api/options.md#data) through a component property no longer resets your index mappings and configuration options (`CellMeta`).
 
 To replace [`data`](@/api/options.md#data) and reset the states, call the [`loadData()`](@/api/core.md#loadData) method (the same way as above), referencing the Handsontable instance from the component.
 
@@ -117,7 +117,7 @@ afterDocumentKeyDown() {
 
 #### After
 
-When you use a keyboard to navigate some internal instances of Handsontable (e.g. a [context menu](@/guides/accessories-and-menus/context-menu.md)), the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook may not get fired anymore.
+When you use a keyboard to navigate some internal instances of Handsontable (e.g. a context menu), the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook may not get fired anymore.
 
 ```js
 afterDocumentKeyDown() {

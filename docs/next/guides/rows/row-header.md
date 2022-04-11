@@ -17,7 +17,7 @@ tags:
 
 Row headers are gray-colored columns that are used to label each row. By default, these headers are filled with numbers displayed in ascending order.
 
-To turn the headers on, set the option `rowHeaders` to `true`.
+To turn the headers on, set the option [`rowHeaders`](@/options.md#rowheaders) to `true`.
 
 ## Bind rows with headers
 
@@ -29,7 +29,7 @@ There is a plugin **Bind rows with headers** which allows the binding of row num
 
 ### Basic example
 
-To enable the plugin, set the `bindRowsWithHeaders` property to `true`. Move the rows in the example below to see what this plugin does.
+To enable the plugin, set the [`bindRowsWithHeaders`](@/options.md#bindrowswithheaders) property to `true`. Move the rows in the example below to see what this plugin does.
 
 ::: example #example1
 ```js

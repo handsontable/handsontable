@@ -26,7 +26,7 @@ Configure Handsontable's layout direction, to properly handle right-to-left (RTL
 
 To properly display Handsontable's UI and data in LTR languages (such as English, Chinese, or Russian) and RTL languages (such as Arabic, Persian, or Hebrew), configure your grid's layout direction.
 
-By default, Handsontable's layout direction is set automatically, based on on the value of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute.
+By default, Handsontable's layout direction is set automatically, based on on the value of your HTML document's `dir` attribute.
 
 You can:
 - [Set the layout direction automatically](#setting-the-layout-direction-automatically)
@@ -115,16 +115,16 @@ The list above is not exhaustive. Setting a different layout direction might aff
 
 ## Setting the layout direction
 
-You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the [`layoutDirection`](@/api/options.md#layoutdirection) option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
+You can set the layout direction only at Handsontable's initialization. Any change of the [`layoutDirection`](@/api/options.md#layoutdirection) option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
 
 ### Setting the layout direction automatically
 
 You can set Handsontable's layout direction automatically, 
-based on on the value of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute.
+based on on the value of your HTML document's `dir` attribute.
 This is the default setting.
 
-At Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid),
-add [`layoutDirection`](@/api/options.md#layoutdirection) as a [top-level grid option](@/guides/getting-started/setting-options.md#setting-grid-options),
+At Handsontable's initialization,
+add [`layoutDirection`](@/api/options.md#layoutdirection) as a top-level grid option,
 and set it to `'inherit'`. As this is the default setting, you can also skip setting the `layoutDirection` option altogether.
 
 In the example below, the RTL layout direction is inherited from a `dir` attribute up in the DOM tree:
@@ -158,10 +158,9 @@ const hot = new Handsontable(container, {
 
 ### Setting the layout direction to RTL
 
-You can render Handsontable from the right to the left, regardless of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute.
+You can render Handsontable from the right to the left, regardless of your HTML document's `dir` attribute.
 
-At Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid),
-add [`layoutDirection`](@/api/options.md#layoutdirection) as a [top-level grid option](@/guides/getting-started/setting-options.md#setting-grid-options),
+At Handsontable's initialization, add [`layoutDirection`](@/api/options.md#layoutdirection) as a top-level grid option,
 and set it to `'rtl'`:
 
 ::: example #example3
@@ -187,10 +186,9 @@ const hot = new Handsontable(container, {
 
 ### Setting the layout direction to LTR
 
-You can render Handsontable from the left to the right, regardless of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute.
+You can render Handsontable from the left to the right, regardless of your HTML document's `dir` attribute.
 
-At Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid),
-add [`layoutDirection`](@/api/options.md#layoutdirection) as a [top-level grid option](@/guides/getting-started/setting-options.md#setting-grid-options),
+At Handsontable's initialization, add [`layoutDirection`](@/api/options.md#layoutdirection) as a top-level grid option,
 and set it to `'ltr'`:
 
 ::: example #example4
@@ -216,7 +214,7 @@ const hot = new Handsontable(container, {
 
 ## Setting the horizontal text alignment
 
-You can apply different horizontal [text alignment](@/guides/cell-features/text-alignment.md) settings, overwriting the horizontal text alignment resulting from your grid's [layout direction](#about-layout-direction).
+You can apply different horizontal [text alignment](@/guides/cell-features/text-alignment.md) settings, overwriting the horizontal text alignment resulting from your grid's layout direction.
 
 In the example below, some columns are explicitly aligned to the left, center, or right:
 
@@ -251,7 +249,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-You can apply the horizontal [text alignment](@/guides/cell-features/text-alignment.md) settings to:
+You can apply the horizontal text alignment settings to:
 - [The entire grid](@/guides/getting-started/setting-options.md#setting-grid-options), by setting [`className`](@/api/options.md#classname) on the global level
 - [Individual columns](@/guides/getting-started/setting-options.md#setting-column-options), by setting [`className`](@/api/options.md#classname) on the column level
 - [Individual rows](@/guides/getting-started/setting-options.md#setting-row-options), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
