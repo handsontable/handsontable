@@ -18,7 +18,7 @@ const { getBuildDocsFramework } = require('../../helpers');
  * Content to be displayed only for React documentation.
  * :::
  *
- * ::: only-for js react vue
+ * ::: only-for javascript react vue
  * Content to be displayed only for JS, React and Vue documentation.
  * :::
  * ```
@@ -26,7 +26,7 @@ const { getBuildDocsFramework } = require('../../helpers');
 module.exports = {
   type: 'only-for',
   render(tokens, index) {
-    const framework = getBuildDocsFramework() || 'js';
+    const framework = getBuildDocsFramework() || 'javascript';
     const args = tokens[index].info.trim().split(' ');
 
     if (tokens[index].nesting === 1 && !args.includes(framework)) {
