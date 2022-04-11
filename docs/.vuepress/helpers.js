@@ -93,34 +93,43 @@ function getSidebars(buildMode) {
   const sidebars = { };
   const frameworks = getFrameworks();
 
-  getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
-    // eslint-disable-next-line
-    const s = require(path.join(__dirname, `../${version}/sidebars.js`));
+  if (isEnvDev()) {
+    getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
+      // eslint-disable-next-line
+      const s = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-    sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${version}/examples/`] = s.examples;
-    sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${version}/api/`] = s.api;
-    sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}` : ''}/${version}/`] = s.guides;
-  });
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/examples/`] = s.examples;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/api/`] = s.api;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/`] = s.guides;
+    });
 
-  // TODO: Check why this is needed only for dev env.
-  getDocsFrameworkedVersions(buildMode).forEach((version) => {
-    // eslint-disable-next-line
-    const s = require(path.join(__dirname, `../${version}/sidebars.js`));
+    getDocsFrameworkedVersions(buildMode).forEach((version) => {
+      // eslint-disable-next-line
+      const s = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-    frameworks.forEach((framework) => {
-      const apiTransformed = JSON.parse(JSON.stringify(s.api)); // Copy sidebar definition
-      const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
+      frameworks.forEach((framework) => {
+        const apiTransformed = JSON.parse(JSON.stringify(s.api)); // Copy sidebar definition
+        const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
 
-      if (isEnvDev()) {
         // We store path in sidebars.js files in form <VERSION>/api/plugins.
         plugins.path = `/${TMP_DIR_FOR_WATCH}/${framework}${plugins.path}`;
-      }
 
-      sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}/${framework}` : ''}/${version}/examples/`] = s.examples;
-      sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}/${framework}` : ''}/${version}/api/`] = apiTransformed;
-      sidebars[`${isEnvDev() ? `/${TMP_DIR_FOR_WATCH}/${framework}` : ''}/${version}/`] = s.guides;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}/${version}/examples/`] = s.examples;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}/${version}/api/`] = apiTransformed;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}/${version}/`] = s.guides;
+      });
     });
-  });
+
+  } else {
+    getVersions(buildMode).forEach((version) => {
+      // eslint-disable-next-line
+      const s = require(path.join(__dirname, `../${version}/sidebars.js`));
+
+      sidebars[`/${version}/examples/`] = s.examples;
+      sidebars[`/${version}/api/`] = s.api;
+      sidebars[`/${version}/`] = s.guides;
+    });
+  }
 
   return sidebars;
 }
