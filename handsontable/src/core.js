@@ -4602,7 +4602,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       selection.setRangeStart(instance._createCellCoords(row, column));
     },
-    runOnlyIf: () => instance.view.isMainTableFullyCoveredByOverlays(),
+    runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['Home', 'Shift']],
     callback: () => {
@@ -4622,7 +4622,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       selection.setRangeStart(instance._createCellCoords(row, column));
     },
-    runOnlyIf: () => instance.view.isMainTableFullyCoveredByOverlays(),
+    runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['Home', 'Control/Meta', 'Shift']],
     callback: () => {
@@ -4640,7 +4640,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
       ));
     },
-    runOnlyIf: () => instance.view.isMainTableFullyCoveredByOverlays(),
+    runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['End', 'Shift']],
     callback: () => {
@@ -4659,7 +4659,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       selection.setRangeStart(instance._createCellCoords(row, column));
     },
-    runOnlyIf: () => instance.view.isMainTableFullyCoveredByOverlays(),
+    runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['End', 'Control/Meta', 'Shift']],
     callback: () => {

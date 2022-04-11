@@ -560,7 +560,7 @@ class TableView {
    *
    * @returns {boolean}
    */
-  isMainTableFullyCoveredByOverlays() {
+  isMainTableNotFullyCoveredByOverlays() {
     const fixedAllRows = this.countNotHiddenFixedRowsTop() + this.countNotHiddenFixedRowsBottom();
     const fixedAllColumns = this.countNotHiddenFixedColumnsStart();
 
