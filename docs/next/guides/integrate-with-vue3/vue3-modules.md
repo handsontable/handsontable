@@ -13,7 +13,7 @@ canonicalUrl: /vue3-modules
 
 To reduce the size of your app, you can use Handsontable by importing individual [modules](@/guides/building-and-testing/modules.md).
 
-[Find out which Vue 3 versions are supported &#8594;](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
+[Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
 ## Using modules with Vue 3
 
@@ -56,7 +56,7 @@ import {
 ```
 
 ### Step 3: Register the modules
-Register your modules, using the registering functions that you imported (for the full list of Handsontable's registering functions, see the see the [modules cheatsheet](@/guides/building-and-testing/modules.md#modules-cheatsheet)):
+Register your modules, using the registering functions that you imported (for the full list of Handsontable's registering functions, see the see the modules cheatsheet):
 ```js
 import { createApp } from 'vue';
 import App from './App.vue';

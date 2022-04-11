@@ -11,7 +11,7 @@ canonicalUrl: /vue3-simple-example
 
 The following example is a simple implementation of the `@handsontable/vue3` component.
 
-[Find out which Vue 3 versions are supported &#8594;](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
+[Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
 ## Example
 

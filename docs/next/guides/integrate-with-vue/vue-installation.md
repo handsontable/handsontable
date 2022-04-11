@@ -15,7 +15,7 @@ Vue 2 installation and basic usage guide.
 
 ## Install with npm
 
-This component needs the Handsontable library to work. Use [npm](https://www.npmjs.com/package/@handsontable/vue) to install the packages.
+This component needs the Handsontable library to work. Use npm to install the packages.
 
 ```bash
 npm install handsontable @handsontable/vue

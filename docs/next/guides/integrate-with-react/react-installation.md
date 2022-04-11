@@ -16,7 +16,7 @@ React installation and basic usage guide.
 
 ## Install with npm
 
-This component needs the Handsontable library to work. Use [npm](https://www.npmjs.com/package/@handsontable/react) to install the packages.
+This component needs the Handsontable library to work. Use npm to install the packages.
 
 ```bash
 npm install handsontable @handsontable/react
