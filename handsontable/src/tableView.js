@@ -1245,6 +1245,26 @@ class TableView {
   }
 
   /**
+   * Returns the first fully visible row in the table viewport.
+   *
+   * @returns {number}
+   */
+  getFirstFullyVisibleRow() {
+    return this.instance.rowIndexMapper
+      .getVisualFromRenderableIndex(this.instance.view._wt.wtScroll.getFirstVisibleRow());
+  }
+
+  /**
+   * Returns the last fully visible row in the table viewport.
+   *
+   * @returns {number}
+   */
+  getLastFullyVisibleRow() {
+    return this.instance.rowIndexMapper
+      .getVisualFromRenderableIndex(this.instance.view._wt.wtScroll.getLastVisibleRow());
+  }
+
+  /**
    * Destroys internal WalkOnTable's instance. Detaches all of the bonded listeners.
    *
    * @private

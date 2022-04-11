@@ -1,4 +1,4 @@
-describe('Core navigation keyboard shortcut (RTL mode)', () => {
+describe('Core navigation (RTL mode) keyboard shortcut', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -452,46 +452,6 @@ describe('Core navigation keyboard shortcut (RTL mode)', () => {
         |   ║   :   :   :   :   |
         | - ║   :   : # :   :   |
       `).toBeMatchToSelectionPattern();
-    });
-  });
-
-  describe('"PageUp"', () => {
-    it('should move the cell selection to the first row', () => {
-      handsontable({
-        startRows: 5,
-        startCols: 5
-      });
-
-      selectCell(4, 4);
-      keyDownUp('pageup');
-
-      expect(getSelected()).toEqual([[0, 4, 0, 4]]);
-
-      selectCell(4, 4);
-      keyDownUp(['shift', 'pageup']);
-
-      // Temporary, for compatibility with Handsontable 11.0.x.
-      expect(getSelected()).toEqual([[0, 4, 0, 4]]);
-    });
-  });
-
-  describe('"PageDown"', () => {
-    it('should move the cell selection to the last row', () => {
-      handsontable({
-        startRows: 5,
-        startCols: 5
-      });
-
-      selectCell(0, 0);
-      keyDownUp('pagedown');
-
-      expect(getSelected()).toEqual([[4, 0, 4, 0]]);
-
-      selectCell(0, 0);
-      keyDownUp(['shift', 'pagedown']);
-
-      // Temporary, for compatibility with Handsontable 11.0.x.
-      expect(getSelected()).toEqual([[4, 0, 4, 0]]);
     });
   });
 });
