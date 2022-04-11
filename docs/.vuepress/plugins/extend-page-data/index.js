@@ -47,7 +47,8 @@ module.exports = (options, context) => {
       $page.nonFrameworkedVersions = getDocsNonFrameworkedVersions(buildMode);
       $page.latestVersion = getLatestVersion();
       $page.currentVersion = parseVersion($page.path);
-      $page.currentFramework = parseFramework($page.path);
+      // Framework isn't stored in PATH for full build. However, it's defined in ENV variable.
+      $page.currentFramework = DOCS_FRAMEWORK || parseFramework($page.path);
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
 
@@ -55,8 +56,9 @@ module.exports = (options, context) => {
         $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
       }
 
-      // TODO: Check why this is needed only for dev env.
-      if (getDocsFrameworkedVersions(buildMode).includes($page.currentVersion) && isEnvDev()) {
+      // Only dev script perform build to proper subdirectory. Full build script perform moving directory separately.
+      if (isEnvDev() && $page.frontmatter.permalink &&
+        getDocsFrameworkedVersions(buildMode).includes($page.currentVersion)) {
         $page.frontmatter.permalink = `/${$page.currentFramework}${$page.frontmatter.permalink}`;
       }
     },
