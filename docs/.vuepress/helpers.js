@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const semver = require('semver');
+const fsExtra = require('fs-extra');
 
 const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
   .filter(f => semver.valid(semver.coerce(f)));
@@ -188,6 +189,27 @@ function getBuildDocsFramework() {
   return process.env.FRAMEWORK;
 }
 
+/**
+ * Create symlinks needed for vuepress dev script.
+ *
+ * @param {string} buildMode The env name.
+ */
+function createSymlinks(buildMode) {
+  if (isEnvDev()) {
+    fsExtra.removeSync(TMP_DIR_FOR_WATCH);
+
+    getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
+      fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${version}`);
+    });
+
+    getDocsFrameworkedVersions(buildMode).forEach((version) => {
+      getFrameworks().forEach((framework) => {
+        fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${framework}/${version}`);
+      });
+    });
+  }
+}
+
 module.exports = {
   TMP_DIR_FOR_WATCH,
   getVersions,
@@ -202,4 +224,5 @@ module.exports = {
   getBuildDocsVersion,
   getDefaultFramework,
   isEnvDev,
+  createSymlinks,
 };

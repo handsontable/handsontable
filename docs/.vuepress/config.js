@@ -1,18 +1,15 @@
 const path = require('path');
-const fsExtra = require('fs-extra');
 const highlight = require('./highlight');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
-const { getBuildDocsVersion, getBuildDocsFramework, getLatestVersion, getDocsFrameworkedVersions,
-  getDocsNonFrameworkedVersions, getFrameworks, TMP_DIR_FOR_WATCH, isEnvDev } = require('./helpers');
+const { getBuildDocsVersion, getBuildDocsFramework, getLatestVersion, TMP_DIR_FOR_WATCH, createSymlinks,
+  isEnvDev } = require('./helpers');
 
 const EVERY_VERSION_GLOB = '**';
-
 const buildMode = process.env.BUILD_MODE;
-
 const versionPartialPath = getBuildDocsVersion() || EVERY_VERSION_GLOB;
 const frameworkPartialPath = getBuildDocsFramework() ? `${getBuildDocsFramework()}/` : '';
 const isLatestOrMultiVersion = getBuildDocsVersion() === getLatestVersion() || !getBuildDocsVersion();
@@ -35,24 +32,11 @@ const environmentHead = buildMode === 'production' ?
   ]
   : [];
 
+createSymlinks(buildMode);
+
 module.exports = {
   define: {
     GA_ID: 'UA-33932793-7',
-  },
-  beforeDevServer() {
-    if (isEnvDev()) {
-      fsExtra.removeSync(TMP_DIR_FOR_WATCH);
-
-      getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
-        fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${version}`);
-      });
-
-      getDocsFrameworkedVersions(buildMode).forEach((version) => {
-        getFrameworks().forEach((framework) => {
-          fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${framework}/${version}`);
-        });
-      });
-    }
   },
   patterns: [
     `${isEnvDev() ? `${TMP_DIR_FOR_WATCH}/` : ''}${versionPartialPath}/*.md`,
