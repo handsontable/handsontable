@@ -99,7 +99,6 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelected()).toEqual([[-1, 1, 4, 4]]);
     });
 
-<<<<<<< HEAD
     it('should not change the selection when row header is selected', () => {
       handsontable({
         rowHeaders: true,
@@ -124,8 +123,6 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelected()).toEqual([[1, -1, 1, 4]]);
     });
 
-=======
->>>>>>> c12bedb38 (Add a new behavior for Cmd/Ctrl + Shift + Arrow keys keybaord shortcuts)
     it('should not change the selection when all cells are selected (triggered by corner click)', () => {
       handsontable({
         rowHeaders: true,
@@ -139,7 +136,6 @@ describe('Core selection keyboard shortcut', () => {
       keyDownUp(['control/meta', 'shift', 'arrowright']);
 
       expect(`
-<<<<<<< HEAD
         |   ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         | * ║ A : 0 : 0 : 0 : 0 |
@@ -148,16 +144,6 @@ describe('Core selection keyboard shortcut', () => {
         | * ║ 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
-=======
-      |   ║ * : * : * : * : * |
-      |===:===:===:===:===:===|
-      | * ║ A : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-    `).toBeMatchToSelectionPattern();
->>>>>>> c12bedb38 (Add a new behavior for Cmd/Ctrl + Shift + Arrow keys keybaord shortcuts)
       expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
     });
   });
@@ -249,7 +235,6 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelected()).toEqual([[-1, 3, 4, 0]]);
     });
 
-<<<<<<< HEAD
     it('should not change the selection when row header is selected', () => {
       handsontable({
         rowHeaders: true,
@@ -274,8 +259,6 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelected()).toEqual([[1, -1, 1, 4]]);
     });
 
-=======
->>>>>>> c12bedb38 (Add a new behavior for Cmd/Ctrl + Shift + Arrow keys keybaord shortcuts)
     it('should not change the selection when all cells are selected (triggered by corner click)', () => {
       handsontable({
         rowHeaders: true,
@@ -388,7 +371,6 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelected()).toEqual([[3, -1, 0, 4]]);
     });
 
-<<<<<<< HEAD
     it('should not change the selection when column header is selected', () => {
       handsontable({
         rowHeaders: true,
@@ -413,8 +395,6 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
     });
 
-=======
->>>>>>> c12bedb38 (Add a new behavior for Cmd/Ctrl + Shift + Arrow keys keybaord shortcuts)
     it('should not change the selection when all cells are selected (triggered by corner click)', () => {
       handsontable({
         rowHeaders: true,
@@ -527,7 +507,6 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelected()).toEqual([[1, -1, 4, 4]]);
     });
 
-<<<<<<< HEAD
     it('should not change the selection when column header is selected', () => {
       handsontable({
         rowHeaders: true,
@@ -552,8 +531,6 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
     });
 
-=======
->>>>>>> c12bedb38 (Add a new behavior for Cmd/Ctrl + Shift + Arrow keys keybaord shortcuts)
     it('should not change the selection when all cells are selected (triggered by corner click)', () => {
       handsontable({
         rowHeaders: true,
@@ -578,7 +555,6 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
     });
   });
-<<<<<<< HEAD
 
   describe('"PageUp + Shift"', () => {
     it('should extend the cell selection up by the height of the table viewport', () => {
@@ -836,6 +812,4 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 4);
     });
   });
-=======
->>>>>>> c12bedb38 (Add a new behavior for Cmd/Ctrl + Shift + Arrow keys keybaord shortcuts)
 });
