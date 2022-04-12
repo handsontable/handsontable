@@ -38,7 +38,7 @@ describe('HiddenColumns (RTL mode)', () => {
           |   :   |
           |   :   |
           |   :   |
-          | # :   |
+          |   : # |
           `).toBeMatchToSelectionPattern();
           expect(getSelected()).toEqual([[4, 2, 4, 2]]);
           expect(getSelectedRangeLast().highlight.row).toBe(4);
@@ -65,13 +65,13 @@ describe('HiddenColumns (RTL mode)', () => {
           keyDownUp('home');
 
           expect(`
-          |   |   :   |
+          |   :   |   |
           |---:---:---|
-          |   |   :   |
-          |   | # :   |
-          |   |   :   |
+          |   :   |   |
+          |   : # |   |
+          |   :   |   |
           |---:---:---|
-          |   |   :   |
+          |   :   |   |
           `).toBeMatchToSelectionPattern();
           expect(getSelected()).toEqual([[2, 3, 2, 3]]);
           expect(getSelectedRangeLast().highlight.row).toBe(2);
@@ -99,7 +99,7 @@ describe('HiddenColumns (RTL mode)', () => {
           |   :   |
           |   :   |
           |   :   |
-          | 0 : A |
+          | A : 0 |
           `).toBeMatchToSelectionPattern();
 
           expect(getSelected()).toEqual([[4, 4, 4, 2]]);
@@ -124,7 +124,7 @@ describe('HiddenColumns (RTL mode)', () => {
           keyDownUp('end');
 
           expect(`
-          |   : # |
+          | # :   |
           |   :   |
           |   :   |
           |   :   |
@@ -152,7 +152,7 @@ describe('HiddenColumns (RTL mode)', () => {
           keyDownUp(['shift', 'end']);
 
           expect(`
-          | A : 0 |
+          | 0 : A |
           |   :   |
           |   :   |
           |   :   |
@@ -182,7 +182,7 @@ describe('HiddenColumns (RTL mode)', () => {
           keyDownUp(['control/meta', 'home']);
 
           expect(`
-          | # :   :   |
+          |   :   : # |
           |   :   :   |
           |   :   :   |
           |   :   :   |
@@ -214,13 +214,13 @@ describe('HiddenColumns (RTL mode)', () => {
           keyDownUp(['control/meta', 'home']);
 
           expect(`
-          |   |   :   |
+          |   :   |   |
           |---:---:---|
-          |   | # :   |
-          |   |   :   |
-          |   |   :   |
+          |   : # |   |
+          |   :   |   |
+          |   :   |   |
           |---:---:---|
-          |   |   :   |
+          |   :   |   |
           `).toBeMatchToSelectionPattern();
 
           expect(getSelected()).toEqual([[1, 3, 1, 3]]);
@@ -249,7 +249,7 @@ describe('HiddenColumns (RTL mode)', () => {
           |   :   :   |
           |   :   :   |
           |   :   :   |
-          |   :   : # |
+          | # :   :   |
           `).toBeMatchToSelectionPattern();
           expect(getSelected()).toEqual([[4, 4, 4, 4]]);
           expect(getSelectedRangeLast().highlight.row).toBe(4);
@@ -276,13 +276,13 @@ describe('HiddenColumns (RTL mode)', () => {
           keyDownUp(['control/meta', 'end']);
 
           expect(`
-          |   |   :   |
+          |   :   |   |
           |---:---:---|
-          |   |   :   |
-          |   |   :   |
-          |   |   : # |
+          |   :   |   |
+          |   :   |   |
+          | # :   |   |
           |---:---:---|
-          |   |   :   |
+          |   :   |   |
           `).toBeMatchToSelectionPattern();
           expect(getSelected()).toEqual([[3, 4, 3, 4]]);
           expect(getSelectedRangeLast().highlight.row).toBe(3);

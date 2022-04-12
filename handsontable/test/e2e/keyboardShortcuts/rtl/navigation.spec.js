@@ -86,13 +86,13 @@ describe('Core navigation (RTL mode) keyboard shortcut', () => {
 
       expect(getSelected()).toEqual([[1, 0, 1, 0]]);
       expect(`
-        |   ║ - :   :   :   :   |
+        |   :   :   :   : - ║   |
         |===:===:===:===:===:===|
-        |   ║   :   :   :   :   |
-        | - ║ # :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   : # ║ - |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
 
       selectCells([[3, 3, 1, 1]]);
@@ -100,13 +100,13 @@ describe('Core navigation (RTL mode) keyboard shortcut', () => {
 
       expect(getSelected()).toEqual([[3, 0, 3, 0]]);
       expect(`
-        |   ║ - :   :   :   :   |
+        |   :   :   :   : - ║   |
         |===:===:===:===:===:===|
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        | - ║ # :   :   :   :   |
-        |   ║   :   :   :   :   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   : # ║ - |
+        |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
 
       selectRows(2);
@@ -114,13 +114,13 @@ describe('Core navigation (RTL mode) keyboard shortcut', () => {
 
       expect(getSelected()).toEqual([[2, 0, 2, 0]]);
       expect(`
-        |   ║ - :   :   :   :   |
+        |   :   :   :   : - ║   |
         |===:===:===:===:===:===|
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        | - ║ # :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   : # ║ - |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
     });
   });
@@ -196,13 +196,13 @@ describe('Core navigation (RTL mode) keyboard shortcut', () => {
 
       expect(getSelected()).toEqual([[1, 4, 1, 4]]);
       expect(`
-        |   ║   :   :   :   : - |
+        | - :   :   :   :   ║   |
         |===:===:===:===:===:===|
-        |   ║   :   :   :   :   |
-        | - ║   :   :   :   : # |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
+        |   :   :   :   :   ║   |
+        | # :   :   :   :   ║ - |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
 
       selectCells([[3, 1, 1, 3]]);
@@ -210,13 +210,13 @@ describe('Core navigation (RTL mode) keyboard shortcut', () => {
 
       expect(getSelected()).toEqual([[3, 4, 3, 4]]);
       expect(`
-        |   ║   :   :   :   : - |
+        | - :   :   :   :   ║   |
         |===:===:===:===:===:===|
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        | - ║   :   :   :   : # |
-        |   ║   :   :   :   :   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        | # :   :   :   :   ║ - |
+        |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
 
       selectRows(2);
@@ -224,13 +224,13 @@ describe('Core navigation (RTL mode) keyboard shortcut', () => {
 
       expect(getSelected()).toEqual([[2, 4, 2, 4]]);
       expect(`
-        |   ║   :   :   :   : - |
+        | - :   :   :   :   ║   |
         |===:===:===:===:===:===|
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        | - ║   :   :   :   : # |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        | # :   :   :   :   ║ - |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
     });
   });
@@ -306,13 +306,13 @@ describe('Core navigation (RTL mode) keyboard shortcut', () => {
 
       expect(getSelected()).toEqual([[0, 3, 0, 3]]);
       expect(`
-        |   ║   :   :   : - :   |
+        |   : - :   :   :   ║   |
         |===:===:===:===:===:===|
-        | - ║   :   :   : # :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
+        |   : # :   :   :   ║ - |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
 
       selectCells([[3, 1, 1, 3]]);
@@ -320,13 +320,13 @@ describe('Core navigation (RTL mode) keyboard shortcut', () => {
 
       expect(getSelected()).toEqual([[0, 1, 0, 1]]);
       expect(`
-        |   ║   : - :   :   :   |
+        |   :   :   : - :   ║   |
         |===:===:===:===:===:===|
-        | - ║   : # :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
+        |   :   :   : # :   ║ - |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
 
       selectColumns(2);
@@ -334,13 +334,13 @@ describe('Core navigation (RTL mode) keyboard shortcut', () => {
 
       expect(getSelected()).toEqual([[0, 2, 0, 2]]);
       expect(`
-        |   ║   :   : - :   :   |
+        |   :   : - :   :   ║   |
         |===:===:===:===:===:===|
-        | - ║   :   : # :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
+        |   :   : # :   :   ║ - |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
     });
   });
@@ -416,13 +416,13 @@ describe('Core navigation (RTL mode) keyboard shortcut', () => {
 
       expect(getSelected()).toEqual([[4, 1, 4, 1]]);
       expect(`
-        |   ║   : - :   :   :   |
+        |   :   :   : - :   ║   |
         |===:===:===:===:===:===|
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        | - ║   : # :   :   :   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   : # :   ║ - |
       `).toBeMatchToSelectionPattern();
 
       selectCells([[3, 3, 1, 1]]);
@@ -430,13 +430,13 @@ describe('Core navigation (RTL mode) keyboard shortcut', () => {
 
       expect(getSelected()).toEqual([[4, 3, 4, 3]]);
       expect(`
-        |   ║   :   :   : - :   |
+        |   : - :   :   :   ║   |
         |===:===:===:===:===:===|
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        | - ║   :   :   : # :   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   : # :   :   :   ║ - |
       `).toBeMatchToSelectionPattern();
 
       selectColumns(2);
@@ -444,13 +444,13 @@ describe('Core navigation (RTL mode) keyboard shortcut', () => {
 
       expect(getSelected()).toEqual([[4, 2, 4, 2]]);
       expect(`
-        |   ║   :   : - :   :   |
+        |   :   : - :   :   ║   |
         |===:===:===:===:===:===|
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        |   ║   :   :   :   :   |
-        | - ║   :   : # :   :   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   :   :   :   ║   |
+        |   :   : # :   :   ║ - |
       `).toBeMatchToSelectionPattern();
     });
   });
