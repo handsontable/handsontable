@@ -99,6 +99,30 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelected()).toEqual([[-1, 1, 4, 4]]);
     });
 
+    it('should not change the selection when row header is selected', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectRows(1);
+      listen();
+      keyDownUp(['control/meta', 'shift', 'arrowright']);
+
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[1, -1, 1, 4]]);
+    });
+
     it('should not change the selection when all cells are selected (triggered by corner click)', () => {
       handsontable({
         rowHeaders: true,
@@ -112,14 +136,14 @@ describe('Core selection keyboard shortcut', () => {
       keyDownUp(['control/meta', 'shift', 'arrowright']);
 
       expect(`
-      |   ║ * : * : * : * : * |
-      |===:===:===:===:===:===|
-      | * ║ A : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 |
-    `).toBeMatchToSelectionPattern();
+        |   ║ * : * : * : * : * |
+        |===:===:===:===:===:===|
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
       expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
     });
   });
@@ -209,6 +233,30 @@ describe('Core selection keyboard shortcut', () => {
       | - ║ 0 : 0 : 0 : 0 :   |
     `).toBeMatchToSelectionPattern();
       expect(getSelected()).toEqual([[-1, 3, 4, 0]]);
+    });
+
+    it('should not change the selection when row header is selected', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectRows(1);
+      listen();
+      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[1, -1, 1, 4]]);
     });
 
     it('should not change the selection when all cells are selected (triggered by corner click)', () => {
@@ -323,6 +371,30 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelected()).toEqual([[3, -1, 0, 4]]);
     });
 
+    it('should not change the selection when column header is selected', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectColumns(1);
+      listen();
+      keyDownUp(['control/meta', 'shift', 'arrowup']);
+
+      expect(`
+        |   ║   : * :   :   :   |
+        |===:===:===:===:===:===|
+        | - ║   : A :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+    });
+
     it('should not change the selection when all cells are selected (triggered by corner click)', () => {
       handsontable({
         rowHeaders: true,
@@ -435,6 +507,30 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelected()).toEqual([[1, -1, 4, 4]]);
     });
 
+    it('should not change the selection when column header is selected', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectColumns(1);
+      listen();
+      keyDownUp(['control/meta', 'shift', 'arrowdown']);
+
+      expect(`
+        |   ║   : * :   :   :   |
+        |===:===:===:===:===:===|
+        | - ║   : A :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+    });
+
     it('should not change the selection when all cells are selected (triggered by corner click)', () => {
       handsontable({
         rowHeaders: true,
@@ -457,6 +553,263 @@ describe('Core selection keyboard shortcut', () => {
       | * ║ 0 : 0 : 0 : 0 : 0 |
     `).toBeMatchToSelectionPattern();
       expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
+    });
+  });
+
+  describe('"PageUp + Shift"', () => {
+    it('should extend the cell selection up by the height of the table viewport', () => {
+      handsontable({
+        width: 180,
+        height: 100, // 100/23 (default cell height) rounding down is 4. So PageUp will extend the selection per 4 rows
+        startRows: 15,
+        startCols: 3
+      });
+
+      selectCell(13, 1);
+      keyDownUp(['shift', 'pageup']);
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : A :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[13, 1, 9, 1]]);
+
+      keyDownUp(['shift', 'pageup']);
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : A :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[13, 1, 5, 1]]);
+
+      keyDownUp(['shift', 'pageup']);
+
+      expect(`
+        |   :   :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : A :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[13, 1, 1, 1]]);
+
+      keyDownUp(['shift', 'pageup']);
+
+      expect(`
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : A :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[13, 1, 0, 1]]);
+    });
+
+    it('should scroll the viewport repeatedly by the same number of pixels with keeping the initial ' +
+       'selection viewport offset', async() => {
+      const hot = handsontable({
+        width: 180,
+        height: 200,
+        startRows: 100,
+        startCols: 3
+      });
+
+      selectCell(95, 1);
+      // scroll the viewport in that way the cell highlight is in the middle of the table viewport
+      scrollViewportTo(99, 1);
+
+      await sleep(20);
+
+      keyDownUp(['shift', 'pageup']);
+
+      await sleep(20);
+
+      expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 3);
+
+      await sleep(20);
+
+      keyDownUp(['shift', 'pageup']);
+
+      await sleep(20);
+
+      expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 3);
+
+      keyDownUp(['shift', 'pageup']);
+
+      await sleep(20);
+
+      expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 3);
+    });
+  });
+
+  describe('"PageDown + Shift"', () => {
+    it('should extend the cell selection up by the height of the table viewport', () => {
+      handsontable({
+        width: 180,
+        height: 100, // 100/23 (default cell height) rounding down is 4. So PageUp will extend the selection per 4 rows
+        startRows: 15,
+        startCols: 3
+      });
+
+      selectCell(1, 1);
+      keyDownUp(['shift', 'pagedown']);
+
+      expect(`
+        |   :   :   |
+        |   : A :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[1, 1, 5, 1]]);
+
+      keyDownUp(['shift', 'pagedown']);
+
+      expect(`
+        |   :   :   |
+        |   : A :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[1, 1, 9, 1]]);
+
+      keyDownUp(['shift', 'pagedown']);
+
+      expect(`
+        |   :   :   |
+        |   : A :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[1, 1, 13, 1]]);
+
+      keyDownUp(['shift', 'pagedown']);
+
+      expect(`
+        |   :   :   |
+        |   : A :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+        |   : 0 :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[1, 1, 14, 1]]);
+    });
+
+    it('should scroll the viewport repeatedly by the same number of pixels with keeping the initial ' +
+       'selection viewport offset', async() => {
+      const hot = handsontable({
+        width: 180,
+        height: 200,
+        startRows: 100,
+        startCols: 3
+      });
+
+      // select and scroll the viewport in that way the cell highlight is in the middle of the table viewport
+      selectCell(4, 1);
+
+      await sleep(20);
+
+      keyDownUp(['shift', 'pagedown']);
+
+      await sleep(20);
+
+      expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 4);
+
+      await sleep(20);
+
+      keyDownUp(['shift', 'pagedown']);
+
+      await sleep(20);
+
+      expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 4);
+
+      keyDownUp(['shift', 'pagedown']);
+
+      await sleep(20);
+
+      expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 4);
     });
   });
 });

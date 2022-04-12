@@ -4529,7 +4529,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.setRangeStart(from.clone());
       selection.setRangeEnd(instance._createCellCoords(row, to.col));
     },
-    runOnlyIf: () => !instance.selection.isSelectedByCorner(),
+    runOnlyIf: () => !(instance.selection.isSelectedByCorner() || instance.selection.isSelectedByColumnHeader()),
   }, {
     keys: [['ArrowDown']],
     callback: () => {
@@ -4563,7 +4563,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.setRangeStart(from.clone());
       selection.setRangeEnd(instance._createCellCoords(row, to.col));
     },
-    runOnlyIf: () => !instance.selection.isSelectedByCorner(),
+    runOnlyIf: () => !(instance.selection.isSelectedByCorner() || instance.selection.isSelectedByColumnHeader()),
   }, {
     keys: [['ArrowLeft']],
     callback: () => {
@@ -4601,7 +4601,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.setRangeStart(from.clone());
       selection.setRangeEnd(instance._createCellCoords(to.row, column));
     },
-    runOnlyIf: () => !instance.selection.isSelectedByCorner(),
+    runOnlyIf: () => !(instance.selection.isSelectedByCorner() || instance.selection.isSelectedByRowHeader()),
   }, {
     keys: [['ArrowRight']],
     callback: () => {
@@ -4639,7 +4639,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.setRangeStart(from.clone());
       selection.setRangeEnd(instance._createCellCoords(to.row, column));
     },
-    runOnlyIf: () => !instance.selection.isSelectedByCorner(),
+    runOnlyIf: () => !(instance.selection.isSelectedByCorner() || instance.selection.isSelectedByRowHeader()),
   }, {
     keys: [['Home']],
     captureCtrl: true,
