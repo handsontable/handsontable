@@ -975,12 +975,12 @@ describe('manualColumnResize', () => {
       listen();
       selectColumns(3);
 
-      keyDown('control');
+      keyDown('control/meta');
 
       selectColumns(7);
       selectColumns(10);
 
-      keyUp('control');
+      keyUp('control/meta');
 
       getTopClone().find('thead tr:eq(0) th:eq(11)').simulate('mouseover'); // Select 10th Column
 

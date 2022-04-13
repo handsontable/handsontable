@@ -13,7 +13,7 @@ import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
 import { autoResize } from '../../3rdparty/autoResize';
 import { isDefined } from '../../helpers/mixed';
-import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
+import { SHORTCUTS_GROUP_NAVIGATION, SHORTCUTS_GROUP_EDITOR as EDITOR_MANAGER_GROUP } from '../../editorManager';
 import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
@@ -451,7 +451,7 @@ export class TextEditor extends BaseEditor {
 
     editorContext.addShortcuts([{
       keys: [['Tab']],
-      // TODO: Duplicated part of code.
+      // TODO: Duplicated part of code (callback to shortcut).
       callback: (event) => {
         const tableMeta = this.hot.getSettings();
         const tabMoves = typeof tableMeta.tabMoves === 'function'
@@ -462,7 +462,7 @@ export class TextEditor extends BaseEditor {
       },
     }, {
       keys: [['Shift', 'Tab']],
-      // TODO: Duplicated part of code.
+      // TODO: Duplicated part of code (callback to shortcut).
       callback: (event) => {
         const tableMeta = this.hot.getSettings();
         const tabMoves = typeof tableMeta.tabMoves === 'function'
@@ -475,15 +475,53 @@ export class TextEditor extends BaseEditor {
       keys: [['Control', 'Enter']],
       callback: () => {
         setNewValue();
+
+        return false; // Will block closing editor.
       },
-      runOnlyIf: event => !this.hot.selection.isMultiple() &&
+      runOnlyIf: event => !this.hot.selection.isMultiple() && // We trigger a data population for multiple selection.
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
         !event.altKey,
+      relativeToGroup: EDITOR_MANAGER_GROUP,
+      position: 'before',
+    }, {
+      keys: [['Meta', 'Enter']],
+      callback: () => {
+        setNewValue();
+
+        return false; // Will block closing editor.
+      },
+      runOnlyIf: () => !this.hot.selection.isMultiple(), // We trigger a data population for multiple selection.
+      relativeToGroup: EDITOR_MANAGER_GROUP,
+      position: 'before',
     }, {
       keys: [['Alt', 'Enter']],
       callback: () => {
         setNewValue();
+
+        return false; // Will block closing editor.
       },
+      relativeToGroup: EDITOR_MANAGER_GROUP,
+      position: 'before',
+    }, {
+      // TODO: Duplicated part of code (callback to shortcut)
+      keys: [
+        ['PageUp'],
+        // Added according to specification, not the target behavior.
+        ['Shift', 'PageUp']
+      ],
+      callback: () => {
+        this.hot.selection.transformStart(-this.hot.countVisibleRows(), 0);
+      },
+    }, {
+      // TODO: Duplicated part of code (callback to shortcut)
+      keys: [
+        ['PageDown'],
+        // Added according to specification, not the target behaviour.
+        ['Shift', 'PageDown']
+      ],
+      callback: () => {
+        this.hot.selection.transformStart(this.hot.countVisibleRows(), 0);
+      }
     }], contextConfig);
   }
 

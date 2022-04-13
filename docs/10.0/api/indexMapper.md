@@ -26,7 +26,7 @@ It has a built-in cache that is updated only when the data or structure changes.
 There are different kinds of index maps which may be registered in the collections and can be used by a reference.
 They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
 
-These are: [IndexesSequence](@/api/indexesSequence.md), [PhysicalIndexToValueMap](@/api/physicalIndexToValueMap.md), [HidingMap](@/api/hidingMap.md), and [TrimmingMap](@/api/trimmingMap.md).
+These are: [IndexesSequence](@/api/indexesSequence.md), [PhysicalIndexToValueMap](@/api/physicalIndexToValueMap.md), [LinkedPhysicalIndexToValueMap](@/api/linkedPhysicalIndexToValueMap.md), [HidingMap](@/api/hidingMap.md), and [TrimmingMap](@/api/trimmingMap.md).
 
 
 ## Methods

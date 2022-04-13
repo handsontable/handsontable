@@ -100,16 +100,15 @@ class EditorManager {
     const config = { group: SHORTCUTS_GROUP_EDITOR };
 
     editorContext.addShortcuts([{
-      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Meta'],
-        ['Enter', 'Control', 'Shift'], ['Enter', 'Meta', 'Shift']],
+      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control/Meta'], ['Enter', 'Control/Meta', 'Shift']],
       callback: (event, keys) => {
         this.closeEditorAndSaveChanges(shortcutManager.isCtrlPressed());
         this.moveSelectionAfterEnter(keys.includes('shift'));
       }
     }, {
-      keys: [['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']],
-      callback: (event, keys) => {
-        this.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));
+      keys: [['Escape'], ['Escape', 'Control/Meta']],
+      callback: () => {
+        this.closeEditorAndRestoreOriginalValue(shortcutManager.isCtrlPressed());
         this.activeEditor.focus();
       },
     }], config);
@@ -130,7 +129,7 @@ class EditorManager {
         this.prepareEditor();
       },
     }, {
-      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
+      keys: [['Enter'], ['Enter', 'Shift']],
       callback: (event, keys) => {
         if (this.instance.getSettings().enterBeginsEditing) {
           if (this.cellProperties.readOnly) {

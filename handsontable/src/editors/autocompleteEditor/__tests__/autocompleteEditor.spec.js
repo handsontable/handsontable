@@ -820,7 +820,8 @@ describe('AutocompleteEditor', () => {
       expect(editor.find('tbody td:eq(5)').text()).toEqual('6');
     });
 
-    it('should display the dropdown above the editor, when there is not enough space below the cell AND there is more space above the cell', async() => {
+    it('should display the dropdown above the editor, when there is not enough space below the cell AND' +
+       'there is more space above the cell', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(30, 30),
         columns: [
@@ -844,6 +845,37 @@ describe('AutocompleteEditor', () => {
 
       expect(autocompleteEditor.css('position')).toEqual('absolute');
       expect(autocompleteEditor.css('top')).toEqual(`${(-1) * autocompleteEditor.height()}px`);
+    });
+
+    it('should not display the dropdown above the editor, when there is not enough space below when ' +
+       'the table uses the `preventOverflow` option', async() => {
+      spec().$container
+        .css('overflow', '')
+        .css('width', '')
+        .css('height', '');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(30, 30),
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices
+          }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        ],
+        preventOverflow: 'horizontal',
+      });
+
+      setDataAtCell(29, 0, '');
+      selectCell(29, 0);
+
+      mouseDoubleClick($(getCell(29, 0)));
+
+      await sleep(200);
+
+      const autocompleteEditor = $('.autocompleteEditor');
+
+      expect(autocompleteEditor.css('position')).toBe('relative');
+      expect(autocompleteEditor.css('top')).toBe('0px');
     });
 
     it('should flip the dropdown upwards when there is no more room left below the cell after filtering the choice list', async() => {
