@@ -38,7 +38,7 @@ module.exports = (options, context) => {
     /**
      * Extends and updates a page with additional information for versioning.
      *
-     * @param {object} $page The $page value 6of the page you’re currently reading.
+     * @param {object} $page The $page value of the page you’re currently reading.
      */
     extendPageData($page) {
       $page.DOCS_VERSION = DOCS_VERSION;
