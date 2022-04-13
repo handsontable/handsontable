@@ -63,7 +63,7 @@ function getVersions(buildMode) {
  * @returns {string[]}
  */
 function getFrameworks() {
-  return ['javascript', 'react'];
+  return ['javascript', 'react', 'vue2', 'vue'];
 }
 
 /**
@@ -188,7 +188,7 @@ function getBuildDocsFramework() {
 }
 
 /**
- * Gets information whether some version and framework is the first shown.
+ * Gets information whether some version and framework is the first shown (on absolute /docs URL).
  *
  * @param {string} version Version of documentation.
  * @param {string|undefined} framework Framework for documentation.

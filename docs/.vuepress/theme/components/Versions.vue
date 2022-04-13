@@ -27,7 +27,7 @@ export default {
       const isUserViewingNonFrameworkedDocs = typeof this.$page.currentFramework === 'undefined';
 
       if (version === this.$page.latestVersion && (
-        (this.$page.defaultFramework === this.$page.currentFramework) || isUserViewingNonFrameworkedDocs)
+        (this.$page.defaultFramework === this.$page.currentFramework) || isFrameworked)
       ) {
         return '/docs/';
       }

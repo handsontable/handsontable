@@ -59,7 +59,7 @@ module.exports = (options, context) => {
         $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
       }
 
-      // Only dev script perform build to proper subdirectory. Full build script perform moving directory separately.
+      // Only dev script perform build to proper place (in memory). Full build script perform moving directory separately.
       if (isEnvDev() && $page.frontmatter.permalink &&
         getDocsFrameworkedVersions(buildMode).includes($page.currentVersion) &&
         isFirstShown($page.currentVersion, $page.currentFramework) === false) {

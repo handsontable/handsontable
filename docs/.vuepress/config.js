@@ -13,7 +13,7 @@ const buildMode = process.env.BUILD_MODE;
 const versionPartialPath = getBuildDocsVersion() || EVERY_VERSION_GLOB;
 const frameworkPartialPath = getBuildDocsFramework() ? `${getBuildDocsFramework()}/` : '';
 const isFirstShownOrMultiVersion = isFirstShown(getBuildDocsVersion(),
-  getBuildDocsFramework()) || !getBuildDocsVersion();
+  getBuildDocsFramework()) || !getBuildDocsVersion(); // The `vuepress dev` command creates multi version docs.
 const base = isFirstShownOrMultiVersion ? '/docs/' : `/docs/${frameworkPartialPath}${versionPartialPath}/`;
 const redirectsPlugin = isFirstShownOrMultiVersion ?
   [nginxRedirectsPlugin, {
@@ -33,6 +33,8 @@ const environmentHead = buildMode === 'production' ?
   ]
   : [];
 
+// The `vuepress dev` command needs placing directories in proper place. It's done by creating temporaty directories
+// which are watched by the script. It's done before a compilation is starting.
 createSymlinks(buildMode);
 
 module.exports = {

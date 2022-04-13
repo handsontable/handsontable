@@ -14,6 +14,14 @@ const cleanUp = () => {
   fse.removeSync(path.resolve(__dirname, '../dist'));
 };
 
+const moveNext = (versions) => {
+  if (versions[0] === 'next') {
+    return [...versions.splice(1), 'next'];
+  }
+
+  return versions;
+};
+
 const frameworks = getFrameworks();
 
 const build = (version, framework) => {
@@ -68,14 +76,6 @@ const moveDir = (version, framework) => {
   fse.moveSync(prebuild, dist);
 };
 
-const moveNext = (versions) => {
-  if (versions[0] === 'next') {
-    return [...versions.splice(1), 'next'];
-  }
-
-  return versions;
-};
-
 const buildApp = async() => {
   const startedAt = new Date().toString();
 
@@ -97,6 +97,8 @@ const buildApp = async() => {
     });
   });
 
+  // At first there is created directory with the latest version of docs. Then, next version of docs are place inside
+  // already created docs/ directory.
   moveNext(getVersions(buildMode)).forEach((version) => {
     if (getDocsFrameworkedVersions(buildMode).includes(version)) {
       frameworks.forEach((framework) => {
