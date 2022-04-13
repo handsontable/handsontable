@@ -484,15 +484,6 @@ export class TextEditor extends BaseEditor {
       relativeToGroup: EDITOR_MANAGER_GROUP,
       position: 'before',
     }, {
-      keys: [['Alt', 'Enter']],
-      callback: () => {
-        setNewValue();
-
-        return false; // Will block closing editor.
-      },
-      relativeToGroup: EDITOR_MANAGER_GROUP,
-      position: 'before',
-    }, {
       keys: [['Meta', 'Enter']],
       callback: () => {
         setNewValue();
@@ -503,10 +494,19 @@ export class TextEditor extends BaseEditor {
       relativeToGroup: EDITOR_MANAGER_GROUP,
       position: 'before',
     }, {
+      keys: [['Alt', 'Enter']],
+      callback: () => {
+        setNewValue();
+
+        return false; // Will block closing editor.
+      },
+      relativeToGroup: EDITOR_MANAGER_GROUP,
+      position: 'before',
+    }, {
       // TODO: Duplicated part of code (callback to shortcut)
       keys: [
         ['PageUp'],
-        // Added according to specification, not the target behaviour.
+        // Added according to specification, not the target behavior.
         ['Shift', 'PageUp']
       ],
       callback: () => {
