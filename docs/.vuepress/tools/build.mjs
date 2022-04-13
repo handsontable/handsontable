@@ -2,8 +2,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fse from 'fs-extra';
 import utils from './utils.js';
-import { getDocsFrameworkedVersions, getDocsNonFrameworkedVersions, getFrameworks, getLatestVersion }
-  from '../helpers.js';
+import { getDocsNonFrameworkedVersions, getDocsFrameworkedVersions, getFrameworks, getLatestVersion,
+  getDefaultFramework, getVersions } from '../helpers.js';
 
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -42,10 +42,17 @@ const build = (version, framework) => {
 const moveDir = (version, framework) => {
   let dir = '';
   let frameworkDir = '';
+  const isFrameworked = typeof framework !== 'undefined';
 
-  if (getLatestVersion() !== version) {
-    if (typeof framework !== 'undefined') {
-      frameworkDir = `-${framework}`;
+  if (isFrameworked) {
+    frameworkDir = `-${framework}`;
+  }
+
+  const moveDirectlyToMainDir = getLatestVersion() === version && (
+    (isFrameworked && framework === getDefaultFramework()) || isFrameworked === false);
+
+  if (moveDirectlyToMainDir === false) {
+    if (isFrameworked) {
       dir += `/${framework}`;
     }
 
@@ -59,6 +66,14 @@ const moveDir = (version, framework) => {
   logger.info('Apply built version to the `docs/`', dist);
 
   fse.moveSync(prebuild, dist);
+};
+
+const moveNext = (versions) => {
+  if (versions[0] === 'next') {
+    return [...versions.splice(1), 'next'];
+  }
+
+  return versions;
 };
 
 const buildApp = async() => {
@@ -82,14 +97,15 @@ const buildApp = async() => {
     });
   });
 
-  getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
-    moveDir(version);
-  });
+  moveNext(getVersions(buildMode)).forEach((version) => {
+    if (getDocsFrameworkedVersions(buildMode).includes(version)) {
+      frameworks.forEach((framework) => {
+        moveDir(version, framework);
+      });
 
-  getDocsFrameworkedVersions(buildMode).forEach((version) => {
-    frameworks.forEach((framework) => {
-      moveDir(version, framework);
-    });
+    } else {
+      moveDir(version);
+    }
   });
 
   logger.log('Build has started at', startedAt);

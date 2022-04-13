@@ -8,6 +8,8 @@ const {
   getDocsFrameworkedVersions,
   getDocsNonFrameworkedVersions,
   isEnvDev,
+  isFirstShown,
+  getDefaultFramework,
 } = require('../../helpers');
 const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
 
@@ -49,16 +51,18 @@ module.exports = (options, context) => {
       $page.currentVersion = parseVersion($page.path);
       // Framework isn't stored in PATH for full build. However, it's defined in ENV variable.
       $page.currentFramework = DOCS_FRAMEWORK || parseFramework($page.path);
+      $page.defaultFramework = getDefaultFramework();
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
 
-      if ((DOCS_VERSION || $page.currentVersion === $page.latestVersion) && $page.frontmatter.permalink) {
+      if ((DOCS_VERSION || isFirstShown($page.currentVersion, $page.currentFramework)) && $page.frontmatter.permalink) {
         $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
       }
 
       // Only dev script perform build to proper subdirectory. Full build script perform moving directory separately.
       if (isEnvDev() && $page.frontmatter.permalink &&
-        getDocsFrameworkedVersions(buildMode).includes($page.currentVersion)) {
+        getDocsFrameworkedVersions(buildMode).includes($page.currentVersion) &&
+        isFirstShown($page.currentVersion, $page.currentFramework) === false) {
         $page.frontmatter.permalink = `/${$page.currentFramework}${$page.frontmatter.permalink}`;
       }
     },

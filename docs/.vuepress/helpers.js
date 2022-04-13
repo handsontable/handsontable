@@ -167,8 +167,6 @@ function parseFramework(url) {
   if (getFrameworks().includes(url.split('/')[1])) {
     return url.split('/')[1];
   }
-
-  return 'none';
 }
 
 /**
@@ -187,6 +185,20 @@ function getBuildDocsVersion() {
  */
 function getBuildDocsFramework() {
   return process.env.FRAMEWORK;
+}
+
+/**
+ * Gets information whether some version and framework is the first shown.
+ *
+ * @param {string} version Version of documentation.
+ * @param {string|undefined} framework Framework for documentation.
+ * @returns {boolean}
+ */
+function isFirstShown(version, framework) {
+  const isFrameworked = typeof framework !== 'undefined';
+
+  return getLatestVersion() === version && (
+    (isFrameworked && framework === getDefaultFramework()) || isFrameworked === false);
 }
 
 /**
@@ -225,4 +237,5 @@ module.exports = {
   getDefaultFramework,
   isEnvDev,
   createSymlinks,
+  isFirstShown,
 };

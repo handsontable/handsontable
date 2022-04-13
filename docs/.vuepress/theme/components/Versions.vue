@@ -24,13 +24,17 @@ export default {
       return version;
     },
     getLink(version, isFrameworked) {
-      if (version === this.$page.latestVersion) {
+      const isUserViewingNonFrameworkedDocs = typeof this.$page.currentFramework === 'undefined';
+
+      if (version === this.$page.latestVersion && (
+        (this.$page.defaultFramework === this.$page.currentFramework) || isUserViewingNonFrameworkedDocs)
+      ) {
         return '/docs/';
       }
 
-      if (this.$page.currentFramework === 'none') {
+      if (isUserViewingNonFrameworkedDocs) {
         if (isFrameworked) {
-          return `/docs/javascript/${version}/`;
+          return `/docs/${this.$page.defaultFramework}/${version}/`;
         }
 
         return `/docs/${version}/`;
