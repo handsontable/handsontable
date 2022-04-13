@@ -154,7 +154,7 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          { data: 'time', type: 'time', dateFormat: 'HH:mm', allowEmpty: false },
+          { data: 'time', type: 'time', timeFormat: 'HH:mm', allowEmpty: false },
           { data: 'name' },
           { data: 'lastName' }
         ],
@@ -175,7 +175,7 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          { data: 'time', type: 'time', dateFormat: 'HH:mm', allowEmpty: false },
+          { data: 'time', type: 'time', timeFormat: 'HH:mm', allowEmpty: false },
           { data: 'name' },
           { data: 'lastName' }
         ],
@@ -196,7 +196,7 @@ describe('timeValidator', () => {
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          { data: 'time', type: 'time', dateFormat: 'HH:mm', allowEmpty: false },
+          { data: 'time', type: 'time', timeFormat: 'HH:mm', allowEmpty: false },
           { data: 'name' },
           { data: 'lastName' }
         ],
@@ -409,6 +409,128 @@ describe('timeValidator', () => {
         expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-time string', 1, 'time');
         done();
       }, 100);
+    });
+  });
+
+  describe('Time formats', () => {
+    describe('with `correctFormat` disabled', () => {
+      using('data set', [
+        { value: '23:15', timeFormat: 'HH:mm' },
+        { value: '11:15 AM', timeFormat: 'hh:mm A' },
+        { value: '11:15 am', timeFormat: 'hh:mm a' },
+        { value: '23:15:22:33', timeFormat: 'HH:mm:mm:ss' },
+        { value: '1:2:3:4', timeFormat: 'H:m:m:s' },
+        { value: '23:15:22:33 +02:00', timeFormat: 'HH:mm:mm:ss Z' },
+        { value: '23:15:22:33 +0200', timeFormat: 'HH:mm:mm:ss ZZ' },
+
+        // Improper format:
+        { value: '01:02:03:04', timeFormat: 'H:m:m:s' },
+        { value: '23:15:22:33 +02:00', timeFormat: 'HH:mm:mm:ss ZZ' },
+      ], ({ value, timeFormat }) => {
+        it('should validate positively', async() => {
+          const onAfterValidateSpy = jasmine.createSpy('onAfterValidate');
+
+          handsontable({
+            data: [[]],
+            columns: [
+              { type: 'time', timeFormat },
+            ],
+            afterValidate: onAfterValidateSpy
+          });
+
+          setDataAtCell(0, 0, value);
+
+          await sleep(50);
+
+          expect(onAfterValidateSpy).toHaveBeenCalledWith(true, value, 0, 0);
+        });
+      });
+
+      using('data set', [
+        { value: '23:65', timeFormat: 'HH:mm' },
+        { value: '23:155', timeFormat: 'HH:mm' },
+        { value: '23:15 PM', timeFormat: 'hh:mm A' },
+        { value: '23:15 pm', timeFormat: 'hh:mm a' },
+        { value: '23:15:22:33 +2:00', timeFormat: 'HH:mm:mm:ss Z' },
+      ], ({ value, timeFormat }) => {
+        it('should validate negatively', async() => {
+          const onAfterValidateSpy = jasmine.createSpy('onAfterValidate');
+
+          handsontable({
+            data: [[]],
+            columns: [
+              { type: 'time', timeFormat },
+            ],
+            afterValidate: onAfterValidateSpy
+          });
+
+          setDataAtCell(0, 0, value);
+
+          await sleep(50);
+
+          expect(onAfterValidateSpy).toHaveBeenCalledWith(false, value, 0, 0);
+        });
+      });
+    });
+
+    describe('with `correctFormat` enabled', () => {
+      using('data set', [
+        { value: '23:15', timeFormat: 'HH:mm' },
+        { value: '11:15 AM', timeFormat: 'hh:mm A' },
+        { value: '11:15 am', timeFormat: 'hh:mm a' },
+        { value: '23:15:22:33', timeFormat: 'HH:mm:mm:ss' },
+        { value: '1:2:3:4', timeFormat: 'H:m:m:s' },
+        { value: '23:15:22:33 +02:00', timeFormat: 'HH:mm:mm:ss Z' },
+        { value: '23:15:22:33 +0200', timeFormat: 'HH:mm:mm:ss ZZ' },
+
+        // Improper format:
+        { value: '01:02:03:04', timeFormat: 'H:m:m:s' },
+        { value: '23:15:22:33 +02:00', timeFormat: 'HH:mm:mm:ss ZZ' },
+        { value: '23:155', timeFormat: 'HH:mm' },
+        { value: '23:15 PM', timeFormat: 'hh:mm A' },
+        { value: '23:15 pm', timeFormat: 'hh:mm a' },
+        { value: '23:15:22:33 +2:00', timeFormat: 'HH:mm:mm:ss Z' },
+      ], ({ value, timeFormat }) => {
+        it('should validate positively', async() => {
+          const onAfterValidateSpy = jasmine.createSpy('onAfterValidate');
+
+          handsontable({
+            data: [[]],
+            columns: [
+              { type: 'time', timeFormat, correctFormat: true },
+            ],
+            afterValidate: onAfterValidateSpy
+          });
+
+          setDataAtCell(0, 0, value);
+
+          await sleep(50);
+
+          expect(onAfterValidateSpy).toHaveBeenCalledWith(true, value, 0, 0);
+        });
+      });
+
+      using('data set', [
+        { value: '23:65', timeFormat: 'HH:mm' },
+      ], ({ value, timeFormat }) => {
+        it('should validate negatively', async() => {
+          const onAfterValidateSpy = jasmine.createSpy('onAfterValidate');
+
+          handsontable({
+            data: [[]],
+            columns: [
+              { type: 'time', timeFormat, correctFormat: true },
+            ],
+            afterValidate: onAfterValidateSpy
+          });
+
+          setDataAtCell(0, 0, value);
+
+          await sleep(50);
+
+          expect(onAfterValidateSpy).toHaveBeenCalledWith(false, value, 0, 0);
+        });
+      });
     });
   });
 });

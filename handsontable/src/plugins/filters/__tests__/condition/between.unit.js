@@ -30,21 +30,106 @@ describe('Filters condition (`between`)', () => {
     expect(condition(data(-4), ['-10', '-5'])).toBe(false);
   });
 
-  it('should filter matching values (date cell type)', () => {
-    const data = dateRowFactory({ type: 'date', dateFormat: 'YYYY-MM-DD' });
+  using('data set', [
+    {
+      dateFormat: 'YYYY-MM-DD',
+      testDate: '2015-12-20',
+      startDate: '2015-11-20',
+      endDate: '2015-12-24',
+      assumption: true
+    },
+    {
+      dateFormat: 'YYYY-MM-DD',
+      testDate: '2015-12-20',
+      startDate: '2015-12-20',
+      endDate: '2015-12-20',
+      assumption: true
+    },
+    {
+      dateFormat: 'YYYY-MM-DD',
+      testDate: '2015-12-20',
+      startDate: '2015',
+      endDate: '2016',
+      assumption: true
+    },
+    {
+      dateFormat: 'YYYY-MM-DD',
+      testDate: '2015-12-20',
+      startDate: '2013',
+      endDate: '2014',
+      assumption: false
+    },
+    {
+      dateFormat: 'YYYY-MM-DD',
+      testDate: '2015-12-20',
+      startDate: '2013',
+      endDate: 'bar',
+      assumption: false
+    },
+    {
+      dateFormat: 'DD/MM/YY',
+      testDate: '20/12/15',
+      startDate: '01/01/14',
+      endDate: '01/01/16',
+      assumption: true
+    },
+    {
+      dateFormat: 'D.M.YY',
+      testDate: '20.12.15',
+      startDate: '1.1.14',
+      endDate: '1.1.16',
+      assumption: true
+    },
+    {
+      dateFormat: 'YYYY MMMM Do',
+      testDate: '2015 February 2nd',
+      startDate: '2003 March 11th',
+      endDate: '2032 March 13rd',
+      assumption: true
+    },
+    {
+      dateFormat: '[The] Do [of] MMMM \'YY',
+      testDate: 'The 2nd of February \'23',
+      startDate: 'The 2nd of March \'13',
+      endDate: 'The 12th of December \'23',
+      assumption: true
+    },
 
-    expect(condition(data('2015-12-20'), ['2015-11-20', '2015-12-24'])).toBe(true);
-    expect(condition(data('2015-12-20'), ['2015-12-20', '2015-12-20'])).toBe(true);
-    expect(condition(data('2015-12-20'), ['2015', '2016'])).toBe(true);
-  });
+    // Improper date format configuration:
+    {
+      dateFormat: 'YYYY-MM-DD',
+      testDate: '15-12-20',
+      startDate: '15-11-20',
+      endDate: '15-12-24',
+      assumption: true
+    },
+    {
+      dateFormat: 'YY-MM-DD',
+      testDate: '2015-12-20',
+      startDate: '2015-12-20',
+      endDate: '2015-12-20',
+      assumption: true
+    },
+    {
+      dateFormat: 'YYYY-M-D',
+      testDate: '2015-05-03',
+      startDate: '2015',
+      endDate: '2016',
+      assumption: true
+    },
+    {
+      dateFormat: 'D.M.YY',
+      testDate: '1.2.2032',
+      startDate: '1.2.1975',
+      endDate: '1.2.2035',
+      assumption: true
+    },
+  ], ({ dateFormat, testDate, startDate, endDate, assumption }) => {
+    it('should filter matching and non-matching values (date cell type)', () => {
+      const data = dateRowFactory({ type: 'date', dateFormat });
 
-  it('should filter not matching values (date cell type)', () => {
-    const data = dateRowFactory({ type: 'date', dateFormat: 'YYYY-MM-DD' });
-
-    expect(condition(data('2015-12-20'), ['2015-11-20', '2015-12-24'])).toBe(true);
-    expect(condition(data('2015-12-20'), ['2015-12-20', '2015-12-20'])).toBe(true);
-    expect(condition(data('2015-12-20'), ['2013', '2014'])).toBe(false);
-    expect(condition(data('2015-12-20'), ['2013', 'bar'])).toBe(false);
+      expect(condition(data(testDate), [startDate, endDate])).toBe(assumption);
+    });
   });
 
   it('should filter matching values (text cell type)', () => {

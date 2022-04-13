@@ -865,13 +865,12 @@ UndoRedo.prototype.registerShortcuts = function() {
   };
 
   gridContext.addShortcuts([{
-    keys: [['meta', 'z'], ['control', 'z']],
+    keys: [['Control/Meta', 'z']],
     callback: () => {
       this.undo();
     },
   }, {
-    keys: [['control', 'y'], ['meta', 'y'],
-      ['control', 'shift', 'z'], ['meta', 'shift', 'z']],
+    keys: [['Control/Meta', 'y'], ['Control/Meta', 'Shift', 'z']],
     callback: () => {
       this.redo();
     },
@@ -884,8 +883,8 @@ UndoRedo.prototype.registerShortcuts = function() {
  * @private
  */
 UndoRedo.prototype.unregisterShortcuts = function() {
-  const shortutManager = this.instance.getShortcutManager();
-  const gridContext = shortutManager.getContext('grid');
+  const shortcutManager = this.instance.getShortcutManager();
+  const gridContext = shortcutManager.getContext('grid');
 
   gridContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
 };

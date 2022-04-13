@@ -61,9 +61,9 @@ describe('Core.selectColumns', () => {
     // Please keep in mind that selectColumns/selectRows doesn't set instance to listening (see #7290).
     listen();
     selectColumns(2);
-    keyDown('control');
+    keyDown('control/meta');
     selectColumns(0);
-    keyUp('control');
+    keyUp('control/meta');
 
     expect(`
       |   ║ * :   : * :   |

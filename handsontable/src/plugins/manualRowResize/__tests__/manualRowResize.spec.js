@@ -762,12 +762,12 @@ describe('manualRowResize', () => {
       listen();
       selectRows(3);
 
-      keyDown('control');
+      keyDown('control/meta');
 
       selectRows(7);
       selectRows(10);
 
-      keyUp('control');
+      keyUp('control/meta');
       getInlineStartClone().find('tbody tr:eq(10) th:eq(0)').simulate('mouseover');
 
       const $resizer = spec().$container.find('.manualRowResizer');
