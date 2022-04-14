@@ -332,7 +332,7 @@ Released on 1st of October, 2020
 
 **Added**
 
-* Added support for resizing non-contiguous selected rows and columns. ([#7162](https://github.com/handsontable/handsontable/issues/7162))
+* Added support for resizing non-adjacent selected rows and columns. ([#7162](https://github.com/handsontable/handsontable/issues/7162))
 * Added e2e tests and reorganized already existing ones. ([#6491](https://github.com/handsontable/handsontable/issues/6491))
 
 **Changed**
@@ -646,7 +646,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * Fixed an issue with Undo/Redo not working with fixing columns. [#6869](https://github.com/handsontable/handsontable/issues/6869)
 * Added a missing argument in the `deepObjectSize` function. [#6821](https://github.com/handsontable/handsontable/pull/6821)
 * Fixed an issue where the table threw errors while clicking the cells if the Handsontable was initialized with `fixedRowsTop` and `fixedRowsBottom` higher than rows length. [#6718](https://github.com/handsontable/handsontable/issues/6718)
-* Fixed an issue where it was not possible to change the state of checkbox-type, non-contiguous cells using `SPACE`. [#4882](https://github.com/handsontable/handsontable/issues/4882)
+* Fixed an issue where it was not possible to change the state of checkbox-type, non-adjacent cells using `SPACE`. [#4882](https://github.com/handsontable/handsontable/issues/4882)
 * Fixed an issue where resizing made rows shorter than expected and caused row misalignment. [#6429](https://github.com/handsontable/handsontable/issues/6429)
 * Fixed an issue where Handsontable was missing rows when `preventOverflow` with `updateSettings` were used. [#4303](https://github.com/handsontable/handsontable/issues/4303)
 * Adding properties which were not defined on initialization or by `updateSettings` to the source data is possible only by the usage of `setSourceDataAtCell`. [#6664](https://github.com/handsontable/handsontable/issues/6664).
