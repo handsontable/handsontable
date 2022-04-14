@@ -4,12 +4,10 @@ const { getBuildDocsFramework } = require('../../helpers');
 /**
  * Container used to display/hide blocks of content relevant to specific frameworks.
  * It relies on providing the framework name(s) as arguments to the container (see 'Usage' below) and setting a
- * `framework` field in front matter as the framework name, for example:
+ * `FRAMEWORK` environmental variable as the framework name, for example:
  *
  * ```
- * ---
- * framework: vue
- * ---
+ * FRAMEWORK=react
  * ```
  *
  * Usage:
