@@ -24,129 +24,13 @@ Use and manage Handsontable's keyboard shortcuts.
 
 ## Overview
 
-Out of the box, you can navigate Handsontable similarly to Google Sheets or Microsoft Excel, using the [default](#default-keyboard-shortcuts) keyboard shortcuts.
+You can navigate Handsontable similarly to Google Sheets or Microsoft Excel, using the [default](#default-keyboard-shortcuts) keyboard shortcuts.
 
 You can also completely [customize](#custom-keyboard-shortcuts) your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutmanager.md) API:
 - [Add custom keyboard shortcuts](#adding-a-custom-keyboard-shortcut)
 - [Remove keyboard shortcuts](#removing-a-keyboard-shortcut)
 - [Replace keyboard shortcuts](#replacing-a-keyboard-shortcut)
 - [Block keyboard shortcuts' actions](#blocking-a-keyboard-shortcut-s-actions)
-
-## Default keyboard shortcuts
-
-By default, Handsontable features the keyboard shortcuts listed below.
-
-### Navigation keyboard shortcuts
-
-These keyboard shortcuts help you navigate the grid.
-
-| Windows                           | macOS                                 | Action                                                                                                                                                                    |
-| --------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| <kbd>Up ↑</kbd>                   | <kbd>Up ↑</kbd>                       | Move the selection one cell up                                                                                                                                            |
-| <kbd>Down ↓</kbd>                 | <kbd>Down ↓</kbd>                     | Move the selection one cell down                                                                                                                                          |
-| <kbd>Right →</kbd>                | <kbd>Right →</kbd>                    | Move the selection one cell to the right                                                                                                                                  |
-| <kbd>Left ←</kbd>                 | <kbd>Left ←</kbd>                     | Move the selection one cell to the left                                                                                                                                   |
-| <kbd>Page Up</kbd>                | <kbd>Page Up ⇞</kbd>                  | Move the selection one screen up                                                                                                                                          |
-| <kbd>Page Down</kbd>              | <kbd>Page Down ⇟</kbd>                | Move the selection one screen down                                                                                                                                        |
-| <kbd>Tab</kbd>                    | <kbd>Tab ⇥</kbd>                      | Move the selection one cell to the right<br>(depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction)) |
-| <kbd>Shift</kbd> + <kbd>Tab</kbd> | <kbd>Shift ⇧</kbd> + <kbd>Tab ⇥</kbd> | Move the selection one cell to the left<br>(depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))  |
-
-### Selection keyboard shortcuts
-
-These keyboard shortcuts help you select cells.
-
-| Windows                               | macOS                                                                    | Action                                                    |
-| ------------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------- |
-| <kbd>Ctrl</kbd> + <kbd>A</kbd>        | <kbd>Cmd  ⌘</kbd> + <kbd>A</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>A</kbd> | Select all cells and headers                              |
-| <kbd>Shift</kbd> + <kbd>Up ↑</kbd>    | <kbd>Shift ⇧</kbd> + <kbd>Up ↑</kbd>                                     | Extend the selection by one cell above                    |
-| <kbd>Shift</kbd> + <kbd>Down ↓</kbd>  | <kbd>Shift ⇧</kbd> + <kbd>Down ↓</kbd>                                   | Extend the selection by one cell below                    |
-| <kbd>Shift</kbd> + <kbd>Right →</kbd> | <kbd>Shift ⇧</kbd> + <kbd>Right →</kbd>                                  | Extend the selection by one cell to the right             |
-| <kbd>Shift</kbd> + <kbd>Left ←</kbd>  | <kbd>Shift ⇧</kbd> + <kbd>Left ←</kbd>                                   | Extend the selection by one cell to the left              |
-| <kbd>Shift</kbd> + <kbd>Home</kbd>    | <kbd>Shift ⇧</kbd> + <kbd>Home ↖</kbd>                                   | Extend the selection to the first cell of the current row |
-| <kbd>Shift</kbd> + <kbd>End</kbd>     | <kbd>Shift ⇧</kbd> + <kbd>End ↘</kbd>                                    | Extend the selection to the last cell of the current row  |
-
-### Edition keyboard shortcuts
-
-These keyboard shortcuts help you edit cells' contents.
-
-| Windows                                                                       | macOS                                                                                                                                  | Action                                                                                                                                                                                                            |
-| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| <kbd>Enter</kbd>                                                              | <kbd>Enter ↵</kbd>                                                                                                                     | Start editing the active cell<br><br>When editing:<br>stop editing, save your changes, and move the selection one cell down                                                                                       |
-| <kbd>Shift</kbd> + <kbd>Enter</kbd>                                           | <kbd>Shift ⇧</kbd> + <kbd>Enter ↵</kbd>                                                                                                | Start editing the active cell<br><br>When editing:<br>stop editing, save your changes, and move the selection one cell up                                                                                         |
-| <kbd>F2</kbd>                                                                 | <kbd>F2</kbd>                                                                                                                          | Start editing the active cell                                                                                                                                                                                     |
-| <kbd>Esc</kbd>                                                                | <kbd>Esc ⎋</kbd>                                                                                                                       | When editing:<br>stop editing, and cancel your changes                                                                                                                                                            |
-| <kbd>Ctrl</kbd> + <kbd>Enter</kbd><br>or<br><kbd>Alt</kbd> + <kbd>Enter</kbd> | <kbd>Cmd  ⌘</kbd> + <kbd>Enter ↵</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Enter ↵</kbd><br>or<br><kbd>Option ⌥</kbd> + <kbd>Enter ↵</kbd> | When editing:<br>add a new line inside the cell                                                                                                                                                                   |
-| <kbd>Backspace</kbd>                                                          | <kbd>Backspace ⌫</kbd>                                                                                                                 | Clear the cell's contents<br><br>When editing:<br>delete one character to the left                                                                                                                                |
-| <kbd>Delete</kbd>                                                             | <kbd>Delete ⌦</kbd>                                                                                                                    | Clear the cell's contents<br><br>When editing:<br>delete one character to the right                                                                                                                               |
-| <kbd>Ctrl</kbd> + <kbd>C</kbd>                                                | <kbd>Cmd  ⌘</kbd> + <kbd>C</kbd>                                                                                                       | Copy the contents of the selected cell(s) into the system clipboard                                                                                                                                               |
-| <kbd>Ctrl</kbd> + <kbd>X</kbd>                                                | <kbd>Cmd  ⌘</kbd> + <kbd>X</kbd>                                                                                                       | Cut the contents of the selected cell(s) into the system clipboard                                                                                                                                                |
-| <kbd>Ctrl</kbd> + <kbd>V</kbd>                                                | <kbd>Cmd  ⌘</kbd> + <kbd>V</kbd>                                                                                                       | Paste the contents of the system clipboard into the active cell                                                                                                                                                   |
-| <kbd>Ctrl</kbd> + <kbd>Z</kbd>                                                | <kbd>Cmd  ⌘</kbd> + <kbd>Z</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Z</kbd>                                                               | Delete the last typed entry (one character at a time)                                                                                                                                                             |
-| <kbd>Page Up</kbd>                                                            | <kbd>Page Up ⇞</kbd>                                                                                                                   | When editing:<br>save your changes, and move the selection one screen up                                                                                                                                          |
-| <kbd>Page Down</kbd>                                                          | <kbd>Page Down ⇟</kbd>                                                                                                                 | When editing:<br>save your changes, and move the selection one screen down                                                                                                                                        |
-| <kbd>Tab</kbd>                                                                | <kbd>Tab ⇥</kbd>                                                                                                                       | When editing:<br>save your changes, and move the selection one cell to the right<br>(depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction)) |
-| <kbd>Shift</kbd> + <kbd>Tab</kbd>                                             | <kbd>Shift ⇧</kbd> + <kbd>Tab ⇥</kbd>                                                                                                  | When editing:<br>save your changes, and move the selection one cell to the left<br>(depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))  |
-
-### Cell editor keyboard shortcuts
-
-These keyboard shortcuts work with particular [cell editors](@/guides/cell-functions/cell-editor.md).
-
-#### Checkbox cell editor
-
-These keyboard shortcuts work with the [checkbox](@/guides/cell-types/checkbox-cell-type.md) cell editor.
-
-| Windows                                         | macOS                                                    | Action                          |
-| ----------------------------------------------- | -------------------------------------------------------- | ------------------------------- |
-| <kbd>Enter</kbd><br>or<br><kbd>Space</kbd>      | <kbd>Enter ↵</kbd><br>or<br><kbd>Space</kbd>             | Select or deselect the checkbox |
-| <kbd>Backspace</kbd><br>or<br><kbd>Delete</kbd> | <kbd>Delete ⌫</kbd><br>or<br><kbd>Forward Delete ⌦</kbd> | Deselect the checkbox           |
-
-#### Select cell editor
-
-These keyboard shortcuts work with the [select](@/guides/cell-types/select-cell-type.md) cell editor.
-
-| Windows           | macOS             | Action               |
-| ----------------- | ----------------- | -------------------- |
-| <kbd>Up ↑</kbd>   | <kbd>Up ↑</kbd>   | Move one option up   |
-| <kbd>Down ↓</kbd> | <kbd>Down ↓</kbd> | Move one option down |
-
-#### [`BaseEditor`](@/guides/cell-functions/cell-editor.md#baseeditor)
-
-These keyboard shortcuts work with any [custom cell editor](@/guides/cell-functions/cell-editor.md#how-to-create-a-custom-editor) that's based on the [`BaseEditor`](@/guides/cell-functions/cell-editor.md#baseeditor).
-
-| Windows            | macOS              | Action                                   |
-| ------------------ | ------------------ | ---------------------------------------- |
-| <kbd>Up ↑</kbd>    | <kbd>Up ↑</kbd>    | Move the selection one cell up           |
-| <kbd>Down ↓</kbd>  | <kbd>Down ↓</kbd>  | Move the selection one cell down         |
-| <kbd>Right →</kbd> | <kbd>Right →</kbd> | Move the selection one cell to the right |
-| <kbd>Left ←</kbd>  | <kbd>Left ←</kbd>  | Move the selection one cell to the left  |
-
-### Plugin keyboard shortcuts
-
-These keyboard shortcuts work with particular [plugins](@/api/plugins.md).
-
-#### Undo and redo
-
-These keyboard shortcuts work with the [`UndoRedo`](@/api/undoredo.md) plugin.
-
-| Windows                                                                                   | macOS                                                                                                                                                                                                | Action                                    |
-| ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| <kbd>Ctrl</kbd> + <kbd>Z</kbd>                                                            | <kbd>Cmd  ⌘</kbd> + <kbd>Z</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Z</kbd>                                                                                                                             | Undo the last action                      |
-| <kbd>Ctrl</kbd> + <kbd>Y</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | <kbd>Cmd  ⌘</kbd> + <kbd>Y</kbd><br>or<br><kbd>Cmd  ⌘</kbd> + <kbd>Shift ⇧</kbd> + <kbd>Z</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Y</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Shift ⇧</kbd> + <kbd>Z</kbd> | When not editing:<br>redo the last action |
-
-#### Context menu
-
-These keyboard shortcuts work with the [`ContextMenu`](@/api/contextmenu.md) plugin.
-
-| Windows              | macOS                  | Action                              |
-| -------------------- | ---------------------- | ----------------------------------- |
-| <kbd>Up ↑</kbd>      | <kbd>Up ↑</kbd>        | Move one menu item up               |
-| <kbd>Down ↓</kbd>    | <kbd>Down ↓</kbd>      | Move one menu item down             |
-| <kbd>Right →</kbd>   | <kbd>Right →</kbd>     | Move one menu item to the right     |
-| <kbd>Left ←</kbd>    | <kbd>Left ←</kbd>      | Move one menu item to the left      |
-| <kbd>Enter</kbd>     | <kbd>Enter ↵</kbd>     | Select the active menu item         |
-| <kbd>Esc</kbd>       | <kbd>Esc ⎋</kbd>       | Close the context menu (or submenu) |
-| <kbd>Page Up</kbd>   | <kbd>Page Up ⇞</kbd>   | Move to the menu's first item       |
-| <kbd>Page Down</kbd> | <kbd>Page Down ⇟</kbd> | Move to the menu's last item        |
 
 ## Custom keyboard shortcuts
 
@@ -222,12 +106,12 @@ To add a custom keyboard shortcut:
     - Handles key-name discrepancies between browsers (e.g., both `'Spacebar'` and `' '` work)
     - Accepts key names in any order (e.g., both `[['control', 'a']]` and `[['a', 'control']]`) work)
     ::: tip
-    **Using the <kbd>Alt</kbd> (<kbd>Option ⌥</kbd>) modifier key**
+    **Using the <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) modifier key**
     
-    <kbd>Alt</kbd> (<kbd>Option ⌥</kbd>) is often used for typing special characters (e.g., letters wich diacritical marks),
+    <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) is often used for typing special characters (e.g., letters wich diacritical marks),
     and its behavior may vary depending on the user's language and keyboard settings.
     
-    To properly use <kbd>Alt</kbd> (<kbd>Option ⌥</kbd>) in your shortcut, you may need to pass language-specific signs (such as `à` or `ś`) to the [`keys`](@/api/shortcutcontext.md#addshortcut) parameter.
+    To properly use <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) in your shortcut, you may need to pass language-specific signs (such as `à` or `ś`) to the [`keys`](@/api/shortcutcontext.md#addshortcut) parameter.
     :::
 
 #### Adding a conditional keyboard action
@@ -323,3 +207,149 @@ hot.addHook('beforeKeyDown', (event) => {
   }
 });
 ```
+
+## Default keyboard shortcuts
+
+By default, Handsontable features the keyboard shortcuts listed below.
+
+### Navigation keyboard shortcuts
+
+These keyboard shortcuts work when you navigate the grid. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for additional plugins.
+
+| Windows                                           | macOS                                             | Action                                                                                                 |  Excel  | Sheets  |
+| ------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | :-----: | :-----: |
+| Arrow keys                                        | Arrow keys                                        | Move one cell up, down, left, or right                                                                 | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**↑**</kbd>      | <kbd>**Cmd**</kbd><br>+<br><kbd>**↑**</kbd>       | Move to the first cell of the current column                                                           | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**↓**</kbd>      | <kbd>**Cmd**</kbd><br>+<br><kbd>**↓**</kbd>       | Move to the last cell of the current column                                                            | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**←**</kbd>      | <kbd>**Cmd**</kbd><br>+<br><kbd>**←**</kbd>       | Move to the leftmost cell of the current row                                                           | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**→**</kbd>      | <kbd>**Cmd**</kbd><br>+<br><kbd>**→**</kbd>       | Move to the rightmost cell of the current row                                                          | &check; | &check; |
+| <kbd>**Enter**</kbd>                              | <kbd>**Enter**</kbd>                              | Enter the editing mode of the active cell                                                              | &cross; | &check; |
+| <kbd>**Shift**</kbd><br>+<br><kbd>**Enter**</kbd> | <kbd>**Shift**</kbd><br>+<br><kbd>**Enter**</kbd> | Enter the editing mode of the active cell                                                              | &cross; | &check; |
+| <kbd>**F2**</kbd>                                 | <kbd>**F2**</kbd>                                 | Enter the editing mode of the active cell                                                              | &check; | &check; |
+| Alphanumeric keys                                 | Alphanumeric keys                                 | Enter the editing mode of the active cell,<br>and enter the pressed key's value into the cell          | &check; | &check; |
+| <kbd>**Tab**</kbd>                                | <kbd>**Tab**</kbd>                                | Move to the next cell<sup>*</sup><br><br>If there's only one column available,<br>move one cell down   | &check; | &check; |
+| <kbd>**Shift**</kbd><br>+<br><kbd>**Tab**</kbd>   | <kbd>**Shift**</kbd><br>+<br><kbd>**Tab**</kbd>   | Move to the previous cell<sup>*</sup><br><br>If there's only one column available,<br>move one cell up | &check; | &check; |
+| <kbd>**Home**</kbd>                               | <kbd>**Home**</kbd>                               | Move to the first non-frozen cell of the current row<sup>*</sup>                                       | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Home**</kbd>   | <kbd>**Cmd**</kbd><br>+<br><kbd>**Home**</kbd>    | Move to the first non-frozen cell of the grid<sup>*</sup>                                              | &cross; | &check; |
+| <kbd>**End**</kbd>                                | <kbd>**End**</kbd>                                | Move to the last non-frozen cell of the current row<sup>*</sup>                                        | &cross; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**End**</kbd>    | <kbd>**Cmd**</kbd><br>+<br><kbd>**End**</kbd>     | Move to the last non-frozen cell of the grid<sup>*</sup>                                               | &cross; | &check; |
+| <kbd>**Page Up**</kbd>                            | <kbd>**Page Up**</kbd>                            | Move one screen up                                                                                     | &check; | &check; |
+| <kbd>**Page Down**</kbd>                          | <kbd>**Page Down**</kbd>                          | Move one screen down                                                                                   | &check; | &check; |
+
+<sup>*</sup> The action depends on Handsontable's [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction).
+
+### Selection keyboard shortcuts
+
+These keyboard shortcuts help you select cells. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for additional plugins.
+
+| Windows                                                                   | macOS                                                                    | Action                                                                           |  Excel  | Sheets  |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**A**</kbd>                              | <kbd>**Cmd**</kbd><br>+<br><kbd>**A**</kbd>                              | Select all cells and headers                                                     | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**↑**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**↑**</kbd> | Extend the selection to the first cell of the current column                     | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**↓**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**↓**</kbd> | Extend the selection to the last cell of the current column                      | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**←**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**←**</kbd> | Extend the selection to the leftmost cell of the current row                     | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**→**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**→**</kbd> | Extend the selection to the rightmost cell of the current row                    | &check; | &check; |
+| <kbd>**Shift**</kbd><br>+<br>Arrow keys                                   | <kbd>**Shift**</kbd><br>+<br>Arrow keys                                  | Extend the selection by one cell                                                 | &check; | &check; |
+| <kbd>**Shift**</kbd><br>+<br><kbd>**Home**</kbd>                          | <kbd>**Shift**</kbd><br>+<br><kbd>**Home**</kbd>                         | Extend the selection to the first non-frozen cell of the current row<sup>*</sup> | &check; | &cross; |
+| <kbd>**Shift**</kbd><br>+<br><kbd>**End**</kbd>                           | <kbd>**Shift**</kbd><br>+<br><kbd>**End**</kbd>                          | Extend the selection to the last non-frozen cell of the current row<sup>*</sup>  | &cross; | &cross; |
+| <kbd>**Shift**</kbd><br>+<br><kbd>**Page Up**</kbd>                       | <kbd>**Shift**</kbd><br>+<br><kbd>**Page Up**</kbd>                      | Extend the selection by one screen up                                            | &check; | &check; |
+| <kbd>**Shift**</kbd><br>+<br><kbd>**Page Down**</kbd>                     | <kbd>**Shift**</kbd><br>+<br><kbd>**Page Down**</kbd>                    | Extend the selection by one screen down                                          | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Enter**</kbd>                          | <kbd>**Cmd**</kbd><br>+<br><kbd>**Enter**</kbd>                          | Fill the selected range of cells with the value of the active cell               | &cross; | &check; |
+| <kbd>**Delete**</kbd>                                                     | <kbd>**Delete**</kbd>                                                    | Clear the contents of the selected cells                                         | &check; | &check; |
+| <kbd>**Backspace**</kbd>                                                  | <kbd>**Backspace**</kbd>                                                 | Clear the contents of the selected cells                                         | &check; | &check; |
+
+<sup>*</sup> The action depends on Handsontable's [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction).
+
+### Edition keyboard shortcuts
+
+These keyboard shortcuts work when you're editing a cell's contents. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for additional plugins.
+
+| Windows                                                             | macOS                                                                 | Action                                                               |  Excel  | Sheets  |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- | :-----: | :-----: |
+| Arrow keys                                                          | Arrow keys                                                            | Move the cursor through the text                                     | &check; | &check; |
+| Alphanumeric keys                                                   | Alphanumeric keys                                                     | Enter the pressed key's value into the cell                          | &check; | &check; |
+| <kbd>**Enter**</kbd>                                                | <kbd>**Enter**</kbd>                                                  | Complete the cell entry<br>and move to the cell below                | &check; | &check; |
+| <kbd>**Shift**</kbd><br>+<br><kbd>**Enter**</kbd>                   | <kbd>**Shift**</kbd><br>+<br><kbd>**Enter**</kbd>                     | Complete the cell entry<br>and move to the cell above                | &check; | &check; |
+| <kbd>**Tab**</kbd>                                                  | <kbd>**Tab**</kbd>                                                    | Complete the cell entry<br>and move to the next cell<sup>*</sup>     | &check; | &check; |
+| <kbd>**Shift**</kbd><br>+<br><kbd>**Tab**</kbd>                     | <kbd>**Shift**</kbd><br>+<br><kbd>**Tab**</kbd>                       | Complete the cell entry<br>and move to the previous cell<sup>*</sup> | &check; | &check; |
+| <kbd>**Delete**</kbd>                                               | <kbd>**Delete**</kbd>                                                 | Delete one character after the cursor<sup>*</sup>                    | &check; | &check; |
+| <kbd>**Backspace**</kbd>                                            | <kbd>**Backspace**</kbd>                                              | Delete one character before the cursor<sup>*</sup>                   | &check; | &check; |
+| <kbd>**Home**</kbd>                                                 | <kbd>**Home**</kbd>                                                   | Move the cursor to the beginning of the text<sup>*</sup>             | &check; | &check; |
+| <kbd>**End**</kbd>                                                  | <kbd>**End**</kbd>                                                    | Move the cursor to the end of the text<sup>*</sup>                   | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br>Arrow keys                              | <kbd>**Cmd**</kbd><br>+<br>Arrow keys                                 | Move the cursor to the beginning or to the end of the text           | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br>Arrow keys | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br>Arrow keys    | Extend the selection to the beginning or to the end of the text      | &check; | &check; |
+| <kbd>**Page Up**</kbd>                                              | <kbd>**Page Up**</kbd>                                                | Complete the cell entry<br>and move one screen up                    | &check; | &check; |
+| <kbd>**Page Down**</kbd>                                            | <kbd>**Page Down**</kbd>                                              | Complete the cell entry<br>and move one screen down                  | &check; | &check; |
+| <kbd>**Alt**</kbd><br>+<br><kbd>**Enter**</kbd>                     | <kbd>**Option**</kbd><br>+<br><kbd>**Enter**</kbd>                    | Insert a line break                                                  | &cross; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Enter**</kbd>                    | <kbd>**Ctrl**</kbd> / <kbd>**Cmd**</kbd><br>+<br><kbd>**Enter**</kbd> | Insert a line break                                                  | &cross; | &check; |
+| <kbd>**Escape**</kbd>                                               | <kbd>**Escape**</kbd>                                                 | Cancel the cell entry<br>and exit the editing mode                   | &check; | &check; |
+
+<sup>*</sup> The action depends on Handsontable's [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction).
+
+### Clipboard keyboard shortcuts
+
+These keyboard shortcuts help you perform clipboard operations. To activate them, enable the [`CopyPaste`](@/api/copypaste.md) plugin.
+
+| Windows                                      | macOS                                       | Action                                                          |  Excel  | Sheets  |
+| -------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**X**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**X**</kbd> | Cut the contents of the selected cells to the system clipboard  | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**C**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**V**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
+
+### Plugin keyboard shortcuts
+
+These keyboard shortcuts work with particular plugins.
+
+#### Cell merging keyboard shortcuts
+
+These keyboard shortcuts work when the [`MergeCells`](@/api/mergecells.md) plugin is enabled.
+
+| Windows                                      | macOS                                        | Action                              |  Excel  | Sheets  |
+| -------------------------------------------- | -------------------------------------------- | ----------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**M**</kbd> | <kbd>**Ctrl**</kbd><br>+<br><kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
+
+#### Undo and redo keyboard shortcuts
+
+These keyboard shortcuts work when the [`UndoRedo`](@/api/undoredo.md) plugin is enabled.
+
+| Windows                                                                   | macOS                                                                    | Action               |  Excel  | Sheets  |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Z**</kbd>                              | <kbd>**Cmd**</kbd><br>+<br><kbd>**Z**</kbd>                              | Undo the last action | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Y**</kbd>                              | <kbd>**Cmd**</kbd><br>+<br><kbd>**Y**</kbd>                              | Redo the last action | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**Z**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**Z**</kbd> | Redo the last action | &check; | &check; |
+
+#### Context menu keyboard shortcuts
+
+These keyboard shortcuts work in context menus. To activate them, enable the [`ContextMenu`](@/api/contextmenu.md) plugin.
+
+| Windows                                           | macOS                                               | Action                                                |  Excel  | Sheets  |
+| ------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------- | :-----: | :-----: |
+| Arrow keys                                        | Arrow keys                                          | Move one available menu item up, down, left, or right | &check; | &check; |
+| <kbd>**Escape**</kbd>                             | <kbd>**Escape**</kbd>                               | Close the context menu or submenu                     | &check; | &check; |
+| <kbd>**Alt**</kbd><br>+<br><kbd>**Escape**</kbd>  | <kbd>**Option**</kbd><br>+<br><kbd>**Escape**</kbd> | Close the context menu or submenu                     | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Escape**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Escape**</kbd>    | Close the context menu or submenu                     | &check; | &cross; |
+| <kbd>**Enter**</kbd>                              | <kbd>**Enter**</kbd>                                | Run the action of the selected menu item              | &check; | &cross; |
+
+### Cell editor keyboard shortcuts
+
+These keyboard shortcuts work in particular cell editors.
+
+#### Checkbox keyboard shortcuts
+
+These keyboard shortcuts work in the [checkbox](@/guides/cell-types/checkbox-cell-type.md) cell editor.
+
+| Windows                  | macOS                    | Action                        |  Excel  | Sheets  |
+| ------------------------ | ------------------------ | ----------------------------- | :-----: | :-----: |
+| <kbd>**Space**</kbd>     | <kbd>**Space**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
+| <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
+| <kbd>**Delete**</kbd>    | <kbd>**Delete**</kbd>    | Uncheck the checkbox          | &cross; | &check; |
+| <kbd>**Backspace**</kbd> | <kbd>**Backspace**</kbd> | Uncheck the checkbox          | &cross; | &check; |
+
+#### `handsontable` cell editor keyboard shortcuts
+
+These keyboard shortcuts work in the [`handsontable`](@/guides/cell-types/handsontable-cell-type.md) cell editor.
+
+| Windows          | macOS            | Action                                 |  Excel  | Sheets  |
+| ---------------- | ---------------- | -------------------------------------- | :-----: | :-----: |
+| <kbd>**↑**</kbd> | <kbd>**↑**</kbd> | Move to the cell above the active cell | &cross; | &cross; |
+| <kbd>**↓**</kbd> | <kbd>**↓**</kbd> | Move to the cell below the active cell | &cross; | &cross; |
