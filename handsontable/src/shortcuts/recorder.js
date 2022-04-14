@@ -1,7 +1,9 @@
 import { createKeysObserver } from './keyObserver';
 import { normalizeEventKey } from './utils';
 import { isImmediatePropagationStopped } from '../helpers/dom/event';
+import { isMacOS } from '../helpers/browser';
 
+const MODIFIER_KEYS = ['meta', 'alt', 'shift', 'control'];
 const modifierKeysObserver = createKeysObserver();
 
 /**
@@ -14,8 +16,6 @@ const modifierKeysObserver = createKeysObserver();
  * @returns {object}
  */
 export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) {
-  const modifierKeys = ['meta', 'alt', 'shift', 'control'];
-
   /**
    * Get whether pressed key is observed key.
    *
@@ -23,7 +23,7 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
    * @returns {boolean}
    */
   const isModifierKey = (pressedKey) => {
-    return modifierKeys.includes(pressedKey);
+    return MODIFIER_KEYS.includes(pressedKey);
   };
 
   /**
@@ -31,21 +31,31 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
    *
    * @private
    * @param {KeyboardEvent} event The event object.
-   * @returns {Array}
+   * @param {boolean} [mergeMetaKeys=false] If `true,` the function will return the "control" and "meta"
+   *                                        modifiers keys as the "control/meta" name. This allows creating
+   *                                        keyboard shortcuts with modifier key that trigger the shortcut
+   *                                        actions depend on the OS keyboard layout (the Meta key for macOS
+   *                                        and Control for non macOS system).
+   * @returns {string[]}
    */
-  const getModifierKeys = (event) => {
+  const getPressedModifierKeys = (event, mergeMetaKeys = false) => {
     const pressedModifierKeys = [];
 
     if (event.altKey) {
       pressedModifierKeys.push('alt');
     }
 
-    if (event.ctrlKey) {
-      pressedModifierKeys.push('control');
-    }
+    if (mergeMetaKeys && (event.ctrlKey || event.metaKey)) {
+      pressedModifierKeys.push('control/meta');
 
-    if (event.metaKey) {
-      pressedModifierKeys.push('meta');
+    } else {
+      if (event.ctrlKey) {
+        pressedModifierKeys.push('control');
+      }
+
+      if (event.metaKey) {
+        pressedModifierKeys.push('meta');
+      }
     }
 
     if (event.shiftKey) {
@@ -75,12 +85,17 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
       modifierKeysObserver.press(pressedKey);
 
     } else {
-      extraModifierKeys = getModifierKeys(event);
+      extraModifierKeys = getPressedModifierKeys(event);
     }
 
     const pressedKeys = [pressedKey].concat(extraModifierKeys);
+    const isExecutionCancelled = callback(event, pressedKeys);
 
-    callback(event, pressedKeys);
+    if (!isExecutionCancelled &&
+        (isMacOS() && extraModifierKeys.includes('meta') || !isMacOS() && extraModifierKeys.includes('control'))) {
+      // Trigger the callback for the virtual OS-dependent "control/meta" key
+      callback(event, [pressedKey].concat(getPressedModifierKeys(event, true)));
+    }
 
     afterKeyDown(event);
   };

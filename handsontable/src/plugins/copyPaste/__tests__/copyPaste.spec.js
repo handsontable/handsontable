@@ -656,7 +656,7 @@ describe('CopyPaste', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['control', 'v']);
+      keyDownUp(['control/meta', 'v']);
       triggerPaste('Kia');
 
       await sleep(60);
@@ -682,7 +682,7 @@ describe('CopyPaste', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['control', 'v']);
+      keyDownUp(['control/meta', 'v']);
       triggerPaste('Kia');
 
       await sleep(60);
@@ -699,7 +699,7 @@ describe('CopyPaste', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['control', 'v']);
+      keyDownUp(['control/meta', 'v']);
       triggerPaste('Kia\nToyota');
 
       await sleep(60);

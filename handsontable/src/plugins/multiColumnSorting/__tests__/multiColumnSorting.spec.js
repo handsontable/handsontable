@@ -3036,11 +3036,11 @@ describe('MultiColumnSorting', () => {
 
       spec().sortByClickOnColumnHeader(2);
 
-      keyDown('control');
+      keyDown('control/meta');
 
       spec().sortByClickOnColumnHeader(3);
 
-      keyUp('control');
+      keyUp('control/meta');
 
       expect(getDataAtCol(0)).toEqual(['Ann', 'Mary', 'Mary', 'Henry', 'Robert', 'David', 'John', 'Robert', 'Ann']);
     });
@@ -3062,7 +3062,7 @@ describe('MultiColumnSorting', () => {
       // ASC
       spec().sortByClickOnColumnHeader(0);
 
-      keyDown('control');
+      keyDown('control/meta');
 
       // ASC as 2nd
       spec().sortByClickOnColumnHeader(1);
@@ -3070,7 +3070,7 @@ describe('MultiColumnSorting', () => {
       // DESC as 2nd
       spec().sortByClickOnColumnHeader(0);
 
-      keyUp('control');
+      keyUp('control/meta');
 
       expect(getDataAtCol(0)).toEqual(['Mary', 'Mary', 'John', 'Robert', 'Robert', 'Ann', 'Henry', 'David', 'Ann']);
     });
@@ -3448,7 +3448,7 @@ describe('MultiColumnSorting', () => {
 
     spec().sortByClickOnColumnHeader(2);
 
-    keyDown('control');
+    keyDown('control/meta');
 
     spec().sortByClickOnColumnHeader(3);
 
@@ -3473,11 +3473,11 @@ describe('MultiColumnSorting', () => {
 
     spec().sortByClickOnColumnHeader(2);
 
-    keyDown('control');
+    keyDown('control/meta');
 
     spec().sortByClickOnColumnHeader(3);
 
-    keyUp('control');
+    keyUp('control/meta');
 
     let sortedColumn1 = spec().$container.find('th span.columnSorting')[2];
     let sortedColumn2 = spec().$container.find('th span.columnSorting')[3];
@@ -3494,11 +3494,11 @@ describe('MultiColumnSorting', () => {
 
     spec().sortByClickOnColumnHeader(0);
 
-    keyDown('control');
+    keyDown('control/meta');
 
     spec().sortByClickOnColumnHeader(1);
 
-    keyUp('control');
+    keyUp('control/meta');
 
     sortedColumn1 = spec().$container.find('th span.columnSorting')[0];
     sortedColumn2 = spec().$container.find('th span.columnSorting')[1];
@@ -3515,11 +3515,11 @@ describe('MultiColumnSorting', () => {
 
     spec().sortByClickOnColumnHeader(2);
 
-    keyDown('control');
+    keyDown('control/meta');
 
     spec().sortByClickOnColumnHeader(3);
 
-    keyUp('control');
+    keyUp('control/meta');
 
     sortedColumn1 = spec().$container.find('th span.columnSorting')[2];
     sortedColumn2 = spec().$container.find('th span.columnSorting')[3];

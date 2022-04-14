@@ -1,0 +1,7 @@
+{
+  "title": "Distinguished the meta keys (Cmd/Ctrl) depending on OS. The Command key is used to trigger the keyboard shortcut actions on macOS and the Control key on non-macOS systems.",
+  "type": "changed",
+  "issue": 9369,
+  "breaking": true,
+  "framework": "none"
+}
