@@ -15,6 +15,7 @@ import { autoResize } from '../../3rdparty/autoResize';
 import { isDefined } from '../../helpers/mixed';
 import { SHORTCUTS_GROUP_NAVIGATION, SHORTCUTS_GROUP_EDITOR as EDITOR_MANAGER_GROUP } from '../../editorManager';
 import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
+import { updateCaretPosition } from './caretPositioner';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
@@ -522,6 +523,16 @@ export class TextEditor extends BaseEditor {
       callback: () => {
         this.hot.selection.transformStart(this.hot.countVisibleRows(), 0);
       }
+    }, {
+      keys: [['Home']],
+      callback: (event, [keyName]) => {
+        updateCaretPosition(keyName, this.TEXTAREA);
+      },
+    }, {
+      keys: [['End']],
+      callback: (event, [keyName]) => {
+        updateCaretPosition(keyName, this.TEXTAREA);
+      },
     }], contextConfig);
   }
 

@@ -1630,6 +1630,46 @@ describe('TextEditor', () => {
     expect(hot.getActiveEditor().TEXTAREA.value).toEqual('Ma\n\n\nserati');
   });
 
+  it('should move the caret position to the beginning of the line after pressing HOME key', () => {
+    handsontable({
+      data: [
+        ['Maserati', 'Mazda'],
+        ['Honda', 'Mini']
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    const editorElement = getActiveEditor().TEXTAREA;
+
+    Handsontable.dom.setCaretPosition(editorElement, 2);
+
+    keyDownUp('home');
+
+    expect(Handsontable.dom.getCaretPosition(editorElement)).toBe(0);
+  });
+
+  it('should move the caret position to the end of the line after pressing END key', () => {
+    handsontable({
+      data: [
+        ['Maserati', 'Mazda'],
+        ['Honda', 'Mini']
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    const editorElement = getActiveEditor().TEXTAREA;
+
+    Handsontable.dom.setCaretPosition(editorElement, 2);
+
+    keyDownUp('end');
+
+    expect(Handsontable.dom.getCaretPosition(editorElement)).toBe(8);
+  });
+
   it('should exceed the editor height only for one line when pressing ALT + ENTER, CTRL + ENTER or META + ENTER', () => {
     const data = [
       ['Maserati', 'Mazda'],
