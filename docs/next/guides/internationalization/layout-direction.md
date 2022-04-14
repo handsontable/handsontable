@@ -47,7 +47,7 @@ To try out Handsontable's RTL support, check out the demo below:
 ```js
 const container = document.querySelector('#example1');
 
-// generate random RTL data (e.g. Arabic)
+// generate random RTL data (e.g., Arabic)
 function generateArabicData() {
   const randomName = () =>
   ["عمر", "علي", "عبد الله", "معتصم"][Math.floor(Math.random() * 3)];
@@ -83,7 +83,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   // render Handsontable from the right to the left
   layoutDirection: 'rtl',
-  // load an RTL language (e.g. Arabic)
+  // load an RTL language (e.g., Arabic)
   language: 'ar-AR',
   // enable a few options that exemplify the layout direction
   dropdownMenu: true,
@@ -115,7 +115,7 @@ The list above is not exhaustive. Setting a different layout direction might aff
 
 ## Setting the layout direction
 
-You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the [`layoutDirection`](@/api/options.md#layoutdirection) option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
+You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the [`layoutDirection`](@/api/options.md#layoutdirection) option after the initialization (e.g., using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
 
 ### Setting the layout direction automatically
 

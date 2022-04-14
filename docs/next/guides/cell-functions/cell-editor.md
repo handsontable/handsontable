@@ -238,7 +238,7 @@ This method does not need to return any value.
 
 ### Common editor properties
 
-All the undermentioned properties are available in editor instance through `this` object (e.g. `this.instance`).
+All the undermentioned properties are available in editor instance through `this` object (e.g., `this.instance`).
 
  Property | Type        | Description
 ----------|-------------|-------------

@@ -150,13 +150,13 @@ These keyboard shortcuts work with the [`ContextMenu`](@/api/contextmenu.md) plu
 
 ## Custom keyboard shortcuts
 
-You can customize your keyboard shortcuts, using the [`ShortcutManager` API](@/api/shortcutmanager.md).
+You can customize your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutmanager.md) API.
 
 1. Access the [`ShortcutManager`](@/api/shortcutmanager.md) API:
     ```js
     hot.getShortcutManager()
     ```
-2. Select a [keyboard shortcut context](#keyboard-shortcut-contexts), for example:
+2. Select a keyboard shortcut [context](#keyboard-shortcut-contexts), for example:
     ```js
     const gridContext = hot.getShortcutManager().getContext('grid');
     ```
@@ -192,12 +192,12 @@ Only one context is active at a time.
 Using the [`ShortcutManager`](@/api/shortcutmanager.md) API methods, you can:
 
 - Get the name of the currently-active context: [`getActiveContextName()`](@/api/shortcutmanager.md#getactivecontextname)
-- Switch to a different context: [`setActiveContextName(<name>)`](@/api/shortcutmanager.md#setactivecontextname)
-- Get an already-registered context: [`getContext(<name>)`](@/api/shortcutmanager.md#getcontext)
-- Create and register a new context: [`addContext(<name>)`](@/api/shortcutmanager.md#addcontext)
+- Switch to a different context: [`setActiveContextName()`](@/api/shortcutmanager.md#setactivecontextname)
+- Get an already-registered context: [`getContext()`](@/api/shortcutmanager.md#getcontext)
+- Create and register a new context: [`addContext()`](@/api/shortcutmanager.md#addcontext)
 
-For example, if you're using a complex [custom editor](@/guides/cell-functions/cell-editor.md##how-to-create-a-custom-editor), 
-creating a new shortcut context can let you navigate your editor's UI with arrow keys (normally used for navigating the grid).
+For example: if you're using a complex [custom editor](@/guides/cell-functions/cell-editor.md#how-to-create-a-custom-editor), 
+you can create a new shortcut context to navigate your editor's UI with the arrow keys (normally, the arrow keys would navigate the grid instead).
 
 ### Adding a custom keyboard shortcut
 
@@ -218,13 +218,13 @@ To add a custom keyboard shortcut:
     ```
     The [`keys`](@/api/shortcutcontext.md#addshortcut) parameter:
     - Accepts all the [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) key names.
-    - Accepts key names in both lowercase and uppercase (e.g. both `Enter` and `enter` work)
-    - Handles key-name discrepancies between browsers (e.g. both `'Spacebar'` and `' '` work)
-    - Accepts key names in any order (e.g. both `[['control', 'a']]` and `[['a', 'control']]`) work)
+    - Accepts key names in both lowercase and uppercase (e.g., both `Enter` and `enter` work)
+    - Handles key-name discrepancies between browsers (e.g., both `'Spacebar'` and `' '` work)
+    - Accepts key names in any order (e.g., both `[['control', 'a']]` and `[['a', 'control']]`) work)
     ::: tip
     **Using the <kbd>Alt</kbd> (<kbd>Option ⌥</kbd>) modifier key**
     
-    <kbd>Alt</kbd> (<kbd>Option ⌥</kbd>) is often used for typing special characters (e.g. letters wich diacritical marks),
+    <kbd>Alt</kbd> (<kbd>Option ⌥</kbd>) is often used for typing special characters (e.g., letters wich diacritical marks),
     and its behavior may vary depending on the user's language and keyboard settings.
     
     To properly use <kbd>Alt</kbd> (<kbd>Option ⌥</kbd>) in your shortcut, you may need to pass language-specific signs (such as `à` or `ś`) to the [`keys`](@/api/shortcutcontext.md#addshortcut) parameter.
@@ -232,7 +232,7 @@ To add a custom keyboard shortcut:
 
 #### Adding a conditional keyboard action
 
-To make a keyboard action run on a certain condition, set the `runOnlyIf` parameter to a function:
+To make a keyboard action run on a certain condition, set the [`runOnlyIf`](@/api/shortcutcontext.md#addshortcut) parameter to a function:
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
@@ -247,9 +247,9 @@ gridContext.addShortcut({
 
 #### Setting the order of keyboard actions
 
-You can assign multiple actions to a single keyboard shortcut. By default, when you assign a new action, it runs after any already-assigned actions.
+You can assign multiple actions to a single keyboard shortcut.
 
-To set your own order of actions, use the `position` and `relativeToGroup` parameters of the [`addShortcut()`](@/api/shortcutcontext.md#addshortcut) method:
+By default, when you assign a new action, it runs after any other actions that were assigned previously. To set your own order of actions, use the [`position`](@/api/shortcutcontext.md#addshortcut) and [`relativeToGroup`](@/api/shortcutcontext.md#addshortcut) parameters of the [`addShortcut()`](@/api/shortcutcontext.md#addshortcut) method:
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
@@ -272,7 +272,7 @@ gridContext.addShortcut({
 
 ### Removing a keyboard shortcut
 
-To remove a keyboard shortcut (e.g. one of the [default keyboard shortcuts](#default-keyboard-shortcuts)):
+To remove a keyboard shortcut (e.g., one of the [default](#default-keyboard-shortcuts) keyboard shortcuts):
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to remove a keyboard shortcut.
 2. Use the selected context's [`removeShortcutsByKeys()`](@/api/shortcutcontext.md#removeshortcutsbykeys) method.
 ```js
@@ -294,7 +294,7 @@ gridContext.removeShortcutsByGroup('group_ID');
 
 To replace a keyboard shortcut:
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to replace a keyboard shortcut.
-2. Using the selected context's [`getShortcuts()`](@/api/shortcutcontext.md#getshortcuts) method, get the old keyboard shortcut.
+2. Get the old keyboard shortcut, using the selected context's [`getShortcuts()`](@/api/shortcutcontext.md#getshortcuts) method.
 3. Remove the old keyboard shortcut, using the selected context's [`removeShortcutsByKeys()`](@/api/shortcutcontext.md#removeshortcutsbykeys) method.
 4. Replace the `keys` property of the old keyboard shortcut with your new array of keys.
 5. Add your new keyboard shortcut, using the selected context's [`addShortcuts()`](@/api/shortcutcontext.md#addshortcuts) method.

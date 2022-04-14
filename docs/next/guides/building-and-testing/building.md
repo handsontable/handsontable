@@ -57,7 +57,7 @@ For more information on the distribution packages, see [this file](https://githu
 Handsontable building processes require:
 - [Node.js](https://nodejs.org/) (version **15.11**+)
 - [npm](https://www.npmjs.com/) (version **7.17**+)
-- Node modules installed through `npm install` (e.g. [webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/))
+- Node modules installed through `npm install` (e.g., [webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/))
 
 ### `package.json` files
 

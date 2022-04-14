@@ -105,7 +105,7 @@ Handsontable 12.0.0 changes the way the [`afterDocumentKeyDown`](@/api/hooks.md#
 
 #### Before
 
-When you used a keyboard to navigate an internal Handsontable instance (e.g. a [context menu](@/guides/accessories-and-menus/context-menu.md)), the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook got fired on every key press.
+When you used a keyboard to navigate an internal Handsontable instance (e.g., a [context menu](@/guides/accessories-and-menus/context-menu.md)), the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook got fired on every key press.
 
 ```js
 afterDocumentKeyDown() {
@@ -117,7 +117,7 @@ afterDocumentKeyDown() {
 
 #### After
 
-When you use a keyboard to navigate some internal instances of Handsontable (e.g. a [context menu](@/guides/accessories-and-menus/context-menu.md)), the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook may not get fired anymore.
+When you use a keyboard to navigate some internal instances of Handsontable (e.g., a [context menu](@/guides/accessories-and-menus/context-menu.md)), the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook may not get fired anymore.
 
 ```js
 afterDocumentKeyDown() {
