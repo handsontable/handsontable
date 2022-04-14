@@ -286,19 +286,39 @@ These keyboard shortcuts work when you're editing a cell's contents. They come f
 
 <sup>*</sup> This action depends on Handsontable's [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction).
 
-### Clipboard keyboard shortcuts
+#### Checkbox editor keyboard shortcuts
 
-These keyboard shortcuts help you perform clipboard operations. To activate them, enable the [`CopyPaste`](@/api/copypaste.md) plugin.
+These keyboard shortcuts work in the [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell editor.
+
+| Windows                  | macOS                    | Action                        |  Excel  | Sheets  |
+| ------------------------ | ------------------------ | ----------------------------- | :-----: | :-----: |
+| <kbd>**Space**</kbd>     | <kbd>**Space**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
+| <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
+| <kbd>**Delete**</kbd>    | <kbd>**Delete**</kbd>    | Uncheck the checkbox          | &cross; | &check; |
+| <kbd>**Backspace**</kbd> | <kbd>**Backspace**</kbd> | Uncheck the checkbox          | &cross; | &check; |
+
+#### `handsontable` editor keyboard shortcuts
+
+These keyboard shortcuts work in the [`handsontable`](@/guides/cell-types/handsontable-cell-type.md) cell editor.
+
+| Windows          | macOS            | Action                                 |  Excel  | Sheets  |
+| ---------------- | ---------------- | -------------------------------------- | :-----: | :-----: |
+| <kbd>**↑**</kbd> | <kbd>**↑**</kbd> | Move to the cell above the active cell | &cross; | &cross; |
+| <kbd>**↓**</kbd> | <kbd>**↓**</kbd> | Move to the cell below the active cell | &cross; | &cross; |
+
+### Plugin keyboard shortcuts
+
+These keyboard shortcuts work with particular plugins.
+
+#### Clipboard keyboard shortcuts
+
+These keyboard shortcuts work when the [`CopyPaste`](@/api/copypaste.md) plugin is enabled.
 
 | Windows                                      | macOS                                       | Action                                                          |  Excel  | Sheets  |
 | -------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------- | :-----: | :-----: |
 | <kbd>**Ctrl**</kbd><br>+<br><kbd>**X**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**X**</kbd> | Cut the contents of the selected cells to the system clipboard  | &check; | &check; |
 | <kbd>**Ctrl**</kbd><br>+<br><kbd>**C**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
 | <kbd>**Ctrl**</kbd><br>+<br><kbd>**V**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
-
-### Plugin keyboard shortcuts
-
-These keyboard shortcuts work with particular plugins.
 
 #### Cell merging keyboard shortcuts
 
@@ -329,27 +349,3 @@ These keyboard shortcuts work in context menus. To activate them, enable the [`C
 | <kbd>**Alt**</kbd><br>+<br><kbd>**Escape**</kbd>  | <kbd>**Option**</kbd><br>+<br><kbd>**Escape**</kbd> | Close the context menu or submenu                     | &check; | &check; |
 | <kbd>**Ctrl**</kbd><br>+<br><kbd>**Escape**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Escape**</kbd>    | Close the context menu or submenu                     | &check; | &cross; |
 | <kbd>**Enter**</kbd>                              | <kbd>**Enter**</kbd>                                | Run the action of the selected menu item              | &check; | &cross; |
-
-### Cell editor keyboard shortcuts
-
-These keyboard shortcuts work in particular cell editors.
-
-#### Checkbox keyboard shortcuts
-
-These keyboard shortcuts work in the [checkbox](@/guides/cell-types/checkbox-cell-type.md) cell editor.
-
-| Windows                  | macOS                    | Action                        |  Excel  | Sheets  |
-| ------------------------ | ------------------------ | ----------------------------- | :-----: | :-----: |
-| <kbd>**Space**</kbd>     | <kbd>**Space**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
-| <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
-| <kbd>**Delete**</kbd>    | <kbd>**Delete**</kbd>    | Uncheck the checkbox          | &cross; | &check; |
-| <kbd>**Backspace**</kbd> | <kbd>**Backspace**</kbd> | Uncheck the checkbox          | &cross; | &check; |
-
-#### `handsontable` cell editor keyboard shortcuts
-
-These keyboard shortcuts work in the [`handsontable`](@/guides/cell-types/handsontable-cell-type.md) cell editor.
-
-| Windows          | macOS            | Action                                 |  Excel  | Sheets  |
-| ---------------- | ---------------- | -------------------------------------- | :-----: | :-----: |
-| <kbd>**↑**</kbd> | <kbd>**↑**</kbd> | Move to the cell above the active cell | &cross; | &cross; |
-| <kbd>**↓**</kbd> | <kbd>**↓**</kbd> | Move to the cell below the active cell | &cross; | &cross; |
