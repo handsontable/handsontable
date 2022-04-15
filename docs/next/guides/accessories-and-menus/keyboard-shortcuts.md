@@ -212,6 +212,21 @@ hot.addHook('beforeKeyDown', (event) => {
 
 By default, Handsontable features the keyboard shortcuts listed below.
 
+- [Navigation keyboard shortcuts](#navigation-keyboard-shortcuts)
+- [Selection keyboard shortcuts](#selection-keyboard-shortcuts)
+- [Edition keyboard shortcuts](#edition-keyboard-shortcuts)
+- [Plugin keyboard shortcuts](#plugin-keyboard-shortcuts)
+
+You can easily check if a keyboard shortcut's action is compatible with Microsoft Excel or Google Sheets:
+- Compatible: &check;
+- Not compatible: &cross;
+
+::: tip
+Handsontable doesn't detect data series (doesn't differentiate between blank cells and non-blank cells).
+For this reason, some keyboard shortcuts (e.g., <kbd>Cmd</kbd> + Arrow keys) may behave differently
+than in Microsoft Excel or Google Sheets in certain situations.
+:::
+
 ### Navigation keyboard shortcuts
 
 These keyboard shortcuts work when you navigate the grid. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for additional plugins.
