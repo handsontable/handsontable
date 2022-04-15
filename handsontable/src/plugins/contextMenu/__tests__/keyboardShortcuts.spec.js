@@ -5,7 +5,7 @@ describe('ContextMenu keyboard shortcut', () => {
     return Array.from(new Array(itemsCount)).map((_, i) => {
       return {
         name: `Test item ${i + 1}`
-      }
+      };
     });
   }
 
@@ -181,7 +181,6 @@ describe('ContextMenu keyboard shortcut', () => {
           startRow,
           endRow,
         } = getPlugin('contextMenu').menu.hotMenu.view._wt.wtViewport.createRowsCalculator(-2);
-
 
         expect(endRow).toBe(lastVisibleRow);
         expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe(`Test item ${startRow + 1}`);
