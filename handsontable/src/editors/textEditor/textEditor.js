@@ -3,7 +3,6 @@ import EventManager from '../../eventManager';
 import { isMobileBrowser, isIE, isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
-  getCaretPosition,
   getComputedStyle,
   setCaretPosition,
   hasClass,
@@ -441,7 +440,7 @@ export class TextEditor extends BaseEditor {
     };
 
     const insertNewLine = () => {
-      document.execCommand('insertText', false, '\n');
+      this.hot.rootDocument.execCommand('insertText', false, '\n');
     };
 
     editorContext.addShortcuts([{
