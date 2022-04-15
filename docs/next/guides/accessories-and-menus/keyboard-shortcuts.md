@@ -236,7 +236,7 @@ These keyboard shortcuts work when you navigate the grid. They come from Handson
 | <kbd>**Page Up**</kbd>                            | <kbd>**Page Up**</kbd>                            | Move one screen up                                                                                     | &check; | &check; |
 | <kbd>**Page Down**</kbd>                          | <kbd>**Page Down**</kbd>                          | Move one screen down                                                                                   | &check; | &check; |
 
-<sup>*</sup> This action depends on Handsontable's [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction).
+<sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction).
 
 ### Selection keyboard shortcuts
 
@@ -258,7 +258,7 @@ These keyboard shortcuts help you select cells. They come from Handsontable's [`
 | <kbd>**Delete**</kbd>                                                     | <kbd>**Delete**</kbd>                                                    | Clear the contents of the selected cells                                         | &check; | &check; |
 | <kbd>**Backspace**</kbd>                                                  | <kbd>**Backspace**</kbd>                                                 | Clear the contents of the selected cells                                         | &check; | &check; |
 
-<sup>*</sup> This action depends on Handsontable's [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction).
+<sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction).
 
 ### Edition keyboard shortcuts
 
@@ -284,7 +284,7 @@ These keyboard shortcuts work when you're editing a cell's contents. They come f
 | <kbd>**Ctrl**</kbd><br>+<br><kbd>**Enter**</kbd>                    | <kbd>**Ctrl**</kbd> / <kbd>**Cmd**</kbd><br>+<br><kbd>**Enter**</kbd> | Insert a line break                                                  | &cross; | &check; |
 | <kbd>**Escape**</kbd>                                               | <kbd>**Escape**</kbd>                                                 | Cancel the cell entry<br>and exit the editing mode                   | &check; | &check; |
 
-<sup>*</sup> This action depends on Handsontable's [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction).
+<sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction).
 
 #### Checkbox editor keyboard shortcuts
 
@@ -342,10 +342,10 @@ These keyboard shortcuts work when the [`UndoRedo`](@/api/undoredo.md) plugin is
 
 These keyboard shortcuts work in context menus. To activate them, enable the [`ContextMenu`](@/api/contextmenu.md) plugin.
 
-| Windows                                           | macOS                                               | Action                                                |  Excel  | Sheets  |
-| ------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------- | :-----: | :-----: |
-| Arrow keys                                        | Arrow keys                                          | Move one available menu item up, down, left, or right | &check; | &check; |
-| <kbd>**Escape**</kbd>                             | <kbd>**Escape**</kbd>                               | Close the context menu or submenu                     | &check; | &check; |
-| <kbd>**Alt**</kbd><br>+<br><kbd>**Escape**</kbd>  | <kbd>**Option**</kbd><br>+<br><kbd>**Escape**</kbd> | Close the context menu or submenu                     | &check; | &check; |
-| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Escape**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Escape**</kbd>    | Close the context menu or submenu                     | &check; | &cross; |
-| <kbd>**Enter**</kbd>                              | <kbd>**Enter**</kbd>                                | Run the action of the selected menu item              | &check; | &cross; |
+| Windows                  | macOS                    | Action                                                |  Excel  | Sheets  |
+| ------------------------ | ------------------------ | ----------------------------------------------------- | :-----: | :-----: |
+| Arrow keys               | Arrow keys               | Move one available menu item up, down, left, or right | &check; | &check; |
+| <kbd>**Page Up**</kbd>   | <kbd>**Page Up**</kbd>   | Move to the first item of the context menu or submenu | &check; | &cross; |
+| <kbd>**Page Down**</kbd> | <kbd>**Page Down**</kbd> | Move to the last item of the context menu or submenu  | &check; | &cross; |
+| <kbd>**Escape**</kbd>    | <kbd>**Escape**</kbd>    | Close the context menu or submenu                     | &check; | &check; |
+| <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Run the action of the selected menu item              | &check; | &cross; |
