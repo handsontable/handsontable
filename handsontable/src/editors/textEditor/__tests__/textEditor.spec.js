@@ -1630,80 +1630,6 @@ describe('TextEditor', () => {
     expect(hot.getActiveEditor().TEXTAREA.value).toEqual('Ma\n\n\nserati');
   });
 
-  it('should move the caret position to the beginning of the line after pressing HOME key', () => {
-    handsontable({
-      data: [
-        ['Maserati', 'Mazda'],
-        ['Honda', 'Mini']
-      ],
-    });
-
-    selectCell(0, 0);
-    keyDownUp('enter');
-
-    const editorElement = getActiveEditor().TEXTAREA;
-
-    Handsontable.dom.setCaretPosition(editorElement, 2);
-
-    keyDownUp('home');
-
-    expect(Handsontable.dom.getCaretPosition(editorElement)).toBe(0);
-  });
-
-  it('should move the caret position to the end of the line after pressing END key', () => {
-    handsontable({
-      data: [
-        ['Maserati', 'Mazda'],
-        ['Honda', 'Mini']
-      ],
-    });
-
-    selectCell(0, 0);
-    keyDownUp('enter');
-
-    const editorElement = getActiveEditor().TEXTAREA;
-
-    Handsontable.dom.setCaretPosition(editorElement, 2);
-
-    keyDownUp('end');
-
-    expect(Handsontable.dom.getCaretPosition(editorElement)).toBe(8);
-  });
-
-  it('should exceed the editor height only for one line when pressing ALT + ENTER, CTRL + ENTER or META + ENTER', () => {
-    const data = [
-      ['Maserati', 'Mazda'],
-      ['Honda', 'Mini']
-    ];
-
-    const hot = handsontable({
-      data
-    });
-
-    selectCell(0, 0);
-    keyDownUp('enter');
-    keyDownUp(['alt', 'enter']);
-
-    const editorTextarea = hot.getActiveEditor().TEXTAREA;
-    const editorComputedStyle = getComputedStyle(editorTextarea);
-    const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
-    let editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
-
-    expect(editorTextareaHeight).toBe(2 * editorTextareaLineHeight);
-
-    keyDownUp(['control', 'enter']);
-
-    editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
-
-    expect(editorTextareaHeight).toBe(3 * editorTextareaLineHeight);
-
-    keyDownUp(['meta', 'enter']);
-
-    editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
-
-    expect(editorTextareaHeight).toBe(4 * editorTextareaLineHeight);
-  });
-
   it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', () => {
     const data = [
       ['', '', '', '', ''],
@@ -1926,46 +1852,6 @@ describe('TextEditor', () => {
 
       expect($(textarea).width()).toBe(143);
       expect($(textarea).height()).toBe(23);
-    });
-  });
-
-  describe('navigation', () => {
-    it('should move to the first cell in the row (editor is opened)', () => {
-      handsontable({
-        startRows: 5,
-        startCols: 5
-      });
-
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp('pageup');
-
-      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
-
-      keyDownUp('enter');
-      keyDownUp(['shift', 'pageup']);
-
-      // Temporary, for compatibility with Handsontable 11.0.x.
-      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
-    });
-
-    it('should move to the last cell in the row (editor is opened)', () => {
-      handsontable({
-        startRows: 5,
-        startCols: 5
-      });
-
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp('pagedown');
-
-      expect(getSelected()).toEqual([[4, 0, 4, 0]]);
-
-      keyDownUp('enter');
-      keyDownUp(['shift', 'pagedown']);
-
-      // Temporary, for compatibility with Handsontable 11.0.x.
-      expect(getSelected()).toEqual([[4, 0, 4, 0]]);
     });
   });
 });

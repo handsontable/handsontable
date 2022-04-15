@@ -440,14 +440,8 @@ export class TextEditor extends BaseEditor {
       group: SHORTCUTS_GROUP,
     };
 
-    const setNewValue = () => {
-      const caretPosition = getCaretPosition(this.TEXTAREA);
-      const value = this.getValue();
-      const newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
-
-      this.setValue(newValue);
-
-      setCaretPosition(this.TEXTAREA, caretPosition + 1);
+    const insertNewLine = () => {
+      document.execCommand('insertText', false, '\n');
     };
 
     editorContext.addShortcuts([{
@@ -475,7 +469,7 @@ export class TextEditor extends BaseEditor {
     }, {
       keys: [['Control', 'Enter']],
       callback: () => {
-        setNewValue();
+        insertNewLine();
 
         return false; // Will block closing editor.
       },
@@ -487,7 +481,7 @@ export class TextEditor extends BaseEditor {
     }, {
       keys: [['Meta', 'Enter']],
       callback: () => {
-        setNewValue();
+        insertNewLine();
 
         return false; // Will block closing editor.
       },
@@ -497,7 +491,7 @@ export class TextEditor extends BaseEditor {
     }, {
       keys: [['Alt', 'Enter']],
       callback: () => {
-        setNewValue();
+        insertNewLine();
 
         return false; // Will block closing editor.
       },
