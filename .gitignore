@@ -6,6 +6,6 @@
 dev*.html
 dev*.js
 npm-debug.log
-docs/tmp/
+docs/.watch-tmp/
 
 node_modules/
