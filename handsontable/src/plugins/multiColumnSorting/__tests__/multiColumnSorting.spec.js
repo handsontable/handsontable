@@ -276,7 +276,7 @@ describe('MultiColumnSorting', () => {
         {},
         {
           type: 'date',
-          dateFormat: 'mm/dd/yy'
+          dateFormat: 'MM/DD/YY'
         },
         {
           type: 'numeric'
@@ -1452,7 +1452,7 @@ describe('MultiColumnSorting', () => {
         {},
         {
           type: 'date',
-          dateFormat: 'mm/dd/yy'
+          dateFormat: 'MM/DD/YY'
         },
         {
           type: 'numeric'
