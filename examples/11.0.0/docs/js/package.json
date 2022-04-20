@@ -2,7 +2,9 @@
   "name": "examples-js-11.0.0",
   "version": "11.0.0",
   "private": true,
-  "workspaces": [
-    "@(!(node_modules))/"
-  ]
+  "workspaces": {
+    "packages": [
+      "@(!(node_modules))/"
+    ]
+  }
 }

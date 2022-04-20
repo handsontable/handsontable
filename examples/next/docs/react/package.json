@@ -2,7 +2,9 @@
   "name": "examples-react",
   "version": "0.0.0",
   "private": true,
-  "workspaces": [
-    "@(!(node_modules))/"
-  ]
+  "workspaces": {
+    "packages": [
+      "@(!(node_modules))/"
+    ]
+  }
 }
