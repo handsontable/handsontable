@@ -526,6 +526,22 @@ export class TextEditor extends BaseEditor {
       callback: (event, [keyName]) => {
         updateCaretPosition(keyName, this.TEXTAREA);
       },
+    }, {
+      keys: [['Control/Meta', 'Z']],
+      preventDefault: false,
+      callback: () => {
+        this.hot._registerTimeout(() => {
+          this.autoResize.resize();
+        }, 10);
+      },
+    }, {
+      keys: [['Control/Meta', 'Shift', 'Z']],
+      preventDefault: false,
+      callback: () => {
+        this.hot._registerTimeout(() => {
+          this.autoResize.resize();
+        }, 10);
+      },
     }], contextConfig);
   }
 

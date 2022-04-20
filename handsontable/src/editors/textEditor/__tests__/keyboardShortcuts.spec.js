@@ -227,6 +227,28 @@ describe('TextEditor keyboard shortcut', () => {
       expect(getActiveEditor().getValue()).toBe('Ferrari');
     });
 
+    it('should update editor\'s height after undo the last change', async() => {
+      handsontable({
+        data: [['Ferrari']],
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
+
+      expect($(getActiveEditor().TEXTAREA).height()).toBe(84);
+
+      document.execCommand('undo', false);
+      keyDownUp(['control/meta', 'z']);
+
+      await sleep(50);
+
+      expect($(getActiveEditor().TEXTAREA).height()).toBe(63);
+    });
+
     // potentially unstable test
     it('should undo the last change in editor for multiline text', () => {
       handsontable({
@@ -278,6 +300,32 @@ describe('TextEditor keyboard shortcut', () => {
       document.execCommand('redo', false);
 
       expect(getActiveEditor().getValue()).toBe('FerrariF1');
+    });
+
+    it('should update editor\'s height after redo the last change', async() => {
+      handsontable({
+        data: [['Ferrari']],
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
+
+      document.execCommand('undo', false);
+
+      await sleep(50);
+
+      expect($(getActiveEditor().TEXTAREA).height()).toBe(63);
+
+      await sleep(50);
+
+      document.execCommand('redo', false);
+      keyDownUp(['control/meta', 'shift', 'z']);
+
+      expect($(getActiveEditor().TEXTAREA).height()).toBe(84);
     });
 
     // potentially unstable test
