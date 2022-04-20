@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue with Date objects being serialized to strings.",
+  "type": "fixed",
+  "issue": 9405,
+  "breaking": false,
+  "framework": "none"
+}
