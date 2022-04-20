@@ -35,6 +35,24 @@ describe('Core_populateFromArray', () => {
     expect(output).toEqual([[0, 0, '', 'test'], [0, 1, 'Kia', 'test'], [1, 0, '2008', 'test'], [1, 1, 10, 'test']]);
   });
 
+  it('should not serialize Date object cell values to strings', () => {
+    let output = null;
+
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    handsontable({
+      data: [[today]],
+      afterChange(changes) {
+        output = changes;
+      }
+    });
+    populateFromArray(0, 0, [[tomorrow]], 0, 0);
+
+    expect(output).toEqual([[0, 0, today, tomorrow]]);
+  });
+
   it('should populate single value for whole selection', () => {
     let output = null;
 
