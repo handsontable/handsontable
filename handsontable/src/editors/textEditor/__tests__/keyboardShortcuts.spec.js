@@ -138,7 +138,7 @@ describe('TextEditor keyboard shortcut', () => {
   });
 
   describe('"PageUp + Shift"', () => {
-    it('should move the selection to the first cell in a row while cell editing', () => {
+    it('should not move the selection while cell editing', () => {
       handsontable({
         startRows: 5,
         startCols: 5
@@ -148,7 +148,8 @@ describe('TextEditor keyboard shortcut', () => {
       keyDownUp('enter');
       keyDownUp(['shift', 'pageup']);
 
-      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+      expect(getActiveEditor().isOpened()).toBe(true);
+      expect(getSelected()).toEqual([[2, 0, 2, 0]]);
     });
   });
 
@@ -168,7 +169,7 @@ describe('TextEditor keyboard shortcut', () => {
   });
 
   describe('"PageDown + Shift"', () => {
-    it('should move the selection to the last cell in a row while cell editing', () => {
+    it('should not move the selection while cell editing', () => {
       handsontable({
         startRows: 5,
         startCols: 5
@@ -178,7 +179,8 @@ describe('TextEditor keyboard shortcut', () => {
       keyDownUp('enter');
       keyDownUp(['shift', 'pagedown']);
 
-      expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+      expect(getActiveEditor().isOpened()).toBe(true);
+      expect(getSelected()).toEqual([[2, 0, 2, 0]]);
     });
   });
 

@@ -500,8 +500,6 @@ export class TextEditor extends BaseEditor {
       // TODO: Duplicated part of code (callback to shortcut)
       keys: [
         ['PageUp'],
-        // Added according to specification, not the target behavior.
-        ['Shift', 'PageUp']
       ],
       callback: () => {
         this.hot.selection.transformStart(-this.hot.countVisibleRows(), 0);
@@ -510,8 +508,6 @@ export class TextEditor extends BaseEditor {
       // TODO: Duplicated part of code (callback to shortcut)
       keys: [
         ['PageDown'],
-        // Added according to specification, not the target behaviour.
-        ['Shift', 'PageDown']
       ],
       callback: () => {
         this.hot.selection.transformStart(this.hot.countVisibleRows(), 0);
