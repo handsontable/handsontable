@@ -2,6 +2,8 @@
 @import '~vuepress-plugin-tabs/dist/themes/default.styl'
 @import 'vuepress-tabs-custom'
 
+@import 'utils'
+
 /* Code group tabs */
 @import 'code-group'
 
@@ -337,8 +339,48 @@ div.js-fiddle-link {
   background-color: #eef0f7;
 }
 
-/* Keyboard keys names formatting */
+.sidebar {
+  scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+}
 
+/* Table of contents */
+.table-of-contents {
+  scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+}
+
+/* Tabs component */
+.tabs-component {
+  .tabs-component-panels {
+    section {
+      &#code {
+        pre {
+          padding 20px 24px
+          scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+        }
+      }
+
+      &#html {
+        pre {
+          scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+        }
+      }
+    }
+  }
+}
+
+/* Language specific code blocks */
+div[class*="language-"] {
+  pre {
+    scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+  }
+}
+
+/* Table styling starts */
+.scrollable-table {
+  scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+}
+
+/* Keyboard keys names formatting */
 kbd {
   padding: 0 0.25em;
   font-size: 13px;

@@ -1,10 +1,7 @@
-@import 'theme-dark-palette'
-
 html.theme-dark {
+  @import 'theme-dark-palette'
 
   color-scheme dark
-  // works on Firefox
-  scrollbar-color $scrollbarThumb $backgroundColor
 
   &,
   div#app,
@@ -16,6 +13,7 @@ html.theme-dark {
 
   body {
     color $fontColor
+    background-color $backgroundColor
   }
 
   a {
@@ -30,6 +28,10 @@ html.theme-dark {
     path {
       fill #ffffff
     }
+  }
+
+  .handsontable {
+    color-scheme light
   }
 
   /* Navbar */
@@ -108,6 +110,7 @@ html.theme-dark {
 
   /* Sidebar */
   .sidebar {
+    scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
     border-right-color $sectionBorderColor
 
     // sidebar collapsible headings
@@ -143,6 +146,7 @@ html.theme-dark {
 
   /* Table of contents */
   .table-of-contents {
+    scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
     border-left-color $sectionBorderColor
 
     .toc-container-header {
@@ -191,6 +195,7 @@ html.theme-dark {
       border-radius 0
 
       &.selected-preview {
+        color-scheme light
         color $tabsComponentBackgroundColor /* Related to issue #8355 */
         background-color white; /* Related to issue #8355 */
       }
@@ -203,7 +208,13 @@ html.theme-dark {
 
         &#code {
           pre {
-            padding 20px 24px
+            scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+          }
+        }
+
+        &#html {
+          pre {
+            scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
           }
         }
       }
@@ -252,6 +263,13 @@ html.theme-dark {
     background $codeBackground
   }
 
+  /* Language specific code blocks */
+  div[class*="language-"] {
+    pre {
+      scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+    }
+  }
+
   /* KBD element */
   kbd {
     color $kbdFontColor
@@ -266,6 +284,11 @@ html.theme-dark {
     p {
       color $fontColor
     }
+  }
+
+  /* Table styling starts */
+  .scrollable-table {
+    scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
   }
 
   table:not(.selected-preview *):not(.pika-table):not(.htCore) {
@@ -333,6 +356,10 @@ html.theme-dark {
       background $backgroundColor !important
       border-color $sectionBorderColor
     }
+  }
+
+  #CybotCookiebotDialogDetailBodyContentCookieContainerTypeDetails, #CybotCookiebotDialogDetailBodyContentTextAbout {
+    scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
   }
 
   .CybotCookiebotDialogDetailBodyContentCookieContainerTypes {
