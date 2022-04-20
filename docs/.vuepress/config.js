@@ -20,7 +20,8 @@ if (getBuildDocsFramework()) {
   frameworkPartialPath = '**/';
 }
 
-// The `vuepress dev` command without set `DOCS_VERSION` and `DOCS_FRAMEWORK` environments variables creates multi version docs.
+// The `npm run docs:start` command creates sometimes multi version docs while `npm run build` creates single version
+// of docs (multiple times).
 const isFirstShownOrMultiVersion = isFirstShown(getBuildDocsVersion(),
   getBuildDocsFramework()) || !getBuildDocsVersion() || (!getBuildDocsFramework() && isFrameworked);
 const base = isFirstShownOrMultiVersion ? '/docs/' : `/docs/${frameworkPartialPath}${versionPartialPath}`;
@@ -51,7 +52,6 @@ module.exports = {
     GA_ID: 'UA-33932793-7',
   },
   patterns: [
-    `${isEnvDev() ? `${TMP_DIR_FOR_WATCH}/${frameworkPartialPath}` : ''}${versionPartialPath}/*.md`,
     `${isEnvDev() ? `${TMP_DIR_FOR_WATCH}/${frameworkPartialPath}` : ''}${versionPartialPath}**/*.md`,
     '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'
   ],

@@ -62,7 +62,7 @@ module.exports = (options, context) => {
         if (buildingSingleVersion || isFirstShown($page.currentVersion, $page.currentFramework)) {
           $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
 
-        // Only dev script perform build to proper place (in memory). Full build script perform moving directory separately.
+        // Only dev script need to perform build to specific place. Full build script perform moving directory separately.
         } else if (isEnvDev() && isFrameworked) {
           $page.frontmatter.permalink = `/${$page.currentFramework}${$page.frontmatter.permalink}`;
         }

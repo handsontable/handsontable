@@ -97,7 +97,7 @@ const buildApp = async() => {
     });
   });
 
-  // At first there is created directory with the latest version of docs. Then, next version of docs are place inside
+  // At first there is created directory with the latest version of docs. Then, next version of docs are placed inside
   // already created docs/ directory.
   moveNext(getVersions(buildMode)).forEach((version) => {
     if (getDocsFrameworkedVersions(buildMode).includes(version)) {
