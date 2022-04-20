@@ -1043,5 +1043,41 @@ describe('Core selection keyboard shortcut', () => {
         [1, 2, 'C2', 'A2'],
       ], 'edit');
     });
+
+    it('should populate the cell value omitting cells that are marked as read-only', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(8, 8),
+        rowHeaders: true,
+        colHeaders: true,
+        afterChange,
+        columns: [
+          {},
+          { readOnly: true },
+          {},
+          { readOnly: true },
+          {},
+          {},
+          {},
+          {},
+        ],
+        cell: [{ row: 1, col: 0, readOnly: true }],
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectCells([[1, 0, 4, 1], [4, 5, 4, 0]]);
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getSelected()).toEqual([[1, 0, 4, 1], [4, 5, 4, 0]]);
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [2, 0, 'A3', 'F5'],
+        [3, 0, 'A4', 'F5'],
+        [4, 0, 'A5', 'F5'],
+        [4, 2, 'C5', 'F5'],
+        [4, 4, 'E5', 'F5'],
+      ], 'edit');
+    });
   });
 });

@@ -4510,7 +4510,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       for (let i = 0; i < selectedRange.length; i++) {
         selectedRange[i].forAll((row, column) => {
           if (row >= 0 && column >= 0 && (row !== highlightRow || column !== highlightColumn)) {
-            cellValues.set(`${row}x${column}`, [row, column, valueToPopulate]);
+            const { readOnly } = instance.getCellMeta(row, column);
+
+            if (!readOnly) {
+              cellValues.set(`${row}x${column}`, [row, column, valueToPopulate]);
+            }
           }
         });
       }
