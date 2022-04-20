@@ -1,0 +1,39 @@
+name: Build every package in different environments.
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'develop'
+      - 'release/**'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 16
+
+jobs:
+  check-scope:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      # ------------
+      # Temporary solution for a problem with installing the examples' dependencies.
+      # See: https://github.com/npm/cli/issues/4774
+
+      - name: (Temporary) Install npm@8.4
+        run: npm i -g npm@8.4
+      # ------------
+
+      - name: Install the dependencies
+        run: npm ci
+      - name: Build all packages
+        run: npm run all build
