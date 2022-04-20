@@ -6,6 +6,7 @@ on:
       - 'master'
       - 'develop'
       - 'release/**'
+      - 'feature/add-build-all-workflow' # Temporary, for testing purposes only. TODO: remove before merging.
   workflow_dispatch:
 
 env:
