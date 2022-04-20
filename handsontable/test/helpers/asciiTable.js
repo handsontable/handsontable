@@ -139,6 +139,7 @@ export function generateASCIITable(context) {
   const topOverlayCells = cellFactory(topOverlayTable);
   const bottomOverlayCells = cellFactory(bottomOverlayTable);
   const masterCells = cellFactory(masterTable);
+  const isRtl = $('.ht_master').dir === 'rtl';
 
   const hasTopHeader = topOverlayCells(0, 0) ? isTopHeader(topOverlayCells(0, 0)) : false;
   const hasCornerHeader = topStartCornerOverlayCells(0, 0) ? isHeader(topStartCornerOverlayCells(0, 0)) : false;
@@ -257,7 +258,9 @@ export function generateASCIITable(context) {
         .fill(COLUMN_OVERLAY_SEPARATOR).join(COLUMN_SEPARATOR) + TABLE_EDGES_SYMBOL);
     }
 
-    stringRows.push(TABLE_EDGES_SYMBOL + stringCells.join('') + TABLE_EDGES_SYMBOL);
+    const cellsStringified = (isRtl ? stringCells.reverse() : stringCells).join('');
+
+    stringRows.push(TABLE_EDGES_SYMBOL + cellsStringified + TABLE_EDGES_SYMBOL);
 
     if (consumedFlags.get('hasTopHeader')) {
       consumedFlags.delete('hasTopHeader');

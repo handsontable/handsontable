@@ -4513,12 +4513,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [
       ['ArrowUp', 'Shift'],
-      // Added according to specification, not the target behaviour.
-      ['ArrowUp', 'Shift', 'Control/Meta']
     ],
     callback: () => {
       selection.transformEnd(-1, 0);
     },
+  }, {
+    keys: [
+      ['ArrowUp', 'Shift', 'Control/Meta'],
+    ],
+    captureCtrl: true,
+    callback: () => {
+      const { from, to } = instance.getSelectedRangeLast();
+      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1);
+
+      selection.setRangeStart(from.clone());
+      selection.setRangeEnd(instance._createCellCoords(row, to.col));
+    },
+    runOnlyIf: () => !(instance.selection.isSelectedByCorner() || instance.selection.isSelectedByColumnHeader()),
   }, {
     keys: [['ArrowDown']],
     callback: () => {
@@ -4536,12 +4547,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [
       ['ArrowDown', 'Shift'],
-      // Added according to specification, not the target behaviour.
-      ['ArrowDown', 'Shift', 'Control/Meta']
     ],
     callback: () => {
       selection.transformEnd(1, 0);
     },
+  }, {
+    keys: [
+      ['ArrowDown', 'Shift', 'Control/Meta'],
+    ],
+    captureCtrl: true,
+    callback: () => {
+      const { from, to } = instance.getSelectedRangeLast();
+      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1);
+
+      selection.setRangeStart(from.clone());
+      selection.setRangeEnd(instance._createCellCoords(row, to.col));
+    },
+    runOnlyIf: () => !(instance.selection.isSelectedByCorner() || instance.selection.isSelectedByColumnHeader()),
   }, {
     keys: [['ArrowLeft']],
     callback: () => {
@@ -4561,12 +4583,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [
       ['ArrowLeft', 'Shift'],
-      // Added according to specification, not the target behaviour.
-      ['ArrowLeft', 'Shift', 'Control/Meta'],
     ],
     callback: () => {
       selection.transformEnd(0, -1 * instance.getDirectionFactor());
     },
+  }, {
+    keys: [
+      ['ArrowLeft', 'Shift', 'Control/Meta'],
+    ],
+    captureCtrl: true,
+    callback: () => {
+      const { from, to } = instance.getSelectedRangeLast();
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(
+        ...(instance.isRtl() ? [instance.countCols() - 1, -1] : [0, 1])
+      );
+
+      selection.setRangeStart(from.clone());
+      selection.setRangeEnd(instance._createCellCoords(to.row, column));
+    },
+    runOnlyIf: () => !(instance.selection.isSelectedByCorner() || instance.selection.isSelectedByRowHeader()),
   }, {
     keys: [['ArrowRight']],
     callback: () => {
@@ -4586,12 +4621,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [
       ['ArrowRight', 'Shift'],
-      // Added according to specification, not the target behaviour.
-      ['ArrowRight', 'Shift', 'Control/Meta'],
     ],
     callback: () => {
       selection.transformEnd(0, instance.getDirectionFactor());
     },
+  }, {
+    keys: [
+      ['ArrowRight', 'Shift', 'Control/Meta'],
+    ],
+    captureCtrl: true,
+    callback: () => {
+      const { from, to } = instance.getSelectedRangeLast();
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(
+        ...(instance.isRtl() ? [0, 1] : [instance.countCols() - 1, -1])
+      );
+
+      selection.setRangeStart(from.clone());
+      selection.setRangeEnd(instance._createCellCoords(to.row, column));
+    },
+    runOnlyIf: () => !(instance.selection.isSelectedByCorner() || instance.selection.isSelectedByRowHeader()),
   }, {
     keys: [['Home']],
     captureCtrl: true,
@@ -4671,20 +4719,52 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [
       ['PageUp'],
-      // Added according to specification, not the target behaviour.
-      ['Shift', 'PageUp']
     ],
     callback: () => {
       selection.transformStart(-instance.countVisibleRows(), 0);
     },
   }, {
     keys: [
+      ['PageUp', 'Shift']
+    ],
+    callback: () => {
+      const { to } = instance.getSelectedRangeLast();
+      const nextRowIndexToSelect = Math.max(to.row - instance.countVisibleRows(), 0);
+      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(nextRowIndexToSelect, 1);
+
+      if (row !== null) {
+        const coords = instance._createCellCoords(row, to.col);
+        const scrollPadding = to.row - instance.view.getFirstFullyVisibleRow();
+        const nextVerticalScroll = Math.max(coords.row - scrollPadding, 0);
+
+        selection.setRangeEnd(coords);
+        instance.scrollViewportTo(nextVerticalScroll);
+      }
+    },
+  }, {
+    keys: [
       ['PageDown'],
-      // Added according to specification, not the target behaviour.
-      ['Shift', 'PageDown']
     ],
     callback: () => {
       selection.transformStart(instance.countVisibleRows(), 0);
+    },
+  }, {
+    keys: [
+      ['PageDown', 'Shift']
+    ],
+    callback: () => {
+      const { to } = instance.getSelectedRangeLast();
+      const nextRowIndexToSelect = Math.min(to.row + instance.countVisibleRows(), instance.countRows() - 1);
+      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(nextRowIndexToSelect, -1);
+
+      if (row !== null) {
+        const coords = instance._createCellCoords(row, to.col);
+        const scrollPadding = to.row - instance.view.getFirstFullyVisibleRow();
+        const nextVerticalScroll = Math.min(coords.row - scrollPadding, instance.countRows() - 1);
+
+        selection.setRangeEnd(coords);
+        instance.scrollViewportTo(nextVerticalScroll);
+      }
     },
   }, {
     keys: [['Tab']],

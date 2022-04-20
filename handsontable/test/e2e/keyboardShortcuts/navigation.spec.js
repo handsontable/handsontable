@@ -554,42 +554,188 @@ describe('Core navigation keyboard shortcut', () => {
   });
 
   describe('"PageUp"', () => {
-    it('should move the cell selection to the first row', () => {
+    it('should move the cell selection up by the height of the table viewport', () => {
       handsontable({
-        startRows: 5,
-        startCols: 5
+        width: 180,
+        height: 100, // 100/23 (default cell height) rounding down is 4. So PageUp will move up one per 4 rows
+        startRows: 15,
+        startCols: 3
       });
 
-      selectCell(4, 4);
+      selectCell(13, 1);
       keyDownUp('pageup');
 
-      expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[9, 1, 9, 1]]);
 
-      selectCell(4, 4);
-      keyDownUp(['shift', 'pageup']);
+      keyDownUp('pageup');
 
-      // Temporary, for compatibility with Handsontable 11.0.x.
-      expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[5, 1, 5, 1]]);
+
+      keyDownUp('pageup');
+
+      expect(`
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+
+      keyDownUp('pageup');
+
+      expect(`
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 1, 0, 1]]);
     });
   });
 
   describe('"PageDown"', () => {
-    it('should move the cell selection to the last row', () => {
+    it('should move the cell selection down by the height of the table viewport', () => {
       handsontable({
-        startRows: 5,
-        startCols: 5
+        width: 180,
+        height: 100, // 100/23 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
+        startRows: 15,
+        startCols: 3
       });
 
-      selectCell(0, 0);
+      selectCell(1, 1);
       keyDownUp('pagedown');
 
-      expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[5, 1, 5, 1]]);
 
-      selectCell(0, 0);
-      keyDownUp(['shift', 'pagedown']);
+      keyDownUp('pagedown');
 
-      // Temporary, for compatibility with Handsontable 11.0.x.
-      expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[9, 1, 9, 1]]);
+
+      keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+        |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[13, 1, 13, 1]]);
+
+      keyDownUp('pagedown');
+
+      expect(`
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        |   : # :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[14, 1, 14, 1]]);
     });
   });
 
