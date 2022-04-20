@@ -992,7 +992,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
                   /* eslint-disable max-depth */
                   if (isObjectEqual(orgValueSchema, valueSchema)) {
-                    value = deepClone(value);
+                    value = typeof value === "object" && value instanceof Date
+                      ? new Date(value.getTime())
+                      : deepClone(value);
                   } else {
                     pushData = false;
                   }
