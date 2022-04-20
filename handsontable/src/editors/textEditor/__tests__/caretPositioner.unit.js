@@ -18,7 +18,7 @@ describe('caretPositioner', () => {
         textarea.value = 'text text';
 
         setCaretPosition(textarea, 3);
-        updateCaretPosition('endd', textarea);
+        updateCaretPosition('unknown', textarea);
 
         expect(getCaretPosition(textarea)).toBe(3);
 
@@ -34,7 +34,7 @@ describe('caretPositioner', () => {
 text`;
 
         setCaretPosition(textarea, 1);
-        updateCaretPosition('endd', textarea);
+        updateCaretPosition('unknown', textarea);
 
         expect(getCaretPosition(textarea)).toBe(1);
 
