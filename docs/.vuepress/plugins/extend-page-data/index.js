@@ -55,15 +55,17 @@ module.exports = (options, context) => {
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
 
-      if ((DOCS_VERSION || isFirstShown($page.currentVersion, $page.currentFramework)) && $page.frontmatter.permalink) {
-        $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
-      }
+      const isFrameworked = getDocsFrameworkedVersions(buildMode).includes($page.currentVersion);
+      const buildingSingleVersion = DOCS_VERSION && (DOCS_FRAMEWORK || !DOCS_FRAMEWORK && isFrameworked === false);
 
-      // Only dev script perform build to proper place (in memory). Full build script perform moving directory separately.
-      if (isEnvDev() && $page.frontmatter.permalink &&
-        getDocsFrameworkedVersions(buildMode).includes($page.currentVersion) &&
-        isFirstShown($page.currentVersion, $page.currentFramework) === false) {
-        $page.frontmatter.permalink = `/${$page.currentFramework}${$page.frontmatter.permalink}`;
+      if ($page.frontmatter.permalink) {
+        if (buildingSingleVersion || isFirstShown($page.currentVersion, $page.currentFramework)) {
+          $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
+
+        // Only dev script perform build to proper place (in memory). Full build script perform moving directory separately.
+        } else if (isEnvDev() && isFrameworked) {
+          $page.frontmatter.permalink = `/${$page.currentFramework}${$page.frontmatter.permalink}`;
+        }
       }
     },
   };

@@ -37,7 +37,7 @@ const build = (version, framework) => {
       cwd: path.resolve(__dirname, '../../'),
       env: {
         DOCS_VERSION: version,
-        FRAMEWORK: framework,
+        DOCS_FRAMEWORK: framework,
       },
     },
     true
