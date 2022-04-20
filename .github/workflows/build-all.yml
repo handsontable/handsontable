@@ -13,7 +13,8 @@ env:
   NODE_VERSION: 16
 
 jobs:
-  check-scope:
+  build-all:
+    name: Build all packages in ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
