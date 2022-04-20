@@ -3693,7 +3693,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the number of rendered rows (including rows partially or fully rendered outside viewport).
+   * Returns the number of rendered rows including rows that are partially or fully rendered
+   * outside the table viewport.
    *
    * @memberof Core#
    * @function countRenderedRows
@@ -3704,7 +3705,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the number of visible rows (rendered rows that fully fit inside viewport).
+   * Returns the number of rendered rows that are only visible in the table viewport.
+   * The rows that are partially visible are not counted.
    *
    * @memberof Core#
    * @function countVisibleRows
@@ -3715,7 +3717,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the number of rendered columns (including columns partially or fully rendered outside viewport).
+   * Returns the number of rendered rows including columns that are partially or fully rendered
+   * outside the table viewport.
    *
    * @memberof Core#
    * @function countRenderedCols
@@ -3726,7 +3729,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the number of visible columns. Returns -1 if table is not visible.
+   * Returns the number of rendered columns that are only visible in the table viewport.
+   * The columns that are partially visible are not counted.
    *
    * @memberof Core#
    * @function countVisibleCols
@@ -4477,7 +4481,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   const gridContext = shortcutManager.addContext('grid');
   const gridConfig = {
-    runOnlyIf: () => isDefined(instance.getSelected()),
+    runOnlyIf: () => {
+      return isDefined(instance.getSelected()) &&
+        instance.countRenderedRows() > 0 &&
+        instance.countRenderedCols() > 0;
+    },
     group: SHORTCUTS_GROUP,
   };
 
@@ -4586,12 +4594,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   }, {
     keys: [['Home']],
+    captureCtrl: true,
     callback: () => {
-      selection.setRangeStart(instance._createCellCoords(
-        selection.selectedRange.current().from.row,
-        instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
-      ));
+      const fixedColumns = parseInt(instance.getSettings().fixedColumnsStart, 10);
+      const row = instance.getSelectedRangeLast().highlight.row;
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(fixedColumns, 1);
+
+      selection.setRangeStart(instance._createCellCoords(row, column));
     },
+    runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['Home', 'Shift']],
     callback: () => {
@@ -4602,12 +4613,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   }, {
     keys: [['Home', 'Control/Meta']],
+    captureCtrl: true,
     callback: () => {
-      selection.setRangeStart(instance._createCellCoords(
-        instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
-        selection.selectedRange.current().from.col,
-      ));
+      const fixedRows = parseInt(instance.getSettings().fixedRowsTop, 10);
+      const fixedColumns = parseInt(instance.getSettings().fixedColumnsStart, 10);
+      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(fixedRows, 1);
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(fixedColumns, 1);
+
+      selection.setRangeStart(instance._createCellCoords(row, column));
     },
+    runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['Home', 'Control/Meta', 'Shift']],
     callback: () => {
@@ -4618,12 +4633,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   }, {
     keys: [['End']],
+    captureCtrl: true,
     callback: () => {
       selection.setRangeStart(instance._createCellCoords(
-        selection.selectedRange.current().from.row,
+        instance.getSelectedRangeLast().highlight.row,
         instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
       ));
     },
+    runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['End', 'Shift']],
     callback: () => {
@@ -4634,12 +4651,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   }, {
     keys: [['End', 'Control/Meta']],
+    captureCtrl: true,
     callback: () => {
-      selection.setRangeStart(instance._createCellCoords(
-        instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
-        selection.selectedRange.current().from.col,
-      ));
+      const fixedRows = parseInt(instance.getSettings().fixedRowsBottom, 10);
+      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - fixedRows - 1, -1);
+      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1);
+
+      selection.setRangeStart(instance._createCellCoords(row, column));
     },
+    runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['End', 'Control/Meta', 'Shift']],
     callback: () => {

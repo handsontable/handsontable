@@ -516,7 +516,59 @@ class TableView {
   }
 
   /**
-   * Defines default configuration and initializes WalkOnTable intance.
+   * The function returns the number of not hidden column indexes that fit between the first and
+   * last fixed column in the left (or right in RTL mode) overlay.
+   *
+   * @returns {number}
+   */
+  countNotHiddenFixedColumnsStart() {
+    const countCols = this.instance.countCols();
+    const visualFixedColumnsStart = Math.min(parseInt(this.settings.fixedColumnsStart, 10), countCols) - 1;
+
+    return this.countNotHiddenColumnIndexes(visualFixedColumnsStart, -1);
+  }
+
+  /**
+   * The function returns the number of not hidden row indexes that fit between the first and
+   * last fixed row in the top overlay.
+   *
+   * @returns {number}
+   */
+  countNotHiddenFixedRowsTop() {
+    const countRows = this.instance.countRows();
+    const visualFixedRowsTop = Math.min(parseInt(this.settings.fixedRowsTop, 10), countRows) - 1;
+
+    return this.countNotHiddenRowIndexes(visualFixedRowsTop, -1);
+  }
+
+  /**
+   * The function returns the number of not hidden row indexes that fit between the first and
+   * last fixed row in the bottom overlay.
+   *
+   * @returns {number}
+   */
+  countNotHiddenFixedRowsBottom() {
+    const countRows = this.instance.countRows();
+    const visualFixedRowsBottom = Math.max(countRows - parseInt(this.settings.fixedRowsBottom, 10), 0);
+
+    return this.countNotHiddenRowIndexes(visualFixedRowsBottom, 1);
+  }
+
+  /**
+   * Checks if at least one cell than belongs to the main table is not covered by the top, left or
+   * bottom overlay.
+   *
+   * @returns {boolean}
+   */
+  isMainTableNotFullyCoveredByOverlays() {
+    const fixedAllRows = this.countNotHiddenFixedRowsTop() + this.countNotHiddenFixedRowsBottom();
+    const fixedAllColumns = this.countNotHiddenFixedColumnsStart();
+
+    return this.instance.countRenderedRows() > fixedAllRows && this.instance.countRenderedCols() > fixedAllColumns;
+  }
+
+  /**
+   * Defines default configuration and initializes WalkOnTable instance.
    *
    * @private
    */
@@ -538,26 +590,11 @@ class TableView {
       totalRows: () => this.countRenderableRows(),
       totalColumns: () => this.countRenderableColumns(),
       // Number of renderable columns for the left overlay.
-      fixedColumnsStart: () => {
-        const countCols = this.instance.countCols();
-        const visualFixedColumnsStart = Math.min(parseInt(this.settings.fixedColumnsStart, 10), countCols) - 1;
-
-        return this.countNotHiddenColumnIndexes(visualFixedColumnsStart, -1);
-      },
+      fixedColumnsStart: () => this.countNotHiddenFixedColumnsStart(),
       // Number of renderable rows for the top overlay.
-      fixedRowsTop: () => {
-        const countRows = this.instance.countRows();
-        const visualFixedRowsTop = Math.min(parseInt(this.settings.fixedRowsTop, 10), countRows) - 1;
-
-        return this.countNotHiddenRowIndexes(visualFixedRowsTop, -1);
-      },
+      fixedRowsTop: () => this.countNotHiddenFixedRowsTop(),
       // Number of renderable rows for the bottom overlay.
-      fixedRowsBottom: () => {
-        const countRows = this.instance.countRows();
-        const visualFixedRowsBottom = Math.max(countRows - parseInt(this.settings.fixedRowsBottom, 10), 0);
-
-        return this.countNotHiddenRowIndexes(visualFixedRowsBottom, 1);
-      },
+      fixedRowsBottom: () => this.countNotHiddenFixedRowsBottom(),
       // Enable the inline start overlay when conditions are met.
       shouldRenderInlineStartOverlay: () => {
         return this.settings.fixedColumnsStart > 0 || walkontableConfig.rowHeaders().length > 0;
