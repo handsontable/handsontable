@@ -4497,6 +4497,32 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.selectAll();
     },
   }, {
+    keys: [['Control/Meta', 'Enter']],
+    callback: () => {
+      const selectedRange = instance.getSelectedRange();
+      const {
+        row: highlightRow,
+        col: highlightColumn,
+      } = selectedRange[selectedRange.length - 1].highlight;
+      const valueToPopulate = instance.getDataAtCell(highlightRow, highlightColumn);
+      const cellValues = new Map();
+
+      for (let i = 0; i < selectedRange.length; i++) {
+        selectedRange[i].forAll((row, column) => {
+          if (row >= 0 && column >= 0 && (row !== highlightRow || column !== highlightColumn)) {
+            const { readOnly } = instance.getCellMeta(row, column);
+
+            if (!readOnly) {
+              cellValues.set(`${row}x${column}`, [row, column, valueToPopulate]);
+            }
+          }
+        });
+      }
+
+      instance.setDataAtCell(Array.from(cellValues.values()));
+    },
+    runOnlyIf: () => instance.getSelectedRangeLast().getCellsCount() > 1,
+  }, {
     keys: [['ArrowUp']],
     callback: () => {
       selection.transformStart(-1, 0);

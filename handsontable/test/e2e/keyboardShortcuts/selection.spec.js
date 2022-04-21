@@ -812,4 +812,272 @@ describe('Core selection keyboard shortcut', () => {
       expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 4);
     });
   });
+
+  describe('"Enter + Ctrl/Cmd"', () => {
+    it('should not populate the cell value when the selection range includes less than 2 cells', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectCell(1, 1);
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getData()).toEqual(createSpreadsheetData(5, 5));
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
+    it('should not populate the cell value when the last non-contiguous selection layer includes less than 2 cells', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectCells([[1, 0, 3, 0], [2, 2, 2, 2]]);
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getData()).toEqual(createSpreadsheetData(5, 5));
+      expect(getSelected()).toEqual([[1, 0, 3, 0], [2, 2, 2, 2]]);
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
+    it('should not trigger the cells value change more than once for the same coords in "{after/before}Change" hooks ' +
+       'when selection layers overlap each self', () => {
+      const beforeChange = jasmine.createSpy('beforeChange');
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        beforeChange,
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectCells([[1, 1, 2, 2], [1, 2, 2, 2], [2, 1, 2, 2]]);
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getSelected()).toEqual([[1, 1, 2, 2], [1, 2, 2, 2], [2, 1, 2, 2]]);
+      expect(beforeChange).toHaveBeenCalledTimes(1);
+      expect(beforeChange).toHaveBeenCalledWith([
+        [1, 1, 'B2', 'B3'],
+        [1, 2, 'C2', 'B3'],
+        [2, 2, 'C3', 'B3'],
+      ], 'edit');
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [1, 1, 'B2', 'B3'],
+        [1, 2, 'C2', 'B3'],
+        [2, 2, 'C3', 'B3'],
+      ], 'edit');
+    });
+
+    it('should populate the cell value when the selection range includes at least 2 cells in a row', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectCells([[2, 1, 2, 2]]);
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getSelected()).toEqual([[2, 1, 2, 2]]);
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [2, 2, 'C3', 'B3'],
+      ], 'edit');
+    });
+
+    it('should populate the cell value when the selection range includes at least 2 cells in a column', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectCells([[1, 1, 2, 1]]);
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getSelected()).toEqual([[1, 1, 2, 1]]);
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [2, 1, 'B3', 'B2'],
+      ], 'edit');
+    });
+
+    it('should populate the cell value when the selection range goes from bottom-right to top-left direction', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectCells([[3, 3, 1, 1]]);
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getSelected()).toEqual([[3, 3, 1, 1]]);
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [1, 1, 'B2', 'D4'],
+        [1, 2, 'C2', 'D4'],
+        [1, 3, 'D2', 'D4'],
+        [2, 1, 'B3', 'D4'],
+        [2, 2, 'C3', 'D4'],
+        [2, 3, 'D3', 'D4'],
+        [3, 1, 'B4', 'D4'],
+        [3, 2, 'C4', 'D4'],
+      ], 'edit');
+    });
+
+    it('should populate the cell value to all selection layers', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectCells([[3, 4, 3, 4], [4, 3, 1, 3], [3, 2, 3, 2], [1, 1, 1, 2], [0, 0, 1, 0]]);
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getSelected()).toEqual([[3, 4, 3, 4], [4, 3, 1, 3], [3, 2, 3, 2], [1, 1, 1, 2], [0, 0, 1, 0]]);
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [3, 4, 'E4', 'A1'],
+        [1, 3, 'D2', 'A1'],
+        [2, 3, 'D3', 'A1'],
+        [3, 3, 'D4', 'A1'],
+        [4, 3, 'D5', 'A1'],
+        [3, 2, 'C4', 'A1'],
+        [1, 1, 'B2', 'A1'],
+        [1, 2, 'C2', 'A1'],
+        [1, 0, 'A2', 'A1'],
+      ], 'edit');
+    });
+
+    it('should populate the cell value to all cells when the selection is done by the corner click', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectAll();
+      listen();
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getSelected()).toEqual([[-1, -1, 2, 2]]);
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [0, 1, 'B1', 'A1'],
+        [0, 2, 'C1', 'A1'],
+        [1, 0, 'A2', 'A1'],
+        [1, 1, 'B2', 'A1'],
+        [1, 2, 'C2', 'A1'],
+        [2, 0, 'A3', 'A1'],
+        [2, 1, 'B3', 'A1'],
+        [2, 2, 'C3', 'A1'],
+      ], 'edit');
+    });
+
+    it('should populate the cell value to all cells within selected column header', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectColumns(1);
+      listen();
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getSelected()).toEqual([[-1, 1, 2, 1]]);
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [1, 1, 'B2', 'B1'],
+        [2, 1, 'B3', 'B1'],
+      ], 'edit');
+    });
+
+    it('should populate the cell value to all cells within selected row header', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectRows(1);
+      listen();
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getSelected()).toEqual([[1, -1, 1, 2]]);
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [1, 1, 'B2', 'A2'],
+        [1, 2, 'C2', 'A2'],
+      ], 'edit');
+    });
+
+    it('should populate the cell value omitting cells that are marked as read-only', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(8, 8),
+        rowHeaders: true,
+        colHeaders: true,
+        afterChange,
+        columns: [
+          {},
+          { readOnly: true },
+          {},
+          { readOnly: true },
+          {},
+          {},
+          {},
+          {},
+        ],
+        cell: [{ row: 1, col: 0, readOnly: true }],
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      selectCells([[1, 0, 4, 1], [4, 5, 4, 0]]);
+      keyDownUp(['control/meta', 'enter']);
+
+      expect(getSelected()).toEqual([[1, 0, 4, 1], [4, 5, 4, 0]]);
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [2, 0, 'A3', 'F5'],
+        [3, 0, 'A4', 'F5'],
+        [4, 0, 'A5', 'F5'],
+        [4, 2, 'C5', 'F5'],
+        [4, 4, 'E5', 'F5'],
+      ], 'edit');
+    });
+  });
 });
