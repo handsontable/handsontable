@@ -1,5 +1,5 @@
 {
-  "title": "Update MomentJS dependency to 2.29.2.",
+  "title": "Updated the Moment.js dependency from `2.24.0` to `2.29.3`, improving Handsontable's date format matching.",
   "type": "fixed",
   "issue": 9381,
   "breaking": false,
