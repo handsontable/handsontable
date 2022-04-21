@@ -377,6 +377,19 @@ class TableView {
       // Prevent text from being selected when performing drag down.
       event.preventDefault();
     });
+
+    let origOverscrollBehaviorX = '';
+
+    // Prevents triggering browsers "go to back/forward" navigation while scrolling the table.
+    // The code below works for Chrome. For FF it is enough to add CSS "overscroll-behavior-x"
+    // property to "wtHolder" CSS class within the walkontable.css file.
+    this.eventManager.addEventListener(rootElement, 'mouseenter', () => {
+      origOverscrollBehaviorX = rootDocument.body.style.overscrollBehaviorX;
+      rootDocument.body.style.overscrollBehaviorX = 'none';
+    });
+    this.eventManager.addEventListener(rootElement, 'mouseleave', () => {
+      rootDocument.body.style.overscrollBehaviorX = origOverscrollBehaviorX ?? 'unset';
+    });
   }
 
   /**

@@ -33,6 +33,29 @@ describe('Core_view', () => {
     expect(isEditorVisible()).toEqual(true);
   });
 
+  it('should add/remove "overscroll-behavior-x: none" CSS property once the cursor moves over or out the table', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(5, 5),
+    });
+
+    $(hot.rootElement).simulate('mouseenter');
+
+    expect(document.body.style.overscrollBehaviorX).toBe('none');
+
+    $(hot.rootElement).simulate('mouseleave');
+
+    expect(document.body.style.overscrollBehaviorX).toBe('');
+
+    document.body.style.overscrollBehaviorX = 'contain';
+    $(hot.rootElement).simulate('mouseenter');
+
+    expect(document.body.style.overscrollBehaviorX).toBe('none');
+
+    $(hot.rootElement).simulate('mouseleave');
+
+    expect(document.body.style.overscrollBehaviorX).toBe('contain');
+  });
+
   it('should scroll viewport if selected cell is out of the viewport and renderAllRows is enabled', () => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '50px';

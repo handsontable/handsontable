@@ -227,6 +227,7 @@ innerBorderBottom - Property controlled by bottom overlay
 
 .ht_master .wtHolder {
   overflow: auto;
+  overscroll-behavior-x: none;
 }
 
 .handsontable .ht_master thead,
