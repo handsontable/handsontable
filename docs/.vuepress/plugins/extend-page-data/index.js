@@ -3,8 +3,8 @@ const {
   getLatestVersion,
   parseVersion,
   parseFramework,
-  getBuildDocsFramework,
-  getBuildDocsVersion,
+  getEnvDocsFramework,
+  getEnvDocsVersion,
   getDocsFrameworkedVersions,
   getDocsNonFrameworkedVersions,
   isEnvDev,
@@ -16,8 +16,8 @@ const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
 const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/extend-page-data';
 
-const DOCS_VERSION = getBuildDocsVersion();
-const DOCS_FRAMEWORK = getBuildDocsFramework();
+const DOCS_VERSION = getEnvDocsVersion();
+const DOCS_FRAMEWORK = getEnvDocsFramework();
 
 collectAllUrls();
 

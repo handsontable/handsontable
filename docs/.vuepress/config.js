@@ -5,25 +5,25 @@ const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
-const { getBuildDocsVersion, getBuildDocsFramework, TMP_DIR_FOR_WATCH, createSymlinks,
+const { getEnvDocsVersion, getEnvDocsFramework, TMP_DIR_FOR_WATCH, createSymlinks,
   isEnvDev, isFirstShown, getDocsFrameworkedVersions } = require('./helpers');
 
 const buildMode = process.env.BUILD_MODE;
-const versionPartialPath = getBuildDocsVersion() ? `${getBuildDocsVersion()}/` : '';
-const isFrameworked = getDocsFrameworkedVersions(buildMode).includes(getBuildDocsVersion());
+const versionPartialPath = getEnvDocsVersion() ? `${getEnvDocsVersion()}/` : '';
+const isFrameworked = getDocsFrameworkedVersions(buildMode).includes(getEnvDocsVersion());
 let frameworkPartialPath = '';
 
-if (getBuildDocsFramework()) {
-  frameworkPartialPath = `${getBuildDocsFramework()}/`;
+if (getEnvDocsFramework()) {
+  frameworkPartialPath = `${getEnvDocsFramework()}/`;
 
-} else if (getBuildDocsVersion() && isFrameworked) {
+} else if (getEnvDocsVersion() && isFrameworked) {
   frameworkPartialPath = '**/';
 }
 
 // The `npm run docs:start` command creates sometimes multi version docs while `npm run build` creates single version
 // of docs (multiple times).
-const isFirstShownOrMultiVersion = isFirstShown(getBuildDocsVersion(),
-  getBuildDocsFramework()) || !getBuildDocsVersion() || (!getBuildDocsFramework() && isFrameworked);
+const isFirstShownOrMultiVersion = isFirstShown(getEnvDocsVersion(),
+  getEnvDocsFramework()) || !getEnvDocsVersion() || (!getEnvDocsFramework() && isFrameworked);
 const base = isFirstShownOrMultiVersion ? '/docs/' : `/docs/${frameworkPartialPath}${versionPartialPath}`;
 const redirectsPlugin = isFirstShownOrMultiVersion ?
   [nginxRedirectsPlugin, {

@@ -174,7 +174,7 @@ function parseFramework(url) {
  *
  * @returns {string}
  */
-function getBuildDocsVersion() {
+function getEnvDocsVersion() {
   return process.env.DOCS_VERSION;
 }
 
@@ -183,7 +183,7 @@ function getBuildDocsVersion() {
  *
  * @returns {string}
  */
-function getBuildDocsFramework() {
+function getEnvDocsFramework() {
   return process.env.DOCS_FRAMEWORK;
 }
 
@@ -232,8 +232,8 @@ module.exports = {
   getSidebars,
   parseVersion,
   parseFramework,
-  getBuildDocsFramework,
-  getBuildDocsVersion,
+  getEnvDocsFramework,
+  getEnvDocsVersion,
   getDefaultFramework,
   isEnvDev,
   createSymlinks,
