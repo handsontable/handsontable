@@ -60,11 +60,11 @@ const moveDir = (version, framework) => {
     (isFrameworked && framework === getDefaultFramework()) || isFrameworked === false);
 
   if (moveDirectlyToMainDir === false) {
+    destDir += `/${version}`;
+
     if (isFrameworked) {
       destDir += `/${framework}${FRAMEWORK_SUFFIX}`;
     }
-
-    destDir += `/${version}`;
   }
 
   const prebuild = path.resolve(__dirname, '../../',

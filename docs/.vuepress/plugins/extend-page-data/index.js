@@ -66,7 +66,10 @@ module.exports = (options, context) => {
 
         // Only dev script need to perform build to specific place. Full build script perform moving directory separately.
         } else if (isEnvDev() && isFrameworked) {
-          $page.frontmatter.permalink = `/${$page.currentFramework}${FRAMEWORK_SUFFIX}${$page.frontmatter.permalink}`;
+          const permalinkPartsWithoutVersion = $page.frontmatter.permalink.split(`/${$page.currentVersion}`);
+
+          $page.frontmatter.permalink = ['/', $page.currentVersion, `/${$page.currentFramework}${FRAMEWORK_SUFFIX}`,
+            ...permalinkPartsWithoutVersion].join('');
         }
       }
     },

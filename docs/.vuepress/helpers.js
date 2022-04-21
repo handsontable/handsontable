@@ -112,13 +112,15 @@ function getSidebars(buildMode) {
       frameworks.forEach((framework) => {
         const apiTransformed = JSON.parse(JSON.stringify(s.api)); // Copy sidebar definition
         const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
+        const pathPartsWithoutVersion = plugins.path.split(`/${version}`);
 
         // We store path in sidebars.js files in form <VERSION>/api/plugins.
-        plugins.path = `/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}${plugins.path}`;
+        plugins.path = [`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/`,
+          version, ...pathPartsWithoutVersion].join('');
 
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/${version}/examples/`] = s.examples;
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/${version}/api/`] = apiTransformed;
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/${version}/`] = s.guides;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/examples/`] = s.examples;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/api/`] = apiTransformed;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/`] = s.guides;
       });
     });
 
@@ -147,14 +149,7 @@ function parseVersion(url) {
     url = url.replace(`/${TMP_DIR_FOR_WATCH}`, ''); // It's not needed for determining version from the URL.
   }
 
-  const urlParts = url.split('/');
-  const potentialFramework = urlParts[1].replace(FRAMEWORK_SUFFIX, '');
-
-  if (getFrameworks().includes(potentialFramework)) {
-    return urlParts[2] || getLatestVersion();
-  }
-
-  return urlParts[1] || getLatestVersion();
+  return url.split('/')[1] || getLatestVersion();
 }
 
 /**
@@ -168,7 +163,7 @@ function parseFramework(url) {
     url = url.replace(`/${TMP_DIR_FOR_WATCH}`, ''); // It's not needed for determining version from the URL.
   }
 
-  const potentialFramework = url.split('/')[1].replace(FRAMEWORK_SUFFIX, '');
+  const potentialFramework = url.split('/')[2]?.replace(FRAMEWORK_SUFFIX, '');
 
   if (getFrameworks().includes(potentialFramework)) {
     return potentialFramework;
@@ -222,7 +217,7 @@ function createSymlinks(buildMode) {
 
     getDocsFrameworkedVersions(buildMode).forEach((version) => {
       getFrameworks().forEach((framework) => {
-        fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/${version}`);
+        fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}`);
       });
     });
   }
