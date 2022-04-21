@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import fse from 'fs-extra';
 import utils from './utils.js';
 import { getDocsNonFrameworkedVersions, getDocsFrameworkedVersions, getFrameworks, getLatestVersion,
-  getDefaultFramework, getVersions } from '../helpers.js';
+  getDefaultFramework, getVersions, FRAMEWORK_SUFFIX } from '../helpers.js';
 
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -25,14 +25,14 @@ const moveNext = (versions) => {
 const frameworks = getFrameworks();
 
 const build = (version, framework) => {
-  let frameworkDir = '';
+  let srcFrameworkDir = '';
 
   if (typeof framework !== 'undefined') {
-    frameworkDir = `-${framework}`;
+    srcFrameworkDir = `-${framework}`;
   }
 
   spawnProcess(
-    `node_modules/.bin/vuepress build -d .vuepress/dist/prebuild${frameworkDir}-${version.replace('.', '-')}`,
+    `node_modules/.bin/vuepress build -d .vuepress/dist/prebuild${srcFrameworkDir}-${version.replace('.', '-')}`,
     {
       cwd: path.resolve(__dirname, '../../'),
       env: {
@@ -48,12 +48,12 @@ const build = (version, framework) => {
 };
 
 const moveDir = (version, framework) => {
-  let dir = '';
-  let frameworkDir = '';
+  let destDir = '';
+  let srcFrameworkDir = '';
   const isFrameworked = typeof framework !== 'undefined';
 
   if (isFrameworked) {
-    frameworkDir = `-${framework}`;
+    srcFrameworkDir = `-${framework}`;
   }
 
   const moveDirectlyToMainDir = getLatestVersion() === version && (
@@ -61,15 +61,15 @@ const moveDir = (version, framework) => {
 
   if (moveDirectlyToMainDir === false) {
     if (isFrameworked) {
-      dir += `/${framework}`;
+      destDir += `/${framework}${FRAMEWORK_SUFFIX}`;
     }
 
-    dir += `/${version}`;
+    destDir += `/${version}`;
   }
 
   const prebuild = path.resolve(__dirname, '../../',
-    `.vuepress/dist/prebuild${frameworkDir}-${version.replace('.', '-')}`);
-  const dist = path.resolve(__dirname, '../../', `.vuepress/dist/docs${dir}`);
+    `.vuepress/dist/prebuild${srcFrameworkDir}-${version.replace('.', '-')}`);
+  const dist = path.resolve(__dirname, '../../', `.vuepress/dist/docs${destDir}`);
 
   logger.info('Apply built version to the `docs/`', dist);
 

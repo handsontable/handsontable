@@ -35,14 +35,14 @@ export default {
 
       if (isUserViewingNonFrameworkedDocs) {
         if (isFrameworked) {
-          return `/docs/${this.$page.defaultFramework}/${version}/`;
+          return `/docs/${this.$page.defaultFramework}${this.$page.frameworkSuffix}/${version}/`;
         }
 
         return `/docs/${version}/`;
       }
 
       if (isFrameworked) {
-        return `/docs/${this.$page.currentFramework}/${version}/`;
+        return `/docs/${this.$page.currentFramework}${this.$page.frameworkSuffix}/${version}/`;
       }
 
       return `/docs/${version}/`;

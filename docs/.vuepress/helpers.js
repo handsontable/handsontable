@@ -9,6 +9,7 @@ const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
 const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
 const TMP_DIR_FOR_WATCH = '.watch-tmp';
 const MIN_FRAMEWORKED_DOCS_VERSION = '12.0.0';
+const FRAMEWORK_SUFFIX = '-data-grid';
 
 /**
  * Get whether we work in dev mode (watch script).
@@ -113,11 +114,11 @@ function getSidebars(buildMode) {
         const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
 
         // We store path in sidebars.js files in form <VERSION>/api/plugins.
-        plugins.path = `/${TMP_DIR_FOR_WATCH}/${framework}${plugins.path}`;
+        plugins.path = `/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}${plugins.path}`;
 
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}/${version}/examples/`] = s.examples;
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}/${version}/api/`] = apiTransformed;
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}/${version}/`] = s.guides;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/${version}/examples/`] = s.examples;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/${version}/api/`] = apiTransformed;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/${version}/`] = s.guides;
       });
     });
 
@@ -146,11 +147,14 @@ function parseVersion(url) {
     url = url.replace(`/${TMP_DIR_FOR_WATCH}`, ''); // It's not needed for determining version from the URL.
   }
 
-  if (getFrameworks().includes(url.split('/')[1])) {
-    return url.split('/')[2] || getLatestVersion();
+  const urlParts = url.split('/');
+  const potentialFramework = urlParts[1].replace(FRAMEWORK_SUFFIX, '');
+
+  if (getFrameworks().includes(potentialFramework)) {
+    return urlParts[2] || getLatestVersion();
   }
 
-  return url.split('/')[1] || getLatestVersion();
+  return urlParts[1] || getLatestVersion();
 }
 
 /**
@@ -164,8 +168,10 @@ function parseFramework(url) {
     url = url.replace(`/${TMP_DIR_FOR_WATCH}`, ''); // It's not needed for determining version from the URL.
   }
 
-  if (getFrameworks().includes(url.split('/')[1])) {
-    return url.split('/')[1];
+  const potentialFramework = url.split('/')[1].replace(FRAMEWORK_SUFFIX, '');
+
+  if (getFrameworks().includes(potentialFramework)) {
+    return potentialFramework;
   }
 }
 
@@ -216,7 +222,7 @@ function createSymlinks(buildMode) {
 
     getDocsFrameworkedVersions(buildMode).forEach((version) => {
       getFrameworks().forEach((framework) => {
-        fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${framework}/${version}`);
+        fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/${version}`);
       });
     });
   }
@@ -224,6 +230,7 @@ function createSymlinks(buildMode) {
 
 module.exports = {
   TMP_DIR_FOR_WATCH,
+  FRAMEWORK_SUFFIX,
   getVersions,
   getFrameworks,
   getDocsFrameworkedVersions,

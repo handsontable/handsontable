@@ -10,6 +10,7 @@ const {
   isEnvDev,
   isFirstShown,
   getDefaultFramework,
+  FRAMEWORK_SUFFIX,
 } = require('../../helpers');
 const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
 
@@ -52,6 +53,7 @@ module.exports = (options, context) => {
       // Framework isn't stored in PATH for full build. However, it's defined in ENV variable.
       $page.currentFramework = DOCS_FRAMEWORK || parseFramework($page.path);
       $page.defaultFramework = getDefaultFramework();
+      $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
 
@@ -64,7 +66,7 @@ module.exports = (options, context) => {
 
         // Only dev script need to perform build to specific place. Full build script perform moving directory separately.
         } else if (isEnvDev() && isFrameworked) {
-          $page.frontmatter.permalink = `/${$page.currentFramework}${$page.frontmatter.permalink}`;
+          $page.frontmatter.permalink = `/${$page.currentFramework}${FRAMEWORK_SUFFIX}${$page.frontmatter.permalink}`;
         }
       }
     },
