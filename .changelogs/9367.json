@@ -1,0 +1,7 @@
+{
+  "title": "Adds support for Home/End and fix buggy behavior of the Cmd/Ctrl+Z/Shift+Z keyboard shortcuts.",
+  "type": "added",
+  "issue": 9367,
+  "breaking": false,
+  "framework": "none"
+}

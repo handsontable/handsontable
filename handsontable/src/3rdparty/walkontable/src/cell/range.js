@@ -139,6 +139,15 @@ class CellRange {
   }
 
   /**
+   * Returns the number of cells within the range (excluding the column and row headers, if selected).
+   *
+   * @returns {number}
+   */
+  getCellsCount() {
+    return this.getWidth() * this.getHeight();
+  }
+
+  /**
    * Checks if given cell coordinates are within `from` and `to` cell coordinates of this range.
    *
    * @param {CellCoords} cellCoords The cell coordinates to check.
