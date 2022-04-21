@@ -2,9 +2,7 @@
   "name": "examples-react-9.0.2",
   "version": "9.0.2",
   "private": true,
-  "workspaces": {
-    "packages": [
-      "@(!(node_modules))/"
-    ]
-  }
+  "workspaces": [
+    "@(!(node_modules))/"
+  ]
 }
