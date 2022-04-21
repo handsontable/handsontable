@@ -1,0 +1,7 @@
+{
+  "title": "Added browser navigation prevention on horizontal scroll.",
+  "type": "added",
+  "issue": 9272,
+  "breaking": false,
+  "framework": "none"
+}
