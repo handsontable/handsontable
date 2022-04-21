@@ -542,7 +542,7 @@ export class MergeCells extends BasePlugin {
     const gridContext = shortcutManager.getContext('grid');
 
     gridContext.addShortcut({
-      keys: [['Control/Meta', 'm']],
+      keys: [['Control', 'm']],
       callback: () => {
         this.toggleMerge(this.hot.getSelectedRangeLast());
         this.hot.render();

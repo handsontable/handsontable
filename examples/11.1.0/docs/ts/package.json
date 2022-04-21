@@ -1,10 +1,8 @@
 {
-  "name": "examples-ts",
+  "name": "examples-ts-11.1.0",
   "version": "0.0.0",
   "private": true,
-  "workspaces": {
-    "packages": [
-      "@(!(node_modules))/"
-    ]
-  }
+  "workspaces": [
+    "@(!(node_modules))/"
+  ]
 }
