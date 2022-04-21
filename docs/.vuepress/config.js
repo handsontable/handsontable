@@ -6,7 +6,7 @@ const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
 const { getEnvDocsVersion, getEnvDocsFramework, TMP_DIR_FOR_WATCH, createSymlinks,
-  isEnvDev, isFirstShown, getDocsFrameworkedVersions } = require('./helpers');
+  isEnvDev, isFirstShown, getDocsFrameworkedVersions, FRAMEWORK_SUFFIX } = require('./helpers');
 
 const buildMode = process.env.BUILD_MODE;
 const versionPartialPath = getEnvDocsVersion() ? `${getEnvDocsVersion()}/` : '';
@@ -14,7 +14,7 @@ const isFrameworked = getDocsFrameworkedVersions(buildMode).includes(getEnvDocsV
 let frameworkPartialPath = '';
 
 if (getEnvDocsFramework()) {
-  frameworkPartialPath = `${getEnvDocsFramework()}/`;
+  frameworkPartialPath = `${getEnvDocsFramework()}${FRAMEWORK_SUFFIX}/`;
 
 } else if (getEnvDocsVersion() && isFrameworked) {
   frameworkPartialPath = '**/';
