@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
-## [12.0.0] - 2022-03-10
+## [12.0.0] - 2022-04-28
 
 ### Fixed
 - Filter cells with formulas using values not source [#5455](https://github.com/handsontable/handsontable/issues/5455)
@@ -24,19 +24,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue with filters menu UX for RTL [#8828](https://github.com/handsontable/handsontable/issues/8828)
 - Wrong TypeScript definition in the BasePlugin class [#9175](https://github.com/handsontable/handsontable/issues/9175)
 - Fixed an issue with the code examples' deployment workflow, where not all example directories were deployed to gh-pages. [#9182](https://github.com/handsontable/handsontable/issues/9182)
+- Add support for the latest Node LTS version that is used for development purposes. [#9149](https://github.com/handsontable/handsontable/issues/9149)
+- Updated the Moment.js dependency from `2.24.0` to `2.29.3`, in reaction to a minor security vulnerability found recently in Moment.js. [#9381](https://github.com/handsontable/handsontable/issues/9381)
+- Fixed PageUp/PageDown keyboard shortcuts for context menu [#9394](https://github.com/handsontable/handsontable/issues/9394)
 - *React:* Fixed an issue with registering modules for React wrapper [#9140](https://github.com/handsontable/handsontable/issues/9140)
 
 ### Changed
 - **Breaking change**: Changed the way `updateSettings` handles data by introducing `updateData` instead of `loadData` in the majority of cases. [#7263](https://github.com/handsontable/handsontable/issues/7263)
 - **Breaking change**: Changed the way the plugins' `updatePlugin` method reacts to `updateSettings` calls. [#9021](https://github.com/handsontable/handsontable/issues/9021)
+- **Breaking change**: Changed behavior of the Cmd/Ctrl + Arrow keyboard shortcuts. [#9363](https://github.com/handsontable/handsontable/issues/9363)
+- **Breaking change**: Changed behavior of the Home/End and Ctrl/Cmd + Home/End keyboard shortcuts. [#9364](https://github.com/handsontable/handsontable/issues/9364)
+- **Breaking change**: Changed behavior of the Cmd/Ctrl + Shift + Arrow keys and Shift + PageUp/Down keyboard shortcuts. [#9365](https://github.com/handsontable/handsontable/issues/9365)
+- **Breaking change**: Removed the Command+M keyboard shortcut that triggered cells merging (Control+M still works). [#9368](https://github.com/handsontable/handsontable/issues/9368)
+- **Breaking change**: Distinguished the meta keys (Cmd/Ctrl) depending on OS. The Command key is used to trigger the keyboard shortcut actions on macOS and the Control key on non-macOS systems. [#9369](https://github.com/handsontable/handsontable/issues/9369)
 - Changed the Code Examples Deployment workflow to make a dry-run on feature branches (without the actual deployment) [#8980](https://github.com/handsontable/handsontable/issues/8980)
 
 ### Added
 - **Breaking change**: Introducing the ShortcutManager - a new API for handling shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942)
 - Added a new configuration option: `fixedColumnsStart` [#8760](https://github.com/handsontable/handsontable/issues/8760)
+- Added Cmd/Ctrl + Enter keyboard shortcut that allows to fill the selected range of cells with the value of the active cell. [#9366](https://github.com/handsontable/handsontable/issues/9366)
+- Adds support for Home/End and fix buggy behavior of the Cmd/Ctrl+Z/Shift+Z keyboard shortcuts. [#9367](https://github.com/handsontable/handsontable/issues/9367)
 - Add Arabic Language [#9208](https://github.com/handsontable/handsontable/issues/9208)
 
 ### Removed
+- **Breaking change**: Removed the `Shift+PageUp/PageDown` keyboard shortcuts from cell editing context. [#9401](https://github.com/handsontable/handsontable/issues/9401)
 - *React:* Removed the `enzyme` dependency from the React wrapper. [#9151](https://github.com/handsontable/handsontable/issues/9151)
 
 ## [11.1.0] - 2022-01-13
