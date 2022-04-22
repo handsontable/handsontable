@@ -430,54 +430,6 @@ describe('Core_updateSettings', () => {
     expect(getCellValidator(0, 0)).toBeUndefined();
   });
 
-  it('should allow updating the table height', () => {
-    handsontable({
-      startRows: 22,
-      startCols: 5
-    });
-
-    const initialHeight = parseInt(spec().$container[0].style.height, 10);
-
-    updateSettings({
-      height: 300
-    });
-
-    expect(parseInt(spec().$container[0].style.height, 10)).toEqual(300);
-    expect(parseInt(spec().$container[0].style.height, 10)).not.toEqual(initialHeight);
-  });
-
-  it('should not reset the table height, when the updateSettings config object doesn\'t have any height specified', () => {
-    handsontable({
-      startRows: 22,
-      startCols: 5,
-      height: 300
-    });
-
-    const initialHeight = spec().$container[0].style.height;
-
-    updateSettings({
-      rowHeaders: true
-    });
-
-    expect(parseInt(spec().$container[0].style.height, 10)).toEqual(parseInt(initialHeight, 10));
-  });
-
-  it('should allow resetting the table height', () => {
-    handsontable({
-      startRows: 22,
-      startCols: 5,
-      height: 300
-    });
-
-    const initialHeight = spec().$container[0].style.height;
-
-    updateSettings({
-      height: null
-    });
-
-    expect(parseInt(spec().$container[0].style.height, 10)).not.toEqual(parseInt(initialHeight, 10));
-  });
-
   it('should allow updating the stretching type', () => {
     const hot = handsontable({
       stretchH: 'last'
