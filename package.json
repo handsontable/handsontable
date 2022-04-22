@@ -64,7 +64,7 @@
     "fs-extra": "^4.0.2",
     "inquirer": "^7.3.3",
     "jsdom-global": "^3.0.2",
-    "moment": "2.24.0",
+    "moment": "2.29.3",
     "replace-in-file": "^6.1.0",
     "rimraf": "^2.5.4",
     "semver": "^5.7.1",
