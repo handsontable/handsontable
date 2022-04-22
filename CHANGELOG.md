@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking change**: Distinguished the meta keys (Cmd/Ctrl) depending on OS. The Command key is used to trigger the keyboard shortcut actions on macOS and the Control key on non-macOS systems. [#9369](https://github.com/handsontable/handsontable/issues/9369)
 - Changed the Code Examples Deployment workflow to make a dry-run on feature branches (without the actual deployment) [#8980](https://github.com/handsontable/handsontable/issues/8980)
 - Updated the HyperFormula optional dependency for Handsontable. [#9411](https://github.com/handsontable/handsontable/issues/9411)
+- Modified the main `build` and `test` scripts to exclude the examples from being built/tested. [#9412](https://github.com/handsontable/handsontable/issues/9412)
 
 ### Added
 - **Breaking change**: Introducing the ShortcutManager - a new API for handling shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942)
