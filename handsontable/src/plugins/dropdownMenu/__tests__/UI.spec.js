@@ -17,11 +17,11 @@ describe('DropdownMenu', () => {
       { htmlDir: 'ltr', layoutDirection: 'inherit' },
       { htmlDir: 'rtl', layoutDirection: 'ltr' },
     ], ({ htmlDir, layoutDirection }) => {
-      beforeEach(function() {
+      beforeEach(() => {
         $('html').attr('dir', htmlDir);
       });
 
-      afterEach(function() {
+      afterEach(() => {
         $('html').attr('dir', 'ltr');
       });
 
