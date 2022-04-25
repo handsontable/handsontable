@@ -21,7 +21,7 @@ Released on 28th of April, 2022
 
 **Added**
 - Added [`ShortcutManager`](@/api/shortcutmanager.md), a new API for customizing keyboard shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942)
-- Added support for RTL languages, by introducing a new configuration option: [`layoutDirection`](@/api/options.md#layoutdirection). [#8760](https://github.com/handsontable/handsontable/issues/8760)
+- Added support for right-to-left (RTL) languages, by introducing a new configuration option: [`layoutDirection`](@/api/options.md#layoutdirection). [#8760](https://github.com/handsontable/handsontable/issues/8760)
 - Added an Arabic translation. [#9208](https://github.com/handsontable/handsontable/issues/9208)
 - Added a new configuration option: [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart). [#8760](https://github.com/handsontable/handsontable/issues/8760)
 - Added a new keyboard shortcut (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Enter</kbd>) for filling the selected range of cells with the value of the active cell. [#9366](https://github.com/handsontable/handsontable/issues/9366)
