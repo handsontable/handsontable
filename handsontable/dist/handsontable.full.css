@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.0.0
- * Release date: 14/03/2022 (built at 28/03/2022 11:41:17)
+ * Release date: 14/03/2022 (built at 22/04/2022 11:49:10)
  */
 /**
  * Fix for bootstrap styles
@@ -799,9 +799,9 @@ TextRenderer placeholder value
   width: 10px;
   height: 10px;
   cursor: pointer;
-  -webkit-box-shadow: 0 0 0 6px #eeeeee;
-  -moz-box-shadow: 0 0 0 6px #eeeeee;
-  box-shadow: 0 0 0 6px #eeeeee;
+  -webkit-box-shadow: 0 0 0 6px rgb(238, 238, 238);
+  -moz-box-shadow: 0 0 0 6px rgb(238, 238, 238);
+  box-shadow: 0 0 0 6px rgb(238, 238, 238);
   background: #eee;
   text-align: center;
 }
