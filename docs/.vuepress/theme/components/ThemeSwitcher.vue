@@ -42,10 +42,10 @@ export default {
     };
   },
   beforeMount() {
-    const userPrefferedTheme = localStorage ? localStorage.getItem(STORAGE_KEY) : 'light';
+    const userPreferredTheme = localStorage ? localStorage.getItem(STORAGE_KEY) : 'light';
 
-    if (userPrefferedTheme) {
-      this.isDarkTheme = userPrefferedTheme === 'dark';
+    if (userPreferredTheme) {
+      this.isDarkTheme = userPreferredTheme === 'dark';
 
       return;
     }
@@ -62,7 +62,6 @@ export default {
     this.htmlDomEl = document.querySelector('html');
 
     toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme);
-
   }
 };
 </script>
