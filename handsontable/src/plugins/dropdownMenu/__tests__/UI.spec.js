@@ -1,25 +1,30 @@
 describe('DropdownMenu', () => {
-  using('configuration object', [
-    { htmlDir: 'ltr', layoutDirection: 'inherit' },
-    { htmlDir: 'rtl', layoutDirection: 'ltr' },
-  ], ({ htmlDir, layoutDirection }) => {
-    const id = 'testContainer';
+  const id = 'testContainer';
 
-    beforeEach(function() {
-      $('html').attr('dir', htmlDir);
-      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-    });
+  beforeEach(function() {
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+  });
 
-    afterEach(function() {
-      $('html').attr('dir', 'ltr');
+  afterEach(function() {
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+  });
 
-      if (this.$container) {
-        destroy();
-        this.$container.remove();
-      }
-    });
+  describe('UI', () => {
+    using('configuration object', [
+      { htmlDir: 'ltr', layoutDirection: 'inherit' },
+      { htmlDir: 'rtl', layoutDirection: 'ltr' },
+    ], ({ htmlDir, layoutDirection }) => {
+      beforeEach(function() {
+        $('html').attr('dir', htmlDir);
+      });
 
-    describe('UI', () => {
+      afterEach(function() {
+        $('html').attr('dir', 'ltr');
+      });
+
       it('should render the dropdown button on the right side of the header', () => {
         handsontable({
           layoutDirection,
@@ -32,6 +37,15 @@ describe('DropdownMenu', () => {
 
         expect(dropdownButton.find('.changeType').css('float')).toBe('right');
       });
+    });
+
+    it('should render dropdown menu trigger buttons with a proper type', () => {
+      handsontable({
+        dropdownMenu: true,
+        colHeaders: true,
+      });
+
+      expect(hot().rootElement.querySelectorAll('.ht_master table button.changeType[type=button]').length).toBe(5);
     });
   });
 });
