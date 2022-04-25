@@ -136,9 +136,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.rootElement.setAttribute('dir', rootElementDirection);
 
   /**
-   * Check if currently it is RTL direction.
+   * Checks if the table is rendered using right-to-left layout direction.
    *
-   * @private
    * @memberof Core#
    * @function isRtl
    * @returns {boolean} True if RTL.
@@ -148,9 +147,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Check if currently it is LTR direction.
+   * Checks if the table is rendered using left-to-right layout direction.
    *
-   * @private
    * @memberof Core#
    * @function isLtr
    * @returns {boolean} True if LTR.
@@ -162,7 +160,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns 1 for LTR; -1 for RTL. Useful for calculations.
    *
-   * @private
    * @memberof Core#
    * @function getDirectionFactor
    * @returns {number} Returns 1 for LTR; -1 for RTL.
