@@ -138,6 +138,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Checks if the table is rendered using right-to-left layout direction.
    *
+   * @since 12.0.0
    * @memberof Core#
    * @function isRtl
    * @returns {boolean} True if RTL.
@@ -149,6 +150,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Checks if the table is rendered using left-to-right layout direction.
    *
+   * @since 12.0.0
    * @memberof Core#
    * @function isLtr
    * @returns {boolean} True if LTR.
@@ -160,6 +162,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns 1 for LTR; -1 for RTL. Useful for calculations.
    *
+   * @since 12.0.0
    * @memberof Core#
    * @function getDirectionFactor
    * @returns {number} Returns 1 for LTR; -1 for RTL.
