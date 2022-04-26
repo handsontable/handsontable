@@ -35,7 +35,7 @@ For more information on this release, see:
 - Changed the version of the Moment.js dependency from to 2.24.0 to 2.29.3, in reaction to a recently-found Moment.js security vulnerability that did not directly affect Handsontable. [#9381](https://github.com/handsontable/handsontable/issues/9381)
 
 ### Fixed
-- Fixed an issue where cell filtering used formula results instead of source values. [#5455](https://github.com/handsontable/handsontable/issues/5455)
+- Fixed an issue where cell filtering did not use formula results. [#5455](https://github.com/handsontable/handsontable/issues/5455)
 - Fixed an issue where the Handsontable documentation didn't build locally on Windows. [#8677](https://github.com/handsontable/handsontable/issues/8677)
 - Fixed a wrong TypeScript definition in the `BasePlugin` class. [#9175](https://github.com/handsontable/handsontable/issues/9175)
 - Fixed an issue where using `updateSettings()` caused configuration options to disappear. [#6552](https://github.com/handsontable/handsontable/issues/6552)
