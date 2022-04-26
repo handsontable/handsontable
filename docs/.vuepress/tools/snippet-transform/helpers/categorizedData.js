@@ -66,7 +66,7 @@ class CategorizedData {
       this[`${type}Expressions`] = expressionContainer.filter(
         (expression) => {
 
-          if (!(new RegExp(pattern).test(expression))) {
+          if (new RegExp(pattern).test(expression) === false) {
             return true;
 
           } else {
@@ -79,8 +79,6 @@ class CategorizedData {
 
       return removedExpressions;
 
-    } else {
-      return void 0;
     }
   }
 
@@ -107,10 +105,20 @@ class CategorizedData {
       this.hotInstances.named.set(varName, hotInstanceInformation);
 
     } else {
+      let configString;
+
+      if (hasReferencedConfig) {
+        configString = config;
+
+      } else {
+        const unnamedInstancesCount = this.hotInstances.unnamed.length;
+        const hotInstanceIndex = unnamedInstancesCount ? unnamedInstancesCount + 1 : null
+
+        configString = `hot${hotInstanceIndex || ''}Settings`
+      }
+
       hotInstanceInformation = {
-        config: hasReferencedConfig ? config : `hot${
-          this.hotInstances.unnamed.length ? this.hotInstances.unnamed.length + 1 : ''
-        }Settings`,
+        config: configString,
         containerVarName
       };
 
@@ -193,7 +201,7 @@ class CategorizedData {
    * @returns {boolean}
    */
   hasAnyHotInstances() {
-    return !!this.hotInstances.named.size || !!this.hotInstances.unnamed.length;
+    return this.hotInstances.named.size > 0 || this.hotInstances.unnamed.length > 0;
   }
 
   /**

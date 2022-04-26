@@ -15,11 +15,11 @@ const TEMPLATE_RENDERERS = {
  * @returns {string|null}
  */
 function renderTemplate(framework, snippetInformation, includeImports = false, includeApp = false, appContainerId) {
-  return (
-    typeof TEMPLATE_RENDERERS[framework] === 'function' ?
-      TEMPLATE_RENDERERS[framework](snippetInformation, includeImports, includeApp, appContainerId) :
-      null
-  );
+  if (typeof TEMPLATE_RENDERERS[framework] === 'function') {
+    return TEMPLATE_RENDERERS[framework](snippetInformation, includeImports, includeApp, appContainerId);
+  }
+
+  return null;
 }
 
 module.exports = {

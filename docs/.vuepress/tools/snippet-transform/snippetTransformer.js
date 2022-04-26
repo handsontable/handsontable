@@ -27,7 +27,7 @@ const REF_VAR_NAMES = [
  * @type {{js: string, react: string}}
  */
 const FRAMEWORKS = {
-  js: 'js',
+  js: 'javascript',
   react: 'react'
 };
 
@@ -35,7 +35,7 @@ class SnippetTransformer {
   /**
    * Snippet Transformer constructor.
    *
-   * @param {string} [framework=FRAMEWORKS.js] The desired framework name.
+   * @param {string} [framework=javascript] The desired framework name.
    * @param {string} content Snippet content.
    * @param {string} baseFilePath Path of the file containing the transformed snippet.
    * @param {number} baseFileLine Index of the line that the snippet lies in in the file.
@@ -83,7 +83,7 @@ class SnippetTransformer {
       baseFileLine,
     } = this.snippet;
 
-    // If the framework is set as `js`, skip the transformation.
+    // If the framework is set as `javascript`, skip the transformation.
     if (framework === FRAMEWORKS.js) {
       return content;
     }
@@ -351,9 +351,6 @@ ${node.mock ? node.content : content.slice(...node.range)}\
 
     parsedContent.body.forEach((node) => {
       switch (node.type) {
-        case 'ImportDeclaration':
-          // TODO
-          break;
         case 'ClassDeclaration':
           this.addExpression(CategorizedData.EXP_INITIAL, node);
 

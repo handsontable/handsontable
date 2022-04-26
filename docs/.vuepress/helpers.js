@@ -75,7 +75,7 @@ function getBuildDocsVersion() {
  * @returns {string}
  */
 function getBuildDocsFramework() {
-  return process.env.FRAMEWORK;
+  return process.env.DOCS_FRAMEWORK;
 }
 
 module.exports = {

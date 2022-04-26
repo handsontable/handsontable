@@ -15,7 +15,7 @@ module.exports = {
       const snippetContent = tokens[index + 1].content;
       // Adding `3` to compensate for the frontmatter syntax
       const frontMatterLength = Object.keys(env.frontmatter).reduce(
-        (s, key) => ((Array.isArray(env.frontmatter[key])) ? s + env.frontmatter[key].length + 1 : s + 1), 0) + 3;
+        (sum, key) => ((Array.isArray(env.frontmatter[key])) ? sum + env.frontmatter[key].length + 1 : sum + 1), 0) + 3;
       const filePath = env.relativePath;
       const lineNumber = tokens[index].map[0] + frontMatterLength;
 

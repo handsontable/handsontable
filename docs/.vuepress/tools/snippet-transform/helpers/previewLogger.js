@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 
 const LOG_FILE_NAME = 'react-translation-log.html';
-const LOG_FILE_PATH = path.join(__filename, '../../../../..', LOG_FILE_NAME);
+const LOG_FILE_PATH = path.join(__dirname, '../../../..', LOG_FILE_NAME);
 
 /**
  * Escape the HTML tags.

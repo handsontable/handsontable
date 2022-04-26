@@ -108,7 +108,7 @@ module.exports = {
       const jsToken = tokens[jsIndex];
       let jsContent = jsToken.content;
 
-      // Transform the JS snippet to the framework-based one, where the framework is defined in the `FRAMEWORK`
+      // Transform the JS snippet to the framework-based one, where the framework is defined in the `DOCS_FRAMEWORK`
       // environmental variable.
       if (
         !['angular', 'react', 'vue'].some(value => preset.includes(value)) &&
@@ -116,8 +116,8 @@ module.exports = {
       ) {
         // Adding `3` to compensate for the frontmatter syntax
         const frontMatterLength = Object.keys(env.frontmatter).reduce(
-          (s, key) => (
-            (Array.isArray(env.frontmatter[key])) ? s + env.frontmatter[key].length + 1 : s + 1
+          (sum, key) => (
+            (Array.isArray(env.frontmatter[key])) ? sum + env.frontmatter[key].length + 1 : sum + 1
           ), 0) + 3;
         const filePath = env.relativePath;
         const lineNumber = tokens[jsIndex].map[0] + frontMatterLength;
