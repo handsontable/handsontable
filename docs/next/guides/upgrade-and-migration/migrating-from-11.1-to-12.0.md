@@ -225,7 +225,7 @@ The table below summarizes default keyboard shortcuts changes related to cell me
 |         | Before                                                                      | After                                     |
 | ------- | --------------------------------------------------------------------------- | ----------------------------------------- |
 | Windows | <kbd>Ctrl</kbd> + <kbd>M</kbd> works<br><kbd>Cmd</kbd> + <kbd>M</kbd> works | Only <kbd>Ctrl</kbd> + <kbd>M</kbd> works |
-| macOS   | <kbd>Ctrl</kbd> + <kbd>M</kbd> works<br><kbd>Cmd</kbd> + <kbd>M</kbd> works | Only <kbd>Ctrl</kbd> + <kbd>M</kbd> works |
+| macOS   | <kbd>Ctrl</kbd> + <kbd>M</kbd> works<br><kbd>Cmd</kbd> + <kbd>M</kbd> works | Only <kbd>Ctrl</kbd> + <kbd>M</kbd> works<br>(<kbd>Cmd</kbd> + <kbd>M</kbd> conflicted with macOS's shortcut for window minimizing) |
 
 #### Migrating to Handsontable 12.0
 
