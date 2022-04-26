@@ -48,6 +48,7 @@ For more information on this release, see:
 - Fixed an issue where using `updateSettings()` caused problems with column sorting. [#7688](https://github.com/handsontable/handsontable/issues/7688)
 - Fixed an issue where the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Z</kbd> and <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> keyboard shortcuts didn't behave properly inside cell editors. [#9367](https://github.com/handsontable/handsontable/issues/9367)
 - Fixed an issue where the <kbd>Page Up</kbd> and <kbd>Page Down</kbd> keys didn't behave properly in context menus. [#9394](https://github.com/handsontable/handsontable/issues/9394)
+- Fixed an issue where the dropdown menu contained unwanted rectangle elements. [#9240](https://github.com/handsontable/handsontable/issues/9240)
 - *Vue 2:* Fixed an issue where repeatedly changing Handsontable's height through `updateSettings()` caused Handsontable to crash. [#7546](https://github.com/handsontable/handsontable/issues/7546)
 - *Vue 2:* Fixed an issue where the `failed` validation status got erased when editing a new row. [#7541](https://github.com/handsontable/handsontable/issues/7541)
 - *React:* Fixed an issue where using `setState()` within the `afterFilter` hook broke filtering. [#7567](https://github.com/handsontable/handsontable/issues/7567)
