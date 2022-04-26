@@ -20,7 +20,12 @@ module.exports = {
       const filePath = env.relativePath;
       const lineNumber = tokens[index].map[0] + frontMatterLength;
 
-      const snippetTransformer = new SnippetTransformer(getContainerFramework(filePath), snippetContent, filePath, lineNumber);
+      const snippetTransformer = new SnippetTransformer(
+        getContainerFramework(filePath),
+        snippetContent,
+        filePath,
+        lineNumber
+      );
 
       const translatedSnippetContent = snippetTransformer.makeSnippet();
 

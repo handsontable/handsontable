@@ -25,9 +25,10 @@ function getContainerFrontMatterLength(frontMatterObj) {
 }
 
 /**
- * Given the `.md` file path retrieves the framework name used to do the snippet transformation.
+ *  * Given the `.md` file path retrieves the framework name used to do the snippet transformation.
  *
  * @param {string} path The `.md` file path.
+ * @returns {string} The framework name.
  */
 function getContainerFramework(path) {
   const envFramework = getEnvDocsFramework();
@@ -42,4 +43,4 @@ function getContainerFramework(path) {
 module.exports = {
   getContainerFrontMatterLength,
   getContainerFramework
-}
+};

@@ -112,9 +112,9 @@ class CategorizedData {
 
       } else {
         const unnamedInstancesCount = this.hotInstances.unnamed.length;
-        const hotInstanceIndex = unnamedInstancesCount ? unnamedInstancesCount + 1 : null
+        const hotInstanceIndex = unnamedInstancesCount ? unnamedInstancesCount + 1 : null;
 
-        configString = `hot${hotInstanceIndex || ''}Settings`
+        configString = `hot${hotInstanceIndex || ''}Settings`;
       }
 
       hotInstanceInformation = {
