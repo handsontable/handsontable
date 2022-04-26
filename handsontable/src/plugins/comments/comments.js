@@ -3,7 +3,6 @@ import {
   closest,
   isChildOf,
   hasClass,
-  offset,
   outerWidth,
   outerHeight
 } from '../../helpers/dom/element';
@@ -432,39 +431,24 @@ export class Comments extends BasePlugin {
     renderableColumn = renderableColumn ?? 0;
 
     const { rootWindow, view: { _wt: wt } } = this.hot;
-    const { wtTable, wtOverlays, wtViewport } = wt;
-    const scrollableElement = wtOverlays.scrollableElement;
+    const { wtTable } = wt;
 
     const TD = wtTable.getCell({
       row: renderableRow,
       col: renderableColumn,
     });
 
-    const cellOffset = offset(TD);
     const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getStretchedColumnWidth(renderableColumn);
     const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
-    let cellTopOffset = cellOffset.top;
-    let cellLeftOffset = cellOffset.left;
 
-    if (wtViewport.hasVerticalScroll() && scrollableElement !== rootWindow) {
-      cellTopOffset -= wtOverlays.topOverlay.getScrollPosition();
-    }
+    const { left, top } = TD.getBoundingClientRect();
+    const x = left + rootWindow.scrollX + (this.hot.isRtl() ? -this.editor.getSize().width : lastColWidth);
+    const y = top + rootWindow.scrollY + lastRowHeight;
 
-    if (wtViewport.hasHorizontalScroll() && scrollableElement !== rootWindow) {
-      cellLeftOffset -= wtOverlays.inlineStartOverlay.getScrollPosition() * (this.hot.isRtl() ? -1 : 1);
-    }
-
-    const y = cellTopOffset + lastRowHeight;
-    let x = cellLeftOffset;
-
-    if (this.hot.isRtl()) {
-      x -= this.editor.getSize().width;
-    } else {
-      x += lastColWidth;
-    }
+    this.editor.setPosition(x, y);
+    this.editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY));
 
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
-    const readOnly = this.getCommentMeta(visualRow, visualColumn, META_READONLY);
 
     if (commentStyle) {
       this.editor.setSize(commentStyle.width, commentStyle.height);
@@ -472,9 +456,6 @@ export class Comments extends BasePlugin {
     } else {
       this.editor.resetSize();
     }
-
-    this.editor.setReadOnlyState(readOnly);
-    this.editor.setPosition(x, y);
   }
 
   /**
