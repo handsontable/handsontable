@@ -251,7 +251,7 @@ These keyboard shortcuts work when you navigate the grid. They come from Handson
 | <kbd>**Page Up**</kbd>                            | <kbd>**Page Up**</kbd>                            | Move one screen up                                                                                     | &check; | &check; |
 | <kbd>**Page Down**</kbd>                          | <kbd>**Page Down**</kbd>                          | Move one screen down                                                                                   | &check; | &check; |
 
-<sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction).
+<sup>*</sup> This action depends on your layout direction.
 
 ### Selection keyboard shortcuts
 
@@ -260,10 +260,10 @@ These keyboard shortcuts help you select cells. They come from Handsontable's [`
 | Windows                                                                   | macOS                                                                    | Action                                                                           |  Excel  | Sheets  |
 | ------------------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------- | :-----: | :-----: |
 | <kbd>**Ctrl**</kbd><br>+<br><kbd>**A**</kbd>                              | <kbd>**Cmd**</kbd><br>+<br><kbd>**A**</kbd>                              | Select all cells and headers                                                     | &check; | &check; |
-| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**↑**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**↑**</kbd> | Extend the selection to the first cell of the current column                     | &check; | &check; |
-| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**↓**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**↓**</kbd> | Extend the selection to the last cell of the current column                      | &check; | &check; |
-| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**←**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**←**</kbd> | Extend the selection to the leftmost cell of the current row                     | &check; | &check; |
-| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**→**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**→**</kbd> | Extend the selection to the rightmost cell of the current row                    | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**↑**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**↑**</kbd> | Extend the selection to the first cell of the current column<sup>**</sup>        | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**↓**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**↓**</kbd> | Extend the selection to the last cell of the current column<sup>**</sup>         | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**←**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**←**</kbd> | Extend the selection to the leftmost cell of the current row<sup>**</sup>        | &check; | &check; |
+| <kbd>**Ctrl**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**→**</kbd> | <kbd>**Cmd**</kbd><br>+<br><kbd>**Shift**</kbd><br>+<br><kbd>**→**</kbd> | Extend the selection to the rightmost cell of the current row<sup>**</sup>       | &check; | &check; |
 | <kbd>**Shift**</kbd><br>+<br>Arrow keys                                   | <kbd>**Shift**</kbd><br>+<br>Arrow keys                                  | Extend the selection by one cell                                                 | &check; | &check; |
 | <kbd>**Shift**</kbd><br>+<br><kbd>**Home**</kbd>                          | <kbd>**Shift**</kbd><br>+<br><kbd>**Home**</kbd>                         | Extend the selection to the first non-frozen cell of the current row<sup>*</sup> | &check; | &cross; |
 | <kbd>**Shift**</kbd><br>+<br><kbd>**End**</kbd>                           | <kbd>**Shift**</kbd><br>+<br><kbd>**End**</kbd>                          | Extend the selection to the last non-frozen cell of the current row<sup>*</sup>  | &cross; | &cross; |
@@ -273,7 +273,8 @@ These keyboard shortcuts help you select cells. They come from Handsontable's [`
 | <kbd>**Delete**</kbd>                                                     | <kbd>**Delete**</kbd>                                                    | Clear the contents of the selected cells                                         | &check; | &check; |
 | <kbd>**Backspace**</kbd>                                                  | <kbd>**Backspace**</kbd>                                                 | Clear the contents of the selected cells                                         | &check; | &check; |
 
-<sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction).
+<sup>*</sup> This action depends on your layout direction.<br>
+<sup>**</sup> In case of multiple selection layers, only the last selection layer gets extended.
 
 ### Edition keyboard shortcuts
 
@@ -299,7 +300,7 @@ These keyboard shortcuts work when you're editing a cell's contents. They come f
 | <kbd>**Ctrl**</kbd><br>+<br><kbd>**Enter**</kbd>                    | <kbd>**Ctrl**</kbd> / <kbd>**Cmd**</kbd><br>+<br><kbd>**Enter**</kbd> | Insert a line break                                                  | &cross; | &check; |
 | <kbd>**Escape**</kbd>                                               | <kbd>**Escape**</kbd>                                                 | Cancel the cell entry<br>and exit the editing mode                   | &check; | &check; |
 
-<sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction).
+<sup>*</sup> This action depends on your layout direction.
 
 #### Checkbox editor keyboard shortcuts
 
