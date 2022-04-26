@@ -47,7 +47,7 @@ For more information on this release, see:
 - *Vue 2:* Fixed an issue where the `failed` validation status got erased when editing a new row. [#7541](https://github.com/handsontable/handsontable/issues/7541)
 - *React:* Fixed an issue where using `setState()` within the `afterFilter` hook broke filtering. [#7567](https://github.com/handsontable/handsontable/issues/7567)
 - *React, Angular, Vue 2, Vue 3:* Fixed an issue where using `updateSettings()` caused problems for state managers. [#8372](https://github.com/handsontable/handsontable/issues/8372)
-- *React, Vue 2, Vue 3:* Fixed an issue with registering modules for the React, Vue 2, and Vue 3 wrappers. [#9140](https://github.com/handsontable/handsontable/issues/9140)
+- *React, Vue 2, Vue 3:* Fixed an issue with registering modules for the React, Vue 2, and Vue 3 wrappers, by adding an `"exports"` field to their `package.json` files. [#9140](https://github.com/handsontable/handsontable/issues/9140)
 
 ### Removed
 - **Breaking change**: Removed the <kbd>Cmd</kbd> + <kbd>M</kbd> keyboard shortcut (used for cell merging), as it conflicted with window minimizing on macOS. The <kbd>Ctrl</kbd> + <kbd>M</kbd> keyboard shortcut works the same as before. [#9368](https://github.com/handsontable/handsontable/issues/9368)
