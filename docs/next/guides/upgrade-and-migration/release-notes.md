@@ -39,7 +39,7 @@ Released on 28th of April, 2022
 - **Breaking change**: Changed the actions of the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd>/<kbd>←</kbd>/<kbd>→</kbd> keyboard shortcuts, to match the usual spreadsheet software behavior. [#9365](https://github.com/handsontable/handsontable/issues/9365) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#keyboard-shortcuts-changes-selection)
 - **Breaking change**: Changed the actions of the <kbd>Shift</kbd> + <kbd>Page Up</kbd>/<kbd>Page Down</kbd> keyboard shortcuts, to match the usual spreadsheet software behavior. [#9365](https://github.com/handsontable/handsontable/issues/9365) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#keyboard-shortcuts-changes-selection)
 - Changed two scripts of the main Handsontable workspace (`./`), to speed up the build process: now, the `npm run build` and `npm run test` scripts don't build or test the Handsontable examples (`./examples`). [#9412](https://github.com/handsontable/handsontable/issues/9412)
-- Changed the version of the Moment.js dependency from to 2.24.0 to 2.29.3, in reaction to a minor security vulnerability found recently in Moment.js. [#9381](https://github.com/handsontable/handsontable/issues/9381)
+- Changed the version of the Moment.js dependency from to 2.24.0 to 2.29.3, in reaction to a security vulnerability found recently in Moment.js. [#9381](https://github.com/handsontable/handsontable/issues/9381)
 
 **Fixed**
 - Fixed an issue where cell filtering used formula results instead of source values. [#5455](https://github.com/handsontable/handsontable/issues/5455)

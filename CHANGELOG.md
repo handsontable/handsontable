@@ -21,7 +21,7 @@ For more information on this release, see:
 - Added an Arabic translation. [#9208](https://github.com/handsontable/handsontable/issues/9208)
 - Added a new configuration option: `fixedColumnsStart`. [#8760](https://github.com/handsontable/handsontable/issues/8760)
 - Added a new keyboard shortcut (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Enter</kbd>) for filling the selected range of cells with the value of the active cell. [#9366](https://github.com/handsontable/handsontable/issues/9366)
-- Added support for the <kbd>Home</kbd> and <kbd>End</kbd> keys inside cell editors. [#9367](https://github.com/handsontable/handsontable/issues/9367)
+- Added support for the <kbd>Home</kbd> and <kbd>End</kbd> keys inside cell editors, for moving the cursor to the beginning or end of the text. [#9367](https://github.com/handsontable/handsontable/issues/9367)
 - Added support for the latest Node LTS version. [#9149](https://github.com/handsontable/handsontable/issues/9149)
 
 ### Changed
@@ -35,7 +35,7 @@ For more information on this release, see:
 - **Breaking change**: Changed the actions of the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd>/<kbd>←</kbd>/<kbd>→</kbd> keyboard shortcuts, to match the usual spreadsheet software behavior. [#9365](https://github.com/handsontable/handsontable/issues/9365)
 - **Breaking change**: Changed the actions of the <kbd>Shift</kbd> + <kbd>Page Up</kbd>/<kbd>Page Down</kbd> keyboard shortcuts, to match the usual spreadsheet software behavior. [#9365](https://github.com/handsontable/handsontable/issues/9365)
 - Changed two scripts of the main Handsontable workspace (`./`), to speed up the build process: now, the `npm run build` and `npm run test` scripts don't build or test the Handsontable examples (`./examples`). [#9412](https://github.com/handsontable/handsontable/issues/9412)
-- Changed the version of the Moment.js dependency from to 2.24.0 to 2.29.3, in reaction to a minor security vulnerability found recently in Moment.js. [#9381](https://github.com/handsontable/handsontable/issues/9381)
+- Changed the version of the Moment.js dependency from to 2.24.0 to 2.29.3, in reaction to a security vulnerability found recently in Moment.js. [#9381](https://github.com/handsontable/handsontable/issues/9381)
 
 ### Fixed
 - Fixed an issue where cell filtering used formula results instead of source values. [#5455](https://github.com/handsontable/handsontable/issues/5455)
