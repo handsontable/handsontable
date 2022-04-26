@@ -11,7 +11,6 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
 [![npm](https://img.shields.io/npm/dm/@handsontable/vue.svg)](https://npmjs.com/package/@handsontable/vue)
 [![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
-[![Known Vulnerabilities](https://snyk.io/test/github/handsontable/handsontable/badge.svg?targetFile=wrappers/vue/package.json)](https://snyk.io/test/github/handsontable/handsontable?targetFile=wrappers/vue/package.json)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
 
 ---
