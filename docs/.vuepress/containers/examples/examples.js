@@ -7,8 +7,10 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const { buildCode } = require('./code-builder');
 const { jsfiddle } = require('./jsfiddle');
-const { getFrontMatterLength } = require('../helpers');
-const { getBuildDocsFramework } = require('../../helpers');
+const {
+  getContainerFrontMatterLength,
+  getContainerFramework
+} = require('../helpers');
 const {
   SnippetTransformer,
   logChange
@@ -109,16 +111,15 @@ module.exports = {
       const jsToken = tokens[jsIndex];
       let jsContent = jsToken.content;
 
+      const filePath = env.relativePath;
+      const framework = getContainerFramework(filePath);
+
       // Transform the JS snippet to the framework-based one, where the framework is defined in the `DOCS_FRAMEWORK`
       // environmental variable.
-      if (
-        !['angular', 'react', 'vue'].some(value => preset.includes(value)) &&
-        getBuildDocsFramework()
-      ) {
-        const frontMatterLength = getFrontMatterLength(env.frontmatter);
-        const filePath = env.relativePath;
+      if (!['angular', 'react', 'vue'].some(value => preset.includes(value)) && framework) {
+        const frontMatterLength = getContainerFrontMatterLength(env.frontmatter);
         const lineNumber = tokens[jsIndex].map[0] + frontMatterLength;
-        const snippetTransformer = new SnippetTransformer(getBuildDocsFramework(), jsContent, filePath, lineNumber);
+        const snippetTransformer = new SnippetTransformer(framework, jsContent, filePath, lineNumber);
         const translatedSnippetContent = snippetTransformer.makeSnippet(true, true, id);
 
         // Log the transformation in the log file.
@@ -131,7 +132,7 @@ module.exports = {
 
         if (!translatedSnippetContent.error) {
           // Inject a correct preset for the framework.
-          preset = preset.replace('hot', getBuildDocsFramework());
+          preset = preset.replace('hot', framework);
 
           // Workaround for `hot` presets having the `lang` postfix, while other frameworks -> `languages`.
           preset = preset.replace('lang', 'languages');

@@ -2,6 +2,7 @@ const { parse } = require('espree');
 const { renderTemplate } = require('./templates');
 const { logChange } = require('./helpers/previewLogger');
 const { logger } = require('../utils');
+const { getDefaultFramework } = require('../../helpers');
 const { CategorizedData } = require('./helpers/categorizedData');
 const { Comments } = require('./helpers/comments');
 
@@ -40,7 +41,7 @@ class SnippetTransformer {
    * @param {string} baseFilePath Path of the file containing the transformed snippet.
    * @param {number} baseFileLine Index of the line that the snippet lies in in the file.
    */
-  constructor(framework = FRAMEWORKS.js, content, baseFilePath, baseFileLine) {
+  constructor(framework = getDefaultFramework(), content, baseFilePath, baseFileLine) {
     /**
      * Snippet information object.
      *

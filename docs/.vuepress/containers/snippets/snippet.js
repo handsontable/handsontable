@@ -1,5 +1,7 @@
-const { getBuildDocsFramework } = require('../../helpers');
-const { getFrontMatterLength } = require('../helpers');
+const {
+  getContainerFrontMatterLength,
+  getContainerFramework
+} = require('../helpers');
 const {
   SnippetTransformer,
   logChange
@@ -14,11 +16,11 @@ module.exports = {
     if (tokens[index].nesting === 1) {
       // For now, let's assume that the `snippet` container contains only one `js/javascript` code block.
       const snippetContent = tokens[index + 1].content;
-      const frontMatterLength = getFrontMatterLength(env.frontmatter);
+      const frontMatterLength = getContainerFrontMatterLength(env.frontmatter);
       const filePath = env.relativePath;
       const lineNumber = tokens[index].map[0] + frontMatterLength;
 
-      const snippetTransformer = new SnippetTransformer(getBuildDocsFramework(), snippetContent, filePath, lineNumber);
+      const snippetTransformer = new SnippetTransformer(getContainerFramework(filePath), snippetContent, filePath, lineNumber);
 
       const translatedSnippetContent = snippetTransformer.makeSnippet();
 
