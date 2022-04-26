@@ -7,6 +7,7 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const { buildCode } = require('./code-builder');
 const { jsfiddle } = require('./jsfiddle');
+const { getFrontMatterLength } = require('../helpers');
 const { getBuildDocsFramework } = require('../../helpers');
 const {
   SnippetTransformer,
@@ -114,11 +115,7 @@ module.exports = {
         !['angular', 'react', 'vue'].some(value => preset.includes(value)) &&
         getBuildDocsFramework()
       ) {
-        // Adding `3` to compensate for the frontmatter syntax
-        const frontMatterLength = Object.keys(env.frontmatter).reduce(
-          (sum, key) => (
-            (Array.isArray(env.frontmatter[key])) ? sum + env.frontmatter[key].length + 1 : sum + 1
-          ), 0) + 3;
+        const frontMatterLength = getFrontMatterLength(env.frontmatter);
         const filePath = env.relativePath;
         const lineNumber = tokens[jsIndex].map[0] + frontMatterLength;
         const snippetTransformer = new SnippetTransformer(getBuildDocsFramework(), jsContent, filePath, lineNumber);
