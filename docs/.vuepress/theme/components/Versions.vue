@@ -25,24 +25,31 @@ export default {
     },
     getLink(version, isFrameworked) {
       const isUserViewingNonFrameworkedDocs = typeof this.$page.currentFramework === 'undefined';
+      const defaultFramework = `${this.$page.defaultFramework}${this.$page.frameworkSuffix}/`;
+      const currentFramework = `${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
 
-      if (version === this.$page.latestVersion && (
-        (this.$page.defaultFramework === this.$page.currentFramework) || isFrameworked === false
-        || isUserViewingNonFrameworkedDocs)
-      ) {
+      if (version === this.$page.latestVersion) {
+        if (isFrameworked) {
+          if (isUserViewingNonFrameworkedDocs) {
+            return `/docs/${defaultFramework}`;
+          }
+
+          return `/docs/${currentFramework}`;
+        }
+
         return '/docs/';
       }
 
       if (isUserViewingNonFrameworkedDocs) {
         if (isFrameworked) {
-          return `/docs/${version}/${this.$page.defaultFramework}${this.$page.frameworkSuffix}/`;
+          return `/docs/${version}/${defaultFramework}`;
         }
 
         return `/docs/${version}/`;
       }
 
       if (isFrameworked) {
-        return `/docs/${version}/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
+        return `/docs/${version}/${currentFramework}`;
       }
 
       return `/docs/${version}/`;

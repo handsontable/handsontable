@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import fse from 'fs-extra';
 import utils from './utils.js';
 import { getDocsNonFrameworkedVersions, getDocsFrameworkedVersions, getFrameworks, getLatestVersion,
-  getDefaultFramework, getVersions, FRAMEWORK_SUFFIX } from '../helpers.js';
+  getVersions, FRAMEWORK_SUFFIX } from '../helpers.js';
 
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -56,15 +56,12 @@ const moveDir = (version, framework) => {
     srcFrameworkDir = `-${framework}`;
   }
 
-  const moveDirectlyToMainDir = getLatestVersion() === version && (
-    (isFrameworked && framework === getDefaultFramework()) || isFrameworked === false);
-
-  if (moveDirectlyToMainDir === false) {
+  if (getLatestVersion() !== version) {
     destDir += `/${version}`;
+  }
 
-    if (isFrameworked) {
-      destDir += `/${framework}${FRAMEWORK_SUFFIX}`;
-    }
+  if (isFrameworked) {
+    destDir += `/${framework}${FRAMEWORK_SUFFIX}`;
   }
 
   const prebuild = path.resolve(__dirname, '../../',

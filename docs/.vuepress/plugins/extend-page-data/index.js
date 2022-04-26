@@ -8,7 +8,6 @@ const {
   getDocsFrameworkedVersions,
   getDocsNonFrameworkedVersions,
   isEnvDev,
-  isFirstShown,
   getDefaultFramework,
   FRAMEWORK_SUFFIX,
 } = require('../../helpers');
@@ -58,11 +57,17 @@ module.exports = (options, context) => {
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
 
       const isFrameworked = getDocsFrameworkedVersions(buildMode).includes($page.currentVersion);
-      const buildingSingleVersion = DOCS_VERSION && (DOCS_FRAMEWORK || !DOCS_FRAMEWORK && isFrameworked === false);
+      const buildingSingleVersion = DOCS_VERSION !== void 0 && (DOCS_FRAMEWORK !== void 0 || DOCS_FRAMEWORK === void 0
+        && isFrameworked === false);
 
       if ($page.frontmatter.permalink) {
-        if (buildingSingleVersion || isFirstShown($page.currentVersion, $page.currentFramework)) {
+        if (buildingSingleVersion || $page.latestVersion === $page.currentVersion) {
           $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
+
+          // Only dev script need to perform build to specific place. Full build script perform moving directory separately.
+          if (isEnvDev() && isFrameworked && buildingSingleVersion === false) {
+            $page.frontmatter.permalink = `/${$page.currentFramework}${FRAMEWORK_SUFFIX}${$page.frontmatter.permalink}`;
+          }
 
         // Only dev script need to perform build to specific place. Full build script perform moving directory separately.
         } else if (isEnvDev() && isFrameworked) {
