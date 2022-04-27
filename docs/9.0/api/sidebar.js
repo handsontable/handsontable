@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { getBuildDocsVersion, getLatestVersion } = require('../../.vuepress/helpers');
+const { getEnvDocsVersion, getLatestVersion } = require('../../.vuepress/helpers');
 
 const apiHighLevelPages = [
   'introduction',
@@ -27,7 +27,7 @@ const nonPublicPages = [
 const getUrlVersionPart = () => {
   const version = path.resolve(__dirname, '../').split('/').pop();
 
-  return getLatestVersion() === version || getBuildDocsVersion() ? '' : `/${version}`;
+  return getLatestVersion() === version || getEnvDocsVersion() ? '' : `/${version}`;
 };
 
 module.exports = {

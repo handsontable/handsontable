@@ -1,7 +1,7 @@
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
 const {
-  getBuildDocsVersion,
+  getEnvDocsVersion,
   getSidebars,
   getLatestVersion,
   getVersions,
@@ -10,7 +10,7 @@ const {
 const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/assets-versioning';
 
-const DOCS_VERSION = getBuildDocsVersion();
+const DOCS_VERSION = getEnvDocsVersion();
 
 module.exports = (options, context) => {
   return {

@@ -76,13 +76,13 @@ export default {
   @media (max-width: $MQNarrow) {
     & {
       display: inline-block;
-      left: 80px;
+      left: 50px;
     }
   }
 
   @media (max-width: $MQMobile) {
     & {
-      left: 90px;
+      left: 65px;
     }
   }
 }

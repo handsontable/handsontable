@@ -52,7 +52,7 @@ describe('HiddenRows', () => {
       simulateClick(firstHeader, 'LMB');
 
       keyDownUp('enter');
-      keyDownUp(['control', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual([
         ['A3', 'B1', 'C1', 'D1', 'E1'],
@@ -79,7 +79,7 @@ describe('HiddenRows', () => {
       simulateClick(corner, 'LMB');
 
       keyDownUp('enter');
-      keyDownUp(['control', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual([
         ['A3', 'A3', 'A3', 'A3', 'A3'],

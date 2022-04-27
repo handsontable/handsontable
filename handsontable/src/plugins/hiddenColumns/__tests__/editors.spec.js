@@ -52,7 +52,7 @@ describe('HiddenColumns', () => {
       simulateClick(firstHeader, 'LMB');
 
       keyDownUp('enter');
-      keyDownUp(['control', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual([
         ['C1', 'C1', 'C1', 'C1', 'C1'],
@@ -79,7 +79,7 @@ describe('HiddenColumns', () => {
       simulateClick(corner, 'LMB');
 
       keyDownUp('enter');
-      keyDownUp(['control', 'enter']);
+      keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual([
         ['C1', 'C1', 'C1', 'C1', 'C1'],
