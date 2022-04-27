@@ -89,7 +89,7 @@ const hot = new Handsontable(container, {
 
 Use the **validator**  method to easily validate synchronous or asynchronous changes to a cell. If you need more control, **beforeValidate** and **afterValidate** plugin hooks are available. In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
 
-Use the **allowInvalid** option to define if the grid should accept input that does not validate. If you need to modify the input (e.g. censor bad words, uppercase first letter), use the plugin hook **beforeChange**.
+Use the **allowInvalid** option to define if the grid should accept input that does not validate. If you need to modify the input (e.g., censor bad words, uppercase first letter), use the plugin hook **beforeChange**.
 
 By default, all invalid cells are marked by `htInvalid` CSS class. If you want to change class to another you can basically add the `invalidCellClassName` option to Handsontable settings. For example:
 

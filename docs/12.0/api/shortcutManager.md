@@ -24,7 +24,7 @@ Each `ShortcutManager` object:
 
 ### addContext
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/shortcuts/manager.js#L44
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L44
 
 :::
 
@@ -41,7 +41,7 @@ Create a new [`ShortcutContext`](@/api/shortcutcontext.md) object.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/shortcuts/manager.js#L154
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L154
 
 :::
 
@@ -53,7 +53,7 @@ Destroy a context manager instance.
 
 ### getActiveContextName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/shortcuts/manager.js#L58
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L58
 
 :::
 
@@ -65,13 +65,13 @@ Get the ID of the active [`ShortcutContext`](@/api/shortcutcontext.md).
 
 ### getContext
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/shortcuts/manager.js#L69
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L69
 
 :::
 
 _shortcutManager.getContext(contextName) ⇒ object | undefined_
 
-Get a [`ShortcutContext`](@/api/shortcutcontext.md) by its name.
+Get a keyboard shortcut context by its name.
 
 
 | Param | Type | Description |
@@ -79,11 +79,11 @@ Get a [`ShortcutContext`](@/api/shortcutcontext.md) by its name.
 | contextName | `string` | The name of the shortcut context |
 
 
-**Returns**: `object` | `undefined` - A [`ShortcutContext`](@/api/shortcutcontext.md) that stores registered shortcuts  
+**Returns**: `object` | `undefined` - A [`ShortcutContext`](@/api/shortcutcontext.md) object that stores registered shortcuts  
 
 ### isCtrlPressed
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/shortcuts/manager.js#L147
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L147
 
 :::
 
@@ -95,7 +95,7 @@ Returns whether `control` or `meta` keys are pressed.
 
 ### setActiveContextName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/shortcuts/manager.js#L79
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L79
 
 :::
 
