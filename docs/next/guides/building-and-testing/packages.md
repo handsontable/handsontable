@@ -33,7 +33,6 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 <script src="https://cdn.jsdelivr.net/npm/moment@2.29.3/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pikaday@1.8.0/pikaday.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/numbro@2.1.2/dist/numbro.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/hot-formula-parser@3.0.0/dist/formula-parser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@2.1.1/dist/purify.js"></script>
 
 <!-- Handsontable bare files -->
@@ -41,7 +40,7 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 <link href="dist/handsontable.css" rel="stylesheet">
 ```
 
-**handsontable.js** and **handsontable.css** are compiled ___without___ the needed dependencies. You will have to include `pikaday.js`, `moment.js`, `numbro.js`, `hot-formula-parser.js` and `dompurify` on your own ie. from JSDelivr CDN.
+**handsontable.js** and **handsontable.css** are compiled ___without___ the needed dependencies. You will have to include `pikaday.js`, `moment.js`, `numbro.js`, and `dompurify` on your own ie. from JSDelivr CDN.
 
 ## Internationalization
 It is possible to include files which will register languages dictionaries. They allow to translate parts of Handsontable UI. You can either use only particular languages files or include all of them at once as a single file.
