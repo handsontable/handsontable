@@ -20,7 +20,7 @@ editLink: false
 
 _createShortcutManager~activeContextName : string_
 
-The name of the active [`ShortcutContext`](@/api/shortcutcontext.md).
+The name of the active [`ShortcutContext`](@/api/shortcutContext.md).
 
 
 
@@ -44,7 +44,7 @@ A unique map that stores keyboard shortcut contexts.
 
 _createShortcutManager~isCtrlKeySilenced : boolean_
 
-This variable relates to the [`captureCtrl`](@/api/shortcutcontext.md) shortcut option,
+This variable relates to the [`captureCtrl`](@/api/shortcutContext.md) shortcut option,
 which allows for capturing the state of the Control/Meta modifier key.
 Some of the default keyboard shortcuts related to cell selection need this feature for working properly.
 

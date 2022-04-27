@@ -13,7 +13,7 @@ editLink: false
 
 ## Description
 
-The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutcontext.md)).
+The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutContext.md)).
 
 Each `ShortcutManager` object:
 - Stores and manages its own set of keyboard shortcut contexts.
@@ -30,7 +30,7 @@ Each `ShortcutManager` object:
 
 _shortcutManager.addContext(contextName) ⇒ object_
 
-Create a new [`ShortcutContext`](@/api/shortcutcontext.md) object.
+Create a new [`ShortcutContext`](@/api/shortcutContext.md) object.
 
 
 | Param | Type | Description |
@@ -59,7 +59,7 @@ Destroy a context manager instance.
 
 _shortcutManager.getActiveContextName() ⇒ string_
 
-Get the ID of the active [`ShortcutContext`](@/api/shortcutcontext.md).
+Get the ID of the active [`ShortcutContext`](@/api/shortcutContext.md).
 
 
 
@@ -79,7 +79,7 @@ Get a keyboard shortcut context by its name.
 | contextName | `string` | The name of the shortcut context |
 
 
-**Returns**: `object` | `undefined` - A [`ShortcutContext`](@/api/shortcutcontext.md) object that stores registered shortcuts  
+**Returns**: `object` | `undefined` - A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts  
 
 ### isCtrlPressed
   
@@ -101,7 +101,7 @@ Returns whether `control` or `meta` keys are pressed.
 
 _shortcutManager.setActiveContextName(contextName)_
 
-Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/shortcutcontext.md).
+Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/shortcutContext.md).
 
 
 | Param | Type | Description |
