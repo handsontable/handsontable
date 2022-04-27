@@ -117,7 +117,7 @@ afterDocumentKeyDown() {
 
 #### After
 
-When you use a keyboard to navigate some internal instances of Handsontable (e.g., a context menu) hook may not get fired anymore.
+When you use a keyboard to navigate some internal instances of Handsontable (e.g., a context menu), the [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown) hook may not get fired anymore.
 
 ```js
 afterDocumentKeyDown() {
