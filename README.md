@@ -1,3 +1,35 @@
+# Rippling
+## :satellite: Publish
+
+#### One time setup to create and set token
+
+##### Get your personal github token
+
+Create personal token by visiting [Github Settings](https://github.com/settings/tokens) with following scope
+
+<img width="713" alt="Screenshot 2020-05-27 13 19 05" src="https://user-images.githubusercontent.com/8512339/83159698-e5d39f00-a123-11ea-963a-e39c95058476.png">
+
+##### Set token
+
+```sh
+# Create .npmrc file
+cp .npmrc_sample .npmrc
+# Replace github-token with actual token
+sed -i '' 's/github\-token/xxxxxxxxxxxxxxxxx/g' .npmrc # xxxxxx should be actual github token
+```
+
+#### Steps to publish to registry
+
+```sh
+#1 Bump up version in package.json
+
+#2 Publish
+npm publish
+
+#3 Ensure you have committed package.json change
+```
+
+
 <div align="center">
   <a href="//handsontable.com" target="_blank"><img src="https://raw.githubusercontent.com/handsontable/static-files/master/Images/Logo/Handsontable/Handsontable-logo-300-74-new.png" alt="Handsontable Community Edition logo" /></a>
 </div>
