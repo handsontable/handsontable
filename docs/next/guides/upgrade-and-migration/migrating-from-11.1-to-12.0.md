@@ -152,10 +152,10 @@ We took this opportunity to improve the behavior of Handsontable's default keybo
 - Improve the consistency of keyboard navigation
 - Create a more intuitive user experience
 
-#### The Meta key (<kbd>Ctrl</kbd> vs <kbd>Cmd</kbd>)
+#### <kbd>Ctrl</kbd> vs <kbd>Cmd</kbd>
 
-Handsontable 12.0 splits the cross-platform Meta key (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>) into two separate keys.
-Now, in most cases, the <kbd>Cmd</kbd> key works only on macOS, and the <kbd>Ctrl</kbd> key works only on Windows.
+Handsontable 12.0 splits a cross-platform modifier key (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>) into two separate keys.
+Now, the <kbd>Cmd</kbd> key triggers actions on macOS where the <kbd>Ctrl</kbd> key triggers actions on Windows.
 
 For example, the table below shows how this change affects the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>A</kbd> shortcut:
 
