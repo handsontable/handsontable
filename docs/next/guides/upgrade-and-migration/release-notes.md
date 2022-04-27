@@ -20,7 +20,7 @@ tags:
 Released on 28th of April, 2022
 
 **Added**
-- Added [`ShortcutManager`](@/api/shortcutmanager.md), a new API for customizing keyboard shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942)
+- Added [`ShortcutManager`](@/api/shortcutManager.md), a new API for customizing keyboard shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942)
 - Added support for right-to-left (RTL) languages, by introducing a new configuration option: [`layoutDirection`](@/api/options.md#layoutdirection). [#8760](https://github.com/handsontable/handsontable/issues/8760)
 - Added an Arabic translation. [#9208](https://github.com/handsontable/handsontable/issues/9208)
 - Added a new configuration option: [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart). [#8760](https://github.com/handsontable/handsontable/issues/8760)
@@ -48,7 +48,7 @@ Released on 28th of April, 2022
 - *Vue 2:* Fixed an issue where repeatedly changing Handsontable's height through [`updateSettings()`](@/api/core.md#updatesettings) caused Handsontable to crash. [#7546](https://github.com/handsontable/handsontable/issues/7546)
 - *Vue 2:* Fixed an issue where the `failed` validation status got erased when editing a new row. [#7541](https://github.com/handsontable/handsontable/issues/7541)
 - Fixed an issue where cell filtering did not use formula results. [#5455](https://github.com/handsontable/handsontable/issues/5455)
-- Fixed a wrong TypeScript definition in the [`BasePlugin`](@/api/baseplugin.md) class. [#9175](https://github.com/handsontable/handsontable/issues/9175)
+- Fixed a wrong TypeScript definition in the [`BasePlugin`](@/api/basePlugin.md) class. [#9175](https://github.com/handsontable/handsontable/issues/9175)
 - Fixed an issue where the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Z</kbd> and <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> keyboard shortcuts didn't behave properly inside cell editors. [#9367](https://github.com/handsontable/handsontable/issues/9367)
 - Fixed an issue where the dropdown menu contained unwanted rectangle elements. [#9240](https://github.com/handsontable/handsontable/issues/9240)
 - *React, Vue 2, Vue 3:* Fixed an issue with registering modules for the React, Vue 2, and Vue 3 wrappers, by adding an `"exports"` field to their `package.json` files. [#9140](https://github.com/handsontable/handsontable/issues/9140)

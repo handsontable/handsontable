@@ -54,28 +54,28 @@ Read more on referencing the Handsontable instance:
 
 ## Step 2: Adjust to the `updatePlugin()` changes
 
-Handsontable 12.0.0 changes how the [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls.
+Handsontable 12.0.0 changes how the [`updatePlugin()`](@/api/autoColumnSize.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls.
 
 This change might affect your custom plugins.
 
 #### Before
 
 Every [`updateSettings()`](@/api/core.md#updatesettings) call (even with an empty object passed as new settings) triggered 
-the [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method for each enabled plugin.
+the [`updatePlugin()`](@/api/autoColumnSize.md#updateplugin) method for each enabled plugin.
 
 As a result, whenever you called [`updateSettings()`](@/api/core.md#updatesettings), all enabled plugins got updated.
 
 #### After
 
-A plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method gets triggered only when the object passed to [`updateSettings()`](@/api/core.md#updatesettings) contains at least one of the following:
+A plugin's [`updatePlugin()`](@/api/autoColumnSize.md#updateplugin) method gets triggered only when the object passed to [`updateSettings()`](@/api/core.md#updatesettings) contains at least one of the following:
 - The plugin's [`PLUGIN_KEY`](@/guides/building-and-testing/plugins.md#_2-extend-the-baseplugin) (the plugin's main alias)
-- An entry from the plugin's [`SETTING_KEYS`](@/api/baseplugin.md#setting-keys) (a property that stores all additional settings relevant to the plugin)
+- An entry from the plugin's [`SETTING_KEYS`](@/api/basePlugin.md#setting-keys) (a property that stores all additional settings relevant to the plugin)
 
 As a result, a plugin gets updated only if you update settings related to that particular plugin.
 
 #### Migrating to Handsontable 12.0
 
-If you want your [custom plugin](@/guides/building-and-testing/plugins.md) to still get updated on every [`updateSettings()`](@/api/core.md#updatesettings) call, set your plugin's [`SETTING_KEYS`](@/api/baseplugin.md#setting-keys) to `true`:
+If you want your [custom plugin](@/guides/building-and-testing/plugins.md) to still get updated on every [`updateSettings()`](@/api/core.md#updatesettings) call, set your plugin's [`SETTING_KEYS`](@/api/basePlugin.md#setting-keys) to `true`:
 
 ```js
 static get SETTING_KEYS() {
@@ -114,8 +114,8 @@ afterDocumentKeyDown() {
 ```
 
 This change may affect the following areas of Handsontable:
-- [Context menu](@/api/contextmenu.md)
-- [Dropdown menu](@/api/dropdownmenu.md)
+- [Context menu](@/api/contextMenu.md)
+- [Dropdown menu](@/api/dropdownMenu.md)
 
 #### Migrating to Handsontable 12.0
 
@@ -127,9 +127,9 @@ You can't change this behavior by using any of Handsontable's APIs.
 These changes don't affect your custom keyboard shortcuts.
 :::
 
-Handsontable 12.0 introduces a new keyboard shortcuts API, [`ShortcutManager`](@/api/shortcutmanager.md).
+Handsontable 12.0 introduces a new keyboard shortcuts API, [`ShortcutManager`](@/api/shortcutManager.md).
 
-[`ShortcutManager`](@/api/shortcutmanager.md) lets you easily manage your custom keyboard shortcuts,
+[`ShortcutManager`](@/api/shortcutManager.md) lets you easily manage your custom keyboard shortcuts,
 but also changes how Handsontable defines its default keyboard shortcuts.
 Now, nearly all default keyboard shortcuts are defined explicitly.
 
@@ -215,7 +215,7 @@ The table below summarizes default keyboard shortcuts changes related to cell me
 
 #### Migrating to Handsontable 12.0
 
-To keep the previous (pre-12.0) behavior of a default keyboard shortcut, use the new [`ShortcutManager`](@/api/shortcutmanager.md) API to:
+To keep the previous (pre-12.0) behavior of a default keyboard shortcut, use the new [`ShortcutManager`](@/api/shortcutManager.md) API to:
 - [Add a custom keyboard shortcut](@/guides/accessories-and-menus/keyboard-shortcuts.md#adding-a-custom-keyboard-shortcut)
 - [Remove a default keyboard shortcut](@/guides/accessories-and-menus/keyboard-shortcuts.md#removing-a-keyboard-shortcut)
 - [Replace a default keyboard shortcut](@/guides/accessories-and-menus/keyboard-shortcuts.md#replacing-a-keyboard-shortcut)

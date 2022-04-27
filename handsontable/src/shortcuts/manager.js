@@ -5,7 +5,7 @@ import { useRecorder } from './recorder';
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
- * The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutcontext.md)).
+ * The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutContext.md)).
  *
  * Each `ShortcutManager` object:
  * - Stores and manages its own set of keyboard shortcut contexts.
@@ -28,14 +28,14 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
     errorIdExists: keys => `The "${keys}" context name is already registered.`
   });
   /**
-   * The name of the active [`ShortcutContext`](@/api/shortcutcontext.md).
+   * The name of the active [`ShortcutContext`](@/api/shortcutContext.md).
    *
    * @type {string}
    */
   let activeContextName = 'grid';
 
   /**
-   * Create a new [`ShortcutContext`](@/api/shortcutcontext.md) object.
+   * Create a new [`ShortcutContext`](@/api/shortcutContext.md) object.
    *
    * @memberof ShortcutManager#
    * @param {string} contextName The name of the new shortcut context
@@ -50,7 +50,7 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
   };
 
   /**
-   * Get the ID of the active [`ShortcutContext`](@/api/shortcutcontext.md).
+   * Get the ID of the active [`ShortcutContext`](@/api/shortcutContext.md).
    *
    * @memberof ShortcutManager#
    * @returns {string}
@@ -64,14 +64,14 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
    *
    * @memberof ShortcutManager#
    * @param {string} contextName The name of the shortcut context
-   * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutcontext.md) object that stores registered shortcuts
+   * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts
    */
   const getContext = (contextName) => {
     return CONTEXTS.getItem(contextName);
   };
 
   /**
-   * Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/shortcutcontext.md).
+   * Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/shortcutContext.md).
    *
    * @memberof ShortcutManager#
    * @param {string} contextName The name of the shortcut context

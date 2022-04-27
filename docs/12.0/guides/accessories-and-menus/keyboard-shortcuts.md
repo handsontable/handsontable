@@ -26,7 +26,7 @@ Use and manage Handsontable's keyboard shortcuts.
 
 You can navigate Handsontable similarly to Google Sheets or Microsoft Excel, using the [default](#default-keyboard-shortcuts) keyboard shortcuts.
 
-You can also completely [customize](#custom-keyboard-shortcuts) your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutmanager.md) API:
+You can also completely [customize](#custom-keyboard-shortcuts) your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutManager.md) API:
 - [Add custom keyboard shortcuts](#adding-a-custom-keyboard-shortcut)
 - [Remove keyboard shortcuts](#removing-a-keyboard-shortcut)
 - [Replace keyboard shortcuts](#replacing-a-keyboard-shortcut)
@@ -152,7 +152,7 @@ These keyboard shortcuts work with particular plugins.
 
 #### Clipboard keyboard shortcuts
 
-These keyboard shortcuts work when the [`CopyPaste`](@/api/copypaste.md) plugin is enabled.
+These keyboard shortcuts work when the [`CopyPaste`](@/api/copyPaste.md) plugin is enabled.
 
 | Windows                                      | macOS                                       | Action                                                          |  Excel  | Sheets  |
 | -------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------- | :-----: | :-----: |
@@ -162,7 +162,7 @@ These keyboard shortcuts work when the [`CopyPaste`](@/api/copypaste.md) plugin 
 
 #### Cell merging keyboard shortcuts
 
-These keyboard shortcuts work when the [`MergeCells`](@/api/mergecells.md) plugin is enabled.
+These keyboard shortcuts work when the [`MergeCells`](@/api/mergeCells.md) plugin is enabled.
 
 | Windows                                      | macOS                                        | Action                              |  Excel  | Sheets  |
 | -------------------------------------------- | -------------------------------------------- | ----------------------------------- | :-----: | :-----: |
@@ -170,7 +170,7 @@ These keyboard shortcuts work when the [`MergeCells`](@/api/mergecells.md) plugi
 
 #### Undo and redo keyboard shortcuts
 
-These keyboard shortcuts work when the [`UndoRedo`](@/api/undoredo.md) plugin is enabled.
+These keyboard shortcuts work when the [`UndoRedo`](@/api/undoRedo.md) plugin is enabled.
 
 | Windows                                                                   | macOS                                                                    | Action               |  Excel  | Sheets  |
 | ------------------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------- | :-----: | :-----: |
@@ -180,7 +180,7 @@ These keyboard shortcuts work when the [`UndoRedo`](@/api/undoredo.md) plugin is
 
 #### Context menu keyboard shortcuts
 
-These keyboard shortcuts work in context menus. To activate them, enable the [`ContextMenu`](@/api/contextmenu.md) plugin.
+These keyboard shortcuts work in context menus. To activate them, enable the [`ContextMenu`](@/api/contextMenu.md) plugin.
 
 | Windows                  | macOS                    | Action                                                        |  Excel  | Sheets  |
 | ------------------------ | ------------------------ | ------------------------------------------------------------- | :-----: | :-----: |
@@ -192,9 +192,9 @@ These keyboard shortcuts work in context menus. To activate them, enable the [`C
 
 ## Custom keyboard shortcuts
 
-You can customize your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutmanager.md) API.
+You can customize your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutManager.md) API.
 
-1. Access the [`ShortcutManager`](@/api/shortcutmanager.md) API:
+1. Access the [`ShortcutManager`](@/api/shortcutManager.md) API:
     ```js
     hot.getShortcutManager()
     ```
@@ -202,8 +202,8 @@ You can customize your keyboard shortcuts, using the [`ShortcutManager`](@/api/s
     ```js
     const gridContext = hot.getShortcutManager().getContext('grid');
     ```
-3. Use the selected context's [methods](@/api/shortcutcontext.md). 
-    For example, to use the [`addShortcut()`](@/api/shortcutcontext.md#addshortcut) method in the `grid` context:
+3. Use the selected context's [methods](@/api/shortcutContext.md). 
+    For example, to use the [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method in the `grid` context:
     ```js
     const gridContext = hot.getShortcutManager().getContext('grid');
 
@@ -231,12 +231,12 @@ Only one context is active at a time.
 
 #### Managing keyboard shortcut contexts
 
-Using the [`ShortcutManager`](@/api/shortcutmanager.md) API methods, you can:
+Using the [`ShortcutManager`](@/api/shortcutManager.md) API methods, you can:
 
-- Get the name of the currently-active context: [`getActiveContextName()`](@/api/shortcutmanager.md#getactivecontextname)
-- Switch to a different context: [`setActiveContextName()`](@/api/shortcutmanager.md#setactivecontextname)
-- Get an already-registered context: [`getContext()`](@/api/shortcutmanager.md#getcontext)
-- Create and register a new context: [`addContext()`](@/api/shortcutmanager.md#addcontext)
+- Get the name of the currently-active context: [`getActiveContextName()`](@/api/shortcutManager.md#getactivecontextname)
+- Switch to a different context: [`setActiveContextName()`](@/api/shortcutManager.md#setactivecontextname)
+- Get an already-registered context: [`getContext()`](@/api/shortcutManager.md#getcontext)
+- Create and register a new context: [`addContext()`](@/api/shortcutManager.md#addcontext)
 
 For example: if you're using a complex [custom editor](@/guides/cell-functions/cell-editor.md#how-to-create-a-custom-editor), 
 you can create a new shortcut context to navigate your editor's UI with the arrow keys (normally, the arrow keys would navigate the grid instead).
@@ -248,7 +248,7 @@ To add a custom keyboard shortcut:
     ```js
     const gridContext = hot.getShortcutManager().getContext('grid');
     ```
-2. Using the selected context's [`addShortcut()`](@/api/shortcutcontext.md#addshortcut) method, add your keyboard shortcut:
+2. Using the selected context's [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method, add your keyboard shortcut:
     ```js
     const gridContext = hot.getShortcutManager().getContext('grid');
 
@@ -258,7 +258,7 @@ To add a custom keyboard shortcut:
       callback: () => {},
     });
     ```
-    The [`keys`](@/api/shortcutcontext.md#addshortcut) parameter:
+    The [`keys`](@/api/shortcutContext.md#addshortcut) parameter:
     - Accepts all the [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) key names.
     - Accepts key names in both lowercase and uppercase (e.g., both `Enter` and `enter` work)
     - Handles key-name discrepancies between browsers (e.g., both `'Spacebar'` and `' '` work)
@@ -269,12 +269,12 @@ To add a custom keyboard shortcut:
     <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) is often used for typing special characters (e.g., letters wich diacritical marks),
     and its behavior may vary depending on the user's language and keyboard settings.
     
-    To properly use <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) in your shortcut, you may need to pass language-specific signs (such as `à` or `ś`) to the [`keys`](@/api/shortcutcontext.md#addshortcut) parameter.
+    To properly use <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) in your shortcut, you may need to pass language-specific signs (such as `à` or `ś`) to the [`keys`](@/api/shortcutContext.md#addshortcut) parameter.
     :::
 
 #### Adding a conditional keyboard action
 
-To make a keyboard action run on a certain condition, set the [`runOnlyIf`](@/api/shortcutcontext.md#addshortcut) parameter to a function:
+To make a keyboard action run on a certain condition, set the [`runOnlyIf`](@/api/shortcutContext.md#addshortcut) parameter to a function:
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
@@ -291,7 +291,7 @@ gridContext.addShortcut({
 
 You can assign multiple actions to a single keyboard shortcut.
 
-By default, when you assign a new action, it runs after any other actions that were assigned previously. To set your own order of actions, use the [`position`](@/api/shortcutcontext.md#addshortcut) and [`relativeToGroup`](@/api/shortcutcontext.md#addshortcut) parameters of the [`addShortcut()`](@/api/shortcutcontext.md#addshortcut) method:
+By default, when you assign a new action, it runs after any other actions that were assigned previously. To set your own order of actions, use the [`position`](@/api/shortcutContext.md#addshortcut) and [`relativeToGroup`](@/api/shortcutContext.md#addshortcut) parameters of the [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method:
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
@@ -316,7 +316,7 @@ gridContext.addShortcut({
 
 To remove a keyboard shortcut (e.g., one of the [default](#default-keyboard-shortcuts) keyboard shortcuts):
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to remove a keyboard shortcut.
-2. Use the selected context's [`removeShortcutsByKeys()`](@/api/shortcutcontext.md#removeshortcutsbykeys) method.
+2. Use the selected context's [`removeShortcutsByKeys()`](@/api/shortcutContext.md#removeshortcutsbykeys) method.
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
@@ -325,7 +325,7 @@ gridContext.removeShortcutsByKeys(['enter']);
 
 To remove all keyboard shortcuts registered in a certain group:
 1. Select a [context](#keyboard-shortcut-contexts).
-2. Use the selected context's [`removeShortcutsByGroup()`](@/api/shortcutcontext.md#removeshortcutsbygroup) method.
+2. Use the selected context's [`removeShortcutsByGroup()`](@/api/shortcutContext.md#removeshortcutsbygroup) method.
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
@@ -336,10 +336,10 @@ gridContext.removeShortcutsByGroup('group_ID');
 
 To replace a keyboard shortcut:
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to replace a keyboard shortcut.
-2. Get the old keyboard shortcut, using the selected context's [`getShortcuts()`](@/api/shortcutcontext.md#getshortcuts) method.
-3. Remove the old keyboard shortcut, using the selected context's [`removeShortcutsByKeys()`](@/api/shortcutcontext.md#removeshortcutsbykeys) method.
+2. Get the old keyboard shortcut, using the selected context's [`getShortcuts()`](@/api/shortcutContext.md#getshortcuts) method.
+3. Remove the old keyboard shortcut, using the selected context's [`removeShortcutsByKeys()`](@/api/shortcutContext.md#removeshortcutsbykeys) method.
 4. Replace the `keys` property of the old keyboard shortcut with your new array of keys.
-5. Add your new keyboard shortcut, using the selected context's [`addShortcuts()`](@/api/shortcutcontext.md#addshortcuts) method.
+5. Add your new keyboard shortcut, using the selected context's [`addShortcuts()`](@/api/shortcutContext.md#addshortcuts) method.
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 const undoShortcut = gridContext.getShortcuts(['meta', 'z']);
