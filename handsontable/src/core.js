@@ -136,7 +136,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.rootElement.setAttribute('dir', rootElementDirection);
 
   /**
-   * Checks if the table is rendered using right-to-left layout direction.
+   * Checks if the grid is rendered using the right-to-left layout direction.
    *
    * @since 12.0.0
    * @memberof Core#
@@ -148,7 +148,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Checks if the table is rendered using left-to-right layout direction.
+   * Checks if the grid is rendered using the left-to-right layout direction.
    *
    * @since 12.0.0
    * @memberof Core#
