@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.0.0
- * Release date: 28/04/2022 (built at 27/04/2022 11:54:40)
+ * Release date: 28/04/2022 (built at 27/04/2022 12:37:15)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -24869,9 +24869,9 @@ function Core(rootElement, userSettings) {
   var rootElementDirection = ['rtl', 'ltr'].includes(layoutDirection) ? layoutDirection : this.rootWindow.getComputedStyle(this.rootElement).direction;
   this.rootElement.setAttribute('dir', rootElementDirection);
   /**
-   * Check if currently it is RTL direction.
+   * Checks if the grid is rendered using the right-to-left layout direction.
    *
-   * @private
+   * @since 12.0.0
    * @memberof Core#
    * @function isRtl
    * @returns {boolean} True if RTL.
@@ -24881,9 +24881,9 @@ function Core(rootElement, userSettings) {
     return rootElementDirection === 'rtl';
   };
   /**
-   * Check if currently it is LTR direction.
+   * Checks if the grid is rendered using the left-to-right layout direction.
    *
-   * @private
+   * @since 12.0.0
    * @memberof Core#
    * @function isLtr
    * @returns {boolean} True if LTR.
@@ -24896,7 +24896,7 @@ function Core(rootElement, userSettings) {
   /**
    * Returns 1 for LTR; -1 for RTL. Useful for calculations.
    *
-   * @private
+   * @since 12.0.0
    * @memberof Core#
    * @function getDirectionFactor
    * @returns {number} Returns 1 for LTR; -1 for RTL.
@@ -44948,7 +44948,7 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "27/04/2022 11:54:40";
+Handsontable.buildDate = "27/04/2022 12:37:15";
 Handsontable.version = "12.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
