@@ -15,6 +15,8 @@ export const PLUGIN_PRIORITY = 300;
 
 const privatePool = new WeakMap();
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * Error message for the wrong data type error.
  */
@@ -128,7 +130,10 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`nestedRows`](@/api/options.md#nestedrows)
    */
   updatePlugin() {
     this.disablePlugin();

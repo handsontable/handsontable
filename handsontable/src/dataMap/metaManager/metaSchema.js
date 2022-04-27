@@ -2483,6 +2483,7 @@ export default () => {
      * | ------------------- | --------------------------- |
      * | `'en-US'` (default) | English - United States     |
      * | `'ar-AR'`           | Arabic - Global.<br><br>To properly render this language, set the [layout direction](@/guides/internationalization/layout-direction.md) to RTL. |
+     * | `'cs-CZ'`           | Czech - Czech Republic      |
      * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |

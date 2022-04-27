@@ -81,7 +81,6 @@ const META_READONLY = 'readOnly';
  * commentsPlugin.removeComment();
  * ```
  */
-/* eslint-enable jsdoc/require-description-complete-sentence */
 export class Comments extends BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -180,7 +179,10 @@ export class Comments extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *   - [`comments`](@/api/options.md#comments)
    */
   updatePlugin() {
     this.disablePlugin();

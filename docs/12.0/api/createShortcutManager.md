@@ -14,19 +14,19 @@ editLink: false
 
 ### activeContextName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/shortcuts/manager.js#L35
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L35
 
 :::
 
 _createShortcutManager~activeContextName : string_
 
-The name of the active [`ShortcutContext`](@/api/shortcutcontext.md).
+The name of the active [`ShortcutContext`](@/api/shortcutContext.md).
 
 
 
 ### CONTEXTS
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/shortcuts/manager.js#L27
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L27
 
 :::
 
@@ -38,15 +38,15 @@ A unique map that stores keyboard shortcut contexts.
 
 ### isCtrlKeySilenced
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/shortcuts/manager.js#L90
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L90
 
 :::
 
 _createShortcutManager~isCtrlKeySilenced : boolean_
 
-The variable, in combination with the `captureCtrl` shortcut option, allows capturing the state
-of the pressed Control/Meta keys. Some keyboard shortcuts related to the selection to work
-correctly need to use that feature.
+This variable relates to the [`captureCtrl`](@/api/shortcutContext.md) shortcut option,
+which allows for capturing the state of the Control/Meta modifier key.
+Some of the default keyboard shortcuts related to cell selection need this feature for working properly.
 
 
 
