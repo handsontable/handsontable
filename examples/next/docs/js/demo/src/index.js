@@ -37,7 +37,7 @@ new Handsontable(example, {
     {
       data: 4,
       type: "date",
-      allowInvalid: false,
+      allowInvalid: false
     },
     {
       data: 6,
