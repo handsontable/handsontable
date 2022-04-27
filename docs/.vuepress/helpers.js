@@ -64,7 +64,7 @@ function getVersions(buildMode) {
  * @returns {string[]}
  */
 function getFrameworks() {
-  return ['javascript', 'react', 'vue2', 'vue'];
+  return ['javascript', 'react', 'angular', 'vue2', 'vue'];
 }
 
 /**
@@ -146,7 +146,7 @@ function getSidebars(buildMode) {
  */
 function parseVersion(url) {
   if (isEnvDev()) {
-    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, ''); // It's not needed for determining version from the URL.
+    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, '');
   }
 
   return url.split('/')[1] || getLatestVersion();
@@ -160,7 +160,7 @@ function parseVersion(url) {
  */
 function parseFramework(url) {
   if (isEnvDev()) {
-    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, ''); // It's not needed for determining version from the URL.
+    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, '');
   }
 
   const potentialFramework = url.split('/')[2]?.replace(FRAMEWORK_SUFFIX, '');
