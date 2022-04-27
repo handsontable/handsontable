@@ -1,10 +1,36 @@
-import Handsontable from "handsontable";
+import Handsontable from "handsontable/base";
 import "handsontable/dist/handsontable.min.css";
 import "pikaday/css/pikaday.css";
 
 import { generateExampleData, isArabicDemoEnabled } from "./utils";
 import { progressBarRenderer, starRenderer } from "./customRenderers";
 import "./styles.css";
+import { registerLanguageDictionary, arAR } from "handsontable/i18n";
+
+// choose cell types you want to use and import them
+import { registerCellType, DropdownCellType, DateCellType, CheckboxCellType, NumericCellType } from "handsontable/cellTypes";
+
+import {
+  registerPlugin,
+  Filters,
+  DropdownMenu,
+  AutoColumnSize,
+  HiddenRows,
+} from 'handsontable/plugins';
+
+// register imported cell types and plugins
+registerPlugin(AutoColumnSize);
+registerPlugin(DropdownMenu);
+registerPlugin(HiddenRows);
+registerPlugin(Filters);
+
+// register imported cell types and plugins
+registerCellType(DateCellType);
+registerCellType(DropdownCellType);
+registerCellType(CheckboxCellType);
+registerCellType(NumericCellType);
+
+registerLanguageDictionary(arAR);
 
 import {
   alignHeaders,
@@ -17,7 +43,7 @@ const example = document.getElementById("example");
 new Handsontable(example, {
   data: generateExampleData(),
   layoutDirection: isArabicDemoEnabled() ? "rtl" : "ltr",
-  language: isArabicDemoEnabled() ? "ar-AR" : "en-US",
+  language: isArabicDemoEnabled() ? arAR.languageCode : "en-US",
   height: 450,
   colWidths: [140, 192, 100, 90, 90, 110, 97, 100, 126],
   colHeaders: [
