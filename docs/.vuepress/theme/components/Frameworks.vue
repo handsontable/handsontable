@@ -11,6 +11,14 @@
 <script>
 import DropdownLink from '@theme/components/DropdownLink.vue';
 
+const frameworkIdToFullName = new Map([
+  ['javascript', 'JavaScript'],
+  ['react', 'React'],
+  ['angular', 'Angular'],
+  ['vue2', 'Vue 2'],
+  ['vue', 'Vue 3'],
+]);
+
 export default {
   name: 'Frameworks',
   components: {
@@ -24,6 +32,19 @@ export default {
 
       return `/docs/${this.$page.currentVersion}/${framework}-data-grid/`;
     },
+    getFrameworkName(id) {
+      return frameworkIdToFullName.get(id);
+    },
+    getFrameworkItems() {
+      return Array.from(frameworkIdToFullName.entries()).map(([id, fullName]) => {
+        return {
+          text: fullName,
+          link: this.getLink(id),
+          target: '_self',
+          isHtmlLink: true
+        };
+      });
+    }
   },
   computed: {
     imageUrl() {
@@ -31,40 +52,8 @@ export default {
     },
     item() {
       return {
-        text: 'JavaScript',
-        items:
-          [
-            {
-              text: 'JavaScript',
-              link: this.getLink('javascript'),
-              target: '_self',
-              isHtmlLink: true
-            },
-            {
-              text: 'React',
-              link: this.getLink('react'),
-              target: '_self',
-              isHtmlLink: true
-            },
-            {
-              text: 'Angular',
-              link: this.getLink('angular'),
-              target: '_self',
-              isHtmlLink: true
-            },
-            {
-              text: 'Vue 2',
-              link: this.getLink('vue2'),
-              target: '_self',
-              isHtmlLink: true
-            },
-            {
-              text: 'Vue 3',
-              link: this.getLink('vue3'),
-              target: '_self',
-              isHtmlLink: true
-            },
-          ]
+        text: this.getFrameworkName(this.$page.currentFramework),
+        items: this.getFrameworkItems(),
       };
     }
   }
