@@ -426,7 +426,7 @@ DataGridComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdefine
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵproperty"]("renderer", ctx.progressBarRenderer)("readOnly", true);
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵadvance"](1);
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵproperty"]("renderer", ctx.starsRenderer)("readOnly", true);
-    } }, directives: [_handsontable_angular__WEBPACK_IMPORTED_MODULE_5__["HotTableComponent"], _handsontable_angular__WEBPACK_IMPORTED_MODULE_5__["HotColumnComponent"]], styles: ["/*\n  A stylesheet customizing app (custom renderers)\n*/\ntable.htCore tr.odd td {\n  background: #fafbff;\n}\ntable.htCore tr.selected td {\n  background: #edf3fd;\n}\ntable.htCore td .progressBar {\n  background: #37bc6c;\n  height: 10px;\n}\ntable.htCore td.star {\n  color: #fcb515;\n}\n/*\n  A stylesheet customizing Handsontable style\n*/\n.handsontable {\n  font-size: 13px;\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Helvetica Neue\", Arial, sans-serif;\n  font-weight: 400;\n}\n.handsontable .htRight .changeType {\n  margin: 3px 1px 0 13px;\n}\n.handsontable .collapsibleIndicator {\n  text-align: center;\n}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uL2RhdGEtZ3JpZC5zY3NzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBOztDQUFBO0FBS0U7RUFDRSxtQkFBQTtBQURKO0FBSUU7RUFDRSxtQkFBQTtBQUZKO0FBS0U7RUFDRSxtQkFBQTtFQUNBLFlBQUE7QUFISjtBQU1FO0VBQ0UsY0FBQTtBQUpKO0FBUUE7O0NBQUE7QUFJQTtFQUNFLGVBQUE7RUFDQSw2SEFBQTtFQUVBLGdCQUFBO0FBUEY7QUFTRTtFQUNFLHNCQUFBO0FBUEo7QUFVRTtFQUNFLGtCQUFBO0FBUkoiLCJmaWxlIjoiZGF0YS1ncmlkLnNjc3MiLCJzb3VyY2VzQ29udGVudCI6WyIvKlxuICBBIHN0eWxlc2hlZXQgY3VzdG9taXppbmcgYXBwIChjdXN0b20gcmVuZGVyZXJzKVxuKi9cblxudGFibGUuaHRDb3JlIHtcbiAgdHIub2RkIHRkIHtcbiAgICBiYWNrZ3JvdW5kOiAjZmFmYmZmO1xuICB9XG5cbiAgdHIuc2VsZWN0ZWQgdGQge1xuICAgIGJhY2tncm91bmQ6ICNlZGYzZmQ7XG4gIH1cblxuICB0ZCAucHJvZ3Jlc3NCYXIge1xuICAgIGJhY2tncm91bmQ6ICMzN2JjNmM7XG4gICAgaGVpZ2h0OiAxMHB4O1xuICB9XG5cbiAgdGQuc3RhciB7XG4gICAgY29sb3I6ICNmY2I1MTU7XG4gIH1cbn1cblxuLypcbiAgQSBzdHlsZXNoZWV0IGN1c3RvbWl6aW5nIEhhbmRzb250YWJsZSBzdHlsZVxuKi9cblxuLmhhbmRzb250YWJsZSB7XG4gIGZvbnQtc2l6ZTogMTNweDtcbiAgZm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJ1NlZ29lIFVJJywgJ1JvYm90bycsICdPeHlnZW4nLFxuICAnVWJ1bnR1JywgJ0hlbHZldGljYSBOZXVlJywgQXJpYWwsIHNhbnMtc2VyaWY7XG4gIGZvbnQtd2VpZ2h0OiA0MDA7XG5cbiAgLmh0UmlnaHQgLmNoYW5nZVR5cGUge1xuICAgIG1hcmdpbjogM3B4IDFweCAwIDEzcHg7XG4gIH1cblxuICAuY29sbGFwc2libGVJbmRpY2F0b3Ige1xuICAgIHRleHQtYWxpZ246IGNlbnRlcjtcbiAgfVxufVxuIl19 */"], encapsulation: 2 });
+    } }, directives: [_handsontable_angular__WEBPACK_IMPORTED_MODULE_5__["HotTableComponent"], _handsontable_angular__WEBPACK_IMPORTED_MODULE_5__["HotColumnComponent"]], styles: ["/*\n  A stylesheet customizing app (custom renderers)\n*/\ntable.htCore tr.odd td {\n  background: #fafbff;\n}\ntable.htCore tr.selected td {\n  background: #edf3fd;\n}\ntable.htCore td .progressBar {\n  background: #37bc6c;\n  height: 10px;\n}\ntable.htCore td.star {\n  color: #fcb515;\n}\n/*\n  A stylesheet customizing Handsontable style\n*/\n.handsontable {\n  font-size: 13px;\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Helvetica Neue\", Arial, sans-serif;\n  font-weight: 400;\n}\n.handsontable .collapsibleIndicator {\n  text-align: center;\n}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uL2RhdGEtZ3JpZC5zY3NzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBOztDQUFBO0FBS0U7RUFDRSxtQkFBQTtBQURKO0FBSUU7RUFDRSxtQkFBQTtBQUZKO0FBS0U7RUFDRSxtQkFBQTtFQUNBLFlBQUE7QUFISjtBQU1FO0VBQ0UsY0FBQTtBQUpKO0FBUUE7O0NBQUE7QUFJQTtFQUNFLGVBQUE7RUFDQSw2SEFBQTtFQUVBLGdCQUFBO0FBUEY7QUFTRTtFQUNFLGtCQUFBO0FBUEoiLCJmaWxlIjoiZGF0YS1ncmlkLnNjc3MiLCJzb3VyY2VzQ29udGVudCI6WyIvKlxuICBBIHN0eWxlc2hlZXQgY3VzdG9taXppbmcgYXBwIChjdXN0b20gcmVuZGVyZXJzKVxuKi9cblxudGFibGUuaHRDb3JlIHtcbiAgdHIub2RkIHRkIHtcbiAgICBiYWNrZ3JvdW5kOiAjZmFmYmZmO1xuICB9XG5cbiAgdHIuc2VsZWN0ZWQgdGQge1xuICAgIGJhY2tncm91bmQ6ICNlZGYzZmQ7XG4gIH1cblxuICB0ZCAucHJvZ3Jlc3NCYXIge1xuICAgIGJhY2tncm91bmQ6ICMzN2JjNmM7XG4gICAgaGVpZ2h0OiAxMHB4O1xuICB9XG5cbiAgdGQuc3RhciB7XG4gICAgY29sb3I6ICNmY2I1MTU7XG4gIH1cbn1cblxuLypcbiAgQSBzdHlsZXNoZWV0IGN1c3RvbWl6aW5nIEhhbmRzb250YWJsZSBzdHlsZVxuKi9cblxuLmhhbmRzb250YWJsZSB7XG4gIGZvbnQtc2l6ZTogMTNweDtcbiAgZm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJ1NlZ29lIFVJJywgJ1JvYm90bycsICdPeHlnZW4nLFxuICAnVWJ1bnR1JywgJ0hlbHZldGljYSBOZXVlJywgQXJpYWwsIHNhbnMtc2VyaWY7XG4gIGZvbnQtd2VpZ2h0OiA0MDA7XG5cbiAgLmNvbGxhcHNpYmxlSW5kaWNhdG9yIHtcbiAgICB0ZXh0LWFsaWduOiBjZW50ZXI7XG4gIH1cbn1cbiJdfQ== */"], encapsulation: 2 });
 
 
 /***/ }),
@@ -497,14 +497,13 @@ AppModule.ɵinj = _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdefineInjector
 /*!******************************************!*\
   !*** ./src/data-grid/utils/constants.ts ***!
   \******************************************/
-/*! exports provided: data, SELECTED_CLASS, DEFAULT_ALIGNMENT_CLASS, ODD_ROW_CLASS, getData */
+/*! exports provided: data, SELECTED_CLASS, ODD_ROW_CLASS, getData */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "data", function() { return data; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SELECTED_CLASS", function() { return SELECTED_CLASS; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DEFAULT_ALIGNMENT_CLASS", function() { return DEFAULT_ALIGNMENT_CLASS; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ODD_ROW_CLASS", function() { return ODD_ROW_CLASS; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getData", function() { return getData; });
 const data = [
@@ -1710,7 +1709,6 @@ const data = [
     ]
 ];
 const SELECTED_CLASS = "selected";
-const DEFAULT_ALIGNMENT_CLASS = "htLeft";
 const ODD_ROW_CLASS = "odd";
 function getData() {
     return data;
@@ -1774,22 +1772,22 @@ const drawCheckboxInRowHeaders = function drawCheckboxInRowHeaders(row, TH) {
     handsontable__WEBPACK_IMPORTED_MODULE_0__["default"].dom.empty(TH);
     TH.appendChild(input);
 };
-const alignHeaders = (column, TH) => {
+function alignHeaders(column, TH) {
     if (column < 0) {
         return;
     }
+    const alignmentClass = this.isRtl() ? "htRight" : "htLeft";
     if (TH.firstChild) {
         if (headerAlignments.has(column.toString())) {
-            handsontable__WEBPACK_IMPORTED_MODULE_0__["default"].dom.removeClass(TH.firstChild, _constants__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_ALIGNMENT_CLASS"]);
-            handsontable__WEBPACK_IMPORTED_MODULE_0__["default"].dom.addClass(TH.firstChild, 
-            // @ts-ignore Above if checks whether there is an element in the Map.
-            headerAlignments.get(column.toString()));
+            handsontable__WEBPACK_IMPORTED_MODULE_0__["default"].dom.removeClass(TH.firstChild, alignmentClass);
+            handsontable__WEBPACK_IMPORTED_MODULE_0__["default"].dom.addClass(TH.firstChild, headerAlignments.get(column.toString()));
         }
         else {
-            handsontable__WEBPACK_IMPORTED_MODULE_0__["default"].dom.addClass(TH.firstChild, _constants__WEBPACK_IMPORTED_MODULE_1__["DEFAULT_ALIGNMENT_CLASS"]);
+            handsontable__WEBPACK_IMPORTED_MODULE_0__["default"].dom.addClass(TH.firstChild, alignmentClass);
         }
     }
-};
+}
+;
 const changeCheckboxCell = function changeCheckboxCell(event, coords) {
     const target = event.target;
     if (coords.col === -1 && event.target && target.nodeName === "INPUT") {
