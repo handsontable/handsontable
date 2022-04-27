@@ -171,16 +171,6 @@ function parseFramework(url) {
 }
 
 /**
- * Parses the docs framework from the URL.
- *
- * @param {string} url The URL to parse.
- * @returns {string}
- */
-function parseFramework(url) {
-  return defaultFramework;
-}
-
-/**
  * Gets docs version that is currently building (based on the environment variable).
  *
  * @returns {string}
