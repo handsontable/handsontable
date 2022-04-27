@@ -5,8 +5,12 @@ const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
-const { getEnvDocsVersion, getEnvDocsFramework, TMP_DIR_FOR_WATCH, createSymlinks,
-  isEnvDev, getDocsFrameworkedVersions, getLatestVersion, FRAMEWORK_SUFFIX } = require('./helpers');
+const { getEnvDocsVersion, getEnvDocsFramework, createSymlinks,
+  isEnvDev, getDocsFrameworkedVersions, getLatestVersion } = require('./helpers');
+
+const TMP_DIR_FOR_WATCH = '.watch-tmp';
+const MIN_FRAMEWORKED_DOCS_VERSION = '12.0.0';
+const FRAMEWORK_SUFFIX = '-data-grid';
 
 const buildMode = process.env.BUILD_MODE;
 let versionPartialPath = '';
@@ -179,5 +183,9 @@ module.exports = {
       apiSearchDomainPriorityList: ['Options'],
       guidesSearchDomainPriorityList: [],
     }
-  }
+  },
+  // Custom constants.
+  TMP_DIR_FOR_WATCH,
+  FRAMEWORK_SUFFIX,
+  MIN_FRAMEWORKED_DOCS_VERSION,
 };

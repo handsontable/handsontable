@@ -9,8 +9,12 @@ const {
   getDocsNonFrameworkedVersions,
   isEnvDev,
   getDefaultFramework,
-  FRAMEWORK_SUFFIX,
 } = require('../../helpers');
+
+const {
+  FRAMEWORK_SUFFIX,
+} = require('../../config');
+
 const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
 
 const buildMode = process.env.BUILD_MODE;

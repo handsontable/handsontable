@@ -7,9 +7,7 @@ const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
   .filter(f => semver.valid(semver.coerce(f)));
 
 const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
-const TMP_DIR_FOR_WATCH = '.watch-tmp';
-const MIN_FRAMEWORKED_DOCS_VERSION = '12.0.0';
-const FRAMEWORK_SUFFIX = '-data-grid';
+const { TMP_DIR_FOR_WATCH, MIN_FRAMEWORKED_DOCS_VERSION, FRAMEWORK_SUFFIX } = require('./config');
 
 /**
  * Get whether we work in dev mode (watch script).
@@ -146,7 +144,7 @@ function getSidebars(buildMode) {
  */
 function parseVersion(url) {
   if (isEnvDev()) {
-    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, ''); // It's not needed for determining version from the URL.
+    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, '');
   }
 
   return url.split('/')[1] || getLatestVersion();
@@ -160,7 +158,7 @@ function parseVersion(url) {
  */
 function parseFramework(url) {
   if (isEnvDev()) {
-    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, ''); // It's not needed for determining version from the URL.
+    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, '');
   }
 
   const potentialFramework = url.split('/')[2]?.replace(FRAMEWORK_SUFFIX, '');
@@ -210,8 +208,6 @@ function createSymlinks(buildMode) {
 }
 
 module.exports = {
-  TMP_DIR_FOR_WATCH,
-  FRAMEWORK_SUFFIX,
   getVersions,
   getFrameworks,
   getDocsFrameworkedVersions,
