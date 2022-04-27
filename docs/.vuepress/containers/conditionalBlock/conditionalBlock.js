@@ -1,4 +1,7 @@
-const { getBuildDocsFramework } = require('../../helpers');
+const {
+  getDefaultFramework
+} = require('../../helpers');
+const { getContainerFramework } = require("../helpers");
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -23,8 +26,8 @@ const { getBuildDocsFramework } = require('../../helpers');
  */
 module.exports = {
   type: 'only-for',
-  render(tokens, index) {
-    const framework = getBuildDocsFramework() || 'javascript';
+  render(tokens, index, opts, env) {
+    const framework = getContainerFramework(env.relativePath) || getDefaultFramework();
     const args = tokens[index].info.trim().split(' ');
 
     if (tokens[index].nesting === 1 && !args.includes(framework)) {
