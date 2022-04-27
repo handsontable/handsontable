@@ -14,7 +14,7 @@ editLink: false
 
 ### activeContextName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/shortcuts/manager.js#L35
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/shortcuts/manager.js#L35
 
 :::
 
@@ -26,7 +26,7 @@ The name of the active [`ShortcutContext`](@/api/shortcutcontext.md).
 
 ### CONTEXTS
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/shortcuts/manager.js#L27
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/shortcuts/manager.js#L27
 
 :::
 
@@ -38,7 +38,7 @@ A unique map that stores keyboard shortcut contexts.
 
 ### isCtrlKeySilenced
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/shortcuts/manager.js#L90
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/shortcuts/manager.js#L90
 
 :::
 

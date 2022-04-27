@@ -22,7 +22,7 @@ Each `ShortcutContext` object stores and manages its own set of keyboard shortcu
 
 ### addShortcuts
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/shortcuts/context.js#L126
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/shortcuts/context.js#L126
 
 :::
 
@@ -47,7 +47,7 @@ Add multiple keyboard shortcuts to this `ShortcutContext`.
 
 ### getShortcuts
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/shortcuts/context.js#L184
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/shortcuts/context.js#L184
 
 :::
 
@@ -64,7 +64,7 @@ Get a shortcut's details.
 
 ### hasShortcut
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/shortcuts/context.js#L200
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/shortcuts/context.js#L200
 
 :::
 
@@ -81,7 +81,7 @@ Check if a shortcut exists in this `ShortcutContext`.
 
 ### removeShortcutsByGroup
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/shortcuts/context.js#L158
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/shortcuts/context.js#L158
 
 :::
 
@@ -98,7 +98,7 @@ Remove a group of shortcuts from this `ShortcutContext`.
 
 ### removeShortcutsByKeys
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/shortcuts/context.js#L146
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/shortcuts/context.js#L146
 
 :::
 

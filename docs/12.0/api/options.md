@@ -59,7 +59,7 @@ Read more:
 
 ### activeHeaderClassName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L84
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L84
 
 :::
 
@@ -92,7 +92,7 @@ activeHeaderClassName: 'ht__active_highlight',
 
 ### allowEmpty
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L120
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L120
 
 :::
 
@@ -131,7 +131,7 @@ columns: [
 
 ### allowHtml
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L160
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L160
 
 :::
 
@@ -174,7 +174,7 @@ columns: [
 
 ### allowInsertColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L178
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L178
 
 :::
 
@@ -195,7 +195,7 @@ allowInsertColumn: false,
 
 ### allowInsertRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L196
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L196
 
 :::
 
@@ -216,7 +216,7 @@ allowInsertRow: false,
 
 ### allowInvalid
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L229
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L229
 
 :::
 
@@ -252,7 +252,7 @@ allowInvalid: false,
 
 ### allowRemoveColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L249
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L249
 
 :::
 
@@ -275,7 +275,7 @@ allowRemoveColumn: false,
 
 ### allowRemoveRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L269
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L269
 
 :::
 
@@ -298,7 +298,7 @@ allowRemoveRow: false,
 
 ### autoColumnSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L320
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L320
 
 :::
 
@@ -352,7 +352,7 @@ autoColumnSize: {
 
 ### autoRowSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L360
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L360
 
 :::
 
@@ -395,7 +395,7 @@ autoRowSize: {
 
 ### autoWrapCol
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L383
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L383
 
 :::
 
@@ -421,7 +421,7 @@ autoWrapCol: true,
 
 ### autoWrapRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L406
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L406
 
 :::
 
@@ -447,7 +447,7 @@ autoWrapRow: true,
 
 ### bindRowsWithHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L433
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L433
 
 :::
 
@@ -476,7 +476,7 @@ bindRowsWithHeaders: true
 
 ### cell
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L463
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L463
 
 :::
 
@@ -509,7 +509,7 @@ cell: [
 
 ### cells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L506
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L506
 
 :::
 
@@ -554,7 +554,7 @@ cells(row, column, prop) {
 
 ### checkedTemplate
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L549
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L549
 
 :::
 
@@ -600,7 +600,7 @@ columns: [
 
 ### className
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L592
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L592
 
 :::
 
@@ -646,7 +646,7 @@ className: ['first-class-name', 'second-class-name'],
 
 ### colHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L628
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L628
 
 :::
 
@@ -685,7 +685,7 @@ colHeaders: function(visualColumnIndex) {
 
 ### collapsibleColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L662
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L662
 
 :::
 
@@ -721,7 +721,7 @@ collapsibleColumns: [
 
 ### columnHeaderHeight
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L689
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L689
 
 :::
 
@@ -750,7 +750,7 @@ columnHeaderHeight: [25, 30, 55],
 
 ### columns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L742
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L742
 
 :::
 
@@ -805,7 +805,7 @@ columns(index) {
 
 ### columnSorting
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L822
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L822
 
 :::
 
@@ -887,7 +887,7 @@ columnSorting: {
 
 ### columnSummary
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L877
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L877
 
 :::
 
@@ -944,7 +944,7 @@ columnSummary: [
 
 ### colWidths
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L925
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L925
 
 :::
 
@@ -995,7 +995,7 @@ colWidths(visualColumnIndex) {
 
 ### commentedCellClassName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L957
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L957
 
 :::
 
@@ -1030,7 +1030,7 @@ commentedCellClassName: 'has-comment',
 
 ### comments
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1012
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1012
 
 :::
 
@@ -1087,7 +1087,7 @@ comments: {
 
 ### contextMenu
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1075
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1075
 
 :::
 
@@ -1152,7 +1152,7 @@ contextMenu: {
 
 ### copyable
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1126
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1126
 
 :::
 
@@ -1205,7 +1205,7 @@ cells: [
 
 ### copyPaste
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1175
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1175
 
 :::
 
@@ -1257,7 +1257,7 @@ copyPaste: {
 
 ### correctFormat
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1210
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1210
 
 :::
 
@@ -1295,7 +1295,7 @@ columns: [
 
 ### currentColClassName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1240
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1240
 
 :::
 
@@ -1328,7 +1328,7 @@ currentColClassName: 'your-class-name',
 
 ### currentHeaderClassName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1269
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1269
 
 :::
 
@@ -1360,7 +1360,7 @@ currentHeaderClassName: 'ht__highlight',
 
 ### currentRowClassName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1299
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1299
 
 :::
 
@@ -1393,7 +1393,7 @@ currentRowClassName: 'your-class-name',
 
 ### customBorders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1412
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1412
 
 :::
 
@@ -1508,7 +1508,7 @@ customBorders: [
 
 ### data
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1452
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1452
 
 :::
 
@@ -1550,7 +1550,7 @@ data: [
 
 ### dataSchema
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1484
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1484
 
 :::
 
@@ -1584,7 +1584,7 @@ minSpareRows: 1
 
 ### dateFormat
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1516
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1516
 
 :::
 
@@ -1619,7 +1619,7 @@ columns: [
 
 ### datePickerConfig
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1546
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1546
 
 :::
 
@@ -1653,7 +1653,7 @@ Read more:
 
 ### defaultDate
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1575
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1575
 
 :::
 
@@ -1685,7 +1685,7 @@ columns: [
 
 ### disableVisualSelection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1619
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1619
 
 :::
 
@@ -1731,7 +1731,7 @@ disableVisualSelection: ['current', 'area'],
 
 ### dragToScroll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1646
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1646
 
 :::
 
@@ -1760,7 +1760,7 @@ dragToScroll: true,
 
 ### dropdownMenu
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1705
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1705
 
 :::
 
@@ -1822,7 +1822,7 @@ dropdownMenu: {
 
 ### editor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1764
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1764
 
 :::
 
@@ -1884,7 +1884,7 @@ columns: [
 
 ### enterBeginsEditing
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1794
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1794
 
 :::
 
@@ -1917,7 +1917,7 @@ enterBeginsEditing: false,
 
 ### enterMoves
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1835
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1835
 
 :::
 
@@ -1961,7 +1961,7 @@ enterMoves(event) {
 
 ### fillHandle
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1893
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1893
 
 :::
 
@@ -2022,7 +2022,7 @@ fillHandle: {
 
 ### filter
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1932
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1932
 
 :::
 
@@ -2062,7 +2062,7 @@ columns: [{
 
 ### filteringCaseSensitive
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1967
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1967
 
 :::
 
@@ -2100,7 +2100,7 @@ columns: [
 
 ### filters
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L1995
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L1995
 
 :::
 
@@ -2131,7 +2131,7 @@ filters: true,
 
 ### fixedColumnsLeft
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2020
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2020
 
 :::
 
@@ -2159,7 +2159,7 @@ fixedColumnsLeft: 3,
 
 ### fixedColumnsStart
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2059
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2059
 
 :::
 
@@ -2201,7 +2201,7 @@ fixedColumnsStart: 3,
 
 ### fixedRowsBottom
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2079
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2079
 
 :::
 
@@ -2224,7 +2224,7 @@ fixedRowsBottom: 3,
 
 ### fixedRowsTop
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2098
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2098
 
 :::
 
@@ -2246,7 +2246,7 @@ fixedRowsTop: 3,
 
 ### formulas
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2178
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2178
 
 :::
 
@@ -2329,7 +2329,7 @@ formulas: {
 
 ### fragmentSelection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2205
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2205
 
 :::
 
@@ -2359,7 +2359,7 @@ fragmentSelection: 'cell',
 
 ### height
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2240
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2240
 
 :::
 
@@ -2397,7 +2397,7 @@ height() {
 
 ### hiddenColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2286
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2286
 
 :::
 
@@ -2446,7 +2446,7 @@ hiddenColumns: {
 
 ### hiddenRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2332
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2332
 
 :::
 
@@ -2495,7 +2495,7 @@ hiddenRows: {
 
 ### invalidCellClassName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2362
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2362
 
 :::
 
@@ -2528,7 +2528,7 @@ invalidCellClassName: 'highlight-error',
 
 ### label
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2475
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2475
 
 :::
 
@@ -2562,7 +2562,7 @@ columns: [{
 
 ### language
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2518
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2518
 
 :::
 
@@ -2608,7 +2608,7 @@ language: 'pl-PL',
 
 ### layoutDirection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2564
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2564
 
 :::
 
@@ -2657,7 +2657,7 @@ layoutDirection: 'ltr',
 
 ### licenseKey
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2593
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2593
 
 :::
 
@@ -2689,7 +2689,7 @@ licenseKey: 'non-commercial-and-evaluation',
 
 ### locale
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2630
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2630
 
 :::
 
@@ -2729,7 +2729,7 @@ columns: [
 
 ### manualColumnFreeze
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2656
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2656
 
 :::
 
@@ -2758,7 +2758,7 @@ manualColumnFreeze: true,
 
 ### manualColumnMove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2689
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2689
 
 :::
 
@@ -2794,7 +2794,7 @@ manualColumnMove: [1, 4, 6],
 
 ### manualColumnResize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2723
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2723
 
 :::
 
@@ -2830,7 +2830,7 @@ manualColumnResize: [40, 50, 60],
 
 ### manualRowMove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2757
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2757
 
 :::
 
@@ -2866,7 +2866,7 @@ manualColumnMove: [1, 4, 6],
 
 ### manualRowResize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2791
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2791
 
 :::
 
@@ -2902,7 +2902,7 @@ manualColumnResize: [40, 50, 60],
 
 ### maxCols
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2812
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2812
 
 :::
 
@@ -2926,7 +2926,7 @@ maxCols: 300,
 
 ### maxRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2833
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2833
 
 :::
 
@@ -2950,7 +2950,7 @@ maxRows: 300,
 
 ### mergeCells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2882
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2882
 
 :::
 
@@ -3001,7 +3001,7 @@ mergeCells: [
 
 ### minCols
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2910
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2910
 
 :::
 
@@ -3032,7 +3032,7 @@ minCols: 10,
 
 ### minRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2931
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2931
 
 :::
 
@@ -3056,7 +3056,7 @@ minRows: 10,
 
 ### minSpareCols
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2960
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2960
 
 :::
 
@@ -3088,7 +3088,7 @@ minSpareCols: 3,
 
 ### minSpareRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2982
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2982
 
 :::
 
@@ -3113,7 +3113,7 @@ minSpareRows: 3,
 
 ### multiColumnSorting
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3061
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3061
 
 :::
 
@@ -3194,7 +3194,7 @@ multiColumnSorting: {
 
 ### nestedHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3094
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3094
 
 :::
 
@@ -3229,7 +3229,7 @@ nestedHeaders: [
 
 ### nestedRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3121
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3121
 
 :::
 
@@ -3258,7 +3258,7 @@ nestedRows: true,
 
 ### noWordWrapClassName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3151
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3151
 
 :::
 
@@ -3291,7 +3291,7 @@ noWordWrapClassName: 'is-noWrapCell',
 
 ### numericFormat
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3198
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3198
 
 :::
 
@@ -3341,7 +3341,7 @@ columns: [
 
 ### observeDOMVisibility
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3215
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3215
 
 :::
 
@@ -3361,7 +3361,7 @@ observeDOMVisibility: false,
 
 ### outsideClickDeselects
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3253
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3253
 
 :::
 
@@ -3402,7 +3402,7 @@ outsideClickDeselects(event) {
 
 ### persistentState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3281
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3281
 
 :::
 
@@ -3432,7 +3432,7 @@ persistentState: true,
 
 ### placeholder
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3319
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3319
 
 :::
 
@@ -3473,7 +3473,7 @@ columns: [
 
 ### placeholderCellClassName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3350
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3350
 
 :::
 
@@ -3507,7 +3507,7 @@ placeholderCellClassName: 'has-placeholder',
 
 ### preventOverflow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3375
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3375
 
 :::
 
@@ -3535,7 +3535,7 @@ preventOverflow: 'horizontal',
 
 ### readOnly
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3427
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3427
 
 :::
 
@@ -3564,7 +3564,7 @@ readOnly: true,
 
 ### readOnlyCellClassName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3456
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3456
 
 :::
 
@@ -3596,7 +3596,7 @@ readOnlyCellClassName: 'is-readOnly',
 
 ### renderAllRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3482
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3482
 
 :::
 
@@ -3625,7 +3625,7 @@ renderAllRows: true,
 
 ### renderer
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3544
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3544
 
 :::
 
@@ -3689,7 +3689,7 @@ columns: [
 
 ### rowHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3580
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3580
 
 :::
 
@@ -3728,7 +3728,7 @@ rowHeaders: function(visualRowIndex) {
 
 ### rowHeaderWidth
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3607
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3607
 
 :::
 
@@ -3757,7 +3757,7 @@ rowHeaderWidth: [25, 30, 55],
 
 ### rowHeights
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3654
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3654
 
 :::
 
@@ -3807,7 +3807,7 @@ rowHeights(visualRowIndex) {
 
 ### search
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3706
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3706
 
 :::
 
@@ -3861,7 +3861,7 @@ search: {
 
 ### selectionMode
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3740
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3740
 
 :::
 
@@ -3897,7 +3897,7 @@ selectionMode: 'multiple',
 
 ### selectOptions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3798
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3798
 
 :::
 
@@ -3958,7 +3958,7 @@ columns: [
 
 ### skipColumnOnPaste
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3831
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3831
 
 :::
 
@@ -3993,7 +3993,7 @@ columns: [
 
 ### skipRowOnPaste
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3869
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3869
 
 :::
 
@@ -4032,7 +4032,7 @@ cells(row, column) {
 
 ### sortByRelevance
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3903
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3903
 
 :::
 
@@ -4069,7 +4069,7 @@ columns: [{
 
 ### source
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3950
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3950
 
 :::
 
@@ -4119,7 +4119,7 @@ columns: [{
 
 ### startCols
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3969
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3969
 
 :::
 
@@ -4140,7 +4140,7 @@ startCols: 15,
 
 ### startRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3988
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L3988
 
 :::
 
@@ -4161,7 +4161,7 @@ startRows: 15,
 
 ### stretchH
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4018
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4018
 
 :::
 
@@ -4193,7 +4193,7 @@ stretchH: 'all',
 
 ### strict
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4054
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4054
 
 :::
 
@@ -4232,7 +4232,7 @@ columns: [
 
 ### tableClassName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4095
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4095
 
 :::
 
@@ -4276,7 +4276,7 @@ tableClassName: ['first-class-name', 'second-class-name'],
 
 ### tabMoves
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4127
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4127
 
 :::
 
@@ -4311,7 +4311,7 @@ tabMoves(event) {
 
 ### title
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4160
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4160
 
 :::
 
@@ -4346,7 +4346,7 @@ columns: [
 
 ### trimDropdown
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4200
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4200
 
 :::
 
@@ -4389,7 +4389,7 @@ columns: [
 
 ### trimRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4233
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4233
 
 :::
 
@@ -4424,7 +4424,7 @@ trimRows: [5, 10, 15],
 
 ### type
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4316
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4316
 
 :::
 
@@ -4481,7 +4481,7 @@ columns: [
 
 ### uncheckedTemplate
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4359
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4359
 
 :::
 
@@ -4527,7 +4527,7 @@ columns: [
 
 ### undo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4390
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4390
 
 :::
 
@@ -4561,7 +4561,7 @@ undo: true,
 
 ### validator
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4450
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4450
 
 :::
 
@@ -4623,7 +4623,7 @@ columns: [
 
 ### viewportColumnRenderingOffset
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4478
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4478
 
 :::
 
@@ -4653,7 +4653,7 @@ viewportColumnRenderingOffset: 70,
 
 ### viewportRowRenderingOffset
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4507
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4507
 
 :::
 
@@ -4684,7 +4684,7 @@ viewportRowRenderingOffset: 70,
 
 ### visibleRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4542
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4542
 
 :::
 
@@ -4722,7 +4722,7 @@ columns: [
 
 ### width
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4577
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4577
 
 :::
 
@@ -4760,7 +4760,7 @@ width() {
 
 ### wordWrap
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L4616
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L4616
 
 :::
 
@@ -4803,7 +4803,7 @@ columns: [
 
 ### isEmptyCol
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2385
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2385
 
 :::
 
@@ -4832,7 +4832,7 @@ isEmptyCol(visualColumnIndex) {
 
 ### isEmptyRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L2422
+::: source-code-link https://github.com/handsontable/handsontable/blob/27c6ad3d01bc41624363fb2e02857468548f5b28/handsontable/src/dataMap/metaManager/metaSchema.js#L2422
 
 :::
 
