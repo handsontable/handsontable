@@ -84,6 +84,11 @@ module.exports = {
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
   },
+  configureWebpack: {
+    resolve: {
+      symlinks: false,
+    }
+  },
   plugins: [
     extendPageDataPlugin,
     'tabs',
