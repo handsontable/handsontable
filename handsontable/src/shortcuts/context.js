@@ -33,6 +33,7 @@ export const createContext = (name) => {
    * @param {object} options.group A group of shortcuts to which the shortcut belongs
    * @param {object} [options.runOnlyIf] A condition on which the shortcut's action runs
    * @param {object} [options.stopPropagation=true] If set to `true`: stops the event's propagation
+   * @param {object} [options.captureCtrl=false] If set to `true`: captures the state of the Control/Meta modifier key
    * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
    * @param {object} [options.position='after'] The order in which the shortcut's action runs:
    * `'before'` or `'after'` the `relativeToGroup` group of actions

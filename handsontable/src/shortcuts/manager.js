@@ -81,9 +81,9 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
   };
 
   /**
-   * The variable, in combination with the `captureCtrl` shortcut option, allows capturing the state
-   * of the pressed Control/Meta keys. Some keyboard shortcuts related to the selection to work
-   * correctly need to use that feature.
+   * This variable relates to the `captureCtrl` shortcut option,
+   * which allows for capturing the state of the Control/Meta modifier key.
+   * Some of the default keyboard shortcuts related to cell selection need this feature for working properly.
    *
    * @type {boolean}
    */
