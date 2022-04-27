@@ -56,7 +56,7 @@ Released on 28th of April, 2022
 **Removed**
 - **Breaking change**: Removed the <kbd>Cmd</kbd> + <kbd>M</kbd> keyboard shortcut (used for cell merging), as it conflicted with window minimizing on macOS. The <kbd>Ctrl</kbd> + <kbd>M</kbd> keyboard shortcut works the same as before. [#9368](https://github.com/handsontable/handsontable/issues/9368) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#keyboard-shortcuts-changes-cell-merging)
 - **Breaking change**: Removed the <kbd>Shift</kbd> + <kbd>Page Up</kbd>/<kbd>Page Down</kbd> keyboard shortcuts from the cell editing context. [#9401](https://github.com/handsontable/handsontable/issues/9401) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#keyboard-shortcuts-changes-edition)
-- Dropped support for Internet Explorer 11 and non-Chromium Edge. Handsontable 11.x becomes the long-term support (LTS) version for Internet Explorer 11 and non-Chromium Edge, until the end of 2023. [#7026](https://github.com/handsontable/handsontable/issues/7026)
+- Dropped support for Internet Explorer 11 and Edge Legacy (the non-Chromium version of Edge). Handsontable 11.x becomes the long-term support (LTS) version for Internet Explorer 11 and Edge Legacy, until the end of 2023. [#7026](https://github.com/handsontable/handsontable/issues/7026)
 - *React:* Removed the `enzyme` dependency from the React wrapper. [#9151](https://github.com/handsontable/handsontable/issues/9151)
 
 ## 11.1.0
