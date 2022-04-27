@@ -56,6 +56,8 @@ Read more on referencing the Handsontable instance:
 
 Handsontable 12.0.0 changes how the [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls.
 
+This change might affect your custom plugins.
+
 #### Before
 
 Every [`updateSettings()`](@/api/core.md#updatesettings) call (even with an empty object passed as new settings) triggered 
@@ -70,22 +72,6 @@ A plugin's [`updatePlugin()`](@/api/autocolumnsize.md#updateplugin) method gets 
 - An entry from the plugin's [`SETTING_KEYS`](@/api/baseplugin.md#setting-keys) (a property that stores all additional settings relevant to the plugin)
 
 As a result, a plugin gets updated only if you update settings related to that particular plugin.
-
-##### Built-in plugins
-
-The change above affects most of Handsontable's [built-in plugins](@/api/plugins.md) as well.
-
-Starting with Handsontable 12.0.0, a built-in plugin gets updated on a call to [`updateSettings()`](@/api/core.md#updatesettings) only if the passed configuration object contains an option relevant to that particular plugin. For example, the [`Autofill`](@/api/autofill.md) plugin gets updated if your call to [`updateSettings()`](@/api/core.md#updatesettings) updates the [`fillHandle`](@/api/options.md#fillhandle) option.
-
-To find out which options a given plugin observes, see that plugin's [`updatePlugin()` API reference](@/api/autofill.md#updateplugin).
-
-::: tip
-The following built-in plugins still get updated on every [`updateSettings()`](@/api/core.md#updatesettings) call:
-  - [`AutoColumnSize`](@/api/autocolumnsize.md)
-  - [`AutoRowSize`](@/api/autorowsize.md)
-  - `TouchScroll`
-  - [`UndoRedo`](@/api/undoredo.md)
-:::
 
 #### Migrating to Handsontable 12.0
 
