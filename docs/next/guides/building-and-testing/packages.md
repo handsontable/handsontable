@@ -29,12 +29,12 @@ You can also use minified files:
 If you are a "Bob the Builder" kind of hacker, you will need to load Handsontable JS, CSS and their dependencies:
 ```html
 <!-- Required dependencies (as external scripts) -->
-<link href="https://cdn.jsdelivr.net/npm/pikaday@1.5.1/css/pikaday.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/pikaday@1.8.0/css/pikaday.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/moment@2.29.3/moment.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pikaday@1.5.1/pikaday.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/numbro@2/dist/numbro.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pikaday@1.8.0/pikaday.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/numbro@2.1.2/dist/numbro.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hot-formula-parser@3.0.0/dist/formula-parser.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@2.0.8/dist/purify.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@2.1.1/dist/purify.js"></script>
 
 <!-- Handsontable bare files -->
 <script src="dist/handsontable.js"></script>
