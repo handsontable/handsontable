@@ -29,5 +29,5 @@ Tests are run in [BrowserStack](https://www.browserstack.com/) as well as on a l
 | QQ browser       | Samsung Internet    |
 
 ::: tip
-The LTS version for supporting Internet Explorer 11 is Handsontable `11.x`, and will be supported until at least the end of 2023.
+Handsontable 11.x is the long-term support (LTS) version for Internet Explorer 11 and non-Chromium Edge, until the end of 2023.
 :::
