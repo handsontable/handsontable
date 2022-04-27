@@ -98,19 +98,19 @@ function getSidebars(buildMode) {
   if (isEnvDev()) {
     getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
       // eslint-disable-next-line
-      const s = require(path.join(__dirname, `../${version}/sidebars.js`));
+      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/examples/`] = s.examples;
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/api/`] = s.api;
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/`] = s.guides;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/examples/`] = sidebarConfig.examples;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/api/`] = sidebarConfig.api;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/`] = sidebarConfig.guides;
     });
 
     getDocsFrameworkedVersions(buildMode).forEach((version) => {
       // eslint-disable-next-line
-      const s = require(path.join(__dirname, `../${version}/sidebars.js`));
+      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
       frameworks.forEach((framework) => {
-        const apiTransformed = JSON.parse(JSON.stringify(s.api)); // Copy sidebar definition
+        const apiTransformed = JSON.parse(JSON.stringify(sidebarConfig.api)); // Copy sidebar definition
         const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
         const pathPartsWithoutVersion = plugins.path.split(`/${version}`);
 
@@ -118,20 +118,20 @@ function getSidebars(buildMode) {
         plugins.path = [`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/`,
           version, ...pathPartsWithoutVersion].join('');
 
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/examples/`] = s.examples;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/examples/`] = sidebarConfig.examples;
         sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/api/`] = apiTransformed;
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/`] = s.guides;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/`] = sidebarConfig.guides;
       });
     });
 
   } else {
     getVersions(buildMode).forEach((version) => {
       // eslint-disable-next-line
-      const s = require(path.join(__dirname, `../${version}/sidebars.js`));
+      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-      sidebars[`/${version}/examples/`] = s.examples;
-      sidebars[`/${version}/api/`] = s.api;
-      sidebars[`/${version}/`] = s.guides;
+      sidebars[`/${version}/examples/`] = sidebarConfig.examples;
+      sidebars[`/${version}/api/`] = sidebarConfig.api;
+      sidebars[`/${version}/`] = sidebarConfig.guides;
     });
   }
 
