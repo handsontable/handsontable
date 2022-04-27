@@ -19,15 +19,14 @@ Tests are run in [BrowserStack](https://www.browserstack.com/) as well as on a l
 
 ## List of browsers
 
-| Desktop Browsers      | Mobile Browsers     |
-| :-------------------- | :------------------ |
-| Chrome                | Chrome              |
-| Firefox               | Firefox for Android |
-| Safari                | Firefox for iOS     |
-| Edge Chromium         | Safari iOS          |
-| Edge                  | Samsung Internet    |
-| Opera                 | Opera               |
-| QQ browser            |                     |
+| Desktop Browsers | Mobile Browsers     |
+| :--------------- | :------------------ |
+| Chrome           | Chrome              |
+| Firefox          | Firefox for Android |
+| Safari           | Firefox for iOS     |
+| Edge             | Safari iOS          |
+| Opera            | Opera               |
+| QQ browser       | Samsung Internet    |
 
 ::: tip
 The LTS version for supporting Internet Explorer 11 is Handsontable `11.x`, and will be supported until at least the end of 2023.
