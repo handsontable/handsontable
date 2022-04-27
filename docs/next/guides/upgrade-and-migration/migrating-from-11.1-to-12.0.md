@@ -23,26 +23,26 @@ Each [`updateSettings()`](@/api/core.md#updatesettings) call with the [`data`](@
 | Replaces [`data`](@/api/options.md#data)                          | Replaces [`data`](@/api/options.md#data)                              |
 | Triggers the same hooks as [`loadData()`](@/api/core.md#loaddata) | Triggers the same hooks as [`updateData()`](@/api/core.md#updatedata) |
 | Resets configuration options to the initial state                 | Doesn't reset configuration options to the initial state              |
-| Resets index mappings                                             | Doesn't reset index mappings                                          |
+| Resets index mapper information                                             | Doesn't reset index mapper information                                          |
 
 #### Migrating to Handsontable 12.0
 
-If you need to reset your index mappings and configuration options  along with updating your [`data`](@/api/options.md#data):
+If you need to reset your index mapper information and configuration options  along with updating your [`data`](@/api/options.md#data):
 
 - Instead of passing the [`data`](@/api/options.md#data) option to the [`updateSettings()`](@/api/core.md#updatesettings) method, run [`loadData()`](@/api/core.md#loadData) and provide the new dataset as its argument:
 ```js
-// Handsontable 12.0: this doesn't reset your configuration options and index mapper configuration
+// Handsontable 12.0: this doesn't reset your configuration options and index mapper information
 hotInstance.updateSettings({
   data: newDataset
 });
 
-// Handsontable 12.0: this does reset your configuration options and index mapper configuration
+// Handsontable 12.0: this does reset your configuration options and index mapper information
 hotInstance.loadData(newDataset);
 ```
 
 #### Framework wrappers
 
-Updating your [`data`](@/api/options.md#data) through a component property no longer resets your index mappings and configuration options.
+Updating your [`data`](@/api/options.md#data) through a component property no longer resets your index mapper information and configuration options.
 
 To replace [`data`](@/api/options.md#data) and reset the states, call the [`loadData()`](@/api/core.md#loadData) method (the same way as above), referencing the Handsontable instance from the component.
 
