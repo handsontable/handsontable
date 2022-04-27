@@ -2,7 +2,7 @@ import Handsontable from "handsontable";
 import "handsontable/dist/handsontable.min.css";
 import "pikaday/css/pikaday.css";
 
-import { data } from "./constants";
+import { data, generateArabicData } from "./constants";
 import { progressBarRenderer, starRenderer } from "./customRenderers";
 import "./styles.css";
 
@@ -12,10 +12,13 @@ import {
   changeCheckboxCell
 } from "./hooksCallbacks";
 
+const urlParams = new URLSearchParams(location.search.replace(/^\?/, ""));
+const isArabicExample = urlParams.get("arabicExample") === "1";
 const example = document.getElementById("example");
 
 new Handsontable(example, {
-  data,
+  data: isArabicExample ? generateArabicData() : data,
+  layoutDirection: isArabicExample ? "rtl" : "ltr",
   height: 450,
   colWidths: [140, 192, 100, 90, 90, 110, 97, 100, 126],
   colHeaders: [
@@ -35,7 +38,8 @@ new Handsontable(example, {
     {
       data: 4,
       type: "date",
-      allowInvalid: false
+      allowInvalid: false,
+      dateFormat: isArabicExample ? "DD.MM.YYYY" : "DD/MM/YYYY"
     },
     {
       data: 6,
