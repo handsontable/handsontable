@@ -4698,14 +4698,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
     runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
-    keys: [['Home', 'Control/Meta', 'Shift']],
-    callback: () => {
-      selection.setRangeEnd(instance._createCellCoords(
-        instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
-        selection.selectedRange.current().from.col,
-      ));
-    },
-  }, {
     keys: [['End']],
     captureCtrl: true,
     callback: () => {
@@ -4734,14 +4726,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.setRangeStart(instance._createCellCoords(row, column));
     },
     runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
-  }, {
-    keys: [['End', 'Control/Meta', 'Shift']],
-    callback: () => {
-      selection.setRangeEnd(instance._createCellCoords(
-        instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
-        selection.selectedRange.current().from.col,
-      ));
-    },
   }, {
     keys: [
       ['PageUp'],
