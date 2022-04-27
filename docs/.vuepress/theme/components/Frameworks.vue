@@ -48,7 +48,9 @@ export default {
   },
   computed: {
     imageUrl() {
-      return `/docs/${this.$page.currentVersion}/img/pages/introduction/${this.$page.framework}.svg`;
+      const frameworkWithoutNumber = this.$page.currentFramework.replace(/\d+$/, '');
+
+      return `/docs/${this.$page.currentVersion}/img/pages/introduction/${frameworkWithoutNumber}.svg`;
     },
     item() {
       return {
