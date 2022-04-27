@@ -37,7 +37,7 @@ __Important:__ In order for the data separation to work properly, make sure that
 
 ### persistentState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/dataMap/metaManager/metaSchema.js#L3281
+::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/dataMap/metaManager/metaSchema.js#L3281
 
 :::
 
@@ -67,7 +67,7 @@ persistentState: true,
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/plugins/persistentState/persistentState.js#L142
+::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/plugins/persistentState/persistentState.js#L142
 
 :::
 
@@ -79,7 +79,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/plugins/persistentState/persistentState.js#L89
+::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/plugins/persistentState/persistentState.js#L89
 
 :::
 
@@ -91,7 +91,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/plugins/persistentState/persistentState.js#L70
+::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/plugins/persistentState/persistentState.js#L70
 
 :::
 
@@ -103,7 +103,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/plugins/persistentState/persistentState.js#L63
+::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/plugins/persistentState/persistentState.js#L63
 
 :::
 
@@ -116,7 +116,7 @@ hook and if it returns `true` than the [PersistentState#enablePlugin](@/api/pers
 
 ### loadValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/plugins/persistentState/persistentState.js#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/plugins/persistentState/persistentState.js#L111
 
 :::
 
@@ -134,7 +134,7 @@ Loads the value from local storage.
 
 ### resetValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/plugins/persistentState/persistentState.js#L130
+::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/plugins/persistentState/persistentState.js#L130
 
 :::
 
@@ -151,7 +151,7 @@ Resets the data or all data from local storage.
 
 ### saveValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/plugins/persistentState/persistentState.js#L121
+::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/plugins/persistentState/persistentState.js#L121
 
 :::
 
@@ -169,7 +169,7 @@ Saves the data to local storage.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/plugins/persistentState/persistentState.js#L98
+::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/plugins/persistentState/persistentState.js#L98
 
 :::
 

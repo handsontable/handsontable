@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.0.0
- * Release date: 14/03/2022 (built at 22/04/2022 11:49:10)
+ * Release date: 28/04/2022 (built at 27/04/2022 12:37:15)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3127,7 +3127,7 @@ function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("14/03/2022", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("28/04/2022", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
 
       var keyValidityDays = _extractTime(key);
@@ -24869,9 +24869,9 @@ function Core(rootElement, userSettings) {
   var rootElementDirection = ['rtl', 'ltr'].includes(layoutDirection) ? layoutDirection : this.rootWindow.getComputedStyle(this.rootElement).direction;
   this.rootElement.setAttribute('dir', rootElementDirection);
   /**
-   * Check if currently it is RTL direction.
+   * Checks if the grid is rendered using the right-to-left layout direction.
    *
-   * @private
+   * @since 12.0.0
    * @memberof Core#
    * @function isRtl
    * @returns {boolean} True if RTL.
@@ -24881,9 +24881,9 @@ function Core(rootElement, userSettings) {
     return rootElementDirection === 'rtl';
   };
   /**
-   * Check if currently it is LTR direction.
+   * Checks if the grid is rendered using the left-to-right layout direction.
    *
-   * @private
+   * @since 12.0.0
    * @memberof Core#
    * @function isLtr
    * @returns {boolean} True if LTR.
@@ -24896,7 +24896,7 @@ function Core(rootElement, userSettings) {
   /**
    * Returns 1 for LTR; -1 for RTL. Useful for calculations.
    *
-   * @private
+   * @since 12.0.0
    * @memberof Core#
    * @function getDirectionFactor
    * @returns {number} Returns 1 for LTR; -1 for RTL.
@@ -29599,11 +29599,6 @@ function Core(rootElement, userSettings) {
       return instance.view.isMainTableNotFullyCoveredByOverlays();
     }
   }, {
-    keys: [['Home', 'Control/Meta', 'Shift']],
-    callback: function callback() {
-      selection.setRangeEnd(instance._createCellCoords(instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1), selection.selectedRange.current().from.col));
-    }
-  }, {
     keys: [['End']],
     captureCtrl: true,
     callback: function callback() {
@@ -29628,11 +29623,6 @@ function Core(rootElement, userSettings) {
     },
     runOnlyIf: function runOnlyIf() {
       return instance.view.isMainTableNotFullyCoveredByOverlays();
-    }
-  }, {
-    keys: [['End', 'Control/Meta', 'Shift']],
-    callback: function callback() {
-      selection.setRangeEnd(instance._createCellCoords(instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1), selection.selectedRange.current().from.col));
     }
   }, {
     keys: [['PageUp']],
@@ -44958,7 +44948,7 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "22/04/2022 11:49:10";
+Handsontable.buildDate = "27/04/2022 12:37:15";
 Handsontable.version = "12.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,

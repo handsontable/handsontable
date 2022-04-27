@@ -14,7 +14,7 @@ editLink: false
 
 ### addShortcut
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5aabeed320156232ca30482eca172fb2d11f2f72/handsontable/src/shortcuts/context.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/92725e660e6a9b7df7b6d889aeab2022cbf4b4a7/handsontable/src/shortcuts/context.js#L43
 
 :::
 
