@@ -301,12 +301,12 @@ const hot = new Handsontable(container, {
 To replace the entire data in an already-initialized Handsontable instance, you can use one of the data-loading API methods:
 
 - [`loadData`](@/api/core.md#loaddata)<br>
-  Replaces the data used in Handsontable with the dataset provided as the method argument. <br> **Note:** Since version `12.0.0` this method causes the table to reset its cell meta and index mapper information, so some of the work done on the table since its initialization might be lost.
+  Replaces the data used in Handsontable with the dataset provided as the method argument. <br> **Note:** Since version `12.0.0` this method causes the table to reset its configuration options and index mapper information, so some of the work done on the table since its initialization might be lost.
   ```js
   hot.loadData(newDataset);
   ```
 - [`updateData`](@/api/core.md#updatedata)<br>
-  Replaces the data used in Handsontable with the dataset provided as the method argument. Unlike [`loadData`](@/api/core.md#loaddata), [`updateData`](@/api/core.md#updatedata) does NOT reset the cell meta and/or index mapper information, so it can be safely used to replace just the data, leaving the rest of the table intact.
+  Replaces the data used in Handsontable with the dataset provided as the method argument. Unlike [`loadData`](@/api/core.md#loaddata), [`updateData`](@/api/core.md#updatedata) does NOT reset the configuration options and/or index mapper information, so it can be safely used to replace just the data, leaving the rest of the table intact.
   ```js
   hot.updateData(newDataset);
   ```
