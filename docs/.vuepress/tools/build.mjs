@@ -7,6 +7,9 @@ import { getVersions } from '../helpers.js';
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const buildMode = process.env.BUILD_MODE;
+const [ ...cliArgs ] = process.argv.slice(2);
+
+const NO_CACHE = cliArgs.some(opt => opt.indexOf('--no-cache') !== -1);
 
 const cleanUp = () => {
   logger.info('Clean up dist');
@@ -24,7 +27,11 @@ const buildVersion = (version) => {
   logger.info(`Version ${version} build started at`, new Date().toString());
 
   spawnProcess(
-    `node_modules/.bin/vuepress build -d .vuepress/dist/prebuild-${version.replace('.', '-')}`,
+    `node_modules/.bin/vuepress build -d .vuepress/dist/prebuild-${
+      version.replace('.', '-')
+    }${
+      NO_CACHE ? ' --no-cache' : ''
+    }`,
     {
       cwd: path.resolve(__dirname, '../../'),
       env: {
