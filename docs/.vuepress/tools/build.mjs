@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const buildMode = process.env.BUILD_MODE;
 const [ ...cliArgs ] = process.argv.slice(2);
 
-const NO_CACHE = cliArgs.some(opt => opt.indexOf('--no-cache') !== -1);
+const NO_CACHE = cliArgs.some(opt => opt.includes('--no-cache'));
 
 const cleanUp = () => {
   logger.info('Clean up dist');
