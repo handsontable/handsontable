@@ -59,7 +59,7 @@ function generateArabicData() {
   const randomNumber = (a = 0, b = 1000) => a + Math.floor(Math.random() * b);
   const randomPhrase = () =>
     `${randomCountry()} ${randomName()} ${randomNumber()}`;
-  
+
   const arr = Array.from({ length: 10 }, () => [
     randomBool(),
     randomName(),
@@ -81,6 +81,7 @@ const hot = new Handsontable(container, {
   data: generateArabicData(),
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // render Handsontable from the right to the left
   layoutDirection: 'rtl',
   // load an RTL language (e.g., Arabic)
@@ -119,7 +120,7 @@ You can set the layout direction only at Handsontable's [initialization](@/guide
 
 ### Setting the layout direction automatically
 
-You can set Handsontable's layout direction automatically, 
+You can set Handsontable's layout direction automatically,
 based on on the value of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute.
 This is the default setting.
 
@@ -149,6 +150,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // inherit Handsontable's layout direction
   // from the value of your HTML document's `dir` attribute
   layoutDirection: 'inherit',
@@ -178,6 +180,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // render Handsontable from the right to the left
   // regardless of your HTML document's `dir`
   layoutDirection: 'rtl',
@@ -207,6 +210,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // render Handsontable from the left to the right
   // regardless of your HTML document's `dir`
   layoutDirection: 'ltr',
@@ -234,6 +238,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // render Handsontable from the right to the left
   // regardless of your HTML document's `dir`
   layoutDirection: 'rtl',
