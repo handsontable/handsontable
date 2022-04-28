@@ -7,10 +7,10 @@ const { getContainerFramework } = require('../helpers');
 /**
  * Container used to display/hide blocks of content relevant to specific frameworks.
  * It relies on providing the framework name(s) as arguments to the container (see 'Usage' below) and setting a
- * `FRAMEWORK` environmental variable as the framework name, for example:
+ * `DOCS_FRAMEWORK` environmental variable as the framework name, for example:
  *
  * ```
- * FRAMEWORK=react
+ * DOCS_FRAMEWORK=react
  * ```
  *
  * Usage:
