@@ -17,7 +17,7 @@ This tutorial will give you a comprehensive understanding of how the whole proce
 
 ## EditorManager
 
-`EditorManager` is a class responsible for handling all editors available in Handsontable. If `Handsontable.Core` needs to interact with editors it uses `EditorManager` object. `EditorManager` object is instantiated in `init()` method which is run, after you invoke `handsontable()` constructor for the first time. The reference for `EditorManager` object is kept private in Handsontable instance and you cannot access it. However, there are ways to alter the default behaviour of `EditorManager`, more on that later.
+`EditorManager` is a class responsible for handling all editors available in Handsontable. If `Handsontable` needs to interact with editors it uses `EditorManager` object. `EditorManager` object is instantiated in `init()` method which is run, after you invoke `Handsontable()` constructor for the first time. The reference for `EditorManager` object is kept private in Handsontable instance and you cannot access it. However, there are ways to alter the default behaviour of `EditorManager`, more on that later.
 
 ### EditorManager tasks
 
@@ -55,12 +55,14 @@ If any of those events is triggered, `EditorManager` calls editor's `beginEditin
 When editor is opened the `EditorManager` waits for user event that should end cell edition. Those events are:
 
 * clicking on another cell (saves changes)
-* pressing <kbd>ENTER</kbd> (saves changes)
-* pressing <kbd>ESC</kbd> (abort changes)
-* pressing <kbd>ARROW_UP</kbd>, <kbd>ARROW_DOWN</kbd>, <kbd>ARROW_LEFT</kbd>, <kbd>ARROW_RIGHT</kbd> (saves changes)
-* pressing <kbd>TAB</kbd> (saves changes)
-* pressing <kbd>HOME</kbd>, <kbd>END</kbd> (saved changes)
-* pressing <kbd>PAGE_UP</kbd>, <kbd>PAGE_DOWN</kbd> (saved changes)
+* pressing <kbd>ENTER</kbd> (saves changes and moves selection one cell down)
+* pressing <kbd>SHIFT</kbd> + <kbd>ENTER</kbd> (saves changes and moves selection one cell up)
+* pressing <kbd>CTRL</kbd> + <kbd>ENTER</kbd> (adds a new line inside the cell)
+* pressing <kbd>ESC</kbd> (aborts changes)
+* pressing <kbd>TAB</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
+* pressing <kbd>SHIFT</kbd> + <kbd>TAB</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
+* pressing <kbd>HOME</kbd>, <kbd>END</kbd> (saves changes)
+* pressing <kbd>PAGE_UP</kbd>, <kbd>PAGE_DOWN</kbd> (saves changes and moves one screen up/down)
 
 If any of those events is triggered, `EditorManager` calls editor's `finishEditing()` method, which should try to save changes (unless ESC key has been pressed) and close the editor.
 
@@ -182,12 +184,12 @@ class CalendarEditor extends TextEditor {
 
   getValue() {
     // returns currently selected date, for example "2023/09/15"
-    return calendar.getDate(); 
+    return calendar.getDate();
   }
 
   setValue() {
     // highlights given date on calendar
-    calendar.highlightDate(newValue); 
+    calendar.highlightDate(newValue);
   }
 }
 ```
@@ -236,7 +238,7 @@ This method does not need to return any value.
 
 ### Common editor properties
 
-All the undermentioned properties are available in editor instance through `this` object (e.g. `this.instance`).
+All the undermentioned properties are available in editor instance through `this` object (e.g., `this.instance`).
 
  Property | Type        | Description
 ----------|-------------|-------------
@@ -295,7 +297,7 @@ const hot = new Handsontable(container, {
     },
     {
       editor: PasswordEditor
-      // If you want to use string 'password' instead of passing 
+      // If you want to use string 'password' instead of passing
       // the actual editor class check out section "Registering editor"
     }
   ]
@@ -340,7 +342,7 @@ There are three potential places where we can put the function that will create 
 * `prepare()` method
 * `open()` method
 
-The key to choose the best solution is to understand when each of those methods is called.
+The key to choose the best solution is to understand when each of those methods are called.
 
 `init()` method is called during creation of editor class object. That happens at most one per table instance, because once the object is created it is reused every time `EditorManager` asks for this editor class instance (see [Singleton pattern](http://en.wikipedia.org/wiki/Singleton_pattern) for details).
 
@@ -355,8 +357,8 @@ import Handsontable from 'handsontable';
 
 class SelectEditor extends Handsontable.editors.BaseEditor {
   /**
-  * Initializes editor instance, DOM Element and mount hooks.
-  */
+   * Initializes editor instance, DOM Element and mount hooks.
+   */
   init() {
     // Create detached node, add CSS class and make sure its not visible
     this.select = this.hot.rootDocument.createElement('SELECT');
@@ -371,11 +373,12 @@ class SelectEditor extends Handsontable.editors.BaseEditor {
 ```css
 .htSelectEditor {
   /*
-  * This hack enables to change <select> dimensions in WebKit browsers
-  */
+   * This hack enables to change <select> dimensions in WebKit browsers
+   */
   -webkit-appearance: menulist-button !important;
   position: absolute;
   width: auto;
+  z-index: 300;
 }
 ```
 
@@ -439,11 +442,11 @@ prepareOptions(optionsToPrepare) {
 
   if (Array.isArray(optionsToPrepare)) {
     for (let i = 0, len = optionsToPrepare.length; i < len; i++) {
-      preparedOptions[optionsToPrepare[i]]=optionsToPrepare[i];
+      preparedOptions[optionsToPrepare[i]] = optionsToPrepare[i];
     }
 
   } else if (typeof optionsToPrepare === 'object') {
-    preparedOptions=optionsToPrepare;
+    preparedOptions = optionsToPrepare;
   }
 
   return preparedOptions;
@@ -466,116 +469,22 @@ setValue(value) {
 }
 
 open() {
-  this._opened = true;
-  this.refreshDimensions();
-  this.select.style.display = '';
-}
-
-refreshDimensions() {
-  this.TD = this.getEditedCell();
-
-  // TD is outside of the viewport.
-  if (!this.TD) {
-    this.close();
-
-    return;
-  }
-  const { wtOverlays } = this.hot.view.wt;
-  const currentOffset = Handsontable.dom.offset(this.TD);
-  const containerOffset = Handsontable.dom.offset(this.hot.rootElement);
-  const scrollableContainer = wtOverlays.scrollableElement;
-  const editorSection = this.checkEditorSection();
-  let width = Handsontable.dom.outerWidth(this.TD) + 1;
-  let height = Handsontable.dom.outerHeight(this.TD) + 1;
-  let editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0);
-  let editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
-  let cssTransformOffset;
-
-  switch (editorSection) {
-    case 'top':
-      cssTransformOffset = Handsontable.dom.getCssTransform(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
-      break;
-    case 'left':
-      cssTransformOffset = Handsontable.dom.getCssTransform(wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
-      break;
-    case 'top-left-corner':
-      cssTransformOffset = Handsontable.dom.getCssTransform(wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
-      break;
-    case 'bottom-left-corner':
-      cssTransformOffset = Handsontable.dom.getCssTransform(wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
-      break;
-    case 'bottom':
-      cssTransformOffset = Handsontable.dom.getCssTransform(wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
-      break;
-    default:
-      break;
-  }
-
-  if (this.hot.getSelectedLast()[0] === 0) {
-    editTop += 1;
-  }
-  if (this.hot.getSelectedLast()[1] === 0) {
-    editLeft += 1;
-  }
-
+  const {
+    top,
+    start,
+    width,
+    height,
+  } = this.getEditedCellRect();
   const selectStyle = this.select.style;
 
-  if (cssTransformOffset && cssTransformOffset !== -1) {
-    selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
-  } else {
-    Handsontable.dom.resetCssTransform(this.select);
-  }
-
-  const cellComputedStyle = Handsontable.dom.getComputedStyle(this.TD, this.hot.rootWindow);
-
-  if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
-    height -= 1;
-  }
-  if (parseInt(cellComputedStyle.borderLeftWidth, 10) > 0) {
-    width -= 1;
-  }
+  this._opened = true;
 
   selectStyle.height = `${height}px`;
   selectStyle.minWidth = `${width}px`;
-  selectStyle.top = `${editTop}px`;
-  selectStyle.left = `${editLeft}px`;
+  selectStyle.top = `${top}px`;
+  selectStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
   selectStyle.margin = '0px';
-}
-
-getEditedCell() {
-  const { wtOverlays } = this.hot.view.wt;
-  const editorSection = this.checkEditorSection();
-  let editedCell;
-
-  switch (editorSection) {
-    case 'top':
-      editedCell = wtOverlays.topOverlay.clone.wtTable.getCell({
-        row: this.row,
-        col: this.col
-      });
-      this.select.style.zIndex = 101;
-    break;
-    case 'corner':
-      editedCell = wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
-        row: this.row,
-        col: this.col
-      });
-      this.select.style.zIndex = 103;
-      break;
-    case 'left':
-      editedCell = wtOverlays.leftOverlay.clone.wtTable.getCell({
-        row: this.row,
-        col: this.col
-      });
-      this.select.style.zIndex = 102;
-      break;
-    default:
-      editedCell = this.hot.getCell(this.row, this.col);
-      this.select.style.zIndex = '';
-      break;
-  }
-
-  return editedCell < 0 ? void 0 : editedCell;
+  selectStyle.display = '';
 }
 
 focus() {
@@ -627,7 +536,7 @@ onBeforeKeyDown() {
         this.select[previousOptionIndex].selected = true;
       }
 
-      stopImmediatePropagation(event);
+      Handsontable.dom.stopImmediatePropagation(event);
       event.preventDefault();
       break;
 
@@ -636,7 +545,7 @@ onBeforeKeyDown() {
         this.select[nextOptionIndex].selected=true;
       }
 
-      stopImmediatePropagation(event);
+      Handsontable.dom.stopImmediatePropagation(event);
       event.preventDefault();
       break;
 

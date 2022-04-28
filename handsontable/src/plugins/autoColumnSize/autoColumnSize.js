@@ -95,6 +95,10 @@ export class AutoColumnSize extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get SETTING_KEYS() {
+    return true;
+  }
+
   static get CALCULATION_STEP() {
     return 50;
   }
@@ -215,7 +219,7 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     const changedColumns = this.findColumnsWhereHeaderWasChanged();
@@ -385,7 +389,7 @@ export class AutoColumnSize extends BasePlugin {
    * Recalculates all columns width (overwrite cache values).
    */
   recalculateAllColumnsWidth() {
-    if (this.hot.view && this.hot.view.wt.wtTable.isVisible()) {
+    if (this.hot.view && this.hot.view._wt.wtTable.isVisible()) {
       this.clearCache();
       this.calculateAllColumnsWidth();
     }
@@ -445,7 +449,7 @@ export class AutoColumnSize extends BasePlugin {
    * @returns {number} Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn() {
-    const wot = this.hot.view.wt;
+    const wot = this.hot.view._wt;
 
     if (wot.wtViewport.columnsVisibleCalculator) {
       // Fist fully visible column is stored as renderable index.
@@ -474,7 +478,7 @@ export class AutoColumnSize extends BasePlugin {
    * @returns {number} Returns visual column index or -1 if table is not rendered.
    */
   getLastVisibleColumn() {
-    const wot = this.hot.view.wt;
+    const wot = this.hot.view._wt;
 
     if (wot.wtViewport.columnsVisibleCalculator) {
       // Last fully visible column is stored as renderable index.

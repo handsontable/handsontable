@@ -2,6 +2,9 @@ name: Linter
 
 on: [push]
 
+env:
+  NODE_VERSION: 16
+
 jobs:
   build:
     name: JS & CSS & TS & D.TS
@@ -12,7 +15,7 @@ jobs:
       - name: Use Node.js 16
         uses: actions/setup-node@56899e050abffc08c2b3b61f3ec6a79a9dc3223d # https://github.com/actions/setup-node/releases/tag/v1.4.4
         with:
-          node-version: '16.x'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install dependencies

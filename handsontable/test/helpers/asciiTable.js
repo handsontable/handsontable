@@ -84,7 +84,7 @@ function isLeftHeader(cell) {
 }
 
 /**
- * Check if passed element belong to the rop header.
+ * Check if passed element belong to the top header.
  *
  * @param {HTMLTableCellElement} cell The cell element to process.
  * @returns {boolean}
@@ -125,29 +125,35 @@ export function generateASCIITable(context) {
   const ROW_OVERLAY_SEPARATOR = '|';
   const COLUMN_OVERLAY_SEPARATOR = '---';
 
-  const cornerOverlayTable = $('.ht_clone_top_left_corner .htCore', context);
-  const leftOverlayTable = $('.ht_clone_left .htCore', context);
+  const topStartCornerOverlayTable = $('.ht_clone_top_inline_start_corner .htCore', context);
+  const bottomStartCornerOverlayTable = $('.ht_clone_bottom_inline_start_corner .htCore', context);
+  const inlineStartOverlayTable = $('.ht_clone_inline_start .htCore', context);
   const topOverlayTable = $('.ht_clone_top .htCore', context);
+  const bottomOverlayTable = $('.ht_clone_bottom .htCore', context);
   const masterTable = $('.ht_master .htCore', context);
   const stringRows = [];
 
-  const cornerOverlayCells = cellFactory(cornerOverlayTable);
-  const leftOverlayCells = cellFactory(leftOverlayTable);
+  const topStartCornerOverlayCells = cellFactory(topStartCornerOverlayTable);
+  const bottomStartCornerOverlayCells = cellFactory(bottomStartCornerOverlayTable);
+  const inlineStartOverlayCells = cellFactory(inlineStartOverlayTable);
   const topOverlayCells = cellFactory(topOverlayTable);
+  const bottomOverlayCells = cellFactory(bottomOverlayTable);
   const masterCells = cellFactory(masterTable);
+  const isRtl = $('.ht_master').dir === 'rtl';
 
   const hasTopHeader = topOverlayCells(0, 0) ? isTopHeader(topOverlayCells(0, 0)) : false;
-  const hasCornerHeader = cornerOverlayCells(0, 0) ? isHeader(cornerOverlayCells(0, 0)) : false;
-  const hasLeftHeader = (leftOverlayCells(0, 0) && isLeftHeader(leftOverlayCells(0, 0))) ||
+  const hasCornerHeader = topStartCornerOverlayCells(0, 0) ? isHeader(topStartCornerOverlayCells(0, 0)) : false;
+  const hasLeftHeader = (inlineStartOverlayCells(0, 0) && isLeftHeader(inlineStartOverlayCells(0, 0))) ||
                         (hasTopHeader && hasCornerHeader);
   const firstCellCoords = {
     row: hasTopHeader ? 1 : 0,
     column: hasLeftHeader ? 1 : 0
   };
-  const leftOverlayFirstCell = leftOverlayCells(firstCellCoords.row, firstCellCoords.column);
-  const hasFixedLeftCells = leftOverlayFirstCell ? !isLeftHeader(leftOverlayFirstCell) : false;
+  const inlineStartOverlayFirstCell = inlineStartOverlayCells(firstCellCoords.row, firstCellCoords.column);
+  const hasFixedLeftCells = inlineStartOverlayFirstCell ? !isLeftHeader(inlineStartOverlayFirstCell) : false;
   const topOverlayFirstCell = topOverlayCells(firstCellCoords.row, firstCellCoords.column);
   const hasFixedTopCells = topOverlayFirstCell ? !isTopHeader(topOverlayFirstCell) : false;
+  const hasFixedBottomCells = topOverlayFirstCell ? !isTopHeader(topOverlayFirstCell) : false;
 
   const consumedFlags = new Map([
     ['hasLeftHeader', hasLeftHeader],
@@ -162,8 +168,10 @@ export function generateASCIITable(context) {
   for (let r = 0; r < rowsLength; r++) {
     const stringCells = [];
     const columnsLength = masterTable.rows[0].cells.length;
+    const bottomRowIndex = r - (rowsLength - bottomOverlayTable.rows.length);
     let isLastColumn = false;
     let insertTopOverlayRowSeparator = false;
+    let insertBottomOverlayRowSeparator = false;
 
     for (let c = 0; c < columnsLength; c++) {
       let cellSymbol;
@@ -171,9 +179,9 @@ export function generateASCIITable(context) {
 
       isLastColumn = c === columnsLength - 1;
 
-      if (cornerOverlayCells(r, c)) {
-        const cell = cornerOverlayCells(r, c);
-        const nextCell = cornerOverlayCells(r, c + 1);
+      if (topStartCornerOverlayCells(r, c)) {
+        const cell = topStartCornerOverlayCells(r, c);
+        const nextCell = topStartCornerOverlayCells(r, c + 1);
 
         cellSymbol = getSelectionSymbol(cell);
 
@@ -187,9 +195,22 @@ export function generateASCIITable(context) {
           separatorSymbol = ROW_HEADER_SEPARATOR;
         }
 
-      } else if (leftOverlayCells(r, c)) {
-        const cell = leftOverlayCells(r, c);
-        const nextCell = leftOverlayCells(r, c + 1);
+      } else if (bottomStartCornerOverlayCells(bottomRowIndex, c)) {
+        const cell = bottomStartCornerOverlayCells(bottomRowIndex, c);
+        const nextCell = bottomStartCornerOverlayCells(bottomRowIndex, c + 1);
+
+        cellSymbol = getSelectionSymbol(cell);
+
+        if (isLeftHeader(cell) && (!nextCell || !isLeftHeader(nextCell))) {
+          separatorSymbol = ROW_HEADER_SEPARATOR;
+        }
+        if (!isLeftHeader(cell) && !nextCell) {
+          separatorSymbol = ROW_OVERLAY_SEPARATOR;
+        }
+
+      } else if (inlineStartOverlayCells(r, c)) {
+        const cell = inlineStartOverlayCells(r, c);
+        const nextCell = inlineStartOverlayCells(r, c + 1);
 
         cellSymbol = getSelectionSymbol(cell);
 
@@ -209,6 +230,15 @@ export function generateASCIITable(context) {
           insertTopOverlayRowSeparator = true;
         }
 
+      } else if (bottomOverlayCells(bottomRowIndex, c)) {
+        const cell = bottomOverlayCells(bottomRowIndex, c);
+
+        cellSymbol = getSelectionSymbol(cell);
+
+        if (hasFixedBottomCells && isLastColumn && !bottomOverlayCells(bottomRowIndex - 1, c)) {
+          insertBottomOverlayRowSeparator = true;
+        }
+
       } else if (masterCells(r, c)) {
         const cell = masterCells(r, c);
 
@@ -222,13 +252,22 @@ export function generateASCIITable(context) {
       }
     }
 
-    stringRows.push(TABLE_EDGES_SYMBOL + stringCells.join('') + TABLE_EDGES_SYMBOL);
+    if (insertBottomOverlayRowSeparator) {
+      insertBottomOverlayRowSeparator = false;
+      stringRows.push(TABLE_EDGES_SYMBOL + new Array(columnsLength)
+        .fill(COLUMN_OVERLAY_SEPARATOR).join(COLUMN_SEPARATOR) + TABLE_EDGES_SYMBOL);
+    }
+
+    const cellsStringified = (isRtl ? stringCells.reverse() : stringCells).join('');
+
+    stringRows.push(TABLE_EDGES_SYMBOL + cellsStringified + TABLE_EDGES_SYMBOL);
 
     if (consumedFlags.get('hasTopHeader')) {
       consumedFlags.delete('hasTopHeader');
       stringRows.push(TABLE_EDGES_SYMBOL + new Array(columnsLength)
         .fill(COLUMN_HEADER_SEPARATOR).join(COLUMN_SEPARATOR) + TABLE_EDGES_SYMBOL);
     }
+
     if (insertTopOverlayRowSeparator) {
       insertTopOverlayRowSeparator = false;
       stringRows.push(TABLE_EDGES_SYMBOL + new Array(columnsLength)

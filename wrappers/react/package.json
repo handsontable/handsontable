@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/react",
-  "version": "11.1.0",
+  "version": "12.0.0",
   "description": "Best Data Grid for React with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
@@ -10,6 +10,12 @@
   "jsdelivr": "./dist/react-handsontable.min.js",
   "unpkg": "./dist/react-handsontable.min.js",
   "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./es/react-handsontable.js",
+      "require": "./commonjs/react-handsontable.js"
+    }
+  },
   "keywords": [
     "handsontable",
     "component",
@@ -52,8 +58,6 @@
     "@babel/preset-react": "^7.9.4",
     "@babel/preset-typescript": "^7.9.0",
     "@babel/runtime": "^7.9.2",
-    "@types/enzyme": "^3.1.15",
-    "@types/enzyme-adapter-react-16": "^1.0.3",
     "@types/react": "^16.9.5",
     "@types/react-dom": "^16.9.1",
     "@types/react-redux": "^7.1.7",
@@ -61,10 +65,7 @@
     "cpy-cli": "^3.1.1",
     "cross-env": "^5.2.0",
     "del-cli": "^3.0.1",
-    "enzyme": "^3.10.0",
-    "enzyme-adapter-react-16": "^1.14.0",
-    "enzyme-to-json": "^3.4.0",
-    "handsontable": "^11.0.0",
+    "handsontable": "^12.0.0",
     "jest": "^25.1.0",
     "prop-types": "^15.7.2",
     "react": "^16.10.2",
@@ -84,7 +85,7 @@
     "uglify-js": "^3.4.9"
   },
   "peerDependencies": {
-    "handsontable": ">=11.0.0"
+    "handsontable": ">=12.0.0"
   },
   "scripts": {
     "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min",
@@ -100,12 +101,6 @@
   },
   "jest": {
     "testURL": "http://localhost/",
-    "setupFiles": [
-      "./test/jestsetup.ts"
-    ],
-    "snapshotSerializers": [
-      "enzyme-to-json/serializer"
-    ],
     "transform": {
       "^.+\\.tsx?$": "babel-jest",
       "^.+\\.js$": "babel-jest"

@@ -19,8 +19,8 @@ describe('Core.batchRender', () => {
 
     spyOn(hot, 'suspendRender').and.callThrough();
     spyOn(hot, 'resumeRender').and.callThrough();
-    spyOn(hot.view.wt, 'draw');
-    spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
+    spyOn(hot.view._wt, 'draw');
+    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     const result = hot.batchRender(() => {
       // fast render
@@ -35,9 +35,9 @@ describe('Core.batchRender', () => {
     expect(hot.suspendRender).toHaveBeenCalledOnceWith();
     expect(hot.suspendRender).toHaveBeenCalledBefore(hot.resumeRender);
     expect(hot.resumeRender).toHaveBeenCalledOnceWith();
-    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
-    expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
-    expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledBefore(hot.view.wt.draw);
+    expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledBefore(hot.view._wt.draw);
   });
 
   it('should batch nested multi-line operations into one render call', async() => {
@@ -47,8 +47,8 @@ describe('Core.batchRender', () => {
 
     spyOn(hot, 'suspendRender').and.callThrough();
     spyOn(hot, 'resumeRender').and.callThrough();
-    spyOn(hot.view.wt, 'draw');
-    spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
+    spyOn(hot.view._wt, 'draw');
+    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     const result = hot.batchRender(() => {
       hot.alter('insert_row', 1, 5);
@@ -70,7 +70,7 @@ describe('Core.batchRender', () => {
     expect(result).toBe('x');
     expect(hot.suspendRender).toHaveBeenCalledTimes(3);
     expect(hot.resumeRender).toHaveBeenCalledTimes(3);
-    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
-    expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
+    expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
   });
 });

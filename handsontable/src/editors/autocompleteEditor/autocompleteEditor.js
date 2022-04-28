@@ -104,6 +104,8 @@ export class AutocompleteEditor extends HandsontableEditor {
       scrollbarWidth += 15; // default scroll bar width if scroll bars are visible only when scrolling
     }
 
+    this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
+
     choicesListHot.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth : void 0,
@@ -258,9 +260,9 @@ export class AutocompleteEditor extends HandsontableEditor {
     const textareaOffset = offset(this.TEXTAREA);
     const textareaHeight = outerHeight(this.TEXTAREA);
     const dropdownHeight = this.getDropdownHeight();
-    const trimmingContainer = getTrimmingContainer(this.hot.view.wt.wtTable.TABLE);
+    const trimmingContainer = getTrimmingContainer(this.hot.view._wt.wtTable.TABLE);
     const trimmingContainerScrollTop = trimmingContainer.scrollTop;
-    const headersHeight = outerHeight(this.hot.view.wt.wtTable.THEAD);
+    const headersHeight = outerHeight(this.hot.view._wt.wtTable.THEAD);
     let containerOffset = {
       row: 0,
       col: 0
@@ -300,7 +302,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       let height = null;
 
       do {
-        lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.wtSettings.settings.defaultRowHeight;
+        lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view._wt.getSetting('defaultRowHeight');
         tempHeight += lastRowHeight;
         i += 1;
       } while (tempHeight < spaceAvailable);
@@ -338,10 +340,8 @@ export class AutocompleteEditor extends HandsontableEditor {
   unflipDropdown() {
     const dropdownStyle = this.htEditor.rootElement.style;
 
-    if (dropdownStyle.position === 'absolute') {
-      dropdownStyle.position = '';
-      dropdownStyle.top = '';
-    }
+    dropdownStyle.position = 'absolute';
+    dropdownStyle.top = '';
 
     this.htEditor.flipped = void 0;
   }
@@ -360,7 +360,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       width: trimDropdown ? void 0 : currentDropdownWidth
     });
 
-    this.htEditor.view.wt.wtTable.alignOverlaysWithTrimmingContainer();
+    this.htEditor.view._wt.wtTable.alignOverlaysWithTrimmingContainer();
   }
 
   /**
@@ -485,8 +485,6 @@ export class AutocompleteEditor extends HandsontableEditor {
         }, timeOffset);
       }
     }
-
-    super.onBeforeKeyDown(event);
   }
 
   /**

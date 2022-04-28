@@ -31,4 +31,94 @@ describe('CellCoords', () => {
       expect(coords).not.toBe(clone);
     });
   });
+
+  describe('isSouthEastOf()', () => {
+    it('should correctly check the position of the CellCoords instance based on the passed coords', () => {
+      const coords = new CellCoords(5, 5);
+
+      expect(coords.isSouthEastOf({ row: 0, col: 0 })).toBe(true);
+      expect(coords.isSouthEastOf({ row: 0, col: 10 })).toBe(false);
+      expect(coords.isSouthEastOf({ row: 10, col: 0 })).toBe(false);
+      expect(coords.isSouthEastOf({ row: 10, col: 10 })).toBe(false);
+    });
+  });
+
+  describe('isSouthWestOf()', () => {
+    it('should correctly check the position of the CellCoords instance based on the passed coords', () => {
+      const coords = new CellCoords(5, 5);
+
+      expect(coords.isSouthWestOf({ row: 0, col: 0 })).toBe(false);
+      expect(coords.isSouthWestOf({ row: 0, col: 10 })).toBe(true);
+      expect(coords.isSouthWestOf({ row: 10, col: 0 })).toBe(false);
+      expect(coords.isSouthWestOf({ row: 10, col: 10 })).toBe(false);
+    });
+  });
+
+  describe('isNorthEastOf()', () => {
+    it('should correctly check the position of the CellCoords instance based on the passed coords', () => {
+      const coords = new CellCoords(5, 5);
+
+      expect(coords.isNorthEastOf({ row: 0, col: 0 })).toBe(false);
+      expect(coords.isNorthEastOf({ row: 0, col: 10 })).toBe(false);
+      expect(coords.isNorthEastOf({ row: 10, col: 0 })).toBe(true);
+      expect(coords.isNorthEastOf({ row: 10, col: 10 })).toBe(false);
+    });
+  });
+
+  describe('isNorthWestOf()', () => {
+    it('should correctly check the position of the CellCoords instance based on the passed coords', () => {
+      const coords = new CellCoords(5, 5);
+
+      expect(coords.isNorthWestOf({ row: 0, col: 0 })).toBe(false);
+      expect(coords.isNorthWestOf({ row: 0, col: 10 })).toBe(false);
+      expect(coords.isNorthWestOf({ row: 10, col: 0 })).toBe(false);
+      expect(coords.isNorthWestOf({ row: 10, col: 10 })).toBe(true);
+    });
+  });
+
+  describe('RTL mode', () => {
+    describe('isSouthEastOf()', () => {
+      it('should correctly check the position of the CellCoords instance based on the passed coords', () => {
+        const coords = new CellCoords(5, 5, true);
+
+        expect(coords.isSouthEastOf({ row: 0, col: 0 })).toBe(false);
+        expect(coords.isSouthEastOf({ row: 0, col: 10 })).toBe(true);
+        expect(coords.isSouthEastOf({ row: 10, col: 0 })).toBe(false);
+        expect(coords.isSouthEastOf({ row: 10, col: 10 })).toBe(false);
+      });
+    });
+
+    describe('isSouthWestOf()', () => {
+      it('should correctly check the position of the CellCoords instance based on the passed coords', () => {
+        const coords = new CellCoords(5, 5, true);
+
+        expect(coords.isSouthWestOf({ row: 0, col: 0 })).toBe(true);
+        expect(coords.isSouthWestOf({ row: 0, col: 10 })).toBe(false);
+        expect(coords.isSouthWestOf({ row: 10, col: 0 })).toBe(false);
+        expect(coords.isSouthWestOf({ row: 10, col: 10 })).toBe(false);
+      });
+    });
+
+    describe('isNorthEastOf()', () => {
+      it('should correctly check the position of the CellCoords instance based on the passed coords', () => {
+        const coords = new CellCoords(5, 5, true);
+
+        expect(coords.isNorthEastOf({ row: 0, col: 0 })).toBe(false);
+        expect(coords.isNorthEastOf({ row: 0, col: 10 })).toBe(false);
+        expect(coords.isNorthEastOf({ row: 10, col: 0 })).toBe(false);
+        expect(coords.isNorthEastOf({ row: 10, col: 10 })).toBe(true);
+      });
+    });
+
+    describe('isNorthWestOf()', () => {
+      it('should correctly check the position of the CellCoords instance based on the passed coords', () => {
+        const coords = new CellCoords(5, 5, true);
+
+        expect(coords.isNorthWestOf({ row: 0, col: 0 })).toBe(false);
+        expect(coords.isNorthWestOf({ row: 0, col: 10 })).toBe(false);
+        expect(coords.isNorthWestOf({ row: 10, col: 0 })).toBe(true);
+        expect(coords.isNorthWestOf({ row: 10, col: 10 })).toBe(false);
+      });
+    });
+  });
 });

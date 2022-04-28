@@ -7,6 +7,7 @@ import {
   hasLanguageDictionary,
   registerLanguageDictionary,
   dictionaryKeys,
+  arAR,
   deCH,
   deDE,
   enUS,
@@ -42,6 +43,7 @@ describe('i18n', () => {
   });
 
   it('should be possible to import all languages from the module entrypoint', () => {
+    expect(arAR.languageCode).toBe('ar-AR');
     expect(deCH.languageCode).toBe('de-CH');
     expect(deDE.languageCode).toBe('de-DE');
     expect(enUS.languageCode).toBe('en-US');

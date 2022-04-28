@@ -1,13 +1,12 @@
 import { ColumnSorting } from '../columnSorting';
 import { registerRootComparator } from '../columnSorting/sortService';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
-import { isPressedCtrlKey } from '../../utils/keyStateObserver';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';
 import { warnAboutPluginsConflict } from './utils';
 import { getClassesToAdd, getClassesToRemove } from './domHelpers';
 
-import './multiColumnSorting.css';
+import './multiColumnSorting.scss';
 
 export const PLUGIN_KEY = 'multiColumnSorting';
 export const PLUGIN_PRIORITY = 170;
@@ -263,7 +262,7 @@ export class MultiColumnSorting extends ColumnSorting {
     }
 
     if (this.wasClickableHeaderClicked(event, coords.col)) {
-      if (isPressedCtrlKey()) {
+      if (this.hot.getShortcutManager().isCtrlPressed()) {
         this.hot.deselectCell();
         this.hot.selectColumns(coords.col);
 

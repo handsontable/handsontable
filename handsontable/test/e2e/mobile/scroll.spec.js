@@ -19,7 +19,7 @@ describe('Scrolling', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(100, 15)
     });
 
-    const mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view._wt.wtTable.holder;
     const $htCore = $(getHtCore());
 
     let TRs = $htCore.find('tr');

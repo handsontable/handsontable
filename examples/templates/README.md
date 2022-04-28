@@ -31,6 +31,8 @@ examples/
 │  │  │  ├─ sorting-data-custom-order/
 ```
 
+This can be achieved using the command: `cp -r templates/js next/docs/js/sorting-data-custom-order`.
+
 It's done! Now take a closer look at files inside templates.
 
 #### 2. Template files

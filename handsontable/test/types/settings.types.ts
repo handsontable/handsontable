@@ -220,7 +220,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     'filter_by_condition2', 'filter_by_value', 'filter_action_bar'
   ],
   editor: oneOf(true, 'autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'mobile',
-  'password', 'select', 'text', 'custom.editor'),
+  'password', 'select', 'text', 'time', 'custom.editor'),
   enterBeginsEditing: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 1, col: 1})),
   fillHandle: oneOf(true_or_false, 'vertical', 'horizontal') || {
@@ -231,6 +231,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   filteringCaseSensitive: true,
   filters: false,
   fixedColumnsLeft: 123,
+  fixedColumnsStart: 123,
   fixedRowsBottom: 123,
   fixedRowsTop: 123,
   formulas: oneOf(
@@ -268,6 +269,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   isEmptyRow: (row) => row === 0,
   label: {property: 'name.last', position: 'after', value: oneOf('My label: ', () => 'My label')},
   language: 'foo',
+  layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
   licenseKey: '',
   manualColumnFreeze: true,
   manualColumnMove: oneOf(true, [1, 4]),
@@ -316,7 +318,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   readOnlyCellClassName: 'foo',
   renderAllRows: true,
   renderer: oneOf(
-    'autocomplete', 'checkbox', 'html', 'numeric', 'password', 'text', 'custom.renderer',
+    'autocomplete', 'checkbox', 'html', 'numeric', 'password', 'text', 'time', 'custom.renderer',
     (instance: Handsontable, TD: HTMLTableCellElement, row: number, col: number,
       prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD
   ),

@@ -28,7 +28,7 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -50,7 +50,7 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -76,12 +76,12 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -91,34 +91,34 @@ describe('DropdownEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
 
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -129,7 +129,7 @@ describe('DropdownEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       editor: 'dropdown',
       source: choices,
     });
@@ -138,12 +138,12 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
     selectCell(0, 1);
-    keyDown('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -154,17 +154,17 @@ describe('DropdownEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
 
     selectCell(0, 2);
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     selectCell(0, 3);
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -196,13 +196,13 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     // First renderable row index.
     expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -212,24 +212,24 @@ describe('DropdownEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDown('enter');
-    keyDown('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -240,7 +240,7 @@ describe('DropdownEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       hiddenColumns: {
         indicators: true,
         columns: [0],
@@ -253,13 +253,13 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     // First renderable column index.
     expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
 
     selectCell(0, 2);
-    keyDown('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -270,12 +270,12 @@ describe('DropdownEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     selectCell(0, 3);
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
-    keyDown('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -287,7 +287,7 @@ describe('DropdownEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDown('enter');
+    keyDownUp('enter');
 
     const editor = getActiveEditor().TEXTAREA;
 
@@ -342,7 +342,7 @@ describe('DropdownEditor', () => {
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
-      hot.view.wt.wtOverlays.topOverlay.scrollTo(1);
+      hot.view._wt.wtOverlays.topOverlay.scrollTo(1);
       const dropdown = hot.getActiveEditor();
 
       await sleep(50);
@@ -354,7 +354,7 @@ describe('DropdownEditor', () => {
 
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
-      hot.view.wt.wtOverlays.topOverlay.scrollTo(3);
+      hot.view._wt.wtOverlays.topOverlay.scrollTo(3);
 
       await sleep(50);
 
@@ -484,6 +484,19 @@ describe('DropdownEditor', () => {
 
       delete window.__xssTestInjection;
     });
+  });
+
+  it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      editor: 'dropdown',
+    });
+
+    selectCell(0, 0);
+
+    const editableElement = getActiveEditor().TEXTAREA;
+
+    expect(editableElement.getAttribute('dir')).toBeNull();
   });
 
   describe('IME support', () => {

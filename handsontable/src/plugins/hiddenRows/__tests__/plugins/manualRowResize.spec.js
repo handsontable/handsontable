@@ -68,7 +68,7 @@ describe('HiddenRows', () => {
         manualRowResize: true
       });
 
-      const $headerTH = getLeftClone().find('tbody tr:eq(1) th:eq(0)');
+      const $headerTH = getInlineStartClone().find('tbody tr:eq(1) th:eq(0)');
 
       $headerTH.simulate('mouseover');
 
@@ -99,7 +99,7 @@ describe('HiddenRows', () => {
 
       // Show resize handler using the third renderable row. This row belongs to master as
       // the "fixedRowsTop" is decreased to 2.
-      const $headerTH = getLeftClone().find('tbody tr:eq(2) th:eq(0)');
+      const $headerTH = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
 
       $headerTH.simulate('mouseover');
 
@@ -130,7 +130,7 @@ describe('HiddenRows', () => {
 
       // Show resize handler using the second renderable row. This row belongs to master as
       // the "fixedRowsBottom" is decreased to 2.
-      const $headerTH = getLeftClone().find('tbody tr:eq(1) th:eq(0)');
+      const $headerTH = getInlineStartClone().find('tbody tr:eq(1) th:eq(0)');
 
       $headerTH.simulate('mouseover');
 
@@ -158,7 +158,7 @@ describe('HiddenRows', () => {
         manualRowResize: true
       });
 
-      const $headerTH = getLeftClone().find('tbody tr:eq(1) th:eq(0)');
+      const $headerTH = getInlineStartClone().find('tbody tr:eq(1) th:eq(0)');
 
       $headerTH.simulate('mouseover');
 

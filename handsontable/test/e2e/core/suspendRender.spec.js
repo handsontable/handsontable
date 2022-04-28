@@ -17,8 +17,8 @@ describe('Core.suspendRender', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
 
-    spyOn(hot.view.wt, 'draw');
-    spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
+    spyOn(hot.view._wt, 'draw');
+    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     const beforeRender = jasmine.createSpy('beforeRender');
     const afterRender = jasmine.createSpy('afterRender');
@@ -40,8 +40,8 @@ describe('Core.suspendRender', () => {
     expect(hot.renderSuspendedCounter).toBe(1);
     expect(hot.renderCall).toBe(true);
     expect(hot.forceFullRender).toBe(true);
-    expect(hot.view.wt.draw).not.toHaveBeenCalled();
-    expect(hot.view.wt.wtOverlays.adjustElementsSize).not.toHaveBeenCalled();
+    expect(hot.view._wt.draw).not.toHaveBeenCalled();
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).not.toHaveBeenCalled();
     expect(beforeRender).not.toHaveBeenCalled();
     expect(afterRender).not.toHaveBeenCalled();
     expect(beforeViewRender).not.toHaveBeenCalled();
@@ -53,8 +53,8 @@ describe('Core.suspendRender', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
 
-    spyOn(hot.view.wt, 'draw');
-    spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
+    spyOn(hot.view._wt, 'draw');
+    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     const beforeRender = jasmine.createSpy('beforeRender');
     const afterRender = jasmine.createSpy('afterRender');
@@ -74,8 +74,8 @@ describe('Core.suspendRender', () => {
     expect(hot.renderSuspendedCounter).toBe(1);
     expect(hot.renderCall).toBe(false);
     expect(hot.forceFullRender).toBe(false);
-    expect(hot.view.wt.draw).not.toHaveBeenCalled();
-    expect(hot.view.wt.wtOverlays.adjustElementsSize).not.toHaveBeenCalled();
+    expect(hot.view._wt.draw).not.toHaveBeenCalled();
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).not.toHaveBeenCalled();
     expect(beforeRender).not.toHaveBeenCalled();
     expect(afterRender).not.toHaveBeenCalled();
     expect(beforeViewRender).not.toHaveBeenCalled();
@@ -87,8 +87,8 @@ describe('Core.suspendRender', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
 
-    spyOn(hot.view.wt, 'draw');
-    spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
+    spyOn(hot.view._wt, 'draw');
+    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     const beforeRender = jasmine.createSpy('beforeRender');
     const afterRender = jasmine.createSpy('afterRender');
@@ -114,8 +114,8 @@ describe('Core.suspendRender', () => {
     hot.selectCell(1, 1);
 
     expect(hot.renderSuspendedCounter).toBe(5);
-    expect(hot.view.wt.draw).not.toHaveBeenCalled();
-    expect(hot.view.wt.wtOverlays.adjustElementsSize).not.toHaveBeenCalled();
+    expect(hot.view._wt.draw).not.toHaveBeenCalled();
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).not.toHaveBeenCalled();
     expect(beforeRender).not.toHaveBeenCalled();
     expect(afterRender).not.toHaveBeenCalled();
     expect(beforeViewRender).not.toHaveBeenCalled();

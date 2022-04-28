@@ -1,7 +1,5 @@
 import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
-import { stopImmediatePropagation } from '../../helpers/dom/event';
-import { CellCoords, CellRange } from '../../3rdparty/walkontable/src';
 import MergedCellsCollection from './cellsCollection';
 import MergedCellCoords from './cellCoords';
 import AutofillCalculations from './calculations/autofill';
@@ -22,6 +20,9 @@ Hooks.getSingleton().register('afterUnmergeCells');
 export const PLUGIN_KEY = 'mergeCells';
 export const PLUGIN_PRIORITY = 150;
 const privatePool = new WeakMap();
+const SHORTCUTS_GROUP = PLUGIN_KEY;
+
+/* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
  * @plugin MergeCells
@@ -104,7 +105,6 @@ export class MergeCells extends BasePlugin {
     this.selectionCalculations = new SelectionCalculations(this);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
-    this.addHook('beforeKeyDown', (...args) => this.onBeforeKeyDown(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
     this.addHook('afterModifyTransformStart', (...args) => this.onAfterModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.onModifyTransformEnd(...args));
@@ -135,6 +135,8 @@ export class MergeCells extends BasePlugin {
       }
     });
 
+    this.registerShortcuts();
+
     super.enablePlugin();
   }
 
@@ -143,12 +145,16 @@ export class MergeCells extends BasePlugin {
    */
   disablePlugin() {
     this.clearCollections();
+    this.unregisterShortcuts();
     this.hot.render();
     super.disablePlugin();
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`mergeCells`](@/api/options.md#mergecells)
    */
   updatePlugin() {
     const settings = this.hot.getSettings()[PLUGIN_KEY];
@@ -214,9 +220,10 @@ export class MergeCells extends BasePlugin {
           return;
         }
 
-        const highlight = new CellCoords(setting.row, setting.col);
-        const rangeEnd = new CellCoords(setting.row + setting.rowspan - 1, setting.col + setting.colspan - 1);
-        const mergeRange = new CellRange(highlight, highlight, rangeEnd);
+        const highlight = this.hot._createCellCoords(setting.row, setting.col);
+        const rangeEnd = this.hot._createCellCoords(setting.row + setting.rowspan - 1,
+          setting.col + setting.colspan - 1);
+        const mergeRange = this.hot._createCellRange(highlight, highlight, rangeEnd);
 
         populationArgumentsList.push(this.mergeRange(mergeRange, true, true));
       });
@@ -369,13 +376,13 @@ export class MergeCells extends BasePlugin {
    * @fires Hooks#afterMergeCells
    */
   mergeRange(cellRange, auto = false, preventPopulation = false) {
-    const topLeft = cellRange.getTopLeftCorner();
-    const bottomRight = cellRange.getBottomRightCorner();
+    const topStart = cellRange.getTopStartCorner();
+    const bottomEnd = cellRange.getBottomEndCorner();
     const mergeParent = {
-      row: topLeft.row,
-      col: topLeft.col,
-      rowspan: bottomRight.row - topLeft.row + 1,
-      colspan: bottomRight.col - topLeft.col + 1
+      row: topStart.row,
+      col: topStart.col,
+      rowspan: bottomEnd.row - topStart.row + 1,
+      colspan: bottomEnd.col - topStart.col + 1
     };
     const clearedData = [];
     let populationInfo = null;
@@ -492,10 +499,10 @@ export class MergeCells extends BasePlugin {
    * @fires Hooks#afterMergeCells
    */
   merge(startRow, startColumn, endRow, endColumn) {
-    const start = new CellCoords(startRow, startColumn);
-    const end = new CellCoords(endRow, endColumn);
+    const start = this.hot._createCellCoords(startRow, startColumn);
+    const end = this.hot._createCellCoords(endRow, endColumn);
 
-    this.mergeRange(new CellRange(start, start, end));
+    this.mergeRange(this.hot._createCellRange(start, start, end));
   }
 
   /**
@@ -509,10 +516,10 @@ export class MergeCells extends BasePlugin {
    * @fires Hooks#afterUnmergeCells
    */
   unmerge(startRow, startColumn, endRow, endColumn) {
-    const start = new CellCoords(startRow, startColumn);
-    const end = new CellCoords(endRow, endColumn);
+    const start = this.hot._createCellCoords(startRow, startColumn);
+    const end = this.hot._createCellCoords(endRow, endColumn);
 
-    this.unmergeRange(new CellRange(start, start, end));
+    this.unmergeRange(this.hot._createCellRange(start, start, end));
   }
 
   /**
@@ -526,20 +533,35 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * `beforeKeyDown` hook callback.
+   * Register shortcuts responsible for toggling a merge.
    *
    * @private
-   * @param {KeyboardEvent} event The `keydown` event object.
    */
-  onBeforeKeyDown(event) {
-    const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+  registerShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const gridContext = shortcutManager.getContext('grid');
 
-    if (ctrlDown && event.keyCode === 77) { // CTRL + M
-      this.toggleMerge(this.hot.getSelectedRangeLast());
+    gridContext.addShortcut({
+      keys: [['Control', 'm']],
+      callback: () => {
+        this.toggleMerge(this.hot.getSelectedRangeLast());
+        this.hot.render();
+      },
+      runOnlyIf: event => !event.altKey, // right ALT in some systems triggers ALT+CTRL
+      group: SHORTCUTS_GROUP,
+    });
+  }
 
-      this.hot.render();
-      stopImmediatePropagation(event);
-    }
+  /**
+   * Unregister shortcuts responsible for toggling a merge.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const gridContext = shortcutManager.getContext('grid');
+
+    gridContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -581,23 +603,24 @@ export class MergeCells extends BasePlugin {
       col: delta.col,
     };
     let nextPosition = null;
-    const currentPosition = new CellCoords(currentlySelectedRange.highlight.row, currentlySelectedRange.highlight.col);
+    const currentPosition = this.hot._createCellCoords(currentlySelectedRange.highlight.row,
+      currentlySelectedRange.highlight.col);
     const mergedParent = this.mergedCellsCollection.get(currentPosition.row, currentPosition.col);
 
     if (!priv.lastDesiredCoords) {
-      priv.lastDesiredCoords = new CellCoords(null, null);
+      priv.lastDesiredCoords = this.hot._createCellCoords(null, null);
     }
 
     if (mergedParent) { // only merge selected
-      const mergeTopLeft = new CellCoords(mergedParent.row, mergedParent.col);
-      const mergeBottomRight = new CellCoords(
+      const mergeTopLeft = this.hot._createCellCoords(mergedParent.row, mergedParent.col);
+      const mergeBottomRight = this.hot._createCellCoords(
         mergedParent.row + mergedParent.rowspan - 1,
         mergedParent.col + mergedParent.colspan - 1
       );
-      const mergeRange = new CellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
+      const mergeRange = this.hot._createCellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
 
       if (!mergeRange.includes(priv.lastDesiredCoords)) {
-        priv.lastDesiredCoords = new CellCoords(null, null); // reset outdated version of lastDesiredCoords
+        priv.lastDesiredCoords = this.hot._createCellCoords(null, null); // reset outdated version of lastDesiredCoords
       }
 
       newDelta.row = priv.lastDesiredCoords.row ? priv.lastDesiredCoords.row - currentPosition.row : newDelta.row;
@@ -618,7 +641,7 @@ export class MergeCells extends BasePlugin {
       }
     }
 
-    nextPosition = new CellCoords(
+    nextPosition = this.hot._createCellCoords(
       currentlySelectedRange.highlight.row + newDelta.row,
       currentlySelectedRange.highlight.col + newDelta.col
     );
@@ -789,7 +812,7 @@ export class MergeCells extends BasePlugin {
   onBeforeSetRangeEnd(coords) {
     const selRange = this.hot.getSelectedRangeLast();
 
-    selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
+    selRange.highlight = this.hot._createCellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
     selRange.to = coords;
     let rangeExpanded = false;
 
@@ -1139,8 +1162,8 @@ export class MergeCells extends BasePlugin {
       const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(selectedRange);
 
       arrayEach(mergedCellsWithinRange, (mergedCell) => {
-        if (selectedRange.getBottomRightCorner().row === mergedCell.getLastRow() &&
-            selectedRange.getBottomRightCorner().col === mergedCell.getLastColumn()) {
+        if (selectedRange.getBottomEndCorner().row === mergedCell.getLastRow() &&
+          selectedRange.getBottomEndCorner().col === mergedCell.getLastColumn()) {
           corners[2] = mergedCell.row;
           corners[3] = mergedCell.col;
         }

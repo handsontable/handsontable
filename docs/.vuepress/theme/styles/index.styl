@@ -19,6 +19,7 @@
 
 /* Examples */
 @import 'examples'
+@import 'big-example'
 
 /* Themes */
 @import 'theme-dark'
@@ -218,10 +219,6 @@ table {
   .page {
     padding-left: 0;
   }
-
-  table {
-    word-break: break-word;
-  }
 }
 
 @media (min-width: 1080px) {
@@ -347,6 +344,14 @@ kbd {
   border-bottom-width: 2px;
   background: #fafbff;
 }
+
+@media (max-width: $MQMobileNarrow) {
+  kbd {
+    white-space: pre-wrap;
+    display: inline-block;
+  }
+}
+
 
 /* Styles for the icon-pack page */
 

@@ -750,7 +750,7 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 3)).toBe(null);
           expect(getCell(0, 4)).toBe(null);
 
-          const header = $('.ht_clone_left .htCore')
+          const header = $('.ht_clone_inline_start .htCore')
             .find('tbody')
             .find('th')
             .eq(0);
@@ -781,7 +781,7 @@ describe('HiddenColumns', () => {
           `).toBeMatchToSelectionPattern();
         });
 
-        it('should cooperate with the `fixedColumnsLeft` option properly', () => {
+        it('should cooperate with the `fixedColumnsStart` option properly', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 10),
             width: 300,
@@ -792,7 +792,7 @@ describe('HiddenColumns', () => {
             hiddenColumns: {
               columns: [1]
             },
-            fixedColumnsLeft: 3,
+            fixedColumnsStart: 3,
           });
 
           selectColumns(0, 2);
@@ -869,7 +869,7 @@ describe('HiddenColumns', () => {
               },
             });
 
-            const header = $('.ht_clone_left .htCore')
+            const header = $('.ht_clone_inline_start .htCore')
               .find('tbody')
               .find('th')
               .eq(0);
@@ -913,7 +913,7 @@ describe('HiddenColumns', () => {
               },
             });
 
-            const header = $('.ht_clone_left .htCore')
+            const header = $('.ht_clone_inline_start .htCore')
               .find('tbody')
               .find('th')
               .eq(0);
@@ -959,7 +959,7 @@ describe('HiddenColumns', () => {
               },
             });
 
-            const header = $('.ht_clone_left .htCore')
+            const header = $('.ht_clone_inline_start .htCore')
               .find('tbody')
               .find('th')
               .eq(0);
@@ -1003,7 +1003,7 @@ describe('HiddenColumns', () => {
               },
             });
 
-            const header = $('.ht_clone_left .htCore')
+            const header = $('.ht_clone_inline_start .htCore')
               .find('tbody')
               .find('th')
               .eq(0);

@@ -4,11 +4,7 @@
 
 This is a demonstration code example in React.
 
-## Live preview
-
-You can preview this template on CodeSandbox  under the URL: https://githubbox.com/handsontable/handsontable/tree/master/next/docs/react/basic-example
-
-## How to run this project
+## How to run this example
 
 ### Installation
 
@@ -22,11 +18,19 @@ To start local development server call `npm run start`. Now you can visit http:/
 
 In order to run tests for this project call `npm run start` which will launch the development server and after the server is running, call `npm run test` to run test specs.
 
+### Forking
+
+This example is one of many projects in a common repository (monorepo). If you want to modify it, you have two options of forking it:
+
+1. you can fork this entire repository
+2. you can copy the example into a new repository. We have detailed instructions [here](../../../../README.md#copying-an-example-to-a-separate-repo) ("Copying an example to a separate repo").
+
 ## License
 
-This example is released under the MIT license.
+Handsontable is a commercial software with two licenses available:
 
-Copyrights belong to Handsoncode sp. z o.o.
+- Free for non-commercial purposes such as teaching, academic research, and evaluation. [Read it here](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).
+- Commercial license with support and maintenance included. See [pricing plans](https://handsontable.com/pricing).
 
 ## Contact support
 

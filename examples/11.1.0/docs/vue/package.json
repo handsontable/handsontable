@@ -2,9 +2,7 @@
   "name": "examples-vue-11.1.0",
   "version": "11.1.0",
   "private": true,
-  "workspaces": {
-    "packages": [
-      "@(!(node_modules))/"
-    ]
-  }
+  "workspaces": [
+    "@(!(node_modules))/"
+  ]
 }

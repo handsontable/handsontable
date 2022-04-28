@@ -50,12 +50,6 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
 
   data = hotInstance.runHooks(`before${capitalizedInternalSource}`, data, firstRun, source);
 
-  // TODO: deprecated, will be eventually removed, leaving only the `beforeUpdateData` hook.
-  //  Triggers an additional `afterLoadData` hook for the `updateSettings` calls for backward compatibility.
-  if (internalSource !== 'loadData' && source === 'updateSettings') {
-    data = hotInstance.runHooks('beforeLoadData', data, firstRun, source);
-  }
-
   const newDataMap = new DataMap(hotInstance, data, tableMeta);
 
   // We need to apply the new dataMap immediately, because of some asynchronous logic in the
@@ -120,17 +114,9 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
 
   hotInstance.runHooks(`after${capitalizedInternalSource}`, data, firstRun, source);
 
-  // TODO: deprecated, will be eventually removed, leaving only the `afterUpdateData` hook.
-  //  Triggers an additional `afterLoadData` hook for the `updateSettings` calls for backward compatibility.
-  if (internalSource !== 'loadData' && source === 'updateSettings') {
-    hotInstance.runHooks('afterLoadData', data, firstRun, source);
-  }
-
   // TODO: rethink the way the `afterChange` hook is being run here in the core `init` method.
   if (!firstRun) {
-    // TODO: `afterChange` still needs to provide `loadData` as a `source` when called from `updateSettings` to keep
-    //  backward compatibility - to be changed after removing `loadData`.
-    hotInstance.runHooks('afterChange', null, (source === 'updateSettings' ? 'loadData' : internalSource));
+    hotInstance.runHooks('afterChange', null, internalSource);
     hotInstance.render();
   }
 }

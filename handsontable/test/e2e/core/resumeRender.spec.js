@@ -18,8 +18,8 @@ describe('Core.resumeRender', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
 
-    spyOn(hot.view.wt, 'draw');
-    spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
+    spyOn(hot.view._wt, 'draw');
+    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     const beforeRender = jasmine.createSpy('beforeRender');
     const afterRender = jasmine.createSpy('afterRender');
@@ -38,8 +38,8 @@ describe('Core.resumeRender', () => {
     hot.resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
-    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(false); // slow redraw
-    expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(0);
+    expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // slow redraw
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(0);
     expect(beforeRender).toHaveBeenCalledTimes(1);
     expect(afterRender).toHaveBeenCalledTimes(1);
     // Walkontable calculators decide that the slow render path is not necessary,
@@ -54,8 +54,8 @@ describe('Core.resumeRender', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
 
-    spyOn(hot.view.wt, 'draw');
-    spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
+    spyOn(hot.view._wt, 'draw');
+    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     const beforeRender = jasmine.createSpy('beforeRender');
     const afterRender = jasmine.createSpy('afterRender');
@@ -74,8 +74,8 @@ describe('Core.resumeRender', () => {
     hot.resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
-    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
-    expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(0);
+    expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(0);
     expect(beforeRender).toHaveBeenCalledTimes(1);
     expect(afterRender).toHaveBeenCalledTimes(1);
     // The view render hooks are not triggered when the fast render path is used.
@@ -88,8 +88,8 @@ describe('Core.resumeRender', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
 
-    spyOn(hot.view.wt, 'draw');
-    spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
+    spyOn(hot.view._wt, 'draw');
+    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     hot.suspendRender();
     hot.view.adjustElementsSize();
@@ -98,8 +98,8 @@ describe('Core.resumeRender', () => {
     hot.resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
-    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
-    expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
+    expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
   });
 
   it('should render the table only on the last resume call (a call that resets the counter of nested suspend calls)', () => {
@@ -107,8 +107,8 @@ describe('Core.resumeRender', () => {
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
 
-    spyOn(hot.view.wt, 'draw');
-    spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
+    spyOn(hot.view._wt, 'draw');
+    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     hot.suspendRender();
     hot.suspendRender();
@@ -135,7 +135,7 @@ describe('Core.resumeRender', () => {
     hot.resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
-    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(false); // slow redraw
-    expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
+    expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // slow redraw
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
   });
 });

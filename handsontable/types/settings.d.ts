@@ -60,7 +60,7 @@ export interface CellProperties extends CellMeta {
 }
 
 /**
- * @internal
+ * @package
  * Omit properties K from T
  */
 export type Omit<T, K extends keyof T> = Pick<T, ({ [P in keyof T]: P } & { [P in K]: never } & { [x: string]: never, [x: number]: never })[keyof T]>;
@@ -135,6 +135,7 @@ export interface GridSettings extends Events {
   filteringCaseSensitive?: boolean;
   filters?: boolean;
   fixedColumnsLeft?: number;
+  fixedColumnsStart?: number;
   fixedRowsBottom?: number;
   fixedRowsTop?: number;
   formulas?: FormulasSettings;
@@ -147,6 +148,7 @@ export interface GridSettings extends Events {
   isEmptyRow?: (this: Core, row: number) => boolean;
   label?: LabelOptions;
   language?: string;
+  layoutDirection?: 'ltr' | 'rtl' | 'inherit';
   licenseKey?: string | 'non-commercial-and-evaluation';
   manualColumnFreeze?: boolean;
   manualColumnMove?: boolean | number[];

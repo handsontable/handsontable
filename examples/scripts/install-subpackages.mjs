@@ -2,7 +2,7 @@
  * Run the npm install command for the examples monorepo and all of the framework mini-monorepos.
  */
 import execa from 'execa';
-import thisPackageJson from '../package.json';
+import thisPackageJson from '../package.json' assert { type: 'json' };
 import glob from 'glob';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -48,7 +48,7 @@ if (!version) {
     // Link the main-level packages from the base ./node_modules to the local ./node_modules (to be read by the
     // examples).
     await spawnProcess(
-      `node --experimental-json-modules ./scripts/link-packages.mjs --f js angular react vue --examples-version ${version}`
+      `node --experimental-json-modules ./scripts/link-packages.mjs --f js ts angular react vue vue3 --examples-version ${version}`
     );
   }
 })();

@@ -25,13 +25,13 @@ It has a built-in cache that is updated only when the data or structure changes.
 There are different kinds of index maps which may be registered in the collections and can be used by a reference.
 They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
 
-These are: [IndexesSequence](@/api/indexesSequence.md), [PhysicalIndexToValueMap](@/api/physicalIndexToValueMap.md), [HidingMap](@/api/hidingMap.md), and [TrimmingMap](@/api/trimmingMap.md).
+These are: [IndexesSequence](@/api/indexesSequence.md), [PhysicalIndexToValueMap](@/api/physicalIndexToValueMap.md), [LinkedPhysicalIndexToValueMap](@/api/linkedPhysicalIndexToValueMap.md), [HidingMap](@/api/hidingMap.md), and [TrimmingMap](@/api/trimmingMap.md).
 
 
 ## Methods
 
 ### createAndRegisterIndexMap
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L228
 
 :::
@@ -50,7 +50,7 @@ Creates and register the new IndexMap for specified IndexMapper instance.
 
 
 ### createChangesObserver
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L212
 
 :::
@@ -68,7 +68,7 @@ allows listening to the index changes that happen while the Handsontable is runn
 
 
 ### getFirstNotHiddenIndex
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L387
 
 :::
@@ -86,10 +86,10 @@ Search for the first visible, not hidden index (represented by a visual index).
 | indexForNextSearch | `number` |  | Visual index for next search, when the flag is truthy. |
 
 
-**Returns**: `number` | `null` - Visual column index or `null`.  
+**Returns**: `number` | `null` - Visual column index or `null`.
 
 ### getIndexesSequence
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L445
 
 :::
@@ -99,10 +99,10 @@ _indexMapper.getIndexesSequence() ⇒ Array_
 Get sequence of indexes.
 
 
-**Returns**: `Array` - Physical indexes.  
+**Returns**: `Array` - Physical indexes.
 
 ### getNotHiddenIndexes
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L496
 
 :::
@@ -119,10 +119,10 @@ Note: Indexes marked as hidden are included in a [DataMap](@/api/dataMap.md), bu
 | [readFromCache] | `boolean` | <code>true</code> | `optional` Determine if read indexes from cache. |
 
 
-**Returns**: `Array` - List of physical indexes. Please keep in mind that index of this native array IS NOT a "visual index".  
+**Returns**: `Array` - List of physical indexes. Please keep in mind that index of this native array IS NOT a "visual index".
 
 ### getNotHiddenIndexesLength
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L513
 
 :::
@@ -136,7 +136,7 @@ Note: Indexes marked as hidden are included in a [DataMap](@/api/dataMap.md), bu
 
 
 ### getNotTrimmedIndexes
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L467
 
 :::
@@ -154,10 +154,10 @@ Note: Indexes marked as trimmed aren't included in a [DataMap](@/api/dataMap.md)
 
 
 **Returns**: `Array` - List of physical indexes. Index of this native array is a "visual index",
-value of this native array is a "physical index".  
+value of this native array is a "physical index".
 
 ### getNotTrimmedIndexesLength
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L484
 
 :::
@@ -171,7 +171,7 @@ Note: Indexes marked as trimmed aren't included in a [DataMap](@/api/dataMap.md)
 
 
 ### getNumberOfIndexes
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L548
 
 :::
@@ -183,7 +183,7 @@ Get number of all indexes.
 
 
 ### getPhysicalFromRenderableIndex
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L315
 
 :::
@@ -200,7 +200,7 @@ Get a physical index corresponding to the given renderable index.
 
 
 ### getPhysicalFromVisualIndex
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L298
 
 :::
@@ -215,10 +215,10 @@ Get a physical index corresponding to the given visual index.
 | visualIndex | `number` | Visual index. |
 
 
-**Returns**: `number` | `null` - Returns translated index mapped by passed visual index.  
+**Returns**: `number` | `null` - Returns translated index mapped by passed visual index.
 
 ### getRenderableFromVisualIndex
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L359
 
 :::
@@ -235,7 +235,7 @@ Get a renderable index corresponding to the given visual index.
 
 
 ### getRenderableIndexes
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L524
 
 :::
@@ -251,10 +251,10 @@ Get list of physical indexes (respecting the sequence of indexes) which may be r
 
 
 **Returns**: `Array` - List of physical indexes. Index of this native array is a "renderable index",
-value of this native array is a "physical index".  
+value of this native array is a "physical index".
 
 ### getRenderableIndexesLength
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L539
 
 :::
@@ -266,7 +266,7 @@ Get length of all NOT trimmed and NOT hidden indexes.
 
 
 ### getVisualFromPhysicalIndex
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L332
 
 :::
@@ -281,10 +281,10 @@ Get a visual index corresponding to the given physical index.
 | physicalIndex | `number` | Physical index to search. |
 
 
-**Returns**: `number` | `null` - Returns a visual index of the index mapper.  
+**Returns**: `number` | `null` - Returns a visual index of the index mapper.
 
 ### getVisualFromRenderableIndex
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L349
 
 :::
@@ -301,7 +301,7 @@ Get a visual index corresponding to the given renderable index.
 
 
 ### initToLength
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L420
 
 :::
@@ -318,7 +318,7 @@ Set default values for all indexes in registered index maps.
 
 
 ### isHidden
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L601
 
 :::
@@ -335,7 +335,7 @@ Get whether index is hidden. Index marked as hidden is included in a [DataMap](@
 
 
 ### isTrimmed
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L591
 
 :::
@@ -352,7 +352,7 @@ Get whether index is trimmed. Index marked as trimmed isn't included in a [DataM
 
 
 ### moveIndexes
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L558
 
 :::
@@ -370,7 +370,7 @@ Move indexes in the index mapper.
 
 
 ### registerMap
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L239
 
 :::
@@ -388,7 +388,7 @@ Register map which provide some index mappings. Type of map determining to which
 
 
 ### resumeOperations
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L199
 
 :::
@@ -401,7 +401,7 @@ default behavior where each map modification updates the cache.
 
 
 ### setIndexesSequence
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L454
 
 :::
@@ -418,7 +418,7 @@ Set completely new indexes sequence.
 
 
 ### suspendOperations
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L191
 
 :::
@@ -432,7 +432,7 @@ calling the `resumeOperations` method.
 
 
 ### unregisterAll
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L286
 
 :::
@@ -444,7 +444,7 @@ Unregisters all collected index map instances from all map collection types.
 
 
 ### unregisterMap
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/translations/indexMapper.js#L277
 
 :::
@@ -457,5 +457,3 @@ Unregister a map with given name.
 | Param | Type | Description |
 | --- | --- | --- |
 | name | `string` | Name of the index map. |
-
-

@@ -13,6 +13,30 @@ describe('HiddenRows', () => {
   });
 
   describe('navigation', () => {
+    it('should not throw an error when all rows are hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenRows: {
+          rows: [0, 1, 2, 3, 4],
+        },
+      });
+
+      selectAll();
+      listen();
+
+      expect(() => keyDownUp('home')).not.toThrow();
+      expect(() => keyDownUp(['control/meta', 'home'])).not.toThrow();
+      expect(() => keyDownUp('end')).not.toThrow();
+      expect(() => keyDownUp(['control/meta', 'end'])).not.toThrow();
+      expect(() => keyDownUp('arrowtop')).not.toThrow();
+      expect(() => keyDownUp('arrowbottom')).not.toThrow();
+      expect(() => keyDownUp('arrowright')).not.toThrow();
+      expect(() => keyDownUp('arrowleft')).not.toThrow();
+      expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
+    });
+
     it('should go to the closest not hidden cell on the bottom while navigating by arrow down', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -25,7 +49,7 @@ describe('HiddenRows', () => {
 
       selectCell(0, 0);
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+      keyDownUp('arrowdown');
 
       expect(getSelected()).toEqual([[4, 0, 4, 0]]);
       expect(getCell(4, 0)).toHaveClass('current');
@@ -49,7 +73,7 @@ describe('HiddenRows', () => {
 
       selectCell(4, 0);
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+      keyDownUp('arrowup');
 
       expect(getCell(0, 0)).toHaveClass('current');
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
@@ -78,7 +102,7 @@ describe('HiddenRows', () => {
 
       selectCell(2, 0);
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+      keyDownUp('arrowdown');
 
       expect(getCell(0, 1)).toHaveClass('current');
       expect(getSelected()).toEqual([[0, 1, 0, 1]]);
@@ -108,7 +132,7 @@ describe('HiddenRows', () => {
 
       selectCell(2, 1);
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+      keyDownUp('arrowup');
 
       expect(getCell(4, 0)).toHaveClass('current');
       expect(getSelected()).toEqual([[4, 0, 4, 0]]);
@@ -138,7 +162,7 @@ describe('HiddenRows', () => {
 
       selectCell(4, 0);
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+      keyDownUp('arrowdown');
 
       expect(getCell(0, 1)).toHaveClass('current');
       expect(getSelected()).toEqual([[0, 1, 0, 1]]);
@@ -167,7 +191,7 @@ describe('HiddenRows', () => {
 
       selectCell(4, 0);
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+      keyDownUp('arrowleft');
 
       expect(getCell(0, 4)).toHaveClass('current');
       expect(getSelected()).toEqual([[0, 4, 0, 4]]);
@@ -199,7 +223,7 @@ describe('HiddenRows', () => {
         const header = getCell(-1, 0);
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+        keyDownUp('arrowdown');
 
         expect(getSelected()).toEqual([[3, 0, 3, 0]]);
         expect(getSelectedRangeLast().highlight.row).toBe(3);
@@ -232,7 +256,7 @@ describe('HiddenRows', () => {
         const header = getCell(-1, 0);
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+        keyDownUp('arrowup');
 
         expect(getSelected()).toEqual([[2, 4, 2, 4]]);
         expect(getSelectedRangeLast().highlight.row).toBe(2);
@@ -263,7 +287,7 @@ describe('HiddenRows', () => {
         });
 
         simulateClick(getCell(-1, 0), 'LMB'); // Select first column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+        keyDownUp('arrowleft');
 
         expect(getSelected()).toEqual([[0, 4, 0, 4]]);
         expect(getSelectedRangeLast().highlight.row).toBe(0);
@@ -279,7 +303,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 0), 'LMB'); // Select first column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+        keyDownUp('arrowright');
 
         expect(getSelected()).toEqual([[0, 1, 0, 1]]);
         expect(getSelectedRangeLast().highlight.row).toBe(0);
@@ -295,7 +319,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 0), 'LMB'); // Select first column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+        keyDownUp('arrowup');
 
         expect(getSelected()).toEqual([[0, 4, 0, 4]]);
         expect(getSelectedRangeLast().highlight.row).toBe(0);
@@ -311,7 +335,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 0), 'LMB'); // Select first column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+        keyDownUp('arrowdown');
 
         expect(getSelected()).toEqual([[0, 1, 0, 1]]);
         expect(getSelectedRangeLast().highlight.row).toBe(0);
@@ -327,7 +351,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 4), 'LMB'); // Select last column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+        keyDownUp('arrowleft');
 
         expect(getSelected()).toEqual([[0, 3, 0, 3]]);
         expect(getSelectedRangeLast().highlight.row).toBe(0);
@@ -343,7 +367,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 4), 'LMB'); // Select last column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+        keyDownUp('arrowright');
 
         expect(getSelected()).toEqual([[0, 0, 0, 0]]);
         expect(getSelectedRangeLast().highlight.row).toBe(0);
@@ -359,7 +383,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 4), 'LMB'); // Select last column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+        keyDownUp('arrowup');
 
         expect(getSelected()).toEqual([[0, 3, 0, 3]]);
         expect(getSelectedRangeLast().highlight.row).toBe(0);
@@ -375,7 +399,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 4), 'LMB'); // Select last column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+        keyDownUp('arrowdown');
 
         expect(getSelected()).toEqual([[0, 0, 0, 0]]);
         expect(getSelectedRangeLast().highlight.row).toBe(0);
@@ -404,7 +428,7 @@ describe('HiddenRows', () => {
         });
 
         simulateClick(getCell(-1, 0), 'LMB'); // Select first column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+        keyDownUp('arrowleft');
 
         expect(getSelected()).toEqual([[4, 4, 4, 4]]);
         expect(getSelectedRangeLast().highlight.row).toBe(4);
@@ -420,7 +444,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 0), 'LMB'); // Select first column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+        keyDownUp('arrowright');
 
         expect(getSelected()).toEqual([[4, 1, 4, 1]]);
         expect(getSelectedRangeLast().highlight.row).toBe(4);
@@ -436,7 +460,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 0), 'LMB'); // Select first column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+        keyDownUp('arrowup');
 
         expect(getSelected()).toEqual([[4, 4, 4, 4]]);
         expect(getSelectedRangeLast().highlight.row).toBe(4);
@@ -452,7 +476,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 0), 'LMB'); // Select first column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+        keyDownUp('arrowdown');
 
         expect(getSelected()).toEqual([[4, 1, 4, 1]]);
         expect(getSelectedRangeLast().highlight.row).toBe(4);
@@ -468,7 +492,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 4), 'LMB'); // Select last column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+        keyDownUp('arrowleft');
 
         expect(getSelected()).toEqual([[4, 3, 4, 3]]);
         expect(getSelectedRangeLast().highlight.row).toBe(4);
@@ -484,7 +508,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 4), 'LMB'); // Select last column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+        keyDownUp('arrowright');
 
         expect(getSelected()).toEqual([[4, 0, 4, 0]]);
         expect(getSelectedRangeLast().highlight.row).toBe(4);
@@ -500,7 +524,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 4), 'LMB'); // Select last column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+        keyDownUp('arrowup');
 
         expect(getSelected()).toEqual([[4, 3, 4, 3]]);
         expect(getSelectedRangeLast().highlight.row).toBe(4);
@@ -516,7 +540,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
 
         simulateClick(getCell(-1, 4), 'LMB'); // Select last column by clicking the column header.
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+        keyDownUp('arrowdown');
 
         expect(getSelected()).toEqual([[4, 0, 4, 0]]);
         expect(getSelectedRangeLast().highlight.row).toBe(4);
@@ -562,7 +586,7 @@ describe('HiddenRows', () => {
 
           selectCell(0, 1);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+          keyDownUp('arrowleft');
 
           expect(getSelected()).withContext('ARROW_LEFT (getSelected)').toEqual([[0, 1, 0, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_LEFT (before mod)').toEqual([
@@ -572,7 +596,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 0, col: 1 }), 0, 0
           ]);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+          keyDownUp('arrowright');
 
           expect(getSelected()).withContext('ARROW_RIGHT (getSelected)').toEqual([[0, 1, 0, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_RIGHT (before mod)').toEqual([
@@ -582,7 +606,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 0, col: 1 }), 0, 0
           ]);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+          keyDownUp('arrowup');
 
           expect(getSelected()).withContext('ARROW_UP (getSelected)').toEqual([[0, 1, 0, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_UP (before mod)').toEqual([
@@ -592,7 +616,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 0, col: 1 }), 0, 0
           ]);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+          keyDownUp('arrowdown');
 
           expect(getSelected()).withContext('ARROW_DOWN (getSelected)').toEqual([[0, 1, 0, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_DOWN (before mod)').toEqual([
@@ -619,7 +643,7 @@ describe('HiddenRows', () => {
 
           selectCell(2, 1);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+          keyDownUp('arrowleft');
 
           expect(getSelected()).withContext('ARROW_LEFT (getSelected)').toEqual([[2, 1, 2, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_LEFT (before mod)').toEqual([
@@ -629,7 +653,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 2, col: 1 }), 0, 0
           ]);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+          keyDownUp('arrowright');
 
           expect(getSelected()).withContext('ARROW_RIGHT (getSelected)').toEqual([[2, 1, 2, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_RIGHT (before mod)').toEqual([
@@ -639,7 +663,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 2, col: 1 }), 0, 0
           ]);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+          keyDownUp('arrowup');
 
           expect(getSelected()).withContext('ARROW_UP (getSelected)').toEqual([[2, 1, 2, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_UP (before mod)').toEqual([
@@ -649,7 +673,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 2, col: 1 }), 0, 0
           ]);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+          keyDownUp('arrowdown');
 
           expect(getSelected()).withContext('ARROW_DOWN (getSelected)').toEqual([[2, 1, 2, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_DOWN (before mod)').toEqual([
@@ -676,7 +700,7 @@ describe('HiddenRows', () => {
 
           selectCell(4, 1);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+          keyDownUp('arrowleft');
 
           expect(getSelected()).withContext('ARROW_LEFT (getSelected)').toEqual([[4, 1, 4, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_LEFT (before mod)').toEqual([
@@ -686,7 +710,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 4, col: 1 }), 0, 0
           ]);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+          keyDownUp('arrowright');
 
           expect(getSelected()).withContext('ARROW_RIGHT (getSelected)').toEqual([[4, 1, 4, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_RIGHT (before mod)').toEqual([
@@ -696,7 +720,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 4, col: 1 }), 0, 0
           ]);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+          keyDownUp('arrowup');
 
           expect(getSelected()).withContext('ARROW_UP (getSelected)').toEqual([[4, 1, 4, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_UP (before mod)').toEqual([
@@ -706,7 +730,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 4, col: 1 }), 0, 0
           ]);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+          keyDownUp('arrowdown');
 
           expect(getSelected()).withContext('ARROW_DOWN (getSelected)').toEqual([[4, 1, 4, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_DOWN (before mod)').toEqual([
@@ -734,7 +758,7 @@ describe('HiddenRows', () => {
           hot.addHook('afterModifyTransformEnd', hookSpy2);
 
           selectCell(0, 1);
-          keyDownUp('shift+arrow_left');
+          keyDownUp(['shift', 'arrowleft']);
 
           expect(getSelected()).withContext('ARROW_LEFT (getSelected)').toEqual([[0, 1, 0, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_LEFT (before mod)').toEqual([
@@ -744,7 +768,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 0, col: 1 }), 0, 0
           ]);
 
-          keyDownUp('shift+arrow_right');
+          keyDownUp(['shift', 'arrowright']);
 
           expect(getSelected()).withContext('ARROW_RIGHT (getSelected)').toEqual([[0, 1, 0, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_RIGHT (before mod)').toEqual([
@@ -754,7 +778,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 0, col: 1 }), 0, 0
           ]);
 
-          keyDownUp('shift+arrow_up');
+          keyDownUp(['shift', 'arrowup']);
 
           expect(getSelected()).withContext('ARROW_UP (getSelected)').toEqual([[0, 1, 0, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_UP (before mod)').toEqual([
@@ -764,7 +788,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 0, col: 1 }), 0, 0
           ]);
 
-          keyDownUp('shift+arrow_down');
+          keyDownUp(['shift', 'arrowdown']);
 
           expect(getSelected()).withContext('ARROW_DOWN (getSelected)').toEqual([[0, 1, 0, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_DOWN (before mod)').toEqual([
@@ -790,7 +814,7 @@ describe('HiddenRows', () => {
           hot.addHook('afterModifyTransformEnd', hookSpy2);
 
           selectCell(2, 1);
-          keyDownUp('shift+arrow_left');
+          keyDownUp(['shift', 'arrowleft']);
 
           expect(getSelected()).withContext('ARROW_LEFT (getSelected)').toEqual([[2, 1, 2, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_LEFT (before mod)').toEqual([
@@ -800,7 +824,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 2, col: 1 }), 0, 0
           ]);
 
-          keyDownUp('shift+arrow_right');
+          keyDownUp(['shift', 'arrowright']);
 
           expect(getSelected()).withContext('ARROW_RIGHT (getSelected)').toEqual([[2, 1, 2, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_RIGHT (before mod)').toEqual([
@@ -810,7 +834,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 2, col: 1 }), 0, 0
           ]);
 
-          keyDownUp('shift+arrow_up');
+          keyDownUp(['shift', 'arrowup']);
 
           expect(getSelected()).withContext('ARROW_UP (getSelected)').toEqual([[2, 1, 2, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_UP (before mod)').toEqual([
@@ -820,7 +844,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 2, col: 1 }), 0, 0
           ]);
 
-          keyDownUp('shift+arrow_down');
+          keyDownUp(['shift', 'arrowdown']);
 
           expect(getSelected()).withContext('ARROW_DOWN (getSelected)').toEqual([[2, 1, 2, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_DOWN (before mod)').toEqual([
@@ -846,7 +870,7 @@ describe('HiddenRows', () => {
           hot.addHook('afterModifyTransformEnd', hookSpy2);
 
           selectCell(4, 1);
-          keyDownUp('shift+arrow_left');
+          keyDownUp(['shift', 'arrowleft']);
 
           expect(getSelected()).withContext('ARROW_LEFT (getSelected)').toEqual([[4, 1, 4, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_LEFT (before mod)').toEqual([
@@ -856,7 +880,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 4, col: 1 }), 0, 0
           ]);
 
-          keyDownUp('shift+arrow_right');
+          keyDownUp(['shift', 'arrowright']);
 
           expect(getSelected()).withContext('ARROW_RIGHT (getSelected)').toEqual([[4, 1, 4, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_RIGHT (before mod)').toEqual([
@@ -866,7 +890,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 4, col: 1 }), 0, 0
           ]);
 
-          keyDownUp('shift+arrow_up');
+          keyDownUp(['shift', 'arrowup']);
 
           expect(getSelected()).withContext('ARROW_UP (getSelected)').toEqual([[4, 1, 4, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_UP (before mod)').toEqual([
@@ -876,7 +900,7 @@ describe('HiddenRows', () => {
             jasmine.objectContaining({ row: 4, col: 1 }), 0, 0
           ]);
 
-          keyDownUp('shift+arrow_down');
+          keyDownUp(['shift', 'arrowdown']);
 
           expect(getSelected()).withContext('ARROW_DOWN (getSelected)').toEqual([[4, 1, 4, 1]]);
           expect(fixUndefinedArgs(hookSpy1.calls.mostRecent())).withContext('ARROW_DOWN (before mod)').toEqual([
@@ -889,8 +913,8 @@ describe('HiddenRows', () => {
       });
     });
 
-    describe('should go to the closest not hidden cell while navigating', () => {
-      it('by HOME key', () => {
+    describe('should go to the closest not hidden cell in a row while navigating', () => {
+      it('by HOME key (without fixed columns)', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
           hiddenRows: {
@@ -899,7 +923,6 @@ describe('HiddenRows', () => {
         });
 
         selectCell(4, 4);
-
         keyDownUp('home');
 
         expect(`
@@ -915,31 +938,35 @@ describe('HiddenRows', () => {
         expect(getSelectedRangeLast().to.col).toBe(0);
       });
 
-      it('by ctrl + HOME key', () => {
+      it('by HOME key (with fixed rows and columns)', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: Handsontable.helper.createSpreadsheetData(7, 5),
+          fixedColumnsStart: 1,
+          fixedRowsTop: 2,
+          fixedRowsBottom: 2,
           hiddenRows: {
-            rows: [0, 1, 3],
+            rows: [1, 2, 5],
           },
         });
 
         selectCell(4, 4);
-
-        keyDown('ctrl');
-        keyDownUp('home', { ctrlKey: true });
+        keyDownUp('home');
 
         expect(`
-        |   :   :   :   : A |
-        |   :   :   :   : 0 |
+        |   |   :   :   :   |
+        |---:---:---:---:---|
+        |   |   :   :   :   |
+        |   | # :   :   :   |
+        |---:---:---:---:---|
+        |   |   :   :   :   |
         `).toBeMatchToSelectionPattern();
-
-        expect(getSelected()).toEqual([[4, 4, 4, 4], [2, 4, 2, 4]]);
-        expect(getSelectedRangeLast().highlight.row).toBe(2);
-        expect(getSelectedRangeLast().highlight.col).toBe(4);
-        expect(getSelectedRangeLast().from.row).toBe(2);
-        expect(getSelectedRangeLast().from.col).toBe(4);
-        expect(getSelectedRangeLast().to.row).toBe(2);
-        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(getSelected()).toEqual([[4, 1, 4, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(4);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(4);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(1);
       });
 
       it('by shift + HOME key', () => {
@@ -951,9 +978,7 @@ describe('HiddenRows', () => {
         });
 
         selectCell(4, 4);
-
-        keyDown('shift');
-        keyDownUp('home', { shiftKey: true });
+        keyDownUp(['shift', 'home']);
 
         expect(`
         |   :   :   :   :   |
@@ -978,7 +1003,6 @@ describe('HiddenRows', () => {
         });
 
         selectCell(0, 0);
-
         keyDownUp('end');
 
         expect(`
@@ -994,32 +1018,6 @@ describe('HiddenRows', () => {
         expect(getSelectedRangeLast().to.col).toBe(4);
       });
 
-      it('by ctrl + END key', () => {
-        handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
-          hiddenRows: {
-            rows: [1, 3, 4],
-          },
-        });
-
-        selectCell(0, 0);
-
-        keyDown('ctrl');
-        keyDownUp('end', { ctrlKey: true });
-
-        expect(`
-        | 0 :   :   :   :   |
-        | A :   :   :   :   |
-        `).toBeMatchToSelectionPattern();
-        expect(getSelected()).toEqual([[0, 0, 0, 0], [2, 0, 2, 0]]);
-        expect(getSelectedRangeLast().highlight.row).toBe(2);
-        expect(getSelectedRangeLast().highlight.col).toBe(0);
-        expect(getSelectedRangeLast().from.row).toBe(2);
-        expect(getSelectedRangeLast().from.col).toBe(0);
-        expect(getSelectedRangeLast().to.row).toBe(2);
-        expect(getSelectedRangeLast().to.col).toBe(0);
-      });
-
       it('by shift + END key', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -1030,8 +1028,7 @@ describe('HiddenRows', () => {
 
         selectCell(0, 0);
 
-        keyDown('shift');
-        keyDownUp('end', { shiftKey: true });
+        keyDownUp(['shift', 'end']);
 
         expect(`
         | A : 0 : 0 : 0 : 0 |
@@ -1043,6 +1040,122 @@ describe('HiddenRows', () => {
         expect(getSelectedRangeLast().from.row).toBe(0);
         expect(getSelectedRangeLast().from.col).toBe(0);
         expect(getSelectedRangeLast().to.row).toBe(0);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+      });
+    });
+
+    describe('should go to the closest not hidden cell of the table while navigating', () => {
+      it('by ctrl/cmd + HOME key (without fixed rows and columns)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          hiddenRows: {
+            rows: [1, 3],
+          },
+        });
+
+        selectCell(4, 4);
+        keyDownUp(['control/meta', 'home']);
+
+        expect(`
+        | # :   :   :   :   |
+        |   :   :   :   :   |
+        |   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(0);
+        expect(getSelectedRangeLast().from.col).toBe(0);
+        expect(getSelectedRangeLast().to.row).toBe(0);
+        expect(getSelectedRangeLast().to.col).toBe(0);
+      });
+
+      it('by ctrl/cmd + HOME key (with fixed rows and columns)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(7, 5),
+          fixedColumnsStart: 1,
+          fixedRowsTop: 2,
+          fixedRowsBottom: 2,
+          hiddenRows: {
+            rows: [1, 2, 5],
+          },
+        });
+
+        selectCell(4, 4);
+        keyDownUp(['control/meta', 'home']);
+
+        expect(`
+        |   |   :   :   :   |
+        |---:---:---:---:---|
+        |   | # :   :   :   |
+        |   |   :   :   :   |
+        |---:---:---:---:---|
+        |   |   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        expect(getSelected()).toEqual([[3, 1, 3, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(3);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(3);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(3);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+      });
+
+      it('by ctrl/cmd + END key (without fixed rows and columns)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          hiddenRows: {
+            rows: [1, 3],
+          },
+        });
+
+        selectCell(0, 0);
+        keyDownUp(['control/meta', 'end']);
+
+        expect(`
+        |   :   :   :   :   |
+        |   :   :   :   :   |
+        |   :   :   :   : # |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[4, 4, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(4);
+        expect(getSelectedRangeLast().highlight.col).toBe(4);
+        expect(getSelectedRangeLast().from.row).toBe(4);
+        expect(getSelectedRangeLast().from.col).toBe(4);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+      });
+
+      it('by ctrl/cmd + END key (with fixed rows and columns)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(7, 5),
+          fixedColumnsStart: 1,
+          fixedRowsTop: 2,
+          fixedRowsBottom: 2,
+          hiddenRows: {
+            rows: [1, 2, 5],
+          },
+        });
+
+        selectCell(0, 0);
+        keyDownUp(['control/meta', 'end']);
+
+        expect(`
+        |   |   :   :   :   |
+        |---:---:---:---:---|
+        |   |   :   :   :   |
+        |   |   :   :   : # |
+        |---:---:---:---:---|
+        |   |   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[4, 4, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(4);
+        expect(getSelectedRangeLast().highlight.col).toBe(4);
+        expect(getSelectedRangeLast().from.row).toBe(4);
+        expect(getSelectedRangeLast().from.col).toBe(4);
+        expect(getSelectedRangeLast().to.row).toBe(4);
         expect(getSelectedRangeLast().to.col).toBe(4);
       });
     });

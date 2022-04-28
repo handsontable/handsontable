@@ -41,7 +41,7 @@ describe('Events', () => {
       height: 400,
     });
 
-    hot.view.wt.update('onCellDblClick', onCellDblClick);
+    hot.view._wt.update('onCellDblClick', onCellDblClick);
 
     const cell = hot.getCell(1, 1);
 

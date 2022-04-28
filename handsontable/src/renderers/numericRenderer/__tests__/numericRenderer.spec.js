@@ -18,7 +18,7 @@ describe('NumericRenderer', () => {
     handsontable({
       cells() {
         return {
-          type: 'numeric',
+          renderer: 'numeric',
           numericFormat: { pattern: '$0,0.00' }
         };
       },
@@ -38,7 +38,7 @@ describe('NumericRenderer', () => {
     handsontable({
       cells() {
         return {
-          type: 'numeric',
+          renderer: 'numeric',
           numericFormat: { pattern: '$0,0.00' }
         };
       },
@@ -57,7 +57,7 @@ describe('NumericRenderer', () => {
     handsontable({
       cells() {
         return {
-          type: 'numeric',
+          renderer: 'numeric',
           numericFormat: { pattern: '$0,0.00' }
         };
       },
@@ -69,6 +69,28 @@ describe('NumericRenderer', () => {
       expect(getCell(2, 2).innerHTML).toEqual('123 simple test');
       done();
     }, 100);
+  });
+
+  it('should render the cell with "dir" attribute set as "ltr" as long as the value is of a numeric-like type', () => {
+    handsontable({
+      data: [[1, '1', '1.1']],
+      renderer: 'numeric'
+    });
+
+    expect(getCell(0, 0).getAttribute('dir')).toBe('ltr');
+    expect(getCell(0, 1).getAttribute('dir')).toBe('ltr');
+    expect(getCell(0, 2).getAttribute('dir')).toBe('ltr');
+  });
+
+  it('should render the cell without messing "dir" attribute as long as the value is not of a numeric-like type', () => {
+    handsontable({
+      data: [['1z', 'z', true]],
+      renderer: 'numeric'
+    });
+
+    expect(getCell(0, 0).getAttribute('dir')).toBeNull();
+    expect(getCell(0, 1).getAttribute('dir')).toBeNull();
+    expect(getCell(0, 2).getAttribute('dir')).toBeNull();
   });
 
   it('should add class names `htNumeric` and `htRight` to the cell if it renders a number', () => {

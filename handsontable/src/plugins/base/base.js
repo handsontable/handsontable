@@ -21,10 +21,26 @@ let initializedPlugins = null;
 
 /**
  * @util
+ * @property {Core} hot Handsontable instance.
  */
 export class BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
+  }
+
+  /**
+   * The `SETTING_KEYS` getter defines the keys that, when present in the config object, trigger the plugin update
+   * after the `updateSettings` calls.
+   * - When it returns `true`, the plugin updates after all `updateSettings` calls, regardless of the contents of the
+   * config object.
+   * - When it returns `false`, the plugin never updates on `updateSettings` calls.
+   *
+   * @returns {string[] | boolean}
+   */
+  static get SETTING_KEYS() {
+    return [
+      this.PLUGIN_KEY
+    ];
   }
 
   /**
@@ -193,6 +209,39 @@ export class BasePlugin {
   }
 
   /**
+   * Check if any of the keys defined in `SETTING_KEYS` configuration of the plugin is present in the provided
+   * config object, or if the `SETTING_KEYS` configuration states that the plugin is relevant to the config object
+   * regardless of its contents.
+   *
+   * @private
+   * @param {Handsontable.DefaultSettings} settings The config object passed to `updateSettings`.
+   * @returns {boolean}
+   */
+  #isRelevantToSettings(settings) {
+    if (!settings) {
+      return false;
+    }
+
+    const settingKeys = this.constructor.SETTING_KEYS;
+
+    // If SETTING_KEYS is declared as `true` -> update the plugin regardless of the settings declared in
+    // `updateSettings`.
+    // If SETTING_KEYS is declared as `false` -> DON'T update the plugin regardless of the settings declared in
+    // `updateSettings`.
+    if (typeof settingKeys === 'boolean') {
+      return settingKeys;
+    }
+
+    for (let i = 0; i < settingKeys.length; i++) {
+      if (settings[settingKeys[i]] !== void 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * On after plugins initialized listener.
    *
    * @private
@@ -210,14 +259,22 @@ export class BasePlugin {
    * @param {object} newSettings New set of settings passed to the `updateSettings` method.
    */
   onUpdateSettings(newSettings) {
+    const relevantToSettings = this.#isRelevantToSettings(newSettings);
+
     if (this.isEnabled) {
       if (this.enabled && !this.isEnabled()) {
         this.disablePlugin();
       }
+
       if (!this.enabled && this.isEnabled()) {
         this.enablePlugin();
       }
-      if (this.enabled && this.isEnabled()) {
+
+      if (
+        this.enabled &&
+        this.isEnabled() &&
+        relevantToSettings
+      ) {
         this.updatePlugin(newSettings);
       }
     }
