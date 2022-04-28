@@ -12,6 +12,8 @@ export const PLUGIN_PRIORITY = 130;
 const PERSISTENT_STATE_KEY = 'manualColumnWidths';
 const privatePool = new WeakMap();
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin ManualColumnResize
  * @class ManualColumnResize
@@ -113,7 +115,10 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`manualColumnResize`](@/api/options.md#manualcolumnresize)
    */
   updatePlugin() {
     this.disablePlugin();
