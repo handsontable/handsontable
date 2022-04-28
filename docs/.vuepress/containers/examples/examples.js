@@ -115,7 +115,7 @@ module.exports = {
       const framework = getContainerFramework(filePath);
 
       // Transform the JS snippet to the framework-based one, where the framework is defined in the `DOCS_FRAMEWORK`
-      // environmental variable.
+      // environmental variable or retrieved from the `.md` url (depending on the build script being run).
       if (!['angular', 'react', 'vue'].some(value => preset.includes(value)) && framework) {
         const frontMatterLength = getContainerFrontMatterLength(env.frontmatter);
         const lineNumber = tokens[jsIndex].map[0] + frontMatterLength;
