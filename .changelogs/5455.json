@@ -1,7 +1,0 @@
-{
-  "title": "Filter cells with formulas using values not source",
-  "type": "fixed",
-  "issue": 5455,
-  "breaking": false,
-  "framework": "none"
-}
