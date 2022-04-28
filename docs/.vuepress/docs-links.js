@@ -3,7 +3,8 @@ const helpers = require('./helpers');
 
 module.exports = function(src) {
   const resourcePathNormalized = path.sep === '\\' ? this.resourcePath.replace(/\\/g, '/') : this.resourcePath;
-  const version = resourcePathNormalized.split('/docs/').pop().split('/')[0];
+  const realPath = fs.realpathSync(resourcePathNormalized);
+  const version = realPath.split('/docs/').pop().split('/')[0];
   const latest = helpers.getLatestVersion();
   const basePath = this.rootContext;
 
@@ -16,7 +17,7 @@ module.exports = function(src) {
       if (fm.data.permalink) {
         permalink = fm.data.permalink;
 
-        if (helpers.getBuildDocsVersion() || latest === version) {
+        if (helpers.getEnvDocsVersion() || latest === version) {
           permalink = permalink.replace(new RegExp(`^/${version}/`), '/');
         }
         permalink = permalink.endsWith('/') ? permalink : `${permalink}/`;
