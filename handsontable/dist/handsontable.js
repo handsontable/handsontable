@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.0.0
- * Release date: 28/04/2022 (built at 27/04/2022 12:37:15)
+ * Release date: 28/04/2022 (built at 28/04/2022 12:45:25)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -27120,7 +27120,7 @@ function Core(rootElement, userSettings) {
     return datamap.getSchema();
   };
   /**
-   * Use it if you need to change configuration after initialization. The `settings` argument is an object containing the new
+   * Use it if you need to change configuration after initialization. The `settings` argument is an object containing the changed
    * settings, declared the same way as in the initial settings object.
    *
    * __Note__, that although the `updateSettings` method doesn't overwrite the previously declared settings, it might reset
@@ -27129,9 +27129,12 @@ function Core(rootElement, userSettings) {
    * Since 8.0.0 passing `columns` or `data` inside `settings` objects will result in resetting states corresponding to rows and columns
    * (for example, row/column sequence, column width, row height, frozen columns etc.).
    *
+   * Since 12.0.0 passing `data` inside `settings` objects no longer results in resetting states corresponding to rows and columns
+   * (for example, row/column sequence, column width, row height, frozen columns etc.).
+   *
    * @memberof Core#
    * @function updateSettings
-   * @param {object} settings New settings object (see {@link Options}).
+   * @param {object} settings A settings object (see {@link Options}). Only provide the settings that are changed, not the whole settings object that was used for initialization.
    * @param {boolean} [init=false] Internally used for in initialization mode.
    * @example
    * ```js
@@ -37863,6 +37866,7 @@ var _default = function _default() {
      * | ------------------- | --------------------------- |
      * | `'en-US'` (default) | English - United States     |
      * | `'ar-AR'`           | Arabic - Global.<br><br>To properly render this language, set the [layout direction](@/guides/internationalization/layout-direction.md) to RTL. |
+     * | `'cs-CZ'`           | Czech - Czech Republic      |
      * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |
@@ -44948,7 +44952,7 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "27/04/2022 12:37:15";
+Handsontable.buildDate = "28/04/2022 12:45:25";
 Handsontable.version = "12.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -61428,7 +61432,7 @@ var _recorder = __webpack_require__(487);
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
- * The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutcontext.md)).
+ * The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutContext.md)).
  *
  * Each `ShortcutManager` object:
  * - Stores and manages its own set of keyboard shortcut contexts.
@@ -61457,14 +61461,14 @@ var createShortcutManager = function createShortcutManager(_ref) {
     }
   });
   /**
-   * The name of the active [`ShortcutContext`](@/api/shortcutcontext.md).
+   * The name of the active [`ShortcutContext`](@/api/shortcutContext.md).
    *
    * @type {string}
    */
 
   var activeContextName = 'grid';
   /**
-   * Create a new [`ShortcutContext`](@/api/shortcutcontext.md) object.
+   * Create a new [`ShortcutContext`](@/api/shortcutContext.md) object.
    *
    * @memberof ShortcutManager#
    * @param {string} contextName The name of the new shortcut context
@@ -61477,7 +61481,7 @@ var createShortcutManager = function createShortcutManager(_ref) {
     return context;
   };
   /**
-   * Get the ID of the active [`ShortcutContext`](@/api/shortcutcontext.md).
+   * Get the ID of the active [`ShortcutContext`](@/api/shortcutContext.md).
    *
    * @memberof ShortcutManager#
    * @returns {string}
@@ -61488,11 +61492,11 @@ var createShortcutManager = function createShortcutManager(_ref) {
     return activeContextName;
   };
   /**
-   * Get a [`ShortcutContext`](@/api/shortcutcontext.md) by its name.
+   * Get a keyboard shortcut context by its name.
    *
    * @memberof ShortcutManager#
    * @param {string} contextName The name of the shortcut context
-   * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutcontext.md) that stores registered shortcuts
+   * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts
    */
 
 
@@ -61500,7 +61504,7 @@ var createShortcutManager = function createShortcutManager(_ref) {
     return CONTEXTS.getItem(contextName);
   };
   /**
-   * Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/shortcutcontext.md).
+   * Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/shortcutContext.md).
    *
    * @memberof ShortcutManager#
    * @param {string} contextName The name of the shortcut context
@@ -61511,9 +61515,9 @@ var createShortcutManager = function createShortcutManager(_ref) {
     activeContextName = contextName;
   };
   /**
-   * The variable, in combination with the `captureCtrl` shortcut option, allows capturing the state
-   * of the pressed Control/Meta keys. Some keyboard shortcuts related to the selection to work
-   * correctly need to use that feature.
+   * This variable relates to the `captureCtrl` shortcut option,
+   * which allows for capturing the state of the Control/Meta modifier key.
+   * Some of the default keyboard shortcuts related to cell selection need this feature for working properly.
    *
    * @type {boolean}
    */
@@ -61669,20 +61673,20 @@ var createContext = function createContext(name) {
   /**
    * Add a keyboard shortcut to this `ShortcutContext`.
    *
-   * @memberof Context#
-   * @param {object} options Options for shortcut's keys.
-   * @param {Array<Array<string>>} options.keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
-   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
-   * @param {Function} options.callback The callback.
-   * @param {string} options.group Group for shortcut.
-   * @param {Function} [options.runOnlyIf] Option determines whether assigned callback should be performed.
-   * @param {boolean} [options.captureCtrl=false] Option determines whether the Ctrl/Meta modifier keys will be
-   *                                              blocked for other listeners while executing this shortcut action.
-   * @param {boolean} [options.stopPropagation=true] Option determines whether to stop event's propagation.
-   * @param {boolean} [options.preventDefault=true] Option determines whether to prevent default behavior.
-   * @param {string} [options.relativeToGroup] Group name, relative which the shortcut is placed.
-   * @param {string} [options.position='after'] Position where shortcut is placed. It may be added before or after
-   * another group.
+   * @memberof ShortcutContext#
+   * @param {object} options The shortcut's options
+   * @param {Array<Array<string>>} options.keys Names of the shortcut's keys,
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+   * in lowercase or uppercase, unified across browsers
+   * @param {Function} options.callback The shortcut's action
+   * @param {object} options.group A group of shortcuts to which the shortcut belongs
+   * @param {object} [options.runOnlyIf] A condition on which the shortcut's action runs
+   * @param {object} [options.stopPropagation=true] If set to `true`: stops the event's propagation
+   * @param {object} [options.captureCtrl=false] If set to `true`: captures the state of the Control/Meta modifier key
+   * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
+   * @param {object} [options.position='after'] The order in which the shortcut's action runs:
+   * `'before'` or `'after'` the `relativeToGroup` group of actions
+   * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
    *
    */
 
@@ -61758,7 +61762,7 @@ var createContext = function createContext(name) {
     });
   };
   /**
-   * Add multiple keyboard shortcuts to this `ShortcutContext`.
+   * Add multiple keyboard shortcuts to this context.
    *
    * @memberof ShortcutContext#
    * @param {Array<object>} shortcuts List of shortcuts to add to this shortcut context
@@ -61786,7 +61790,7 @@ var createContext = function createContext(name) {
     });
   };
   /**
-   * Remove a shortcut from this `ShortcutContext`.
+   * Remove a shortcut from this context.
    *
    * @memberof ShortcutContext#
    * @param {Array<string>} keys Names of the shortcut's keys,
@@ -61800,7 +61804,7 @@ var createContext = function createContext(name) {
     SHORTCUTS.removeItem(normalizedKeys);
   };
   /**
-   * Remove a group of shortcuts from this `ShortcutContext`.
+   * Remove a group of shortcuts from this context.
    *
    * @memberof ShortcutContext#
    * @param {string} group The name of the group of shortcuts
@@ -61843,7 +61847,7 @@ var createContext = function createContext(name) {
     return (0, _mixed.isDefined)(shortcuts) ? shortcuts.slice() : [];
   };
   /**
-   * Check if a shortcut exists in this `ShortcutContext`.
+   * Check if a shortcut exists in this context.
    *
    * @memberof ShortcutContext#
    * @param {Array<string>} keys Names of the shortcut's keys,
@@ -67721,7 +67725,7 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(AutoColumnSize.prototype), "enablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state. This method is executed when {@link Core#updateSettings} is invoked.
      */
 
   }, {
@@ -68776,6 +68780,8 @@ exports.PLUGIN_PRIORITY = PLUGIN_PRIORITY;
 var SETTING_KEYS = ['fillHandle'];
 var INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
 var INTERVAL_FOR_ADDING_ROW = 200;
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated using the small square in the right
  * bottom of the cell selection.
@@ -68895,7 +68901,11 @@ var Autofill = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(Autofill.prototype), "enablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - `autofill`
+     *  - [`fillHandle`](@/api/options.md#fillhandle)
      */
 
   }, {
@@ -70900,6 +70910,8 @@ var actionDictionary = new Map([['collapse', {
   beforeHook: 'beforeColumnExpand',
   afterHook: 'afterColumnExpand'
 }]]);
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin CollapsibleColumns
  * @class CollapsibleColumns
@@ -71023,7 +71035,11 @@ var CollapsibleColumns = /*#__PURE__*/function (_BasePlugin) {
       this.updatePlugin();
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *   - [`collapsibleColumns`](@/api/options.md#collapsiblecolumns)
+     *   - [`nestedHeaders`](@/api/options.md#nestedheaders)
      */
 
   }, {
@@ -75052,8 +75068,6 @@ var META_READONLY = 'readOnly';
  * ```
  */
 
-/* eslint-enable jsdoc/require-description-complete-sentence */
-
 var Comments = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(Comments, _BasePlugin);
 
@@ -75172,7 +75186,10 @@ var Comments = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(Comments.prototype), "enablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *   - [`comments`](@/api/options.md#comments)
      */
 
   }, {
@@ -76434,8 +76451,6 @@ _pluginHooks.default.getSingleton().register('afterContextMenuExecute');
  * @plugin ContextMenu
  */
 
-/* eslint-enable jsdoc/require-description-complete-sentence */
-
 
 var ContextMenu = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(ContextMenu, _BasePlugin);
@@ -76545,7 +76560,10 @@ var ContextMenu = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(ContextMenu.prototype), "enablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`contextMenu`](@/api/options.md#contextmenu)
      */
 
   }, {
@@ -78313,8 +78331,6 @@ var META_HEAD = ['<meta name="generator" content="Handsontable"/>', '<style type
  * @plugin CopyPaste
  */
 
-/* eslint-enable jsdoc/require-description-complete-sentence */
-
 var CopyPaste = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(CopyPaste, _BasePlugin);
 
@@ -78446,7 +78462,11 @@ var CopyPaste = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(CopyPaste.prototype), "enablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`copyPaste`](@/api/options.md#copypaste)
+     *  - [`fragmentSelection`](@/api/options.md#fragmentselection)
      */
 
   }, {
@@ -79541,6 +79561,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 var PLUGIN_KEY = 'customBorders';
 exports.PLUGIN_KEY = PLUGIN_KEY;
 var PLUGIN_PRIORITY = 90;
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin CustomBorders
  * @class CustomBorders
@@ -79660,7 +79682,10 @@ var CustomBorders = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(CustomBorders.prototype), "disablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`customBorders`](@/api/options.md#customborders)
      */
 
   }, {
@@ -80803,6 +80828,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 var PLUGIN_KEY = 'dragToScroll';
 exports.PLUGIN_KEY = PLUGIN_KEY;
 var PLUGIN_PRIORITY = 100;
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @description
  * Plugin used to scroll Handsontable by selecting a cell and dragging outside of the visible viewport.
@@ -80894,7 +80921,10 @@ var DragToScroll = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(DragToScroll.prototype), "enablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`dragToScroll`](@/api/options.md#dragtoscroll)
      */
 
   }, {
@@ -81246,8 +81276,6 @@ var BUTTON_CLASS_NAME = 'changeType';
  * ```
  */
 
-/* eslint-enable jsdoc/require-description-complete-sentence */
-
 var DropdownMenu = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(DropdownMenu, _BasePlugin);
 
@@ -81388,7 +81416,10 @@ var DropdownMenu = /*#__PURE__*/function (_BasePlugin) {
       });
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`dropdownMenu`](@/api/options.md#dropdownmenu)
      */
 
   }, {
@@ -87696,6 +87727,8 @@ _pluginHooks.default.getSingleton().register('afterUnhideColumns');
 var PLUGIN_KEY = 'hiddenColumns';
 exports.PLUGIN_KEY = PLUGIN_KEY;
 var PLUGIN_PRIORITY = 310;
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin HiddenColumns
  * @class HiddenColumns
@@ -87849,7 +87882,10 @@ var HiddenColumns = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(HiddenColumns.prototype), "enablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`hiddenColumns`](@/api/options.md#hiddencolumns)
      */
 
   }, {
@@ -88616,6 +88652,8 @@ _pluginHooks.default.getSingleton().register('afterUnhideRows');
 var PLUGIN_KEY = 'hiddenRows';
 exports.PLUGIN_KEY = PLUGIN_KEY;
 var PLUGIN_PRIORITY = 320;
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin HiddenRows
  * @class HiddenRows
@@ -88769,7 +88807,10 @@ var HiddenRows = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(HiddenRows.prototype), "enablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`hiddenRows`](@/api/options.md#hiddenrows)
      */
 
   }, {
@@ -89475,6 +89516,8 @@ exports.PLUGIN_KEY = PLUGIN_KEY;
 var PLUGIN_PRIORITY = 110;
 exports.PLUGIN_PRIORITY = PLUGIN_PRIORITY;
 var privatePool = new WeakMap();
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin ManualColumnFreeze
  * @class ManualColumnFreeze
@@ -89551,7 +89594,10 @@ var ManualColumnFreeze = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualColumnFreeze.prototype), "disablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze)
      */
 
   }, {
@@ -89914,6 +89960,8 @@ var CSS_PLUGIN = 'ht__manualColumnMove';
 var CSS_SHOW_UI = 'show-ui';
 var CSS_ON_MOVING = 'on-moving--columns';
 var CSS_AFTER_SELECTION = 'after-selection--columns';
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin ManualColumnMove
  * @class ManualColumnMove
@@ -90038,7 +90086,10 @@ var ManualColumnMove = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualColumnMove.prototype), "enablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`manualColumnMove`](@/api/options.md#manualcolumnmove)
      */
 
   }, {
@@ -90916,6 +90967,8 @@ var PLUGIN_PRIORITY = 130;
 exports.PLUGIN_PRIORITY = PLUGIN_PRIORITY;
 var PERSISTENT_STATE_KEY = 'manualColumnWidths';
 var privatePool = new WeakMap();
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin ManualColumnResize
  * @class ManualColumnResize
@@ -91027,7 +91080,10 @@ var ManualColumnResize = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualColumnResize.prototype), "enablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`manualColumnResize`](@/api/options.md#manualcolumnresize)
      */
 
   }, {
@@ -91703,6 +91759,8 @@ var CSS_PLUGIN = 'ht__manualRowMove';
 var CSS_SHOW_UI = 'show-ui';
 var CSS_ON_MOVING = 'on-moving--rows';
 var CSS_AFTER_SELECTION = 'after-selection--rows';
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin ManualRowMove
  * @class ManualRowMove
@@ -91824,7 +91882,10 @@ var ManualRowMove = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualRowMove.prototype), "enablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`manualRowMove`](@/api/options.md#manualrowmove)
      */
 
   }, {
@@ -92699,6 +92760,8 @@ var PLUGIN_PRIORITY = 30;
 exports.PLUGIN_PRIORITY = PLUGIN_PRIORITY;
 var PERSISTENT_STATE_KEY = 'manualRowHeights';
 var privatePool = new WeakMap();
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin ManualRowResize
  * @class ManualRowResize
@@ -92804,7 +92867,10 @@ var ManualRowResize = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualRowResize.prototype), "enablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`manualRowResize`](@/api/options.md#manualrowresize)
      */
 
   }, {
@@ -93462,6 +93528,8 @@ var PLUGIN_PRIORITY = 150;
 exports.PLUGIN_PRIORITY = PLUGIN_PRIORITY;
 var privatePool = new WeakMap();
 var SHORTCUTS_GROUP = PLUGIN_KEY;
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin MergeCells
  * @class MergeCells
@@ -93640,7 +93708,10 @@ var MergeCells = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(MergeCells.prototype), "disablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`mergeCells`](@/api/options.md#mergecells)
      */
 
   }, {
@@ -97164,6 +97235,8 @@ function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollect
 var PLUGIN_KEY = 'nestedHeaders';
 exports.PLUGIN_KEY = PLUGIN_KEY;
 var PLUGIN_PRIORITY = 280;
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin NestedHeaders
  * @class NestedHeaders
@@ -97291,7 +97364,10 @@ var NestedHeaders = /*#__PURE__*/function (_BasePlugin) {
       this.updatePlugin(); // @TODO: Workaround for broken plugin initialization abstraction.
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`nestedHeaders`](@/api/options.md#nestedheaders)
      */
 
   }, {
@@ -99951,6 +100027,8 @@ exports.PLUGIN_KEY = PLUGIN_KEY;
 var PLUGIN_PRIORITY = 300;
 exports.PLUGIN_PRIORITY = PLUGIN_PRIORITY;
 var privatePool = new WeakMap();
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * Error message for the wrong data type error.
  */
@@ -100107,7 +100185,10 @@ var NestedRows = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(NestedRows.prototype), "disablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`nestedRows`](@/api/options.md#nestedrows)
      */
 
   }, {
@@ -102657,6 +102738,8 @@ _pluginHooks.default.getSingleton().register('persistentStateReset');
 var PLUGIN_KEY = 'persistentState';
 exports.PLUGIN_KEY = PLUGIN_KEY;
 var PLUGIN_PRIORITY = 0;
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin PersistentState
  * @class PersistentState
@@ -102757,7 +102840,10 @@ var PersistentState = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(PersistentState.prototype), "disablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`persistentState`](@/api/options.md#persistentstate)
      */
 
   }, {
@@ -103085,6 +103171,8 @@ var DEFAULT_QUERY_METHOD = function DEFAULT_QUERY_METHOD(query, value, cellPrope
 
   return value.toString().toLocaleLowerCase(cellProperties.locale).indexOf(query.toLocaleLowerCase(cellProperties.locale)) !== -1;
 };
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin Search
  * @class Search
@@ -103207,7 +103295,10 @@ var Search = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(Search.prototype), "disablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`search`](@/api/options.md#search)
      */
 
   }, {
@@ -103791,6 +103882,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 var PLUGIN_KEY = 'trimRows';
 exports.PLUGIN_KEY = PLUGIN_KEY;
 var PLUGIN_PRIORITY = 330;
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin TrimRows
  * @class TrimRows
@@ -103890,7 +103983,10 @@ var TrimRows = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(TrimRows.prototype), "enablePlugin", this).call(this);
     }
     /**
-     * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+     * Updates the plugin's state.
+     *
+     * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+     *  - [`trimRows`](@/api/options.md#trimrows)
      */
 
   }, {
