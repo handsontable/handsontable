@@ -14,6 +14,9 @@ import {
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const buildMode = process.env.BUILD_MODE;
+const [...cliArgs] = process.argv.slice(2);
+
+const NO_CACHE = cliArgs.some(opt => opt.includes('--no-cache'));
 
 const cleanUp = () => {
   logger.info('Clean up dist');
@@ -38,7 +41,11 @@ const build = (version, framework) => {
   }
 
   spawnProcess(
-    `node_modules/.bin/vuepress build -d .vuepress/dist/prebuild${srcFrameworkDir}-${version.replace('.', '-')}`,
+    `node_modules/.bin/vuepress build -d .vuepress/dist/prebuild${srcFrameworkDir}-${
+      version.replace('.', '-')
+    }${
+      NO_CACHE ? ' --no-cache' : ''
+    }`,
     {
       cwd: path.resolve(__dirname, '../../'),
       env: {
