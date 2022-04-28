@@ -18,12 +18,12 @@ function getContainerFrontMatterLength(frontMatterObj) {
   const frontMatterSyntaxOffset = 3;
 
   const frontMatterEntriesCount = Object.keys(frontMatterObj).reduce(
-    (sum, key) => {
+    (lineCount, key) => {
       if (Array.isArray(frontMatterObj[key])) {
-        return sum + frontMatterObj[key].length + 1;
+        return lineCount + frontMatterObj[key].length + 1;
       }
 
-      return sum + 1;
+      return lineCount + 1;
     }, 0);
 
   return frontMatterEntriesCount + frontMatterSyntaxOffset;
