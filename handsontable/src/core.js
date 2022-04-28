@@ -136,9 +136,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.rootElement.setAttribute('dir', rootElementDirection);
 
   /**
-   * Check if currently it is RTL direction.
+   * Checks if the grid is rendered using the right-to-left layout direction.
    *
-   * @private
+   * @since 12.0.0
    * @memberof Core#
    * @function isRtl
    * @returns {boolean} True if RTL.
@@ -148,9 +148,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Check if currently it is LTR direction.
+   * Checks if the grid is rendered using the left-to-right layout direction.
    *
-   * @private
+   * @since 12.0.0
    * @memberof Core#
    * @function isLtr
    * @returns {boolean} True if LTR.
@@ -162,7 +162,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns 1 for LTR; -1 for RTL. Useful for calculations.
    *
-   * @private
+   * @since 12.0.0
    * @memberof Core#
    * @function getDirectionFactor
    * @returns {number} Returns 1 for LTR; -1 for RTL.
@@ -4698,14 +4698,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
     runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
-    keys: [['Home', 'Control/Meta', 'Shift']],
-    callback: () => {
-      selection.setRangeEnd(instance._createCellCoords(
-        instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
-        selection.selectedRange.current().from.col,
-      ));
-    },
-  }, {
     keys: [['End']],
     captureCtrl: true,
     callback: () => {
@@ -4734,14 +4726,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.setRangeStart(instance._createCellCoords(row, column));
     },
     runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
-  }, {
-    keys: [['End', 'Control/Meta', 'Shift']],
-    callback: () => {
-      selection.setRangeEnd(instance._createCellCoords(
-        instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
-        selection.selectedRange.current().from.col,
-      ));
-    },
   }, {
     keys: [
       ['PageUp'],
