@@ -11,17 +11,22 @@ const {
  * @returns {number} The number of lines taken by the frontmatter.
  */
 function getContainerFrontMatterLength(frontMatterObj) {
+  // Compensation for the frontmatter syntax not being part of the data definition.
+  // Namely:
+  // - The upper and lower "---" (2 lines)
+  // - A newline below the entire section (1 line)
+  const frontMatterSyntaxOffset = 3;
+
   const frontMatterEntriesCount = Object.keys(frontMatterObj).reduce(
-    (sum, key) => {
+    (lineCount, key) => {
       if (Array.isArray(frontMatterObj[key])) {
-        return sum + frontMatterObj[key].length + 1;
+        return lineCount + frontMatterObj[key].length + 1;
       }
 
-      return sum + 1;
+      return lineCount + 1;
     }, 0);
 
-  // Adding `3` to compensate for the frontmatter syntax.
-  return frontMatterEntriesCount + 3;
+  return frontMatterEntriesCount + frontMatterSyntaxOffset;
 }
 
 /**
