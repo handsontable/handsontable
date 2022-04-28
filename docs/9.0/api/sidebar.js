@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-const { getEnvDocsVersion, getLatestVersion } = require('../../.vuepress/helpers');
+const {
+  getEnvDocsVersion,
+  getLatestVersion,
+} = require('../../.vuepress/helpers');
 
 const apiHighLevelPages = [
   'introduction',
