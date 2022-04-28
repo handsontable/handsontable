@@ -16,7 +16,7 @@ const frameworkIdToFullName = new Map([
   ['react', 'React'],
   ['angular', 'Angular'],
   ['vue2', 'Vue 2'],
-  ['vue', 'Vue 3'],
+  ['vue3', 'Vue 3'],
 ]);
 
 export default {
