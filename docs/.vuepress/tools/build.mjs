@@ -7,7 +7,7 @@ import { getVersions } from '../helpers.js';
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const buildMode = process.env.BUILD_MODE;
-const [ ...cliArgs ] = process.argv.slice(2);
+const [...cliArgs] = process.argv.slice(2);
 
 const NO_CACHE = cliArgs.some(opt => opt.includes('--no-cache'));
 
