@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [12.0.0] - 2022-04-28
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/release-notes/)
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-0-0)
 - [Blog post](https://handsontable.com/blog/articles/2022/4/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
 - [Migration guide](https://handsontable.com/docs/migration-from-11.1-to-12.0/)
 
