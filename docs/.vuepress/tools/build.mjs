@@ -2,8 +2,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fse from 'fs-extra';
 import utils from './utils.js';
-import { getDocsNonFrameworkedVersions, getDocsFrameworkedVersions, getFrameworks, getLatestVersion,
-  getVersions, FRAMEWORK_SUFFIX } from '../helpers.js';
+import {
+  getDocsNonFrameworkedVersions,
+  getDocsFrameworkedVersions,
+  getFrameworks,
+  getLatestVersion,
+  getVersions,
+  FRAMEWORK_SUFFIX
+} from '../helpers.js';
 
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

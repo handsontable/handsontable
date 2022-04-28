@@ -8,7 +8,7 @@ const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
 
 const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
 const TMP_DIR_FOR_WATCH = '.watch-tmp';
-const MIN_FRAMEWORKED_DOCS_VERSION = '12.0.0';
+const MIN_FRAMEWORKED_DOCS_VERSION = '12.0.1';
 const FRAMEWORK_SUFFIX = '-data-grid';
 
 /**
@@ -64,7 +64,7 @@ function getVersions(buildMode) {
  * @returns {string[]}
  */
 function getFrameworks() {
-  return ['javascript', 'react', 'angular', 'vue2', 'vue'];
+  return ['javascript', 'react', 'angular', 'vue2', 'vue3'];
 }
 
 /**

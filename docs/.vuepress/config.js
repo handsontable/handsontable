@@ -5,8 +5,16 @@ const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
-const { getEnvDocsVersion, getEnvDocsFramework, TMP_DIR_FOR_WATCH, createSymlinks,
-  isEnvDev, getDocsFrameworkedVersions, getLatestVersion, FRAMEWORK_SUFFIX } = require('./helpers');
+const {
+  getEnvDocsVersion,
+  getEnvDocsFramework,
+  TMP_DIR_FOR_WATCH,
+  createSymlinks,
+  isEnvDev,
+  getDocsFrameworkedVersions,
+  getLatestVersion,
+  FRAMEWORK_SUFFIX
+} = require('./helpers');
 
 const buildMode = process.env.BUILD_MODE;
 let versionPartialPath = '';
