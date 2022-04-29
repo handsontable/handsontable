@@ -4,7 +4,11 @@ const replaceInFiles = require('replace-in-files');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const { spawnProcess } = require('../utils');
-const { getLatestVersion } = require('../../helpers');
+const {
+  getLatestVersion,
+  getDocsFrameworkedVersions,
+  FRAMEWORK_SUFFIX
+} = require('../../helpers');
 
 const mdDir = path.resolve(__dirname, '../../../');
 
@@ -12,9 +16,11 @@ const mdDir = path.resolve(__dirname, '../../../');
  * Log a dot indicating the result of a check.
  *
  * @param {boolean} valid `true` if the check was successful, `false` otherwise.
+ * @param {boolean} warn `true` if the check was successful, `false` otherwise.
  */
-function logCheck(valid) {
-  process.stdout.write(chalk[(valid ? 'green' : 'red')]('.'));
+function logCheck(valid, warn) {
+  // eslint-disable-next-line no-nested-ternary
+  process.stdout.write(chalk[(valid ? (warn ? 'yellow' : 'green') : 'red')]('.'));
 }
 
 /**
@@ -109,25 +115,29 @@ function fetchPermalinks(searchResults) {
  * latest version is available as an url without a version number).
  *
  * @param {string} permalink The permalink to be modified.
+ * @param {string} framework The framework to be processed.
+ * @param {string} version The version to be processed.
  * @returns {string}
  */
-function extendPermalink(permalink) {
+function extendPermalink(permalink, framework, version) {
   const latestVersion = getLatestVersion();
+  const frameworkSpecificDocsVersions = getDocsFrameworkedVersions('development');
 
-  // Workaround for the latest version not being put in a subdirectory.
+  // If the currently run version is the latest version (it's not being put in a subdirectory).
   if (permalink.includes(latestVersion)) {
-    permalink = permalink.replace(`${latestVersion}/`, '');
-  }
+    // If the version's in the range of framework-specific documentations
+    if (frameworkSpecificDocsVersions.includes(latestVersion)) {
+      permalink = permalink.replace(`${latestVersion}/`, `${framework}${FRAMEWORK_SUFFIX}/`);
 
-  // --start-TODO: test after merging the multi-build setup to the epic branch.
-  // // Workaround for the latest version not being put in a subdirectory.
-  // if (permalink.includes(latestVersion)) {
-  //   permalink = permalink.replace(`${latestVersion}/`, `${framework}-data-grid/`);
-  //
-  // } else {
-  //   permalink = permalink.replace(`${latestVersion}/`, `${latestVersion}/${framework}-data-grid/`);
-  // }
-  // --end-TODO
+      // If the version's NOT in the range of framework-specific documentations
+    } else {
+      permalink = permalink.replace(`${latestVersion}/`, '/');
+    }
+
+    // If the version's in the range of framework-specific documentations, but it's not the latest version.
+  } else if (frameworkSpecificDocsVersions.includes(version)) {
+    permalink = permalink.replace(`${version}/`, `${version}/${framework}${FRAMEWORK_SUFFIX}/`);
+  }
 
   return permalink;
 }
