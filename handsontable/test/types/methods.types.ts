@@ -65,6 +65,7 @@ hot.getDataAtProp(123).forEach(v => v === '');
 hot.getDataAtRow(123).forEach(v => v === '');
 hot.getDataAtRowProp(123, 'foo') === '';
 hot.getDataType(123, 123, 123, 123) === 'text';
+hot.getDirectionFactor() === 1;
 
 const _hot: Handsontable = hot.getInstance();
 
@@ -97,8 +98,10 @@ const isEmptyCol: boolean = hot.isEmptyCol(123);
 const isEmptyRow: boolean = hot.isEmptyRow(123);
 const isExecutionSuspended: boolean = hot.isExecutionSuspended();
 const isListening: boolean = hot.isListening();
+const isLtr: boolean = hot.isLtr();
 const isRedoAvailable: boolean = hot.isRedoAvailable();
 const isRenderSuspended: boolean = hot.isRenderSuspended();
+const isRtl: boolean = hot.isRtl();
 const isUndoAvailable: boolean = hot.isUndoAvailable();
 
 hot.listen();

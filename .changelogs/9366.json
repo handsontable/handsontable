@@ -1,0 +1,7 @@
+{
+  "title": "Added Cmd/Ctrl + Enter keyboard shortcut that allows to fill the selected range of cells with the value of the active cell.",
+  "type": "added",
+  "issue": 9366,
+  "breaking": false,
+  "framework": "none"
+}

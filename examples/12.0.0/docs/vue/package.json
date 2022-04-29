@@ -1,0 +1,10 @@
+{
+  "name": "examples-vue-12.0.0",
+  "version": "12.0.0",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "@(!(node_modules))/"
+    ]
+  }
+}

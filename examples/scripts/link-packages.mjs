@@ -73,7 +73,7 @@ for (const hotPackageGlob of hotWorkspaces) {
   const mainPackages = glob.sync(`../${hotPackageGlob}`);
 
   for (const mainPackageUrl of mainPackages) {
-    const { default: packagePackageJson } = await import(`../${mainPackageUrl}/package.json`);
+    const { default: packagePackageJson } = await import(`../${mainPackageUrl}/package.json`, { assert: { type: 'json' } });
     const packageName = packagePackageJson.name;
     packagesToLink.push(packageName);
   }

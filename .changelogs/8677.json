@@ -1,7 +1,0 @@
-{
-  "title": "Fixed not working docs building script on Windows",
-  "type": "fixed",
-  "issue": 8677,
-  "breaking": false,
-  "framework": "none"
-}

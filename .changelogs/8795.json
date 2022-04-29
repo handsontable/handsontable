@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue with htAutocompleteArrow position for RTL",
-  "type": "fixed",
-  "issue": 8795,
-  "breaking": false,
-  "framework": "none"
-}

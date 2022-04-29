@@ -5,6 +5,9 @@ import { getParentWindow } from '../../helpers/dom/element';
 
 export const PLUGIN_KEY = 'dragToScroll';
 export const PLUGIN_PRIORITY = 100;
+
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @description
  * Plugin used to scroll Handsontable by selecting a cell and dragging outside of the visible viewport.
@@ -81,7 +84,10 @@ export class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`dragToScroll`](@/api/options.md#dragtoscroll)
    */
   updatePlugin() {
     this.disablePlugin();

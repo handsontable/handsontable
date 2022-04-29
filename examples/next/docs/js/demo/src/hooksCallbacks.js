@@ -1,7 +1,6 @@
 import Handsontable from "handsontable";
 import {
   SELECTED_CLASS,
-  DEFAULT_ALIGNMENT_CLASS,
   ODD_ROW_CLASS
 } from "./constants";
 
@@ -57,12 +56,14 @@ export function alignHeaders(column, TH) {
     return;
   }
 
+  const alignmentClass = this.isRtl() ? "htRight" : "htLeft";
+
   if (TH.firstChild) {
     if (headerAlignments.has(column.toString())) {
-      Handsontable.dom.removeClass(TH.firstChild, DEFAULT_ALIGNMENT_CLASS);
+      Handsontable.dom.removeClass(TH.firstChild, alignmentClass);
       Handsontable.dom.addClass(TH.firstChild, headerAlignments.get(column.toString()));
     } else {
-      Handsontable.dom.addClass(TH.firstChild, DEFAULT_ALIGNMENT_CLASS);
+      Handsontable.dom.addClass(TH.firstChild, alignmentClass);
     }
   }
 }

@@ -219,7 +219,7 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     const changedColumns = this.findColumnsWhereHeaderWasChanged();
