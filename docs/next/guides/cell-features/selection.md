@@ -19,7 +19,7 @@ Selection enables you to select a single cell or ranges of cells within Handsont
 
 With this feature, you can select single cells or ranges of cells across a grid. Easily retrieve the coordinates of the selected cells to clear or change the cells' content.
 
-Use <kbd>CMD</kbd> on Mac or <kbd>CTRL</kbd> on Windows to select non-adjacent ranges of cells.
+Use <kbd>Cmd</kbd> on Mac or <kbd>Ctrl</kbd> on Windows to select non-adjacent ranges of cells.
 
 ## Selecting ranges
 

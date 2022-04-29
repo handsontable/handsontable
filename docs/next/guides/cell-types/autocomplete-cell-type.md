@@ -62,7 +62,7 @@ const hot = new Handsontable(container, {
 This is the same example as above, the difference being that `autocomplete` now runs in **strict mode**. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical to the [Handsontable cell type](@/guides/cell-types/handsontable-cell-type.md) but with the differences below:
 
 * If there is at least one option visible, there always is a selection in HOT-in-HOT
-* When the first row is selected, pressing <kbd>ARROW UP</kbd> does not deselect HOT-in-HOT. Instead, it behaves as the <kbd>ENTER</kbd> key but moves the selection in the main HOT upwards
+* When the first row is selected, pressing <kbd>Arrow Up</kbd> does not deselect HOT-in-HOT. Instead, it behaves as the <kbd>Enter</kbd> key but moves the selection in the main HOT upwards
 
 In strict mode, the **allowInvalid** option determines the behaviour in the case of manual user input:
 

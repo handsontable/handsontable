@@ -267,8 +267,8 @@ List of callbacks that operate on the `source` parameter:
 
 The following demo uses `beforeKeyDown` callback to modify some key bindings:
 
-* Pressing <kbd>DELETE</kbd> or <kbd>BACKSPACE</kbd> on a cell deletes the cell and shifts all cells beneath it in the column up resulting in the cursor, which doesn't move, having the value previously beneath it, now in the current cell.
-* Pressing <kbd>ENTER</kbd> in a cell where the value remains unchanged pushes all the cells in the column beneath and including the current cell down one row. This results in a blank cell under the cursor which hasn't moved.
+* Pressing <kbd>Delete</kbd> or <kbd>Backspace</kbd> on a cell deletes the cell and shifts all cells beneath it in the column up resulting in the cursor, which doesn't move, having the value previously beneath it, now in the current cell.
+* Pressing <kbd>Enter</kbd> in a cell where the value remains unchanged pushes all the cells in the column beneath and including the current cell down one row. This results in a blank cell under the cursor which hasn't moved.
 
 ::: example #example2
 ```js

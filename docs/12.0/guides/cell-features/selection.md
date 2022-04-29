@@ -19,7 +19,7 @@ Selection enables you to select a single cell or ranges of cells within Handsont
 
 With this feature, you can select single cells or ranges of cells across a grid. Easily retrieve the coordinates of the selected cells to clear or change the cells' content.
 
-Use <kbd>CMD</kbd> on Mac or <kbd>CTRL</kbd> on Windows to select non-adjacent ranges of cells.
+Use <kbd>Cmd</kbd> on Mac or <kbd>Ctrl</kbd> on Windows to select non-adjacent ranges of cells.
 
 ## Selecting ranges
 
@@ -212,7 +212,7 @@ To enable jumping across the left and right edges:
 
 To jump across a vertical edge:
 - When cell selection is on a row's first cell, press the left arrow key.
-- When cell selection is on a row's last cell, press the right arrow key, or press <kbd>TAB</kbd>.
+- When cell selection is on a row's last cell, press the right arrow key.
 
 #### Jumping across horizontal edges
 
@@ -221,4 +221,4 @@ To enable jumping across the top and bottom edges:
 
 To jump across a horizontal edge:
 - When cell selection is on a column's first cell, press the up arrow key.
-- When cell selection is on a column's last cell, press the down arrow key, or press <kbd>ENTER</kbd>.
+- When cell selection is on a column's last cell, press the down arrow key.

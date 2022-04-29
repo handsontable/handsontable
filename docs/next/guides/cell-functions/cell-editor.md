@@ -44,7 +44,8 @@ When `EditorManager` obtain editor class instance (editor object) it invokes its
 
 When editor is prepared the `EditorManager` waits for user event that triggers cell edition. Those events are:
 
-* pressing <kbd>ENTER</kbd>
+* pressing <kbd>Enter</kbd>
+* pressing <kbd>Shift</kbd> + <kbd>Enter</kbd>
 * double clicking cell
 * pressing <kbd>F2</kbd>
 
@@ -55,14 +56,13 @@ If any of those events is triggered, `EditorManager` calls editor's `beginEditin
 When editor is opened the `EditorManager` waits for user event that should end cell edition. Those events are:
 
 * clicking on another cell (saves changes)
-* pressing <kbd>ENTER</kbd> (saves changes and moves selection one cell down)
-* pressing <kbd>SHIFT</kbd> + <kbd>ENTER</kbd> (saves changes and moves selection one cell up)
-* pressing <kbd>CTRL</kbd> + <kbd>ENTER</kbd> (adds a new line inside the cell)
-* pressing <kbd>ESC</kbd> (aborts changes)
-* pressing <kbd>TAB</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
-* pressing <kbd>SHIFT</kbd> + <kbd>TAB</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
-* pressing <kbd>HOME</kbd>, <kbd>END</kbd> (saves changes)
-* pressing <kbd>PAGE_UP</kbd>, <kbd>PAGE_DOWN</kbd> (saves changes and moves one screen up/down)
+* pressing <kbd>Enter</kbd> (saves changes and moves selection one cell down)
+* pressing <kbd>Shift</kbd> + <kbd>Enter</kbd> (saves changes and moves selection one cell up)
+* pressing <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Enter</kbd> or <kbd>Alt</kbd>/<kbd>Option</kbd> + <kbd>Enter</kbd> (adds a new line inside the cell)
+* pressing <kbd>Escape</kbd> (aborts changes)
+* pressing <kbd>Tab</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
+* pressing <kbd>Shift</kbd> + <kbd>Tab</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
+* pressing <kbd>Page Up</kbd>, <kbd>Page Down</kbd> (saves changes and moves one screen up/down)
 
 If any of those events is triggered, `EditorManager` calls editor's `finishEditing()` method, which should try to save changes (unless ESC key has been pressed) and close the editor.
 
@@ -516,11 +516,11 @@ const hot = new Handsontable(container, {
 });
 ```
 
-#### Use <kbd>ARROW_UP</kbd> and <kbd>ARROW_DOWN</kbd> to change selected value
+#### Use <kbd>Arrow Up</kbd> and <kbd>Arrow Down</kbd> to change selected value
 
-We know that our editor works, but let's add one more tweak to it. Currently, when editor is opened and user presses <kbd>ARROW_UP</kbd> or <kbd>ARROW_DOWN</kbd> editor closes and the selection moves one cell up or down. Wouldn't it be nice, if pressing up and down arrow keys changed the currently selected value? User could navigate to the cell, hit <kbd>ENTER</kbd>, choose the desired value and save changes by hitting <kbd>ENTER</kbd> again. It would be possible to work with the table without even laying your hand on a mouse. Sounds pretty good, but how to override the default behaviour? After all, it's the `EditorManager` who decides when to close the editor.
+We know that our editor works, but let's add one more tweak to it. Currently, when editor is opened and user presses <kbd>Arrow Up</kbd> or <kbd>Arrow Down</kbd> editor closes and the selection moves one cell up or down. Wouldn't it be nice, if pressing up and down arrow keys changed the currently selected value? User could navigate to the cell, hit <kbd>Enter</kbd>, choose the desired value and save changes by hitting <kbd>Enter</kbd> again. It would be possible to work with the table without even laying your hand on a mouse. Sounds pretty good, but how to override the default behaviour? After all, it's the `EditorManager` who decides when to close the editor.
 
-Don't worry. Although, you don't have a direct access to `EditorManager` instance, you can still override its behaviour. Before `EditorManager` starts to process keyboard events it triggers `beforeKeyDown` hook. If any of the listening functions invoke `stopImmediatePropagation()` method on an `event` object `EditorManager` won't process this event any further. Therefore, all we have to do is register a `beforeKeyDown` listener function that checks whether <kbd>ARROW_UP</kbd> or <kbd>ARROW_DOWN</kbd> has been pressed and if so, stops event propagation and changes the currently selected value in `<select>` list accordingly.
+Don't worry. Although, you don't have a direct access to `EditorManager` instance, you can still override its behaviour. Before `EditorManager` starts to process keyboard events it triggers `beforeKeyDown` hook. If any of the listening functions invoke `stopImmediatePropagation()` method on an `event` object `EditorManager` won't process this event any further. Therefore, all we have to do is register a `beforeKeyDown` listener function that checks whether <kbd>Arrow Up</kbd> or <kbd>Arrow Down</kbd> has been pressed and if so, stops event propagation and changes the currently selected value in `<select>` list accordingly.
 
 The thing that we need to keep in mind is that our listener should work only, when our editor is opened. We want to preserve the default behaviour for other editors, as well as when no editor is opened. That's why the most reasonable place to register our listener would be the `open()` method and the `close()` method should contain code that will remove our listener.
 
