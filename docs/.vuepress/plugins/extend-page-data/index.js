@@ -1,16 +1,23 @@
 const {
   getSidebars,
   getLatestVersion,
-  getVersions,
   parseVersion,
-  getBuildDocsVersion,
+  parseFramework,
+  getEnvDocsFramework,
+  getEnvDocsVersion,
+  getDocsFrameworkedVersions,
+  getDocsNonFrameworkedVersions,
+  isEnvDev,
+  getDefaultFramework,
+  FRAMEWORK_SUFFIX,
 } = require('../../helpers');
 const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
 
 const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/extend-page-data';
 
-const DOCS_VERSION = getBuildDocsVersion();
+const DOCS_VERSION = getEnvDocsVersion();
+const DOCS_FRAMEWORK = getEnvDocsFramework();
 
 collectAllUrls();
 
@@ -37,14 +44,38 @@ module.exports = (options, context) => {
      */
     extendPageData($page) {
       $page.DOCS_VERSION = DOCS_VERSION;
-      $page.versions = getVersions(buildMode);
+      $page.DOCS_FRAMEWORK = DOCS_FRAMEWORK;
+      $page.frameworkedVersions = getDocsFrameworkedVersions(buildMode);
+      $page.nonFrameworkedVersions = getDocsNonFrameworkedVersions(buildMode);
       $page.latestVersion = getLatestVersion();
       $page.currentVersion = parseVersion($page.path);
+      // Framework isn't stored in PATH for full build. However, it's defined in ENV variable.
+      $page.currentFramework = DOCS_FRAMEWORK || parseFramework($page.path);
+      $page.defaultFramework = getDefaultFramework();
+      $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
 
-      if ((DOCS_VERSION || $page.currentVersion === $page.latestVersion) && $page.frontmatter.permalink) {
-        $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
+      const isFrameworked = getDocsFrameworkedVersions(buildMode).includes($page.currentVersion);
+      const buildingSingleVersion = DOCS_VERSION !== void 0 && (DOCS_FRAMEWORK !== void 0 || DOCS_FRAMEWORK === void 0
+        && isFrameworked === false);
+
+      if ($page.frontmatter.permalink) {
+        if (buildingSingleVersion || $page.latestVersion === $page.currentVersion) {
+          $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
+
+          // Only dev script need to perform build to specific place. Full build script perform moving directory separately.
+          if (isEnvDev() && isFrameworked && buildingSingleVersion === false) {
+            $page.frontmatter.permalink = `/${$page.currentFramework}${FRAMEWORK_SUFFIX}${$page.frontmatter.permalink}`;
+          }
+
+        // Only dev script need to perform build to specific place. Full build script perform moving directory separately.
+        } else if (isEnvDev() && isFrameworked) {
+          const permalinkPartsWithoutVersion = $page.frontmatter.permalink.split(`/${$page.currentVersion}`);
+
+          $page.frontmatter.permalink = ['/', $page.currentVersion, `/${$page.currentFramework}${FRAMEWORK_SUFFIX}`,
+            ...permalinkPartsWithoutVersion].join('');
+        }
       }
     },
   };

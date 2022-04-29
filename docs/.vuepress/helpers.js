@@ -8,7 +8,7 @@ const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
 
 const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
 const TMP_DIR_FOR_WATCH = '.watch-tmp';
-const MIN_FRAMEWORKED_DOCS_VERSION = '12.0.0';
+const MIN_FRAMEWORKED_DOCS_VERSION = '12.0.1';
 const FRAMEWORK_SUFFIX = '-data-grid';
 
 /**
@@ -64,7 +64,7 @@ function getVersions(buildMode) {
  * @returns {string[]}
  */
 function getFrameworks() {
-  return ['javascript', 'react', 'vue2', 'vue'];
+  return ['javascript', 'react', 'angular', 'vue2', 'vue3'];
 }
 
 /**
@@ -98,19 +98,19 @@ function getSidebars(buildMode) {
   if (isEnvDev()) {
     getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
       // eslint-disable-next-line
-      const s = require(path.join(__dirname, `../${version}/sidebars.js`));
+      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/examples/`] = s.examples;
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/api/`] = s.api;
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/`] = s.guides;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/examples/`] = sidebarConfig.examples;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/api/`] = sidebarConfig.api;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/`] = sidebarConfig.guides;
     });
 
     getDocsFrameworkedVersions(buildMode).forEach((version) => {
       // eslint-disable-next-line
-      const s = require(path.join(__dirname, `../${version}/sidebars.js`));
+      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
       frameworks.forEach((framework) => {
-        const apiTransformed = JSON.parse(JSON.stringify(s.api)); // Copy sidebar definition
+        const apiTransformed = JSON.parse(JSON.stringify(sidebarConfig.api)); // Copy sidebar definition
         const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
         const pathPartsWithoutVersion = plugins.path.split(`/${version}`);
 
@@ -118,20 +118,20 @@ function getSidebars(buildMode) {
         plugins.path = [`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/`,
           version, ...pathPartsWithoutVersion].join('');
 
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/examples/`] = s.examples;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/examples/`] = sidebarConfig.examples;
         sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/api/`] = apiTransformed;
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/`] = s.guides;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/`] = sidebarConfig.guides;
       });
     });
 
   } else {
     getVersions(buildMode).forEach((version) => {
       // eslint-disable-next-line
-      const s = require(path.join(__dirname, `../${version}/sidebars.js`));
+      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-      sidebars[`/${version}/examples/`] = s.examples;
-      sidebars[`/${version}/api/`] = s.api;
-      sidebars[`/${version}/`] = s.guides;
+      sidebars[`/${version}/examples/`] = sidebarConfig.examples;
+      sidebars[`/${version}/api/`] = sidebarConfig.api;
+      sidebars[`/${version}/`] = sidebarConfig.guides;
     });
   }
 
@@ -146,7 +146,7 @@ function getSidebars(buildMode) {
  */
 function parseVersion(url) {
   if (isEnvDev()) {
-    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, ''); // It's not needed for determining version from the URL.
+    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, '');
   }
 
   return url.split('/')[1] || getLatestVersion();
@@ -160,7 +160,7 @@ function parseVersion(url) {
  */
 function parseFramework(url) {
   if (isEnvDev()) {
-    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, ''); // It's not needed for determining version from the URL.
+    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, '');
   }
 
   const potentialFramework = url.split('/')[2]?.replace(FRAMEWORK_SUFFIX, '');
@@ -186,20 +186,6 @@ function getEnvDocsVersion() {
  */
 function getEnvDocsFramework() {
   return process.env.DOCS_FRAMEWORK;
-}
-
-/**
- * Gets information whether some version and framework is the first shown (on absolute /docs URL).
- *
- * @param {string} version Version of documentation.
- * @param {string|undefined} framework Framework for documentation.
- * @returns {boolean}
- */
-function isFirstShown(version, framework) {
-  const isFrameworked = typeof framework !== 'undefined';
-
-  return getLatestVersion() === version && (
-    (isFrameworked && framework === getDefaultFramework()) || isFrameworked === false);
 }
 
 /**
@@ -238,9 +224,5 @@ module.exports = {
   getEnvDocsVersion,
   getDefaultFramework,
   isEnvDev,
-  createSymlinks,
-  isFirstShown,
-
-  // TODO: REMOVE THIS AFTER MERGING TO THE EPIC BRANCH
-  getBuildDocsVersion: getEnvDocsVersion,
+  createSymlinks
 };
