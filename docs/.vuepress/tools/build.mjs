@@ -12,8 +12,6 @@ import {
 } from '../helpers.js';
 import { initLog as initSnippetTransformationLog } from './snippet-transform/helpers/previewLogger.js';
 
-const NO_CACHE = process.argv.includes('--no-cache');
-
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const buildMode = process.env.BUILD_MODE;
