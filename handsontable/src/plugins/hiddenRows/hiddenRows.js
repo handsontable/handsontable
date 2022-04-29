@@ -20,6 +20,8 @@ Hooks.getSingleton().register('afterUnhideRows');
 export const PLUGIN_KEY = 'hiddenRows';
 export const PLUGIN_PRIORITY = 320;
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin HiddenRows
  * @class HiddenRows
@@ -145,7 +147,10 @@ export class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`hiddenRows`](@/api/options.md#hiddenrows)
    */
   updatePlugin() {
     this.disablePlugin();

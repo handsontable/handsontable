@@ -365,14 +365,32 @@ class Menu {
     }, {
       keys: [['PageUp']],
       callback: () => {
-        this.hotMenu.selection.transformStart(-this.hotMenu.countVisibleRows(), 0);
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (selection) {
+          this.hotMenu.selection.transformStart(-this.hotMenu.countVisibleRows(), 0);
+
+        } else {
+          this.selectFirstCell();
+        }
 
         this.keyEvent = false;
       },
     }, {
       keys: [['PageDown']],
       callback: () => {
-        this.hotMenu.selection.transformStart(this.hotMenu.countVisibleRows(), 0);
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (selection) {
+          this.hotMenu.selection.transformStart(this.hotMenu.countVisibleRows(), 0);
+
+        } else {
+          this.selectLastCell();
+        }
 
         this.keyEvent = false;
       },
@@ -688,7 +706,10 @@ class Menu {
     if (isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
       this.selectPrevCell(lastRow, 0);
     } else {
-      this.hotMenu.selectCell(lastRow, 0);
+      // disable default "scroll-to-cell" option and instead of that...
+      this.hotMenu.selectCell(lastRow, 0, undefined, undefined, false);
+      // ...scroll to the cell with "snap to the bottom" option
+      this.hotMenu.scrollViewportTo(lastRow, 0, true, false);
     }
   }
 

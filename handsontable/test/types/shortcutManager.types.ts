@@ -17,6 +17,7 @@ const shortcut2 = {
   keys: [['control/meta', 'a']],
   callback: () => {},
   runOnlyIf: () => false,
+  captureCtrl: true,
   preventDefault: true,
   stopPropagation: false,
   relativeToGroup: 'group2',

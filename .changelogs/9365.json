@@ -1,0 +1,7 @@
+{
+  "title": "Changed behavior of the Cmd/Ctrl + Shift + Arrow keys and Shift + PageUp/Down keyboard shortcuts.",
+  "type": "changed",
+  "issue": 9365,
+  "breaking": true,
+  "framework": "none"
+}

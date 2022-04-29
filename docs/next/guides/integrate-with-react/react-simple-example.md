@@ -125,7 +125,7 @@ const App = () => {
         <br/>
 
         <label>
-          <input onChange={handleChange('fixedColumnsLeft', [0, 2])} type="checkbox" />
+          <input onChange={handleChange('fixedColumnsStart', [0, 2])} type="checkbox" />
           Add fixed columns
         </label>
         <br/>
