@@ -13,7 +13,7 @@ editLink: false
 
 ## Description
 
-The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutcontext.md)).
+The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutContext.md)).
 
 Each `ShortcutManager` object:
 - Stores and manages its own set of keyboard shortcut contexts.
@@ -24,13 +24,13 @@ Each `ShortcutManager` object:
 
 ### addContext
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/shortcuts/manager.js#L45
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L44
 
 :::
 
 _shortcutManager.addContext(contextName) ⇒ object_
 
-Create a new [`ShortcutContext`](@/api/shortcutcontext.md) object.
+Create a new [`ShortcutContext`](@/api/shortcutContext.md) object.
 
 
 | Param | Type | Description |
@@ -41,7 +41,7 @@ Create a new [`ShortcutContext`](@/api/shortcutcontext.md) object.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/shortcuts/manager.js#L137
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L154
 
 :::
 
@@ -53,25 +53,25 @@ Destroy a context manager instance.
 
 ### getActiveContextName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/shortcuts/manager.js#L59
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L58
 
 :::
 
 _shortcutManager.getActiveContextName() ⇒ string_
 
-Get the ID of the active [`ShortcutContext`](@/api/shortcutcontext.md).
+Get the ID of the active [`ShortcutContext`](@/api/shortcutContext.md).
 
 
 
 ### getContext
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/shortcuts/manager.js#L70
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L69
 
 :::
 
 _shortcutManager.getContext(contextName) ⇒ object | undefined_
 
-Get a [`ShortcutContext`](@/api/shortcutcontext.md) by its name.
+Get a keyboard shortcut context by its name.
 
 
 | Param | Type | Description |
@@ -79,29 +79,29 @@ Get a [`ShortcutContext`](@/api/shortcutcontext.md) by its name.
 | contextName | `string` | The name of the shortcut context |
 
 
-**Returns**: `object` | `undefined` - A [`ShortcutContext`](@/api/shortcutcontext.md) that stores registered shortcuts  
+**Returns**: `object` | `undefined` - A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts  
 
 ### isCtrlPressed
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/shortcuts/manager.js#L130
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L147
 
 :::
 
 _shortcutManager.isCtrlPressed() ⇒ boolean_
 
-Check if the `control` key is pressed.
+Returns whether `control` or `meta` keys are pressed.
 
 
 
 ### setActiveContextName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/shortcuts/manager.js#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/manager.js#L79
 
 :::
 
 _shortcutManager.setActiveContextName(contextName)_
 
-Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/shortcutcontext.md).
+Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/shortcutContext.md).
 
 
 | Param | Type | Description |

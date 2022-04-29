@@ -60,7 +60,7 @@ When editor is opened the `EditorManager` waits for user event that should end c
 * pressing <kbd>CTRL</kbd> + <kbd>ENTER</kbd> (adds a new line inside the cell)
 * pressing <kbd>ESC</kbd> (aborts changes)
 * pressing <kbd>TAB</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
-* pressing <kbd>SHIFT</kbd> + <kbd>TAB</kbd> (saves changes and moves one cell to the left or to the right, depending on your layout direction
+* pressing <kbd>SHIFT</kbd> + <kbd>TAB</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction.md#elements-affected-by-layout-direction))
 * pressing <kbd>HOME</kbd>, <kbd>END</kbd> (saves changes)
 * pressing <kbd>PAGE_UP</kbd>, <kbd>PAGE_DOWN</kbd> (saves changes and moves one screen up/down)
 
@@ -238,7 +238,7 @@ This method does not need to return any value.
 
 ### Common editor properties
 
-All the undermentioned properties are available in editor instance through `this` object (e.g. `this.instance`).
+All the undermentioned properties are available in editor instance through `this` object (e.g., `this.instance`).
 
  Property | Type        | Description
 ----------|-------------|-------------

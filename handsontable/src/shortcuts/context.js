@@ -24,20 +24,20 @@ export const createContext = (name) => {
   /**
    * Add a keyboard shortcut to this context.
    *
-   * @memberof Context#
-   * @param {object} options Options for shortcut's keys.
-   * @param {Array<Array<string>>} options.keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
-   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
-   * @param {Function} options.callback The callback.
-   * @param {string} options.group Group for shortcut.
-   * @param {Function} [options.runOnlyIf] Option determines whether assigned callback should be performed.
-   * @param {boolean} [options.captureCtrl=false] Option determines whether the Ctrl/Meta modifier keys will be
-   *                                              blocked for other listeners while executing this shortcut action.
-   * @param {boolean} [options.stopPropagation=true] Option determines whether to stop event's propagation.
-   * @param {boolean} [options.preventDefault=true] Option determines whether to prevent default behavior.
-   * @param {string} [options.relativeToGroup] Group name, relative which the shortcut is placed.
-   * @param {string} [options.position='after'] Position where shortcut is placed. It may be added before or after
-   * another group.
+   * @memberof ShortcutContext#
+   * @param {object} options The shortcut's options
+   * @param {Array<Array<string>>} options.keys Names of the shortcut's keys,
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+   * in lowercase or uppercase, unified across browsers
+   * @param {Function} options.callback The shortcut's action
+   * @param {object} options.group A group of shortcuts to which the shortcut belongs
+   * @param {object} [options.runOnlyIf] A condition on which the shortcut's action runs
+   * @param {object} [options.stopPropagation=true] If set to `true`: stops the event's propagation
+   * @param {object} [options.captureCtrl=false] If set to `true`: captures the state of the Control/Meta modifier key
+   * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
+   * @param {object} [options.position='after'] The order in which the shortcut's action runs:
+   * `'before'` or `'after'` the `relativeToGroup` group of actions
+   * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
    *
    */
   const addShortcut = (

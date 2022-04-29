@@ -55,7 +55,7 @@ hot.render();
 
 ### trimRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/dataMap/metaManager/metaSchema.js#L4233
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/dataMap/metaManager/metaSchema.js#L4234
 
 :::
 
@@ -90,7 +90,7 @@ trimRows: [5, 10, 15],
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/trimRows/trimRows.js#L279
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/trimRows/trimRows.js#L284
 
 :::
 
@@ -102,7 +102,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/trimRows/trimRows.js#L116
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/trimRows/trimRows.js#L121
 
 :::
 
@@ -114,7 +114,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/trimRows/trimRows.js#L83
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/trimRows/trimRows.js#L85
 
 :::
 
@@ -126,7 +126,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getTrimmedRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/trimRows/trimRows.js#L127
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/trimRows/trimRows.js#L132
 
 :::
 
@@ -139,7 +139,7 @@ Get list of trimmed rows.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/trimRows/trimRows.js#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/trimRows/trimRows.js#L78
 
 :::
 
@@ -152,7 +152,7 @@ hook and if it returns `true` than the [AutoRowSize#enablePlugin](@/api/autoRowS
 
 ### isTrimmed
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/trimRows/trimRows.js#L235
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/trimRows/trimRows.js#L240
 
 :::
 
@@ -169,7 +169,7 @@ Checks if given row is hidden.
 
 ### isValidConfig
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/trimRows/trimRows.js#L252
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/trimRows/trimRows.js#L257
 
 :::
 
@@ -186,7 +186,7 @@ Get if trim config is valid. Check whether all of the provided row indexes are w
 
 ### trimRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/trimRows/trimRows.js#L171
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/trimRows/trimRows.js#L176
 
 :::
 
@@ -203,7 +203,7 @@ Trims the row provided as physical row index (counting from 0).
 
 ### trimRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/trimRows/trimRows.js#L138
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/trimRows/trimRows.js#L143
 
 :::
 
@@ -221,7 +221,7 @@ Trims the rows provided in the array.
 
 ### untrimAll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/trimRows/trimRows.js#L242
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/trimRows/trimRows.js#L247
 
 :::
 
@@ -233,7 +233,7 @@ Untrims all trimmed rows.
 
 ### untrimRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/trimRows/trimRows.js#L225
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/trimRows/trimRows.js#L230
 
 :::
 
@@ -250,7 +250,7 @@ Untrims the row provided as row index (counting from 0).
 
 ### untrimRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/trimRows/trimRows.js#L182
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/trimRows/trimRows.js#L187
 
 :::
 
@@ -268,12 +268,15 @@ Untrims the rows provided in the array.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/trimRows/trimRows.js#L97
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/trimRows/trimRows.js#L102
 
 :::
 
 _trimRows.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
+Updates the plugin's state.
+
+This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+ - [`trimRows`](@/api/options.md#trimrows)
 
 

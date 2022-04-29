@@ -121,6 +121,7 @@ class Table {
 
     this.rowUtils = new RowUtils(this.dataAccessObject, this.wtSettings); // TODO refactoring, It can be passed through IOC.
     this.columnUtils = new ColumnUtils(this.dataAccessObject, this.wtSettings); // TODO refactoring, It can be passed through IOC.
+
     this.tableRenderer = new Renderer({ // TODO refactoring, It can be passed through IOC.
       TABLE: this.TABLE,
       THEAD: this.THEAD,
@@ -166,10 +167,6 @@ class Table {
     if (!this.COLGROUP) {
       this.COLGROUP = rootDocument.createElement('colgroup');
       this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
-    }
-
-    if (this.wtSettings.getSetting('columnHeaders').length && !this.THEAD.childNodes.length) {
-      this.THEAD.appendChild(rootDocument.createElement('TR'));
     }
   }
 

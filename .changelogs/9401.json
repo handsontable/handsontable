@@ -1,0 +1,7 @@
+{
+  "title": "Removed the `Shift+PageUp/PageDown` keyboard shortcuts from cell editing context.",
+  "type": "removed",
+  "issue": 9401,
+  "breaking": true,
+  "framework": "none"
+}

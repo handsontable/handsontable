@@ -22,7 +22,7 @@ Each `ShortcutContext` object stores and manages its own set of keyboard shortcu
 
 ### addShortcut
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/shortcuts/context.js#L42
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/context.js#L43
 
 :::
 
@@ -39,6 +39,7 @@ Add a keyboard shortcut to this `ShortcutContext`.
 | options.group | `object` |  | A group of shortcuts to which the shortcut belongs |
 | [options.runOnlyIf] | `object` |  | `optional` A condition on which the shortcut's action runs |
 | [options.stopPropagation] | `object` | <code>true</code> | `optional` If set to `true`: stops the event's propagation |
+| [options.captureCtrl] | `object` | <code>false</code> | `optional` If set to `true`: captures the state of the Control/Meta modifier key |
 | [options.preventDefault] | `object` | <code>true</code> | `optional` If set to `true`: prevents the default behavior |
 | [options.position] | `object` | <code>&#x27;after&#x27;</code> | `optional` The order in which the shortcut's action runs: `'before'` or `'after'` the `relativeToGroup` group of actions |
 | [options.relativeToGroup] | `object` |  | `optional` The name of a group of actions, used to determine an action's `position` |
@@ -47,13 +48,13 @@ Add a keyboard shortcut to this `ShortcutContext`.
 
 ### addShortcuts
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/shortcuts/context.js#L121
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/context.js#L126
 
 :::
 
 _shortcutContext.addShortcuts(shortcuts, [options])_
 
-Add multiple keyboard shortcuts to this `ShortcutContext`.
+Add multiple keyboard shortcuts to this context.
 
 
 | Param | Type | Default | Description |
@@ -72,7 +73,7 @@ Add multiple keyboard shortcuts to this `ShortcutContext`.
 
 ### getShortcuts
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/shortcuts/context.js#L179
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/context.js#L184
 
 :::
 
@@ -89,13 +90,13 @@ Get a shortcut's details.
 
 ### hasShortcut
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/shortcuts/context.js#L195
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/context.js#L200
 
 :::
 
 _shortcutContext.hasShortcut(keys) ⇒ boolean_
 
-Check if a shortcut exists in this `ShortcutContext`.
+Check if a shortcut exists in this context.
 
 
 | Param | Type | Description |
@@ -106,13 +107,13 @@ Check if a shortcut exists in this `ShortcutContext`.
 
 ### removeShortcutsByGroup
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/shortcuts/context.js#L153
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/context.js#L158
 
 :::
 
 _shortcutContext.removeShortcutsByGroup(group)_
 
-Remove a group of shortcuts from this `ShortcutContext`.
+Remove a group of shortcuts from this context.
 
 
 | Param | Type | Description |
@@ -123,13 +124,13 @@ Remove a group of shortcuts from this `ShortcutContext`.
 
 ### removeShortcutsByKeys
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/shortcuts/context.js#L141
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/shortcuts/context.js#L146
 
 :::
 
 _shortcutContext.removeShortcutsByKeys(keys)_
 
-Remove a shortcut from this `ShortcutContext`.
+Remove a shortcut from this context.
 
 
 | Param | Type | Description |

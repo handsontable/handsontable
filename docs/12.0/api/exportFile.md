@@ -52,7 +52,7 @@ exportPlugin.exportAsString('csv', {
 
 ### ExportOptions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/exportFile/exportFile.js#L67
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/exportFile/exportFile.js#L67
 
 :::
 
@@ -74,7 +74,7 @@ _ExportFile.ExportOptions : object_
 
 ### downloadFile
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/exportFile/exportFile.js#L107
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/exportFile/exportFile.js#L107
 
 :::
 
@@ -92,7 +92,7 @@ Exports table data as a downloadable file.
 
 ### exportAsBlob
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/exportFile/exportFile.js#L97
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/exportFile/exportFile.js#L97
 
 :::
 
@@ -110,7 +110,7 @@ Exports table data as a blob object.
 
 ### exportAsString
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/exportFile/exportFile.js#L86
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/exportFile/exportFile.js#L86
 
 :::
 
@@ -128,7 +128,7 @@ Exports table data as a string.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/plugins/exportFile/exportFile.js#L63
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/plugins/exportFile/exportFile.js#L63
 
 :::
 

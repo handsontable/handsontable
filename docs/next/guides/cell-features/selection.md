@@ -19,11 +19,11 @@ Selection enables you to select a single cell or ranges of cells within Handsont
 
 With this feature, you can select single cells or ranges of cells across a grid. Easily retrieve the coordinates of the selected cells to clear or change the cells' content.
 
-Use <kbd>CMD</kbd> on Mac or <kbd>CTRL</kbd> on Windows to select non-contiguous ranges of cells.
+Use <kbd>CMD</kbd> on Mac or <kbd>CTRL</kbd> on Windows to select non-adjacent ranges of cells.
 
 ## Selecting ranges
 
-There are different modes in which you can use this plugin. Choose between selecting a single cell, a range of adjacent cells, and multiple ranges of non-contiguous cells.
+There are different modes in which you can use this plugin. Choose between selecting a single cell, a range of adjacent cells, and multiple non-adjacent ranges of cells.
 
 Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
@@ -197,7 +197,7 @@ buttons.addEventListener('click', event => {
 
 The background color can be easily changed using CSS styles. The main, light blue background color is defined in the `.area` class.
 
-For non-contiguous selection, multiple classes are making each level a bit darker. These classes are called `area-1`, `area-2`, etc.
+For non-adjacent selection, multiple classes are making each level a bit darker. These classes are called `area-1`, `area-2`, etc.
 
 Unfortunately, there is no easy way to change the border color of the selection.
 

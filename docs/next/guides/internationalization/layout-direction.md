@@ -47,7 +47,7 @@ To try out Handsontable's RTL support, check out the demo below:
 ```js
 const container = document.querySelector('#example1');
 
-// generate random RTL data (e.g. Arabic)
+// generate random RTL data (e.g., Arabic)
 function generateArabicData() {
   const randomName = () =>
   ["عمر", "علي", "عبد الله", "معتصم"][Math.floor(Math.random() * 3)];
@@ -59,7 +59,7 @@ function generateArabicData() {
   const randomNumber = (a = 0, b = 1000) => a + Math.floor(Math.random() * b);
   const randomPhrase = () =>
     `${randomCountry()} ${randomName()} ${randomNumber()}`;
-  
+
   const arr = Array.from({ length: 10 }, () => [
     randomBool(),
     randomName(),
@@ -81,9 +81,10 @@ const hot = new Handsontable(container, {
   data: generateArabicData(),
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // render Handsontable from the right to the left
   layoutDirection: 'rtl',
-  // load an RTL language (e.g. Arabic)
+  // load an RTL language (e.g., Arabic)
   language: 'ar-AR',
   // enable a few options that exemplify the layout direction
   dropdownMenu: true,
@@ -149,6 +150,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // inherit Handsontable's layout direction
   // from the value of your HTML document's `dir` attribute
   layoutDirection: 'inherit',
@@ -177,6 +179,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // render Handsontable from the right to the left
   // regardless of your HTML document's `dir`
   layoutDirection: 'rtl',
@@ -205,6 +208,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // render Handsontable from the left to the right
   // regardless of your HTML document's `dir`
   layoutDirection: 'ltr',
@@ -232,6 +236,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // render Handsontable from the right to the left
   // regardless of your HTML document's `dir`
   layoutDirection: 'rtl',

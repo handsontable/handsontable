@@ -131,6 +131,26 @@ describe('CellRange', () => {
     });
   });
 
+  describe('getCellsCount()', () => {
+    it('should return correct cells count ignoring the negative values (headers)', () => {
+      const range = createRange(-1, -2, 1, -2, 5, 5);
+
+      expect(range.getCellsCount()).toBe(30);
+    });
+
+    it('should return correct cells count for selection in the middle of the coordinate space', () => {
+      const range = createRange(1, 1, 1, 1, 5, 5);
+
+      expect(range.getCellsCount()).toBe(25);
+    });
+
+    it('should return 1 for singular cell\'s selection', () => {
+      const range = createRange(0, 0, 0, 0, 0, 0);
+
+      expect(range.getCellsCount()).toBe(1);
+    });
+  });
+
   describe('getOuterHeight()', () => {
     it('should return range hight including headers - from top-left to bottom-right', () => {
       const range = createRange(-1, -2, -2, 1, 5, 5);

@@ -618,7 +618,7 @@ You can force your column summary to treat non-numeric values as numeric values.
 :::tip
 The [`forceNumeric`](@/api/columnSummary.md) option uses JavaScript's `parseFloat()` function.
 
-This means that e.g. `3c` is treated as `3`, but `c3` is still treated as `c3`.
+This means that e.g., `3c` is treated as `3`, but `c3` is still treated as `c3`.
 :::
 
 To enable this feature, set the [`forceNumeric`](@/api/columnSummary.md) option to `true` (by default, [`forceNumeric`](@/api/columnSummary.md) is set to `false`). For example:

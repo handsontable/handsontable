@@ -47,7 +47,7 @@ To try out Handsontable's RTL support, check out the demo below:
 ```js
 const container = document.querySelector('#example1');
 
-// generate random RTL data (e.g. Arabic)
+// generate random RTL data (e.g., Arabic)
 function generateArabicData() {
   const randomName = () =>
   ["عمر", "علي", "عبد الله", "معتصم"][Math.floor(Math.random() * 3)];
@@ -59,7 +59,7 @@ function generateArabicData() {
   const randomNumber = (a = 0, b = 1000) => a + Math.floor(Math.random() * b);
   const randomPhrase = () =>
     `${randomCountry()} ${randomName()} ${randomNumber()}`;
-  
+
   const arr = Array.from({ length: 10 }, () => [
     randomBool(),
     randomName(),
@@ -81,9 +81,10 @@ const hot = new Handsontable(container, {
   data: generateArabicData(),
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // render Handsontable from the right to the left
   layoutDirection: 'rtl',
-  // load an RTL language (e.g. Arabic)
+  // load an RTL language (e.g., Arabic)
   language: 'ar-AR',
   // enable a few options that exemplify the layout direction
   dropdownMenu: true,
@@ -105,21 +106,21 @@ Setting a different layout direction affects the behavior of the following areas
 | Text direction in cells                                                                                            | All cells inherit the LTR direction from the container element.                                                                                                                               | All cells inherit the RTL direction from the container element.                                                                                                                               |
 | Position of row headers                                                                                            | Row headers are rendered on the left-hand edge of the grid.                                                                                                                                   | Row headers are rendered on the right-hand edge of the grid.                                                                                                                                  |
 | Position of [frozen columns](@/guides/columns/column-freezing.md)                                                  | Columns are frozen at the left-hand edge of the grid.                                                                                                                                         | Columns are frozen at the right-hand edge of the grid.                                                                                                                                        |
-| [Keyboard navigation](@/guides/accessories-and-menus/keyboard-navigation.md)                                       | <kbd>Tab</kbd> moves to the right.<br><br><kbd>Shift</kbd> + <kbd>Tab</kbd> moves to the left.                                                                                                | <kbd>Tab</kbd> moves to the left.<br><br><kbd>Shift</kbd> + <kbd>Tab</kbd> moves to the right.                                                                                                |
+| [Keyboard navigation](@/guides/accessories-and-menus/keyboard-shortcuts.md)                                       | <kbd>Tab</kbd> moves to the right.<br><br><kbd>Shift</kbd> + <kbd>Tab</kbd> moves to the left.                                                                                                | <kbd>Tab</kbd> moves to the left.<br><br><kbd>Shift</kbd> + <kbd>Tab</kbd> moves to the right.                                                                                                |
 | Position of the [fill handle](@/api/options.md#fillHandle)                                                         | The fill handle displays in the bottom-right corner of the selection border.                                                                                                                  | The fill handle displays in the bottom-left corner of the selection border.                                                                                                                   |
 | Position of the [selection](@/guides/cell-features/selection.md) handles, on mobile devices                        | On mobile devices, the selection handles display in the top-left and bottom-right corners of the selection border.                                                                            | On mobile devices, the selection handles display in the top-right and bottom-left corners of the selection border.                                                                            |
-| [Custom borders](@/guides/cell-features/formatting-cells.md#custom-cell-borders)                                   | In the [`customBorders`](@/api/options.md#customborders) option:<br><br>- The left-hand border is treated as the starting border.<br>- The right-hand border is treated as the ending border. | In the [`customBorders`](@/api/options.md#customborders) option:<br>- The right-hand border is treated as the starting border.<br><br>- The left-hand border is treated as the ending border. |
+| [Custom borders](@/guides/cell-features/formatting-cells.md#custom-cell-borders)                                   | In the [`customBorders`](@/api/options.md#customborders) option:<br><br>- The left-hand border is treated as the starting border.<br>- The right-hand border is treated as the ending border. | In the [`customBorders`](@/api/options.md#customborders) option:<br><br>- The right-hand border is treated as the starting border.<br>- The left-hand border is treated as the ending border. |
 | [Context menu](@/guides/accessories-and-menus/context-menu.md) and [column menus](@/guides/columns/column-menu.md) | Menus' layout direction is left-to-right.<br><br>Submenus expand to the right.                                                                                                                | Menus' layout direction is right-to-left.<br><br>Submenus expand to the left.                                                                                                                 |
 
 The list above is not exhaustive. Setting a different layout direction might affect other areas of Handsontable as well.
 
 ## Setting the layout direction
 
-You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the [`layoutDirection`](@/api/options.md#layoutdirection) option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
+You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the [`layoutDirection`](@/api/options.md#layoutdirection) option after the initialization (e.g., using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
 
 ### Setting the layout direction automatically
 
-You can set Handsontable's layout direction automatically, 
+You can set Handsontable's layout direction automatically,
 based on on the value of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute.
 This is the default setting.
 
@@ -149,6 +150,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // inherit Handsontable's layout direction
   // from the value of your HTML document's `dir` attribute
   layoutDirection: 'inherit',
@@ -178,6 +180,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // render Handsontable from the right to the left
   // regardless of your HTML document's `dir`
   layoutDirection: 'rtl',
@@ -207,6 +210,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // render Handsontable from the left to the right
   // regardless of your HTML document's `dir`
   layoutDirection: 'ltr',
@@ -234,6 +238,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   // render Handsontable from the right to the left
   // regardless of your HTML document's `dir`
   layoutDirection: 'rtl',
@@ -252,8 +257,8 @@ const hot = new Handsontable(container, {
 :::
 
 You can apply the horizontal [text alignment](@/guides/cell-features/text-alignment.md) settings to:
-- [The entire grid](@/guides/getting-started/setting-options.md#setting-grid-options)
-- [Individual columns](@/guides/getting-started/setting-options.md#setting-column-options)
-- [Individual rows](@/guides/getting-started/setting-options.md#setting-row-options)
-- [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options)
-- [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic)
+- [The entire grid](@/guides/getting-started/setting-options.md#setting-grid-options), by setting [`className`](@/api/options.md#classname) on the global level
+- [Individual columns](@/guides/getting-started/setting-options.md#setting-column-options), by setting [`className`](@/api/options.md#classname) on the column level
+- [Individual rows](@/guides/getting-started/setting-options.md#setting-row-options), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
+- [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options), by setting [`className`](@/api/options.md#classname) on the cell level
+- [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback

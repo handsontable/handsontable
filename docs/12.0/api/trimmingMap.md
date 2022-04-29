@@ -21,7 +21,7 @@ NOT included in a dataset and skipped in the process of rendering.
 
 ### getTrimmedIndexes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d2e84994a1d67ea9aa4907ad220b8b089fe38276/handsontable/src/translations/maps/trimmingMap.js#L22
+::: source-code-link https://github.com/handsontable/handsontable/blob/b12f53bf59ffd1b5d8daad41f560076366c49a0d/handsontable/src/translations/maps/trimmingMap.js#L22
 
 :::
 

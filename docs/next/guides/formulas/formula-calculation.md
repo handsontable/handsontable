@@ -45,11 +45,13 @@ To find out which HyperFormula version to use, see the table below:
 
 ::: details HyperFormula version support
 
-| Handsontable version | HyperFormula version                                                                                           |
-| -------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `8.x.x` and lower    | No HyperFormula support (old [Formulas](https://handsontable.com/docs/8.0.0/demo-formula-support.html) plugin) |
-| `9.x.x`              | `0.6.2`                                                                                                        |
-| `10.x.x` and higher  | `^1.2.0`                                                                                                       |
+| Handsontable version                                                                    | HyperFormula version                                                                                           |
+| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [`8.x.x`](https://github.com/handsontable/handsontable/releases/tag/8.0.0) and lower    | No HyperFormula support (old [Formulas](https://handsontable.com/docs/8.0.0/demo-formula-support.html) plugin) |
+| [`9.x.x`](https://github.com/handsontable/handsontable/releases/tag/9.0.0)              | [`0.6.2`](https://github.com/handsontable/hyperformula/releases/tag/0.6.2)                                     |
+| [`10.x.x`](https://github.com/handsontable/handsontable/releases/tag/10.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
+| [`11.x.x`](https://github.com/handsontable/handsontable/releases/tag/11.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
+| [`12.x.x`](https://github.com/handsontable/handsontable/releases/tag/12.0.0) and higher | [`^2.0.0`](https://github.com/handsontable/hyperformula/releases/tag/2.0.0)                                    |
 
 :::
 
