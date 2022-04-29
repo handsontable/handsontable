@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * Array of functions to be deployed on the documentation web pages. The return statements of those methods will be
  * returned back to the checker logic.
@@ -17,6 +18,7 @@
  *
  * @type {Function[]}
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 const testCases = [
   () => {
     /**
