@@ -460,14 +460,21 @@ export class Comments extends BasePlugin {
       width: editorWidth,
       height: editorHeight,
     } = this.editor.getSize();
+
     const { innerWidth, innerHeight } = this.hot.rootWindow;
-    let x = left + rootWindow.scrollX + (this.hot.isRtl() ? -editorWidth : lastColWidth);
+    const documentElement = this.hot.rootDocument.documentElement;
+    let x = left + rootWindow.scrollX + lastColWidth;
     let y = top + rootWindow.scrollY + lastRowHeight;
 
-    if (left + cellWidth + editorWidth > innerWidth) {
+    if (this.hot.isRtl()) {
+      x -= (editorWidth + lastColWidth);
+    }
+
+    // flip to the right or left the comments editor position when it goes out of browser viewport
+    if (this.hot.isLtr() && left + cellWidth + editorWidth > innerWidth) {
       x = left + rootWindow.scrollX - editorWidth - 1;
 
-    } else if (x < 0) {
+    } else if (this.hot.isRtl() && x < -(documentElement.scrollWidth - documentElement.clientWidth)) {
       x = left + rootWindow.scrollX + lastColWidth + 1;
     }
 

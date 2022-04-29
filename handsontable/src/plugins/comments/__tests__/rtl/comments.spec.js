@@ -44,10 +44,10 @@ describe('Comments (RTL mode)', () => {
         expect(getComputedStyle(getCell(2, 2), ':after').borderRightWidth).toBe('6px');
       });
 
-      it('should display the comment editor in the correct place when the viewport is not scrolled (the Window object is a scrollable element)', () => {
+      it('should display the comment editor on the left of the cell when the viewport is not scrolled (the Window object is a scrollable element)', () => {
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(4, 4),
+          data: Handsontable.helper.createSpreadsheetData(4, 10),
           comments: true,
         });
 
@@ -64,7 +64,7 @@ describe('Comments (RTL mode)', () => {
         expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth, 0);
       });
 
-      it('should display the comment editor in the correct place when the viewport is scrolled (the Window object is a scrollable element)', async() => {
+      it('should display the comment editor on the left of the cell when the viewport is scrolled (the Window object is a scrollable element)', async() => {
         // For this configuration object "{ htmlDir: 'ltr', layoutDirection: 'rtl' }" it's necessary to force
         // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
         if (htmlDir === 'ltr' && layoutDirection === 'rtl') {
@@ -94,12 +94,12 @@ describe('Comments (RTL mode)', () => {
         expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth, 0);
       });
 
-      it('should display the comment editor in the correct place when the viewport is not scrolled (the Window object is not a scrollable element)', () => {
+      it('should display the comment editor on the left of the cell when the viewport is not scrolled (the Window object is not a scrollable element)', () => {
         handsontable({
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(30, 20),
           comments: true,
-          width: 200,
+          width: 400,
           height: 200,
         });
 
@@ -116,7 +116,7 @@ describe('Comments (RTL mode)', () => {
         expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth, 0);
       });
 
-      it('should display the comment editor in the correct place when the viewport is scrolled (the Window object is not a scrollable element)', async() => {
+      it('should display the comment editor on the left of the cell when the viewport is scrolled (the Window object is not a scrollable element)', async() => {
         handsontable({
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(30, 20),
@@ -141,12 +141,74 @@ describe('Comments (RTL mode)', () => {
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
         expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth, 0);
       });
+
+      it('should display the comment editor on the right of the cell when on the left there is no left space', async() => {
+        // For this configuration object "{ htmlDir: 'ltr', layoutDirection: 'rtl' }" it's necessary to force
+        // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
+        if (htmlDir === 'ltr' && layoutDirection === 'rtl') {
+          $('html').attr('dir', 'rtl');
+        }
+
+        handsontable({
+          layoutDirection,
+          data: Handsontable.helper.createSpreadsheetData(100, 100),
+          comments: true,
+        });
+
+        scrollViewportTo(countRows() - 1, countCols() - 1);
+
+        const plugin = getPlugin('comments');
+        const $editor = $(plugin.editor.getInputElement());
+
+        await sleep(10);
+
+        plugin.showAtCell(countRows() - 2, countCols() - 2);
+
+        const cellOffset = $(getCell(countRows() - 2, countCols() - 3)).offset();
+        const editorOffset = $editor.offset();
+
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left + 1, 0);
+      });
+
+      it('should display the comment editor on the top-left of the cell when on the bottom there is no left space', async() => {
+        // For this configuration object "{ htmlDir: 'ltr', layoutDirection: 'rtl' }" it's necessary to force
+        // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
+        if (htmlDir === 'ltr' && layoutDirection === 'rtl') {
+          $('html').attr('dir', 'rtl');
+        }
+
+        handsontable({
+          layoutDirection,
+          data: Handsontable.helper.createSpreadsheetData(100, 100),
+          comments: true,
+        });
+
+        scrollViewportTo(countRows() - 1, 0);
+
+        const plugin = getPlugin('comments');
+        const $editor = $(plugin.editor.getInputElement());
+
+        await sleep(10);
+
+        plugin.showAtCell(countRows() - 1, 0);
+
+        const cell = $(getCell(countRows() - 1, 0));
+        const cellOffset = cell.offset();
+        const cellHeight = cell.outerHeight();
+        const editorOffset = $editor.offset();
+        const editorHeight = $editor.outerHeight();
+        const editorWidth = $editor.outerWidth();
+
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth, 0);
+      });
     });
 
     describe('Displaying comment after `mouseover` event', () => {
-      it('should display in the left position when the table is initialized within the scrollable parent element', async() => {
+      it('should display on the left position when the table is initialized within the scrollable parent element', async() => {
         const testContainer = $(`
-          <div style="width: 250px; height: 200px; overflow: scroll;">
+          <div style="width: 450px; height: 200px; overflow: scroll;">
             <div style="width: 2000px; height: 2000px;">
               <div id="hot-container"></div>
             </div>
@@ -155,8 +217,8 @@ describe('Comments (RTL mode)', () => {
 
         const hot = new Handsontable(testContainer.find('#hot-container')[0], {
           layoutDirection,
-          data: createSpreadsheetData(10, 10),
-          width: 200,
+          data: createSpreadsheetData(20, 10),
+          width: 400,
           height: 150,
           rowHeaders: true,
           colHeaders: true,
