@@ -7,13 +7,15 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const { buildCode } = require('./code-builder');
 const { jsfiddle } = require('./jsfiddle');
+const { getDefaultFramework } = require('../../helpers');
 const {
   getContainerFrontMatterLength,
   getContainerFramework
 } = require('../helpers');
 const {
   SnippetTransformer,
-  logChange
+  logChange,
+  SUPPORTED_FRAMEWORKS
 } = require('../../tools/snippet-transform/snippetTransformer');
 
 const tab = (tabName, token) => {
@@ -116,7 +118,13 @@ module.exports = {
 
       // Transform the JS snippet to the framework-based one, where the framework is defined in the `DOCS_FRAMEWORK`
       // environmental variable or retrieved from the `.md` url (depending on the build script being run).
-      if (!['angular', 'react', 'vue'].some(value => preset.includes(value)) && framework) {
+      if (
+        !['angular', 'react', 'vue'].some(value => preset.includes(value)) &&
+        (framework &&
+          framework !== getDefaultFramework() &&
+          SUPPORTED_FRAMEWORKS.includes(framework)
+        )
+      ) {
         const frontMatterLength = getContainerFrontMatterLength(env.frontmatter);
         const lineNumber = tokens[jsIndex].map[0] + frontMatterLength;
         const snippetTransformer = new SnippetTransformer(framework, jsContent, filePath, lineNumber);
@@ -132,7 +140,7 @@ module.exports = {
 
         if (!translatedSnippetContent.error) {
           // Inject a correct preset for the framework.
-          preset = preset.replace('hot', framework);
+          preset = preset.replace('hot', framework.replace(/\d/, ''));
 
           // Workaround for `hot` presets having the `lang` postfix, while other frameworks -> `languages`.
           preset = preset.replace('lang', 'languages');

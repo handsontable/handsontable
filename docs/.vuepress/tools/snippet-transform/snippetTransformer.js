@@ -32,6 +32,16 @@ const FRAMEWORKS = {
   react: 'react'
 };
 
+/**
+ * List of frameworks currently supported by the transformer.
+ *
+ * @type {string[]}
+ */
+const SUPPORTED_FRAMEWORKS = [
+  FRAMEWORKS.js,
+  FRAMEWORKS.react
+];
+
 class SnippetTransformer {
   /**
    * Snippet Transformer constructor.
@@ -392,5 +402,6 @@ ${node.mock ? node.content : content.slice(...node.range)}\
 
 module.exports = {
   SnippetTransformer,
-  logChange
+  logChange,
+  SUPPORTED_FRAMEWORKS
 };

@@ -2,9 +2,10 @@ const {
   getContainerFrontMatterLength,
   getContainerFramework
 } = require('../helpers');
+const { getDefaultFramework } = require('../../helpers');
 const {
   SnippetTransformer,
-  logChange
+  logChange, SUPPORTED_FRAMEWORKS
 } = require('../../tools/snippet-transform/snippetTransformer');
 
 /**
@@ -13,15 +14,23 @@ const {
 module.exports = {
   type: 'snippet',
   render(tokens, index, opts, env) {
-    if (tokens[index].nesting === 1) {
+    const filePath = env.relativePath;
+    const framework = getContainerFramework(filePath);
+
+    if (
+      tokens[index].nesting === 1 &&
+      (framework &&
+        framework !== getDefaultFramework() &&
+        SUPPORTED_FRAMEWORKS.includes(framework)
+      )
+    ) {
       // For now, let's assume that the `snippet` container contains only one `js/javascript` code block.
       const snippetContent = tokens[index + 1].content;
       const frontMatterLength = getContainerFrontMatterLength(env.frontmatter);
-      const filePath = env.relativePath;
       const lineNumber = tokens[index].map[0] + frontMatterLength;
 
       const snippetTransformer = new SnippetTransformer(
-        getContainerFramework(filePath),
+        framework,
         snippetContent,
         filePath,
         lineNumber
