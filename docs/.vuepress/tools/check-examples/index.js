@@ -25,7 +25,7 @@ const { testCases } = require('./testCases');
 const [cliVersion] = process.argv.slice(2);
 const PORT = 8088;
 const FILE_SERVE_TIMEOUT = 300;
-const EXAMPLE_INIT_TIMEOUT = 250;
+const EXAMPLE_INIT_TIMEOUT = 300;
 
 (async() => {
   if (cliVersion !== 'next' && !semver.valid(`${cliVersion}.0`)) {
