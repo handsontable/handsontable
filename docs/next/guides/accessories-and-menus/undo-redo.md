@@ -52,3 +52,11 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related keyboard shortcuts
+
+| Windows                                                       | macOS                                                        | Action               |  Excel  | Sheets  |
+| ------------------------------------------------------------- | ------------------------------------------------------------ | -------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd> + <kbd>**Z**</kbd>                        | <kbd>**Cmd**</kbd> + <kbd>**Z**</kbd>                        | Undo the last action | &check; | &check; |
+| <kbd>**Ctrl**</kbd> + <kbd>**Y**</kbd>                        | <kbd>**Cmd**</kbd> + <kbd>**Y**</kbd>                        | Redo the last action | &check; | &check; |
+| <kbd>**Ctrl**</kbd> + <kbd>**Shift**</kbd> + <kbd>**Z**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**Z**</kbd> | Redo the last action | &check; | &check; |

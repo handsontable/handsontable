@@ -240,14 +240,14 @@ This method does not need to return any value.
 
 All the undermentioned properties are available in editor instance through `this` object (e.g., `this.instance`).
 
- Property | Type        | Description
-----------|-------------|-------------
- instance | `Handsontable.Core` | The instance of Handsontable to which this editor object belongs. Set in class constructor, immutable thorough the whole lifecycle of editor.
-row | `Number` | The active cell row index. Updated on every `prepare()` method call.
-col | `Number` | The active cell col index. Updated on every `prepare()` method call.
-prop | `String` | The property name associated with active cell (relevant only when data source is an array of objects). Updated on every `prepare()` method call.
-TD | `HTMLTableCellNode` | Node object of active cell. Updated on every `prepare()` method call.
-cellProperties | `Object` | An object representing active cell properties. Updated on every `prepare()` method call.
+  | Property       | Type                | Description                                                                                                                                      |
+  | -------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+  | instance       | `Handsontable.Core` | The instance of Handsontable to which this editor object belongs. Set in class constructor, immutable thorough the whole lifecycle of editor.    |
+  | row            | `Number`            | The active cell row index. Updated on every `prepare()` method call.                                                                             |
+  | col            | `Number`            | The active cell col index. Updated on every `prepare()` method call.                                                                             |
+  | prop           | `String`            | The property name associated with active cell (relevant only when data source is an array of objects). Updated on every `prepare()` method call. |
+  | TD             | `HTMLTableCellNode` | Node object of active cell. Updated on every `prepare()` method call.                                                                            |
+  | cellProperties | `Object`            | An object representing active cell properties. Updated on every `prepare()` method call.                                                         |
 
 ## How to create a custom editor?
 
@@ -707,3 +707,27 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+
+## Related keyboard shortcuts
+
+| Windows                                                 | macOS                                                           | Action                                                            |  Excel  | Sheets  |
+| ------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------- | :-----: | :-----: |
+| Arrow keys                                              | Arrow keys                                                      | Move the cursor through the text                                  | &check; | &check; |
+| Alphanumeric keys                                       | Alphanumeric keys                                               | Enter the pressed key's value into the cell                       | &check; | &check; |
+| <kbd>**Enter**</kbd>                                    | <kbd>**Enter**</kbd>                                            | Complete the cell entry and move to the cell below                | &check; | &check; |
+| <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>             | <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>                     | Complete the cell entry and move to the cell above                | &check; | &check; |
+| <kbd>**Tab**</kbd>                                      | <kbd>**Tab**</kbd>                                              | Complete the cell entry and move to the next cell<sup>*</sup>     | &check; | &check; |
+| <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>               | <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>                       | Complete the cell entry and move to the previous cell<sup>*</sup> | &check; | &check; |
+| <kbd>**Delete**</kbd>                                   | <kbd>**Delete**</kbd>                                           | Delete one character after the cursor<sup>*</sup>                 | &check; | &check; |
+| <kbd>**Backspace**</kbd>                                | <kbd>**Backspace**</kbd>                                        | Delete one character before the cursor<sup>*</sup>                | &check; | &check; |
+| <kbd>**Home**</kbd>                                     | <kbd>**Home**</kbd>                                             | Move the cursor to the beginning of the text<sup>*</sup>          | &check; | &check; |
+| <kbd>**End**</kbd>                                      | <kbd>**End**</kbd>                                              | Move the cursor to the end of the text<sup>*</sup>                | &check; | &check; |
+| <kbd>**Ctrl**</kbd> + Arrow keys                        | <kbd>**Cmd**</kbd> + Arrow keys                                 | Move the cursor to the beginning or to the end of the text        | &check; | &check; |
+| <kbd>**Ctrl**</kbd> + <kbd>**Shift**</kbd> + Arrow keys | <kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + Arrow keys          | Extend the selection to the beginning or to the end of the text   | &check; | &check; |
+| <kbd>**Page Up**</kbd>                                  | <kbd>**Page Up**</kbd>                                          | Complete the cell entry and move one screen up                    | &check; | &check; |
+| <kbd>**Page Down**</kbd>                                | <kbd>**Page Down**</kbd>                                        | Complete the cell entry and move one screen down                  | &check; | &check; |
+| <kbd>**Alt**</kbd> + <kbd>**Enter**</kbd>               | <kbd>**Option**</kbd> + <kbd>**Enter**</kbd>                    | Insert a line break                                               | &cross; | &check; |
+| <kbd>**Ctrl**</kbd> + <kbd>**Enter**</kbd>              | <kbd>**Ctrl**</kbd> / <kbd>**Cmd**</kbd> + <kbd>**Enter**</kbd> | Insert a line break                                               | &cross; | &check; |
+| <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                           | Cancel the cell entry and exit the editing mode                   | &check; | &check; |
+
+<sup>*</sup> This action depends on your layout direction.

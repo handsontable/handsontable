@@ -19,14 +19,14 @@ The clipboard offers Copy & Cut and Paste functionality, enabling you to copy & 
 
 ## Copy & Cut
 
-Copy & Cut actions allow exporting data from Handsontable to the system clipboard. The **CopyPaste** plugin copies and cuts data as a `text/plain` and a `text/html` MIME-type.
+Copy & Cut actions allow exporting data from Handsontable to the system clipboard. The [`CopyPaste`](@/api/copyPaste.md) plugin copies and cuts data as a `text/plain` and a `text/html` MIME-type.
 
 ### End-user usage
 
 Available keyboard shortcuts:
 
 - <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd> - copies the content of the last cell in the selected range
-- <kbd>**Ctrl**</kbd>/<kbd>**Cmd** + <kbd>**X**</kbd> - cuts the content of the last cell in the selected range
+- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**X**</kbd> - cuts the content of the last cell in the selected range
 
 Available options in the browser's toolbar:
 
@@ -165,3 +165,11 @@ Examples of how to use them are provided in their descriptions.
 1.  The **CopyPaste** plugin doesn't copy, cut or paste cells' appearance.
 2.  The data copied from Handsontable will always remain as plain text. For example, if you copy a checked checkbox, the input will be kept as a value of `'true'`.
 3.  `document.execCommand` can be called only during an immediate-execute event, such as a `MouseEvent` or a `KeyboardEvent`.
+
+## Related keyboard shortcuts
+
+| Windows                                | macOS                                 | Action                                                          |  Excel  | Sheets  |
+| -------------------------------------- | ------------------------------------- | --------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd> + <kbd>**X**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**X**</kbd> | Cut the contents of the selected cells to the system clipboard  | &check; | &check; |
+| <kbd>**Ctrl**</kbd> + <kbd>**C**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
+| <kbd>**Ctrl**</kbd> + <kbd>**V**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |

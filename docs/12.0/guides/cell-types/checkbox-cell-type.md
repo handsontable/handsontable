@@ -137,3 +137,12 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related keyboard shortcuts
+
+| Windows                  | macOS                    | Action                        |  Excel  | Sheets  |
+| ------------------------ | ------------------------ | ----------------------------- | :-----: | :-----: |
+| <kbd>**Space**</kbd>     | <kbd>**Space**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
+| <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
+| <kbd>**Delete**</kbd>    | <kbd>**Delete**</kbd>    | Uncheck the checkbox          | &cross; | &check; |
+| <kbd>**Backspace**</kbd> | <kbd>**Backspace**</kbd> | Uncheck the checkbox          | &cross; | &check; |
