@@ -25,8 +25,8 @@ Copy & Cut actions allow exporting data from Handsontable to the system clipboar
 
 Available keyboard shortcuts:
 
-- `CTRL/CMD + C` - copies the content of the last cell in the selected range
-- `CTRL/CMD + X` - cuts the content of the last cell in the selected range
+- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd> - copies the content of the last cell in the selected range
+- <kbd>**Ctrl**</kbd>/<kbd>**Cmd** + <kbd>**X**</kbd> - cuts the content of the last cell in the selected range
 
 Available options in the browser's toolbar:
 
@@ -137,7 +137,7 @@ The Paste action allows the importing of data from external sources using the us
 
 Available keyboard shortcuts:
 
-- `CTRL/CMD + V` - paste the content into the last cell in the selected range
+- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**V**</kbd> - paste the content into the last cell in the selected range
 
 Available options in the browser's toolbar:
 
