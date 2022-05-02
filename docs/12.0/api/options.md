@@ -1164,7 +1164,7 @@ You can set the `copyable` option to one of the following:
 
 | Setting                                                                                                        | Description                                                                                                                        |
 | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>, add the cell's value to the clipboard |
+| `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add the cell's value to the clipboard |
 | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - Disable copying for this cell                                                                                                    |
 
 Read more:
@@ -1936,8 +1936,8 @@ You can set the `enterMoves` option to an object with the following properties
 
 | Property | Type   | Description                                                                                                                                              |
 | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `col`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>, move selection `col` columns left |
-| `row`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>, move selection `row` rows up          |
+| `col`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `col` columns left |
+| `row`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `row` rows up          |
 
 Read more:
 - [`enterBeginsEditing`](#enterbeginsediting)
@@ -4290,7 +4290,7 @@ You can set the `tabMoves` option to an object with the following properties
 
 | Property | Type   | Description                                                                                                                                              |
 | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `row` rows up              |
+| `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>, move selection `row` rows up              |
 
 **Default**: <code>{row: 0, col: 1}</code>  
 **Category**: [Core](@/api/core.md)  

@@ -730,4 +730,4 @@ const hot = new Handsontable(container, {
 | <kbd>**Ctrl**</kbd> + <kbd>**Enter**</kbd>              | <kbd>**Ctrl**</kbd> / <kbd>**Cmd**</kbd> + <kbd>**Enter**</kbd> | Insert a line break                                               | &cross; | &check; |
 | <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                           | Cancel the cell entry and exit the editing mode                   | &check; | &check; |
 
-<sup>*</sup> This action depends on your layout direction.
+<sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction.md).
