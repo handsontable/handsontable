@@ -15,7 +15,7 @@ This page describes how to use Handsontable as a cell editor in Handsontable.
 
 **HOT-in-HOT opens by any of the following:**
 
-* <kbd>F2</kbd> or <kbd>Enter</kbd> key is pressed while the cell is selected
+* <kbd>**F2**</kbd> or <kbd>**Enter**</kbd> key is pressed while the cell is selected
 * The triangle icon is clicked
 * The cell content is double clicked
 
@@ -23,13 +23,13 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 
 **Keyboard bindings while the HOT-in-HOT is opened:**
 
-* <kbd>Escape</kbd> - close editor and cancel change.
-* <kbd>Enter</kbd> - close editor and apply change\*, move the selection in the main HOT downwards or according to the `enterMoves` setting.
-* <kbd>Tab</kbd> - behaves as the <kbd>Enter</kbd> key, but move the selection in the main HOT to the right or to the left (depending on your [`layoutDirection`](@/api/options.md#layoutdirection) setting) or according to the `tabMoves` setting.
-* <kbd>Arrow Down</kbd> - move the selection in HOT-in-HOT downwards. If the last row was selected, this has no effect.
-* <kbd>Arrow Up</kbd> - move the selection in HOT-in-HOT upwards. If the first row was selected, deselect. If HOT-in-HOT was deselected, behave as the <kbd>Enter</kbd> key but move the selection in the main HOT upwards.
-* <kbd>Arrow Right</kbd> - move the text cursor in the text field to the left. If the text cursor was at the start position, behave as the <kbd>Enter</kbd> key but move the selection in the main HOT to the left.
-* <kbd>Arrow Left</kbd> - move the text cursor in the text field to the right. If the text cursor was at the end position, behave as the TAB key.
+* <kbd>**Escape**</kbd> - close editor and cancel change.
+* <kbd>**Enter**</kbd> - close editor and apply change\*, move the selection in the main HOT downwards or according to the `enterMoves` setting.
+* <kbd>**Tab**</kbd> - behaves as the <kbd>**Enter**</kbd> key, but move the selection in the main HOT to the right or to the left (depending on your [`layoutDirection`](@/api/options.md#layoutdirection) setting) or according to the `tabMoves` setting.
+* <kbd>**Arrow Down**</kbd> - move the selection in HOT-in-HOT downwards. If the last row was selected, this has no effect.
+* <kbd>**Arrow Up**</kbd> - move the selection in HOT-in-HOT upwards. If the first row was selected, deselect. If HOT-in-HOT was deselected, behave as the <kbd>**Enter**</kbd> key but move the selection in the main HOT upwards.
+* <kbd>**Arrow Right**</kbd> - move the text cursor in the text field to the left. If the text cursor was at the start position, behave as the <kbd>**Enter**</kbd> key but move the selection in the main HOT to the left.
+* <kbd>**Arrow Left**</kbd> - move the text cursor in the text field to the right. If the text cursor was at the end position, behave as the TAB key.
 
 ## Basic example
 

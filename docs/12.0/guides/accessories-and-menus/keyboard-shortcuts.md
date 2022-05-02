@@ -47,7 +47,7 @@ You can easily check if a keyboard shortcut's action is compatible with Microsof
 
 ::: tip
 Handsontable doesn't detect data series (doesn't differentiate between blank cells and non-blank cells).
-For this reason, some keyboard shortcuts (e.g., <kbd>Cmd</kbd> + Arrow keys) may behave differently
+For this reason, some keyboard shortcuts (e.g., <kbd>**Cmd**</kbd> + Arrow keys) may behave differently
 than in Microsoft Excel or Google Sheets in certain situations.
 :::
 
