@@ -41,8 +41,8 @@ export default {
       const frameworkDir = `${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
       let href = this.href;
 
-      if (this.$page.currentFramework) {
-        href = href.replace(`${currentVersion}`, `${currentVersion}/${frameworkDir}`);
+      if (this.$page.currentFramework !== void 0) {
+        href = href.replace(currentVersion, `${currentVersion}/${frameworkDir}`);
       }
 
       if (!this.isExternal && this.hideLatestVersion && currentVersion === this.$page.latestVersion) {
