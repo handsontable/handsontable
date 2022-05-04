@@ -16,10 +16,10 @@ This guide details how to install Handsontable.
 
 ::: tip
 This section is dedicated to the pure JavaScript version of Handsontable. If you use a framework in your project, follow one of the available guides to install and use the library:
- - [Integrate with React &#8594;](@/guides/integrate-with-react/react-installation.md)
- - [Integrate with Angular &#8594;](@/guides/integrate-with-angular/angular-installation.md)
- - [Integrate with Vue 2 &#8594;](@/guides/integrate-with-vue/vue-installation.md)
- - [Integrate with Vue 3 &#8594;](@/guides/integrate-with-vue3/vue3-installation.md)
+ - [Integrate with React](@/guides/integrate-with-react/react-installation.md)
+ - [Integrate with Angular](@/guides/integrate-with-angular/angular-installation.md)
+ - [Integrate with Vue 2](@/guides/integrate-with-vue/vue-installation.md)
+ - [Integrate with Vue 3](@/guides/integrate-with-vue3/vue3-installation.md)
 :::
 
 ## Download and install the library

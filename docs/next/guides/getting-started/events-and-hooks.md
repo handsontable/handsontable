@@ -258,10 +258,10 @@ List of callbacks that operate on the `source` parameter:
 * [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
 * [`beforeCreateCol`](@/api/hooks.md#beforecreatecol)
 * [`beforeCreateRow`](@/api/hooks.md#beforecreaterow)
-* [`beforeLoadData` &#8594;](@/api/hooks.md#beforeloaddata)
-* [`beforeRemoveCol` &#8594;](@/api/hooks.md#beforeremovecol)
-* [`beforeRemoveRow` &#8594;](@/api/hooks.md#beforeremoverow)
-* [`beforeValidate` &#8594;](@/api/hooks.md#beforevalidate)
+* [`beforeLoadData`](@/api/hooks.md#beforeloaddata)
+* [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol)
+* [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow)
+* [`beforeValidate`](@/api/hooks.md#beforevalidate)
 
 ## The [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
