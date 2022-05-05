@@ -33,7 +33,3 @@ table.htCore tr.selected td {
 .collapsibleIndicator {
   text-align: center;
 }
-
-.handsontable .htRight .changeType {
-  margin: 3px 1px 0 13px;
-}

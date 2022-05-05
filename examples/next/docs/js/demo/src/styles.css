@@ -27,9 +27,6 @@ table.htCore tr.selected td {
   text-align: center;
 }
 
-.handsontable .htRight .changeType {
-  margin: 3px 1px 0 13px;
-}
 .handsontable .green {
   background: #37bc6c;
   font-weight: bold;

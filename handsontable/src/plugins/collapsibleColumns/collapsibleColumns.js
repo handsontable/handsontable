@@ -27,6 +27,8 @@ const actionDictionary = new Map([
   }],
 ]);
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin CollapsibleColumns
  * @class CollapsibleColumns
@@ -158,7 +160,11 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *   - [`collapsibleColumns`](@/api/options.md#collapsiblecolumns)
+   *   - [`nestedHeaders`](@/api/options.md#nestedheaders)
    */
   updatePlugin() {
     // @TODO: Workaround for broken plugin initialization abstraction (#6806).
