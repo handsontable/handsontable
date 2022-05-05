@@ -26,10 +26,17 @@ export default {
       return ensureExt(this.item.link);
     },
     versionedLink() {
-      if (this.$page.currentVersion === this.$page.latestVersion || this.$page.DOCS_VERSION) {
+      const link = this.item.link;
+
+      const framework = this.$page.currentFramework ?
+        `/${this.$page.currentFramework}${this.$page.frameworkSuffix}` : '';
+
+      if (this.$page.currentVersion === this.$page.latestVersion ||
+        (this.$page.DOCS_VERSION && this.$page.DOCS_FRAMEWORK)) {
         return ensureExt(this.item.link);
+
       } else {
-        return ensureExt(`/${this.$page.currentVersion}${this.item.link}`);
+        return ensureExt(`/${this.$page.currentVersion}${framework}${link}`);
       }
     },
     exact() {
