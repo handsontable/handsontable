@@ -3,8 +3,9 @@ const helpers = require('./helpers');
 
 module.exports = function(src) {
   const resourcePathNormalized = path.sep === '\\' ? this.resourcePath.replace(/\\/g, '/') : this.resourcePath;
-  const realPath = fs.realpathSync(resourcePathNormalized);
-  const version = realPath.split('/docs/').pop().split('/')[0];
+  const pathForServingDocs = resourcePathNormalized.replace(/.*?docs\//, '/');
+  const version = helpers.parseVersion(pathForServingDocs);
+  const framework = helpers.parseFramework(pathForServingDocs);
   const latest = helpers.getLatestVersion();
   const basePath = this.rootContext;
 
@@ -13,13 +14,16 @@ module.exports = function(src) {
 
     try {
       const fm = parseFrontmatter(fs.readFileSync(path.resolve(basePath, version, file)));
+      const frameworkPathPart = framework ? `/${framework}${helpers.FRAMEWORK_SUFFIX}/` : '';
 
       if (fm.data.permalink) {
         permalink = fm.data.permalink;
+        permalink = permalink.replace(new RegExp(`^/(${version})/`), `/$1${frameworkPathPart}`);
 
-        if (helpers.getEnvDocsVersion() || latest === version) {
+        if ((helpers.getEnvDocsVersion() && helpers.getEnvDocsFramework()) || latest === version) {
           permalink = permalink.replace(new RegExp(`^/${version}/`), '/');
         }
+
         permalink = permalink.endsWith('/') ? permalink : `${permalink}/`;
         permalink = hash ? permalink + hash : permalink;
       }
