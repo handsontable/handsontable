@@ -18,7 +18,7 @@ Disabling a cell makes the cell read-only or non-editable. Both have similar out
 
 ## Read-only columns
 
-In many use cases, you will need to configure a certain column to be read-only. This column will be available for keyboard navigation and <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>. Editing and pasting data will be disabled.
+In many use cases, you will need to configure a certain column to be read-only. This column will be available for keyboard navigation and copying data (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>). Editing and pasting data will be disabled.
 
 To make a column read-only, declare it in the `columns` setting. You can also define a special renderer function that will dim the read-only values, providing a visual cue for the user that the cells are read-only.
 
