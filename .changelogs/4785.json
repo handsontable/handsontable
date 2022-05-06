@@ -1,0 +1,7 @@
+{
+  "title": "Fixed a bug related to the comments positioning.",
+  "type": "fixed",
+  "issue": 4785,
+  "breaking": false,
+  "framework": "none"
+}

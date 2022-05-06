@@ -440,16 +440,6 @@ export class Comments extends BasePlugin {
       col: renderableColumn,
     });
 
-    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getStretchedColumnWidth(renderableColumn);
-    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
-
-    const { left, top } = TD.getBoundingClientRect();
-    const x = left + rootWindow.scrollX + (this.hot.isRtl() ? -this.editor.getSize().width : lastColWidth);
-    const y = top + rootWindow.scrollY + lastRowHeight;
-
-    this.editor.setPosition(x, y);
-    this.editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY));
-
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
 
     if (commentStyle) {
@@ -458,6 +448,44 @@ export class Comments extends BasePlugin {
     } else {
       this.editor.resetSize();
     }
+
+    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getStretchedColumnWidth(renderableColumn);
+    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
+
+    const {
+      left,
+      top,
+      width: cellWidth,
+      height: cellHeight,
+    } = TD.getBoundingClientRect();
+    const {
+      width: editorWidth,
+      height: editorHeight,
+    } = this.editor.getSize();
+
+    const { innerWidth, innerHeight } = this.hot.rootWindow;
+    const documentElement = this.hot.rootDocument.documentElement;
+    let x = left + rootWindow.scrollX + lastColWidth;
+    let y = top + rootWindow.scrollY + lastRowHeight;
+
+    if (this.hot.isRtl()) {
+      x -= (editorWidth + lastColWidth);
+    }
+
+    // flip to the right or left the comments editor position when it goes out of browser viewport
+    if (this.hot.isLtr() && left + cellWidth + editorWidth > innerWidth) {
+      x = left + rootWindow.scrollX - editorWidth - 1;
+
+    } else if (this.hot.isRtl() && x < -(documentElement.scrollWidth - documentElement.clientWidth)) {
+      x = left + rootWindow.scrollX + lastColWidth + 1;
+    }
+
+    if (top + editorHeight > innerHeight) {
+      y -= (editorHeight - cellHeight + 1);
+    }
+
+    this.editor.setPosition(x, y);
+    this.editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY));
   }
 
   /**
