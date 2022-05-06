@@ -21,32 +21,6 @@ describe('Core_init', () => {
     expect(countCols()).toEqual(5); // as given in README.md
   });
 
-  it('should respect width provided in inline style', () => {
-    spec().$container.css({
-      overflow: 'auto',
-      width: '200px'
-    });
-    handsontable({
-      data: [
-        ['ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC']
-      ]
-    });
-
-    expect(spec().$container.width()).toEqual(200);
-  });
-
-  it('should respect width provided in CSS class', () => {
-    $('<style>.myTable {overflow: auto; width: 200px}</style>').appendTo('head');
-    spec().$container.addClass('myTable');
-    handsontable({
-      data: [
-        ['ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC']
-      ]
-    });
-
-    expect(spec().$container.width()).toEqual(200);
-  });
-
   it('should construct when container is not appended to document', () => {
     spec().$container.remove();
     handsontable();

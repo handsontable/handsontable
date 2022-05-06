@@ -1,7 +1,0 @@
-{
-  "title": "Removed the `enzyme` dependency from the React wrapper.",
-  "type": "removed",
-  "issue": 9151,
-  "breaking": false,
-  "framework": "react"
-}

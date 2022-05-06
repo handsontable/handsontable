@@ -255,5 +255,56 @@ describe('Comments (RTL mode)', () => {
         hot.destroy();
       });
     });
+
+    describe('Displaying comment after `mouseover` event', () => {
+      it('should display in the left position when the table is initialized within the scrollable parent element', async() => {
+        const testContainer = $(`
+          <div style="width: 250px; height: 200px; overflow: scroll;">
+            <div style="width: 2000px; height: 2000px;">
+              <div id="hot-container"></div>
+            </div>
+          </div>
+        `).appendTo(spec().$container);
+
+        const hot = new Handsontable(testContainer.find('#hot-container')[0], {
+          layoutDirection,
+          data: createSpreadsheetData(10, 10),
+          width: 200,
+          height: 150,
+          rowHeaders: true,
+          colHeaders: true,
+          comments: {
+            displayDelay: 1
+          },
+          cell: [
+            { row: 1, col: 1, comment: { value: 'Some comment' } },
+          ]
+        });
+
+        testContainer
+          .scrollLeft(-10)
+          .scrollTop(10);
+
+        const cell = $(hot.getCell(1, 1));
+
+        cell.simulate('mouseover', {
+          clientX: cell.offset().left + 5,
+          clientY: cell.offset().top + 5,
+        });
+
+        await sleep(10);
+
+        const commentEditor = $(hot.getPlugin('comments').editor.getInputElement());
+        const commentEditorOffset = commentEditor.offset();
+        const commentEditorWidth = commentEditor.outerWidth();
+
+        expect({
+          top: commentEditorOffset.top,
+          left: commentEditorOffset.left + commentEditorWidth,
+        }).toEqual(cell.offset());
+
+        hot.destroy();
+      });
+    });
   });
 });
