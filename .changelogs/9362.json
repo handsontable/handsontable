@@ -1,0 +1,7 @@
+{
+  "title": "Fixed merge cells toggling bug for table initialized in RTL layout direction mode.",
+  "type": "fixed",
+  "issue": 9362,
+  "breaking": false,
+  "framework": "none"
+}
