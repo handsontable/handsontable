@@ -9,7 +9,7 @@ canonicalUrl: /row-hiding
 
 [[toc]]
 
-You can hide rows, using the [`HiddenRows`](@/api/hiddenRows.md) plugin.
+Hide your rows, using the [`HiddenRows`](@/api/hiddenRows.md) plugin.
 
 ## About row hiding
 

@@ -12,7 +12,7 @@ tags:
 
 [[toc]]
 
-You can customize Handsontable with [configuration options](@/api/options.md).
+Customize Handsontable with [configuration options](@/api/options.md).
 
 ## About configuration options
 

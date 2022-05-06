@@ -13,6 +13,8 @@ export const PLUGIN_PRIORITY = 30;
 const PERSISTENT_STATE_KEY = 'manualRowHeights';
 const privatePool = new WeakMap();
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin ManualRowResize
  * @class ManualRowResize
@@ -110,7 +112,10 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`manualRowResize`](@/api/options.md#manualrowresize)
    */
   updatePlugin() {
     this.disablePlugin();

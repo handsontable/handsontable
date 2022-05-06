@@ -9,7 +9,7 @@ canonicalUrl: /column-hiding
 
 [[toc]]
 
-You can hide columns, using the [`HiddenColumns`](@/api/hiddenColumns.md) plugin.
+Hide your columns, using the [`HiddenColumns`](@/api/hiddenColumns.md) plugin.
 
 ## About column hiding
 

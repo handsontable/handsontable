@@ -14,7 +14,7 @@ tags:
 
 [[toc]]
 
-You can easily summarize your columns, using the [`ColumnSummary`](@/api/columnSummary.md) plugin.
+Summarize your columns' data, using the [`ColumnSummary`](@/api/columnSummary.md) plugin.
 
 ## About column summary
 
@@ -618,7 +618,7 @@ You can force your column summary to treat non-numeric values as numeric values.
 :::tip
 The `forceNumeric` option uses JavaScript's [parseFloat()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat) function.
 
-This means that e.g. `3c` is treated as `3`, but `c3` is still treated as `c3`.
+This means that e.g., `3c` is treated as `3`, but `c3` is still treated as `c3`.
 :::
 
 To enable this feature, set the `forceNumeric` option to `true` (by default, `forceNumeric` is set to `false`). For example:
