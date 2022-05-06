@@ -382,6 +382,7 @@ export class DropdownMenu extends BasePlugin {
     const button = this.hot.rootDocument.createElement('button');
 
     button.className = BUTTON_CLASS_NAME;
+    button.type = 'button';
 
     // prevent page reload on button click
     button.onclick = function() {
