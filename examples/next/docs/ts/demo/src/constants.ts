@@ -102,5 +102,4 @@ export const data = [
 ];
 
 export const SELECTED_CLASS = 'selected';
-export const DEFAULT_ALIGNMENT_CLASS = 'htLeft';
 export const ODD_ROW_CLASS = 'odd';
