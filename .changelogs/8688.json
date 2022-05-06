@@ -1,0 +1,7 @@
+{
+  "title": "Fixed table DOM element's size update after changing `height`/`width` options.",
+  "type": "fixed",
+  "issue": 8688,
+  "breaking": false,
+  "framework": "none"
+}

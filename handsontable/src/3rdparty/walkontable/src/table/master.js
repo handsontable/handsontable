@@ -35,7 +35,11 @@ class MasterTable extends Table {
 
       if (!preventOverflow) {
         this.holder.style.overflow = 'visible';
+        this.holder.style.width = '';
+        this.holder.style.height = '';
         this.wtRootElement.style.overflow = 'visible';
+        this.wtRootElement.style.width = '';
+        this.wtRootElement.style.height = '';
       }
     } else {
       const trimmingElementParent = trimmingElement.parentElement;
