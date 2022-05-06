@@ -68,8 +68,8 @@ class CommentEditor {
    */
   getSize() {
     return {
-      width: outerWidth(this.editor),
-      height: outerHeight(this.editor),
+      width: outerWidth(this.getInputElement()),
+      height: outerHeight(this.getInputElement()),
     };
   }
 

@@ -1,29 +1,30 @@
 import { fastInnerHTML } from '../../../helpers/dom/element';
-import { clone } from '../../../helpers/object';
 
 /**
  * @private
  */
 class GhostTable {
+  /**
+   * Reference to NestedHeaders plugin.
+   *
+   * @type {NestedHeaders}
+   */
+  nestedHeaders;
+  /**
+   * Temporary element created to get minimal headers widths.
+   *
+   * @type {*}
+   */
+  container;
+  /**
+   * Cached the headers widths.
+   *
+   * @type {Array}
+   */
+  widthsCache = [];
+
   constructor(plugin) {
-    /**
-     * Reference to NestedHeaders plugin.
-     *
-     * @type {NestedHeaders}
-     */
     this.nestedHeaders = plugin;
-    /**
-     * Temporary element created to get minimal headers widths.
-     *
-     * @type {*}
-     */
-    this.container = void 0;
-    /**
-     * Cached the headers widths.
-     *
-     * @type {Array}
-     */
-    this.widthsCache = [];
   }
 
   /**
@@ -74,28 +75,24 @@ class GhostTable {
       lastRowColspan = false;
 
       for (let col = 0; col < maxCols; col++) {
-        const td = rootDocument.createElement('th');
-        const headerObj = clone(this.nestedHeaders.getHeaderSettings(row, col));
+        const th = rootDocument.createElement('th');
+        const headerSettings = this.nestedHeaders.getHeaderSettings(row, col);
 
-        if (headerObj && !headerObj.isHidden) {
+        if (headerSettings && !headerSettings.isPlaceholder) {
+          let label = headerSettings.label;
+
           if (row === lastRowIndex) {
-            if (headerObj.colspan > 1) {
+            if (headerSettings.colspan > 1) {
               lastRowColspan = true;
             }
             if (isDropdownEnabled) {
-              headerObj.label += '<button class="changeType"></button>';
+              label += '<button class="changeType"></button>';
             }
           }
 
-          fastInnerHTML(td, headerObj.label);
-
-          // The guard here is needed because on IE11 an error is thrown if you
-          // try to assign an incorrect value to `td.colSpan` here.
-          if (headerObj.colspan !== undefined) {
-            td.colSpan = headerObj.colspan;
-          }
-
-          tr.appendChild(td);
+          fastInnerHTML(th, label);
+          th.colSpan = headerSettings.colspan;
+          tr.appendChild(th);
         }
       }
 
