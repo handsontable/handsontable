@@ -260,6 +260,33 @@ describe('AutoRowSize', () => {
     expect(height1).toBeLessThan(height2);
   });
 
+  it('should sync inline start overlay with the main table after updating the last cell with new value (#7102)', async() => {
+    handsontable({
+      data: [
+        ['A long text'],
+        ['A very long text'],
+        ['A very very long text'],
+        ['A very very long text'],
+        ['A very very long text'],
+      ],
+      rowHeaders: true,
+      colHeaders: true,
+      colWidths: 50,
+      height: 300,
+      autoRowSize: true
+    });
+
+    selectCell(4, 0);
+    keyDownUp('enter');
+
+    await sleep(100);
+
+    keyDownUp('enter');
+
+    expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(89);
+    expect(getMaster().find('.wtHolder').scrollTop()).toBe(89);
+  });
+
   it('should consider CSS style of each instance separately', () => {
     const $style = $('<style>.big .htCore td {font-size: 40px;line-height: 1.1}</style>').appendTo('head');
     const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
