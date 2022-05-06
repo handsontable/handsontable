@@ -27,6 +27,8 @@ import { detectSelectionType, normalizeSelectionFactory } from '../../selection'
 export const PLUGIN_KEY = 'customBorders';
 export const PLUGIN_PRIORITY = 90;
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin CustomBorders
  * @class CustomBorders
@@ -38,7 +40,8 @@ export const PLUGIN_PRIORITY = 90;
  * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
  * of an array.
  *
- * See [Custom Borders](@/guides/cell-features/formatting-cells.md#custom-cell-borders) demo for more examples.
+ * See [`customBorders` configuration option](@/api/options.md#customBorders) or go to
+ * [Custom cell borders demo](@/guides/cell-features/formatting-cells.md#custom-cell-borders) for more examples.
  *
  * @example
  * ```js
@@ -130,7 +133,10 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`customBorders`](@/api/options.md#customborders)
    */
   updatePlugin() {
     this.disablePlugin();

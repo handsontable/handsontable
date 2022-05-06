@@ -15,6 +15,8 @@ const SETTING_KEYS = ['fillHandle'];
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
 const INTERVAL_FOR_ADDING_ROW = 200;
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated using the small square in the right
  * bottom of the cell selection.
@@ -124,7 +126,11 @@ export class Autofill extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - `autofill`
+   *  - [`fillHandle`](@/api/options.md#fillhandle)
    */
   updatePlugin() {
     this.disablePlugin();

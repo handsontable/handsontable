@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue with filters menu UX for RTL",
-  "type": "fixed",
-  "issue": 8828,
-  "breaking": false,
-  "framework": "none"
-}

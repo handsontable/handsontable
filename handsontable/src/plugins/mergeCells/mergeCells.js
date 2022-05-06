@@ -22,6 +22,8 @@ export const PLUGIN_PRIORITY = 150;
 const privatePool = new WeakMap();
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin MergeCells
  * @class MergeCells
@@ -149,7 +151,10 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`mergeCells`](@/api/options.md#mergecells)
    */
   updatePlugin() {
     const settings = this.hot.getSettings()[PLUGIN_KEY];

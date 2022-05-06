@@ -2,38 +2,43 @@ import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { createContext } from './context';
 import { useRecorder } from './recorder';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
- * Create manager instance responsible for managing with contexts and stored inside them shortcuts. It listens for
- * `KeyboardEvent`s and run proper actions for them.
+ * The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/accessories-and-menus/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutContext.md)).
+ *
+ * Each `ShortcutManager` object:
+ * - Stores and manages its own set of keyboard shortcut contexts.
+ * - Listens to the [`KeyboardEvent`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent) events and runs actions for them.
  *
  * @alias ShortcutManager
  * @class ShortcutManager
- * @param {object} options Settings for the manager.
- * @param {EventTarget} options.ownerWindow The starting window element.
- * @param {Function} options.beforeKeyDown Hook fired before keydown event is handled. It can be used to stop default key bindings.
- * @param {Function} options.afterKeyDown Hook fired after keydown event is handled.
+ * @param {object} options The manager's options
+ * @param {EventTarget} options.ownerWindow A starting `window` element
+ * @param {Function} options.beforeKeyDown A hook fired before the `keydown` event is handled. You can use it to [block a keyboard shortcut's actions](@/guides/accessories-and-menus/keyboard-shortcuts.md#blocking-a-keyboard-shortcut-s-actions).
+ * @param {Function} options.afterKeyDown A hook fired after the `keydown` event is handled
  */
 export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown }) => {
   /**
-   * UniqueMap to storing contexts.
+   * A unique map that stores keyboard shortcut contexts.
    *
    * @type {UniqueMap}
    */
   const CONTEXTS = createUniqueMap({
-    errorIdExists: keys => `The passed context name "${keys}" is already registered.`
+    errorIdExists: keys => `The "${keys}" context name is already registered.`
   });
   /**
-   * Name of active context.
+   * The name of the active [`ShortcutContext`](@/api/shortcutContext.md).
    *
    * @type {string}
    */
   let activeContextName = 'grid';
 
   /**
-   * Create a new {@link Context} with a given name.
+   * Create a new [`ShortcutContext`](@/api/shortcutContext.md) object.
    *
    * @memberof ShortcutManager#
-   * @param {string} contextName A new context's name.
+   * @param {string} contextName The name of the new shortcut context
    * @returns {object}
    */
   const addContext = (contextName) => {
@@ -45,7 +50,7 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
   };
 
   /**
-   * Get ID of active context.
+   * Get the ID of the active [`ShortcutContext`](@/api/shortcutContext.md).
    *
    * @memberof ShortcutManager#
    * @returns {string}
@@ -55,30 +60,30 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
   };
 
   /**
-   * Get context by name.
+   * Get a keyboard shortcut context by its name.
    *
    * @memberof ShortcutManager#
-   * @param {string} contextName Context's name to get.
-   * @returns {object|undefined} A {@link Context} which stores registered shortcuts.
+   * @param {string} contextName The name of the shortcut context
+   * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts
    */
   const getContext = (contextName) => {
     return CONTEXTS.getItem(contextName);
   };
 
   /**
-   * Activate shortcuts' listening within given contexts.
+   * Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/shortcutContext.md).
    *
    * @memberof ShortcutManager#
-   * @param {string} contextName Context to activate.
+   * @param {string} contextName The name of the shortcut context
    */
   const setActiveContextName = (contextName) => {
     activeContextName = contextName;
   };
 
   /**
-   * The variable, in combination with the `captureCtrl` shortcut option, allows capturing the state
-   * of the pressed Control/Meta keys. Some keyboard shortcuts related to the selection to work
-   * correctly need to use that feature.
+   * This variable relates to the `captureCtrl` shortcut option,
+   * which allows for capturing the state of the Control/Meta modifier key.
+   * Some of the default keyboard shortcuts related to cell selection need this feature for working properly.
    *
    * @type {boolean}
    */
@@ -141,7 +146,7 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
      */
     isCtrlPressed: () => !isCtrlKeySilenced && (keyRecorder.isPressed('control') || keyRecorder.isPressed('meta')),
     /**
-     * Destroys instance of the manager.
+     * Destroy a context manager instance.
      *
      * @type {Function}
      * @memberof ShortcutManager#
