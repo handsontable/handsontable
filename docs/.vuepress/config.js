@@ -5,7 +5,7 @@ const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
-const { getBuildDocsVersion, getLatestVersion } = require('./helpers');
+const { getBuildDocsVersion, getLatestVersion, getDocsBaseUrl } = require('./helpers');
 
 const buildMode = process.env.BUILD_MODE;
 const versionPartialPath = getBuildDocsVersion() || '**';
@@ -29,8 +29,6 @@ const environmentHead = buildMode === 'production' ?
   ]
   : [];
 
-const hostname = `https://${buildMode === 'staging' ? 'dev.' : ''}handsontable.com`;
-
 module.exports = {
   define: {
     GA_ID: 'UA-33932793-7',
@@ -42,7 +40,7 @@ module.exports = {
   description: 'Handsontable',
   base,
   head: [
-    ['link', { rel: 'icon', href: `${hostname}/static/images/template/ModCommon/favicon-32x32.png` }],
+    ['link', { rel: 'icon', href: `${getDocsBaseUrl()}/static/images/template/ModCommon/favicon-32x32.png` }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     // Cookiebot - cookie consent popup
     ['script', {
@@ -62,7 +60,7 @@ module.exports = {
     extendPageDataPlugin,
     'tabs',
     ['sitemap', {
-      hostname: hostname,
+      hostname: getDocsBaseUrl(),
       exclude: ['/404.html']
     }],
     ['@vuepress/active-header-links', {
