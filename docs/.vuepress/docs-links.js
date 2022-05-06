@@ -14,11 +14,11 @@ module.exports = function(src) {
 
     try {
       const fm = parseFrontmatter(fs.readFileSync(path.resolve(basePath, version, file)));
-      const frameworkPathPart = framework ? `/${framework}${helpers.FRAMEWORK_SUFFIX}/` : '';
+      const frameworkPathPart = framework ? `${framework}${helpers.FRAMEWORK_SUFFIX}/` : '';
 
       if (fm.data.permalink) {
         permalink = fm.data.permalink;
-        permalink = permalink.replace(new RegExp(`^/(${version})/`), `/$1${frameworkPathPart}`);
+        permalink = permalink.replace(new RegExp(`^(/${version}/)`), `$1${frameworkPathPart}`);
 
         if ((helpers.getEnvDocsVersion() && helpers.getEnvDocsFramework()) || latest === version) {
           permalink = permalink.replace(new RegExp(`^/${version}/`), '/');

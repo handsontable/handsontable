@@ -18,6 +18,7 @@ const frameworkIdToFullName = new Map([
   ['vue2', 'Vue 2'],
   ['vue3', 'Vue 3'],
 ]);
+const frameworkSuffix = '-data-grid/';
 
 export default {
   name: 'FrameworksDropdown',
@@ -27,10 +28,10 @@ export default {
   methods: {
     getLink(framework) {
       if (this.$page.currentVersion === this.$page.latestVersion) {
-        return `/docs/${framework}-data-grid/`;
+        return `/docs/${framework}${frameworkSuffix}`;
       }
 
-      return `/docs/${this.$page.currentVersion}/${framework}-data-grid/`;
+      return `/docs/${this.$page.currentVersion}/${framework}${frameworkSuffix}`;
     },
     getFrameworkName(id) {
       return frameworkIdToFullName.get(id);
