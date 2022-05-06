@@ -1,5 +1,5 @@
 <template>
-  <nav class="nav-versions nav-links" v-if="isFrameworked">
+  <nav class="nav-frameworks nav-links" v-if="isFrameworked">
     <img :src="imageUrl"/>
     <!-- user links -->
     <nav class="nav-item" >
@@ -20,7 +20,7 @@ const frameworkIdToFullName = new Map([
 ]);
 
 export default {
-  name: 'Frameworks',
+  name: 'FrameworksDropdown',
   components: {
     DropdownLink
   },
@@ -66,7 +66,7 @@ export default {
 </script>
 
 <style lang="stylus">
-.nav-versions
+.nav-frameworks
   margin-left 1.25rem
   margin-right 1.5rem
   display inline-block
