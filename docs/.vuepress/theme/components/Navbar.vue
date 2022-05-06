@@ -10,8 +10,8 @@
     <Logo />
 
     </RouterLink>
-    <Versions></Versions>
-
+    <VersionsDropdown></VersionsDropdown>
+    <FrameworksDropdown></FrameworksDropdown>
     <ThemeSwitcher />
 
     <div
@@ -37,19 +37,21 @@ import AlgoliaSearchBox from '@AlgoliaSearchBox';
 import SearchBox from '@theme/components/SearchBox';
 import SidebarButton from '@theme/components/SidebarButton.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
-import Versions from '@theme/components/Versions.vue';
+import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
+import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
 import { ensureExt } from '@vuepress/theme-default/util';
 import Logo from './Logo.vue';
 
 export default {
   name: 'Navbar',
   components: {
+    FrameworksDropdown,
     SidebarButton,
     NavLinks,
     SearchBox,
     AlgoliaSearchBox,
-    Versions,
+    VersionsDropdown,
     ThemeSwitcher,
     Logo
   },
