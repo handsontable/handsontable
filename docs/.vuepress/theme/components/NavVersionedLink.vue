@@ -31,9 +31,12 @@ export default {
       const framework = this.$page.currentFramework ?
         `/${this.$page.currentFramework}${this.$page.frameworkSuffix}` : '';
 
-      if (this.$page.currentVersion === this.$page.latestVersion ||
-        (this.$page.DOCS_VERSION && this.$page.DOCS_FRAMEWORK)) {
-        return ensureExt(this.item.link);
+      // Already have version and framework placed in the url.
+      if (this.$page.DOCS_VERSION && this.$page.DOCS_FRAMEWORK) {
+        return ensureExt(link);
+
+      } else if (this.$page.currentVersion === this.$page.latestVersion) {
+        return ensureExt(`${framework}${link}`);
 
       } else {
         return ensureExt(`/${this.$page.currentVersion}${framework}${link}`);
