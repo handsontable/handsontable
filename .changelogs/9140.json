@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue with registering modules for React wrapper",
-  "type": "fixed",
-  "issue": 9140,
-  "breaking": false,
-  "framework": "react"
-}

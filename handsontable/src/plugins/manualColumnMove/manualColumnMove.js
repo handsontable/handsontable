@@ -20,6 +20,8 @@ const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--columns';
 const CSS_AFTER_SELECTION = 'after-selection--columns';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin ManualColumnMove
  * @class ManualColumnMove
@@ -130,7 +132,10 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`manualColumnMove`](@/api/options.md#manualcolumnmove)
    */
   updatePlugin() {
     this.disablePlugin();

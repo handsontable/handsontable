@@ -276,6 +276,52 @@ describe('Comments', () => {
 
       expect(editorStyle.display).toBe('block');
     });
+
+    it('should display in the right position when the table is initialized within the scrollable parent element', async() => {
+      const testContainer = $(`
+        <div style="width: 250px; height: 200px; overflow: scroll;">
+          <div style="width: 2000px; height: 2000px;">
+            <div id="hot-container"></div>
+          </div>
+        </div>
+      `).appendTo(spec().$container);
+
+      const hot = new Handsontable(testContainer.find('#hot-container')[0], {
+        data: createSpreadsheetData(10, 10),
+        width: 200,
+        height: 150,
+        rowHeaders: true,
+        colHeaders: true,
+        comments: {
+          displayDelay: 1
+        },
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Some comment' } },
+        ]
+      });
+
+      testContainer
+        .scrollLeft(10)
+        .scrollTop(10);
+
+      const cell = $(hot.getCell(1, 1));
+
+      cell.simulate('mouseover', {
+        clientX: cell.offset().left + 5,
+        clientY: cell.offset().top + 5,
+      });
+
+      await sleep(10);
+
+      const commentEditorOffset = $(hot.getPlugin('comments').editor.getInputElement()).offset();
+
+      expect({
+        top: commentEditorOffset.top,
+        left: commentEditorOffset.left - cell.outerWidth(),
+      }).toEqual(cell.offset());
+
+      hot.destroy();
+    });
   });
 
   describe('API', () => {
