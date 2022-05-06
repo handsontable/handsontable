@@ -29,6 +29,8 @@ const environmentHead = buildMode === 'production' ?
   ]
   : [];
 
+const hostname = `https://${buildMode === 'staging' ? 'dev.' : ''}handsontable.com`;
+
 module.exports = {
   define: {
     GA_ID: 'UA-33932793-7',
@@ -40,7 +42,7 @@ module.exports = {
   description: 'Handsontable',
   base,
   head: [
-    ['link', { rel: 'icon', href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png' }],
+    ['link', { rel: 'icon', href: `${hostname}/static/images/template/ModCommon/favicon-32x32.png` }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     // Cookiebot - cookie consent popup
     ['script', {
@@ -60,7 +62,7 @@ module.exports = {
     extendPageDataPlugin,
     'tabs',
     ['sitemap', {
-      hostname: 'https://handsontable.com',
+      hostname: hostname,
       exclude: ['/404.html']
     }],
     ['@vuepress/active-header-links', {
