@@ -1,7 +1,7 @@
-name: Docs Staging Deployment
+name: Docs Staging Build
 
 env:
-  GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:latest
+  GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:staging
   GHA_DOCKER_TAG_SHA: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:${{ github.sha }}
 
 on:
@@ -56,15 +56,14 @@ jobs:
         id: pr-finder
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-  
+
       - name: Publish sticky comment in PR
         uses: marocchino/sticky-pull-request-comment@6804b5ad49d19c10c9ae7cf5057352f7ff333f31 # https://github.com/marocchino/sticky-pull-request-comment/tree/v1.6.0
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.pr-finder.outputs.pr }}
           message: |
-            Launch the local version of documentation by running: 
+            Launch the local version of documentation by running:
             ```bash
             npm run docs:review ${{ github.sha }}
             ```
-            
