@@ -1,10 +1,54 @@
-import Handsontable from "handsontable";
+import Handsontable from "handsontable/base";
 import "handsontable/dist/handsontable.min.css";
 import "pikaday/css/pikaday.css";
 
-import { data } from "./constants";
+import { generateExampleData, isArabicDemoEnabled } from "./utils";
 import { progressBarRenderer, starRenderer } from "./customRenderers";
 import "./styles.css";
+import { registerLanguageDictionary, arAR } from "handsontable/i18n";
+
+// choose cell types you want to use and import them
+import {
+  registerCellType,
+  CheckboxCellType,
+  DateCellType,
+  DropdownCellType,
+  NumericCellType,
+} from "handsontable/cellTypes";
+
+import {
+  registerPlugin,
+  AutoColumnSize,
+  ContextMenu,
+  CopyPaste,
+  DropdownMenu,
+  Filters,
+  HiddenColumns,
+  HiddenRows,
+  ManualRowMove,
+  MultiColumnSorting,
+  UndoRedo,
+} from 'handsontable/plugins';
+
+// register imported cell types and plugins
+registerPlugin(AutoColumnSize);
+registerPlugin(ContextMenu);
+registerPlugin(CopyPaste);
+registerPlugin(DropdownMenu);
+registerPlugin(Filters);
+registerPlugin(HiddenColumns);
+registerPlugin(HiddenRows);
+registerPlugin(ManualRowMove);
+registerPlugin(MultiColumnSorting);
+registerPlugin(UndoRedo);
+
+// register imported cell types and plugins
+registerCellType(DateCellType);
+registerCellType(DropdownCellType);
+registerCellType(CheckboxCellType);
+registerCellType(NumericCellType);
+
+registerLanguageDictionary(arAR);
 
 import {
   alignHeaders,
@@ -15,7 +59,9 @@ import {
 const example = document.getElementById("example");
 
 new Handsontable(example, {
-  data,
+  data: generateExampleData(),
+  layoutDirection: isArabicDemoEnabled() ? "rtl" : "ltr",
+  language: isArabicDemoEnabled() ? arAR.languageCode : "en-US",
   height: 450,
   colWidths: [140, 192, 100, 90, 90, 110, 97, 100, 126],
   colHeaders: [
@@ -35,7 +81,8 @@ new Handsontable(example, {
     {
       data: 4,
       type: "date",
-      allowInvalid: false
+      allowInvalid: false,
+      dateFormat: isArabicDemoEnabled() ? "M/D/YYYY" : "DD/MM/YYYY",
     },
     {
       data: 6,
