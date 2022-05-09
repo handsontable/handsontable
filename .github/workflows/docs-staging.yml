@@ -42,7 +42,7 @@ jobs:
           docker tag docs-md $GHA_DOCKER_TAG
           docker tag docs-md $GHA_DOCKER_TAG_SHA
 
-      - name: Docker push latest into GHCR (only when manually dispatched)
+      - name: Docker push latest into GHCR and deploy to the staging (only when manually dispatched)
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           docker push ${GHA_DOCKER_TAG}
