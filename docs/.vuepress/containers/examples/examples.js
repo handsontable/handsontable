@@ -101,7 +101,7 @@ module.exports = {
       const htmlContent = htmlToken
         ? htmlToken.content
         : `<div id="${id}" class="hot ${klass}"></div>`;
-      const htmlContentRoot = `<div data-preset-type="${preset}">${htmlContent}</div>`;
+      let htmlContentRoot = `<div data-preset-type="${preset}">${htmlContent}</div>`;
 
       const cssPos = args.match(/--css (\d*)/)?.[1];
       const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;
@@ -139,11 +139,16 @@ module.exports = {
         );
 
         if (!translatedSnippetContent.error) {
+          const basePreset = preset;
+
           // Inject a correct preset for the framework.
           preset = preset.replace('hot', framework.replace(/\d/, ''));
 
           // Workaround for `hot` presets having the `lang` postfix, while other frameworks -> `languages`.
           preset = preset.replace('lang', 'languages');
+
+          // Replace the `data-preset-type` attribute value with the updates preset name.
+          htmlContentRoot = htmlContentRoot.replace(`data-preset-type="${basePreset}"`, `data-preset-type="${preset}"`);
 
           jsContent = translatedSnippetContent;
           jsToken.content = jsContent;
