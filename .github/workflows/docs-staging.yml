@@ -1,7 +1,7 @@
-name: Docs Staging Build
+name: Docs Staging Deployment
 
 env:
-  GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:staging
+  GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:latest
   GHA_DOCKER_TAG_SHA: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:${{ github.sha }}
 
 on:
@@ -42,8 +42,8 @@ jobs:
           docker tag docs-md $GHA_DOCKER_TAG
           docker tag docs-md $GHA_DOCKER_TAG_SHA
 
-      - name: Docker push latest into GHCR (only on develop or when manually dispatched)
-        if: ${{ github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch' }}
+      - name: Docker push latest into GHCR (only when manually dispatched)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           docker push ${GHA_DOCKER_TAG}
 
