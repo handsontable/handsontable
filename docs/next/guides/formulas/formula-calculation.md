@@ -490,8 +490,19 @@ For more information about named expressions, please refer to the [HyperFormula 
 
 <iframe width="100%" height="425px" src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
 
-## Read more
+## Related articles
 
-* [`Formulas` plugin API reference](@/api/formulas.md)
-* [HyperFormula guides](https://handsontable.github.io/hyperformula/)
-* [HyperFormula API reference](https://handsontable.github.io/hyperformula/api/)
+#### HyperFormula documentation
+
+- [HyperFormula guides](https://handsontable.github.io/hyperformula/)
+- [HyperFormula API reference](https://handsontable.github.io/hyperformula/api/)
+
+#### Related blog articles
+
+- [Handsontable 9.0.0: New formula plugin](https://handsontable.com/blog/handsontable-9.0.0-new-formula-plugin)
+- [8 examples of useful Excel functions in HyperFormula](https://handsontable.com/blog/8-examples-of-useful-excel-functions-in-hyperformula)
+
+#### Related API reference
+
+- [Options: `formulas`](@/api/options.md#formulas)
+- [Plugins: `Formuas`](@/api/formulas.md)

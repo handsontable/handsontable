@@ -663,3 +663,8 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related API reference
+
+- [Core methods: `updateSettings()`](@/api/core.md#updatesettings)
+- [List of all options](@/api/options.md)

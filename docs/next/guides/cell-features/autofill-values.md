@@ -1,6 +1,6 @@
 ---
-title: AutoFill values
-metaTitle: AutoFill - Guide - Handsontable Documentation
+title: Autofill values
+metaTitle: Autofill - Guide - Handsontable Documentation
 permalink: /next/autofill-values
 canonicalUrl: /autofill-values
 tags:
@@ -11,7 +11,7 @@ tags:
   - square
 ---
 
-# AutoFill values
+# Autofill values
 
 [[toc]]
 
@@ -79,3 +79,8 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related API reference
+
+- [Options: `fillHandle`](@/api/options.md#fillhandle)
+- [Plugins: `Autofill`](@/api/autofill.md)

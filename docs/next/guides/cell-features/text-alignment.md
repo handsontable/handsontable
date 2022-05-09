@@ -56,3 +56,18 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related API reference
+
+Options:
+  - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
+  - [`className`](@/api/options.md#classname)
+  - [`commentedCellClassName`](@/api/options.md#commentedcellclassname)
+  - [`currentColClassName`](@/api/options.md#currentcolclassName)
+  - [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
+  - [`currentRowClassName`](@/api/options.md#currentrowclassname)
+  - [`invalidCellClassName`](@/api/options.md#invalidcellclassnameclassname)
+  - [`noWordWrapClassName`](@/api/options.md#nowordwrapclassname)
+  - [`placeholderCellClassName`](@/api/options.md#placeholdercellclassname)
+  - [`readOnlyCellClassName`](@/api/options.md#readonlycellclassname)
+  - [`tableClassName`](@/api/options.md#tableclassname)

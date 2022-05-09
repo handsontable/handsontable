@@ -174,3 +174,20 @@ To increase the performance, you can turn off this feature by defining the fixed
 ## Size of the container
 
 Setting the dimensions of the container that holds Handsontable is described in detail on the [Grid Size](@/guides/getting-started/grid-size.md) page.
+
+## Related articles
+
+#### Related guides
+
+- [Row height](@/guides/rows/row-height.md)
+
+#### Related API reference
+
+Configuration options:
+- [`colWidths`](@/api/options.md#
+- [`manualColumnResize`](@/api/options.md#manualcolumnresize)
+- [`stretchH`](@/api/options.md#stretchh)
+
+Plugins:
+- [`AutoColumnSize`](@/api/autoColumnSize.md)
+- [`ManualColumnResize`](@/api/manualColumnResize.md)

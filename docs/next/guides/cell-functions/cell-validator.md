@@ -187,3 +187,20 @@ const hot = new Handsontable(container, {
 Edit the above grid to see callback
 
 **Note:** Please keep in mind that changes in table are applied after running **all validators** (both synchronous and and asynchronous) from **every** changed cells.
+
+## Related articles
+
+#### Related guides
+
+- [Custom renderer in Angular](@/guides/integrate-with-angular/angular-custom-renderer-example.md)
+- [Custom renderer in React](@/guides/integrate-with-react/react-custom-renderer-example.md)
+- [Custom renderer in Vue 2](@/guides/integrate-with-vue/vue-custom-renderer-example.md)
+- [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example.md)
+
+#### Related API reference
+
+- [`BasePlugin`](@/api/basePlugin.md)
+- [Options: `validator`](@/api/options.md#validator)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellValidator()`](@/api/core.md#getcellvalidator)

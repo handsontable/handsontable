@@ -146,3 +146,17 @@ const hot = new Handsontable(container, {
 | <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
 | <kbd>**Delete**</kbd>    | <kbd>**Delete**</kbd>    | Uncheck the checkbox          | &cross; | &check; |
 | <kbd>**Backspace**</kbd> | <kbd>**Backspace**</kbd> | Uncheck the checkbox          | &cross; | &check; |
+
+## Related articles
+
+#### Related guides
+
+- [Cell type](@/guides/cell-types/cell-type.md)
+
+#### Related API reference
+
+Configuration options:
+- [`checkedTemplate`](@/api/options.md#checkedtemplate)
+- [`label`](@/api/options.md#label)
+- [`type`](@/api/options.md#type)
+- [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate)

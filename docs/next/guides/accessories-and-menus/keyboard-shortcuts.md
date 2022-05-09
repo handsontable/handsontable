@@ -365,3 +365,15 @@ hot.addHook('beforeKeyDown', (event) => {
   }
 });
 ```
+
+## Related articles
+
+#### Related blog articles
+
+- [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
+
+#### Related API reference
+
+- [API: `ShortcutContext`](@/api/shortcutContext.md)
+- [API: `ShortcutManager`](@/api/shortcutManager.md)
+- [Core methods: `getShortcutManager()`](@/api/core.md#getshortcutmanager)

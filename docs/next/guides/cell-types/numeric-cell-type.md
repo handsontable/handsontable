@@ -78,3 +78,13 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Cell type](@/guides/cell-types/cell-type.md)
+
+#### Related API reference
+
+- [Options: `type`](@/api/options.md#type)

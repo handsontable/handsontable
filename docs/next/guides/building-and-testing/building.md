@@ -282,3 +282,14 @@ From the `./wrappers/vue3` directory, you can also run individual Vue 3 `build` 
     - `./wrappers/vue3/dist/vue-handsontable.min.js`
     - `./wrappers/vue3/dist/vue-handsontable.min.js.map`
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Packages](@/guides/building-and-testing/packages.md)
+- [Testing](@/guides/building-and-testing/testing.md)
+
+#### Related blog articles
+
+- [How to build a custom version of Handsontable](https://handsontable.com/blog/how-to-build-a-custom-version-of-handsontable)

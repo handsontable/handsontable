@@ -12,7 +12,7 @@ tags:
 [[toc]]
 
 ## Overview
-The **Filters plugin** allows filtering the data in the table's columns using a range of pre-defined conditions.
+The [`Filters`](@/api/filters.md) plugin allows filtering the data in the table's columns using a range of pre-defined conditions.
 
 ## Basic configuration
 
@@ -466,3 +466,13 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related API reference
+
+Configuration options:
+- [`dropdownMenu`](@/api/options.md#dropdownmenu)
+- [`filters`](@/api/options.md#filters)
+
+Plugins:
+- [`DropdownMenu`](@/api/dropdownMenu.md)
+- [`Filters`](@/api/filters.md)

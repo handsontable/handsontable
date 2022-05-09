@@ -208,3 +208,24 @@ const hot = new Handsontable(container, {
 | <kbd>**Page Down**</kbd> | <kbd>**Page Down**</kbd> | Move to the last visible item of the context menu or submenu  | &check; | &cross; |
 | <kbd>**Escape**</kbd>    | <kbd>**Escape**</kbd>    | Close the context menu or submenu                             | &check; | &check; |
 | <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Run the action of the selected menu item                      | &check; | &cross; |
+
+## Related articles
+
+#### Related guides
+
+- [Custom context menu in Angular](@/guides/integrate-with-angular/angular-custom-context-menu-example.md)
+- [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
+- [Adding comments via the context menu](@/guides/cell-features/comments.md#adding-comments-via-the-context-menu)
+- [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
+- [Custom context menu in React](@/guides/integrate-with-react/react-custom-context-menu-example.md)
+- [Custom context menu in Vue 2](@/guides/integrate-with-vue/vue-custom-context-menu-example.md)
+- [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example.md)
+
+#### Related blog articles
+
+- [Customize Handsontable context menu](https://handsontable.com/blog/customize-handsontable-context-menu)
+
+#### Related API reference
+
+- [Options: `contextMenu`](@/api/options.md#contextmenu)
+- [Plugins: `ContextMenu`](@/api/contextMenu.md)

@@ -57,3 +57,14 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Context menu](@/guides/accessories-and-menus/context-menu.md)
+
+#### Related API reference
+
+- [Options: `dropdownMenu`](@/api/options.md#dropdownmenu)
+- [Plugins: `DropdownMenu`](@/api/dropdownMenu.md)

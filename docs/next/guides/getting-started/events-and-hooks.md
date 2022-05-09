@@ -320,3 +320,7 @@ hot.updateSettings({
 });
 ```
 :::
+
+## Related API reference
+
+- [List of all hooks](@/api/hooks.md)

@@ -248,3 +248,20 @@ If you did't find a suitable _Handsontable event_ put the cell content into a wr
 ## Performance considerations
 
 Cell renderers are called separately for every displayed cell, during every table render. Table can be rendered multiple times during its lifetime (after table scroll, after table sorting, after cell edit etc.), therefore you should keep your `renderer` functions as simple and fast as possible or you might experience a performance drop, especially when dealing with large sets of data.
+
+## Related articles
+
+#### Related guides
+
+- [Custom renderer in Angular](@/guides/integrate-with-angular/angular-custom-renderer-example.md)
+- [Custom renderer in React](@/guides/integrate-with-react/react-custom-renderer-example.md)
+- [Custom renderer in Vue 2](@/guides/integrate-with-vue/vue-custom-renderer-example.md)
+- [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example.md)
+
+#### Related API reference
+
+- [`BasePlugin`](@/api/basePlugin.md)
+- [Options: `renderer`](@/api/options.md#renderer)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)

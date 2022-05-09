@@ -44,7 +44,7 @@ See other available initialization methods [here](@/guides/formulas/formula-calc
 
 ## Autofill hooks
 
-To make autofill hooks more consistent and more powerful, [`beforeAutofill`](@/hooks.md#beforeautofill) and [`afterAutofill`](@/hooks.md#afterautofill) hooks have had their signatures changed.
+To make autofill hooks more consistent and more powerful, [`beforeAutofill`](@/api/hooks.md#beforeautofill) and [`afterAutofill`](@/api/hooks.md#afterautofill) hooks have had their signatures changed.
 
 Before 9.0.0:
 
@@ -74,7 +74,7 @@ new Handsontable(container, {
 })
 ```
 
-In [`beforeAutofill`](@/hooks.md#beforeautofill) instead of mutating [`data`](@/options.md#data), you can now just return a new array of arrays with your desired fill pattern.
+In [`beforeAutofill`](@/api/hooks.md#beforeautofill) instead of mutating [`data`](@/api/options.md#data), you can now just return a new array of arrays with your desired fill pattern.
 
 ## Removed plugins
 
@@ -85,7 +85,7 @@ In Handsontable `9.0.0` we removed the following, previously-deprecated plugins:
 
 ### Header Tooltips
 
-To implement functionality similar to that of the Header Tooltips plugin, you can utilize the [`afterGetColHeader`](@/hooks.md#aftergetcolheader) and [`afterGetRowHeader`](@/hooks.md#aftergetrowheader) hooks to add a `title` attribute to the headers.  
+To implement functionality similar to that of the Header Tooltips plugin, you can utilize the [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader) and [`afterGetRowHeader`](@/api/hooks.md#aftergetrowheader) hooks to add a `title` attribute to the headers.  
 See the snippet below for example implementation.
 
 ```js
@@ -109,4 +109,4 @@ const hot = new Handsontable(example, {
 
 ### Observe Changes
 
-The plugin fired the [`afterChangesObserved`](@/hooks.md#afterchangesobserved) hook. Be sure to stop listening to it after updating to version `>=9.0.0`.
+The plugin fired the [`afterChangesObserved`](@/api/hooks.md#afterchangesobserved) hook. Be sure to stop listening to it after updating to version `>=9.0.0`.

@@ -72,3 +72,21 @@ const hot = new Handsontable(container, {
 ## Nested headers
 
 More complex data structures can be displayed with multiple headers, each representing a different category of data. To learn more about nested headers, see the [column groups](@/guides/columns/column-groups.md) page.
+
+## Related articles
+
+#### Related guides
+
+- [Column groups](@/guides/columns/column-groups.md)
+- [Row header](@/guides/rows/row-headers.md)
+
+#### Related API reference
+
+Configuration options:
+- [`colHeaders`](@/api/options.md#colheaders)
+- [`columnHeaderHeight`](@/api/options.md#columnheaderheight)
+- [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
+- [`nestedHeaders`](@/api/options.md#nestedheaders)
+
+Plugins:
+- [`NestedHeaders`](@/api/nestedHeaders.md)

@@ -68,3 +68,18 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Row freezing](@/guides/rows/row-freezing.md)
+
+#### Related API reference
+
+Configuration options:
+- [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart)
+- [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze)
+
+Plugins:
+- [`ManualColumnFreeze`](@/api/manualColumnFreeze.md)

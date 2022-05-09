@@ -440,3 +440,24 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related articles
+
+#### Related blog articles
+
+- [Handsontable 11.1.0: Vue 3 support and `updateData()`](https://handsontable.com/blog/handsontable-11.1.0-vue-3-support-and-updatedata)
+
+#### Related API reference
+
+Configuration options:
+- [`data`](@/api/options.md#data)
+- [`dataSchema`](@/api/options.md#dataschema)
+
+Core methods:
+- [`loadData()`](@/api/core.md#loaddata)
+- [`populateFromArray()`](@/api/core.md#populatefromarray)
+- [`setDataAtCell()`](@/api/core.md#setdataatcell)
+- [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)
+- [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)
+- [`updateData()`](@/api/core.md#updatedata)
+- [`updateSettings()`](@/api/core.md#updatesettings)

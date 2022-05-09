@@ -251,3 +251,16 @@ Handsontable.dom.addEvent(buttonWith, 'click', () => {
 });
 ```
 :::
+
+## Related articles
+
+#### Related blog articles
+
+- [Handsontable 8.3.0 has been released](https://handsontable.com/blog/handsontable-8.3.0-has-been-released)
+
+#### Related API reference
+
+Core mehods:
+- [`batch()`](@/api/core.md#batch)
+- [`batchExecution()`](@/api/core.md#batchexecution)
+- [`batchRender()`](@/api/core.md#batchrender)

@@ -26,7 +26,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-## Adding the comments via the Context Menu
+## Adding comments via the context menu
 
 After you've enabled the plugin, the [Context Menu](@/guides/accessories-and-menus/context-menu.md) gains a few new items:
 

@@ -243,3 +243,14 @@ plugin.showColumns([0, 4, 6]);
 // re-render your Handsontable instance
 hot.render()
 ```
+
+## Related articles
+
+#### Related guides
+
+- [Row hiding](@/guides/rows/row-hiding.md)
+
+#### Related API reference
+
+- [Options: `hiddenColumns`](@/api/options.md#hiddencolumns)
+- [Plugins: `HiddenColumns`](@/api/hiddenColumns.md)

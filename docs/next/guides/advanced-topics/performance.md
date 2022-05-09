@@ -95,3 +95,19 @@ new Handsontable(container, {
 ```
 
 You can also optimize the use of **moment.js**. To find out more about this topic, see the [modules page](@/guides/building-and-testing/modules.md).
+
+## Related articles
+
+#### Related guides
+
+- [Batch operations](@/guides/advanced-topics/batch-operations.md)
+- [Modules](@/guides/building-and-testing/modules.md)
+
+#### Related API reference
+
+Configuration options:
+- [`autoColumnSize`](@/api/options.md#autocolumnsize)
+- [`autoRowSize`](@/api/options.md#autorowsize)
+- [`colWidths`](@/api/options.md#colwidths)
+- [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
+- [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)

@@ -731,3 +731,20 @@ const hot = new Handsontable(container, {
 | <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                           | Cancel the cell entry and exit the editing mode                   | &check; | &check; |
 
 <sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction.md).
+
+## Related articles
+
+#### Related guides
+
+- [Custom editor in Angular](@/guides/integrate-with-angular/angular-custom-editor-example.md)
+- [Custom editor in React](@/guides/integrate-with-react/react-custom-editor-example.md)
+- [Custom editor in Vue 2](@/guides/integrate-with-vue/vue-custom-editor-example.md)
+- [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example.md)
+
+#### Related API reference
+
+- [`BasePlugin`](@/api/basePlugin.md)
+- [Options: `editor`](@/api/options.md#editor)
+- Core methods:
+  - [`getCellEditor()`](@/api/core.md#getcelleditor)
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)

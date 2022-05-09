@@ -81,3 +81,26 @@ To get the actual cell function use appropriate _cell function getter_:
 * [`getCellValidator(row, col)`](@/api/core.md#getcellvalidator)
 
 Those functions will always return an appropriate value, regardless of whether cell functions have been defined directly or using a cell type.
+
+## Related articles
+
+#### Related guides
+
+- [Cell editor](@/guides/cell-functions/cell-editor.md)
+- [Cell renderer](@/guides/cell-functions/cell-renderer.md)
+- [Cell type](@/guides/cell-types/cell-type.md)
+- [Cell validator](@/guides/cell-functions/cell-validator.md)
+
+#### Related API reference
+
+Configuration options:
+- [`editor`](@/api/options.md#editor)
+- [`renderer`](@/api/options.md#renderer)
+- [`type`](@/api/options.md#type)
+- [`validator`](@/api/options.md#validator)
+
+Core methods:
+- [`getCellEditor()`](@/api/core.md#getcelleditor)
+- [`getCellMeta()`](@/api/core.md#getcellmeta)
+- [`getCellRenderer()`](@/api/core.md#getcellrenderer)
+- [`getCellValidator()`](@/api/core.md#getcellvalidator)

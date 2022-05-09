@@ -93,3 +93,17 @@ _The license key for Handsontable expired on `[expiration_date]`, and is not val
 ## Get a license key
 
 To get a commercial license key for your Handsontable copy, contact our [Sales Team](https://handsontable.com/get-a-quote).
+
+## Related articles
+
+#### Related guides
+
+- [Software license](@/guides/technical-specification/software-license.md)
+
+#### Related blog articles
+
+- [Handsontable drops open source for a non-commercial license](https://handsontable.com/blog/articles/2019/3/handsontable-drops-open-source-for-a-non-commercial-license)
+
+#### Related API reference
+
+- [Options: `licenseKey`](@/api/options.md#licensekey)

@@ -120,7 +120,7 @@ Handsontable.dom.addEvent(cutBtn, 'click', function () {
 
 ### Hooks
 
-The **CopyPaste** plugin exposes the following hooks to manipulate data during copy or cut operations:
+The [CopyPaste](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during copy or cut operations:
 
 - [`beforeCopy`](@/api/hooks.md#beforecopy)
 - [`afterCopy`](@/api/hooks.md#aftercopy)
@@ -153,7 +153,7 @@ Due to security reason, modern browsers disallow to read from the system clipboa
 
 ### Hooks
 
-The **CopyPaste** plugin exposes the following hooks to manipulate data during the pasting operation:
+The [CopyPaste](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during the pasting operation:
 
 - [`beforePaste`](@/api/hooks.md#beforepaste)
 - [`afterPaste`](@/api/hooks.md#afterpaste)
@@ -162,7 +162,7 @@ Examples of how to use them are provided in their descriptions.
 
 ## Limitations
 
-1.  The **CopyPaste** plugin doesn't copy, cut or paste cells' appearance.
+1.  The [`CopyPaste`](@/api/copyPaste.md) plugin doesn't copy, cut or paste cells' appearance.
 2.  The data copied from Handsontable will always remain as plain text. For example, if you copy a checked checkbox, the input will be kept as a value of `'true'`.
 3.  `document.execCommand` can be called only during an immediate-execute event, such as a `MouseEvent` or a `KeyboardEvent`.
 
@@ -173,3 +173,8 @@ Examples of how to use them are provided in their descriptions.
 | <kbd>**Ctrl**</kbd> + <kbd>**X**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**X**</kbd> | Cut the contents of the selected cells to the system clipboard  | &check; | &check; |
 | <kbd>**Ctrl**</kbd> + <kbd>**C**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
 | <kbd>**Ctrl**</kbd> + <kbd>**V**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
+
+## Related API reference
+
+- [Options: `copyPaste`](@/api/options.md#copypaste)
+- [Plugins: `CopyPaste`](@/api/copyPaste.md)

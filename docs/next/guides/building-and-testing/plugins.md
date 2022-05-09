@@ -276,3 +276,8 @@ const pluginInstance = hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
 
 pluginInstance.externalMethodExample();
 ```
+
+## Related API reference
+
+- [`BasePlugin`](@/api/basePlugin.md)
+- [Core methods: `getPlugin()`](@/api/core.md#getplugin)
