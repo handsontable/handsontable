@@ -138,20 +138,20 @@ We took this opportunity to improve the behavior of Handsontable's default keybo
 - Improve the consistency of keyboard navigation
 - Create a more intuitive user experience
 
-#### <kbd>Ctrl</kbd> vs <kbd>Cmd</kbd>
+#### <kbd>**Ctrl**</kbd> vs <kbd>**Cmd**</kbd>
 
-Handsontable 12.0 splits a cross-platform modifier key (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>) into two separate keys.
-Now, the <kbd>Cmd</kbd> key triggers actions on macOS where the <kbd>Ctrl</kbd> key triggers actions on Windows.
+Handsontable 12.0 splits a cross-platform modifier key (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>) into two separate keys.
+Now, the <kbd>**Cmd**</kbd> key triggers actions on macOS where the <kbd>**Ctrl**</kbd> key triggers actions on Windows.
 
-For example, the table below shows how this change affects the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>A</kbd> shortcut:
+For example, the table below shows how this change affects the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**A**</kbd> shortcut:
 
 |         | Before                                                                      | After                                     |
 | ------- | --------------------------------------------------------------------------- | ----------------------------------------- |
-| Windows | <kbd>Ctrl</kbd> + <kbd>A</kbd> works<br><kbd>Cmd</kbd> + <kbd>A</kbd> works | Only <kbd>Ctrl</kbd> + <kbd>A</kbd> works |
-| macOS   | <kbd>Ctrl</kbd> + <kbd>A</kbd> works<br><kbd>Cmd</kbd> + <kbd>A</kbd> works | Only <kbd>Cmd</kbd> + <kbd>A</kbd> works  |
+| Windows | <kbd>**Ctrl**</kbd> + <kbd>**A**</kbd> works<br><kbd>**Cmd**</kbd> + <kbd>**A**</kbd> works | Only <kbd>**Ctrl**</kbd> + <kbd>**A**</kbd> works |
+| macOS   | <kbd>**Ctrl**</kbd> + <kbd>**A**</kbd> works<br><kbd>**Cmd**</kbd> + <kbd>**A**</kbd> works | Only <kbd>**Cmd**</kbd> + <kbd>**A**</kbd> works  |
 
 ::: tip
-The default keyboard shortcut for [merging cells](#keyboard-shortcuts-changes-cell-merging) is an exception: <kbd>Cmd</kbd> + <kbd>M</kbd> doesn't work anymore, as it conflicted with macOS's shortcut for window minimizing.
+The default keyboard shortcut for [merging cells](#keyboard-shortcuts-changes-cell-merging) is an exception: <kbd>**Cmd**</kbd> + <kbd>**M**</kbd> doesn't work anymore, as it conflicted with macOS's shortcut for window minimizing.
 :::
 
 #### Keyboard shortcuts changes: Navigation
@@ -210,8 +210,8 @@ The table below summarizes default keyboard shortcuts changes related to cell me
 
 |         | Before                                                                   | After                                                                                                                               |
 | ------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Windows | <kbd>Ctrl</kbd> + <kbd>M</kbd> works <kbd>Cmd</kbd> + <kbd>M</kbd> works | Only <kbd>Ctrl</kbd> + <kbd>M</kbd> works                                                                                           |
-| macOS   | <kbd>Ctrl</kbd> + <kbd>M</kbd> works <kbd>Cmd</kbd> + <kbd>M</kbd> works | Only <kbd>Ctrl</kbd> + <kbd>M</kbd> works<br>(<kbd>Cmd</kbd> + <kbd>M</kbd> conflicted with macOS's shortcut for window minimizing) |
+| Windows | <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> works <kbd>**Cmd**</kbd> + <kbd>**M**</kbd> works | Only <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> works                                                                                           |
+| macOS   | <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> works <kbd>**Cmd**</kbd> + <kbd>**M**</kbd> works | Only <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> works<br>(<kbd>**Cmd**</kbd> + <kbd>**M**</kbd> conflicted with macOS's shortcut for window minimizing) |
 
 #### Migrating to Handsontable 12.0
 

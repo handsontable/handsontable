@@ -198,3 +198,13 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related keyboard shortcuts
+
+| Windows                  | macOS                    | Action                                                        |  Excel  | Sheets  |
+| ------------------------ | ------------------------ | ------------------------------------------------------------- | :-----: | :-----: |
+| Arrow keys               | Arrow keys               | Move one available menu item up, down, left, or right         | &check; | &check; |
+| <kbd>**Page Up**</kbd>   | <kbd>**Page Up**</kbd>   | Move to the first visible item of the context menu or submenu | &check; | &cross; |
+| <kbd>**Page Down**</kbd> | <kbd>**Page Down**</kbd> | Move to the last visible item of the context menu or submenu  | &check; | &cross; |
+| <kbd>**Escape**</kbd>    | <kbd>**Escape**</kbd>    | Close the context menu or submenu                             | &check; | &check; |
+| <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Run the action of the selected menu item                      | &check; | &cross; |

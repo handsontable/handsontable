@@ -39,3 +39,9 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related keyboard shortcuts
+
+| Windows                                | macOS                                  | Action                              |  Excel  | Sheets  |
+| -------------------------------------- | -------------------------------------- | ----------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> | <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |

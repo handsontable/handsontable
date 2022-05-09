@@ -1,0 +1,31 @@
+name: Docs Staging Deployment
+
+env:
+  GHA_DOCKER_LATEST_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:latest
+  GHA_DOCKER_STAGING_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:staging
+
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./docs/
+
+jobs:
+  docker:
+    name: Deploy image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2
+
+      - name: Docker login into GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
+
+      - name: Docker tags
+        run: |
+          docker tag $GHA_DOCKER_STAGING_TAG $GHA_DOCKER_LATEST_TAG
+
+      - name: Docker push latest into GHCR
+        run: |
+          docker push ${GHA_DOCKER_LATEST_TAG}
