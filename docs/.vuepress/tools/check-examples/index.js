@@ -107,15 +107,22 @@ const EXAMPLE_INIT_TIMEOUT = 300;
   if (brokenExamplePaths.length > 0) {
     logger.error(`\nBroken examples found in: \n\n${brokenExamplePaths.map(
       entry =>
-        `${entry.path}: Expected: ${entry.expected}, Received: ${entry.received}.`).join('\n')}`
+        `${entry.path}: Expected: ${entry.expected}, Received: ${entry.received}.`)
+      .join('\n')}`
     );
     process.exit(1);
 
-  } else if (suspiciousPaths.length > 0) {
-    logger.error(`\nExpected 0 instances in: \n\n${suspiciousPaths.map(entry => `${entry.path}\n`)}`);
+  }
+
+  if (suspiciousPaths.length > 0) {
+    logger.warn(
+      `\nExpected 0 instances in: \n\n${suspiciousPaths.map(entry => `${entry.path}\n`).join('\n')}`
+    );
 
     process.exit(1);
-  } else {
+  }
+
+  if (brokenExamplePaths.length === 0 && suspiciousPaths.length === 0) {
     logger.success(`\nDid not find any broken examples for version ${cliVersion}.`);
     process.exit(0);
   }
