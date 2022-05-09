@@ -44,39 +44,39 @@ const hot = new Handsontable(container, {
 
 You can define items in the menu by passing the `contextMenu` option as an array of keys which are strings:
 
-| Key | Purpose | Extra conditions |
-|----|----|----|
-| `row_above` | Insert row above action | |
-| `row_below` | Insert row below action | |
-| `col_left` | Insert column left action | |
-| `col_right` | Insert column right action | |
-| `---------` | Separator | |
-| `remove_row` | Remove row action | |
-| `clear_column` | Clear column values action | |
-| `undo` | Undo action | Plugin [UndoRedo](@/api/undoRedo.md) turned on |
-| `redo` | Redo action | Plugin [UndoRedo](@/api/undoRedo.md) turned on |
-| `make_read_only` | Make read only action | |
-| `alignment` | Alignment actions | |
-| `cut` | Cut action | Plugin [CopyPaste](@/api/copyPaste.md) turned on |
-| `copy` | Copy action | Plugin [CopyPaste](@/api/copyPaste.md) turned on |
-| `freeze_column` | Freeze column action | Plugin [ManualColumnFreeze](@/api/manualColumnFreeze.md) turned on |
-| `unfreeze_column` | Unfreeze column action | Plugin [ManualColumnFreeze](@/api/manualColumnFreeze.md) turned on |
-| `borders` | Custom borders actions | Plugin [CustomBorders](@/api/customBorders.md) turned on |
-| `commentsAddEdit` | Add and edit comment actions | Plugin [Comments](@/api/comments.md) turned on |
-| `commentsRemove` | Remove comment action | Plugin [Comments](@/api/comments.md) turned on |
-| `commentsReadOnly` | Make comment read only action | Plugin [Comments](@/api/comments.md) turned on |
-| `mergeCells` | Merge and unmerge cells actions | Plugin [MergeCells](@/api/mergeCells.md) turned on |
-| `add_child` | Insert child row action | Plugin [NestedRows](@/api/nestedRows.md) turned on |
-| `detach_from_parent` | Detach from parent row action | Plugin [NestedRows](@/api/nestedRows.md) turned on |
-| `hidden_columns_hide` | Hide column(s) action | Plugin [HiddenColumns](@/api/hiddenColumns.md) turned on |
-| `hidden_columns_show` | Show hidden column(s) action | Plugin [HiddenColumns](@/api/hiddenColumns.md) turned on |
-| `hidden_rows_hide` | Hide row(s) action | Plugin [HiddenRows](@/api/hiddenRows.md) turned on |
-| `hidden_rows_show` | Show hidden row(s) action | Plugin [HiddenRows](@/api/hiddenRows.md) turned on |
-| `filter_by_condition` | First conditions select element | Plugin [Filters](@/api/filters.md) turned on |
-| `filter_operators` | Operation select element | Plugin [Filters](@/api/filters.md) turned on |
-| `filter_by_condition2` | Second conditions select element | Plugin [Filters](@/api/filters.md) turned on |
-| `filter_by_value` | Value select element | Plugin [Filters](@/api/filters.md) turned on |
-| `filter_action_bar` | Action bar element | Plugin [Filters](@/api/filters.md) turned on |
+| Key                    | Purpose                          | Extra conditions                                                   |
+| ---------------------- | -------------------------------- | ------------------------------------------------------------------ |
+| `row_above`            | Insert row above action          |                                                                    |
+| `row_below`            | Insert row below action          |                                                                    |
+| `col_left`             | Insert column left action        |                                                                    |
+| `col_right`            | Insert column right action       |                                                                    |
+| `---------`            | Separator                        |                                                                    |
+| `remove_row`           | Remove row action                |                                                                    |
+| `clear_column`         | Clear column values action       |                                                                    |
+| `undo`                 | Undo action                      | Plugin [UndoRedo](@/api/undoRedo.md) turned on                     |
+| `redo`                 | Redo action                      | Plugin [UndoRedo](@/api/undoRedo.md) turned on                     |
+| `make_read_only`       | Make read only action            |                                                                    |
+| `alignment`            | Alignment actions                |                                                                    |
+| `cut`                  | Cut action                       | Plugin [CopyPaste](@/api/copyPaste.md) turned on                   |
+| `copy`                 | Copy action                      | Plugin [CopyPaste](@/api/copyPaste.md) turned on                   |
+| `freeze_column`        | Freeze column action             | Plugin [ManualColumnFreeze](@/api/manualColumnFreeze.md) turned on |
+| `unfreeze_column`      | Unfreeze column action           | Plugin [ManualColumnFreeze](@/api/manualColumnFreeze.md) turned on |
+| `borders`              | Custom borders actions           | Plugin [CustomBorders](@/api/customBorders.md) turned on           |
+| `commentsAddEdit`      | Add and edit comment actions     | Plugin [Comments](@/api/comments.md) turned on                     |
+| `commentsRemove`       | Remove comment action            | Plugin [Comments](@/api/comments.md) turned on                     |
+| `commentsReadOnly`     | Make comment read only action    | Plugin [Comments](@/api/comments.md) turned on                     |
+| `mergeCells`           | Merge and unmerge cells actions  | Plugin [MergeCells](@/api/mergeCells.md) turned on                 |
+| `add_child`            | Insert child row action          | Plugin [NestedRows](@/api/nestedRows.md) turned on                 |
+| `detach_from_parent`   | Detach from parent row action    | Plugin [NestedRows](@/api/nestedRows.md) turned on                 |
+| `hidden_columns_hide`  | Hide column(s) action            | Plugin [HiddenColumns](@/api/hiddenColumns.md) turned on           |
+| `hidden_columns_show`  | Show hidden column(s) action     | Plugin [HiddenColumns](@/api/hiddenColumns.md) turned on           |
+| `hidden_rows_hide`     | Hide row(s) action               | Plugin [HiddenRows](@/api/hiddenRows.md) turned on                 |
+| `hidden_rows_show`     | Show hidden row(s) action        | Plugin [HiddenRows](@/api/hiddenRows.md) turned on                 |
+| `filter_by_condition`  | First conditions select element  | Plugin [Filters](@/api/filters.md) turned on                       |
+| `filter_operators`     | Operation select element         | Plugin [Filters](@/api/filters.md) turned on                       |
+| `filter_by_condition2` | Second conditions select element | Plugin [Filters](@/api/filters.md) turned on                       |
+| `filter_by_value`      | Value select element             | Plugin [Filters](@/api/filters.md) turned on                       |
+| `filter_action_bar`    | Action bar element               | Plugin [Filters](@/api/filters.md) turned on                       |
 
 ::: example #example2
 ```js
@@ -198,3 +198,13 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related keyboard shortcuts
+
+| Windows                  | macOS                    | Action                                                        |  Excel  | Sheets  |
+| ------------------------ | ------------------------ | ------------------------------------------------------------- | :-----: | :-----: |
+| Arrow keys               | Arrow keys               | Move one available menu item up, down, left, or right         | &check; | &check; |
+| <kbd>**Page Up**</kbd>   | <kbd>**Page Up**</kbd>   | Move to the first visible item of the context menu or submenu | &check; | &cross; |
+| <kbd>**Page Down**</kbd> | <kbd>**Page Down**</kbd> | Move to the last visible item of the context menu or submenu  | &check; | &cross; |
+| <kbd>**Escape**</kbd>    | <kbd>**Escape**</kbd>    | Close the context menu or submenu                             | &check; | &check; |
+| <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Run the action of the selected menu item                      | &check; | &cross; |
