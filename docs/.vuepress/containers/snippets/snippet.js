@@ -5,7 +5,8 @@ const {
 const { getDefaultFramework } = require('../../helpers');
 const {
   SnippetTransformer,
-  logChange, SUPPORTED_FRAMEWORKS
+  logChange,
+  SUPPORTED_FRAMEWORKS
 } = require('../../tools/snippet-transform/snippetTransformer');
 
 /**
