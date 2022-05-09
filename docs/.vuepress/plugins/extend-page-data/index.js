@@ -53,10 +53,11 @@ module.exports = (options, context) => {
       $page.currentFramework = DOCS_FRAMEWORK || parseFramework($page.path);
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
+      $page.isFrameworked = getDocsFrameworkedVersions(buildMode).includes($page.currentVersion);
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
 
-      const isFrameworked = getDocsFrameworkedVersions(buildMode).includes($page.currentVersion);
+      const isFrameworked = $page.isFrameworked;
       const buildingSingleVersion = DOCS_VERSION !== void 0 && (DOCS_FRAMEWORK !== void 0 || DOCS_FRAMEWORK === void 0
         && isFrameworked === false);
 
