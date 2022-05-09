@@ -2,7 +2,10 @@ const {
   getContainerFrontMatterLength,
   getContainerFramework
 } = require('../helpers');
-const { getDefaultFramework } = require('../../helpers');
+const {
+  getDefaultFramework,
+  isEnvDev
+} = require('../../helpers');
 const {
   SnippetTransformer,
   logChange,
@@ -41,13 +44,16 @@ module.exports = {
 
       tokens[index + 1].content = translatedSnippetContent;
 
-      // Log the transformation in the log file.
-      logChange(
-        snippetContent,
-        translatedSnippetContent.error || translatedSnippetContent,
-        filePath,
-        lineNumber
-      );
+      // Don't log the the HTML log file while in the watch script.
+      if (!isEnvDev()) {
+        // Log the transformation in the log file.
+        logChange(
+          snippetContent,
+          translatedSnippetContent.error || translatedSnippetContent,
+          filePath,
+          lineNumber
+        );
+      }
 
       return '';
 

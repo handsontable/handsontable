@@ -7,7 +7,10 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const { buildCode } = require('./code-builder');
 const { jsfiddle } = require('./jsfiddle');
-const { getDefaultFramework } = require('../../helpers');
+const {
+  getDefaultFramework,
+  isEnvDev
+} = require('../../helpers');
 const {
   getContainerFrontMatterLength,
   getContainerFramework
@@ -130,13 +133,16 @@ module.exports = {
         const snippetTransformer = new SnippetTransformer(framework, jsContent, filePath, lineNumber);
         const translatedSnippetContent = snippetTransformer.makeSnippet(true, true, id);
 
-        // Log the transformation in the log file.
-        logChange(
-          jsContent,
-          translatedSnippetContent.error || translatedSnippetContent,
-          filePath,
-          lineNumber
-        );
+        // Don't log the the HTML log file while in the watch script.
+        if (!isEnvDev()) {
+          // Log the transformation in the log file.
+          logChange(
+            jsContent,
+            translatedSnippetContent.error || translatedSnippetContent,
+            filePath,
+            lineNumber
+          );
+        }
 
         if (!translatedSnippetContent.error) {
           const basePreset = preset;
