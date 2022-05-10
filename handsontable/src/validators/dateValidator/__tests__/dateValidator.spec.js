@@ -338,7 +338,7 @@ describe('dateValidator', () => {
       }, 130);
     });
 
-    xit('should rewrite the string to the correct format if a date-string in different format is provided (for non-default format)', () => {
+    it('should rewrite the string to the correct format if a date-string in different format is provided (for non-default format)', () => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -381,6 +381,146 @@ describe('dateValidator', () => {
         expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-date string', 1, 'date');
         done();
       }, 100);
+    });
+  });
+
+  describe('Date formats', () => {
+    describe('with `correctFormat` disabled', () => {
+      using('data set', [
+        { value: '01/02/2023', dateFormat: 'DD/MM/YYYY' },
+        { value: '01/02/23', dateFormat: 'DD/MM/YY' },
+        { value: '1/2/23', dateFormat: 'D/M/YY' },
+        { value: '01/02/23', dateFormat: 'D/M/YY' }, // ?
+        { value: '01-02-2023', dateFormat: 'DD-MM-YYYY' },
+        { value: '1-2-23', dateFormat: 'D-M-YY' },
+        { value: '1-12-23', dateFormat: 'D-M-YY' },
+        { value: '1.2.23', dateFormat: 'D.M.YY' },
+        { value: '2023 February 2nd', dateFormat: 'YYYY MMMM Do' },
+        { value: 'Feb 2nd \'23', dateFormat: 'MMM Do \'YY' },
+        { value: 'The 2nd of February \'23', dateFormat: '[The] Do [of] MMMM \'YY' },
+        { value: 'Day: 2, Month: 2, Year: 2023', dateFormat: '[Day:] D, [Month:] M, [Year:] YYYY' },
+      ], ({ value, dateFormat }) => {
+        it('should validate positively', async() => {
+          const onAfterValidateSpy = jasmine.createSpy('onAfterValidate');
+
+          handsontable({
+            data: [[]],
+            columns: [
+              { type: 'date', dateFormat },
+            ],
+            afterValidate: onAfterValidateSpy
+          });
+
+          setDataAtCell(0, 0, value);
+
+          await sleep(50);
+
+          expect(onAfterValidateSpy).toHaveBeenCalledWith(true, value, 0, 0);
+        });
+      });
+
+      using('data set', [
+        { value: '01/02/23', dateFormat: 'DD/MM/YYYY' },
+        { value: '1/2/23', dateFormat: 'DD/MM/YY' },
+        { value: '01/02/2023', dateFormat: 'D/M/YY' },
+        { value: '1-2-23', dateFormat: 'DD-MM-YYYY' },
+        { value: '01/02/2023', dateFormat: 'DD-MM-YYYY' },
+        { value: '01-02-2023', dateFormat: 'DD.MM.YYYY' },
+        { value: '1-2-2023', dateFormat: 'D-M-YY' },
+        { value: '1.2.2023', dateFormat: 'D.M.YY' },
+        { value: '23 February 2nd', dateFormat: 'YYYY MMMM Do' },
+        { value: 'Feb 2nd \'2023', dateFormat: 'MMM Do \'YY' },
+        { value: 'The 2nd of February 2023', dateFormat: '[The] Do [of] MMMM \'YY' },
+        { value: 'Day: 2, Month: 2, Year: 23', dateFormat: '[Day:] D, [Month:] M, [Year:] YYYY' },
+        { value: 'Day: 2, Month: 2, Year: 2023', dateFormat: '[Day:] D, [Month:] M, [Year:] YY' },
+      ], ({ value, dateFormat }) => {
+        it('should validate negatively', async() => {
+          const onAfterValidateSpy = jasmine.createSpy('onAfterValidate');
+
+          handsontable({
+            data: [[]],
+            columns: [
+              { type: 'date', dateFormat },
+            ],
+            afterValidate: onAfterValidateSpy
+          });
+
+          setDataAtCell(0, 0, value);
+
+          await sleep(50);
+
+          expect(onAfterValidateSpy).toHaveBeenCalledWith(false, value, 0, 0);
+        });
+      });
+    });
+
+    describe('with `correctFormat` enabled', () => {
+      using('data set', [
+        { value: '01/02/2023', dateFormat: 'DD/MM/YYYY' },
+        { value: '01/02/23', dateFormat: 'DD/MM/YY' },
+        { value: '1/2/23', dateFormat: 'D/M/YY' },
+        { value: '01/02/23', dateFormat: 'D/M/YY' }, // ?
+        { value: '01-02-2023', dateFormat: 'DD-MM-YYYY' },
+        { value: '1-2-23', dateFormat: 'D-M-YY' },
+        { value: '1-12-23', dateFormat: 'D-M-YY' },
+        { value: '1.2.23', dateFormat: 'D.M.YY' },
+        { value: '2023 February 2nd', dateFormat: 'YYYY MMMM Do' },
+        { value: 'Feb 2nd \'23', dateFormat: 'MMM Do \'YY' },
+        { value: 'The 2nd of February \'23', dateFormat: '[The] Do [of] MMMM \'YY' },
+        { value: 'Day: 2, Month: 2, Year: 2023', dateFormat: '[Day:] D, [Month:] M, [Year:] YYYY' },
+        { value: '01/02/23', dateFormat: 'DD/MM/YYYY' },
+        { value: '1/2/23', dateFormat: 'DD/MM/YY' },
+        { value: '01/02/2023', dateFormat: 'D/M/YY' },
+        { value: '1-2-23', dateFormat: 'DD-MM-YYYY' },
+        { value: '01/02/2023', dateFormat: 'DD-MM-YYYY' },
+        { value: '01-02-2023', dateFormat: 'DD.MM.YYYY' },
+        { value: '1-2-2023', dateFormat: 'D-M-YY' },
+        { value: '1.2.2023', dateFormat: 'D.M.YY' },
+      ], ({ value, dateFormat }) => {
+        it('should validate positively', async() => {
+          const onAfterValidateSpy = jasmine.createSpy('onAfterValidate');
+
+          handsontable({
+            data: [[]],
+            columns: [
+              { type: 'date', dateFormat, correctFormat: true },
+            ],
+            afterValidate: onAfterValidateSpy
+          });
+
+          setDataAtCell(0, 0, value);
+
+          await sleep(50);
+
+          expect(onAfterValidateSpy).toHaveBeenCalledWith(true, value, 0, 0);
+        });
+      });
+
+      using('data set', [
+        { value: '23 February 2nd', dateFormat: 'YYYY MMMM Do' },
+        { value: 'Feb 2nd \'2023', dateFormat: 'MMM Do \'YY' },
+        { value: 'The 2nd of February 2023', dateFormat: '[The] Do [of] MMMM \'YY' },
+        { value: 'Day: 2, Month: 2, Year: 23', dateFormat: '[Day:] D, [Month:] M, [Year:] YYYY' },
+        { value: 'Day: 2, Month: 2, Year: 2023', dateFormat: '[Day:] D, [Month:] M, [Year:] YY' },
+      ], ({ value, dateFormat }) => {
+        it('should validate negatively', async() => {
+          const onAfterValidateSpy = jasmine.createSpy('onAfterValidate');
+
+          handsontable({
+            data: [[]],
+            columns: [
+              { type: 'date', dateFormat, correctFormat: true },
+            ],
+            afterValidate: onAfterValidateSpy
+          });
+
+          setDataAtCell(0, 0, value);
+
+          await sleep(50);
+
+          expect(onAfterValidateSpy).toHaveBeenCalledWith(false, value, 0, 0);
+        });
+      });
     });
   });
 });

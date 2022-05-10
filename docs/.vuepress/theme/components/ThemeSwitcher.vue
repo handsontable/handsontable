@@ -42,10 +42,10 @@ export default {
     };
   },
   beforeMount() {
-    const userPrefferedTheme = localStorage ? localStorage.getItem(STORAGE_KEY) : 'light';
+    const userPreferredTheme = localStorage ? localStorage.getItem(STORAGE_KEY) : 'light';
 
-    if (userPrefferedTheme) {
-      this.isDarkTheme = userPrefferedTheme === 'dark';
+    if (userPreferredTheme) {
+      this.isDarkTheme = userPreferredTheme === 'dark';
 
       return;
     }
@@ -62,7 +62,6 @@ export default {
     this.htmlDomEl = document.querySelector('html');
 
     toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme);
-
   }
 };
 </script>
@@ -76,13 +75,13 @@ export default {
   @media (max-width: $MQNarrow) {
     & {
       display: inline-block;
-      left: 80px;
+      left: 50px;
     }
   }
 
   @media (max-width: $MQMobile) {
     & {
-      left: 90px;
+      left: 65px;
     }
   }
 }

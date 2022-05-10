@@ -257,21 +257,21 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {boolean}
    */
   flipDropdownIfNeeded() {
+    const trimmingContainer = getTrimmingContainer(this.hot.view._wt.wtTable.TABLE);
+    const isWindowAsScrollableElement = trimmingContainer === this.hot.rootWindow;
+    const preventOverflow = this.cellProperties.preventOverflow;
+
+    if (isWindowAsScrollableElement ||
+        !isWindowAsScrollableElement && (preventOverflow || preventOverflow === 'horizontal')) {
+      return false;
+    }
+
     const textareaOffset = offset(this.TEXTAREA);
     const textareaHeight = outerHeight(this.TEXTAREA);
     const dropdownHeight = this.getDropdownHeight();
-    const trimmingContainer = getTrimmingContainer(this.hot.view._wt.wtTable.TABLE);
     const trimmingContainerScrollTop = trimmingContainer.scrollTop;
     const headersHeight = outerHeight(this.hot.view._wt.wtTable.THEAD);
-    let containerOffset = {
-      row: 0,
-      col: 0
-    };
-
-    if (trimmingContainer !== this.hot.rootWindow) {
-      containerOffset = offset(trimmingContainer);
-    }
-
+    const containerOffset = offset(trimmingContainer);
     const spaceAbove = textareaOffset.top - containerOffset.top - headersHeight + trimmingContainerScrollTop;
     const spaceBelow = trimmingContainer.scrollHeight - spaceAbove - headersHeight - textareaHeight;
     const flipNeeded = dropdownHeight > spaceBelow && spaceAbove > spaceBelow;
@@ -291,7 +291,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * Checks if the internal table should generate scrollbar or could be rendered without it.
    *
    * @private
-   * @param {number} spaceAvailable The free space as height definded in px available for dropdown list.
+   * @param {number} spaceAvailable The free space as height defined in px available for dropdown list.
    * @param {number} dropdownHeight The dropdown height.
    */
   limitDropdownIfNeeded(spaceAvailable, dropdownHeight) {

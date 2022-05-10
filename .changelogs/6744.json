@@ -1,0 +1,7 @@
+{
+  "title": "Fixed comment positioning in a scrollable element.",
+  "type": "fixed",
+  "issue": 6744,
+  "breaking": false,
+  "framework": "none"
+}

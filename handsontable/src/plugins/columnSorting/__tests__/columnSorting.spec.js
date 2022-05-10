@@ -867,127 +867,172 @@ describe('ColumnSorting', () => {
       ]);
     });
 
-    it('should sort date columns (MM/DD/YYYY)', () => {
-      handsontable({
-        data: [
-          ['Mercedes', 'A 160', '01/14/2006', 6999.9999],
-          ['Citroen', 'C4 Coupe', '12/01/2008', 8330],
-          ['Audi', 'A4 Avant', '11/19/2011', 33900],
-          ['Opel', 'Astra', '02/02/2004', 7000],
-          ['BMW', '320i Coupe', '07/24/2011', 30500]
-        ],
-        columns: [
-          {},
-          {},
-          {
-            type: 'date',
-            dateFormat: 'MM/DD/YYYY'
-          },
-          {
-            type: 'numeric'
-          }
-        ],
-        colHeaders: true,
-        columnSorting: true
+    describe('sorting date-typed files', () => {
+      using('data set', [
+        {
+          values: ['01/02/2032', '11/02/2023', '01/05/2023', '01/02/1975'],
+          dateFormat: 'DD/MM/YYYY'
+        },
+        {
+          values: ['01/02/32', '11/02/23', '01/05/23', '01/02/75'],
+          dateFormat: 'DD/MM/YY'
+        },
+        {
+          values: ['1/2/32', '11/2/23', '1/5/23', '1/2/75'],
+          dateFormat: 'D/M/YY'
+        },
+        {
+          values: ['01/02/32', '11/02/23', '01/05/23', '01/02/75'],
+          dateFormat: 'D/M/YY'
+        },
+        {
+          values: ['01-02-2032', '11-02-2023', '01-05-2023', '01-02-1975'],
+          dateFormat: 'DD-MM-YYYY'
+        },
+        {
+          values: ['1-2-32', '11-2-23', '1-5-23', '1-2-75'],
+          dateFormat: 'D-M-YY'
+        },
+        {
+          values: ['2032 February 1st', '2023 February 11th', '2023 May 1st', '1975 February 1st'],
+          dateFormat: 'YYYY MMMM Do'
+        },
+        {
+          values: [
+            'The 1st of February \'32', 'The 11th of February \'23', 'The 1st of May \'23', 'The 1st of' +
+            ' February \'75'],
+          dateFormat: '[The] Do [of] MMMM \'YY'
+        },
+
+        // Improper date format configuration:
+        {
+          values: ['01/02/32', '11/02/23', '01/05/23', '01/02/75'],
+          dateFormat: 'DD/MM/YYYY'
+        },
+        {
+          values: ['1/2/32', '11/2/23', '1/5/23', '1/2/75'],
+          dateFormat: 'DD/MM/YY'
+        },
+        {
+          values: ['01/02/32', '11/02/23', '01/05/23', '01/02/75'],
+          dateFormat: 'D/M/YY'
+        },
+        {
+          values: ['1-2-32', '11-2-23', '1-5-23', '1-2-75'],
+          dateFormat: 'DD-MM-YYYY'
+        },
+        {
+          values: ['32 February 1st', '23 February 11th', '23 May 1st', '75 February 1st'],
+          dateFormat: 'YYYY MMMM Do'
+        },
+        {
+          values: ['1/2/2032', '11/2/2023', '1/5/2023', '1/2/1975'],
+          dateFormat: 'D.M.YYYY'
+        }
+      ], ({ values, dateFormat }) => {
+        // TODO: not sure if all of them work by design
+        it('it should be sorted properly', () => {
+          const data = values.map((value, ind) => [value, ind]);
+
+          handsontable({
+            data,
+            columns: [
+              { type: 'date', dateFormat },
+              { type: 'numeric' },
+            ],
+            columnSorting: true
+          });
+
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' }); // ASC
+
+          expect(getDataAtCol(1).join(', ')).toEqual('3, 1, 2, 0');
+
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' }); // DESC
+
+          expect(getDataAtCol(1).join(', ')).toEqual('0, 2, 1, 3');
+        });
       });
 
-      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' }); // ASC
+      using('data set', [
+        {
+          values: ['1.2.2032', '11.2.2023', '1.5.2023', '1.2.1975'],
+          dateFormat: 'D.M.YY'
+        },
+        {
+          values: ['1-2-2032', '11-2-2023', '1-5-2023', '1-2-1975'],
+          dateFormat: 'DD/MM/YY'
+        },
 
-      expect(getDataAtRow(0)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
-      expect(getDataAtRow(1)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
-      expect(getDataAtRow(2)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
-      expect(getDataAtRow(3)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
-      expect(getDataAtRow(4)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
+      ], ({ values, dateFormat }) => {
+        // TODO: not sure if this works by design
+        it('it should NOT be sorted properly (wrong date format declaration)', () => {
+          const data = values.map((value, ind) => [value, ind]);
 
-      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' }); // DESC
+          handsontable({
+            data,
+            columns: [
+              { type: 'date', dateFormat },
+              { type: 'numeric' },
+            ],
+            columnSorting: true
+          });
 
-      expect(getDataAtRow(0)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
-      expect(getDataAtRow(1)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
-      expect(getDataAtRow(2)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
-      expect(getDataAtRow(3)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
-      expect(getDataAtRow(4)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' }); // ASC
+
+          expect(getDataAtCol(1).join(', ')).not.toEqual('3, 1, 2, 0');
+
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' }); // DESC
+
+          expect(getDataAtCol(1).join(', ')).not.toEqual('0, 2, 1, 3');
+        });
+      });
     });
 
-    it('should sort date columns (DD/MM/YYYY)', () => {
-      handsontable({
-        data: [
-          ['Mercedes', 'A 160', '01/12/2012', 6999.9999],
-          ['Citroen', 'C4 Coupe', '12/01/2013', 8330],
-          ['Audi', 'A4 Avant', '11/10/2014', 33900],
-          ['Opel', 'Astra', '02/02/2015', 7000],
-          ['BMW', '320i Coupe', '07/02/2013', 30500]
-        ],
-        columns: [
-          {},
-          {},
-          {
-            type: 'date',
-            dateFormat: 'DD/MM/YYYY'
-          },
-          {
-            type: 'numeric'
-          }
-        ],
-        colHeaders: true,
-        columnSorting: true
+    describe('sorting time-typed files', () => {
+      using('data set', [
+        { values: ['23:15', '20:44', '21:00', '14:12'], timeFormat: 'HH:mm' },
+        { values: ['11:15 PM', '08:44 PM', '09:00 PM', '02:12 PM'], timeFormat: 'hh:mm A' },
+        { values: ['11:15 pm', '08:44 pm', '09:00 pm', '02:12 pm'], timeFormat: 'hh:mm a' },
+        { values: ['23:15:22:33', '20:44:11:11', '21:00:11:11', '14:12:11:11'], timeFormat: 'HH:mm:mm:ss' },
+        { values: ['23:15:3:4', '20:44:1:1', '21:00:1:1', '14:12:1:1'], timeFormat: 'H:m:m:s' },
+        {
+          values: ['23:15:22:33 +02:00', '20:44:22:33 +02:00', '21:00:22:33 +02:00', '14:12:22:33 +02:00'],
+          timeFormat: 'HH:mm:mm:ss Z'
+        },
+        {
+          values: ['23:15:22:33 +0200', '20:44:22:33 +0200', '21:00:22:33 +0200', '14:12:22:33 +0200'],
+          timeFormat: 'HH:mm:mm:ss ZZ'
+        },
+
+        // Improper format:
+        { values: ['23:15:22:33', '20:44:11:11', '21:00:11:11', '14:12:11:11'], timeFormat: 'H:m:m:s' },
+        {
+          values: ['23:15:22:33 +02:00', '20:44:22:33 +02:00', '21:00:22:33 +02:00', '14:12:22:33 +02:00'],
+          timeFormat: 'HH:mm:mm:ss ZZ'
+        },
+      ], ({ values, timeFormat }) => {
+        // TODO: not sure if all of them work by design
+        it('it should be sorted properly', () => {
+          const data = values.map((value, ind) => [value, ind]);
+
+          handsontable({
+            data,
+            columns: [
+              { type: 'time', timeFormat },
+              { type: 'numeric' },
+            ],
+            columnSorting: true
+          });
+
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' }); // ASC
+
+          expect(getDataAtCol(1).join(', ')).toEqual('3, 1, 2, 0');
+
+          getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' }); // DESC
+
+          expect(getDataAtCol(1).join(', ')).toEqual('0, 2, 1, 3');
+        });
       });
-
-      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' }); // ASC
-
-      expect(getDataAtRow(0)).toEqual(['Mercedes', 'A 160', '01/12/2012', 6999.9999]);
-      expect(getDataAtRow(1)).toEqual(['Citroen', 'C4 Coupe', '12/01/2013', 8330]);
-      expect(getDataAtRow(2)).toEqual(['BMW', '320i Coupe', '07/02/2013', 30500]);
-      expect(getDataAtRow(3)).toEqual(['Audi', 'A4 Avant', '11/10/2014', 33900]);
-      expect(getDataAtRow(4)).toEqual(['Opel', 'Astra', '02/02/2015', 7000]);
-
-      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' }); // DESC
-
-      expect(getDataAtRow(0)).toEqual(['Opel', 'Astra', '02/02/2015', 7000]);
-      expect(getDataAtRow(1)).toEqual(['Audi', 'A4 Avant', '11/10/2014', 33900]);
-      expect(getDataAtRow(2)).toEqual(['BMW', '320i Coupe', '07/02/2013', 30500]);
-      expect(getDataAtRow(3)).toEqual(['Citroen', 'C4 Coupe', '12/01/2013', 8330]);
-      expect(getDataAtRow(4)).toEqual(['Mercedes', 'A 160', '01/12/2012', 6999.9999]);
-    });
-
-    it('should sort date columns (MMMM Do YYYY)', () => {
-      handsontable({
-        data: [
-          ['Mercedes', 'A 160', 'October 28th 2016', 6999.9999],
-          ['Citroen', 'C4 Coupe', 'October 27th 2001', 8330],
-          ['Audi', 'A4 Avant', 'July 8th 1999', 33900],
-          ['Opel', 'Astra', 'June 1st 2001', 7000],
-          ['BMW', '320i Coupe', 'August 3rd 2001', 30500]
-        ],
-        columns: [
-          {},
-          {},
-          {
-            type: 'date',
-            dateFormat: 'MMMM Do YYYY'
-          },
-          {
-            type: 'numeric'
-          }
-        ],
-        colHeaders: true,
-        columnSorting: true
-      });
-
-      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' }); // ASC
-
-      expect(getDataAtRow(0)).toEqual(['Audi', 'A4 Avant', 'July 8th 1999', 33900]);
-      expect(getDataAtRow(1)).toEqual(['Opel', 'Astra', 'June 1st 2001', 7000]);
-      expect(getDataAtRow(2)).toEqual(['BMW', '320i Coupe', 'August 3rd 2001', 30500]);
-      expect(getDataAtRow(3)).toEqual(['Citroen', 'C4 Coupe', 'October 27th 2001', 8330]);
-      expect(getDataAtRow(4)).toEqual(['Mercedes', 'A 160', 'October 28th 2016', 6999.9999]);
-
-      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' }); // DESC
-
-      expect(getDataAtRow(0)).toEqual(['Mercedes', 'A 160', 'October 28th 2016', 6999.9999]);
-      expect(getDataAtRow(1)).toEqual(['Citroen', 'C4 Coupe', 'October 27th 2001', 8330]);
-      expect(getDataAtRow(2)).toEqual(['BMW', '320i Coupe', 'August 3rd 2001', 30500]);
-      expect(getDataAtRow(3)).toEqual(['Opel', 'Astra', 'June 1st 2001', 7000]);
-      expect(getDataAtRow(4)).toEqual(['Audi', 'A4 Avant', 'July 8th 1999', 33900]);
     });
 
     it('should sort date columns along with empty and null values', () => {

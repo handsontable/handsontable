@@ -820,6 +820,90 @@ describe('DateEditor', () => {
     expect(editableElement.getAttribute('dir')).toBeNull();
   });
 
+  using('data set', [
+    { date: '01/02/2023', dateFormat: 'DD/MM/YYYY', day: 1, month: 1, year: 2023 },
+    { date: '01/02/23', dateFormat: 'DD/MM/YY', day: 1, month: 1, year: 2023 },
+    { date: '1/2/23', dateFormat: 'D/M/YY', day: 1, month: 1, year: 2023 },
+    { date: '01/02/23', dateFormat: 'D/M/YY', day: 1, month: 1, year: 2023 }, // ?
+    { date: '01-02-2023', dateFormat: 'DD-MM-YYYY', day: 1, month: 1, year: 2023 },
+    { date: '1-2-23', dateFormat: 'D-M-YY', day: 1, month: 1, year: 2023 },
+    { date: '1-12-23', dateFormat: 'D-M-YY', day: 1, month: 11, year: 2023 },
+    { date: '1.2.23', dateFormat: 'D.M.YY', day: 1, month: 1, year: 2023 },
+    { date: '2023 February 2nd', dateFormat: 'YYYY MMMM Do', day: 2, month: 1, year: 2023 },
+    { date: 'Feb 2nd \'23', dateFormat: 'MMM Do \'YY', day: 2, month: 1, year: 2023 },
+    { date: 'The 2nd of February \'23', dateFormat: '[The] Do [of] MMMM \'YY', day: 2, month: 1, year: 2023 },
+    { date: 'Day: 2, Month: 2, Year: 2023',
+      dateFormat: '[Day:] D, [Month:] M, [Year:] YYYY',
+      day: 2,
+      month: 1,
+      year: 2023
+    },
+
+  ], ({ date, day, month, year, dateFormat }) => {
+    it('it should display the correct date in the date picker', async() => {
+      handsontable({
+        data: [[date]],
+        editor: 'date',
+        dateFormat
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+      await sleep(50);
+
+      const datePickerDate = hot().getActiveEditor().$datePicker._d;
+
+      expect(datePickerDate.getDate()).toEqual(day);
+      expect(datePickerDate.getMonth()).toEqual(month);
+      expect(datePickerDate.getFullYear()).toEqual(year);
+    });
+  });
+
+  using('data set', [
+    { value: '01/02/23', dateFormat: 'DD/MM/YYYY', day: 1, month: 1, year: 2023 },
+    { value: '1/2/23', dateFormat: 'DD/MM/YY', day: 1, month: 1, year: 2023 },
+    { value: '01/02/2023', dateFormat: 'D/M/YY', day: 1, month: 1, year: 2023 },
+    { value: '1-2-23', dateFormat: 'DD-MM-YYYY', day: 1, month: 1, year: 2023 },
+    { value: '01/02/2023', dateFormat: 'DD-MM-YYYY', day: 1, month: 1, year: 2023 },
+    { value: '01-02-2023', dateFormat: 'DD.MM.YYYY', day: 1, month: 1, year: 2023 },
+    { value: '1-2-2023', dateFormat: 'D-M-YY', day: 1, month: 1, year: 2023 },
+    { value: '1.2.2023', dateFormat: 'D.M.YY', day: 1, month: 1, year: 2023 },
+    { value: '23 February 2nd', dateFormat: 'YYYY MMMM Do', day: 2, month: 1, year: 2023 },
+    { value: 'Feb 2nd \'2023', dateFormat: 'MMM Do \'YY', day: 2, month: 1, year: 2023 },
+    { value: 'The 2nd of February 2023', dateFormat: '[The] Do [of] MMMM \'YY', day: 2, month: 1, year: 2023 },
+    {
+      value: 'Day: 2, Month: 2, Year: 23',
+      dateFormat: '[Day:] D, [Month:] M, [Year:] YYYY',
+      day: 2,
+      month: 1,
+      year: 2023
+    },
+    {
+      value: 'Day: 2, Month: 2, Year: 2023',
+      dateFormat: '[Day:] D, [Month:] M, [Year:] YY',
+      day: 2,
+      month: 1,
+      year: 2023
+    },
+  ], ({ date, dateFormat }) => {
+    // TODO: Not sure which of these are intentional
+    it('it should NOT display the correct dat in the date picker (wrong date format)', async() => {
+      handsontable({
+        data: [[date]],
+        editor: 'date',
+        dateFormat
+      });
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+      await sleep(50);
+
+      const datePickerDate = hot().getActiveEditor().$datePicker._d;
+
+      expect(datePickerDate).toEqual(void 0);
+    });
+  });
+
   describe('IME support', () => {
     it('should focus editable element after selecting the cell', async() => {
       handsontable({
