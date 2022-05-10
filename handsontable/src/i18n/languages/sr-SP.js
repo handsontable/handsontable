@@ -8,7 +8,7 @@
 import * as C from '../constants';
 
 const dictionary = {
-  languageCode: 'en-US',
+  languageCode: 'sr-SP',
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nema dostupnih opcija',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Unesi red iznad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Unesi red ispod',
