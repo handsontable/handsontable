@@ -373,7 +373,7 @@ describe('Formulas general', () => {
     });
 
     it('should not throw type error while validating sheets added through the HyperFormula instance', () => {
-      const hf =  HyperFormula.buildEmpty();
+      const hf = HyperFormula.buildEmpty();
 
       handsontable({
         data: [
