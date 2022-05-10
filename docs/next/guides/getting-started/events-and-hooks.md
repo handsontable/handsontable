@@ -323,4 +323,11 @@ hot.updateSettings({
 
 ## Related API reference
 
+- Core methods:
+  - [`addHook()`](@/api/core.md#addhook)
+  - [`addHookOnce()`](@/api/core.md#addhookonce)
+  - [`hasHook()`](@/api/core.md#hashook)
+  - [`removeHook()`](@/api/core.md#removehook)
+  - [`hasHook()`](@/api/core.md#hashook)
+  - [`runHooks()`](@/api/core.md#runhooks)
 - [List of all hooks](@/api/hooks.md)

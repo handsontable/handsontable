@@ -260,7 +260,15 @@ Handsontable.dom.addEvent(buttonWith, 'click', () => {
 
 #### Related API reference
 
-Core mehods:
-- [`batch()`](@/api/core.md#batch)
-- [`batchExecution()`](@/api/core.md#batchexecution)
-- [`batchRender()`](@/api/core.md#batchrender)
+- Core methods:
+  - [`batch()`](@/api/core.md#batch)
+  - [`batchExecution()`](@/api/core.md#batchexecution)
+  - [`batchRender()`](@/api/core.md#batchrender)
+- Hooks:
+  - [`afterRender`](@/api/hooks.md#afterrender)
+  - [`afterViewRender`](@/api/hooks.md#afterviewrender)
+  - [`beforeRender`](@/api/hooks.md#beforerender)
+  - [`beforeViewRender`](@/api/hooks.md#beforeviewrender)
+  - [`afterRender`](@/api/hooks.md#afterrender)
+  - [`afterRender`](@/api/hooks.md#afterrender)
+  - [`afterRender`](@/api/hooks.md#afterrender)

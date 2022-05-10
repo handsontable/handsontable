@@ -215,14 +215,14 @@ The “Insert row above” and “Insert row below” options were modified to w
 
 #### Related API reference
 
-Configuration options:
-- [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders)
-- [`contextMenu`](@/api/options.md#contextmenu)
-- [`nestedRows`](@/api/options.md#nestedrows)
-- [`rowHeaders`](@/api/options.md#rowheaders)
-
-Plugins:
-- [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
-- [`ContextMenu`](@/api/contextMenu.md)
-- [`NestedRows`](@/api/nestedRows.md)
-- [`RowHeaders`](@/api/rowHeaders.md)
+- Configuration options:
+  - [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders)
+  - [`contextMenu`](@/api/options.md#contextmenu)
+  - [`nestedRows`](@/api/options.md#nestedrows)
+  - [`rowHeaders`](@/api/options.md#rowheaders)
+- Core methods:
+  - [`getRowHeader()`](@/api/core.md#getrowheader)
+- Plugins:
+  - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
+  - [`ContextMenu`](@/api/contextMenu.md)
+  - [`NestedRows`](@/api/nestedRows.md)

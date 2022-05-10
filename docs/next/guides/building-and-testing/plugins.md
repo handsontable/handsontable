@@ -279,5 +279,7 @@ pluginInstance.externalMethodExample();
 
 ## Related API reference
 
-- [`BasePlugin`](@/api/basePlugin.md)
-- [Core methods: `getPlugin()`](@/api/core.md#getplugin)
+- APIs:
+  - [`BasePlugin`](@/api/basePlugin.md)
+- Core methods:
+  - [`getPlugin()`](@/api/core.md#getplugin) 

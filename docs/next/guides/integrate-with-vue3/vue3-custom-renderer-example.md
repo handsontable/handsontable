@@ -91,8 +91,21 @@ app.mount('#example1');
 
 #### Related API reference
 
-- [`BasePlugin`](@/api/basePlugin.md)
-- [Options: `renderer`](@/api/options.md#renderer)
+- APIs:
+  - [`BasePlugin`](@/api/basePlugin.md)
+- Configuration options:
+  - [`renderer`](@/api/options.md#renderer)
 - Core methods:
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
   - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+- Hooks:
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
+  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
+  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
+  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)
+  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

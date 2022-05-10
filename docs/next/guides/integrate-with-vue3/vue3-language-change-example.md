@@ -91,3 +91,15 @@ app.mount('#example1');
 #### Related blog articles
 
 - [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
+
+#### Related API reference
+
+- Configuration options:
+  - [`language`](@/api/options.md#language)
+  - [`layoutDirection`](@/api/options.md#layoutdirection)
+  - [`locale`](@/api/options.md#locale)
+- Core methods:
+  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
+- Hooks:
+  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
+  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)

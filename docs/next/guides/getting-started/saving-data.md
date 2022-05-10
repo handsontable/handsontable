@@ -153,17 +153,14 @@ For the data separation to work properly, make sure that each instance of Handso
 
 ## Related API reference
 
-Configuration options:
-- [`persistentState`](@/api/options.md#persistentstate)
-
-Core methods:
-- [`updateSettings()`](@/api/core.md#updatesettings)
-
+- Configuration options:
+  - [`persistentState`](@/api/options.md#persistentstate)
+- Core methods:
+  - [`updateSettings()`](@/api/core.md#updatesettings)
 Hooks:
-- [`afterChange`](@/api/hooks.md#afterchange)
-- [`persistentStateLoad`](@/api/hooks.md#persistentstateload)
-- [`persistentStateReset`](@/api/hooks.md#persistentstatereset)
-- [`persistentStateSave`](@/api/hooks.md#persistentstatesave)
-
+  - [`afterChange`](@/api/hooks.md#afterchange)
+  - [`persistentStateLoad`](@/api/hooks.md#persistentstateload)
+  - [`persistentStateReset`](@/api/hooks.md#persistentstatereset)
+  - [`persistentStateSave`](@/api/hooks.md#persistentstatesave)
 Plugins:
-- [`PersistentState`](@/api/persistentstate.md)
+  - [`PersistentState`](@/api/persistentstate.md)

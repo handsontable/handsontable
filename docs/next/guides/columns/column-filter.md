@@ -469,10 +469,12 @@ const hot = new Handsontable(container, {
 
 ## Related API reference
 
-Configuration options:
-- [`dropdownMenu`](@/api/options.md#dropdownmenu)
-- [`filters`](@/api/options.md#filters)
-
-Plugins:
-- [`DropdownMenu`](@/api/dropdownMenu.md)
-- [`Filters`](@/api/filters.md)
+- Configuration options:
+  - [`dropdownMenu`](@/api/options.md#dropdownmenu)
+  - [`filters`](@/api/options.md#filters)
+- Hooks:
+  - [`afterFilter`](@/api/hooks.md#afterfilter)
+  - [`beforeFilter`](@/api/hooks.md#beforefilter)
+- Plugins:
+  - [`DropdownMenu`](@/api/dropdownMenu.md)
+  - [`Filters`](@/api/filters.md)

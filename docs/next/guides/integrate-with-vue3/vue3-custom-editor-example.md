@@ -80,12 +80,31 @@ app.mount('#example1');
 
 #### Related guides
 
-- [Cell editor](@/guides/cell-functions/cell-editor.md)
+- [Adding comments via the context menu](@/guides/cell-features/comments.md#adding-comments-via-the-context-menu)
+- [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
+- [Context menu](@/guides/accessories-and-menus/context-menu.md)
+- [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
+
+#### Related blog articles
+
+- [Customize Handsontable context menu](https://handsontable.com/blog/customize-handsontable-context-menu)
 
 #### Related API reference
 
-- [`BasePlugin`](@/api/basePlugin.md)
-- [Options: `editor`](@/api/options.md#editor)
+- APIs:
+  - [`BasePlugin`](@/api/basePlugin.md)
+- Configuration options:
+  - [`editor`](@/api/options.md#editor)
 - Core methods:
+  - [`destroyEditor()`](@/api/core.md#destroyeditor)
+  - [`getActiveEditor()`](@/api/core.md#getactiveeditor)
   - [`getCellEditor()`](@/api/core.md#getcelleditor)
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+- Hooks:
+  - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

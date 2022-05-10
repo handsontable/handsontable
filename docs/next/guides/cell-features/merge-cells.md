@@ -45,3 +45,13 @@ const hot = new Handsontable(container, {
 | Windows                                | macOS                                  | Action                              |  Excel  | Sheets  |
 | -------------------------------------- | -------------------------------------- | ----------------------------------- | :-----: | :-----: |
 | <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> | <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
+
+## Related API reference
+
+- Configuration options:
+  - [`mergeCells`](@/api/options.md#mergecells)
+- Hooks:
+  - [`afterMergeCells`](@/api/options.md#aftermergecells)
+  - [`afterUnmergeCells`](@/api/options.md#afterunmergecells)
+  - [`beforeMergeCells`](@/api/options.md#beforemergecells)
+  - [`beforeUnmergeCells`](@/api/options.md#beforeunmergecells)

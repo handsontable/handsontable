@@ -227,5 +227,15 @@ const hot = new Handsontable(container, {
 
 #### Related API reference
 
-- [Options: `contextMenu`](@/api/options.md#contextmenu)
-- [Plugins: `ContextMenu`](@/api/contextMenu.md)
+- Configuration options:
+  - [`contextMenu`](@/api/options.md#contextmenu)
+- Hooks:
+  - [`afterContextMenuDefaultOptions`](@/api/hooks.md#aftercontextmenudefaultoptions)
+  - [`afterContextMenuHide`](@/api/hooks.md#aftercontextmenuhide)
+  - [`afterContextMenuShow`](@/api/hooks.md#aftercontextmenushow)
+  - [`afterOnCellContextMenu`](@/api/hooks.md#afteroncellcontextmenu)
+  - [`beforeContextMenuSetItems`](@/api/hooks.md#beforecontextmenusetitems)
+  - [`beforeContextMenuShow`](@/api/hooks.md#beforecontextmenushow)
+  - [`beforeOnCellContextMenu`](@/api/hooks.md#beforeoncellcontextmenu)
+- Plugins:
+  - [`ContextMenu`](@/api/contextMenu.md)

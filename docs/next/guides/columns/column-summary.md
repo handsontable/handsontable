@@ -701,5 +701,7 @@ const hot = new Handsontable(container, {
 
 ## Related API reference
 
-- [Options: `columnSummary`](@/api/options.md#columnsummary)
-- [Plugins: `ColumnSummary`](@/api/columnSummary.md)
+- Configuration options:
+  - [`columnSummary`](@/api/options.md#columnsummary)
+- Plugins:
+  - [`ColumnSummary`](@/api/columnSummary.md)

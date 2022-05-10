@@ -93,14 +93,27 @@ Those functions will always return an appropriate value, regardless of whether c
 
 #### Related API reference
 
-Configuration options:
-- [`editor`](@/api/options.md#editor)
-- [`renderer`](@/api/options.md#renderer)
-- [`type`](@/api/options.md#type)
-- [`validator`](@/api/options.md#validator)
-
-Core methods:
-- [`getCellEditor()`](@/api/core.md#getcelleditor)
-- [`getCellMeta()`](@/api/core.md#getcellmeta)
-- [`getCellRenderer()`](@/api/core.md#getcellrenderer)
-- [`getCellValidator()`](@/api/core.md#getcellvalidator)
+- Configuration options:
+  - [`editor`](@/api/options.md#editor)
+  - [`renderer`](@/api/options.md#renderer)
+  - [`type`](@/api/options.md#type)
+  - [`validator`](@/api/options.md#validator)
+- Core methods:
+  - [`destroyEditor()`](@/api/core.md#destroyeditor)
+  - [`getActiveEditor()`](@/api/core.md#getactiveeditor)
+  - [`getCellEditor()`](@/api/core.md#getcelleditor)
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
+  - [`getCellValidator()`](@/api/core.md#getcellvalidator)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+- Hooks:
+  - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
+  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
+  - [`afterValidate`](@/api/hooks.md#aftervalidate)
+  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)
+  - [`beforeValidate`](@/api/hooks.md#beforevalidate)

@@ -63,5 +63,16 @@ const hot = new Handsontable(container, {
 
 ## Related API reference
 
-- [Options: `undo`](@/api/options.md#undo)
-- [Plugins: `UndoRedo`](@/api/undoRedo.md)
+- Configuration options:
+  - [`undo`](@/api/options.md#undo)
+- Hooks:
+  - [`afterRedo`](@/api/hooks.md#afterredo)
+  - [`afterRedoStackChange`](@/api/hooks.md#afterredostackchange)
+  - [`afterUndo`](@/api/hooks.md#afterundo)
+  - [`afterUndoStackChange`](@/api/hooks.md#afterundostackchange)
+  - [`beforeRedo`](@/api/hooks.md#beforeredo)
+  - [`beforeRedoStackChange`](@/api/hooks.md#beforeredostackchange)
+  - [`beforeUndo`](@/api/hooks.md#beforeundo)
+  - [`beforeUndoStackChange`](@/api/hooks.md#beforeundostackchange)
+- Plugins:
+  - [`UndoRedo`](@/api/undoRedo.md)

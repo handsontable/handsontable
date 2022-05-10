@@ -81,11 +81,20 @@ More complex data structures can be displayed with multiple headers, each repres
 
 #### Related API reference
 
-Configuration options:
-- [`colHeaders`](@/api/options.md#colheaders)
-- [`columnHeaderHeight`](@/api/options.md#columnheaderheight)
-- [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
-- [`nestedHeaders`](@/api/options.md#nestedheaders)
-
-Plugins:
-- [`NestedHeaders`](@/api/nestedHeaders.md)
+- Configuration options:
+  - [`colHeaders`](@/api/options.md#colheaders)
+  - [`columnHeaderHeight`](@/api/options.md#columnheaderheight)
+  - [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
+  - [`nestedHeaders`](@/api/options.md#nestedheaders)
+- Core methods:
+  - [`getColHeader`](@/api/core.md#getcolheader)
+  - [`hasColHeaders`](@/api/core.md#hascolheaders)
+- Hooks:
+  - [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader)
+  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
+  - [`beforeHighlightingColumnHeader`](@/api/hooks.md#beforehighlightingcolumnheader)
+  - [`modifyColHeader`](@/api/hooks.md#modifycolheader)
+  - [`modifyColHeader`](@/api/hooks.md#modifycolheader)
+  - [`modifyColumnHeaderHeight`](@/api/hooks.md#modifycolumnheaderheight)
+- Plugins:
+  - [`NestedHeaders`](@/api/nestedHeaders.md)

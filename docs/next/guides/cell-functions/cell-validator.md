@@ -199,8 +199,21 @@ Edit the above grid to see callback
 
 #### Related API reference
 
-- [`BasePlugin`](@/api/basePlugin.md)
-- [Options: `validator`](@/api/options.md#validator)
+- APIs:
+  - [`BasePlugin`](@/api/basePlugin.md)
+- Configuration options:
+  - [`validator`](@/api/options.md#validator)
 - Core methods:
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
   - [`getCellValidator()`](@/api/core.md#getcellvalidator)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`validateCell()`](@/api/core.md#validatecell)
+  - [`validateCells()`](@/api/core.md#validatecells)
+  - [`validateColumns()`](@/api/core.md#validatecolumns)
+  - [`validateRows()`](@/api/core.md#validaterows)
+- Hooks:
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterValidate`](@/api/hooks.md#aftervalidate)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeValidate`](@/api/hooks.md#beforevalidate)

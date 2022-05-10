@@ -55,4 +55,15 @@ const hot = new Handsontable(container, {
 
 #### Related API reference
 
-- [Options: `type`](@/api/options.md#type)
+- Configuration options:
+  - [`type`](@/api/options.md#type)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getDataType`](@/api/core.md#getdatatype)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+- Hooks:
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

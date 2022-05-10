@@ -176,5 +176,13 @@ Examples of how to use them are provided in their descriptions.
 
 ## Related API reference
 
-- [Options: `copyPaste`](@/api/options.md#copypaste)
-- [Plugins: `CopyPaste`](@/api/copyPaste.md)
+- Configuration options:
+  - [`copyPaste`](@/api/options.md#copypaste)
+- Hooks:
+  - [`afterCopy`](@/api/hooks.md#aftercopy)
+  - [`afterCopyLimit`](@/api/hooks.md#aftercopylimit)
+  - [`afterPaste`](@/api/hooks.md#afterpaste)
+  - [`beforeCopy`](@/api/hooks.md#beforecopy)
+  - [`beforePaste`](@/api/hooks.md#beforepaste)
+- Plugins:
+  - [`CopyPaste`](@/api/copyPaste.md)

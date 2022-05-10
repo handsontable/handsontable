@@ -74,5 +74,12 @@ To see the changes made, call `hot.render();` to re-render the table.
 
 ## Related API reference
 
-- [Options: `trimRows`](@/api/options.md#trimrows)
-- [Plugins: `trimRows`](@/api/trimRows.md)
+- Options:
+  - [`trimRows`](@/api/options.md#trimrows)
+- Hooks:
+  - [`afterTrimRow`](@/api/hooks.md#aftertrimrow)
+  - [`afterUntrimRow`](@/api/hooks.md#afteruntrimrow)
+  - [`beforeTrimRow`](@/api/hooks.md#beforetrimrow)
+  - [`beforeUntrimRow`](@/api/hooks.md#beforeuntrimrow)
+- Plugins:
+  - [`TrimRows`](@/api/trimRows.md)

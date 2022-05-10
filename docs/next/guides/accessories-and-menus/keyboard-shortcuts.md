@@ -374,6 +374,8 @@ hot.addHook('beforeKeyDown', (event) => {
 
 #### Related API reference
 
-- [API: `ShortcutContext`](@/api/shortcutContext.md)
-- [API: `ShortcutManager`](@/api/shortcutManager.md)
-- [Core methods: `getShortcutManager()`](@/api/core.md#getshortcutmanager)
+- APIs:
+  - [`ShortcutContext`](@/api/shortcutContext.md)
+  - [`ShortcutManager`](@/api/shortcutManager.md)
+- Core methods:
+  - [`getShortcutManager()`](@/api/core.md#getshortcutmanager)

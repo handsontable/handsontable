@@ -164,3 +164,7 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related API reference
+
+- Configuration options: [`comments`](@/api/options.md#comments)

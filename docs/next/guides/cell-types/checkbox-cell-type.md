@@ -155,8 +155,18 @@ const hot = new Handsontable(container, {
 
 #### Related API reference
 
-Configuration options:
-- [`checkedTemplate`](@/api/options.md#checkedtemplate)
-- [`label`](@/api/options.md#label)
-- [`type`](@/api/options.md#type)
-- [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate)
+- Configuration options:
+  - [`checkedTemplate`](@/api/options.md#checkedtemplate)
+  - [`label`](@/api/options.md#label)
+  - [`type`](@/api/options.md#type)
+  - [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getDataType`](@/api/core.md#getdatatype)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+- Hooks:
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

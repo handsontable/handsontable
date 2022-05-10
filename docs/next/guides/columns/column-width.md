@@ -177,11 +177,15 @@ Setting the dimensions of the container that holds Handsontable is described in 
 
 ## Related API reference
 
-Configuration options:
-- [`colWidths`](@/api/options.md#
-- [`manualColumnResize`](@/api/options.md#manualcolumnresize)
-- [`stretchH`](@/api/options.md#stretchh)
-
-Plugins:
-- [`AutoColumnSize`](@/api/autoColumnSize.md)
-- [`ManualColumnResize`](@/api/manualColumnResize.md)
+- Configuration options:
+  - [`colWidths`](@/api/options.md#
+  - [`manualColumnResize`](@/api/options.md#manualcolumnresize)
+  - [`stretchH`](@/api/options.md#stretchh)
+- Core methods:
+  - [`getColWidth`](@/api/core.md#getcolwidth)
+- Hooks:
+  - [`beforeStretchingColumnWidth`](@/api/hooks.md#beforestretchingcolumnwidth)
+  - [`modifyColWidth`](@/api/hooks.md#modifycolwidth)
+- Plugins:
+  - [`AutoColumnSize`](@/api/autoColumnSize.md)
+  - [`ManualColumnResize`](@/api/manualColumnResize.md)

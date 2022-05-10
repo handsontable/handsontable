@@ -243,3 +243,28 @@ To jump across a horizontal edge:
 
 <sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction.md).<br>
 <sup>**</sup> In case of multiple selection layers, only the last selection layer gets extended.
+
+## Related API reference
+
+- Configuration options:
+  - [`autoWrapCol`](@/api/options.md#autowrapcol)
+  - [`autoWrapRow`](@/api/options.md#autowraprow)
+  - [`selectionMode`](@/api/options.md#selectionmode)
+- Core methods:
+  - [`deselectCell()`](@/api/core.md#deselectcell)
+  - [`getSelected()`](@/api/core.md#getselected)
+  - [`getSelectedLast()`](@/api/core.md#getselectedlast)
+  - [`getSelectedRange()`](@/api/core.md#getselectedrange)
+  - [`getSelectedRangeLast()`](@/api/core.md#getselectedrangelast)
+  - [`selectAll()`](@/api/core.md#selectall)
+  - [`selectCell()`](@/api/core.md#selectcell)
+  - [`selectCells()`](@/api/core.md#selectcells)
+  - [`selectColumns()`](@/api/core.md#selectcolumns)
+  - [`selectRows()`](@/api/core.md#selectrows)
+- Hooks:
+  - [`afterDeselect`](@/api/hooks.md#afterdeselect)
+  - [`afterDrawSelection`](@/api/hooks.md#afterdrawselection)
+  - [`afterSelection`](@/api/hooks.md#afterselection)
+  - [`afterSelectionByProp`](@/api/hooks.md#afterselectionbyprop)
+  - [`afterSelectionEnd`](@/api/hooks.md#afterselectionend)
+  - [`afterSelectionEndByProp`](@/api/hooks.md#afterselectionendbyprop)

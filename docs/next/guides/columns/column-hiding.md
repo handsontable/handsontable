@@ -246,5 +246,12 @@ hot.render()
 
 ## Related API reference
 
-- [Options: `hiddenColumns`](@/api/options.md#hiddencolumns)
-- [Plugins: `HiddenColumns`](@/api/hiddenColumns.md)
+- Configuration options:
+  - [`hiddenColumns`](@/api/options.md#hiddencolumns)
+- Hooks:
+  - [`afterHideColumns`](@/api/hooks.md#afterhidecolumns)
+  - [`afterUnhideColumns`](@/api/hooks.md#afterunhidecolumns)
+  - [`beforeHideColumns`](@/api/hooks.md#beforehidecolumns)
+  - [`beforeUnhideColumns`](@/api/hooks.md#beforeunhidecolumns)
+- Plugins:
+  - [`HiddenColumns`](@/api/hiddenColumns.md)

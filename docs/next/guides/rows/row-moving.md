@@ -58,5 +58,10 @@ The [moveRows](@/api/manualRowMove.md#moverows) function cannot perform some act
 
 ## Related API reference
 
-- [Options: `manualRowMove`](@/api/options.md#manualrowmove)
-- [Plugins: `ManualRowMove`](@/api/manualRowMove.md)
+- Options:
+  - [`manualRowMove`](@/api/options.md#manualrowmove)
+- Hooks:
+  - [`afterRowMove`](@/api/hooks.md#afterrowmove)
+  - [`beforeRowMove`](@/api/hooks.md#beforerowmove)
+- Plugins:
+  - [`ManualRowMove`](@/api/manualRowMove.md)

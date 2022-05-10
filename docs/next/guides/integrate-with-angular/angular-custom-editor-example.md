@@ -98,8 +98,20 @@ platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error
 
 #### Related API reference
 
-- [`BasePlugin`](@/api/basePlugin.md)
-- [Options: `editor`](@/api/options.md#editor)
+- APIs:
+  - [`BasePlugin`](@/api/basePlugin.md)
+- Configuration options:
+  - [`editor`](@/api/options.md#editor)
 - Core methods:
+  - [`destroyEditor()`](@/api/core.md#destroyeditor)
+  - [`getActiveEditor()`](@/api/core.md#getactiveeditor)
   - [`getCellEditor()`](@/api/core.md#getcelleditor)
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+- Hooks:
+  - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

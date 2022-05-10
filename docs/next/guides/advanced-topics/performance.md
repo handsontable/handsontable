@@ -105,9 +105,9 @@ You can also optimize the use of **moment.js**. To find out more about this topi
 
 #### Related API reference
 
-Configuration options:
-- [`autoColumnSize`](@/api/options.md#autocolumnsize)
-- [`autoRowSize`](@/api/options.md#autorowsize)
-- [`colWidths`](@/api/options.md#colwidths)
-- [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
-- [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
+- Configuration options:
+  - [`autoColumnSize`](@/api/options.md#autocolumnsize)
+  - [`autoRowSize`](@/api/options.md#autorowsize)
+  - [`colWidths`](@/api/options.md#colwidths)
+  - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
+  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)

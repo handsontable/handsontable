@@ -275,7 +275,12 @@ You can apply the horizontal text alignment settings to:
 
 #### Related API reference
 
-Configuration options:
-- [`language`](@/api/options.md#language)
-- [`layoutDirection`](@/api/options.md#layoutdirection)
-- [`locale`](@/api/options.md#locale)
+- Configuration options:
+  - [`language`](@/api/options.md#language)
+  - [`layoutDirection`](@/api/options.md#layoutdirection)
+  - [`locale`](@/api/options.md#locale)
+- Core methods:
+  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
+- Hooks:
+  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
+  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)

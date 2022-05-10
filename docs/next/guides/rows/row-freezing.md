@@ -38,6 +38,6 @@ const hot = new Handsontable(container, {
 
 ## Related API reference
 
-Configuration options:
-- [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom)
-- [`fixedRowsTop`](@/api/options.md#fixedrowstop)
+- Configuration options:
+  - [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom)
+  - [`fixedRowsTop`](@/api/options.md#fixedrowstop)

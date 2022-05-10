@@ -110,10 +110,12 @@ const hot = new Handsontable(container, {
 
 ## Related API reference
 
-Configuration options:
-- [`collapsibleColumns`](@/api/options.md#collapsiblecolumns)
-- [`nestedHeaders`](@/api/options.md#nestedheaders)
-
-Plugins:
-- [`CollapsibleColumns`](@/api/collapsibleColumns.md)
-- [`NestedHeaders`](@/api/nestedHeaders.md)
+- Configuration options:
+  - [`collapsibleColumns`](@/api/options.md#collapsiblecolumns)
+  - [`nestedHeaders`](@/api/options.md#nestedheaders)
+- Hooks:
+  - [`afterColumnCollapse`](@/api/hooks.md#aftercolumncollapse)
+  - [`beforeColumnCollapse`](@/api/hooks.md#beforecolumncollapse)
+- Plugins:
+  - [`CollapsibleColumns`](@/api/collapsibleColumns.md)
+  - [`NestedHeaders`](@/api/nestedHeaders.md)

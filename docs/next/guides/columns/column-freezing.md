@@ -71,9 +71,8 @@ const hot = new Handsontable(container, {
 
 ## Related API reference
 
-Configuration options:
-- [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart)
-- [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze)
-
-Plugins:
-- [`ManualColumnFreeze`](@/api/manualColumnFreeze.md)
+- Configuration options:
+  - [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart)
+  - [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze)
+- Plugins:
+  - [`ManualColumnFreeze`](@/api/manualColumnFreeze.md)

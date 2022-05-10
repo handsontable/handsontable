@@ -66,5 +66,13 @@ const hot = new Handsontable(container, {
 
 #### Related API reference
 
-- [Options: `dropdownMenu`](@/api/options.md#dropdownmenu)
-- [Plugins: `DropdownMenu`](@/api/dropdownMenu.md)
+- Configuration options:
+  - [`dropdownMenu`](@/api/options.md#dropdownmenu)
+- Hooks:
+  - [`afterDropdownMenuDefaultOptions`](@/api/hooks.md#afterdropdownmenudefaultoptions)
+  - [`afterDropdownMenuHide`](@/api/hooks.md#afterdropdownmenuhide)
+  - [`afterDropdownMenuShow`](@/api/hooks.md#afterdropdownmenushow)
+  - [`beforeDropdownMenuSetItems`](@/api/hooks.md#beforedropdownmenusetitems)
+  - [`beforeDropdownMenuShow`](@/api/hooks.md#beforedropdownmenushow)
+- Plugins:
+  - [`DropdownMenu`](@/api/dropdownMenu.md)

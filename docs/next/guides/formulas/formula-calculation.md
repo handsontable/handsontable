@@ -504,5 +504,7 @@ For more information about named expressions, please refer to the [HyperFormula 
 
 #### Related API reference
 
-- [Options: `formulas`](@/api/options.md#formulas)
-- [Plugins: `Formuas`](@/api/formulas.md)
+- Configuration options:
+  - [`formulas`](@/api/options.md#formulas)
+- Plugins:
+  - [`Formulas`](@/api/formulas.md)

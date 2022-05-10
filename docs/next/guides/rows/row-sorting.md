@@ -319,6 +319,12 @@ List of methods exposed by the plugin:
 
 #### Related API reference
 
-Plugins:
-- [`ColumnSorting`](@/api/columnSorting.md)
-- [`MultiColumnSorting`](@/api/multiColumnSorting.md)
+- Configuration options:
+  - [`columnSorting`](@/api/options.md#columnsorting)
+  - [`multiColumnSorting`](@/api/options.md#multicolumnsorting)
+- Hooks:
+  - [`afterColumnSort`](@/api/hooks.md#aftercolumnsort)
+  - [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort)
+- Plugins:
+  - [`ColumnSorting`](@/api/columnSorting.md)
+  - [`MultiColumnSorting`](@/api/multiColumnSorting.md)

@@ -75,9 +75,13 @@ A tree grid enables you to represent the nested data structures within the data 
 
 #### Related API reference
 
-Configuration options:
-- [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders)
-- [`rowHeaders`](@/api/options.md#rowheaders)
-
-Plugins:
-- [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
+- Configuration options:
+  - [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders)
+  - [`rowHeaders`](@/api/options.md#rowheaders)
+- Hooks:
+  - [`afterGetRowHeader`](@/api/hooks.md#aftergetrowheader)
+  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
+  - [`beforeHighlightingRowHeader`](@/api/hooks.md#beforehighlightingrowheader)
+  - [`modifyRowHeaderWidth`](@/api/hooks.md#modifyrowheaderwidth)
+- Plugins:
+  - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)

@@ -59,7 +59,7 @@ const hot = new Handsontable(container, {
 
 ## Related API reference
 
-Options:
+Configuration options:
   - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
   - [`className`](@/api/options.md#classname)
   - [`commentedCellClassName`](@/api/options.md#commentedcellclassname)
@@ -71,3 +71,6 @@ Options:
   - [`placeholderCellClassName`](@/api/options.md#placeholdercellclassname)
   - [`readOnlyCellClassName`](@/api/options.md#readonlycellclassname)
   - [`tableClassName`](@/api/options.md#tableclassname)
+- Hooks:
+  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
+  - [`beforeCellAlignment`](@/api/hooks.md#beforecellalignment)

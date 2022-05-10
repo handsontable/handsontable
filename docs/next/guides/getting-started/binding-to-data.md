@@ -449,15 +449,39 @@ const hot = new Handsontable(container, {
 
 #### Related API reference
 
-Configuration options:
-- [`data`](@/api/options.md#data)
-- [`dataSchema`](@/api/options.md#dataschema)
-
-Core methods:
-- [`loadData()`](@/api/core.md#loaddata)
-- [`populateFromArray()`](@/api/core.md#populatefromarray)
-- [`setDataAtCell()`](@/api/core.md#setdataatcell)
-- [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)
-- [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)
-- [`updateData()`](@/api/core.md#updatedata)
-- [`updateSettings()`](@/api/core.md#updatesettings)
+- Configuration options:
+  - [`data`](@/api/options.md#data)
+  - [`dataSchema`](@/api/options.md#dataschema)
+- Core methods:
+  - [`getData()`](@/api/core.md#getdata)
+  - [`getDataAtCell()`](@/api/core.md#getdataatcell)
+  - [`getDataAtCol()`](@/api/core.md#getdataatcol)
+  - [`getDataAtProp()`](@/api/core.md#getdataatprop)
+  - [`getDataAtRow()`](@/api/core.md#getdataatrow)
+  - [`getDataAtRowProp()`](@/api/core.md#getdataatrowprop)
+  - [`getSourceData()`](@/api/core.md#getsourcedata)
+  - [`getSourceDataArray()`](@/api/core.md#getsourcedataarray)
+  - [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell)
+  - [`getSourceDataAtCol()`](@/api/core.md#getsourcedataatcol)
+  - [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow)
+  - [`loadData()`](@/api/core.md#loaddata)
+  - [`populateFromArray()`](@/api/core.md#populatefromarray)
+  - [`setDataAtCell()`](@/api/core.md#setdataatcell)
+  - [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)
+  - [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)
+  - [`updateData()`](@/api/core.md#updatedata)
+  - [`updateSettings()`](@/api/core.md#updatesettings)
+- Hooks:
+  - [`afterChange`](@/api/hooks.md#afterchange)
+  - [`afterLoadData`](@/api/hooks.md#afterloaddata)
+  - [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell)
+  - [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
+  - [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell)
+  - [`afterUpdateData`](@/api/hooks.md#afterupdatedata)
+  - [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings)
+  - [`beforeAutofillInsidePopulate`](@/api/hooks.md#beforeautofillinsidepopulate)
+  - [`beforeLoadData`](@/api/hooks.md#beforeloaddata)
+  - [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata)
+  - [`modifyData`](@/api/hooks.md#modifydata)
+  - [`modifyRowData`](@/api/hooks.md#modifyrowdata)
+  - [`modifySourceData`](@/api/hooks.md#modifysourcedata)

@@ -56,5 +56,10 @@ The [`moveColumns`]([moveColumns](@/api/manualColumnMove.md#movecolumns)) functi
 
 ## Related API reference
 
-- [Options: `manualColumnMove`](@/api/options.md#manualcolumnmove)
-- [Plugins: `ManualColumnMove`](@/api/manualColumnMove.md)
+- Configuration options:
+  - [`manualColumnMove`](@/api/options.md#manualcolumnmove)
+- Hooks:
+  - [`afterColumnMove`](@/api/hooks.md#aftercolumnmove)
+  - [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove)
+- Plugins:
+  - [`ManualColumnMove`](@/api/manualColumnMove.md)
