@@ -1,7 +1,7 @@
 {
-  "title": "Add localization for serbian language",
+  "title": "Exposed the `isRtl()`, `isLtr()`, and `getDirectionFactor()` methods to the public API.",
   "type": "added",
-  "issue": 9420,
+  "issue": 9419,
   "breaking": false,
   "framework": "none"
 }
