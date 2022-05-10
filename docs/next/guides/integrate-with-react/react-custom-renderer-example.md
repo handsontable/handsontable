@@ -7,6 +7,8 @@ canonicalUrl: /react-custom-renderer-example
 
 # Custom renderer in React
 
+[[toc]]
+
 ## Overview
 
 You can declare a custom renderer for the `HotTable` component by declaring it as a function in the Handsontable options or creating a rendering component.
@@ -77,3 +79,17 @@ const App = () => {
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Cell renderer](@/guides/cell-functions/cell-renderer.md)
+
+#### Related API reference
+
+- [`BasePlugin`](@/api/basePlugin.md)
+- [Options: `renderer`](@/api/options.md#renderer)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)

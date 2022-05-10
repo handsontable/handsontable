@@ -71,3 +71,17 @@ const App = () => {
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Cell editor](@/guides/cell-functions/cell-editor.md)
+
+#### Related API reference
+
+- [`BasePlugin`](@/api/basePlugin.md)
+- [Options: `editor`](@/api/options.md#editor)
+- Core methods:
+  - [`getCellEditor()`](@/api/core.md#getcelleditor)
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)

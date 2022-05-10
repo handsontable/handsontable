@@ -79,3 +79,17 @@ new Vue({
 });
 ```
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Cell renderer](@/guides/cell-functions/cell-renderer.md)
+
+#### Related API reference
+
+- [`BasePlugin`](@/api/basePlugin.md)
+- [Options: `renderer`](@/api/options.md#renderer)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)

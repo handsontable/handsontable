@@ -7,6 +7,8 @@ canonicalUrl: /vue3-custom-context-menu-example
 
 # Custom context menu example in Vue 3
 
+[[toc]]
+
 ## Overview
 
 The following example implements the `@handsontable/vue3` component, adding a custom Context Menu.
@@ -65,3 +67,21 @@ const app = createApp({
 app.mount('#example1');
 ```
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Adding comments via the context menu](@/guides/cell-features/comments.md#adding-comments-via-the-context-menu)
+- [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
+- [Context menu](@/guides/accessories-and-menus/context-menu.md)
+- [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
+
+#### Related blog articles
+
+- [Customize Handsontable context menu](https://handsontable.com/blog/customize-handsontable-context-menu)
+
+#### Related API reference
+
+- [Options: `contextMenu`](@/api/options.md#contextmenu)
+- [Plugins: `ContextMenu`](@/api/contextMenu.md)

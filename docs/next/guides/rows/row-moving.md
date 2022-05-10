@@ -55,3 +55,8 @@ The [moveRows](@/api/manualRowMove.md#moverows) method has a `finalIndex` parame
 ![moveRows method](/docs/next/img/move_action.svg)
 
 The [moveRows](@/api/manualRowMove.md#moverows) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [isMovePossible](@/api/manualRowMove.md#ismovepossible) API method and the `movePossible` parameters `beforeRowMove` and `afterRowMove` hooks help in determine such situations.
+
+## Related API reference
+
+- [Options: `manualRowMove`](@/api/options.md#manualrowmove)
+- [Plugins: `ManualRowMove`](@/api/manualRowMove.md)

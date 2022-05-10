@@ -9,7 +9,6 @@ canonicalUrl: /react-installation
 
 [[toc]]
 
-
 ## Overview
 
 React installation and basic usage guide.

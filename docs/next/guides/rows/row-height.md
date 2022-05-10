@@ -111,3 +111,12 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related API reference
+
+Configuration options:
+- [`rowHeights`](@/api/options.md#rowheights)
+
+Plugins:
+- [`AutoRowSize`](@/api/autoRowSize.md)
+- [`ManualRowResize`](@/api/manualRowResize.md)

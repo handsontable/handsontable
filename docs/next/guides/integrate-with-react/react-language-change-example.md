@@ -7,6 +7,8 @@ canonicalUrl: /react-language-change-example
 
 # Language change in React
 
+[[toc]]
+
 ## Overview
 
 The following example implements the `@handsontable/react` component with the option to change the Context Menu language configured. Select a language from the selector above the table and open the Context Menu to see the result.
@@ -74,3 +76,15 @@ const App = () => {
 ReactDOM.render(<App/>, document.getElementById('example1'));
 ```
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Language](@/guides/internationalization/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Locale](@/guides/internationalization/locale.md)
+
+#### Related blog articles
+
+- [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)

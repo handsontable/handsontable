@@ -30,3 +30,9 @@ To test the IME support, you will need to change your language preferences for y
 ## Watch IME in action
 
 <video controls loop src="/docs/next/img/pages/ime-support/ime-support-in-handsontable.mp4" width="100%"></video>
+
+## Related guides
+
+- [Language](@/guides/internationalization/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Locale](@/guides/internationalization/locale.md)

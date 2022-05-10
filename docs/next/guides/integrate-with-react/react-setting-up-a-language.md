@@ -7,6 +7,8 @@ canonicalUrl: /react-setting-up-a-language
 
 # Setting up a translation in React
 
+[[toc]]
+
 ## Overview
 
 The following example shows a Handsontable instance with translations set up in React.
@@ -91,3 +93,15 @@ const App = () => {
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Language](@/guides/internationalization/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Locale](@/guides/internationalization/locale.md)
+
+#### Related blog articles
+
+- [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)

@@ -231,3 +231,8 @@ plugin.showRow(0, 4, 6);
 // or
 plugin.showRows([0, 4, 6]);
 ```
+
+## Related API reference
+
+- [Options: `hiddenRows`](@/api/options.md#hiddenrows)
+- [Plugins: `HiddenRows`](@/api/hiddenRows.md)

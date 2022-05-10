@@ -68,3 +68,23 @@ const hot = new Handsontable(container, {
   ],
 });
 ```
+
+## Related articles
+
+#### Related guides
+
+- [IME support](@/guides/internationalization/ime-support.md)
+- [Language](@/guides/internationalization/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+
+#### Related blog articles
+
+- [Handsontable 11.0.0: Modularization for React, Angular, and Vue](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue)
+- [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
+
+#### Related API reference
+
+Configuration options:
+- [`language`](@/api/options.md#language)
+- [`layoutDirection`](@/api/options.md#layoutdirection)
+- [`locale`](@/api/options.md#locale)

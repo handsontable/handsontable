@@ -7,7 +7,10 @@ canonicalUrl: /angular-setting-up-a-language
 
 # Setting up a translation in Angular
 
+[[toc]]
+
 ## Overview
+
 The following example shows a Handsontable instance with translations set up in Angular.
 
 ## Example
@@ -99,3 +102,15 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Language](@/guides/internationalization/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Locale](@/guides/internationalization/locale.md)
+
+#### Related blog articles
+
+- [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)

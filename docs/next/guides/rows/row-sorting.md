@@ -19,12 +19,12 @@ It can:
 The sort operation is performed using a [stable sort algorithm](https://en.wikipedia.org/wiki/Sorting_algorithm#Stability) regardless of the browser you use or the size of the data set which you sort.
 
 ::: tip
-Don't enable the [`ColumnSorting`](@/api/columnsorting.md) and [`MultiColumnSorting`](@/api/multicolumnsorting.md) plugins simultaneously.
+Don't enable the [`ColumnSorting`](@/api/columnSorting.md) and [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugins simultaneously.
 :::
 
 ## Basic plugin configuration
 
-The simplest way to enable the plugin is to set the [`columnSorting`](@/api/options.md#columnsorting) option to `true`. You will then be able to **use [the API methods](#api)** and **click on the header to sort**, as shown in the example below:
+The simplest way to enable the plugin is to set the [`columnSorting`](@/api/options.md#columnSorting) option to `true`. You will then be able to **use [the API methods](#api)** and **click on the header to sort**, as shown in the example below:
 
 By default:
 
@@ -110,7 +110,7 @@ const hot = new Handsontable(container, {
 :::
 
 ::: tip
-Options defined by the[ `columnSorting`](@/api/options.md#columnsorting) key in the main Handsontable settings apply to the entire table. Most of them can also be set for a particular column, as described in [this section](#column-options).
+Options defined by the[ `columnSorting`](@/api/options.md#columnSorting) key in the main Handsontable settings apply to the entire table. Most of them can also be set for a particular column, as described in [this section](#column-options).
 :::
 
 ## Default compare functions - sorting different kinds of data
@@ -257,16 +257,16 @@ const hot = new Handsontable(container, {
 
 ## Custom sort implementation
 
-The plugin exposes the [`setSortConfig`](@/api/columnsorting.md#setsortconfig) method. Use this to set the internal sort state.
+The plugin exposes the [`setSortConfig`](@/api/columnSorting.md#setsortconfig) method. Use this to set the internal sort state.
 
 ::: tip
-The data set **won't be sorted** just by using this method. The [`isSorted`](@/api/columnsorting.md#issorted) and [`getSortConfig`](@/api/columnsorting.md#getsortconfig) methods will return results corresponding to the previously set configuration.
+The data set **won't be sorted** just by using this method. The [`isSorted`](@/api/columnSorting.md#issorted) and [`getSortConfig`](@/api/columnSorting.md#getsortconfig) methods will return results corresponding to the previously set configuration.
 :::
 
 To use a custom sort implementation, you need to:
 * Provide a callback for the [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) hook, which will return `false`
 * Sort data by yourself - for example, on the server-side
-* Set the internal state of the sort by using the [`setSortConfig`](@/api/columnsorting.md#setsortconfig) method
+* Set the internal state of the sort by using the [`setSortConfig`](@/api/columnSorting.md#setsortconfig) method
 
 The code snippet below provides an example of a custom sort implementation:
 
@@ -289,12 +289,12 @@ beforeColumnSort(currentSortConfig, destinationSortConfigs) {
 The plugin provides two hooks:
 
 * [beforeColumnSort](@/api/hooks.md#beforecolumnsort) runs before the sort
-  * The sort configuration obtained by the [`getSortConfig`](@/api/columnsorting.md#getsortconfig) method within the callback will match the sort configuration preserved before the hook call
+  * The sort configuration obtained by the [`getSortConfig`](@/api/columnSorting.md#getsortconfig) method within the callback will match the sort configuration preserved before the hook call
   * The callback for [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) will return `false` and stop the table from being sorted, which results in the [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) hook not being called
 * [afterColumnSort](@/api/hooks.md#aftercolumnsort) always runs after sorting unless the callback for [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) hook returns `false`
 
 ::: tip
-Hooks are also run when you use the [`clearSort`](@/api/columnsorting.md#clearsort) method or provide a configuration that won't be processed, causing validation to fail.
+Hooks are also run when you use the [`clearSort`](@/api/columnSorting.md#clearsort) method or provide a configuration that won't be processed, causing validation to fail.
 :::
 
 ## Plugin API
@@ -306,3 +306,19 @@ List of methods exposed by the plugin:
 * [`isSorted`](@/api/columnSorting.md#issorted)
 * [`setSortConfig`](@/api/columnSorting.md#setsortconfig)
 * [`sort`](@/api/columnSorting.md#sort)
+
+## Related articles
+
+#### Related guides
+
+- [Column sorting](@/guides/columns/column-sorting.md)
+
+#### Related blog articles
+
+- [Feature spotlight: Multi-column sorting](https://handsontable.com/blog/feature-spotlight-multi-column-sorting)
+
+#### Related API reference
+
+Plugins:
+- [`ColumnSorting`](@/api/columnSorting.md)
+- [`MultiColumnSorting`](@/api/multiColumnSorting.md)

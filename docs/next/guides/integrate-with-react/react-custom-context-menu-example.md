@@ -7,6 +7,8 @@ canonicalUrl: /react-custom-context-menu-example
 
 # Custom context menu in React
 
+[[toc]]
+
 ## Overview
 
 The following example is an implementation of the `@handsontable/react` component with a custom Context Menu added using React.
@@ -60,3 +62,21 @@ const App = () => {
 
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
+
+## Related articles
+
+#### Related guides
+
+- [Adding comments via the context menu](@/guides/cell-features/comments.md#adding-comments-via-the-context-menu)
+- [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
+- [Context menu](@/guides/accessories-and-menus/context-menu.md)
+- [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
+
+#### Related blog articles
+
+- [Customize Handsontable context menu](https://handsontable.com/blog/customize-handsontable-context-menu)
+
+#### Related API reference
+
+- [Options: `contextMenu`](@/api/options.md#contextmenu)
+- [Plugins: `ContextMenu`](@/api/contextMenu.md)

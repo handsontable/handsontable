@@ -78,7 +78,6 @@ More complex data structures can be displayed with multiple headers, each repres
 #### Related guides
 
 - [Column groups](@/guides/columns/column-groups.md)
-- [Row header](@/guides/rows/row-headers.md)
 
 #### Related API reference
 

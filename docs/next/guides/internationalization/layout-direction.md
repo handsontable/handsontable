@@ -260,3 +260,22 @@ You can apply the horizontal text alignment settings to:
 - [Individual rows](@/guides/getting-started/setting-options.md#setting-row-options), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
 - [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options), by setting [`className`](@/api/options.md#classname) on the cell level
 - [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
+
+## Related articles
+
+#### Related guides
+
+- [IME support](@/guides/internationalization/ime-support.md)
+- [Language](@/guides/internationalization/language.md)
+- [Locale](@/guides/internationalization/locale.md)
+
+#### Related blog articles
+
+- [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
+
+#### Related API reference
+
+Configuration options:
+- [`language`](@/api/options.md#language)
+- [`layoutDirection`](@/api/options.md#layoutdirection)
+- [`locale`](@/api/options.md#locale)

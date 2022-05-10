@@ -7,7 +7,10 @@ canonicalUrl: /angular-custom-renderer-example
 
 # Custom renderer in Angular
 
+[[toc]]
+
 ## Overview
+
 The following example is an implementation of `@handsontable/angular` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
 
 ## Example
@@ -92,3 +95,17 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Cell renderer](@/guides/cell-functions/cell-renderer.md)
+
+#### Related API reference
+
+- [`BasePlugin`](@/api/basePlugin.md)
+- [Options: `renderer`](@/api/options.md#renderer)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)

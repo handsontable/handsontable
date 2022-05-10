@@ -54,13 +54,7 @@ The [moveColumns](@/api/manualColumnMove.md#movecolumns) method has a [`finalInd
 
 The [`moveColumns`]([moveColumns](@/api/manualColumnMove.md#movecolumns)) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [isMovePossible](@/api/manualColumnMove.md#ismovepossible) API method and the `movePossible` parameters [`beforeColumnMove`](](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](](@/api/hooks.md#aftercolumnmove) hooks help in determine such situations.
 
-## Related articles
+## Related API reference
 
-#### Related guides
-
-- [Row moving](@/guides/rows/row-moving.md)
-
-
-#### Related API reference
 - [Options: `manualColumnMove`](@/api/options.md#manualcolumnmove)
-- [Plugins: `manualColumnMove`](@/api/manualColumnMove.md)
+- [Plugins: `ManualColumnMove`](@/api/manualColumnMove.md)

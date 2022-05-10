@@ -7,6 +7,8 @@ canonicalUrl: /vue3-simple-example
 
 # Basic example in Vue 3
 
+[[toc]]
+
 ## Overview
 
 The following example is a simple implementation of the `@handsontable/vue3` component.

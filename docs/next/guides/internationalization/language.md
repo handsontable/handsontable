@@ -276,3 +276,22 @@ Returns: `Object`
 Handsontable.languages.dictionaryKeys
 
 Contains: `Object`
+
+## Related articles
+
+#### Related guides
+
+- [IME support](@/guides/internationalization/ime-support.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Locale](@/guides/internationalization/locale.md)
+
+#### Related blog articles
+
+- [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
+
+#### Related API reference
+
+Configuration options:
+- [`language`](@/api/options.md#language)
+- [`layoutDirection`](@/api/options.md#layoutdirection)
+- [`locale`](@/api/options.md#locale)

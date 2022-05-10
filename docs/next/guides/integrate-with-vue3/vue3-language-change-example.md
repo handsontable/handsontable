@@ -7,6 +7,10 @@ canonicalUrl: /vue3-language-change-example
 
 # Language change in Vue 3
 
+[[toc]]
+
+## Overview
+
 The following example implements the `@handsontable/vue3` component with the option to change the Context Menu language configured. Select a language from the selector above the table and open the Context Menu to see the result.
 
 :::tip
@@ -75,3 +79,15 @@ const app = createApp({
 app.mount('#example1');
 ```
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Language](@/guides/internationalization/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Locale](@/guides/internationalization/locale.md)
+
+#### Related blog articles
+
+- [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)

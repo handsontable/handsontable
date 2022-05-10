@@ -7,6 +7,8 @@ canonicalUrl: /angular-custom-editor-example
 
 # Custom editor example in Angular
 
+[[toc]]
+
 ## Overview
 
 The following is an implementation of the `@handsontable/angular` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
@@ -87,3 +89,17 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
 :::
+
+## Related articles
+
+#### Related guides
+
+- [Cell editor](@/guides/cell-functions/cell-editor.md)
+
+#### Related API reference
+
+- [`BasePlugin`](@/api/basePlugin.md)
+- [Options: `editor`](@/api/options.md#editor)
+- Core methods:
+  - [`getCellEditor()`](@/api/core.md#getcelleditor)
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
