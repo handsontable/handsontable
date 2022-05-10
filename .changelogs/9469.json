@@ -1,0 +1,7 @@
+{
+    "title": "Added localization support for the Serbian language",
+    "type": "added",
+    "issue": 9469,
+    "breaking": false,
+    "framework": "none"
+  }
