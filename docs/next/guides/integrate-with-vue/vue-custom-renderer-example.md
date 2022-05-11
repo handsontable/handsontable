@@ -105,7 +105,5 @@ new Vue({
   - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
   - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
   - [`afterRenderer`](@/api/hooks.md#afterrenderer)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
   - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
   - [`beforeRenderer`](@/api/hooks.md#beforerenderer)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

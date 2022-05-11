@@ -95,6 +95,7 @@ app.mount('#example1');
   - [`BasePlugin`](@/api/basePlugin.md)
 - Configuration options:
   - [`editor`](@/api/options.md#editor)
+  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
 - Core methods:
   - [`destroyEditor()`](@/api/core.md#destroyeditor)
   - [`getActiveEditor()`](@/api/core.md#getactiveeditor)
@@ -108,6 +109,4 @@ app.mount('#example1');
 - Hooks:
   - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
   - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
   - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

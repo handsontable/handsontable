@@ -15,7 +15,7 @@ The following example implements the `@handsontable/vue` component with a [`read
 
 ## Example - Vuex store dump:
 
-Toggle [`readOnly](@/api/options.md#readonly)` for the entire table.
+Toggle [`readOnly`](@/api/options.md#readonly) for the entire table.
 
 ::: example #example1 :vue-vuex --html 1 --js 2
 ```html

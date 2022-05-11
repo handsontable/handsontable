@@ -268,4 +268,5 @@ button.addEventListener('click', () => {
 
 ## Related API reference
 
-- Plugins: [`ExportFile`](@/api/exportFile.md)
+- Plugins:
+  - [`ExportFile`](@/api/exportFile.md)

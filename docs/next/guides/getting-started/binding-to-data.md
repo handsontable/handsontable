@@ -468,8 +468,6 @@ const hot = new Handsontable(container, {
   - [`getSourceDataAtCol()`](@/api/core.md#getsourcedataatcol)
   - [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow)
   - [`loadData()`](@/api/core.md#loaddata)
-  - [`modifyData()`](@/api/core.md#modifydata)
-  - [`modifySourceData()`](@/api/core.md#modifysourcedata)
   - [`populateFromArray()`](@/api/core.md#populatefromarray)
   - [`setDataAtCell()`](@/api/core.md#setdataatcell)
   - [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)

@@ -386,6 +386,6 @@ hot.addHook('beforeKeyDown', (event) => {
   - [`isListening()`](@/api/core.md#islistening)
   - [`listen()`](@/api/core.md#listen)
   - [`unlisten()`](@/api/core.md#unlisten)
-Hooks:
+- Hooks:
   - [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown)
   - [`beforeKeyDown`](@/api/hooks.md#beforekeydown)

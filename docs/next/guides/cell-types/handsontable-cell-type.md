@@ -7,6 +7,8 @@ canonicalUrl: /handsontable-cell-type
 
 # Handsontable cell type
 
+[[toc]]
+
 ## Overview
 
 This page describes how to use Handsontable as a cell editor in Handsontable.
@@ -105,7 +107,7 @@ const hot = new Handsontable(container, {
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
   - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
   - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType`](@/api/core.md#getdatatype)
+  - [`getDataType()`](@/api/core.md#getdatatype)
   - [`setCellMeta()`](@/api/core.md#setcellmeta)
   - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
   - [`removeCellMeta()`](@/api/core.md#removecellmeta)

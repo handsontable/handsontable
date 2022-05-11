@@ -65,3 +65,20 @@ Now, you can use the Handsontable component in your HTML files.
   licenseKey="non-commercial-and-evaluation">
 </hot-table>
 ```
+
+## Related API reference
+
+- Configuration options:
+  - [`maxCols`](@/api/options.md#maxcols)
+  - [`maxRows`](@/api/options.md#maxrows)
+  - [`minCols`](@/api/options.md#mincols)
+  - [`minRows`](@/api/options.md#minrows)
+  - [`minSpareCols`](@/api/options.md#minsparecols)
+  - [`minSpareRows`](@/api/options.md#minsparerows)
+  - [`startCols`](@/api/options.md#startcols)
+  - [`startRows`](@/api/options.md#startrows)
+- Hooks:
+  - [`afterInit`](@/api/hooks.md#afterinit)
+  - [`beforeInit`](@/api/hooks.md#beforeinit)
+  - [`beforeInitWalkontable`](@/api/hooks.md#beforeinitwalkontable)
+  - [`construct`](@/api/hooks.md#construct)

@@ -113,7 +113,7 @@ const hot = new Handsontable(container, {
 - Configuration options:
   - [`collapsibleColumns`](@/api/options.md#collapsiblecolumns)
   - [`nestedHeaders`](@/api/options.md#nestedheaders)
-Core methods:
+- Core methods:
   - [`isColumnModificationAllowed()`](@/api/core.md#iscolumnmodificationallowed)
 - Hooks:
   - [`afterColumnCollapse`](@/api/hooks.md#aftercolumncollapse)

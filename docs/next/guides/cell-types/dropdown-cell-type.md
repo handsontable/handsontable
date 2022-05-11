@@ -6,6 +6,7 @@ canonicalUrl: /dropdown-cell-type
 ---
 
 # Dropdown cell type
+
 [[toc]]
 
 ## Overview
@@ -65,7 +66,7 @@ const hot = new Handsontable(container, {
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
   - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
   - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType`](@/api/core.md#getdatatype)
+  - [`getDataType()`](@/api/core.md#getdatatype)
   - [`setCellMeta()`](@/api/core.md#setcellmeta)
   - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
   - [`removeCellMeta()`](@/api/core.md#removecellmeta)

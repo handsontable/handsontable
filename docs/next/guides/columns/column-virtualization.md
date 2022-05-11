@@ -59,4 +59,5 @@ const hot = new Handsontable(container, {
 - [Row virtualization](@/guides/rows/row-virtualization.md)
 
 #### Related API reference
-- Configuration options: `viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
+- Configuration options:
+  - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)

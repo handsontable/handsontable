@@ -51,7 +51,9 @@ const hot = new Handsontable(container, {
 - Configuration options:
   - [`mergeCells`](@/api/options.md#mergecells)
 - Hooks:
-  - [`afterMergeCells`](@/api/options.md#aftermergecells)
-  - [`afterUnmergeCells`](@/api/options.md#afterunmergecells)
-  - [`beforeMergeCells`](@/api/options.md#beforemergecells)
-  - [`beforeUnmergeCells`](@/api/options.md#beforeunmergecells)
+  - [`afterMergeCells`](@/api/hooks.md#aftermergecells)
+  - [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)
+  - [`beforeMergeCells`](@/api/hooks.md#beforemergecells)
+  - [`beforeUnmergeCells`](@/api/hooks.md#beforeunmergecells)
+- Plugins:
+  - [`MergeCells`](@/api/mergeCells.md)

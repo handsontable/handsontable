@@ -106,4 +106,5 @@ To get a commercial license key for your Handsontable copy, contact our [Sales T
 
 #### Related API reference
 
-- Configuration options: [`licenseKey`](@/api/options.md#licensekey)
+- Configuration options:
+  - [`licenseKey`](@/api/options.md#licensekey)

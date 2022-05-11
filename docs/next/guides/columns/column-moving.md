@@ -59,7 +59,7 @@ The [`moveColumns`](@/api/manualColumnMove.md#movecolumns) function cannot perfo
 - Configuration options:
   - [`manualColumnMove`](@/api/options.md#manualcolumnmove)
 - Core methods:
-  - [`colToProp()`](@/api/core.md#colToProp)
+  - [`colToProp()`](@/api/core.md#coltoprop)
   - [`isColumnModificationAllowed()`](@/api/core.md#iscolumnmodificationallowed)
   - [`propToCol()`](@/api/core.md#proptocol)
   - [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn)

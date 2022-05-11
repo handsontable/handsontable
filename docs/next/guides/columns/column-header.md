@@ -96,7 +96,6 @@ More complex data structures can be displayed with multiple headers, each repres
   - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
   - [`beforeHighlightingColumnHeader`](@/api/hooks.md#beforehighlightingcolumnheader)
   - [`modifyColHeader`](@/api/hooks.md#modifycolheader)
-  - [`modifyColHeader`](@/api/hooks.md#modifycolheader)
   - [`modifyColumnHeaderHeight`](@/api/hooks.md#modifycolumnheaderheight)
 - Plugins:
   - [`NestedHeaders`](@/api/nestedHeaders.md)

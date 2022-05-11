@@ -290,5 +290,7 @@ Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
 
 ## Related API reference
 
-- Configuration options: [`search`](@/api/options.md#search)
-- Plugins: [`Search`](@/api/search.md)
+- Configuration options:
+  - [`search`](@/api/options.md#search)
+- Plugins:
+  - [`Search`](@/api/search.md)

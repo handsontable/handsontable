@@ -155,9 +155,15 @@ const hot = Handsontable(container, {
 ```
 :::
 
-## Related API reference
+## Related articles
 
-Configuration options:
+#### Related guides
+
+- [Conditional formatting](@/guides/cell-features/conditional-formatting.md)
+
+#### Related API reference
+
+- Configuration options:
   - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
   - [`className`](@/api/options.md#classname)
   - [`commentedCellClassName`](@/api/options.md#commentedcellclassname)

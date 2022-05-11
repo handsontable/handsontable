@@ -380,7 +380,7 @@ Empty cells may be treated in differently in different contexts, for example, th
   - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
   - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
   - [`getCellValidator()`](@/api/core.md#getcellvalidator)
-  - [`getDataType`](@/api/core.md#getdatatype)
+  - [`getDataType()`](@/api/core.md#getdatatype)
   - [`setCellMeta()`](@/api/core.md#setcellmeta)
   - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
   - [`removeCellMeta()`](@/api/core.md#removecellmeta)

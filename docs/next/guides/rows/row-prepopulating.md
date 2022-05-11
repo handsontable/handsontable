@@ -108,4 +108,5 @@ hot.loadData(data);
 
 ## Related API reference
 
-- Hooks: [`beforeChange`](@/api/hooks.md#beforechange)
+- Hooks:
+  - [`beforeChange`](@/api/hooks.md#beforechange)
