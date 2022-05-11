@@ -167,4 +167,6 @@ const hot = new Handsontable(container, {
 
 ## Related API reference
 
-- Configuration options: [`comments`](@/api/options.md#comments)
+- Configuration options:
+  - [`commentedCellClassName`](@/api/options.md#commentedcellclassname)
+  - [`comments`](@/api/options.md#comments)

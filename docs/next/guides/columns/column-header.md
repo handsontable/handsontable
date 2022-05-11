@@ -82,13 +82,15 @@ More complex data structures can be displayed with multiple headers, each repres
 #### Related API reference
 
 - Configuration options:
+  - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
   - [`colHeaders`](@/api/options.md#colheaders)
   - [`columnHeaderHeight`](@/api/options.md#columnheaderheight)
   - [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
   - [`nestedHeaders`](@/api/options.md#nestedheaders)
+  - [`title`](@/api/options.md#title)
 - Core methods:
-  - [`getColHeader`](@/api/core.md#getcolheader)
-  - [`hasColHeaders`](@/api/core.md#hascolheaders)
+  - [`getColHeader()`](@/api/core.md#getcolheader)
+  - [`hasColHeaders()`](@/api/core.md#hascolheaders)
 - Hooks:
   - [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader)
   - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)

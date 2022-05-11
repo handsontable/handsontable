@@ -30,12 +30,12 @@ In prior versions of the Handsontable component, the calculation between physica
 * [`afterLoadData`](@/api/hooks.md#afterloaddata)
 * [`afterRowMove`](@/api/hooks.md#afterrowmove)
 * [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)
-* `batch`
+* `batch()`
 * [`beforeRowMove`](@/api/hooks.md#beforerowmove)
 * [`CollapsibleColumns`](@/api/collapsiblecolumns.md)
 * [`ColumnSorting`](@/api/columnsorting.md)
 * [Data binding](@/guides/getting-started/binding-to-data.md)
-* [`dragColumns`](@/api/manualcolumnmove.md#dragcolumns)
+* [`dragColumns()`](@/api/manualcolumnmove.md#dragcolumns)
 * [`dragRows`](@/api/manualrowmove.md#dragrows)
 * [`Filters`](@/api/filters.md)
 * `finalIndex`
@@ -54,15 +54,15 @@ In prior versions of the Handsontable component, the calculation between physica
 * [`moveRows`](@/api/manualrowmove.md#moverows)
 * [`NestedRows`](@/api/nestedrows.md)
 * `ObserveChanges`
-* [`populateFromArray`](@/api/core.md#populatefromarray)
+* [`populateFromArray()`](@/api/core.md#populatefromarray)
 * `RecordTranslator`
-* [`setDataAtCell`](@/api/core.md#setdataatcell)
-* [`setDataAtRowProp`](@/api/core.md#setdataatrowprop)
+* [`setDataAtCell()`](@/api/core.md#setdataatcell)
+* [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)
 * `skipLengthCache`
-* [`toPhysicalColumn`](@/api/core.md#tophysicalcolumn)
-* [`toPhysicalRow`](@/api/core.md#tophysicalrow)
-* [`toVisualColumn`](@/api/core.md#tovisualcolumn)
-* [`toVisualRow`](@/api/core.md#tovisualrow)
+* [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn)
+* [`toPhysicalRow()`](@/api/core.md#tophysicalrow)
+* [`toVisualColumn()`](@/api/core.md#tovisualcolumn)
+* [`toVisualRow()`](@/api/core.md#tovisualrow)
 * [`TrimRows`](@/api/trimrows.md)
 * `unmodifyCol`
 * `unmodifyRow`
@@ -121,7 +121,7 @@ modifyRow(row) {
 }
 ```
 
-In 8.0.0 it is no longer the case. To achieve the same functionality you need to use [`rowIndexMapper`](@/api/core.md#rowindexmapper):
+In 8.0.0 it is no longer the case. To achieve the same functionality you need to use [`rowIndexMapper()`](@/api/core.md#rowindexmapper):
 
 ```js
 hotInstance.rowIndexMapper.moveIndexes([1, 0], 0);
@@ -269,11 +269,11 @@ hiddenColumns: true
 
 ## Data reference and ObserveChanges plugin
 
-Modifying the table’s data by reference and calling [`render()`](@/api/core.md#render) is no longer feasible. Now all the data-related operations need to be performed using the API methods such as [`populateFromArray`](@/api/core.md#populatefromarray) or [`setDataAtCell`](@/api/core.md#setdataatcell).
+Modifying the table’s data by reference and calling [`render()`](@/api/core.md#render) is no longer feasible. Now all the data-related operations need to be performed using the API methods such as [`populateFromArray()`](@/api/core.md#populatefromarray) or [`setDataAtCell()`](@/api/core.md#setdataatcell).
 
-The source data API was changed as well and it will no longer return a reference to the source data object. Instead, it returns a copy of the data, possibly already modified by the [`modifySourceData`](@/api/hooks.md#modifysourcedata) and [`modifyRowData`](@/api/hooks.md#modifyrowdata) hooks. The change applies to all "getter" source methods - [`getSourceData`](@/api/core.md#getsourcedata), [`getSourceDataAtCell`](@/api/core.md#getsourcedataatcell), [`getSourceDataAtRow`](@/api/core.md#getsourcedataatrow), [`getSourceDataAtCol`](@/api/core.md#getsourcedataatcol) and [`getSourceDataArray`](@/api/core.md#getsourcedataarray).
+The source data API was changed as well and it will no longer return a reference to the source data object. Instead, it returns a copy of the data, possibly already modified by the [`modifySourceData`](@/api/hooks.md#modifysourcedata) and [`modifyRowData`](@/api/hooks.md#modifyrowdata) hooks. The change applies to all "getter" source methods - [`getSourceData()`](@/api/core.md#getsourcedata), [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell), [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow), [`getSourceDataAtCol()`](@/api/core.md#getsourcedataatcol) and [`getSourceDataArray()`](@/api/core.md#getsourcedataarray).
 
-Since it breaks the link to original data source reference, [`setSourceDataAtCell`](@/api/core.md#getsourcedataatcell) method and [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell) hook were introduced to maintain a similar functionality.
+Since it breaks the link to original data source reference, [`setSourceDataAtCell()`](@/api/core.md#getsourcedataatcell) method and [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell) hook were introduced to maintain a similar functionality.
 
 Before it was possible to set source data by reference to the data variable:
 
@@ -293,9 +293,9 @@ Now API should be used:
 hotInstance.setSourceDataAtCell(0, 0, 'A1');
 ```
 
-It is also worth to mention that [`getSourceData`](@/api/core.md#getsourcedata) will return a clone of the entire dataset, when run without arguments - [`getSourceData()`](@/api/core.md#getsourcedata). However, if a row/column range is provided: `getSourceData(0, 0, 10, 10)`, it will filter the dataset with the [`columns`](@/api/options.md#columns) and/or [`dataSchema`](@/api/options.md#dataschema) options, and return only the columns configured to be visible.
+It is also worth to mention that [`getSourceData()`](@/api/core.md#getsourcedata) will return a clone of the entire dataset, when run without arguments - [`getSourceData()`](@/api/core.md#getsourcedata). However, if a row/column range is provided: `getSourceData(0, 0, 10, 10)`, it will filter the dataset with the [`columns`](@/api/options.md#columns) and/or [`dataSchema`](@/api/options.md#dataschema) options, and return only the columns configured to be visible.
 
-Before it was also possible to extend the row-object by [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) method when working with **an array of objects as source data**. Since 8.0.0 the only way to do that is to use [`setSourceDataAtCell`](@/api/core.md#setsourcedataatcell).
+Before it was also possible to extend the row-object by [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) method when working with **an array of objects as source data**. Since 8.0.0 the only way to do that is to use [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell).
 
 Check the following example:
 
@@ -413,7 +413,7 @@ createElements() {
 
 ## Indexes that exceed the data length
 
-Also, the methods [`toVisualRow`](@/api/core.md#tovisualrow), [`toVisualColumn`](@/api/core.md#tovisualcolumn) and [`toPhysicalRow`](@/api/core.md#tophysicalrow), [`toPhysicalColumn`](@/api/core.md#tophysicalcolumn) used to return index numbers that exceeded the overall length. For example:
+Also, the methods [`toVisualRow()`](@/api/core.md#tovisualrow), [`toVisualColumn()`](@/api/core.md#tovisualcolumn) and [`toPhysicalRow()`](@/api/core.md#tophysicalrow), [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn) used to return index numbers that exceeded the overall length. For example:
 
 ```js
 // Data set with just 10 rows.

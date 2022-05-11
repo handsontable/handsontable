@@ -124,7 +124,10 @@ app.mount('#example1');
   - [`layoutDirection`](@/api/options.md#layoutdirection)
   - [`locale`](@/api/options.md#locale)
 - Core methods:
+  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
   - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
+  - [`isLtr()`](@/api/core.md#isltr)
+  - [`isRtl()`](@/api/core.md#isrtl)
 - Hooks:
   - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
   - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)

@@ -266,9 +266,12 @@ Cell renderers are called separately for every displayed cell, during every tabl
   - [`renderer`](@/api/options.md#renderer)
 - Core methods:
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
   - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
   - [`setCellMeta()`](@/api/core.md#setcellmeta)
   - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
 - Hooks:
   - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
   - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)

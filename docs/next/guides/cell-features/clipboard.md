@@ -178,11 +178,20 @@ Examples of how to use them are provided in their descriptions.
 
 - Configuration options:
   - [`copyPaste`](@/api/options.md#copypaste)
+  - [`copyable`](@/api/options.md#copyable)
+  - [`skipColumnOnPaste`](@/api/options.md#skipcolumnonpaste)
+  - [`skipRowOnPaste`](@/api/options.md#skiprowonpaste)
+- Core methods:
+  - [`getCopyableData()`](@/api/core.md#getcopyabledata)
+  - [`getCopyableText()`](@/api/core.md#getcopyabletext)
 - Hooks:
   - [`afterCopy`](@/api/hooks.md#aftercopy)
   - [`afterCopyLimit`](@/api/hooks.md#aftercopylimit)
+  - [`afterCut`](@/api/hooks.md#aftercut)
   - [`afterPaste`](@/api/hooks.md#afterpaste)
   - [`beforeCopy`](@/api/hooks.md#beforecopy)
+  - [`beforeCut`](@/api/hooks.md#beforecut)
   - [`beforePaste`](@/api/hooks.md#beforepaste)
+  - [`modifyCopyableRange`](@/api/hooks.md#modifycopyablerange)
 - Plugins:
   - [`CopyPaste`](@/api/copyPaste.md)

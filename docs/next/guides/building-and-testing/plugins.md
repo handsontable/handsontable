@@ -283,3 +283,5 @@ pluginInstance.externalMethodExample();
   - [`BasePlugin`](@/api/basePlugin.md)
 - Core methods:
   - [`getPlugin()`](@/api/core.md#getplugin) 
+- Hooks:
+  - [`afterPluginsInitialized`](@/api/hooks.md#afterpluginsinitialized)

@@ -158,6 +158,7 @@ For the data separation to work properly, make sure that each instance of Handso
 - Core methods:
   - [`updateSettings()`](@/api/core.md#updatesettings)
 Hooks:
+  - [`afterCellMetaReset`](@/api/hooks.md#aftercellmetareset)
   - [`afterChange`](@/api/hooks.md#afterchange)
   - [`persistentStateLoad`](@/api/hooks.md#persistentstateload)
   - [`persistentStateReset`](@/api/hooks.md#persistentstatereset)

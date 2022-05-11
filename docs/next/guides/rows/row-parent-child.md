@@ -222,7 +222,12 @@ The “Insert row above” and “Insert row below” options were modified to w
   - [`rowHeaders`](@/api/options.md#rowheaders)
 - Core methods:
   - [`getRowHeader()`](@/api/core.md#getrowheader)
+- Hooks:
+  - [`afterAddChild`](@/api/hooks.md#afteraddchild)
+  - [`afterDetachChild`](@/api/hooks.md#afterdetachchild)
+  - [`beforeAddChild`](@/api/hooks.md#beforeaddchild)
+  - [`beforeDetachChild`](@/api/hooks.md#beforedetachchild)
 - Plugins:
   - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
   - [`ContextMenu`](@/api/contextMenu.md)
-  - [`NestedRows`](@/api/nestedRows.md)
+  - [`NestedRows`](@/api/nestedRows.md) 

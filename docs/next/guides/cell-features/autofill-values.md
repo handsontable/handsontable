@@ -88,5 +88,6 @@ const hot = new Handsontable(container, {
   - [`afterAutofill`](@/api/hooks.md#afterautofill)
   - [`beforeAutofill`](@/api/hooks.md#beforeautofill)
   - [`beforeAutofillInsidePopulate`](@/api/hooks.md#beforeautofillinsidepopulate)
+  - [`modifyAutofillRange`](@/api/hooks.md#modifyautofillrange)
 - Plugins:
   - [`Autofill`](@/api/autofill.md)

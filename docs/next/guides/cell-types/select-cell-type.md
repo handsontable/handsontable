@@ -51,12 +51,16 @@ const hot = new Handsontable(container, {
 #### Related API reference
 
 - Configuration options:
+  - [`selectOptions`](@/api/options.md#selectoptions)
   - [`type`](@/api/options.md#type)
 - Core methods:
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
   - [`getDataType`](@/api/core.md#getdatatype)
   - [`setCellMeta()`](@/api/core.md#setcellmeta)
   - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
 - Hooks:
   - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
   - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)

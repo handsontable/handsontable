@@ -202,12 +202,18 @@ Edit the above grid to see callback
 - APIs:
   - [`BasePlugin`](@/api/basePlugin.md)
 - Configuration options:
+  - [`allowEmpty`](@/api/options.md#allowempty)
+  - [`allowInvalid`](@/api/options.md#allowinvalid)
+  - [`invalidCellClassName`](@/api/options.md#invalidcellclassname)
   - [`validator`](@/api/options.md#validator)
 - Core methods:
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
   - [`getCellValidator()`](@/api/core.md#getcellvalidator)
   - [`setCellMeta()`](@/api/core.md#setcellmeta)
   - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
   - [`validateCell()`](@/api/core.md#validatecell)
   - [`validateCells()`](@/api/core.md#validatecells)
   - [`validateColumns()`](@/api/core.md#validatecolumns)

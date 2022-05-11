@@ -169,3 +169,9 @@ hot.updateSettings({
 });
 ```
 :::
+
+## Related API reference
+
+Configuration options:
+  - [`readOnly`](@/api/options.md#readonly)
+  - [`readOnlyCellClassName`](@/api/options.md#readonlycellclassname)

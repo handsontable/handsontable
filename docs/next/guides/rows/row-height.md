@@ -115,10 +115,13 @@ const hot = new Handsontable(container, {
 ## Related API reference
 
 - Configuration options:
+  - [`autoRowSize`](@/api/options.md#autorowsize)
   - [`rowHeights`](@/api/options.md#rowheights)
 - Core methods:
-  - [`getRowHeight`](@/api/core.md#getrowheight)
+  - [`getRowHeight()`](@/api/core.md#)getrowheight)
 - Hooks:
+  - [`afterRowResize`](@/api/hooks.md#afterrowresize)
+  - [`beforeRowResize`](@/api/hooks.md#beforerowresize)
   - [`modifyRowHeight`](@/api/hooks.md#modifyrowheight)
 - Plugins:
   - [`AutoRowSize`](@/api/autoRowSize.md)

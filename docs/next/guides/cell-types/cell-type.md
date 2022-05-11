@@ -376,11 +376,14 @@ Empty cells may be treated in differently in different contexts, for example, th
 - Core methods:
   - [`getCellEditor()`](@/api/core.md#getcelleditor)
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
   - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
   - [`getCellValidator()`](@/api/core.md#getcellvalidator)
   - [`getDataType`](@/api/core.md#getdatatype)
   - [`setCellMeta()`](@/api/core.md#setcellmeta)
   - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
 - Hooks:
   - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
   - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)

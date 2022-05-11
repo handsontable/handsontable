@@ -135,11 +135,13 @@ sliceElem.addEventListener('transitionend', e => {
 - Configuration options:
   - [`height`](@/api/options.md#height)
   - [`layoutDirection`](@/api/options.md#layoutdirection)
+  - [`preventOverflow`](@/api/options.md#preventoverflow)
   - [`width`](@/api/options.md#width)
 - Core methods:
   - [`refreshDimensions()`](@/api/core.md#refreshdimensions)
   - [`updateSettings()`](@/api/core.md#updatesettings)
 - Hooks:
+  - [`afterCellMetaReset`](@/api/hooks.md#aftercellmetareset)
   - [`afterRefreshDimensions`](@/api/hooks.md#afterrefreshdimensions)
   - [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings)
   - [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions)

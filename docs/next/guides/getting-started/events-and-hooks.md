@@ -330,4 +330,7 @@ hot.updateSettings({
   - [`removeHook()`](@/api/core.md#removehook)
   - [`hasHook()`](@/api/core.md#hashook)
   - [`runHooks()`](@/api/core.md#runhooks)
+- Hooks:
+  - [`afterListen`](@/api/hooks.md#afterlisten)
+  - [`afterUnlisten`](@/api/hooks.md#afterunlisten)
 - [List of all hooks](@/api/hooks.md)

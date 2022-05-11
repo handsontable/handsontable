@@ -249,7 +249,11 @@ To jump across a horizontal edge:
 - Configuration options:
   - [`autoWrapCol`](@/api/options.md#autowrapcol)
   - [`autoWrapRow`](@/api/options.md#autowraprow)
+  - [`fragmentSelection`](@/api/options.md#fragmentselection)
+  - [`disableVisualSelection`](@/api/options.md#disablevisualselection)
+  - [`dragToScroll`](@/api/options.md#dragtoscroll)
   - [`selectionMode`](@/api/options.md#selectionmode)
+  - [`outsideClickDeselects`](@/api/options.md#outsideclickdeselects)
 - Core methods:
   - [`deselectCell()`](@/api/core.md#deselectcell)
   - [`getSelected()`](@/api/core.md#getselected)
@@ -264,7 +268,12 @@ To jump across a horizontal edge:
 - Hooks:
   - [`afterDeselect`](@/api/hooks.md#afterdeselect)
   - [`afterDrawSelection`](@/api/hooks.md#afterdrawselection)
+  - [`afterModifyTransformEnd`](@/api/hooks.md#aftermodifytransformend)
+  - [`afterModifyTransformStart`](@/api/hooks.md#aftermodifytransformstart)
   - [`afterSelection`](@/api/hooks.md#afterselection)
   - [`afterSelectionByProp`](@/api/hooks.md#afterselectionbyprop)
   - [`afterSelectionEnd`](@/api/hooks.md#afterselectionend)
   - [`afterSelectionEndByProp`](@/api/hooks.md#afterselectionendbyprop)
+  - [`modifyTransformStart`](@/api/hooks.md#modifytransformstart)
+- Plugins:
+  - [`DragToScroll`](@/api/dragToScroll.md)

@@ -506,5 +506,12 @@ For more information about named expressions, please refer to the [HyperFormula 
 
 - Configuration options:
   - [`formulas`](@/api/options.md#formulas)
+- Hooks:
+  - [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate)
+  - [`afterNamedExpressionAdded`](@/api/hooks.md#afternamedexpressionadded)
+  - [`afterNamedExpressionRemoved`](@/api/hooks.md#afternamedexpressionremoved)
+  - [`afterSheetAdded`](@/api/hooks.md#aftersheetadded)
+  - [`afterSheetRemoved`](@/api/hooks.md#aftersheetremoved)
+  - [`afterSheetRenamed`](@/api/hooks.md#aftersheetrenamed)
 - Plugins:
   - [`Formulas`](@/api/formulas.md)

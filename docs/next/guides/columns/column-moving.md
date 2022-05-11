@@ -52,12 +52,18 @@ The [moveColumns](@/api/manualColumnMove.md#movecolumns) method has a [`finalInd
 
 ![moveColumns method](/docs/next/img/move_action.svg)
 
-The [`moveColumns`]([moveColumns](@/api/manualColumnMove.md#movecolumns)) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [isMovePossible](@/api/manualColumnMove.md#ismovepossible) API method and the `movePossible` parameters [`beforeColumnMove`](](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](](@/api/hooks.md#aftercolumnmove) hooks help in determine such situations.
+The [`moveColumns`]([moveColumns](@/api/manualColumnMove.md#movecolumns)) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [isMovePossible](@/api/manualColumnMove.md#ismovepossible) API method and the `movePossible` parameters [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) hooks help in determine such situations.
 
 ## Related API reference
 
 - Configuration options:
   - [`manualColumnMove`](@/api/options.md#manualcolumnmove)
+- Core methods:
+  - [`colToProp()`](@/api/core.md#colToProp)
+  - [`isColumnModificationAllowed()`](@/api/core.md#iscolumnmodificationallowed)
+  - [`propToCol()`](@/api/core.md#proptocol)
+  - [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn)
+  - [`toVisualColumn()`](@/api/core.md#tovisualcolumn)
 - Hooks:
   - [`afterColumnMove`](@/api/hooks.md#aftercolumnmove)
   - [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove)

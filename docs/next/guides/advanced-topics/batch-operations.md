@@ -260,15 +260,25 @@ Handsontable.dom.addEvent(buttonWith, 'click', () => {
 
 #### Related API reference
 
+- Configuration options:
+  - [`maxCols`](@/api/options.md#maxcols)
+  - [`maxRows`](@/api/options.md#maxrows)
+  - [`observeDOMVisibility`](@/api/options.md#observedomvisibility)
+  - [`renderAllRows`](@/api/options.md#renderallrows)
 - Core methods:
   - [`batch()`](@/api/core.md#batch)
   - [`batchExecution()`](@/api/core.md#batchexecution)
   - [`batchRender()`](@/api/core.md#batchrender)
+  - [`isExecutionSuspended()`](@/api/core.md#isexecutionsuspended)
+  - [`suspendExecution()`](@/api/core.md#suspendexecution)
+  - [`isRenderSuspended()`](@/api/core.md#isrendersuspended)
+  - [`render()`](@/api/core.md#render)
+  - [`resumeExecution()`](@/api/core.md#resumeexecution)
+  - [`resumeRender()`](@/api/core.md#render)
+  - [`suspendRender()`](@/api/core.md#suspendrender)
 - Hooks:
   - [`afterRender`](@/api/hooks.md#afterrender)
   - [`afterViewRender`](@/api/hooks.md#afterviewrender)
+  - [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
   - [`beforeRender`](@/api/hooks.md#beforerender)
   - [`beforeViewRender`](@/api/hooks.md#beforeviewrender)
-  - [`afterRender`](@/api/hooks.md#afterrender)
-  - [`afterRender`](@/api/hooks.md#afterrender)
-  - [`afterRender`](@/api/hooks.md#afterrender)

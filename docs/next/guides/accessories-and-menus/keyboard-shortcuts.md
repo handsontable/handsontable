@@ -377,5 +377,15 @@ hot.addHook('beforeKeyDown', (event) => {
 - APIs:
   - [`ShortcutContext`](@/api/shortcutContext.md)
   - [`ShortcutManager`](@/api/shortcutManager.md)
+- Configuration options:
+  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
+  - [`enterMoves`](@/api/options.md#entermoves)
+  - [`tabMoves`](@/api/options.md#tabmoves)
 - Core methods:
   - [`getShortcutManager()`](@/api/core.md#getshortcutmanager)
+  - [`isListening()`](@/api/core.md#islistening)
+  - [`listen()`](@/api/core.md#listen)
+  - [`unlisten()`](@/api/core.md#unlisten)
+Hooks:
+  - [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown)
+  - [`beforeKeyDown`](@/api/hooks.md#beforekeydown)

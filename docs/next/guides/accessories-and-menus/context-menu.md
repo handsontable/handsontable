@@ -228,14 +228,24 @@ const hot = new Handsontable(container, {
 #### Related API reference
 
 - Configuration options:
+  - [`allowInsertColumn`](@/api/options.md#allowinsertcolumn)
+  - [`allowInsertRow`](@/api/options.md#allowinsertrow)
+  - [`allowRemoveColumn`](@/api/options.md#allowremovecolumn)
+  - [`allowRemoveRow`](@/api/options.md#allowremoverow)
   - [`contextMenu`](@/api/options.md#contextmenu)
+  - [`dropdownMenu`](@/api/options.md#dropdownmenu)
 - Hooks:
   - [`afterContextMenuDefaultOptions`](@/api/hooks.md#aftercontextmenudefaultoptions)
   - [`afterContextMenuHide`](@/api/hooks.md#aftercontextmenuhide)
   - [`afterContextMenuShow`](@/api/hooks.md#aftercontextmenushow)
+  - [`afterDropdownMenuDefaultOptions`](@/api/hooks.md#afterdropdownmenudefaultoptions)
+  - [`afterDropdownMenuHide`](@/api/hooks.md#afterdropdownmenuhide)
+  - [`afterDropdownMenuShow`](@/api/hooks.md#afterdropdownmenushow)
   - [`afterOnCellContextMenu`](@/api/hooks.md#afteroncellcontextmenu)
   - [`beforeContextMenuSetItems`](@/api/hooks.md#beforecontextmenusetitems)
   - [`beforeContextMenuShow`](@/api/hooks.md#beforecontextmenushow)
+  - [`beforeDropdownMenuSetItems`](@/api/hooks.md#beforedropdownmenusetitems)
+  - [`beforeDropdownMenuShow`](@/api/hooks.md#beforedropdownmenushow)
   - [`beforeOnCellContextMenu`](@/api/hooks.md#beforeoncellcontextmenu)
 - Plugins:
   - [`ContextMenu`](@/api/contextMenu.md)

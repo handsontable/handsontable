@@ -41,7 +41,7 @@ Manually defining those functions for cells or columns would be tedious, so to s
 
 ## Cell functions getters
 
-If, for some reason, you have to get the `renderer`, `editor` or `validator` function of specific cell you can use standard [`getCellMeta(row, col)`](@/api/core.md#getcellmeta) method to get all properties of particular cell and then refer to cell functions like so:
+If, for some reason, you have to get the `renderer`, `editor` or `validator` function of specific cell you can use standard [`getCellMeta()`](@/api/core.md#getcellmeta) method to get all properties of particular cell and then refer to cell functions like so:
 
 ```js
 const container = document.querySelector('#container');
@@ -103,10 +103,13 @@ Those functions will always return an appropriate value, regardless of whether c
   - [`getActiveEditor()`](@/api/core.md#getactiveeditor)
   - [`getCellEditor()`](@/api/core.md#getcelleditor)
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
   - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
   - [`getCellValidator()`](@/api/core.md#getcellvalidator)
   - [`setCellMeta()`](@/api/core.md#setcellmeta)
   - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
 - Hooks:
   - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
   - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)

@@ -747,13 +747,17 @@ const hot = new Handsontable(container, {
   - [`BasePlugin`](@/api/basePlugin.md)
 - Configuration options:
   - [`editor`](@/api/options.md#editor)
+  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
 - Core methods:
   - [`destroyEditor()`](@/api/core.md#destroyeditor)
   - [`getActiveEditor()`](@/api/core.md#getactiveeditor)
   - [`getCellEditor()`](@/api/core.md#getcelleditor)
   - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
   - [`setCellMeta()`](@/api/core.md#setcellmeta)
   - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
 - Hooks:
   - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
   - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)

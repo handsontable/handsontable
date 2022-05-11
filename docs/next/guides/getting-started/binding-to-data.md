@@ -306,12 +306,12 @@ To replace the entire data in an already-initialized Handsontable instance, you 
   hot.loadData(newDataset);
   ```
 - [`updateData()`](@/api/core.md#updatedata)<br>
-  Replaces the data used in Handsontable with the dataset provided as the method argument. Unlike [`loadData`](@/api/core.md#loaddata), [`updateData`](@/api/core.md#updatedata) does NOT reset the configuration options and/or index mapper information, so it can be safely used to replace just the data, leaving the rest of the table intact.
+  Replaces the data used in Handsontable with the dataset provided as the method argument. Unlike [`loadData()`](@/api/core.md#loaddata), [`updateData()`](@/api/core.md#updatedata) does NOT reset the configuration options and/or index mapper information, so it can be safely used to replace just the data, leaving the rest of the table intact.
   ```js
   hot.updateData(newDataset);
   ```
 - [`updateSettings()`](@/api/core.md#updatesettings)<br>
-  Used to update the configuration of the table, [`updateSettings`](@/api/core.md#updatesettings) can be also used to replace the data being used. Since version `12.0.0`, under the hood it utilizes the [`updateData`](@/api/core.md#updatedata) method to perform the data replacement (apart from the one automatic call done during the initialization, where it uses [`loadData`](@/api/core.md#loaddata)).
+  Used to update the configuration of the table, [`updateSettings()`](@/api/core.md#updatesettings) can be also used to replace the data being used. Since version `12.0.0`, under the hood it utilizes the [`updateData()`](@/api/core.md#updatedata) method to perform the data replacement (apart from the one automatic call done during the initialization, where it uses [`loadData()`](@/api/core.md#loaddata)).
   ```js
   hot.updateSettings({
     data: newDataset,
@@ -453,18 +453,23 @@ const hot = new Handsontable(container, {
   - [`data`](@/api/options.md#data)
   - [`dataSchema`](@/api/options.md#dataschema)
 - Core methods:
+  - [`alter()`](@/api/core.md#alter)
+  - [`clear()`](@/api/core.md#clear)
   - [`getData()`](@/api/core.md#getdata)
   - [`getDataAtCell()`](@/api/core.md#getdataatcell)
   - [`getDataAtCol()`](@/api/core.md#getdataatcol)
   - [`getDataAtProp()`](@/api/core.md#getdataatprop)
   - [`getDataAtRow()`](@/api/core.md#getdataatrow)
   - [`getDataAtRowProp()`](@/api/core.md#getdataatrowprop)
+  - [`getSchema()`](@/api/core.md#getschema)
   - [`getSourceData()`](@/api/core.md#getsourcedata)
   - [`getSourceDataArray()`](@/api/core.md#getsourcedataarray)
   - [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell)
   - [`getSourceDataAtCol()`](@/api/core.md#getsourcedataatcol)
   - [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow)
   - [`loadData()`](@/api/core.md#loaddata)
+  - [`modifyData()`](@/api/core.md#modifydata)
+  - [`modifySourceData()`](@/api/core.md#modifysourcedata)
   - [`populateFromArray()`](@/api/core.md#populatefromarray)
   - [`setDataAtCell()`](@/api/core.md#setdataatcell)
   - [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)
@@ -472,6 +477,7 @@ const hot = new Handsontable(container, {
   - [`updateData()`](@/api/core.md#updatedata)
   - [`updateSettings()`](@/api/core.md#updatesettings)
 - Hooks:
+  - [`afterCellMetaReset`](@/api/hooks.md#aftercellmetareset)
   - [`afterChange`](@/api/hooks.md#afterchange)
   - [`afterLoadData`](@/api/hooks.md#afterloaddata)
   - [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell)

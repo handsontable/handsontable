@@ -65,6 +65,12 @@ const hot = new Handsontable(container, {
 
 - Configuration options:
   - [`undo`](@/api/options.md#undo)
+- Core methods:
+  - [`clearUndo()`](@/api/core.md#clearundo)
+  - [`isRedoAvailable()`](@/api/core.md#isredoavailable)
+  - [`isUndoAvailable()`](@/api/core.md#isundoavailable)
+  - [`redo()`](@/api/core.md#redo)
+  - [`undo()`](@/api/core.md#undo)
 - Hooks:
   - [`afterRedo`](@/api/hooks.md#afterredo)
   - [`afterRedoStackChange`](@/api/hooks.md#afterredostackchange)
