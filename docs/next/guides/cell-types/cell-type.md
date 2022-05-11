@@ -28,7 +28,7 @@ Cell type is represented by a string i.e. `"text"`, `"numeric"`, `"date"`. Each 
 * `Handsontable.validators.NumericValidator`
 
 
-When Handsontable encounters a cell with the [`type`(@/api/options.md#type) option defined, it checks which cell functions this type refers to and uses them. For example, when setting the column type to `'password'`:
+When Handsontable encounters a cell with the [`type`](@/api/options.md#type) option defined, it checks which cell functions this type refers to and uses them. For example, when setting the column type to `'password'`:
 
 ```js
 columns: [{
@@ -105,7 +105,7 @@ This gives users a convenient way of defining which cell type should be used for
 To register your own alias use `Handsontable.cellTypes.registerCellType()` function. It takes two arguments:
 
 * `cellTypeName` - a string representing the cell type object
-* [`type`(@/api/options.md#type) - an object with keys [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`validator`](@/api/options.md#validator) that will be represented by `cellTypeName`
+* [`type`](@/api/options.md#type) - an object with keys [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`validator`](@/api/options.md#validator) that will be represented by `cellTypeName`
 
 If you'd like to register `copyablePasswordType` under alias `copyable-password`, you need to call:
 
@@ -200,7 +200,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-We defined the[`type`(@/api/options.md#type) for all cells in a column to be `numeric`. We also defined a validator function directly. In Handsontable, cell functions that are defined directly always take precedence over functions associated with cell type, so the above configuration is equivalent to:
+We defined the[`type`](@/api/options.md#type) for all cells in a column to be `numeric`. We also defined a validator function directly. In Handsontable, cell functions that are defined directly always take precedence over functions associated with cell type, so the above configuration is equivalent to:
 
 ```js
 const hot = new Handsontable(container, {
@@ -227,7 +227,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-Using [cascade configuration](@/guides/getting-started/setting-options.md#cascading-configuration) we define a table with two columns, with [`validator`](@/api/options.md#validator) set to `customValidator` function. The s[`type`(@/api/options.md#type) of the first column is set to `password`. The `Password` cell type does not define a validator function:
+Using [cascade configuration](@/guides/getting-started/setting-options.md#cascading-configuration) we define a table with two columns, with [`validator`](@/api/options.md#validator) set to `customValidator` function. The s[`type`](@/api/options.md#type) of the first column is set to `password`. The `Password` cell type does not define a validator function:
 
 ```js
 {
