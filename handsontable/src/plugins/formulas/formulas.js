@@ -504,18 +504,18 @@ export class Formulas extends BasePlugin {
 
       // For the Named expression the address is empty, hence the `sheetId` is undefined.
       const sheetId = change?.address?.sheet;
-      const boundHot = getRegisteredHotInstances(this.engine).get(sheetId);
-
-      // When sheetId is not bind to any HoT instance skip the validation process.
-      if (!boundHot) {
-        return;
-      }
-
       const addressId = stringifyAddress(change);
 
       // Validate the cells that depend on the calculated formulas. Skip that cells
       // where the user directly changes the values - the Core triggers those validators.
       if (sheetId !== void 0 && !changedCellsSet.has(addressId)) {
+        const boundHot = getRegisteredHotInstances(this.engine).get(sheetId);
+
+        // When sheetId is not bind to any HoT instance skip the validation process.
+        if (!boundHot) {
+          return;
+        }
+
         // It will just re-render certain cell when necessary.
         boundHot.validateCell(
           boundHot.getDataAtCell(visualRow, visualColumn),
