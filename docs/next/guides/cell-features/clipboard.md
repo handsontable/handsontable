@@ -19,14 +19,14 @@ The clipboard offers Copy & Cut and Paste functionality, enabling you to copy & 
 
 ## Copy & Cut
 
-Copy & Cut actions allow exporting data from Handsontable to the system clipboard. The **CopyPaste** plugin copies and cuts data as a `text/plain` and a `text/html` MIME-type.
+Copy & Cut actions allow exporting data from Handsontable to the system clipboard. The [`CopyPaste`](@/api/copyPaste.md) plugin copies and cuts data as a `text/plain` and a `text/html` MIME-type.
 
 ### End-user usage
 
 Available keyboard shortcuts:
 
-- `CTRL/CMD + C` - copies the content of the last cell in the selected range
-- `CTRL/CMD + X` - cuts the content of the last cell in the selected range
+- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd> - copies the content of the last cell in the selected range
+- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**X**</kbd> - cuts the content of the last cell in the selected range
 
 Available options in the browser's toolbar:
 
@@ -137,7 +137,7 @@ The Paste action allows the importing of data from external sources using the us
 
 Available keyboard shortcuts:
 
-- `CTRL/CMD + V` - paste the content into the last cell in the selected range
+- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**V**</kbd> - paste the content into the last cell in the selected range
 
 Available options in the browser's toolbar:
 
@@ -165,5 +165,11 @@ Examples of how to use them are provided in their descriptions.
 1.  The **CopyPaste** plugin doesn't copy, cut or paste cells' appearance.
 2.  The data copied from Handsontable will always remain as plain text. For example, if you copy a checked checkbox, the input will be kept as a value of `'true'`.
 3.  `document.execCommand` can be called only during an immediate-execute event, such as a `MouseEvent` or a `KeyboardEvent`.
-4.  Internet Explorer only supports the `Text` MIME-type. This is the equivalent of `text/plain`.
-5.  Internet Explorer displays an allow/disallow confirmation prompt the first time a user tries to call the `document.execCommand`. Unfortunately, if a user denies access to the system clipboard, no exceptions will be thrown, and `copy` and `cut` actions will be disabled for the end-user. You can read more about this browser behavior on [this page](https://github.com/zenorocha/clipboard.js/issues/77).
+
+## Related keyboard shortcuts
+
+| Windows                                | macOS                                 | Action                                                          |  Excel  | Sheets  |
+| -------------------------------------- | ------------------------------------- | --------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd> + <kbd>**X**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**X**</kbd> | Cut the contents of the selected cells to the system clipboard  | &check; | &check; |
+| <kbd>**Ctrl**</kbd> + <kbd>**C**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
+| <kbd>**Ctrl**</kbd> + <kbd>**V**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |

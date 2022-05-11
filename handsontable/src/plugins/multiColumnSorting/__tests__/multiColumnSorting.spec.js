@@ -276,7 +276,7 @@ describe('MultiColumnSorting', () => {
         {},
         {
           type: 'date',
-          dateFormat: 'mm/dd/yy'
+          dateFormat: 'MM/DD/YY'
         },
         {
           type: 'numeric'
@@ -973,7 +973,7 @@ describe('MultiColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'mm/dd/yy'
+            dateFormat: 'MM/DD/YYYY'
           },
           {
             type: 'numeric'
@@ -985,19 +985,19 @@ describe('MultiColumnSorting', () => {
 
       getPlugin('multiColumnSorting').sort({ column: 2, sortOrder: 'asc' }); // ASC
 
-      expect(getDataAtRow(0)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
-      expect(getDataAtRow(1)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
-      expect(getDataAtRow(2)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
-      expect(getDataAtRow(3)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
-      expect(getDataAtRow(4)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
+      expect(getDataAtRow(0)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
+      expect(getDataAtRow(1)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
+      expect(getDataAtRow(2)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
+      expect(getDataAtRow(3)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
+      expect(getDataAtRow(4)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
 
       getPlugin('multiColumnSorting').sort({ column: 2, sortOrder: 'desc' }); // DESC
 
-      expect(getDataAtRow(0)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
-      expect(getDataAtRow(1)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
-      expect(getDataAtRow(2)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
-      expect(getDataAtRow(3)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
-      expect(getDataAtRow(4)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
+      expect(getDataAtRow(0)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
+      expect(getDataAtRow(1)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
+      expect(getDataAtRow(2)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
+      expect(getDataAtRow(3)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
+      expect(getDataAtRow(4)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
     });
   });
 
@@ -1452,7 +1452,7 @@ describe('MultiColumnSorting', () => {
         {},
         {
           type: 'date',
-          dateFormat: 'mm/dd/yy'
+          dateFormat: 'MM/DD/YY'
         },
         {
           type: 'numeric'
@@ -3036,11 +3036,11 @@ describe('MultiColumnSorting', () => {
 
       spec().sortByClickOnColumnHeader(2);
 
-      keyDown('control');
+      keyDown('control/meta');
 
       spec().sortByClickOnColumnHeader(3);
 
-      keyUp('control');
+      keyUp('control/meta');
 
       expect(getDataAtCol(0)).toEqual(['Ann', 'Mary', 'Mary', 'Henry', 'Robert', 'David', 'John', 'Robert', 'Ann']);
     });
@@ -3062,7 +3062,7 @@ describe('MultiColumnSorting', () => {
       // ASC
       spec().sortByClickOnColumnHeader(0);
 
-      keyDown('control');
+      keyDown('control/meta');
 
       // ASC as 2nd
       spec().sortByClickOnColumnHeader(1);
@@ -3070,7 +3070,7 @@ describe('MultiColumnSorting', () => {
       // DESC as 2nd
       spec().sortByClickOnColumnHeader(0);
 
-      keyUp('control');
+      keyUp('control/meta');
 
       expect(getDataAtCol(0)).toEqual(['Mary', 'Mary', 'John', 'Robert', 'Robert', 'Ann', 'Henry', 'David', 'Ann']);
     });
@@ -3448,7 +3448,7 @@ describe('MultiColumnSorting', () => {
 
     spec().sortByClickOnColumnHeader(2);
 
-    keyDown('control');
+    keyDown('control/meta');
 
     spec().sortByClickOnColumnHeader(3);
 
@@ -3473,11 +3473,11 @@ describe('MultiColumnSorting', () => {
 
     spec().sortByClickOnColumnHeader(2);
 
-    keyDown('control');
+    keyDown('control/meta');
 
     spec().sortByClickOnColumnHeader(3);
 
-    keyUp('control');
+    keyUp('control/meta');
 
     let sortedColumn1 = spec().$container.find('th span.columnSorting')[2];
     let sortedColumn2 = spec().$container.find('th span.columnSorting')[3];
@@ -3494,11 +3494,11 @@ describe('MultiColumnSorting', () => {
 
     spec().sortByClickOnColumnHeader(0);
 
-    keyDown('control');
+    keyDown('control/meta');
 
     spec().sortByClickOnColumnHeader(1);
 
-    keyUp('control');
+    keyUp('control/meta');
 
     sortedColumn1 = spec().$container.find('th span.columnSorting')[0];
     sortedColumn2 = spec().$container.find('th span.columnSorting')[1];
@@ -3515,11 +3515,11 @@ describe('MultiColumnSorting', () => {
 
     spec().sortByClickOnColumnHeader(2);
 
-    keyDown('control');
+    keyDown('control/meta');
 
     spec().sortByClickOnColumnHeader(3);
 
-    keyUp('control');
+    keyUp('control/meta');
 
     sortedColumn1 = spec().$container.find('th span.columnSorting')[2];
     sortedColumn2 = spec().$container.find('th span.columnSorting')[3];

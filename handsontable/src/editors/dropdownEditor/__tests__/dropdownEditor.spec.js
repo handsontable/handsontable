@@ -516,4 +516,26 @@ describe('DropdownEditor', () => {
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
   });
+
+  it('should display the dropdown list below the editor, when table\'s height is set as "auto"', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 1),
+      height: 'auto',
+      columns: [
+        {
+          type: 'dropdown',
+          source: choices,
+        }
+      ]
+    });
+    selectCell(4, 0);
+    keyDownUp('enter');
+
+    const autocompleteEditor = $('.autocompleteEditor');
+
+    await sleep(10);
+
+    expect(autocompleteEditor.height()).toBe(230);
+    expect(autocompleteEditor.css('top')).toBe('0px');
+  });
 });

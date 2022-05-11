@@ -3,7 +3,6 @@ import EventManager from '../../eventManager';
 import { isMobileBrowser, isIE, isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
-  getCaretPosition,
   getComputedStyle,
   setCaretPosition,
   hasClass,
@@ -15,6 +14,7 @@ import { autoResize } from '../../3rdparty/autoResize';
 import { isDefined } from '../../helpers/mixed';
 import { SHORTCUTS_GROUP_NAVIGATION, SHORTCUTS_GROUP_EDITOR as EDITOR_MANAGER_GROUP } from '../../editorManager';
 import { SHORTCUTS_GROUP_EDITOR } from '../baseEditor/baseEditor';
+import { updateCaretPosition } from './caretPositioner';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
@@ -439,19 +439,13 @@ export class TextEditor extends BaseEditor {
       group: SHORTCUTS_GROUP,
     };
 
-    const setNewValue = () => {
-      const caretPosition = getCaretPosition(this.TEXTAREA);
-      const value = this.getValue();
-      const newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
-
-      this.setValue(newValue);
-
-      setCaretPosition(this.TEXTAREA, caretPosition + 1);
+    const insertNewLine = () => {
+      this.hot.rootDocument.execCommand('insertText', false, '\n');
     };
 
     editorContext.addShortcuts([{
       keys: [['Tab']],
-      // TODO: Duplicated part of code.
+      // TODO: Duplicated part of code (callback to shortcut).
       callback: (event) => {
         const tableMeta = this.hot.getSettings();
         const tabMoves = typeof tableMeta.tabMoves === 'function'
@@ -462,7 +456,7 @@ export class TextEditor extends BaseEditor {
       },
     }, {
       keys: [['Shift', 'Tab']],
-      // TODO: Duplicated part of code.
+      // TODO: Duplicated part of code (callback to shortcut).
       callback: (event) => {
         const tableMeta = this.hot.getSettings();
         const tabMoves = typeof tableMeta.tabMoves === 'function'
@@ -474,7 +468,7 @@ export class TextEditor extends BaseEditor {
     }, {
       keys: [['Control', 'Enter']],
       callback: () => {
-        setNewValue();
+        insertNewLine();
 
         return false; // Will block closing editor.
       },
@@ -484,24 +478,66 @@ export class TextEditor extends BaseEditor {
       relativeToGroup: EDITOR_MANAGER_GROUP,
       position: 'before',
     }, {
-      keys: [['Alt', 'Enter']],
-      callback: () => {
-        setNewValue();
-
-        return false; // Will block closing editor.
-      },
-      relativeToGroup: EDITOR_MANAGER_GROUP,
-      position: 'before',
-    }, {
       keys: [['Meta', 'Enter']],
       callback: () => {
-        setNewValue();
+        insertNewLine();
 
         return false; // Will block closing editor.
       },
       runOnlyIf: () => !this.hot.selection.isMultiple(), // We trigger a data population for multiple selection.
       relativeToGroup: EDITOR_MANAGER_GROUP,
       position: 'before',
+    }, {
+      keys: [['Alt', 'Enter']],
+      callback: () => {
+        insertNewLine();
+
+        return false; // Will block closing editor.
+      },
+      relativeToGroup: EDITOR_MANAGER_GROUP,
+      position: 'before',
+    }, {
+      // TODO: Duplicated part of code (callback to shortcut)
+      keys: [
+        ['PageUp'],
+      ],
+      callback: () => {
+        this.hot.selection.transformStart(-this.hot.countVisibleRows(), 0);
+      },
+    }, {
+      // TODO: Duplicated part of code (callback to shortcut)
+      keys: [
+        ['PageDown'],
+      ],
+      callback: () => {
+        this.hot.selection.transformStart(this.hot.countVisibleRows(), 0);
+      }
+    }, {
+      keys: [['Home']],
+      callback: (event, [keyName]) => {
+        updateCaretPosition(keyName, this.TEXTAREA);
+      },
+    }, {
+      keys: [['End']],
+      callback: (event, [keyName]) => {
+        updateCaretPosition(keyName, this.TEXTAREA);
+      },
+    }, {
+      keys: [['Control/Meta', 'Z']],
+      preventDefault: false,
+      callback: () => {
+        this.hot._registerTimeout(() => {
+          this.autoResize.resize();
+        }, 10);
+      },
+    }, {
+      keys: [['Control/Meta', 'Shift', 'Z']],
+      preventDefault: false,
+      callback: () => {
+        this.hot._registerTimeout(() => {
+          this.autoResize.resize();
+        }, 10);
+      },
     }], contextConfig);
   }
 

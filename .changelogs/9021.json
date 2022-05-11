@@ -1,7 +1,0 @@
-{
-  "title": "Changed the way the plugins' `updatePlugin` method reacts to `updateSettings` calls.",
-  "type": "changed",
-  "issue": 9021,
-  "breaking": true,
-  "framework": "none"
-}

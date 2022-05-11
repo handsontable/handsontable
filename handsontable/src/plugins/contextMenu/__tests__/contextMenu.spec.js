@@ -462,7 +462,7 @@ describe('ContextMenu', () => {
         contextMenu: ['row_above', 'remove_row', '---------', 'alignment'],
         height: 400,
         beforeOnCellContextMenu(event) {
-          // Block event priopagation to test if the "contextmenu" handler closes the menu.
+          // Block event propagation to test if the "contextmenu" handler closes the menu.
           Handsontable.dom.stopImmediatePropagation(event);
         }
       });
@@ -2865,25 +2865,6 @@ describe('ContextMenu', () => {
         expect(itemAction).toHaveBeenCalled();
         expect($(hot.getPlugin('contextMenu').menu).is(':visible')).toBe(false);
       });
-
-      it('should navigate using `PageDown` and `PageUp` after selecting some item', () => {
-        const hot = handsontable({
-          contextMenu: ['row_above', 'row_below', 'remove_row', 'col_left', 'col_right'],
-        });
-
-        contextMenu();
-
-        const menuHot = hot.getPlugin('contextMenu').menu.hotMenu;
-
-        keyDownUp('arrowdown');
-        keyDownUp('pagedown');
-
-        expect(menuHot.getSelected()).toEqual([[4, 0, 4, 0]]);
-
-        keyDownUp('pageup');
-
-        expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
-      });
     });
 
     it('should close menu when user hits ESC', () => {
@@ -3187,7 +3168,7 @@ describe('ContextMenu', () => {
       $(getCell(2, 2)).simulate('mouseover');
       $(getCell(2, 2)).simulate('mouseup');
 
-      keyDown('control');
+      keyDown('control/meta');
 
       $(getCell(2, 2)).simulate('mousedown');
       $(getCell(7, 2)).simulate('mouseover');
@@ -3197,7 +3178,7 @@ describe('ContextMenu', () => {
       $(getCell(2, 4)).simulate('mouseover');
       $(getCell(2, 4)).simulate('mouseup');
 
-      keyUp('control');
+      keyUp('control/meta');
       contextMenu(getCell(0, 0));
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
@@ -3215,7 +3196,7 @@ describe('ContextMenu', () => {
       $(getCell(2, 2)).simulate('mouseover');
       $(getCell(2, 2)).simulate('mouseup');
 
-      keyDown('control');
+      keyDown('control/meta');
 
       $(getCell(2, 2)).simulate('mousedown');
       $(getCell(7, 2)).simulate('mouseover');
@@ -3225,7 +3206,7 @@ describe('ContextMenu', () => {
       $(getCell(2, 4)).simulate('mouseover');
       $(getCell(2, 4)).simulate('mouseup');
 
-      keyUp('control');
+      keyUp('control/meta');
       contextMenu(getCell(2, 2));
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
@@ -3243,7 +3224,7 @@ describe('ContextMenu', () => {
       $(getCell(2, 2)).simulate('mouseover');
       $(getCell(2, 2)).simulate('mouseup');
 
-      keyDown('control');
+      keyDown('control/meta');
 
       $(getCell(2, 2)).simulate('mousedown');
       $(getCell(7, 2)).simulate('mouseover');
@@ -3253,7 +3234,7 @@ describe('ContextMenu', () => {
       $(getCell(2, 4)).simulate('mouseover');
       $(getCell(2, 4)).simulate('mouseup');
 
-      keyUp('control');
+      keyUp('control/meta');
       contextMenu(getCell(2, 4));
 
       expect($('.htContextMenu').is(':visible')).toBe(true);

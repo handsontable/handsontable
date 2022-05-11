@@ -1,0 +1,7 @@
+{
+  "title": "Removed the Command+M keyboard shortcut that triggered cells merging (Control+M still works).",
+  "type": "changed",
+  "issue": 9368,
+  "breaking": true,
+  "framework": "none"
+}

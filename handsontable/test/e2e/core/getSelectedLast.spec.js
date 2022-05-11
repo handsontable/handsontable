@@ -29,7 +29,7 @@ describe('Core.getSelectedLast', () => {
 
     expect(getSelectedLast()).toEqual(snapshot[0]);
 
-    keyDown('control');
+    keyDown('control/meta');
 
     $(getCell(2, 2)).simulate('mousedown');
     $(getCell(7, 2)).simulate('mouseover');
@@ -47,7 +47,7 @@ describe('Core.getSelectedLast', () => {
     $(getCell(8, 7)).simulate('mouseover');
     $(getCell(8, 7)).simulate('mouseup');
 
-    keyUp('control');
+    keyUp('control/meta');
 
     expect(getSelectedLast()).toEqual(snapshot[3]);
   });
@@ -72,7 +72,7 @@ describe('Core.getSelectedLast', () => {
     expect(getSelectedRangeLast().toObject()).toEqual(snapshot[0]);
     expect(getSelectedRange().map(cellRange => cellRange.toObject())).toEqual([snapshot[0]]);
 
-    keyDown('control');
+    keyDown('control/meta');
 
     $(getCell(2, 2)).simulate('mousedown');
     $(getCell(7, 2)).simulate('mouseover');
@@ -92,7 +92,7 @@ describe('Core.getSelectedLast', () => {
     $(getCell(8, 7)).simulate('mouseover');
     $(getCell(8, 7)).simulate('mouseup');
 
-    keyUp('control');
+    keyUp('control/meta');
 
     const selectedRange = getSelectedRange().map(cellRange => cellRange.toObject());
 

@@ -42,8 +42,8 @@ jobs:
           docker tag docs-md $GHA_DOCKER_TAG
           docker tag docs-md $GHA_DOCKER_TAG_SHA
 
-      - name: Docker push latest into GHCR (only on develop or when manually dispatched)
-        if: ${{ github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch' }}
+      - name: Docker push latest into GHCR and deploy to the staging (only when manually dispatched)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           docker push ${GHA_DOCKER_TAG}
 
@@ -56,15 +56,14 @@ jobs:
         id: pr-finder
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-  
+
       - name: Publish sticky comment in PR
         uses: marocchino/sticky-pull-request-comment@6804b5ad49d19c10c9ae7cf5057352f7ff333f31 # https://github.com/marocchino/sticky-pull-request-comment/tree/v1.6.0
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.pr-finder.outputs.pr }}
           message: |
-            Launch the local version of documentation by running: 
+            Launch the local version of documentation by running:
             ```bash
             npm run docs:review ${{ github.sha }}
             ```
-            

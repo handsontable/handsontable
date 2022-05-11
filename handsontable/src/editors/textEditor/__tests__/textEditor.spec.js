@@ -938,7 +938,6 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     keyDownUp('enter');
-
     keyDownUp(['control', 'a']); // CTRL+A should NOT select all table when cell is edited
 
     const selection = getSelected();
@@ -1629,40 +1628,6 @@ describe('TextEditor', () => {
     keyDownUp(['meta', 'enter']);
 
     expect(hot.getActiveEditor().TEXTAREA.value).toEqual('Ma\n\n\nserati');
-  });
-
-  it('should exceed the editor height only for one line when pressing ALT + ENTER, CTRL + ENTER or META + ENTER', () => {
-    const data = [
-      ['Maserati', 'Mazda'],
-      ['Honda', 'Mini']
-    ];
-
-    const hot = handsontable({
-      data
-    });
-
-    selectCell(0, 0);
-    keyDownUp('enter');
-    keyDownUp(['alt', 'enter']);
-
-    const editorTextarea = hot.getActiveEditor().TEXTAREA;
-    const editorComputedStyle = getComputedStyle(editorTextarea);
-    const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
-    let editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
-
-    expect(editorTextareaHeight).toBe(2 * editorTextareaLineHeight);
-
-    keyDownUp(['control', 'enter']);
-
-    editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
-
-    expect(editorTextareaHeight).toBe(3 * editorTextareaLineHeight);
-
-    keyDownUp(['meta', 'enter']);
-
-    editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
-
-    expect(editorTextareaHeight).toBe(4 * editorTextareaLineHeight);
   });
 
   it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', () => {
