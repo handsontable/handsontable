@@ -246,111 +246,45 @@ describe('settings', () => {
       expect(getTopClone().height()).toBe(27);
     });
 
-    describe('should display synchronized layers', () => {
-      it('when table\'s height is not set by settings', () => {
+    describe('should render overlay synchronized with the table', () => {
+      it('when the viewport is higher than the sum of all rows in the table', () => {
         handsontable({
+          data: createSpreadsheetData(5, 5),
           rowHeaders: true,
           colHeaders: true,
           fixedRowsBottom: 1,
+          height: 300,
+          width: 400,
         });
 
-        let { bottom: tdBottom, left: tdLeft } = getMaster().find('td').eq(20)[0].getBoundingClientRect();
-        let { bottom: thBottom, left: thLeft } = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect();
+        expect(getBottomClone().css('bottom')).toBe('158px');
+        expect(getBottomInlineStartClone().css('bottom')).toBe('158px');
 
-        expect(getBottomClone().find('th').eq(0)[0].getBoundingClientRect().left).toEqual(thLeft);
-        expect(getBottomClone().find('th').eq(0)[0].getBoundingClientRect().bottom).toEqual(thBottom);
+        updateSettings({ fixedRowsBottom: 3 });
+        updateSettings({ height: 250 });
 
-        expect(getBottomClone().find('td').eq(0)[0].getBoundingClientRect().left).toEqual(tdLeft);
-        expect(getBottomClone().find('td').eq(0)[0].getBoundingClientRect().bottom).toEqual(tdBottom);
-
-        expect(getBottomInlineStartClone().find('th').eq(0)[0].getBoundingClientRect().left).toEqual(thLeft);
-        expect(getBottomInlineStartClone().find('th').eq(0)[0].getBoundingClientRect().bottom).toEqual(thBottom);
-
-        updateSettings({ fixedRowsBottom: 2 });
-
-        tdBottom = getMaster().find('td').eq(20)[0].getBoundingClientRect().bottom;
-        tdLeft = getMaster().find('td').eq(20)[0].getBoundingClientRect().left;
-        thBottom = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect().bottom;
-        thLeft = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect().left;
-
-        expect(getBottomClone().find('th').eq(1)[0].getBoundingClientRect().left).toEqual(thLeft);
-        expect(getBottomClone().find('th').eq(1)[0].getBoundingClientRect().bottom).toEqual(thBottom);
-
-        expect(getBottomClone().find('td').eq(5)[0].getBoundingClientRect().left).toEqual(tdLeft);
-        expect(getBottomClone().find('td').eq(5)[0].getBoundingClientRect().bottom).toEqual(tdBottom);
-
-        expect(getBottomInlineStartClone().find('th').eq(1)[0].getBoundingClientRect().left).toEqual(thLeft);
-        expect(getBottomInlineStartClone().find('th').eq(1)[0].getBoundingClientRect().bottom).toEqual(thBottom);
+        expect(getBottomClone().css('bottom')).toBe('108px');
+        expect(getBottomInlineStartClone().css('bottom')).toBe('108px');
       });
 
-      it('when table\'s height set by settings is greater than all cells within the table', () => {
+      it('when the viewport is higher than the sum of all rows in the table and there is horizontal scrollbar', () => {
         handsontable({
-          height: 300,
+          data: createSpreadsheetData(5, 50),
           rowHeaders: true,
           colHeaders: true,
           fixedRowsBottom: 1,
+          height: 300,
+          width: 400,
         });
 
-        let { bottom: tdBottom, left: tdLeft } = getMaster().find('td').eq(20)[0].getBoundingClientRect();
-        let { bottom: thBottom, left: thLeft } = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect();
+        expect(getBottomClone().css('bottom')).toBe('158px');
+        expect(getBottomInlineStartClone().css('bottom')).toBe('158px');
 
-        expect(getBottomClone().find('th').eq(0)[0].getBoundingClientRect().left).toEqual(thLeft);
-        expect(getBottomClone().find('th').eq(0)[0].getBoundingClientRect().bottom).toEqual(thBottom);
+        updateSettings({ fixedRowsBottom: 3 });
+        updateSettings({ height: 250 });
 
-        expect(getBottomClone().find('td').eq(0)[0].getBoundingClientRect().left).toEqual(tdLeft);
-        expect(getBottomClone().find('td').eq(0)[0].getBoundingClientRect().bottom).toEqual(tdBottom);
-
-        expect(getBottomInlineStartClone().find('th').eq(0)[0].getBoundingClientRect().left).toEqual(thLeft);
-        expect(getBottomInlineStartClone().find('th').eq(0)[0].getBoundingClientRect().bottom).toEqual(thBottom);
-
-        updateSettings({ fixedRowsBottom: 0 });
-        updateSettings({ fixedRowsBottom: 1 });
-
-        tdBottom = getMaster().find('td').eq(20)[0].getBoundingClientRect().bottom;
-        tdLeft = getMaster().find('td').eq(20)[0].getBoundingClientRect().left;
-        thBottom = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect().bottom;
-        thLeft = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect().left;
-
-        expect(getBottomClone().find('th').eq(0)[0].getBoundingClientRect().left).toEqual(thLeft);
-        expect(getBottomClone().find('th').eq(0)[0].getBoundingClientRect().bottom).toEqual(thBottom);
-
-        expect(getBottomClone().find('td').eq(0)[0].getBoundingClientRect().left).toEqual(tdLeft);
-        expect(getBottomClone().find('td').eq(0)[0].getBoundingClientRect().bottom).toEqual(tdBottom);
-
-        expect(getBottomInlineStartClone().find('th').eq(0)[0].getBoundingClientRect().left).toEqual(thLeft);
-        expect(getBottomInlineStartClone().find('th').eq(0)[0].getBoundingClientRect().bottom).toEqual(thBottom);
-
-        updateSettings({ height: 320 });
-
-        tdBottom = getMaster().find('td').eq(20)[0].getBoundingClientRect().bottom;
-        tdLeft = getMaster().find('td').eq(20)[0].getBoundingClientRect().left;
-        thBottom = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect().bottom;
-        thLeft = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect().left;
-
-        expect(getBottomClone().find('th').eq(0)[0].getBoundingClientRect().left).toEqual(thLeft);
-        expect(getBottomClone().find('th').eq(0)[0].getBoundingClientRect().bottom).toEqual(thBottom);
-
-        expect(getBottomClone().find('td').eq(0)[0].getBoundingClientRect().left).toEqual(tdLeft);
-        expect(getBottomClone().find('td').eq(0)[0].getBoundingClientRect().bottom).toEqual(tdBottom);
-
-        expect(getBottomInlineStartClone().find('th').eq(0)[0].getBoundingClientRect().left).toEqual(thLeft);
-        expect(getBottomInlineStartClone().find('th').eq(0)[0].getBoundingClientRect().bottom).toEqual(thBottom);
-
-        updateSettings({ fixedRowsBottom: 2 });
-
-        tdBottom = getMaster().find('td').eq(20)[0].getBoundingClientRect().bottom;
-        tdLeft = getMaster().find('td').eq(20)[0].getBoundingClientRect().left;
-        thBottom = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect().bottom;
-        thLeft = getMaster().find('tr').eq(5).find('th')[0].getBoundingClientRect().left;
-
-        expect(getBottomClone().find('th').eq(1)[0].getBoundingClientRect().left).toEqual(thLeft);
-        expect(getBottomClone().find('th').eq(1)[0].getBoundingClientRect().bottom).toEqual(thBottom);
-
-        expect(getBottomClone().find('td').eq(5)[0].getBoundingClientRect().left).toEqual(tdLeft);
-        expect(getBottomClone().find('td').eq(5)[0].getBoundingClientRect().bottom).toEqual(tdBottom);
-
-        expect(getBottomInlineStartClone().find('th').eq(1)[0].getBoundingClientRect().left).toEqual(thLeft);
-        expect(getBottomInlineStartClone().find('th').eq(1)[0].getBoundingClientRect().bottom).toEqual(thBottom);
+        expect(getBottomClone().css('bottom')).toBe('108px');
+        expect(getBottomInlineStartClone().css('bottom')).toBe('108px');
       });
     });
   });
