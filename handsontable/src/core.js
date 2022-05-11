@@ -4244,7 +4244,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.hasHook = function(key) {
-    return Hooks.getSingleton().has(key, instance);
+    return Hooks.getSingleton().has(key, instance) || Hooks.getSingleton().has(key);
   };
 
   /**

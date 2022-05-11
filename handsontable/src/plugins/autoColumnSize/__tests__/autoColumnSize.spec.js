@@ -197,6 +197,38 @@ describe('AutoColumnSize', () => {
     expect(colWidth(spec().$container, 0)).toBeAroundValue(58);
   });
 
+  it('should not change the column width after toggling the state of the checkbox cell type', () => {
+    handsontable({
+      data: [
+        {
+          car: 'Mercedes A 160',
+          available: true,
+        },
+        {
+          car: 'Citroen C4 Coupe',
+          available: false,
+        },
+      ],
+      autoColumnSize: true,
+      columns: [
+        {
+          data: 'available',
+          type: 'checkbox',
+          label: {
+            position: 'after',
+            property: 'car',
+          },
+        },
+      ]
+    });
+
+    expect(colWidth(spec().$container, 0)).toBe(123);
+
+    setDataAtCell(0, 0, false);
+
+    expect(colWidth(spec().$container, 0)).toBe(123);
+  });
+
   it('should not wrap the cell values when the whole column has values with the same length', () => {
     handsontable({
       data: [
