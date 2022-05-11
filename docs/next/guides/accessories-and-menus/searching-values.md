@@ -32,11 +32,11 @@ By default, the [`Search`](@/api/search.md) plugin adds `htSearchResult` class t
 
 To change the result class, you use the [`var searchPlugin = hot.getPlugin('search'); searchPlugin.setSearchResultClass(className);`](@/api/search.md#setsearchresultclass) method.
 
-## Custom query method
+## Custom `queryMethod`
 
-The query method is responsible for determining whether a `queryStr` matches the value stored in a cell. It takes 2 arguments: `queryStr` and `cellData`. The first is a string passed to [`query()`](@/api/search.md#query) method. The second is a value returned by [`getDataAtCell()`](@/api/core.md#getdataatcell). The [`queryMethod`](@/api/options.md#search) function should return `true` if there is a match.
+The [`queryMethod()`](@/api/search.md#query) function is responsible for determining whether a `queryStr` matches the value stored in a cell. It takes 2 arguments: `queryStr` and `cellData`. The first is a string passed to [`query()`](@/api/search.md#query) method. The second is a value returned by [`getDataAtCell()`](@/api/core.md#getdataatcell). The [`queryMethod()`](@/api/options.md#search) function should return `true` if there is a match.
 
-The default [`queryMethod`](@/api/options.md#search) is dead simple:
+The default [`queryMethod`](@/api/options.md#search) function is dead simple:
 
 ```js
 const DEFAULT_QUERY_METHOD = function(query, value) {
@@ -51,7 +51,7 @@ const DEFAULT_QUERY_METHOD = function(query, value) {
 };
 ```
 
-If you want to change the [`queryMethod`](@/api/search.md#query), use the qu[`queryMethod`](@/api/options.md#search) option. You can also pass the [`queryMethod`](@/api/options.md#search) as the third argument of [`query()`](@/api/search.md#query) method. To change the [`queryMethod`](@/api/options.md#search), use [`var searchPlugin = hot.getPlugin('search'); searchPlugin.setQueryMethod(myNewQueryMethod);`](@/api/search.md#setquerymethod).
+If you want to change the [`queryMethod`](@/api/search.md#query), use the [`queryMethod`](@/api/options.md#search) option. You can also pass the [`queryMethod`](@/api/options.md#search) as the third argument of [`query()`](@/api/search.md#query) method. To change the [`queryMethod`](@/api/options.md#search), use [`var searchPlugin = hot.getPlugin('search'); searchPlugin.setQueryMethod(myNewQueryMethod);`](@/api/search.md#setquerymethod).
 
 ## Custom result callback
 

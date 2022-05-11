@@ -22,7 +22,7 @@ This guide shows you how to create a custom plugin.
 ### 1. Prerequisitese
 
 Import the following:
-- [`BasePlugin`](@/api/baseplugin.md) - a built-in interface that lets you work within Handsontable's lifecycle,
+- [`BasePlugin`](@/api/basePlugin.md) - a built-in interface that lets you work within Handsontable's lifecycle,
 - `registerPlugin` - a utility to register a plugin in the Handsontable plugin registry.
 
 
@@ -30,10 +30,10 @@ Import the following:
 import { BasePlugin, registerPlugin } from 'handsontable/plugins';
 ```
 
-### 2. Extend the [`BasePlugin`](@/api/baseplugin.md)
-The best way to start creating your own plugin is to extend the [`BasePlugin`](@/api/baseplugin.md).
+### 2. Extend the [`BasePlugin`](@/api/basePlugin.md)
+The best way to start creating your own plugin is to extend the [`BasePlugin`](@/api/basePlugin.md).
 
-The [`BasePlugin`](@/api/baseplugin.md) interface takes care of:
+The [`BasePlugin`](@/api/basePlugin.md) interface takes care of:
 * Backward compatibility
 * Memory leak prevention
 * Properly binding your plugin's instance to Handsontable
@@ -76,7 +76,7 @@ export class CustomPlugin extends BasePlugin {
    */
   constructor(hotInstance) {
      /**
-     * The [`BasePlugin`](@/api/baseplugin.md)'s constructor adds a `this.hot` property to your plugin.
+     * The [`BasePlugin`](@/api/basePlugin.md)'s constructor adds a `this.hot` property to your plugin.
      * The `this.hot` property:
      * - Is a reference to the Handsontable instance.
      * - Can't be overwritten.

@@ -18,6 +18,7 @@ To reduce the size of your app, you can use Handsontable by importing individual
 To use modules with Handsontable's [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md), follow the steps below:
 
 ### Step 1: Import the `handsontable/base` module
+
 In the entry point file of your application, import the `handsontable/base` module:
   ```js
   import { BrowserModule } from '@angular/platform-browser';
@@ -57,6 +58,7 @@ For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) ce
   ```
 
 ### Step 3: Register the modules
+
 Register your modules, using the registering functions that you imported (for the full list of Handsontable's registering functions, see the modules cheatsheet):
   ```jsx
   import { BrowserModule } from '@angular/platform-browser';

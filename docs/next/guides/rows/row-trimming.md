@@ -45,12 +45,12 @@ The plugin instance can be accessed by calling:
 const plugin = hot.getPlugin('trimRows');
 ```
 
-To trim a single row, call the [`trimRow()`](@/api/trimrows.md#trimrow) method of the plugin object:
+To trim a single row, call the [`trimRow()`](@/api/trimRows.md#trimrow) method of the plugin object:
 
 ```js
 plugin.trimRow(4);
 ```
-To trim multiple rows, either pass them as arguments to the [`trimRow()`](@/api/trimrows.md#trimrow) method, or pass an array of indexes to the [`trimRows()`](@/api/trimrows.md#trimrows) method:
+To trim multiple rows, either pass them as arguments to the [`trimRow()`](@/api/trimRows.md#trimrow) method, or pass an array of indexes to the [`trimRows()`](@/api/trimRows.md#trimrows) method:
 
 ```js
 plugin.trimRow(0, 4, 6);

@@ -72,10 +72,10 @@ const hot = new Handsontable(container, {
 
 To easily see which columns are currently hidden, display UI indicators.
 
-To enable the UI indicators, in the [`hiddenColumns`](@/api/options.md#hiddencolumns) object, set the [`indicators`](@/api/hiddencolumns.md) property to `true`:
+To enable the UI indicators, in the [`hiddenColumns`](@/api/options.md#hiddencolumns) object, set the [`indicators`](@/api/hiddenColumns.md) property to `true`:
 
 ::: tip
-If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the [`HiddenColumns`](@/api/hiddenColumns.md) plugin, you also need to set the [`colHeaders`](@/api/options.md#colheaders) property to `true`. Otherwise, [`indicators`](@/api/hiddencolumns.md) won't work.
+If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the [`HiddenColumns`](@/api/hiddenColumns.md) plugin, you also need to set the [`colHeaders`](@/api/options.md#colheaders) property to `true`. Otherwise, [`indicators`](@/api/hiddenColumns.md) won't work.
 :::
 
 ::: example #example3
@@ -123,7 +123,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-You can also add the column hiding menu items individually, by adding the [`hidden_columns_show`](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options) and [`hidden_columns_hide`](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options) strings to the[ `contextMenu`](@/api/contextmenu.md) parameter:
+You can also add the column hiding menu items individually, by adding the [`hidden_columns_show`](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options) and [`hidden_columns_hide`](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options) strings to the[ `contextMenu`](@/api/contextMenu.md) parameter:
 
 ::: example #example5
 ```js
@@ -148,7 +148,7 @@ const hot = new Handsontable(container, {
 
 By default, hidden columns are included in copying and pasting.
 
-To exclude hidden columns from copying and pasting, in the [`hiddenColumns`](@/api/hiddencolumns.md) object, set the [`copyPasteEnable`](@/api/hiddencolumns.md) property to `false`:
+To exclude hidden columns from copying and pasting, in the [`hiddenColumns`](@/api/hiddenColumns.md) object, set the [`copyPasteEnable`](@/api/hiddenColumns.md) property to `false`:
 
 ::: example #example6
 ```js
@@ -176,7 +176,7 @@ For the most popular column hiding tasks, use the API methods below.
 
 To see your changes, re-render your Handsontable instance with the [`render()`](@/api/core.md#render) method.
 
-### Accessing the [`HiddenColumns`](@/api/hiddencolumns.md) plugin instance
+### Accessing the [`HiddenColumns`](@/api/hiddenColumns.md) plugin instance
 
 To access the [`HiddenColumns`](@/api/hiddenColumns.md) plugin instance, use the [`getPlugin()`](@/api/core.md#getplugin) method:
 
@@ -200,8 +200,8 @@ hot.render()
 ### Hiding multiple columns
 
 To hide multiple columns:
-- Either pass column indexes as arguments to the [`hideColumn()`](@/api/hiddencolumns.md#hidecolumn) method
-- Or pass an array of column indexes to the [`hideColumns()`](@/api/hiddencolumns.md#hidecolumn) method
+- Either pass column indexes as arguments to the [`hideColumn()`](@/api/hiddenColumns.md#hidecolumn) method
+- Or pass an array of column indexes to the [`hideColumns()`](@/api/hiddenColumns.md#hidecolumn) method
 
 ```js
 const plugin = hot.getPlugin('hiddenColumns');
@@ -216,7 +216,7 @@ hot.render()
 
 ### Unhiding a single column
 
-To unhide a single column, use the [`showColumn()`](@/api/hiddencolumns.md#showcolumn) method:
+To unhide a single column, use the [`showColumn()`](@/api/hiddenColumns.md#showcolumn) method:
 
 ```js
 const plugin = hot.getPlugin('hiddenColumns');
@@ -230,8 +230,8 @@ hot.render()
 ### Unhiding multiple columns
 
 To unhide multiple columns:
-- Either pass column indexes as arguments to the [`showColumn()`](@/api/hiddencolumns.md#showcolumn) method
-- Or pass an array of column indexes to the [`showColumns()`](@/api/hiddencolumns.md#showcolumns) method
+- Either pass column indexes as arguments to the [`showColumn()`](@/api/hiddenColumns.md#showcolumn) method
+- Or pass an array of column indexes to the [`showColumns()`](@/api/hiddenColumns.md#showcolumns) method
 
 ```js
 const plugin = hot.getPlugin('hiddenColumns');

@@ -21,9 +21,9 @@ tags:
 
 This feature allows you to revert changes made in the data grid. It is very useful in a normal day-to-day routine, especially when the change is unintentional. This feature stacks the changes made with the user interface of the grid. Modifications done programmatically are omitted.
 
-The basic methods are [`undo()`](@/api/undoredo.md#undo) and [`redo()`](@/api/undoredo.md#redo). The [`undo()`](@/api/undoredo.md#undo) method rolls back the last performed action, and the [`redo()`](@/api/undoredo.md#redo) method restores it.
+The basic methods are [`undo()`](@/api/undoRedo.md#undo) and [`redo()`](@/api/undoRedo.md#redo). The [`undo()`](@/api/undoRedo.md#undo) method rolls back the last performed action, and the [`redo()`](@/api/undoRedo.md#redo) method restores it.
 
-This feature is provided by the [`UndoRedo`](@/api/undoredo.md) plugin, and is enabled by default.
+This feature is provided by the [`UndoRedo`](@/api/undoRedo.md) plugin, and is enabled by default.
 
 :::tip
 Not all user-triggered actions are covered by this feature. See the below list of actions that won't be added to the history of changes:

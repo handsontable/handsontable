@@ -32,27 +32,27 @@ In prior versions of the Handsontable component, the calculation between physica
 * [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)
 * `batch()`
 * [`beforeRowMove`](@/api/hooks.md#beforerowmove)
-* [`CollapsibleColumns`](@/api/collapsiblecolumns.md)
-* [`ColumnSorting`](@/api/columnsorting.md)
+* [`CollapsibleColumns`](@/api/collapsibleColumns.md)
+* [`ColumnSorting`](@/api/columnSorting.md)
 * [Data binding](@/guides/getting-started/binding-to-data.md)
-* [`dragColumns()`](@/api/manualcolumnmove.md#dragcolumns)
-* [`dragRows`](@/api/manualrowmove.md#dragrows)
+* [`dragColumns()`](@/api/manualColumnMove.md#dragcolumns)
+* [`dragRows`](@/api/manualRowMove.md#dragrows)
 * [`Filters`](@/api/filters.md)
 * `finalIndex`
 * `GanttChart`
-* [`HiddenColumns`](@/api/hiddencolumns.md)
+* [`HiddenColumns`](@/api/hiddenColumns.md)
 * `insert`
-* [`isMovePossible`](@/api/manualrowmove.md#ismovepossible)
-* [`ManualColumnFreeze`](@/api/manualcolumnfreeze.md)
-* [`ManualColumnMove`](@/api/manualcolumnmove.md)
-* [`ManualRowMove`](@/api/manualrowmove.md)
+* [`isMovePossible`](@/api/manualRowMove.md#ismovepossible)
+* [`ManualColumnFreeze`](@/api/manualColumnFreeze.md)
+* [`ManualColumnMove`](@/api/manualColumnMove.md)
+* [`ManualRowMove`](@/api/manualRowMove.md)
 * [`minRows`](@/api/options.md#minrows)
 * [`minSpareRows`](@/api/options.md#minsparerows)
 * `modifyCol`
 * `modifyRow`
-* [`moveColumns`](@/api/manualcolumnmove.md#movecolumns)
-* [`moveRows`](@/api/manualrowmove.md#moverows)
-* [`NestedRows`](@/api/nestedrows.md)
+* [`moveColumns`](@/api/manualColumnMove.md#movecolumns)
+* [`moveRows`](@/api/manualRowMove.md#moverows)
+* [`NestedRows`](@/api/nestedRows.md)
 * `ObserveChanges`
 * [`populateFromArray()`](@/api/core.md#populatefromarray)
 * `RecordTranslator`
@@ -63,7 +63,7 @@ In prior versions of the Handsontable component, the calculation between physica
 * [`toPhysicalRow()`](@/api/core.md#tophysicalrow)
 * [`toVisualColumn()`](@/api/core.md#tovisualcolumn)
 * [`toVisualRow()`](@/api/core.md#tovisualrow)
-* [`TrimRows`](@/api/trimrows.md)
+* [`TrimRows`](@/api/trimRows.md)
 * `unmodifyCol`
 * `unmodifyRow`
 
@@ -142,7 +142,7 @@ modifyRow(row) {
 }
 ```
 
-Now, if you want to get the same results you need to use the [`TrimmingMap`](@/api/trimmingmap.md):
+Now, if you want to get the same results you need to use the [`TrimmingMap`](@/api/trimmingMap.md):
 
 ```js
 import { TrimmingMap } from "handsontable/es/translations";
@@ -157,7 +157,7 @@ hotInstance.render();
 
 ### `hiddenRow, hiddenColumn`
 
-If you used [`HiddenRows`](@/api/hiddenrows.md) or [`HiddenColumns`](@/api/hiddencolumns.md) in your application you need do an update and use a corresponding index mapper:
+If you used [`HiddenRows`](@/api/hiddenRows.md) or [`HiddenColumns`](@/api/hiddenColumns.md) in your application you need do an update and use a corresponding index mapper:
 
 Prior 8.0.0:
 
@@ -202,7 +202,7 @@ instance.addHook('afterFilter', function () {
 
 From version 8.0.0 you can set plugins separately. They no longer rely on each other tightly in terms of functionality, so it is up to the developer to use them simultaneously when needed. You can avoid unwanted "extra" functionality switched on by a supporting plugin.
 
-[`NestedRows`](@/api/nestedrows.md) and [`Filters`](@/api/filters.md) no longer depend on nor enable [`TrimRows`](@/api/trimrows.md) plugin. To keep using the [`TrimRows`](@/api/trimrows.md) functionality, mostly use API or if your custom plugin is based on it, you need to enable the plugin explicitly:
+[`NestedRows`](@/api/nestedRows.md) and [`Filters`](@/api/filters.md) no longer depend on nor enable [`TrimRows`](@/api/trimRows.md) plugin. To keep using the [`TrimRows`](@/api/trimRows.md) functionality, mostly use API or if your custom plugin is based on it, you need to enable the plugin explicitly:
 
 Before 8.0.0
 
@@ -222,7 +222,7 @@ filters: true,
 trimRows: true
 ```
 
-[`ManualColumnFreeze`](@/api/manualcolumnfreeze.md) does not rely on the [`ManualColumnMove`](@/api/manualcolumnmove.md) plugin. To preserve the same functionality as before you need to set it explicitly:
+[`ManualColumnFreeze`](@/api/manualColumnFreeze.md) does not rely on the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin. To preserve the same functionality as before you need to set it explicitly:
 
 Before 8.0.0
 
@@ -237,7 +237,7 @@ manualColumnFreeze: true,
 manualColumnMove: true
 ```
 
-[`ColumnSorting`](@/api/columnsorting.md) will not enable `ObserveChanges`. To preserve the same functionality as before you need to set it explicitly:
+[`ColumnSorting`](@/api/columnSorting.md) will not enable `ObserveChanges`. To preserve the same functionality as before you need to set it explicitly:
 
 Before 8.0.0
 
@@ -252,7 +252,7 @@ columnSorting: true,
 observeChanges: true
 ```
 
-[`CollapsibleColumns`](@/api/collapsiblecolumns.md) plugin no longer uses [`HiddenColumns`](@/api/hiddencolumns.md) plugin, hence it will not be enabled. What's more, it won't enforce the inclusion of the second plugin anymore. To preserve the functionality of hiding columns separately (out of collapsing) as before you need to set it explicitly:
+[`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin no longer uses [`HiddenColumns`](@/api/hiddenColumns.md) plugin, hence it will not be enabled. What's more, it won't enforce the inclusion of the second plugin anymore. To preserve the functionality of hiding columns separately (out of collapsing) as before you need to set it explicitly:
 
 Before 8.0.0
 
@@ -317,9 +317,9 @@ Both plugins has been adapted to work with Index Mappers.
 
 Hooks, [`beforeRowMove`](@/api/hooks.md#beforerowmove), [`afterRowMove`](@/api/hooks.md#afterrowmove), [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove), and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) have different set of parameters now.
 
-Methods [`moveColumn`](@/api/manualcolumnmove.md#movecolumn), [`moveColumns`](@/api/manualcolumnmove.md#movecolumns), [`moveRow`](@/api/manualrowmove.md#moverow), and [`moveRows`](@/api/manualrowmove.md#moverows) have their arguments changed. From this version onward, the `target` argument was changed to `finalIndex` argument. They work differently now and a **new [`dragRow`](@/api/manualrowmove.md#dragrow), [`dragRows`](@/api/manualrowmove.md#dragrows), [`dragColumn`](@/api/manualcolumnmove.md#dragcolumn) and [`dragColumns`](@/api/manualcolumnmove.md#dragcolumns) methods overtook old methods place in terms of functionality**. To put it bluntly, if you want to preserve previous functionality of [`moveRows`](@/api/manualrowmove.md#moverows) rename it to the [`dragRows`](@/api/manualrowmove.md#dragrows).
+Methods [`moveColumn`](@/api/manualColumnMove.md#movecolumn), [`moveColumns`](@/api/manualColumnMove.md#movecolumns), [`moveRow`](@/api/manualRowMove.md#moverow), and [`moveRows`](@/api/manualRowMove.md#moverows) have their arguments changed. From this version onward, the `target` argument was changed to `finalIndex` argument. They work differently now and a **new [`dragRow`](@/api/manualRowMove.md#dragrow), [`dragRows`](@/api/manualRowMove.md#dragrows), [`dragColumn`](@/api/manualColumnMove.md#dragcolumn) and [`dragColumns`](@/api/manualColumnMove.md#dragcolumns) methods overtook old methods place in terms of functionality**. To put it bluntly, if you want to preserve previous functionality of [`moveRows`](@/api/manualRowMove.md#moverows) rename it to the [`dragRows`](@/api/manualRowMove.md#dragrows).
 
-**Important note!** If [`NestedRows`](@/api/nestedrows.md) is set to `enabled` the move is possible only by the drag in the UI or [`dragRow`](@/api/manualrowmove.md#dragrow)/[`dragRows`](@/api/manualrowmove.md#dragrows) methods of the [`ManualRowMove`](@/api/manualrowmove.md) plugin.
+**Important note!** If [`NestedRows`](@/api/nestedRows.md) is set to `enabled` the move is possible only by the drag in the UI or [`dragRow`](@/api/manualRowMove.md#dragrow)/[`dragRows`](@/api/manualRowMove.md#dragrows) methods of the [`ManualRowMove`](@/api/manualRowMove.md) plugin.
 
 The "drag" methods comes with the `dropIndex` parameter. It directs where to **place** the dragged elements. The place you intend to drag the element is managed by **drop indexes**. You can imagine some sort of a drop zone between actual indexes of elements:
 
@@ -335,11 +335,11 @@ You can find the plugin's isMovePossible API method useful when you want to dete
 
 ## Changes in ManualColumnFreeze plugin behavior
 
-The [`ManualColumnFreeze`](@/api/manualcolumnfreeze.md) plugin itself also works differently. Before the **v8.0.0** frozen columns attempted to go back to original positions upon the unfreeze. Currently, the original position is **not calculated**. It unfreezes the column just after the "line of freeze". The functionality changed because after several actions like **moving** the former position was rather estimated than determined.
+The [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin itself also works differently. Before the **v8.0.0** frozen columns attempted to go back to original positions upon the unfreeze. Currently, the original position is **not calculated**. It unfreezes the column just after the "line of freeze". The functionality changed because after several actions like **moving** the former position was rather estimated than determined.
 
 ## Using minSpareRows option with TrimRows plugin
 
-Another breaking change is related to [`minSpareRows`](@/api/options.md#minsparerows) and [`minRows`](@/api/options.md#minrows). The difference is visible when the data is being trimmed (i.e. by the [`TrimRows`](@/api/trimrows.md) plugin) and the options are set. In previous versions the data which was supposed to be trimmed **included** [`minSpareRows`](@/api/options.md#minsparerows) and [`minRows`](@/api/options.md#minrows) which resulted in trimming them along with other rows. In version 8.0.0 **spare rows** are always present and cannot be removed by trimming.
+Another breaking change is related to [`minSpareRows`](@/api/options.md#minsparerows) and [`minRows`](@/api/options.md#minrows). The difference is visible when the data is being trimmed (i.e. by the [`TrimRows`](@/api/trimRows.md) plugin) and the options are set. In previous versions the data which was supposed to be trimmed **included** [`minSpareRows`](@/api/options.md#minsparerows) and [`minRows`](@/api/options.md#minrows) which resulted in trimming them along with other rows. In version 8.0.0 **spare rows** are always present and cannot be removed by trimming.
 
 Check the following code example:
 
@@ -544,7 +544,7 @@ hotInstance.getSelectedLast().map((indexIncludingHeader) => {
 });
 ```
 
-Selection Range object has a new method [`normalize`](@/api/cellcoords.md#normalize) that will do this for you:
+Selection Range object has a new method [`normalize`](@/api/cellCoords.md#normalize) that will do this for you:
 
 ```js
 hotInstance.getSelectedRangeLast().from.clone().normalize()

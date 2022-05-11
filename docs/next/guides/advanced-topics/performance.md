@@ -79,7 +79,7 @@ If you need only a few parts of Handsontable, you can think of importing them as
 - register it
 - use it
 
-The following example shows you how to import and register the [`ContextMenu`](@/api/contextmenu.md) plugin.
+The following example shows you how to import and register the [`ContextMenu`](@/api/contextMenu.md) plugin.
 
 ```js
 import Handsontable from 'handsontable/base';

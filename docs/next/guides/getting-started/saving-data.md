@@ -139,15 +139,15 @@ function ajax(url, method, params, callback) {
 
 You can save any type of data in local storage to preserve the table state after page reloads. The [`persistentState`](@/api/options.md#persistentstate) option must be set to `true` to enable the data storage mechanism. You can set it either during the Handsontable initialization or using the [`updateSettings()`](@/api/core.md#updatesettings) method.
 
-When the [`persistentState`](@/api/options.md#persistentstate) option is enabled, the [`PersistentState`](@/api/persistentstate.md) plugin exposes hooks listed below:
+When the [`persistentState`](@/api/options.md#persistentstate) option is enabled, the [`PersistentState`](@/api/persistentState.md) plugin exposes hooks listed below:
 
 * [`persistentStateSave`](@/api/hooks.md#persistentstatesave)
 * [`persistentStateLoad`](@/api/hooks.md#persistentstateload)
 * [`persistentStateReset`](@/api/hooks.md#persistentstatereset)
 
-## [`PersistentState`](@/api/persistentstate.md) vs `localStorage`
+## [`PersistentState`](@/api/persistentState.md) vs `localStorage`
 
-The main benefit of using the [`PersistentState`](@/api/persistentstate.md) plugin hooks rather than the regular `localStorage` API is that it ensures separation of data stored by multiple Handsontable instances. For example, if you have two or more instances of Handsontable on one page, data saved by one instance will be inaccessible to the second instance. Those two instances can store data under the same key, and no data would be overwritten.
+The main benefit of using the [`PersistentState`](@/api/persistentState.md) plugin hooks rather than the regular `localStorage` API is that it ensures separation of data stored by multiple Handsontable instances. For example, if you have two or more instances of Handsontable on one page, data saved by one instance will be inaccessible to the second instance. Those two instances can store data under the same key, and no data would be overwritten.
 
 For the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
 
@@ -164,4 +164,4 @@ For the data separation to work properly, make sure that each instance of Handso
   - [`persistentStateReset`](@/api/hooks.md#persistentstatereset)
   - [`persistentStateSave`](@/api/hooks.md#persistentstatesave)
 - Plugins:
-  - [`PersistentState`](@/api/persistentstate.md)
+  - [`PersistentState`](@/api/persistentState.md)
