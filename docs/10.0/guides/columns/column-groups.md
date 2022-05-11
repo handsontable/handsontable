@@ -20,7 +20,7 @@ Columns in Handsontable may be grouped using multiple levels of headers. We refe
 
 The **Nested Headers** plugin allows creating a nested header structure using the `colspan` attribute. The header cannot be wider than its parent element, i.e., headers cannot overlap each other.
 
-To make a header that spans across multiple columnns, its corresponding configuration array element should be provided as an object with `label` and `colspan` properties. The `label` property defines the header's label, while the `colspan` property defines the number of columns that the header should cover.
+To make a header that spans across multiple columns, its corresponding configuration array element should be provided as an object with `label` and `colspan` properties. The `label` property defines the header's label, while the `colspan` property defines the number of columns that the header should cover.
 
 The maximum value for `colspan` for nested headers is 1000, meaning that the maximum number of columns that a header can span is 1000.  This constraint is based on [_HTML table specification_](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan), which sets the limit of `colspan` to 1000.
 

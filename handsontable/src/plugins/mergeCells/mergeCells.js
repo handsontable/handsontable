@@ -22,6 +22,8 @@ export const PLUGIN_PRIORITY = 150;
 const privatePool = new WeakMap();
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin MergeCells
  * @class MergeCells
@@ -149,7 +151,10 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`mergeCells`](@/api/options.md#mergecells)
    */
   updatePlugin() {
     const settings = this.hot.getSettings()[PLUGIN_KEY];
@@ -316,7 +321,7 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    currentRange.setDirection('NW-SE');
+    currentRange.setDirection(this.hot.isRtl() ? 'NE-SW' : 'NW-SE');
 
     const { from, to } = currentRange;
 
@@ -334,7 +339,7 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    cellRange.setDirection('NW-SE');
+    cellRange.setDirection(this.hot.isRtl() ? 'NE-SW' : 'NW-SE');
 
     const { from, to } = cellRange;
 
@@ -537,7 +542,7 @@ export class MergeCells extends BasePlugin {
     const gridContext = shortcutManager.getContext('grid');
 
     gridContext.addShortcut({
-      keys: [['Control/Meta', 'm']],
+      keys: [['Control', 'm']],
       callback: () => {
         this.toggleMerge(this.hot.getSelectedRangeLast());
         this.hot.render();

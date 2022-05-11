@@ -65,7 +65,6 @@ const META_HEAD = [
  * @class CopyPaste
  * @plugin CopyPaste
  */
-/* eslint-enable jsdoc/require-description-complete-sentence */
 export class CopyPaste extends BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -85,7 +84,7 @@ export class CopyPaste extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
+     * Maximum number of columns than can be copied to clipboard using <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>.
      *
      * @type {number}
      * @default Infinity
@@ -106,7 +105,7 @@ export class CopyPaste extends BasePlugin {
      */
     this.focusableElement = void 0;
     /**
-     * Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior.
+     * Defines paste (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**V**</kbd>) behavior.
      * * Default value `"overwrite"` will paste clipboard value over current selection.
      * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
      * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
@@ -116,7 +115,7 @@ export class CopyPaste extends BasePlugin {
      */
     this.pasteMode = 'overwrite';
     /**
-     * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
+     * Maximum number of rows than can be copied to clipboard using <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>.
      *
      * @type {number}
      * @default Infinity
@@ -182,7 +181,11 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`copyPaste`](@/api/options.md#copypaste)
+   *  - [`fragmentSelection`](@/api/options.md#fragmentselection)
    */
   updatePlugin() {
     this.disablePlugin();

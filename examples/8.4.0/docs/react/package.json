@@ -2,9 +2,7 @@
   "name": "examples-react-8.4.0",
   "version": "8.4.0",
   "private": true,
-  "workspaces": {
-    "packages": [
-      "@(!(node_modules))/"
-    ]
-  }
+  "workspaces": [
+    "@(!(node_modules))/"
+  ]
 }

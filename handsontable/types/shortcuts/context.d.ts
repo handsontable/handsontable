@@ -3,6 +3,7 @@ interface Shortcut {
   callback: (event: Event) => boolean | void;
   group: string;
   runOnlyIf?: () => boolean;
+  captureCtrl?: boolean;
   preventDefault?: boolean;
   stopPropagation?: boolean;
   relativeToGroup?: string;

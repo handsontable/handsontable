@@ -10,7 +10,13 @@ canonicalUrl: /checkbox-cell-type
 [[toc]]
 
 ## Overview
-Data in these cells will be rendered as a checkbox and can be easily changed by checking/unchecking the checkbox. Checking and unchecking can be performed using a mouse or by pressing <kbd>SPACE</kbd>. You can change the state of multiple cells at once by selecting the cells you want to change and pressing <kbd>SPACE</kbd>.
+Data in these cells will be rendered as a checkbox and can be easily changed by checking/unchecking the checkbox. 
+
+Checking the box can be performed using a mouse, or by pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd>.
+
+Unchecking the box can be performed using a mouse, or by pressing <kbd>**Space**</kbd>, <kbd>**Enter**</kbd>, <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd>.
+
+You can change the state of multiple cells at once by selecting the cells you want to change and pressing <kbd>**Space**</kbd>.
 
 ## Checkbox true/false values
 
@@ -131,3 +137,12 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related keyboard shortcuts
+
+| Windows                  | macOS                    | Action                        |  Excel  | Sheets  |
+| ------------------------ | ------------------------ | ----------------------------- | :-----: | :-----: |
+| <kbd>**Space**</kbd>     | <kbd>**Space**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
+| <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
+| <kbd>**Delete**</kbd>    | <kbd>**Delete**</kbd>    | Uncheck the checkbox          | &cross; | &check; |
+| <kbd>**Backspace**</kbd> | <kbd>**Backspace**</kbd> | Uncheck the checkbox          | &cross; | &check; |

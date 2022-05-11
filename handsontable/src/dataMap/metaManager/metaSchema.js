@@ -1082,7 +1082,7 @@ export default () => {
      *
      * | Setting                                                                                                        | Description                                                                                                                        |
      * | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>C</kbd>, add the cell's value to the clipboard |
+     * | `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add the cell's value to the clipboard |
      * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - Disable copying for this cell                                                                                                    |
      *
      * Read more:
@@ -1315,10 +1315,10 @@ export default () => {
      * | -------- | ------------------ | ---------------------------------- | ----------------------------------------------------------------- |
      * | `row`    | -                  | `row`: Number                      | The cell's row coordinate.                                        |
      * | `col`    | -                  | `col`: Number                      | The cell's column coordinate.                                     |
-     * | `left`   | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the left border's width (`width`)<br> and color (`color`).   |
-     * | `right`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the right border's width (`width`)<br> and color (`color`).  |
-     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the top border's width (`width`)<br> and color (`color`).    |
-     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the bottom border's width (`width`)<br> and color (`color`). |
+     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `start` sets the width (`width`) and color (`color`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `start` sets the width (`width`) and color (`color`) of the right-hand border. |
+     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `end` sets the width (`width`) and color (`color`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `end` sets the width (`width`) and color (`color`) of the left-hand border. |
+     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the width (`width`) and color (`color`) of the top border. |
+     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the width (`width`) and color (`color`) of the bottom border. |
      *
      * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
      * and add a predefined border around a range of cells,
@@ -1327,16 +1327,18 @@ export default () => {
      *
      * | Property | Sub-properties                               | Types                                                            | Description                                                                                  |
      * | -------- | -------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-     * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` selects the range's top-left corner.<br>`to` selects the range's bottom-right corner. |
-     * | `left`   | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the left border's `width` and `color`.                                                  |
-     * | `right`  | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the right border's `width` and `color`.                                                 |
-     * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the top border's `width` and `color`.                                                   |
-     * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the bottom border's `width` and `color`.                                                |
+     * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default):<br>- `from` selects the range's top-left corner.<br>- `to` selects the range's bottom-right corner.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: <br>- `from` selects the range's top-right corner.<br>- `to` selects the range's bottom-left corner. |
+     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `start` sets the width (`width`) and color (`color`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `start` sets the width (`width`) and color (`color`) of the right-hand border. |
+     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `end` sets the width (`width`) and color (`color`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `end` sets the width (`width`) and color (`color`) of the left-hand border. |
+     * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the width (`width`) and color (`color`) of the top border. |
+     * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the width (`width`) and color (`color`) of the bottom border. |
      *
      * Read more:
      * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
      * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
      * - [Plugins: `CustomBorders` &#8594;](@/api/customBorders.md)
+     * - [Layout direction](@/guides/internationalization/layout-direction.md)
+     * - [`layoutDirection`](#layoutDirection)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -1357,13 +1359,13 @@ export default () => {
      *     row: 2,
      *     // set the cell's column coordinate
      *     col: 2,
-     *     // set the left border's width and color
-     *     left: {
+     *     // set the left/right border's width and color
+     *     start: {
      *       width: 2,
      *       color: 'red'
      *     },
-     *     // set the right border's width and color
-     *     right: {
+     *     // set the right/left border's width and color
+     *     end: {
      *       width: 1,
      *       color: 'green'
      *     },
@@ -1392,13 +1394,13 @@ export default () => {
      *         col: 4
      *       }
      *     },
-     *     // set the left border's width and color
-     *     left: {
+     *     // set the left/right border's width and color
+     *     start: {
      *       width: 2,
      *       color: 'red'
      *     },
-     *     // set the right border's width and color
-     *     right: {},
+     *     // set the right/left border's width and color
+     *     end: {},
      *     // set the top border's width and color
      *     top: {},
      *     // set the bottom border's width and color
@@ -1413,7 +1415,7 @@ export default () => {
      * @description
      * The `data` option sets the initial [data](@/guides/getting-started/binding-to-data.md) of your Handsontable instance.
      *
-     * Handsontable's data is bound to your source data __by reference__ (i.e. when you edit Handsontable's data, your source data alters as well).
+     * Handsontable's data is bound to your source data by reference (i.e. when you edit Handsontable's data, your source data alters as well).
      *
      * You can set the `data` option:
      * - Either to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
@@ -1762,14 +1764,14 @@ export default () => {
     editor: void 0,
 
     /**
-     * The `enterBeginsEditing` option configures the action of the <kbd>Enter</kbd> key.
+     * The `enterBeginsEditing` option configures the action of the <kbd>**Enter**</kbd> key.
      *
      * You can set the `enterBeginsEditing` option to one of the following:
      *
      * | Setting          | Description                                                                                                                                                                                               |
      * | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default) | - On pressing <kbd>Enter</kbd> once, start editing the currently-selected cell<br>- On pressing <kbd>Enter</kbd> twice, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting |
-     * | `false`          | - On pressing <kbd>Enter</kbd> once, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting                                                                                    |
+     * | `true` (default) | - On pressing <kbd>**Enter**</kbd> once, enter the editing mode of the active cell<br>- On pressing <kbd>**Enter**</kbd> twice, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting |
+     * | `false`          | - On pressing <kbd>**Enter**</kbd> once, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting                                                                                    |
      *
      * Read more:
      * - [`enterMoves`](#enterMoves)
@@ -1792,21 +1794,21 @@ export default () => {
     enterBeginsEditing: true,
 
     /**
-     * The `enterMoves` option configures the action of the <kbd>Enter</kbd> key.
+     * The `enterMoves` option configures the action of the <kbd>**Enter**</kbd> key.
      *
      * If the [`enterBeginsEditing`](#enterBeginsEditing) option is set to `true`,
-     * the `enterMoves` setting applies to the **second** pressing of the <kbd>Enter</kbd> key.
+     * the `enterMoves` setting applies to the **second** pressing of the <kbd>**Enter**</kbd> key.
      *
      * If the [`enterBeginsEditing`](#enterBeginsEditing) option is set to `false`,
-     * the `enterMoves` setting applies to the **first** pressing of the <kbd>Enter</kbd> key.
+     * the `enterMoves` setting applies to the **first** pressing of the <kbd>**Enter**</kbd> key.
      *
      * You can set the `enterMoves` option to an object with the following properties
      * (or to a function that returns such an object):
      *
      * | Property | Type   | Description                                                                                                                                              |
      * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `col`    | Number | - On pressing <kbd>Enter</kbd>, move selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `col` columns left |
-     * | `row`    | Number | - On pressing <kbd>Enter</kbd>, move selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `row` rows up          |
+     * | `col`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `col` columns left |
+     * | `row`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `row` rows up          |
      *
      * Read more:
      * - [`enterBeginsEditing`](#enterBeginsEditing)
@@ -1993,12 +1995,16 @@ export default () => {
     filters: void 0,
 
     /**
-     * The `fixedColumnsLeft` option is an alias for the [`fixedColumnsStart`](#fixedColumnsStart) option.
+     * `fixedColumnsLeft` is a legacy option.
      *
-     * In the RTL mode, don't use the `fixedColumnsLeft` option: use the [`fixedColumnsStart`](#fixedColumnsStart) option instead.
+     * If your grid's [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), `fixedColumnsLeft` acts like the [`fixedColumnsStart`](#fixedColumnsStart) option.
+     *
+     * If your grid's [layout direction](@/guides/internationalization/layout-direction.md) is RTL, using `fixedColumnsLeft` throws an error.
+     *
+     * Use [`fixedColumnsStart`](#fixedColumnsStart), which works in any layout direction.
      *
      * Read more:
-     * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
+     * - [`fixedColumnsStart`](#fixedcolumnsstart)
      *
      * @memberof Options#
      * @type {number}
@@ -2014,11 +2020,15 @@ export default () => {
     fixedColumnsLeft: 0,
 
     /**
-     * The `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the start edge of the grid.
-     * By default, the start edge is the left-hand edge. In the RTL mode, the start edge is the right-hand edge.
+     * If your grid's [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the left-hand edge of the grid.
+     *
+     * If your grid's [layout direction](@/guides/internationalization/layout-direction.md) is RTL, the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the right-hand edge of the grid.
      *
      * Read more:
      * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
+     * - [Layout direction &#8594;](@/guides/internationalization/layout-direction.md)
+     * - [`fixedColumnsLeft`](#fixedcolumnsleft)
+     * - [`layoutDirection`](#layoutDirection)
      *
      * @memberof Options#
      * @type {number}
@@ -2027,7 +2037,22 @@ export default () => {
      *
      * @example
      * ```js
+     * // when `layoutDirection` is set to `inherit` (default)
+     * // freeze the first 3 columns from the left or from the right
+     * // depending on your HTML document's `dir` attribute
+     * layoutDirection: 'inherit',
+     * fixedColumnsStart: 3,
+     *
+     * // when `layoutDirection` is set to `rtl`
+     * // freeze the first 3 columns from the right
+     * // regardless of your HTML document's `dir` attribute
+     * layoutDirection: 'rtl',
+     * fixedColumnsStart: 3,
+     *
+     * // when `layoutDirection` is set to `ltr`
      * // freeze the first 3 columns from the left
+     * // regardless of your HTML document's `dir` attribute
+     * layoutDirection: 'ltr',
      * fixedColumnsStart: 3,
      * ```
      */
@@ -2450,14 +2475,15 @@ export default () => {
     label: void 0,
 
     /**
-     * The `language` option configures Handsontable's [language settings](@/guides/internationalization/internationalization-i18n.md#language-settings).
+     * The `language` option configures Handsontable's [language](@/guides/internationalization/language.md) settings.
      *
      * You can set the `language` option to one of the following:
      *
      * | Setting             | Description                 |
      * | ------------------- | --------------------------- |
      * | `'en-US'` (default) | English - United States     |
-     * | `'ar-AR'`           | Arabic - Global             |
+     * | `'ar-AR'`           | Arabic - Global.<br><br>To properly render this language, set the [layout direction](@/guides/internationalization/layout-direction.md) to RTL. |
+     * | `'cs-CZ'`           | Czech - Czech Republic      |
      * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |
@@ -2475,8 +2501,9 @@ export default () => {
      * | `'zh-TW'`           | Chinese - Taiwan            |
      *
      * Read more:
-     * - [Internationalization (i18n): Language settings &#8594;](@/guides/internationalization/internationalization-i18n.md#language-settings)
+     * - [Language &#8594;](@/guides/internationalization/language.md)
      * - [`locale`](#locale)
+     * - [`layoutDirection`](#layoutdirection)
      *
      * @memberof Options#
      * @type {string}
@@ -2490,6 +2517,52 @@ export default () => {
      * ```
      */
     language: 'en-US',
+
+    /**
+     * The `layoutDirection` option configures whether Handsontable renders from the left to the right, or from the right to the left.
+     *
+     * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
+     *
+     * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/setting-options.md#setting-grid-options).
+     * You can't set it for individual columns, rows, or cells.
+     *
+     * You can set the `layoutDirection` option to one of the following strings:
+     *
+     * | Setting             | Description                                                                                                                                                                                  |
+     * | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `inherit` (default) | Set Handsontable's layout direction automatically,<br>based on the value of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute  |
+     * | `rtl`               | Render Handsontable from the right to the left,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `ltr` |
+     * | `ltr`               | Render Handsontable from the left to the right,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `rtl` |
+     *
+     * Read more:
+     * - [Layout direction &#8594;](@/guides/internationalization/layout-direction.md)
+     * - [Language &#8594;](@/guides/internationalization/language.md)
+     * - [`language`](#language)
+     * - [`locale`](#locale)
+     * - [`fixedColumnsStart`](#fixedcolumnsstart)
+     * - [`customBorders`](#customBorders)
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'inherit'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // inherit Handsontable's layout direction
+     * // from the value of your HTML document's `dir` attribute
+     * layoutDirection: 'inherit',
+     *
+     * // render Handsontable from the right to the left
+     * // regardless of your HTML document's `dir`
+     * layoutDirection: 'rtl',
+     *
+     * // render Handsontable from the left to the right
+     * // regardless of your HTML document's `dir`
+     * layoutDirection: 'ltr',
+     * ```
+     */
+    layoutDirection: 'inherit',
 
     /**
      * The `licenseKey` option sets your Handsontable license key.
@@ -2521,15 +2594,16 @@ export default () => {
     licenseKey: void 0,
 
     /**
-     * The `locale` option configures Handsontable's [locale settings](@/guides/internationalization/internationalization-i18n.md#locale-settings).
+     * The `locale` option configures Handsontable's [locale](@/guides/internationalization/locale.md) settings.
      *
      * You can set the `locale` option to any valid and canonicalized Unicode BCP 47 locale tag,
-     * both for the [entire grid](@/guides/internationalization/internationalization-i18n.md#setting-the-grid-s-locale),
-     * and for [individual columns](@/guides/internationalization/internationalization-i18n.md#setting-a-column-s-locale).
+     * both for the [entire grid](@/guides/internationalization/locale.md#setting-the-grid-s-locale),
+     * and for [individual columns](@/guides/internationalization/locale.md#setting-a-column-s-locale).
      *
      * Read more:
-     * - [Internationalization (i18n): Locale settings &#8594;](@/guides/internationalization/internationalization-i18n.md#locale-settings)
+     * - [Locale &#8594;](@/guides/internationalization/locale.md)
      * - [`language`](#language)
+     * - [`layoutDirection`](#layoutdirection)
      *
      * @memberof Options#
      * @type {string}
@@ -4022,15 +4096,15 @@ export default () => {
     tableClassName: void 0,
 
     /**
-     * The `tabMoves` option configures the action of the <kbd>Tab</kbd> key.
+     * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
      *
      * You can set the `tabMoves` option to an object with the following properties
      * (or to a function that returns such an object):
      *
      * | Property | Type   | Description                                                                                                                                              |
      * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `row`    | Number | - On pressing <kbd>Tab</kbd>, move selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move selection `row` rows up              |
-     * | `col`    | Number | - On pressing <kbd>Tab</kbd>, move selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move selection `col` columns left     |
+     * | `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>, move selection `row` rows up              |
+     * | `col`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>, move selection `col` columns left     |
      *
      * @memberof Options#
      * @type {object|Function}
@@ -4541,32 +4615,6 @@ export default () => {
      * ```
      */
     wordWrap: true,
-
-    /**
-     * The `layoutDirection` option configures whether Handsontable should be rendered from Left-to-right or
-     * Right-to-left depending on the passed settings.
-     *
-     * __Warning:__ The `layoutDirection` option can only be passed when Handsontable is initialized. Nothing
-     * will happen when the option is passed to the `updateSettings` method. Every time the setting is passed
-     * to the method warning message is printed in the console to prevent confusion.
-     *
-     * | Setting          | Description                                             |
-     * | ---------------- | ------------------------------------------------------- |
-     * | `inherit` (default) | Handsontable detects automatically the document layout direction |
-     * | `rtl`            | Renders the table in Right-to-left mode even when the document is served as LTR |
-     * | `ltr`            | Renders the table in Left-to-right mode even when the document is served as RTL |
-     *
-     * @memberof Options#
-     * @type {string}
-     * @default 'inherit'
-     * @category Core
-     *
-     * @example
-     * ```js
-     * layoutDirection: 'rtl',
-     * ```
-     */
-    layoutDirection: 'inherit',
 
     /* eslint-enable jsdoc/require-description-complete-sentence */
   };

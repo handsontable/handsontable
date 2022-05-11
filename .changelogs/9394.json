@@ -1,0 +1,7 @@
+{
+  "title": "Fixed PageUp/PageDown keyboard shortcuts for context menu",
+  "type": "fixed",
+  "issue": 9394,
+  "breaking": false,
+  "framework": "none"
+}
