@@ -1,0 +1,7 @@
+{
+  "title": "Fixed type error in validation process in cases when Handsontable uses multiple HF sheets.",
+  "type": "fixed",
+  "issue": 8268,
+  "breaking": false,
+  "framework": "none"
+}
