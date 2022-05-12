@@ -53,7 +53,8 @@ export default {
     imageUrl() {
       const frameworkWithoutNumber = this.$page.currentFramework.replace(/\d+$/, '');
 
-      return `/docs/${this.$page.currentVersion}/img/pages/introduction/${frameworkWithoutNumber}.svg`;
+      return `/docs/${this.$page.currentVersion}/${this.$page.currentFramework}${this.$page.frameworkSuffix}` +
+        `/img/pages/introduction/${frameworkWithoutNumber}.svg`;
     },
     item() {
       return {
