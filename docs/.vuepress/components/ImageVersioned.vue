@@ -33,6 +33,10 @@ export default {
         src = src.replace(currentVersion, `${currentVersion}/${frameworkDir}`);
       }
 
+      if (currentVersion === this.$page.latestVersion) {
+        src = src.replace(`${currentVersion}/`, '');
+      }
+
       return src;
     },
   },

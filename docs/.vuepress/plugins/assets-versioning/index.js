@@ -4,6 +4,7 @@ const {
   getEnvDocsVersion,
   getSidebars,
   getFrameworks,
+  getLatestVersion,
   getDocsNonFrameworkedVersions,
   getDocsFrameworkedVersions,
   FRAMEWORK_SUFFIX,
@@ -29,7 +30,9 @@ module.exports = (options, context) => {
         let to = '';
 
         if (context.base === '/docs/') {
-          to += `${version}/`;
+          if (version !== getLatestVersion()) {
+            to += `${version}/`;
+          }
 
           if (framework !== void 0) {
             to += `${framework}${FRAMEWORK_SUFFIX}/`;

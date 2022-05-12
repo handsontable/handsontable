@@ -51,10 +51,16 @@ export default {
       return this.$page.currentFramework !== void 0;
     },
     imageUrl() {
+      const currentVersion = this.$page.currentVersion;
       const frameworkWithoutNumber = this.$page.currentFramework.replace(/\d+$/, '');
-
-      return `/docs/${this.$page.currentVersion}/${this.$page.currentFramework}${this.$page.frameworkSuffix}` +
+      let src = `/docs/${currentVersion}/${this.$page.currentFramework}${this.$page.frameworkSuffix}` +
         `/img/pages/introduction/${frameworkWithoutNumber}.svg`;
+
+      if (currentVersion === this.$page.latestVersion) {
+        src = src.replace(`${currentVersion}/`, '');
+      }
+
+      return src;
     },
     item() {
       return {
