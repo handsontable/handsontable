@@ -1486,7 +1486,7 @@ export default () => {
      *
      * You can set the `dateFormat` option to a string with a proper date format. The default value is: `'DD/MM/YYYY'`.
      *
-     * To correct dates whose format doesn't match the `dateFormat` setting, use the [`correctFormat`](#correctFormat) option.
+     * To automatically correct dates whose format doesn't match the `dateFormat` setting, use the [`correctFormat`](#correctFormat) option.
      *
      * Read more:
      * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
