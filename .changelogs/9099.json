@@ -1,7 +1,0 @@
-{
-  "title": "Fixed columns width calculations for nested headers",
-  "type": "fixed",
-  "issue": 9099,
-  "breaking": false,
-  "framework": "none"
-}
