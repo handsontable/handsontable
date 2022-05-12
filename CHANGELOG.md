@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [12.0.1] - 2022-05-13
 
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-0-1)
+
 ### Fixed
 - Fixed an issue where setting the `autoRowSize` option to `true` and (un)checking a checkbox in a row with multi-line cell values caused rows to align incorrectly. [#7102](https://github.com/handsontable/handsontable/issues/7102)
 - Fixed an issue where (un)checking a checkbox changed the cell width. [#8211](https://github.com/handsontable/handsontable/issues/8211)
