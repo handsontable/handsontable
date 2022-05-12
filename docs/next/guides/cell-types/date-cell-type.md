@@ -40,7 +40,7 @@ To change the date format accepted by `date` cells, set the [`dateFormat`](@/api
 dateFormat: 'YYYY-MM-DD',
 ```
 
-### Correcting invalid dates
+### Autocorrecting invalid dates
 
 By default, when the user enters a date in a format that doesn't match the [`dateFormat`](@/api/options.md#dateformat) setting, the date is treated as invalid.
 
