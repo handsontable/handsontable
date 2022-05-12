@@ -26,7 +26,7 @@ Note that date cell requires additional modules :
 
 ## Date format
 
-`date` cells accept strings, formatted in line with the [`dateFormat`](@/api/options.md#dateformat) setting.
+`date` cells accept strings that are formatted in line with the [`dateFormat`](@/api/options.md#dateformat) setting.
 
 The default date format is `'DD/MM/YYYY'`.
 
