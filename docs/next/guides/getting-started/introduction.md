@@ -44,7 +44,7 @@ Explore Handsontable's features and source code:
       <h3>Vue</h3>
   </Link>
   <Link href="/docs/next/vue3-simple-example/" hide-latest-version class="row-item">
-    <ImageVersioned className="integration-framework-logo" src="/docs/(.*?)/img/pages/introduction/vue.svg" alt="Vue 3 logo" />
+    <ImageVersioned className="integration-framework-logo" src="/docs/next/img/pages/introduction/vue.svg" alt="Vue 3 logo" />
       <h3>Vue 3</h3>
   </Link>
 </div>
