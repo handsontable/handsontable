@@ -511,7 +511,7 @@ export class Formulas extends BasePlugin {
       if (sheetId !== void 0 && !changedCellsSet.has(addressId)) {
         const boundHot = getRegisteredHotInstances(this.engine).get(sheetId);
 
-        // When sheetId is not bind to any HoT instance skip the validation process.
+        // when `sheetId` is not bound to any Handsontable instance, skip the validation process
         if (!boundHot) {
           return;
         }

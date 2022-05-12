@@ -15,6 +15,17 @@ tags:
 
 [[toc]]
 
+## 12.0.1
+
+Released on 13th of May, 2022
+
+**Fixed**
+- Fixed an issue where setting the [`autoRowSize`](@/api/options.md#autorowsize) option to `true` and (un)checking a checkbox in a row with multi-line cell values caused rows to align incorrectly. [#7102](https://github.com/handsontable/handsontable/issues/7102)
+- Fixed an issue where (un)checking a checkbox changed the cell width. [#8211](https://github.com/handsontable/handsontable/issues/8211)
+- Fixed an issue where using a single Handsontable instance with multiple HyperFormula sheets could lead to an uncaught `TypeError`. [#8268](https://github.com/handsontable/handsontable/issues/8268)
+- Fixed an issue where nested column headers didn't expand properly. [#9099](https://github.com/handsontable/handsontable/issues/9099)
+- Fixed an issue where updating custom borders could lead to uncaught error exceptions. [#9455](https://github.com/handsontable/handsontable/issues/9455)
+
 ## 12.0.0
 
 Released on 28th of April, 2022
