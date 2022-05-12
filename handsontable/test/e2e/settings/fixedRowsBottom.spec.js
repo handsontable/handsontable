@@ -245,47 +245,5 @@ describe('settings', () => {
       // The only header (when there is no cells - even when the `fixedRowsBottom` isn't defined) has such height.
       expect(getTopClone().height()).toBe(27);
     });
-
-    describe('should render overlay synchronized with the table', () => {
-      it('when the viewport is higher than the sum of all rows in the table', () => {
-        handsontable({
-          data: createSpreadsheetData(5, 5),
-          rowHeaders: true,
-          colHeaders: true,
-          fixedRowsBottom: 1,
-          height: 300,
-          width: 400,
-        });
-
-        expect(getBottomClone().css('bottom')).toBe('158px');
-        expect(getBottomInlineStartClone().css('bottom')).toBe('158px');
-
-        updateSettings({ fixedRowsBottom: 3 });
-        updateSettings({ height: 250 });
-
-        expect(getBottomClone().css('bottom')).toBe('108px');
-        expect(getBottomInlineStartClone().css('bottom')).toBe('108px');
-      });
-
-      it('when the viewport is higher than the sum of all rows in the table and there is horizontal scrollbar', () => {
-        handsontable({
-          data: createSpreadsheetData(5, 50),
-          rowHeaders: true,
-          colHeaders: true,
-          fixedRowsBottom: 1,
-          height: 300,
-          width: 400,
-        });
-
-        expect(getBottomClone().css('bottom')).toBe('158px');
-        expect(getBottomInlineStartClone().css('bottom')).toBe('158px');
-
-        updateSettings({ fixedRowsBottom: 3 });
-        updateSettings({ height: 250 });
-
-        expect(getBottomClone().css('bottom')).toBe('108px');
-        expect(getBottomInlineStartClone().css('bottom')).toBe('108px');
-      });
-    });
   });
 });

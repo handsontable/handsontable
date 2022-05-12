@@ -99,10 +99,12 @@ export class BottomOverlay extends Overlay {
     const cloneRoot = this.clone.wtTable.holder.parentNode;
     let bottomOffset = 0;
 
-    if (wtViewport.hasVerticalScroll()) {
-      bottomOffset = getScrollbarWidth(rootDocument);
-    } else {
-      bottomOffset = (wtViewport.getWorkspaceHeight() - wtTable.getHeight());
+    if (!wtViewport.hasVerticalScroll()) {
+      bottomOffset += (wtViewport.getWorkspaceHeight() - wtTable.getTotalHeight());
+    }
+
+    if (wtViewport.hasVerticalScroll() && wtViewport.hasHorizontalScroll()) {
+      bottomOffset += getScrollbarWidth(rootDocument);
     }
 
     cloneRoot.style.bottom = `${bottomOffset}px`;
