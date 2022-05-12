@@ -44,7 +44,7 @@ dateFormat: 'YYYY-MM-DD',
 
 By default, when the user enters a date in a format that doesn't match the [`dateFormat`](@/api/options.md#dateformat) setting, the date is treated as invalid.
 
-You can set Handsontable to format such dates automatically, so they match the required format. To do this, set the [`correctFormat`](@/api/options.md#correctformat) option to `true`. For example:
+You can let Handsontable correct such dates automatically, so they match the required format. To do this, set the [`correctFormat`](@/api/options.md#correctformat) option to `true`. For example:
 
 ```js
 dateFormat: 'YYYY-MM-DD',
