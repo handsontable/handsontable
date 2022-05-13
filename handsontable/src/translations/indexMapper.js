@@ -386,22 +386,25 @@ export class IndexMapper {
    */
   getFirstNotHiddenIndex(fromVisualIndex, incrementBy, searchAlsoOtherWayAround = false,
                          indexForNextSearch = fromVisualIndex - incrementBy) {
-    const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
+    do {
+      const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
 
-    // First or next (it may be end of the table) index is beyond the table boundaries.
-    if (physicalIndex === null) {
-      // Looking for the next index in the opposite direction. This conditional won't be fulfilled when we STARTED
-      // the search from the index beyond the table boundaries.
-      if (searchAlsoOtherWayAround === true && indexForNextSearch !== fromVisualIndex - incrementBy) {
-        return this.getFirstNotHiddenIndex(indexForNextSearch, -incrementBy, false, indexForNextSearch);
+      // First or next (it may be end of the table) index is beyond the table boundaries.
+      if (physicalIndex === null) {
+        // Looking for the next index in the opposite direction. This conditional won't be fulfilled when we STARTED
+        // the search from the index beyond the table boundaries.
+        if (searchAlsoOtherWayAround === true && indexForNextSearch !== fromVisualIndex - incrementBy) {
+          return this.getFirstNotHiddenIndex(indexForNextSearch, -incrementBy, false, indexForNextSearch);
+        }
+
+        return null;
       }
 
-      return null;
-    }
-
-    if (this.isHidden(physicalIndex) === false) {
-      return fromVisualIndex;
-    }
+      if (this.isHidden(physicalIndex) === false) {
+        return fromVisualIndex;
+      }
+      fromVisualIndex += incrementBy;
+    } while (fromVisualIndex);
 
     // Looking for the next index, as the current isn't visible.
     return this.getFirstNotHiddenIndex(
