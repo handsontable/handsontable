@@ -1,0 +1,7 @@
+{
+  "title": "Fixed bug related to desynchronization of bottom layers position when table's height is set by settings",
+  "type": "fixed",
+  "issue": 4454,
+  "breaking": false,
+  "framework": "none"
+}
