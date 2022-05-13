@@ -60,6 +60,7 @@ From the `docs` directory, you can run the following npm scripts:
 * `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a `[COMMIT_HASH]` commit.
 * `DOCS_VERSION=<semver.version> npm run docs:start:no-cache` – Starts a local documentation server, just for the <semver.version> documentation version.
 * `DOCS_VERSION=next npm run docs:start:no-cache` – Starts a local documentation server, just for the `next` documentation version.
+* `DOCS_FRAMEWORK=<javascript|react|angular|vue2|vue3> npm run docs:start:no-cache` – Starts a local documentation server, just for the framework documentation version.
 
 ## Handsontable documentation directory structure
 

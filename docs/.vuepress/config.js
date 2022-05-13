@@ -6,6 +6,7 @@ const conditionalBlock = require('./containers/conditionalBlock');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
+const chalk = require('chalk');
 const {
   getEnvDocsVersion,
   getEnvDocsFramework,
@@ -41,6 +42,15 @@ if (getEnvDocsVersion()) {
 } else if (getEnvDocsFramework()) {
   versionPartialPath = '**/';
   frameworkPartialPath = `${getEnvDocsFramework()}${FRAMEWORK_SUFFIX}/`;
+
+} else if (isEnvDev()) {
+  // eslint-disable-next-line no-console
+  console.error(chalk.red(
+    'Stopping `docs:start` script execution. Any from `DOCS_FRAMEWORK` or `DOCS_FRAMEWORK` environment variables ' +
+    'should be defined for performance reason, ie. by using `DOCS_FRAMEWORK=javascript npm run docs:start:no-cache` ' +
+    'command.'
+  ));
+  process.exit(1);
 }
 
 const redirectsPlugin = isLatest ?
