@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.0.1
- * Release date: 13/05/2022 (built at 12/05/2022 13:23:25)
+ * Release date: 16/05/2022 (built at 13/05/2022 13:50:27)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3127,7 +3127,7 @@ function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("13/05/2022", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("16/05/2022", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
 
       var keyValidityDays = _extractTime(key);
@@ -22918,7 +22918,7 @@ var Formulas = /*#__PURE__*/function (_BasePlugin) {
         // where the user directly changes the values - the Core triggers those validators.
 
         if (sheetId !== void 0 && !changedCellsSet.has(addressId)) {
-          var boundHot = (0, _register.getRegisteredHotInstances)(_this12.engine).get(sheetId); // When sheetId is not bind to any HoT instance skip the validation process.
+          var boundHot = (0, _register.getRegisteredHotInstances)(_this12.engine).get(sheetId); // if `sheetId` is not bound to any Handsontable instance, skip the validation process
 
           if (!boundHot) {
             return;
@@ -44994,7 +44994,7 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "12/05/2022 13:23:25";
+Handsontable.buildDate = "13/05/2022 13:50:27";
 Handsontable.version = "12.0.1";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
