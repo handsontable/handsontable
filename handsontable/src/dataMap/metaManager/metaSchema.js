@@ -4016,15 +4016,14 @@ export default () => {
     stretchH: 'none',
 
     /**
-     * The `strict` option configures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
-     * cells' strict/lazy mode.
+     * The `strict` option configures the behavior of [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells.
      *
      * You can set the `strict` option to one of the following:
      *
-     * | Setting | Mode                                                                                  | Description                                                                                                                                       |
-     * | ------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode) | The value entered must match an autocomplete option (case-sensitive)                                                                              |
-     * | `false` | [Lazy mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-lazy-mode)     | The value entered doesn't have to match an autocomplete option.<br>The end user can:<br>- Choose from suggested options<br>- Enter a custom value |
+     * | Setting | Mode                                                                                          | Description                                                                                |
+     * | ------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+     * | `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode)         | The end user:<br>- Can only choose one of suggested values<br>- Can't enter a custom value |
+     * | `false` | [Flexible mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-flexible-mode)     | The end user:<br>- Can choose one of suggested values<br>- Can enter a custom value        |
      *
      * Read more:
      * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
