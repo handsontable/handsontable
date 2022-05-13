@@ -10,12 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [12.0.1] - 2022-05-13
 
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-0-1)
+
 ### Fixed
-- Fixed overlay desynchronization for multiline cell values [#7102](https://github.com/handsontable/handsontable/issues/7102)
-- Fixed columns width change after toggling the checkbox cell type editor. [#8211](https://github.com/handsontable/handsontable/issues/8211)
-- Fixed type error in validation process in cases when Handsontable uses multiple HF sheets. [#8268](https://github.com/handsontable/handsontable/issues/8268)
-- Fixed columns width calculations for nested headers [#9099](https://github.com/handsontable/handsontable/issues/9099)
-- Fixed a bug where updating custom borders could lead to uncaught error exceptions [#9455](https://github.com/handsontable/handsontable/issues/9455)
+- Fixed an issue where checking or unchecking a checkbox in a row with `autoRowSize: true` and multi-line cell values caused rows to align incorrectly. [#7102](https://github.com/handsontable/handsontable/issues/7102)
+- Fixed an issue where checking or unchecking a checkbox changed the cell width. [#8211](https://github.com/handsontable/handsontable/issues/8211)
+- Fixed an issue where using a single Handsontable instance with multiple HyperFormula sheets could lead to an uncaught `TypeError`. [#8268](https://github.com/handsontable/handsontable/issues/8268)
+- Fixed an issue where nested column headers didn't expand properly. [#9099](https://github.com/handsontable/handsontable/issues/9099)
+- Fixed an issue where updating custom borders could lead to uncaught error exceptions. [#9455](https://github.com/handsontable/handsontable/issues/9455)
 
 ## [12.0.0] - 2022-04-28
 
