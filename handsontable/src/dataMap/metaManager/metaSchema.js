@@ -1175,14 +1175,12 @@ export default () => {
     copyPaste: true,
 
     /**
-     * The `correctFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' date format correction.
+     * The `correctFormat` option configures what happens when the format of a date entered into a [`date`](@/guides/cell-types/date-cell-type.md) cell doesn't match the format specified by the [`dateFormat`](#dateFormat) option:
      *
-     * You can set the `correctFormat` option to one of the following
-     *
-     * | Setting           | Description                                                           |
-     * | ----------------- | --------------------------------------------------------------------- |
-     * | `false` (default) | Don't correct dates                                                   |
-     * | `true`            | Enforce the date format set by the [`dateFormat`](#dateFormat) option |
+     * | Setting           | Description                                                                        |
+     * | ----------------- | ---------------------------------------------------------------------------------- |
+     * | `false` (default) | Don't correct the entered date's format (treat the entered date as invalid)        |
+     * | `true`            | Correct the entered date's format to match the [`dateFormat`](#dateFormat) setting |
      *
      * Read more:
      * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
@@ -1484,12 +1482,11 @@ export default () => {
     dataSchema: void 0,
 
     /**
-     * The `dateFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' date format.
+     * The `dateFormat` option configures the date format accepted by [`date`](@/guides/cell-types/date-cell-type.md) cells.
      *
-     * You can set the `dateFormat` option to a date format string. The default value is: `'DD/MM/YYYY'`.
+     * You can set the `dateFormat` option to a string with a proper date format. The default value is: `'DD/MM/YYYY'`.
      *
-     * To enforce the date format set by the `dateFormat` option,
-     * use the [`correctFormat`](#correctFormat) option.
+     * To automatically correct dates whose format doesn't match the `dateFormat` setting, use the [`correctFormat`](#correctFormat) option.
      *
      * Read more:
      * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
