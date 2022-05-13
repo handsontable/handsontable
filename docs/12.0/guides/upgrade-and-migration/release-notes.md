@@ -17,7 +17,7 @@ tags:
 
 ## 12.0.1
 
-Released on 13th of May, 2022
+Released on 16th of May, 2022
 
 **Fixed**
 - Fixed an issue where checking or unchecking a checkbox in a row with [`autoRowSize: true`](@/api/options.md#autorowsize) and multi-line cell values caused rows to align incorrectly. [#7102](https://github.com/handsontable/handsontable/issues/7102)

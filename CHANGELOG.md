@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
-## [12.0.1] - 2022-05-13
+## [12.0.1] - 2022-05-16
 
 For more information on this release, see:
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-0-1)
