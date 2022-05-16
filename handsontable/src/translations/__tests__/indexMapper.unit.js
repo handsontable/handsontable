@@ -691,6 +691,95 @@ describe('IndexMapper', () => {
     indexMapper.unregisterMap('hidingMap');
   });
 
+  describe('getNearestNotHiddenIndex()', () => {
+    it('should find the nearest non-hidden index searching by forward', () => {
+      const indexMapper = new IndexMapper();
+      const trimmingMap = new TrimmingMap();
+      const hidingMap = new HidingMap();
+
+      indexMapper.registerMap('trimmingMap', trimmingMap);
+      indexMapper.registerMap('hidingMap', hidingMap);
+      indexMapper.initToLength(10);
+      trimmingMap.setValues([true, false, false, false, false, false, false, false, false, true]);
+      hidingMap.setValues([false, true, true, false, false, true, true, false, true, false]);
+
+      // is renderable?  |    -  -  +  +  -  -  +  -
+      // visual          |    0  1  2  3  4  5  6  7
+      // physical        | 0  1  2  3  4  5  6  7  8  9
+
+      expect(indexMapper.getNearestNotHiddenIndex(-1, 1)).toBe(null);
+      expect(indexMapper.getNearestNotHiddenIndex(0, 1)).toBe(2);
+      expect(indexMapper.getNearestNotHiddenIndex(1, 1)).toBe(2);
+      expect(indexMapper.getNearestNotHiddenIndex(2, 1)).toBe(2);
+      expect(indexMapper.getNearestNotHiddenIndex(3, 1)).toBe(3);
+      expect(indexMapper.getNearestNotHiddenIndex(4, 1)).toBe(6);
+      expect(indexMapper.getNearestNotHiddenIndex(5, 1)).toBe(6);
+      expect(indexMapper.getNearestNotHiddenIndex(6, 1)).toBe(6);
+      expect(indexMapper.getNearestNotHiddenIndex(7, 1)).toBe(null);
+      expect(indexMapper.getNearestNotHiddenIndex(8, 1)).toBe(null);
+      expect(indexMapper.getNearestNotHiddenIndex(9, 1)).toBe(null);
+      expect(indexMapper.getNearestNotHiddenIndex(1000, 1)).toBe(null);
+
+      indexMapper.unregisterMap('trimmingMap');
+      indexMapper.unregisterMap('hidingMap');
+    });
+
+    it('should find the nearest non-hidden index searching by backward', () => {
+      const indexMapper = new IndexMapper();
+      const trimmingMap = new TrimmingMap();
+      const hidingMap = new HidingMap();
+
+      indexMapper.registerMap('trimmingMap', trimmingMap);
+      indexMapper.registerMap('hidingMap', hidingMap);
+      indexMapper.initToLength(10);
+      trimmingMap.setValues([true, false, false, false, false, false, false, false, false, true]);
+      hidingMap.setValues([false, true, true, false, false, true, true, false, true, false]);
+
+      // is renderable?  |    -  -  +  +  -  -  +  -
+      // visual          |    0  1  2  3  4  5  6  7
+      // physical        | 0  1  2  3  4  5  6  7  8  9
+
+      expect(indexMapper.getNearestNotHiddenIndex(-1, -1)).toBe(null);
+      expect(indexMapper.getNearestNotHiddenIndex(0, -1)).toBe(null);
+      expect(indexMapper.getNearestNotHiddenIndex(1, -1)).toBe(null);
+      expect(indexMapper.getNearestNotHiddenIndex(2, -1)).toBe(2);
+      expect(indexMapper.getNearestNotHiddenIndex(3, -1)).toBe(3);
+      expect(indexMapper.getNearestNotHiddenIndex(4, -1)).toBe(3);
+      expect(indexMapper.getNearestNotHiddenIndex(5, -1)).toBe(3);
+      expect(indexMapper.getNearestNotHiddenIndex(6, -1)).toBe(6);
+      expect(indexMapper.getNearestNotHiddenIndex(7, -1)).toBe(6);
+      expect(indexMapper.getNearestNotHiddenIndex(8, -1)).toBe(6);
+      expect(indexMapper.getNearestNotHiddenIndex(9, -1)).toBe(6);
+      expect(indexMapper.getNearestNotHiddenIndex(1000, -1)).toBe(6);
+
+      indexMapper.unregisterMap('trimmingMap');
+      indexMapper.unregisterMap('hidingMap');
+    });
+
+    it('should return `null` for an empty dataset', () => {
+      const indexMapper = new IndexMapper();
+      const trimmingMap = new TrimmingMap();
+      const hidingMap = new HidingMap();
+
+      indexMapper.registerMap('trimmingMap', trimmingMap);
+      indexMapper.registerMap('hidingMap', hidingMap);
+      indexMapper.initToLength(0);
+      trimmingMap.setValues([]);
+      hidingMap.setValues([]);
+
+      expect(indexMapper.getNearestNotHiddenIndex(-1, -1)).toBe(null);
+      expect(indexMapper.getNearestNotHiddenIndex(0, -1)).toBe(null);
+      expect(indexMapper.getNearestNotHiddenIndex(1, -1)).toBe(null);
+      expect(indexMapper.getNearestNotHiddenIndex(-1, 1)).toBe(null);
+      expect(indexMapper.getNearestNotHiddenIndex(0, 1)).toBe(null);
+      expect(indexMapper.getNearestNotHiddenIndex(1, 1)).toBe(null);
+
+      indexMapper.unregisterMap('trimmingMap');
+      indexMapper.unregisterMap('hidingMap');
+    });
+  });
+
+
   it('should return proper values for translating indexes beyond the table boundaries', () => {
     const indexMapper = new IndexMapper();
     const trimmingMap = new TrimmingMap();

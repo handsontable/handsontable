@@ -418,12 +418,12 @@ export class Comments extends BasePlugin {
 
     if (renderableRow === null) {
       renderableRow = rowIndexMapper
-        .getRenderableFromVisualIndex(rowIndexMapper.getFirstNotHiddenIndex(visualRow, -1));
+        .getRenderableFromVisualIndex(rowIndexMapper.getNearestNotHiddenIndex(visualRow, -1));
     }
 
     if (renderableColumn === null) {
       renderableColumn = columnIndexMapper
-        .getRenderableFromVisualIndex(columnIndexMapper.getFirstNotHiddenIndex(visualColumn, -1));
+        .getRenderableFromVisualIndex(columnIndexMapper.getNearestNotHiddenIndex(visualColumn, -1));
     }
 
     const isBeforeRenderedRows = renderableRow === null;

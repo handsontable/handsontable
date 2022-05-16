@@ -386,6 +386,10 @@ export class IndexMapper {
    */
   getFirstNotHiddenIndex(fromVisualIndex, incrementBy, searchAlsoOtherWayAround = false,
                          indexForNextSearch = fromVisualIndex - incrementBy) {
+    if (this.hidingMapsCollection.getMergedValues().length && this.hidingMapsCollection.getMergedValues().indexOf(false) === -1) {
+      return null;
+    }
+
     const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
 
     // First or next (it may be end of the table) index is beyond the table boundaries.
@@ -410,6 +414,27 @@ export class IndexMapper {
       searchAlsoOtherWayAround,
       indexForNextSearch
     );
+  }
+
+  getNearestNotHiddenIndex(fromVisualIndex, incrementBy) {
+    if (fromVisualIndex < 0 || this.fromVisualToRenderableIndexesCache.size === 0) {
+      return null;
+    }
+
+    if (this.fromVisualToRenderableIndexesCache.has(fromVisualIndex)) {
+      return fromVisualIndex;
+    }
+
+    const visibleIndexes = Array.from(this.fromVisualToRenderableIndexesCache.keys());
+    let index = -1;
+
+    if (incrementBy > 0) {
+      index = visibleIndexes.findIndex(visualIndex => visualIndex > fromVisualIndex);
+    } else {
+      index = visibleIndexes.reverse().findIndex(visualIndex => visualIndex < fromVisualIndex);
+    }
+
+    return index === -1 ? null : visibleIndexes[index];
   }
 
   /**
@@ -678,7 +703,7 @@ export class IndexMapper {
       this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
       this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
       this.cacheFromPhysicalToVisualIndexes();
-      this.cacheFromVisualToRenderabIendexes();
+      this.cacheFromVisualToRenderableIndexes();
 
       // Currently there's support only for the "hiding" map type.
       if (this.hiddenIndexesChanged) {
@@ -721,7 +746,7 @@ export class IndexMapper {
    *
    * @private
    */
-  cacheFromVisualToRenderabIendexes() {
+  cacheFromVisualToRenderableIndexes() {
     const nrOfRenderableIndexes = this.getRenderableIndexesLength();
 
     this.fromVisualToRenderableIndexesCache.clear();

@@ -88,6 +88,8 @@ class Selection {
       renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
       createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
       createCellRange: (highlight, from, to) => this.tableProps.createCellRange(highlight, from, to),
+      rowIndexMapper: () => this.tableProps.rowIndexMapper(),
+      columnIndexMapper: () => this.tableProps.columnIndexMapper(),
     });
     /**
      * The module for modifying coordinates.
