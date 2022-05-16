@@ -1,0 +1,7 @@
+{
+  "title": "Fixed maximum call stack size error in indexMapper",
+  "type": "fixed",
+  "issue": 9064,
+  "breaking": false,
+  "framework": "none"
+}
