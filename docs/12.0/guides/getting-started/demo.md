@@ -14,27 +14,27 @@ tags:
 
 Play around with Handsontable's source code, in your favorite framework.
 
-<BigExample preview="/examples/12.0.0/docs/js/demo/">
+<BigExample preview="/examples/12.0.1/docs/js/demo/">
   <BigExampleSource 
   label="JavaScript"
   icon="js"
-  target="/examples/12.0.0/docs/js/demo/"></BigExampleSource>
+  target="/examples/12.0.1/docs/js/demo/"></BigExampleSource>
   <BigExampleSource 
   label="TypeScript"
   icon="ts"
-  target="/examples/12.0.0/docs/ts/demo/"></BigExampleSource>
+  target="/examples/12.0.1/docs/ts/demo/"></BigExampleSource>
   <BigExampleSource 
   label="Angular"    
   icon="angular"
-  target="/examples/12.0.0/docs/angular/demo/"></BigExampleSource>
+  target="/examples/12.0.1/docs/angular/demo/"></BigExampleSource>
   <BigExampleSource 
   label="React"
   icon="react"
-  target="/examples/12.0.0/docs/react/demo/"></BigExampleSource>
+  target="/examples/12.0.1/docs/react/demo/"></BigExampleSource>
   <BigExampleSource 
   label="Vue"
   icon="vue"
-  target="/examples/12.0.0/docs/vue/demo/"></BigExampleSource>
+  target="/examples/12.0.1/docs/vue/demo/"></BigExampleSource>
 </BigExample>
 
 ## Try out the demo's features
