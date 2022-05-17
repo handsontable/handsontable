@@ -1164,7 +1164,7 @@ You can set the `copyable` option to one of the following:
 
 | Setting                                                                                                        | Description                                                                                                                        |
 | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>C</kbd>, add the cell's value to the clipboard |
+| `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add the cell's value to the clipboard |
 | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - Disable copying for this cell                                                                                                    |
 
 Read more:
@@ -1890,14 +1890,14 @@ columns: [
 
 _options.enterBeginsEditing : boolean_
 
-The `enterBeginsEditing` option configures the action of the <kbd>Enter</kbd> key.
+The `enterBeginsEditing` option configures the action of the <kbd>**Enter**</kbd> key.
 
 You can set the `enterBeginsEditing` option to one of the following:
 
 | Setting          | Description                                                                                                                                                                                               |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `true` (default) | - On pressing <kbd>Enter</kbd> once, start editing the currently-selected cell<br>- On pressing <kbd>Enter</kbd> twice, move to another cell,<br>as configured by the [`enterMoves`](#entermoves) setting |
-| `false`          | - On pressing <kbd>Enter</kbd> once, move to another cell,<br>as configured by the [`enterMoves`](#entermoves) setting                                                                                    |
+| `true` (default) | - On pressing <kbd>**Enter**</kbd> once, enter the editing mode of the active cell<br>- On pressing <kbd>**Enter**</kbd> twice, move to another cell,<br>as configured by the [`enterMoves`](#entermoves) setting |
+| `false`          | - On pressing <kbd>**Enter**</kbd> once, move to another cell,<br>as configured by the [`enterMoves`](#entermoves) setting                                                                                    |
 
 Read more:
 - [`enterMoves`](#entermoves)
@@ -1923,21 +1923,21 @@ enterBeginsEditing: false,
 
 _options.enterMoves : object | function_
 
-The `enterMoves` option configures the action of the <kbd>Enter</kbd> key.
+The `enterMoves` option configures the action of the <kbd>**Enter**</kbd> key.
 
 If the [`enterBeginsEditing`](#enterbeginsediting) option is set to `true`,
-the `enterMoves` setting applies to the **second** pressing of the <kbd>Enter</kbd> key.
+the `enterMoves` setting applies to the **second** pressing of the <kbd>**Enter**</kbd> key.
 
 If the [`enterBeginsEditing`](#enterbeginsediting) option is set to `false`,
-the `enterMoves` setting applies to the **first** pressing of the <kbd>Enter</kbd> key.
+the `enterMoves` setting applies to the **first** pressing of the <kbd>**Enter**</kbd> key.
 
 You can set the `enterMoves` option to an object with the following properties
 (or to a function that returns such an object):
 
 | Property | Type   | Description                                                                                                                                              |
 | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `col`    | Number | - On pressing <kbd>Enter</kbd>, move selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `col` columns left |
-| `row`    | Number | - On pressing <kbd>Enter</kbd>, move selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `row` rows up          |
+| `col`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `col` columns left |
+| `row`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `row` rows up          |
 
 Read more:
 - [`enterBeginsEditing`](#enterbeginsediting)
@@ -4283,15 +4283,14 @@ tableClassName: ['first-class-name', 'second-class-name'],
 
 _options.tabMoves : object | function_
 
-The `tabMoves` option configures the action of the <kbd>Tab</kbd> key.
+The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
 
 You can set the `tabMoves` option to an object with the following properties
 (or to a function that returns such an object):
 
 | Property | Type   | Description                                                                                                                                              |
 | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `row`    | Number | - On pressing <kbd>Tab</kbd>, move selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move selection `row` rows up              |
-| `col`    | Number | - On pressing <kbd>Tab</kbd>, move selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move selection `col` columns left     |
+| `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>, move selection `row` rows up              |
 
 **Default**: <code>{row: 0, col: 1}</code>  
 **Category**: [Core](@/api/core.md)  

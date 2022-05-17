@@ -38,11 +38,19 @@ export default {
 
   computed: {
     parsedHref() {
-      if (!this.isExternal && this.hideLatestVersion) {
-        return getLinkTransformed(this.href, this.$page.currentVersion, this.$page.latestVersion);
+      const currentVersion = this.$page.currentVersion;
+      const frameworkDir = `${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
+      let href = this.href;
+
+      if (this.$page.currentFramework !== void 0) {
+        href = href.replace(currentVersion, `${currentVersion}/${frameworkDir}`);
       }
 
-      return this.href;
+      if (!this.isExternal && this.hideLatestVersion) {
+        return getLinkTransformed(href, this.$page.currentVersion, this.$page.latestVersion);
+      }
+
+      return href;
     },
 
     isExternal() {

@@ -10,6 +10,7 @@ const {
   isEnvDev,
   getDefaultFramework,
   FRAMEWORK_SUFFIX,
+  TMP_DIR_FOR_WATCH,
 } = require('../../helpers');
 const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
 
@@ -45,18 +46,21 @@ module.exports = (options, context) => {
     extendPageData($page) {
       $page.DOCS_VERSION = DOCS_VERSION;
       $page.DOCS_FRAMEWORK = DOCS_FRAMEWORK;
+      $page.normalizedPath = isEnvDev() ?
+        $page.path.replace(new RegExp(`^/?${TMP_DIR_FOR_WATCH}`), '') : $page.path;
       $page.frameworkedVersions = getDocsFrameworkedVersions(buildMode);
       $page.nonFrameworkedVersions = getDocsNonFrameworkedVersions(buildMode);
       $page.latestVersion = getLatestVersion();
-      $page.currentVersion = parseVersion($page.path);
+      $page.currentVersion = parseVersion($page.normalizedPath);
       // Framework isn't stored in PATH for full build. However, it's defined in ENV variable.
-      $page.currentFramework = DOCS_FRAMEWORK || parseFramework($page.path);
+      $page.currentFramework = DOCS_FRAMEWORK || parseFramework($page.normalizedPath);
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
+      $page.isFrameworked = getDocsFrameworkedVersions(buildMode).includes($page.currentVersion);
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
 
-      const isFrameworked = getDocsFrameworkedVersions(buildMode).includes($page.currentVersion);
+      const isFrameworked = $page.isFrameworked;
       const buildingSingleVersion = DOCS_VERSION !== void 0 && (DOCS_FRAMEWORK !== void 0 || DOCS_FRAMEWORK === void 0
         && isFrameworked === false);
 
