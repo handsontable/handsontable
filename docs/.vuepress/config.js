@@ -45,11 +45,13 @@ if (getEnvDocsVersion()) {
 
 } else if (isEnvDev()) {
   // eslint-disable-next-line no-console
-  console.error(chalk.red(
-    'Stopping `docs:start` script execution. Any from `DOCS_FRAMEWORK` or `DOCS_FRAMEWORK` environment variables ' +
-    'should be defined for performance reason, ie. by using `DOCS_FRAMEWORK=javascript npm run docs:start:no-cache` ' +
-    'command.'
-  ));
+  console.error(
+    `${chalk.red(`\
+Stopping the ${chalk.italic('docs:start')} script execution. For performance reasons, the \
+${chalk.italic('DOCS_VERSION')} and/or ${chalk.italic('DOCS_FRAMEWORK')} environment variables need to be defined. \
+For example, try calling:
+${chalk.italic.bold('DOCS_VERSION=next DOCS_FRAMEWORK=javascript npm run docs:start:no-cache')}.
+`)}`);
   process.exit(1);
 }
 
