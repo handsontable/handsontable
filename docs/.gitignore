@@ -12,7 +12,6 @@ config.local.js
 basement_dist
 .idea
 report-check-links.xlsx
-react-translation-log.html
 ~$*.xlsx
 
 /.vuepress/public/handsontable
