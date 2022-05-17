@@ -386,7 +386,9 @@ export class IndexMapper {
    */
   getFirstNotHiddenIndex(fromVisualIndex, incrementBy, searchAlsoOtherWayAround = false,
                          indexForNextSearch = fromVisualIndex - incrementBy) {
-    if (this.hidingMapsCollection.getMergedValues().length && this.hidingMapsCollection.getMergedValues().indexOf(false) === -1) {
+    const hiddenIndexes = this.hidingMapsCollection.getMergedValues();
+
+    if (hiddenIndexes.length && hiddenIndexes.indexOf(false) === -1) {
       return null;
     }
 
@@ -416,7 +418,16 @@ export class IndexMapper {
     );
   }
 
-  getNearestNotHiddenIndex(fromVisualIndex, incrementBy) {
+  /**
+   * Searches for the nearest visible, a not-hidden index.
+   *
+   * @param {number} fromVisualIndex Visual start index. The starting point for finding a non-hidden index.
+   * @param {1|-1} searchDirection The search direction. For value 1, it means searching from the starting
+   *                               point to the end of the dataset, and for -1, to the beginning of the dataset
+   *                               (row or column at index 0).
+   * @returns {number|null} Visual non-hidden column index or `null`.
+   */
+  getNearestNotHiddenIndex(fromVisualIndex, searchDirection) {
     if (fromVisualIndex < 0 || this.fromVisualToRenderableIndexesCache.size === 0) {
       return null;
     }
@@ -428,7 +439,7 @@ export class IndexMapper {
     const visibleIndexes = Array.from(this.fromVisualToRenderableIndexesCache.keys());
     let index = -1;
 
-    if (incrementBy > 0) {
+    if (searchDirection > 0) {
       index = visibleIndexes.findIndex(visualIndex => visualIndex > fromVisualIndex);
     } else {
       index = visibleIndexes.reverse().findIndex(visualIndex => visualIndex < fromVisualIndex);

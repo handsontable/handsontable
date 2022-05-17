@@ -246,7 +246,7 @@ class Selection {
       this.highlight.getCell()
         .add(this.selectedRange.current().highlight)
         .commit()
-        .adjustCoordinates(cellRange);
+        .syncWith(cellRange);
     }
 
     const layerLevel = this.getLayerLevel();
@@ -287,7 +287,7 @@ class Selection {
           .add(previousRange.from)
           .commit()
           // Range may start with hidden indexes. Commit would not found start point (as we add just the `from` coords).
-          .adjustCoordinates(previousRange);
+          .syncWith(previousRange);
 
         this.highlight.useLayerLevel(layerLevel);
       }
@@ -683,7 +683,7 @@ class Selection {
     const cellHighlight = this.highlight.getCell();
     const currentLayer = this.getLayerLevel();
 
-    cellHighlight.commit().adjustCoordinates(this.selectedRange.current());
+    cellHighlight.commit().syncWith(this.selectedRange.current());
 
     // Rewriting rendered ranges going through all layers.
     for (let layerLevel = 0; layerLevel < this.selectedRange.size(); layerLevel += 1) {

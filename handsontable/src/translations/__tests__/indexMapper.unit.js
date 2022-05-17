@@ -779,7 +779,6 @@ describe('IndexMapper', () => {
     });
   });
 
-
   it('should return proper values for translating indexes beyond the table boundaries', () => {
     const indexMapper = new IndexMapper();
     const trimmingMap = new TrimmingMap();
