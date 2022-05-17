@@ -12,6 +12,7 @@
 <script>
 import { isExternal } from '@vuepress/theme-default/util';
 import NavLink from '@theme/components/NavLink.vue';
+import { getLinkTransformed } from './utils';
 
 export default {
   name: 'Link',
@@ -37,13 +38,11 @@ export default {
 
   computed: {
     parsedHref() {
-      let href = this.href;
-
-      if (!this.isExternal && this.hideLatestVersion && this.$page.currentVersion === this.$page.latestVersion) {
-        href = href.replace(`${this.$page.currentVersion}/`, '');
+      if (!this.isExternal && this.hideLatestVersion) {
+        return getLinkTransformed(this.href, this.$page.currentVersion, this.$page.latestVersion);
       }
 
-      return href;
+      return this.href;
     },
 
     isExternal() {

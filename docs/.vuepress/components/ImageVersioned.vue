@@ -7,6 +7,7 @@
 </template>
 
 <script>
+import { getLinkTransformed } from './utils';
 
 export default {
   name: 'ImageVersioned',
@@ -33,11 +34,7 @@ export default {
         src = src.replace(currentVersion, `${currentVersion}/${frameworkDir}`);
       }
 
-      if (currentVersion === this.$page.latestVersion) {
-        src = src.replace(`${currentVersion}/`, '');
-      }
-
-      return src;
+      return getLinkTransformed(src, currentVersion, this.$page.latestVersion);
     },
   },
 };

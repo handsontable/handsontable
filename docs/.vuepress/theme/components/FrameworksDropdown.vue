@@ -10,6 +10,7 @@
 
 <script>
 import DropdownLink from '@theme/components/DropdownLink.vue';
+import { getLinkTransformed } from '../../components/utils';
 
 const frameworkIdToFullName = new Map([
   ['javascript', 'JavaScript'],
@@ -53,14 +54,10 @@ export default {
     imageUrl() {
       const currentVersion = this.$page.currentVersion;
       const frameworkWithoutNumber = this.$page.currentFramework.replace(/\d+$/, '');
-      let src = `/docs/${currentVersion}/${this.$page.currentFramework}${this.$page.frameworkSuffix}` +
+      const src = `/docs/${currentVersion}/${this.$page.currentFramework}${this.$page.frameworkSuffix}` +
         `/img/pages/introduction/${frameworkWithoutNumber}.svg`;
 
-      if (currentVersion === this.$page.latestVersion) {
-        src = src.replace(`${currentVersion}/`, '');
-      }
-
-      return src;
+      return getLinkTransformed(src, currentVersion, this.$page.latestVersion);
     },
     item() {
       return {
