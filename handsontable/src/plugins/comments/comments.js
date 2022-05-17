@@ -3,7 +3,6 @@ import {
   closest,
   isChildOf,
   hasClass,
-  offset,
   outerWidth,
   outerHeight
 } from '../../helpers/dom/element';
@@ -434,39 +433,14 @@ export class Comments extends BasePlugin {
     renderableColumn = renderableColumn ?? 0;
 
     const { rootWindow, view: { _wt: wt } } = this.hot;
-    const { wtTable, wtOverlays, wtViewport } = wt;
-    const scrollableElement = wtOverlays.scrollableElement;
+    const { wtTable } = wt;
 
     const TD = wtTable.getCell({
       row: renderableRow,
       col: renderableColumn,
     });
 
-    const cellOffset = offset(TD);
-    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getStretchedColumnWidth(renderableColumn);
-    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
-    let cellTopOffset = cellOffset.top;
-    let cellLeftOffset = cellOffset.left;
-
-    if (wtViewport.hasVerticalScroll() && scrollableElement !== rootWindow) {
-      cellTopOffset -= wtOverlays.topOverlay.getScrollPosition();
-    }
-
-    if (wtViewport.hasHorizontalScroll() && scrollableElement !== rootWindow) {
-      cellLeftOffset -= wtOverlays.inlineStartOverlay.getScrollPosition() * (this.hot.isRtl() ? -1 : 1);
-    }
-
-    const y = cellTopOffset + lastRowHeight;
-    let x = cellLeftOffset;
-
-    if (this.hot.isRtl()) {
-      x -= this.editor.getSize().width;
-    } else {
-      x += lastColWidth;
-    }
-
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
-    const readOnly = this.getCommentMeta(visualRow, visualColumn, META_READONLY);
 
     if (commentStyle) {
       this.editor.setSize(commentStyle.width, commentStyle.height);
@@ -475,8 +449,43 @@ export class Comments extends BasePlugin {
       this.editor.resetSize();
     }
 
-    this.editor.setReadOnlyState(readOnly);
+    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getStretchedColumnWidth(renderableColumn);
+    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
+
+    const {
+      left,
+      top,
+      width: cellWidth,
+      height: cellHeight,
+    } = TD.getBoundingClientRect();
+    const {
+      width: editorWidth,
+      height: editorHeight,
+    } = this.editor.getSize();
+
+    const { innerWidth, innerHeight } = this.hot.rootWindow;
+    const documentElement = this.hot.rootDocument.documentElement;
+    let x = left + rootWindow.scrollX + lastColWidth;
+    let y = top + rootWindow.scrollY + lastRowHeight;
+
+    if (this.hot.isRtl()) {
+      x -= (editorWidth + lastColWidth);
+    }
+
+    // flip to the right or left the comments editor position when it goes out of browser viewport
+    if (this.hot.isLtr() && left + cellWidth + editorWidth > innerWidth) {
+      x = left + rootWindow.scrollX - editorWidth - 1;
+
+    } else if (this.hot.isRtl() && x < -(documentElement.scrollWidth - documentElement.clientWidth)) {
+      x = left + rootWindow.scrollX + lastColWidth + 1;
+    }
+
+    if (top + editorHeight > innerHeight) {
+      y -= (editorHeight - cellHeight + 1);
+    }
+
     this.editor.setPosition(x, y);
+    this.editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY));
   }
 
   /**

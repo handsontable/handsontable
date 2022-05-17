@@ -321,7 +321,7 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    currentRange.setDirection('NW-SE');
+    currentRange.setDirection(this.hot.isRtl() ? 'NE-SW' : 'NW-SE');
 
     const { from, to } = currentRange;
 
@@ -339,7 +339,7 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    cellRange.setDirection('NW-SE');
+    cellRange.setDirection(this.hot.isRtl() ? 'NE-SW' : 'NW-SE');
 
     const { from, to } = cellRange;
 
