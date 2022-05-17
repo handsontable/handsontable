@@ -55,7 +55,6 @@ function getDocsNonFrameworkedVersions(buildMode) {
 function getVersions(buildMode) {
   const next = buildMode !== 'production' ? ['next'] : [];
 
-  return ['next'];
   return [...next, ...availableVersions];
 }
 
