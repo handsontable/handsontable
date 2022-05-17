@@ -1263,14 +1263,12 @@ copyPaste: {
 
 _options.correctFormat : boolean_
 
-The `correctFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' date format correction.
+The `correctFormat` option configures what happens when the format of a date entered into a [`date`](@/guides/cell-types/date-cell-type.md) cell doesn't match the format specified by the [`dateFormat`](#dateformat) option:
 
-You can set the `correctFormat` option to one of the following
-
-| Setting           | Description                                                           |
-| ----------------- | --------------------------------------------------------------------- |
-| `false` (default) | Don't correct dates                                                   |
-| `true`            | Enforce the date format set by the [`dateFormat`](#dateformat) option |
+| Setting           | Description                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------- |
+| `false` (default) | Don't correct the entered date's format (treat the entered date as invalid)        |
+| `true`            | Correct the entered date's format to match the [`dateFormat`](#dateformat) setting |
 
 Read more:
 - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
