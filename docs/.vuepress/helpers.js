@@ -95,9 +95,21 @@ function getSidebars(buildMode) {
   const sidebars = { };
   const frameworks = getFrameworks();
   const getTransformedGuides = (guides, currentFramework) => {
-    const guidesTransformed = JSON.parse(JSON.stringify(guides)); // Copy sidebar definition
+    const filterElementsForFramework = element => element.onlyFor === void 0 || element.onlyFor === currentFramework;
+    const guidesSections = JSON.parse(JSON.stringify(guides)); // Copy sidebar definition
+    const filteredGuidesSections = guidesSections.filter(filterElementsForFramework);
 
-    return guidesTransformed.filter(guide => guide.onlyFor === void 0 || guide.onlyFor === currentFramework);
+    filteredGuidesSections.forEach((filteredGuidesSection) => {
+      filteredGuidesSection.children = filteredGuidesSection.children.reduce((newGuides, guide) => {
+        if (filterElementsForFramework(guide)) {
+          newGuides.push(guide.link);
+        }
+
+        return newGuides;
+      }, []);
+    });
+
+    return filteredGuidesSections;
   };
 
   if (isEnvDev()) {
@@ -107,7 +119,7 @@ function getSidebars(buildMode) {
 
       sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/examples/`] = sidebarConfig.examples;
       sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/api/`] = sidebarConfig.api;
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/`] = sidebarConfig.guides;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/`] = getTransformedGuides(sidebarConfig.guides);
     });
 
     getDocsFrameworkedVersions(buildMode).forEach((version) => {
