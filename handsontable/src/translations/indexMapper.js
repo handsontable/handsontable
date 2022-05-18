@@ -422,9 +422,9 @@ export class IndexMapper {
    * Searches for the nearest visible, a not-hidden index.
    *
    * @param {number} fromVisualIndex Visual start index. The starting point for finding a non-hidden index.
-   * @param {1|-1} searchDirection The search direction. For value 1, it means searching from the starting
-   *                               point to the end of the dataset, and for -1, to the beginning of the dataset
-   *                               (row or column at index 0).
+   * @param {number} searchDirection The search direction. For value 1, it means searching from the starting
+   *                                 point to the end of the dataset, and for -1, to the beginning of the dataset
+   *                                 (row or column at index 0).
    * @returns {number|null} Visual non-hidden column index or `null`.
    */
   getNearestNotHiddenIndex(fromVisualIndex, searchDirection) {
