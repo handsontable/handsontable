@@ -163,10 +163,6 @@ function getSidebars(buildMode) {
  * @returns {string}
  */
 function parseVersion(url) {
-  if (isEnvDev()) {
-    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, '');
-  }
-
   return url.split('/')[1] || getLatestVersion();
 }
 
@@ -177,10 +173,6 @@ function parseVersion(url) {
  * @returns {string}
  */
 function parseFramework(url) {
-  if (isEnvDev()) {
-    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, '');
-  }
-
   const potentialFramework = url.split('/')[2]?.replace(FRAMEWORK_SUFFIX, '');
 
   if (getFrameworks().includes(potentialFramework)) {

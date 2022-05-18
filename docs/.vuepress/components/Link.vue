@@ -37,10 +37,16 @@ export default {
 
   computed: {
     parsedHref() {
+      const currentVersion = this.$page.currentVersion;
+      const frameworkDir = `${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
       let href = this.href;
 
-      if (!this.isExternal && this.hideLatestVersion && this.$page.currentVersion === this.$page.latestVersion) {
-        href = href.replace(`${this.$page.currentVersion}/`, '');
+      if (this.$page.currentFramework !== void 0) {
+        href = href.replace(currentVersion, `${currentVersion}/${frameworkDir}`);
+      }
+
+      if (!this.isExternal && this.hideLatestVersion && currentVersion === this.$page.latestVersion) {
+        href = href.replace(`${currentVersion}/`, '');
       }
 
       return href;

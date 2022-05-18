@@ -27,10 +27,10 @@ export default {
   methods: {
     getLink(framework) {
       if (this.$page.currentVersion === this.$page.latestVersion) {
-        return `/docs/${framework}-data-grid/`;
+        return `/docs/${framework}${this.$page.frameworkSuffix}/`;
       }
 
-      return `/docs/${this.$page.currentVersion}/${framework}-data-grid/`;
+      return `/docs/${this.$page.currentVersion}/${framework}${this.$page.frameworkSuffix}/`;
     },
     getFrameworkName(id) {
       return frameworkIdToFullName.get(id);

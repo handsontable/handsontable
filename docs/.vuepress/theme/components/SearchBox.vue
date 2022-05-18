@@ -287,7 +287,7 @@ export default {
     },
 
     isSearchable(page) {
-      return page.regularPath.startsWith(`/${this.$page.currentVersion}/`);
+      return page.normalizedPath.startsWith(`/${this.$page.currentVersion}/`);
     },
 
     onHotkey(event) {
