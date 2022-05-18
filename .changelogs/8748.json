@@ -1,0 +1,7 @@
+{
+  "title": "Removed the deprecation warnings for React 17+.",
+  "type": "fixed",
+  "issue": 8748,
+  "breaking": false,
+  "framework": "react"
+}

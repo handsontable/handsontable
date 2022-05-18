@@ -1,0 +1,7 @@
+{
+  "title": "Fixed a bug where updating custom borders could lead to uncaught error exceptions",
+  "type": "fixed",
+  "issue": 9455,
+  "breaking": false,
+  "framework": "none"
+}
