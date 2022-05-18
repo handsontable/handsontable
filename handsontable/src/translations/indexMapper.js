@@ -372,63 +372,17 @@ export class IndexMapper {
    *
    * @param {number} fromVisualIndex Visual start index. Starting point for finding destination index. Start point may be destination
    * point when handled index is NOT hidden.
-   * @param {number} incrementBy We are searching for a next visible indexes by increasing (to be precise, or decreasing) indexes.
-   * This variable represent indexes shift. We are looking for an index:
-   * - for rows: from the left to the right (increasing indexes, then variable should have value 1) or
-   * other way around (decreasing indexes, then variable should have the value -1)
-   * - for columns: from the top to the bottom (increasing indexes, then variable should have value 1)
-   * or other way around (decreasing indexes, then variable should have the value -1).
+   * @param {number} searchDirection The search direction. For value 1, it means searching from the starting
+   * point to the end of the dataset, and for -1, to the beginning of the dataset (row or column at index 0).
    * @param {boolean} searchAlsoOtherWayAround The argument determine if an additional other way around search should be
    * performed, when the search in the first direction had no effect in finding visual index.
-   * @param {number} indexForNextSearch Visual index for next search, when the flag is truthy.
    *
    * @returns {number|null} Visual column index or `null`.
    */
-  getFirstNotHiddenIndex(fromVisualIndex, incrementBy, searchAlsoOtherWayAround = false,
-                         indexForNextSearch = fromVisualIndex - incrementBy) {
-    const hiddenIndexes = this.hidingMapsCollection.getMergedValues();
-
-    if (hiddenIndexes.length && hiddenIndexes.indexOf(false) === -1) {
-      return null;
-    }
-
+  getFirstNotHiddenIndex(fromVisualIndex, searchDirection, searchAlsoOtherWayAround = false) {
     const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
 
-    // First or next (it may be end of the table) index is beyond the table boundaries.
     if (physicalIndex === null) {
-      // Looking for the next index in the opposite direction. This conditional won't be fulfilled when we STARTED
-      // the search from the index beyond the table boundaries.
-      if (searchAlsoOtherWayAround === true && indexForNextSearch !== fromVisualIndex - incrementBy) {
-        return this.getFirstNotHiddenIndex(indexForNextSearch, -incrementBy, false, indexForNextSearch);
-      }
-
-      return null;
-    }
-
-    if (this.isHidden(physicalIndex) === false) {
-      return fromVisualIndex;
-    }
-
-    // Looking for the next index, as the current isn't visible.
-    return this.getFirstNotHiddenIndex(
-      fromVisualIndex + incrementBy,
-      incrementBy,
-      searchAlsoOtherWayAround,
-      indexForNextSearch
-    );
-  }
-
-  /**
-   * Searches for the nearest visible, a not-hidden index.
-   *
-   * @param {number} fromVisualIndex Visual start index. The starting point for finding a non-hidden index.
-   * @param {number} searchDirection The search direction. For value 1, it means searching from the starting
-   *                                 point to the end of the dataset, and for -1, to the beginning of the dataset
-   *                                 (row or column at index 0).
-   * @returns {number|null} Visual non-hidden column index or `null`.
-   */
-  getNearestNotHiddenIndex(fromVisualIndex, searchDirection) {
-    if (fromVisualIndex < 0 || this.fromVisualToRenderableIndexesCache.size === 0) {
       return null;
     }
 
@@ -445,7 +399,15 @@ export class IndexMapper {
       index = visibleIndexes.reverse().findIndex(visualIndex => visualIndex < fromVisualIndex);
     }
 
-    return index === -1 ? null : visibleIndexes[index];
+    if (index === -1) {
+      if (searchAlsoOtherWayAround) {
+        return this.getFirstNotHiddenIndex(fromVisualIndex, -searchDirection, false);
+      }
+
+      return null;
+    }
+
+    return visibleIndexes[index];
   }
 
   /**

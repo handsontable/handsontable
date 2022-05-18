@@ -116,7 +116,7 @@ class VisualSelection extends Selection {
       return visualIndex;
     }
 
-    const nearestVisualIndex = indexMapper.getNearestNotHiddenIndex(visualIndex, searchDirection);
+    const nearestVisualIndex = indexMapper.getFirstNotHiddenIndex(visualIndex, searchDirection);
     const isHeaderSelectionType = this.settings.type === 'header' || this.settings.type === 'active-header';
 
     if (isHeaderSelectionType && nearestVisualIndex === null) {

@@ -25,10 +25,10 @@ export default function showRowItem(hiddenRowsPlugin) {
 
       // Add to the selection one more visual row on the top.
       startVisualRow = this.rowIndexMapper
-        .getNearestNotHiddenIndex(startVisualRow - 1, -1) ?? 0;
+        .getFirstNotHiddenIndex(startVisualRow - 1, -1) ?? 0;
       // Add to the selection one more visual row on the bottom.
       endVisualRow = this.rowIndexMapper
-        .getNearestNotHiddenIndex(endVisualRow + 1, 1) ?? this.countRows() - 1;
+        .getFirstNotHiddenIndex(endVisualRow + 1, 1) ?? this.countRows() - 1;
 
       hiddenRowsPlugin.showRows(rows);
 
@@ -93,7 +93,7 @@ export default function showRowItem(hiddenRowsPlugin) {
       } else {
         const lastVisualIndex = this.countRows() - 1;
         const lastRenderableIndex = rowIndexMapper.getRenderableFromVisualIndex(
-          rowIndexMapper.getNearestNotHiddenIndex(lastVisualIndex, -1)
+          rowIndexMapper.getFirstNotHiddenIndex(lastVisualIndex, -1)
         );
 
         // Handled row is the last rendered index and there are some visual indexes after it.

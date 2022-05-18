@@ -658,40 +658,7 @@ describe('IndexMapper', () => {
     indexMapper.unregisterMap('hidingMap');
   });
 
-  it('should return proper values for the `getFirstNotHiddenIndex` method calls', () => {
-    const indexMapper = new IndexMapper();
-    const trimmingMap = new TrimmingMap();
-    const hidingMap = new HidingMap();
-
-    indexMapper.registerMap('trimmingMap', trimmingMap);
-    indexMapper.registerMap('hidingMap', hidingMap);
-    indexMapper.initToLength(10);
-    trimmingMap.setValues([true, false, false, false, false, false, false, false, false, true]);
-    hidingMap.setValues([false, true, true, false, false, true, true, false, true, false]);
-
-    // is renderable?  |    -  -  +  +  -  -  +  -
-    // visual          |    0  1  2  3  4  5  6  7
-    // physical        | 0  1  2  3  4  5  6  7  8  9
-
-    expect(indexMapper.getFirstNotHiddenIndex(6, 1)).toBe(6);
-    expect(indexMapper.getFirstNotHiddenIndex(6, -1)).toBe(6);
-    expect(indexMapper.getFirstNotHiddenIndex(7, -1)).toBe(6);
-    expect(indexMapper.getFirstNotHiddenIndex(7, 1)).toBe(null);
-    expect(indexMapper.getFirstNotHiddenIndex(7, 1, true)).toBe(6);
-    expect(indexMapper.getFirstNotHiddenIndex(5, 1)).toBe(6);
-    expect(indexMapper.getFirstNotHiddenIndex(5, -1)).toBe(3);
-    expect(indexMapper.getFirstNotHiddenIndex(1, -1)).toBe(null);
-    expect(indexMapper.getFirstNotHiddenIndex(1, -1, true)).toBe(2);
-    expect(indexMapper.getFirstNotHiddenIndex(0, -1)).toBe(null);
-    expect(indexMapper.getFirstNotHiddenIndex(0, -1, true)).toBe(2);
-    expect(indexMapper.getFirstNotHiddenIndex(0, 1)).toBe(2);
-    expect(indexMapper.getFirstNotHiddenIndex(1, 1)).toBe(2);
-
-    indexMapper.unregisterMap('trimmingMap');
-    indexMapper.unregisterMap('hidingMap');
-  });
-
-  describe('getNearestNotHiddenIndex()', () => {
+  describe('getFirstNotHiddenIndex()', () => {
     it('should find the nearest non-hidden index searching by forward', () => {
       const indexMapper = new IndexMapper();
       const trimmingMap = new TrimmingMap();
@@ -707,18 +674,18 @@ describe('IndexMapper', () => {
       // visual          |    0  1  2  3  4  5  6  7
       // physical        | 0  1  2  3  4  5  6  7  8  9
 
-      expect(indexMapper.getNearestNotHiddenIndex(-1, 1)).toBe(null);
-      expect(indexMapper.getNearestNotHiddenIndex(0, 1)).toBe(2);
-      expect(indexMapper.getNearestNotHiddenIndex(1, 1)).toBe(2);
-      expect(indexMapper.getNearestNotHiddenIndex(2, 1)).toBe(2);
-      expect(indexMapper.getNearestNotHiddenIndex(3, 1)).toBe(3);
-      expect(indexMapper.getNearestNotHiddenIndex(4, 1)).toBe(6);
-      expect(indexMapper.getNearestNotHiddenIndex(5, 1)).toBe(6);
-      expect(indexMapper.getNearestNotHiddenIndex(6, 1)).toBe(6);
-      expect(indexMapper.getNearestNotHiddenIndex(7, 1)).toBe(null);
-      expect(indexMapper.getNearestNotHiddenIndex(8, 1)).toBe(null);
-      expect(indexMapper.getNearestNotHiddenIndex(9, 1)).toBe(null);
-      expect(indexMapper.getNearestNotHiddenIndex(1000, 1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(-1, 1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(0, 1)).toBe(2);
+      expect(indexMapper.getFirstNotHiddenIndex(1, 1)).toBe(2);
+      expect(indexMapper.getFirstNotHiddenIndex(2, 1)).toBe(2);
+      expect(indexMapper.getFirstNotHiddenIndex(3, 1)).toBe(3);
+      expect(indexMapper.getFirstNotHiddenIndex(4, 1)).toBe(6);
+      expect(indexMapper.getFirstNotHiddenIndex(5, 1)).toBe(6);
+      expect(indexMapper.getFirstNotHiddenIndex(6, 1)).toBe(6);
+      expect(indexMapper.getFirstNotHiddenIndex(7, 1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(8, 1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(9, 1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(1000, 1)).toBe(null);
 
       indexMapper.unregisterMap('trimmingMap');
       indexMapper.unregisterMap('hidingMap');
@@ -739,18 +706,18 @@ describe('IndexMapper', () => {
       // visual          |    0  1  2  3  4  5  6  7
       // physical        | 0  1  2  3  4  5  6  7  8  9
 
-      expect(indexMapper.getNearestNotHiddenIndex(-1, -1)).toBe(null);
-      expect(indexMapper.getNearestNotHiddenIndex(0, -1)).toBe(null);
-      expect(indexMapper.getNearestNotHiddenIndex(1, -1)).toBe(null);
-      expect(indexMapper.getNearestNotHiddenIndex(2, -1)).toBe(2);
-      expect(indexMapper.getNearestNotHiddenIndex(3, -1)).toBe(3);
-      expect(indexMapper.getNearestNotHiddenIndex(4, -1)).toBe(3);
-      expect(indexMapper.getNearestNotHiddenIndex(5, -1)).toBe(3);
-      expect(indexMapper.getNearestNotHiddenIndex(6, -1)).toBe(6);
-      expect(indexMapper.getNearestNotHiddenIndex(7, -1)).toBe(6);
-      expect(indexMapper.getNearestNotHiddenIndex(8, -1)).toBe(6);
-      expect(indexMapper.getNearestNotHiddenIndex(9, -1)).toBe(6);
-      expect(indexMapper.getNearestNotHiddenIndex(1000, -1)).toBe(6);
+      expect(indexMapper.getFirstNotHiddenIndex(-1, -1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(0, -1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(1, -1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(2, -1)).toBe(2);
+      expect(indexMapper.getFirstNotHiddenIndex(3, -1)).toBe(3);
+      expect(indexMapper.getFirstNotHiddenIndex(4, -1)).toBe(3);
+      expect(indexMapper.getFirstNotHiddenIndex(5, -1)).toBe(3);
+      expect(indexMapper.getFirstNotHiddenIndex(6, -1)).toBe(6);
+      expect(indexMapper.getFirstNotHiddenIndex(7, -1)).toBe(6);
+      expect(indexMapper.getFirstNotHiddenIndex(8, -1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(9, -1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(1000, -1)).toBe(null);
 
       indexMapper.unregisterMap('trimmingMap');
       indexMapper.unregisterMap('hidingMap');
@@ -767,12 +734,12 @@ describe('IndexMapper', () => {
       trimmingMap.setValues([]);
       hidingMap.setValues([]);
 
-      expect(indexMapper.getNearestNotHiddenIndex(-1, -1)).toBe(null);
-      expect(indexMapper.getNearestNotHiddenIndex(0, -1)).toBe(null);
-      expect(indexMapper.getNearestNotHiddenIndex(1, -1)).toBe(null);
-      expect(indexMapper.getNearestNotHiddenIndex(-1, 1)).toBe(null);
-      expect(indexMapper.getNearestNotHiddenIndex(0, 1)).toBe(null);
-      expect(indexMapper.getNearestNotHiddenIndex(1, 1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(-1, -1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(0, -1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(1, -1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(-1, 1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(0, 1)).toBe(null);
+      expect(indexMapper.getFirstNotHiddenIndex(1, 1)).toBe(null);
 
       indexMapper.unregisterMap('trimmingMap');
       indexMapper.unregisterMap('hidingMap');

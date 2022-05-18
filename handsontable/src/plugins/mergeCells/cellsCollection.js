@@ -275,8 +275,8 @@ class MergedCellsCollection {
     const mergeParent = this.get(row, column);
 
     // Return if row and column indexes are within merge area and if they are first rendered indexes within the area.
-    return mergeParent && this.hot.rowIndexMapper.getNearestNotHiddenIndex(mergeParent.row, 1) === row &&
-        this.hot.columnIndexMapper.getNearestNotHiddenIndex(mergeParent.col, 1) === column;
+    return mergeParent && this.hot.rowIndexMapper.getFirstNotHiddenIndex(mergeParent.row, 1) === row &&
+        this.hot.columnIndexMapper.getFirstNotHiddenIndex(mergeParent.col, 1) === column;
   }
 
   /**
@@ -294,8 +294,8 @@ class MergedCellsCollection {
       return this.hot._createCellCoords(row, column);
     }
 
-    const firstRenderableRow = this.hot.rowIndexMapper.getNearestNotHiddenIndex(mergeParent.row, 1);
-    const firstRenderableColumn = this.hot.columnIndexMapper.getNearestNotHiddenIndex(mergeParent.col, 1);
+    const firstRenderableRow = this.hot.rowIndexMapper.getFirstNotHiddenIndex(mergeParent.row, 1);
+    const firstRenderableColumn = this.hot.columnIndexMapper.getFirstNotHiddenIndex(mergeParent.col, 1);
 
     return this.hot._createCellCoords(firstRenderableRow, firstRenderableColumn);
   }

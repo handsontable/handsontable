@@ -427,7 +427,7 @@ class TableView {
   countRenderableIndexes(indexMapper, maxElements) {
     const consideredElements = Math.min(indexMapper.getNotTrimmedIndexesLength(), maxElements);
     // Don't take hidden indexes into account. We are looking just for renderable indexes.
-    const firstNotHiddenIndex = indexMapper.getNearestNotHiddenIndex(consideredElements - 1, -1);
+    const firstNotHiddenIndex = indexMapper.getFirstNotHiddenIndex(consideredElements - 1, -1);
 
     // There are no renderable indexes.
     if (firstNotHiddenIndex === null) {
@@ -496,7 +496,7 @@ class TableView {
       return 0;
     }
 
-    const firstVisibleIndex = indexMapper.getNearestNotHiddenIndex(visualIndex, incrementBy);
+    const firstVisibleIndex = indexMapper.getFirstNotHiddenIndex(visualIndex, incrementBy);
     const renderableIndex = indexMapper.getRenderableFromVisualIndex(firstVisibleIndex);
 
     if (!Number.isInteger(renderableIndex)) {
@@ -828,7 +828,7 @@ class TableView {
         const newVisualRow = this.instance
           .runHooks('beforeHighlightingRowHeader', visualRow, headerLevel, highlightMeta);
 
-        return rowMapper.getRenderableFromVisualIndex(rowMapper.getNearestNotHiddenIndex(newVisualRow, 1));
+        return rowMapper.getRenderableFromVisualIndex(rowMapper.getFirstNotHiddenIndex(newVisualRow, 1));
       },
       onBeforeHighlightingColumnHeader: (renderableColumn, headerLevel, highlightMeta) => {
         const columnMapper = this.instance.columnIndexMapper;
@@ -837,7 +837,7 @@ class TableView {
         const newVisualColumn = this.instance
           .runHooks('beforeHighlightingColumnHeader', visualColumn, headerLevel, highlightMeta);
 
-        return columnMapper.getRenderableFromVisualIndex(columnMapper.getNearestNotHiddenIndex(newVisualColumn, 1));
+        return columnMapper.getRenderableFromVisualIndex(columnMapper.getFirstNotHiddenIndex(newVisualColumn, 1));
       },
       onAfterDrawSelection: (currentRow, currentColumn, layerLevel) => {
         let cornersOfSelection;
@@ -897,13 +897,13 @@ class TableView {
           // Result of the hook is handled by the Walkontable (renderable indexes).
           return [
             visualRowFrom >= 0 ? rowMapper.getRenderableFromVisualIndex(
-              rowMapper.getNearestNotHiddenIndex(visualRowFrom, 1)) : visualRowFrom,
+              rowMapper.getFirstNotHiddenIndex(visualRowFrom, 1)) : visualRowFrom,
             visualColumnFrom >= 0 ? columnMapper.getRenderableFromVisualIndex(
-              columnMapper.getNearestNotHiddenIndex(visualColumnFrom, 1)) : visualColumnFrom,
+              columnMapper.getFirstNotHiddenIndex(visualColumnFrom, 1)) : visualColumnFrom,
             visualRowTo >= 0 ? rowMapper.getRenderableFromVisualIndex(
-              rowMapper.getNearestNotHiddenIndex(visualRowTo, -1)) : visualRowTo,
+              rowMapper.getFirstNotHiddenIndex(visualRowTo, -1)) : visualRowTo,
             visualColumnTo >= 0 ? columnMapper.getRenderableFromVisualIndex(
-              columnMapper.getNearestNotHiddenIndex(visualColumnTo, -1)) : visualColumnTo
+              columnMapper.getFirstNotHiddenIndex(visualColumnTo, -1)) : visualColumnTo
           ];
         }
       },

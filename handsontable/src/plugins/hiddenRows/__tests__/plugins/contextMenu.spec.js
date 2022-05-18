@@ -584,7 +584,6 @@ describe('HiddenRows', () => {
             selectRows(3, 4);
 
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
-
             expect(getSelected()).toEqual([[2, -1, 2, 1]]);
             expect(getSelectedRangeLast().highlight.row).toBe(2);
             expect(getSelectedRangeLast().highlight.col).toBe(0);

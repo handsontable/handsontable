@@ -31,14 +31,10 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
         columnsToHide.push(visualColumn);
       }
 
-      const firstHiddenColumn = columnsToHide[0];
-      const lastHiddenColumn = columnsToHide[columnsToHide.length - 1];
-
-      // Looking for a visual index on the right and then (when not found) on the left.
-      const columnToSelect = this.columnIndexMapper.getFirstNotHiddenIndex(
-        lastHiddenColumn + 1, 1, true, firstHiddenColumn - 1);
-
       hiddenColumnsPlugin.hideColumns(columnsToHide);
+
+      const lastHiddenColumn = columnsToHide[columnsToHide.length - 1];
+      const columnToSelect = this.columnIndexMapper.getFirstNotHiddenIndex(lastHiddenColumn, 1, true);
 
       if (Number.isInteger(columnToSelect) && columnToSelect >= 0) {
         this.selectColumns(columnToSelect);
