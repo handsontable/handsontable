@@ -19,7 +19,7 @@ const {
   SnippetTransformer,
   logChange,
   SUPPORTED_FRAMEWORKS
-} = require('../../tools/snippet-transform/snippetTransformer');
+} = require('../../tools/snippet-transformer/snippetTransformer');
 
 const tab = (tabName, token) => {
   if (!token) return [];
@@ -131,20 +131,20 @@ module.exports = {
         const frontMatterLength = getContainerFrontMatterLength(env.frontmatter);
         const lineNumber = tokens[jsIndex].map[0] + frontMatterLength;
         const snippetTransformer = new SnippetTransformer(framework, jsContent, filePath, lineNumber);
-        const translatedSnippetContent = snippetTransformer.makeSnippet(true, true, id);
+        const transformedSnippetContent = snippetTransformer.makeSnippet(true, true, id);
 
         // Don't log the the HTML log file while in the watch script.
         if (!isEnvDev()) {
           // Log the transformation in the log file.
           logChange(
             jsContent,
-            translatedSnippetContent.error || translatedSnippetContent,
+            transformedSnippetContent.error || transformedSnippetContent,
             filePath,
             lineNumber
           );
         }
 
-        if (!translatedSnippetContent.error) {
+        if (!transformedSnippetContent.error) {
           const basePreset = preset;
 
           // Inject a correct preset for the framework.
@@ -156,7 +156,7 @@ module.exports = {
           // Replace the `data-preset-type` attribute value with the updates preset name.
           htmlContentRoot = htmlContentRoot.replace(`data-preset-type="${basePreset}"`, `data-preset-type="${preset}"`);
 
-          jsContent = translatedSnippetContent;
+          jsContent = transformedSnippetContent;
           jsToken.content = jsContent;
         }
       }

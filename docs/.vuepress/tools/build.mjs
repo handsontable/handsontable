@@ -10,7 +10,7 @@ import {
   getVersions,
   FRAMEWORK_SUFFIX
 } from '../helpers.js';
-import { initLog as initSnippetTransformationLog } from './snippet-transform/helpers/previewLogger.js';
+import { initLog as initSnippetTransformerLog } from './snippet-transformer/helpers/previewLogger.js';
 
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -104,6 +104,8 @@ const buildApp = async() => {
 
   getDocsFrameworkedVersions(buildMode).forEach((version) => {
     frameworks.forEach((framework) => {
+      initSnippetTransformerLog(version, framework);
+
       build(version, framework);
     });
   });
@@ -125,7 +127,5 @@ const buildApp = async() => {
   logger.success('Build finished at', new Date().toString());
 
 };
-
-initSnippetTransformationLog();
 
 buildApp();

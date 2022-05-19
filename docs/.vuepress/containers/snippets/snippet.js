@@ -10,7 +10,7 @@ const {
   SnippetTransformer,
   logChange,
   SUPPORTED_FRAMEWORKS
-} = require('../../tools/snippet-transform/snippetTransformer');
+} = require('../../tools/snippet-transformer/snippetTransformer');
 
 /**
  * Container used to transform the vanilla JS snippets and examples to the other frameworks.
@@ -40,16 +40,16 @@ module.exports = {
         lineNumber
       );
 
-      const translatedSnippetContent = snippetTransformer.makeSnippet();
+      const transformedSnippetContent = snippetTransformer.makeSnippet();
 
-      tokens[index + 1].content = translatedSnippetContent;
+      tokens[index + 1].content = transformedSnippetContent;
 
       // Don't log the the HTML log file while in the watch script.
       if (!isEnvDev()) {
         // Log the transformation in the log file.
         logChange(
           snippetContent,
-          translatedSnippetContent.error || translatedSnippetContent,
+          transformedSnippetContent.error || transformedSnippetContent,
           filePath,
           lineNumber
         );
