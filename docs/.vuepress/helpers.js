@@ -157,6 +157,66 @@ function getSidebars(buildMode) {
 }
 
 /**
+ * Get object containing list of not searchable links from the guides section for specific version of documentation.
+ *
+ * @param {string} buildMode The env name.
+ * @returns {object}
+ */
+function getNotSearchableLinks(buildMode) {
+  const frameworks = getFrameworks();
+  const notSearchableLinks = {};
+
+  const filterLinks = (guides, framework) => {
+    const links = [];
+    const isNotSearchable = element => element.onlyFor !== undefined && element.onlyFor !== framework;
+
+    guides.forEach((guideSection) => {
+      if (isNotSearchable(guideSection)) {
+        links.push(...guideSection.children.map(guide => guide.link));
+
+      } else {
+        guideSection.children.forEach((guide) => {
+          if (isNotSearchable(guide)) {
+            links.push(guide.link);
+          }
+        });
+      }
+    });
+
+    return links;
+  };
+
+  if (isEnvDev()) {
+    getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
+      // eslint-disable-next-line
+      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
+
+      notSearchableLinks[version] = filterLinks(sidebarConfig.guides);
+    });
+
+    getDocsFrameworkedVersions(buildMode).forEach((version) => {
+      frameworks.forEach((framework) => {
+        // eslint-disable-next-line
+        const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
+
+        notSearchableLinks[version] = filterLinks(sidebarConfig.guides, framework);
+      });
+    });
+
+  } else {
+    getVersions(buildMode).forEach((version) => {
+      // eslint-disable-next-line
+      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
+      const framework = getEnvDocsFramework();
+
+      notSearchableLinks[version] = filterLinks(sidebarConfig.guides, framework);
+    });
+  }
+
+  return notSearchableLinks;
+}
+
+/**
  * Parses the docs version from the URL.
  *
  * @param {string} url The URL to parse.
@@ -228,6 +288,7 @@ module.exports = {
   getDocsNonFrameworkedVersions,
   getLatestVersion,
   getSidebars,
+  getNotSearchableLinks,
   parseVersion,
   parseFramework,
   getEnvDocsFramework,
