@@ -19,8 +19,17 @@ const mdDir = path.resolve(__dirname, '../../../');
  * @param {boolean} warn `true` if the check was successful, `false` otherwise.
  */
 function logCheck(valid, warn) {
-  // eslint-disable-next-line no-nested-ternary
-  process.stdout.write(chalk[(valid ? (warn ? 'yellow' : 'green') : 'red')]('.'));
+  let logColor = 'red';
+
+  if (valid) {
+    if (warn) {
+      logColor = 'yellow';
+    } else {
+      logColor = 'green';
+    }
+  }
+
+  process.stdout.write(chalk[logColor]('.'));
 }
 
 /**
@@ -131,7 +140,7 @@ function extendPermalink(permalink, framework, version) {
 
       // If the version's NOT in the range of framework-specific documentations
     } else {
-      permalink = permalink.replace(`${latestVersion}/`, '/');
+      permalink = permalink.replace(`${latestVersion}/`, '');
     }
 
     // If the version's in the range of framework-specific documentations, but it's not the latest version.

@@ -1,9 +1,16 @@
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * This script performs a simple check of the example containers for every page they were defined in.
  *
  * It checks if the number of rendered Handsontable instances is the same as the number of  Handsontable
  * initialization lines in the examples' code section.
+ *
+ * **Note:**
+ * The documentation version that's being checked by the script needs to be pre-built using the build script, for
+ * example:
+ * `npm run docs:build`
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 const semver = require('semver');
 const { logger } = require('../utils');
 const {
