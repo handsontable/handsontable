@@ -95,7 +95,10 @@ function getSidebars(buildMode) {
   const sidebars = { };
   const frameworks = getFrameworks();
   const getTransformedGuides = (guides, currentFramework) => {
-    const filterElementsForFramework = element => element.onlyFor === void 0 || element.onlyFor === currentFramework;
+    const filterElementsForFramework = element =>
+      (Array.isArray(element.onlyFor) && element.onlyFor.includes(currentFramework)) ||
+      (typeof element.onlyFor === 'string' && element.onlyFor === currentFramework) ||
+      typeof element.onlyFor === 'undefined';
     const guidesSections = JSON.parse(JSON.stringify(guides)); // Copy sidebar definition
     const filteredGuidesSections = guidesSections.filter(filterElementsForFramework);
 
@@ -168,7 +171,9 @@ function getNotSearchableLinks(buildMode) {
 
   const filterLinks = (guides, framework) => {
     const links = [];
-    const isNotSearchable = element => element.onlyFor !== undefined && element.onlyFor !== framework;
+    const isNotSearchable = element =>
+      (Array.isArray(element.onlyFor) && element.onlyFor.includes(framework) === false) ||
+      (typeof element.onlyFor === 'string' && element.onlyFor !== framework);
 
     guides.forEach((guideSection) => {
       if (isNotSearchable(guideSection)) {
