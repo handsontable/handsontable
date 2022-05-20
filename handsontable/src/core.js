@@ -2467,7 +2467,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     } else if (height !== void 0) {
       instance.rootElement.style.height = isNaN(height) ? `${height}` : `${height}px`;
-      instance.rootElement.style.overflow = 'hidden';
+      instance.rootElement.style.overflow = height === 'auto' ? '' : 'hidden';
     }
 
     if (typeof settings.width !== 'undefined') {
@@ -2477,7 +2477,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         width = width();
       }
 
-      instance.rootElement.style.width = isNaN(width) ? `${width}` : `${width}px`;
+      if (width === null) {
+        instance.rootElement.style.width = '';
+
+      } else {
+        instance.rootElement.style.width = isNaN(width) ? `${width}` : `${width}px`;
+      }
     }
 
     if (!init) {
@@ -4239,7 +4244,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.hasHook = function(key) {
-    return Hooks.getSingleton().has(key, instance);
+    return Hooks.getSingleton().has(key, instance) || Hooks.getSingleton().has(key);
   };
 
   /**

@@ -11,7 +11,7 @@
 import DropdownLink from '@theme/components/DropdownLink.vue';
 
 export default {
-  name: 'Versions',
+  name: 'VersionsDropdown',
   components: {
     DropdownLink
   },

@@ -10,8 +10,8 @@
     <Logo />
 
     </RouterLink>
-    <Versions></Versions>
-
+    <VersionsDropdown></VersionsDropdown>
+    <FrameworksDropdown></FrameworksDropdown>
     <ThemeSwitcher />
 
     <div
@@ -37,30 +37,40 @@ import AlgoliaSearchBox from '@AlgoliaSearchBox';
 import SearchBox from '@theme/components/SearchBox';
 import SidebarButton from '@theme/components/SidebarButton.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
-import Versions from '@theme/components/Versions.vue';
+import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
+import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
 import { ensureExt } from '@vuepress/theme-default/util';
 import Logo from './Logo.vue';
 
 export default {
   name: 'Navbar',
   components: {
+    FrameworksDropdown,
     SidebarButton,
     NavLinks,
     SearchBox,
     AlgoliaSearchBox,
-    Versions,
+    VersionsDropdown,
     ThemeSwitcher,
     Logo
   },
   methods: {
     versionedUrl(url) {
-      if (this.$page.currentVersion === this.$page.latestVersion || this.$page.DOCS_VERSION) {
+      const framework = this.$page.currentFramework ?
+        `/${this.$page.currentFramework}${this.$page.frameworkSuffix}` : '';
+
+      // Already have version and framework placed in the url for some reason and a `RouterLink` process it properly.
+      if (this.$page.DOCS_VERSION && (this.$page.DOCS_FRAMEWORK || this.$page.isFrameworked === false)) {
         return ensureExt(url);
+
+      } else if (this.$page.currentVersion === this.$page.latestVersion) {
+        return ensureExt(`${framework}${url}`);
+
       } else {
-        return ensureExt(`/${this.$page.currentVersion}${url}`);
+        return ensureExt(`/${this.$page.currentVersion}${framework}${url}`);
       }
-    }
+    },
   },
   data() {
     return {

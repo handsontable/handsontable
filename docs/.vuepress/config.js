@@ -1,5 +1,7 @@
 const path = require('path');
+const chalk = require('chalk');
 const highlight = require('./highlight');
+const snippets = require('./containers/snippets');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const conditionalBlock = require('./containers/conditionalBlock');
@@ -41,6 +43,17 @@ if (getEnvDocsVersion()) {
 } else if (getEnvDocsFramework()) {
   versionPartialPath = '**/';
   frameworkPartialPath = `${getEnvDocsFramework()}${FRAMEWORK_SUFFIX}/`;
+
+} else if (isEnvDev()) {
+  // eslint-disable-next-line no-console
+  console.error(
+    `${chalk.red(`\
+Stopping the ${chalk.italic('docs:start')} script execution. For performance reasons, the \
+${chalk.italic('DOCS_VERSION')} and/or ${chalk.italic('DOCS_FRAMEWORK')} environment variables need to be defined. \
+For example, try calling:
+${chalk.italic.bold('DOCS_VERSION=next DOCS_FRAMEWORK=javascript npm run docs:start:no-cache')}.
+`)}`);
+  process.exit(1);
 }
 
 const redirectsPlugin = isLatest ?
@@ -110,6 +123,7 @@ module.exports = {
       headerAnchorSelector: '.header-anchor'
     }],
     ['container', conditionalBlock],
+    ['container', snippets],
     ['container', examples],
     ['container', sourceCodeLink],
     {

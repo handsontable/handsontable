@@ -8,7 +8,7 @@ const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
 
 const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
 const TMP_DIR_FOR_WATCH = '.watch-tmp';
-const MIN_FRAMEWORKED_DOCS_VERSION = '12.0.1';
+const MIN_FRAMEWORKED_DOCS_VERSION = '12.1.0';
 const FRAMEWORK_SUFFIX = '-data-grid';
 
 /**
@@ -145,10 +145,6 @@ function getSidebars(buildMode) {
  * @returns {string}
  */
 function parseVersion(url) {
-  if (isEnvDev()) {
-    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, '');
-  }
-
   return url.split('/')[1] || getLatestVersion();
 }
 
@@ -159,10 +155,6 @@ function parseVersion(url) {
  * @returns {string}
  */
 function parseFramework(url) {
-  if (isEnvDev()) {
-    url = url.replace(`/${TMP_DIR_FOR_WATCH}`, '');
-  }
-
   const potentialFramework = url.split('/')[2]?.replace(FRAMEWORK_SUFFIX, '');
 
   if (getFrameworks().includes(potentialFramework)) {

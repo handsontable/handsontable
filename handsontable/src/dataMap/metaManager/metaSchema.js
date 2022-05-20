@@ -1082,7 +1082,7 @@ export default () => {
      *
      * | Setting                                                                                                        | Description                                                                                                                        |
      * | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>C</kbd>, add the cell's value to the clipboard |
+     * | `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add the cell's value to the clipboard |
      * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - Disable copying for this cell                                                                                                    |
      *
      * Read more:
@@ -1175,14 +1175,12 @@ export default () => {
     copyPaste: true,
 
     /**
-     * The `correctFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' date format correction.
+     * The `correctFormat` option configures what happens when the format of a date entered into a [`date`](@/guides/cell-types/date-cell-type.md) cell doesn't match the format specified by the [`dateFormat`](#dateFormat) option:
      *
-     * You can set the `correctFormat` option to one of the following
-     *
-     * | Setting           | Description                                                           |
-     * | ----------------- | --------------------------------------------------------------------- |
-     * | `false` (default) | Don't correct dates                                                   |
-     * | `true`            | Enforce the date format set by the [`dateFormat`](#dateFormat) option |
+     * | Setting           | Description                                                                        |
+     * | ----------------- | ---------------------------------------------------------------------------------- |
+     * | `false` (default) | Don't correct the entered date's format (treat the entered date as invalid)        |
+     * | `true`            | Correct the entered date's format to match the [`dateFormat`](#dateFormat) setting |
      *
      * Read more:
      * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
@@ -1484,12 +1482,11 @@ export default () => {
     dataSchema: void 0,
 
     /**
-     * The `dateFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' date format.
+     * The `dateFormat` option configures the date format accepted by [`date`](@/guides/cell-types/date-cell-type.md) cells.
      *
-     * You can set the `dateFormat` option to a date format string. The default value is: `'DD/MM/YYYY'`.
+     * You can set the `dateFormat` option to a string with a proper date format. The default value is: `'DD/MM/YYYY'`.
      *
-     * To enforce the date format set by the `dateFormat` option,
-     * use the [`correctFormat`](#correctFormat) option.
+     * To automatically correct dates whose format doesn't match the `dateFormat` setting, use the [`correctFormat`](#correctFormat) option.
      *
      * Read more:
      * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
@@ -1764,14 +1761,14 @@ export default () => {
     editor: void 0,
 
     /**
-     * The `enterBeginsEditing` option configures the action of the <kbd>Enter</kbd> key.
+     * The `enterBeginsEditing` option configures the action of the <kbd>**Enter**</kbd> key.
      *
      * You can set the `enterBeginsEditing` option to one of the following:
      *
      * | Setting          | Description                                                                                                                                                                                               |
      * | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default) | - On pressing <kbd>Enter</kbd> once, start editing the currently-selected cell<br>- On pressing <kbd>Enter</kbd> twice, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting |
-     * | `false`          | - On pressing <kbd>Enter</kbd> once, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting                                                                                    |
+     * | `true` (default) | - On pressing <kbd>**Enter**</kbd> once, enter the editing mode of the active cell<br>- On pressing <kbd>**Enter**</kbd> twice, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting |
+     * | `false`          | - On pressing <kbd>**Enter**</kbd> once, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting                                                                                    |
      *
      * Read more:
      * - [`enterMoves`](#enterMoves)
@@ -1794,21 +1791,21 @@ export default () => {
     enterBeginsEditing: true,
 
     /**
-     * The `enterMoves` option configures the action of the <kbd>Enter</kbd> key.
+     * The `enterMoves` option configures the action of the <kbd>**Enter**</kbd> key.
      *
      * If the [`enterBeginsEditing`](#enterBeginsEditing) option is set to `true`,
-     * the `enterMoves` setting applies to the **second** pressing of the <kbd>Enter</kbd> key.
+     * the `enterMoves` setting applies to the **second** pressing of the <kbd>**Enter**</kbd> key.
      *
      * If the [`enterBeginsEditing`](#enterBeginsEditing) option is set to `false`,
-     * the `enterMoves` setting applies to the **first** pressing of the <kbd>Enter</kbd> key.
+     * the `enterMoves` setting applies to the **first** pressing of the <kbd>**Enter**</kbd> key.
      *
      * You can set the `enterMoves` option to an object with the following properties
      * (or to a function that returns such an object):
      *
      * | Property | Type   | Description                                                                                                                                              |
      * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `col`    | Number | - On pressing <kbd>Enter</kbd>, move selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `col` columns left |
-     * | `row`    | Number | - On pressing <kbd>Enter</kbd>, move selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `row` rows up          |
+     * | `col`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `col` columns left |
+     * | `row`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `row` rows up          |
      *
      * Read more:
      * - [`enterBeginsEditing`](#enterBeginsEditing)
@@ -4019,15 +4016,14 @@ export default () => {
     stretchH: 'none',
 
     /**
-     * The `strict` option configures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
-     * cells' strict/lazy mode.
+     * The `strict` option configures the behavior of [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells.
      *
      * You can set the `strict` option to one of the following:
      *
-     * | Setting | Mode                                                                                  | Description                                                                                                                                       |
-     * | ------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode) | The value entered must match an autocomplete option (case-sensitive)                                                                              |
-     * | `false` | [Lazy mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-lazy-mode)     | The value entered doesn't have to match an autocomplete option.<br>The end user can:<br>- Choose from suggested options<br>- Enter a custom value |
+     * | Setting | Mode                                                                                          | Description                                                                                |
+     * | ------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+     * | `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode)         | The end user:<br>- Can only choose one of suggested values<br>- Can't enter a custom value |
+     * | `false` | [Flexible mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-flexible-mode)     | The end user:<br>- Can choose one of suggested values<br>- Can enter a custom value        |
      *
      * Read more:
      * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
@@ -4096,15 +4092,15 @@ export default () => {
     tableClassName: void 0,
 
     /**
-     * The `tabMoves` option configures the action of the <kbd>Tab</kbd> key.
+     * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
      *
      * You can set the `tabMoves` option to an object with the following properties
      * (or to a function that returns such an object):
      *
      * | Property | Type   | Description                                                                                                                                              |
      * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `row`    | Number | - On pressing <kbd>Tab</kbd>, move selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move selection `row` rows up              |
-     * | `col`    | Number | - On pressing <kbd>Tab</kbd>, move selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move selection `col` columns left     |
+     * | `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>, move selection `row` rows up              |
+     * | `col`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>, move selection `col` columns left     |
      *
      * @memberof Options#
      * @type {object|Function}

@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { hasOwnProperty, objectEach } from '../../helpers/object';
+import { hasOwnProperty, objectEach, deepClone } from '../../helpers/object';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayReduce, arrayMap } from '../../helpers/array';
 import * as C from '../../i18n/constants';
@@ -736,13 +736,15 @@ export class CustomBorders extends BasePlugin {
     const customBorders = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(customBorders)) {
-      this.checkSettingsCohesion(customBorders);
+      const bordersClone = deepClone(customBorders);
 
-      if (!customBorders.length) {
-        this.savedBorders = customBorders;
+      this.checkSettingsCohesion(bordersClone);
+
+      if (!bordersClone.length) {
+        this.savedBorders = bordersClone;
       }
 
-      this.createCustomBorders(customBorders);
+      this.createCustomBorders(bordersClone);
 
     } else if (customBorders !== void 0) {
       this.createCustomBorders(this.savedBorders);
