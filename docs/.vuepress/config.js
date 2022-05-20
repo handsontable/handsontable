@@ -1,6 +1,7 @@
 const path = require('path');
 const chalk = require('chalk');
 const highlight = require('./highlight');
+const snippets = require('./containers/snippets');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const conditionalBlock = require('./containers/conditionalBlock');
@@ -122,6 +123,7 @@ module.exports = {
       headerAnchorSelector: '.header-anchor'
     }],
     ['container', conditionalBlock],
+    ['container', snippets],
     ['container', examples],
     ['container', sourceCodeLink],
     {
