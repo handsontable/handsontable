@@ -105,7 +105,7 @@ function getSidebars(buildMode) {
     filteredGuidesSections.forEach((filteredGuidesSection) => {
       filteredGuidesSection.children = filteredGuidesSection.children.reduce((newGuides, guide) => {
         if (filterElementsForFramework(guide)) {
-          newGuides.push(guide.link);
+          newGuides.push(guide.path);
         }
 
         return newGuides;
@@ -177,12 +177,12 @@ function getNotSearchableLinks(buildMode) {
 
     guides.forEach((guideSection) => {
       if (isNotSearchable(guideSection)) {
-        links.push(...guideSection.children.map(guide => guide.link));
+        links.push(...guideSection.children.map(guide => guide.path));
 
       } else {
         guideSection.children.forEach((guide) => {
           if (isNotSearchable(guide)) {
-            links.push(guide.link);
+            links.push(guide.path);
           }
         });
       }
