@@ -21,7 +21,7 @@ Thanks to [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guid
 
 The graph presents a comparison of size in KB for a full bundle, basic optimization and with optimized translations. The sample code is avaiable just below - it shows sample countries and cities and although it looks small it will generate over 345 KB (Gzipped). [Webpack 5](https://webpack.js.org/) with a default configuration for production builds was used to prepare this example.
 
-![bundle_size_comparison](/docs/10.0/img/bundle_size_comparison.png)
+<ImageVersioned src="/docs/10.0/img/bundle_size_comparison.png" alt="bundle_size_comparison" />
 
 You can compare the following examples to see the difference in the size of the final build. Note: this is an example in a nutshell, just to present a comparison, the next section shows how to do it step by step. First, take a look at the settings, it is the same object in both cases:
 

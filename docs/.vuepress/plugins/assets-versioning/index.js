@@ -3,8 +3,11 @@ const path = require('path');
 const {
   getEnvDocsVersion,
   getSidebars,
+  getFrameworks,
   getLatestVersion,
-  getVersions,
+  getDocsNonFrameworkedVersions,
+  getDocsFrameworkedVersions,
+  FRAMEWORK_SUFFIX,
 } = require('../../helpers');
 
 const buildMode = process.env.BUILD_MODE;
@@ -21,18 +24,42 @@ module.exports = (options, context) => {
     },
 
     chainWebpack(config) {
-      const files = getVersions(buildMode)
-        .filter(v => DOCS_VERSION === v || !DOCS_VERSION)
-        .map(version => ({
+      const configs = [];
+      const needAssets = version => DOCS_VERSION === version || !DOCS_VERSION;
+      const pushConfig = (version, framework) => {
+        let to = '';
+
+        if (context.base === '/docs/') {
+          if (version !== getLatestVersion()) {
+            to += `${version}/`;
+          }
+
+          if (framework !== void 0) {
+            to += `${framework}${FRAMEWORK_SUFFIX}/`;
+          }
+        }
+
+        configs.push({
           context: path.resolve(context.sourceDir, version, 'public'),
           from: '**/*',
-          to: `${!DOCS_VERSION || version === getLatestVersion() ? version : '.'}/`,
+          to,
           force: true,
-        }));
+        });
+      };
+
+      getDocsNonFrameworkedVersions(buildMode).filter(needAssets).forEach((version) => {
+        pushConfig(version);
+      });
+
+      getDocsFrameworkedVersions(buildMode).filter(needAssets).forEach((version) => {
+        getFrameworks().forEach((framework) => {
+          pushConfig(version, framework);
+        });
+      });
 
       config
         .plugin(`${pluginName}:assets-copy`)
-        .use(CopyPlugin, [files]);
+        .use(CopyPlugin, [configs]);
     },
   };
 };

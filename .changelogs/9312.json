@@ -1,0 +1,7 @@
+{
+  "title": "Implement a Vuepress container allowing the transformation of snippets to different frameworks.",
+  "type": "added",
+  "issue": 9312,
+  "breaking": false,
+  "framework": "none"
+}

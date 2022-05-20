@@ -3,6 +3,25 @@ const {
 } = require('../../helpers');
 const { getContainerFramework } = require('../helpers');
 
+/**
+ * When using nested containers (for example, `::: example` inside `::: only-for`, Vuepress mistakenly treats the
+ * closing `:::` markup as an actual paragraph, this method removes it.
+ *
+ * @param {object[]} tokens Array of tokens.
+ * @param {number} closingContainerIndex Index of the closing element of he `only-for` container.
+ * @returns {object[]}
+ */
+function removeLeftoverMarkup(tokens, closingContainerIndex) {
+  if (
+    tokens[closingContainerIndex].markup === ':::' &&
+    tokens[closingContainerIndex + 2].content === ':::'
+  ) {
+    tokens.splice(closingContainerIndex + 1, 3);
+  }
+
+  return tokens;
+}
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * Container used to display/hide blocks of content relevant to specific frameworks.
@@ -23,6 +42,9 @@ const { getContainerFramework } = require('../helpers');
  * Content to be displayed only for JS, React and Vue documentation.
  * :::
  * ```
+ *
+ * **NOTE:** When using this container to conditionally display another container (like `::: example`), use a
+ * separate `only-for` for EACH of the containers.
  */
 module.exports = {
   type: 'only-for',
@@ -39,6 +61,9 @@ module.exports = {
       }
 
       tokens.splice(firstBlockTokenIndex, lastBlockTokenIndex - firstBlockTokenIndex + 1);
+
+    } else {
+      tokens = removeLeftoverMarkup(tokens, index);
     }
 
     return '';
