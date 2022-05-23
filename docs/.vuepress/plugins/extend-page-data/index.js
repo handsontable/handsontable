@@ -61,7 +61,7 @@ module.exports = (options, context) => {
       $page.isFrameworked = getDocsFrameworkedVersions(buildMode).includes($page.currentVersion);
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
-      $page.isSearchable = notSearchableLinks[$page.currentVersion].every((notSearchableLink) => {
+      $page.isSearchable = notSearchableLinks[$page.currentVersion]?.every((notSearchableLink) => {
         return $page.normalizedPath.includes(notSearchableLink) === false;
       });
 
