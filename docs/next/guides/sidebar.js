@@ -188,10 +188,26 @@ const upgradeAndMigrationItems = [
 
 const sidebar = [
   { title: 'Getting Started', children: gettingStartedItems },
-  { title: 'Integrate with React', children: integrateWithReactItems },
-  { title: 'Integrate with Angular', children: integrateWithAngularItems },
-  { title: 'Integrate with Vue 2', children: integrateWithVueItems },
-  { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
+  {
+    title: 'Integrate with React',
+    children: integrateWithReactItems,
+    onlyFor: ['react', 'angular', 'vue2', 'vue3'],
+  },
+  {
+    title: 'Integrate with Angular',
+    children: integrateWithAngularItems,
+    onlyFor: ['javascript', 'angular', 'vue2', 'vue3'],
+  },
+  {
+    title: 'Integrate with Vue 2',
+    children: integrateWithVueItems,
+    onlyFor: ['javascript', 'angular', 'vue2', 'vue3'],
+  },
+  {
+    title: 'Integrate with Vue 3',
+    children: integrateWithVue3Items,
+    onlyFor: ['javascript', 'angular', 'vue2', 'vue3'],
+  },
   { title: 'Columns', children: columnsItems },
   { title: 'Rows', children: rowsItems },
   { title: 'Cell Features', children: cellFeaturesItems },
