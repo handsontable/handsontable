@@ -16,8 +16,6 @@ The `autocomplete` cell type enables the user to choose a suggested option while
 
 This example uses the `autocomplete` feature in the default **flexible mode**. In this mode, the user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
 
-In this mode, the mouse and keyboard bindings are identical to the [`Handsontable` cell type](@/guides/cell-types/handsontable-cell-type.md). The options are rendered from the `source` property, either an array or a function that returns an array.
-
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
