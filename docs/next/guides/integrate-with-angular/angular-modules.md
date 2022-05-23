@@ -98,14 +98,7 @@ Register your modules, using the registering functions that you imported (for th
   export class AppModule { }
   ```
 
-## Related articles
-
-#### Related guides
+## Related guides
 
 - [Modules](@/guides/building-and-testing/modules.md)
 - [Performance](@/guides/advanced-topics/performance.md)
-
-#### Related blog articles
-
-- [Modularizing to improve the developer experience](https://handsontable.com/blog/modularizing-to-improve-the-developer-experience)
-- [Handsontable 11.0.0: modularization for React, Angular, and Vue](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue)
