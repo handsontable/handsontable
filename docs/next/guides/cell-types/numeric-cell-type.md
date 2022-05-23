@@ -18,7 +18,7 @@ By default, Handsontable treats all cell values as `string` type. This is becaus
 To trigger the Numeric cell type, use the option `type: 'numeric'` in the [`columns`](@/api/options.md#columns) array or [`cells`](@/api/options.md#cells) function.
 
 ::: tip
-Ensure your cell values are numbers and not strings, as Handsontable will not parse strings to numbers.
+Ensure your cell values are numbers and not strings, as Handsontable doesn't parse strings to numbers.
 :::
 
 You can input float-type values in the numeric editor using a dot or a comma as a decimal separator. For example, both `500000.5`, `500000,5` will be accepted. You are not able to use a thousands separator in the editor.
