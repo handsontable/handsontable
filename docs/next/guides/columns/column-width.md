@@ -20,7 +20,7 @@ tags:
 
 ## Overview
 
-By default, the column width adjusts to the width of the content. However, if the width of the column content is less than `50px`, including `1px` for borders on the sides, the column width remains constant at `50px`. The column size can be passed as a constant, an array, or a function.
+By default, the column width adjusts to the width of the content. However, if the width of the content is less than `50px`, including `1px` for borders on the sides, the column width remains constant at `50px`. The column size can be passed as a constant, an array, or a function.
 
 The content inside a cell will be wrapped if it doesn't fit the cell's width.
 
