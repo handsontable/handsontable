@@ -441,13 +441,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-## Related articles
-
-#### Related blog articles
-
-- [Handsontable 11.1.0: Vue 3 support and `updateData()`](https://handsontable.com/blog/handsontable-11.1.0-vue-3-support-and-updatedata)
-
-#### Related API reference
+## Related API reference
 
 - Configuration options:
   - [`data`](@/api/options.md#data)
