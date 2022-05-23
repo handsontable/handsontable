@@ -269,10 +269,6 @@ You can apply the horizontal text alignment settings to:
 - [Language](@/guides/internationalization/language.md)
 - [Locale](@/guides/internationalization/locale.md)
 
-#### Related blog articles
-
-- [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
-
 #### Related API reference
 
 - Configuration options:
