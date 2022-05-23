@@ -39,7 +39,7 @@ Play around with Handsontable's source code, in your favorite framework.
 
 ## Try out the demo's features
 
-Explore the demo, to discover Handsontable's most popular features:
+Explore the demo and discover Handsontable's most popular features:
 
 - [Context menu](@/guides/accessories-and-menus/context-menu.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type.md)
