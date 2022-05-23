@@ -48,10 +48,6 @@ For many years Handsontable was available as an open-source software, and releas
 
 - [License key](@/guides/getting-started/license-key.md)
 
-#### Related blog articles
-
-- [Handsontable drops open source for a non-commercial license](https://handsontable.com/blog/articles/2019/3/handsontable-drops-open-source-for-a-non-commercial-license)
-
 #### Related API reference
 
 - Options: 
