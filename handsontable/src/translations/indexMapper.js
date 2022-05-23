@@ -396,8 +396,8 @@ export class IndexMapper {
                          indexForNextSearch = fromVisualIndex - incrementBy) {
     if (deprecationWarns.has('getFirstNotHiddenIndex')) {
       deprecationWarns.delete('getFirstNotHiddenIndex');
-      warn(toSingleLine`The method "getFirstNotHiddenIndex" is deprecated and will be removed in the next major release.\x20
-                        Please use "getNearestNotHiddenIndex" instead.`);
+      warn(toSingleLine`The method "getFirstNotHiddenIndex" is deprecated and will be removed in the next\x20
+                        major release. Please use "getNearestNotHiddenIndex" instead.`);
     }
 
     const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
