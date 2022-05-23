@@ -95,11 +95,11 @@ const hot = new Handsontable(container, {
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Cell type](@/guides/cell-types/cell-type.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`type`](@/api/options.md#type)

@@ -31,7 +31,7 @@ To test the IME support, you will need to change your language preferences for y
 
 <video controls loop src="/docs/next/img/pages/ime-support/ime-support-in-handsontable.mp4" width="100%"></video>
 
-#### Related API reference
+## Related API reference
 
 - Configuration options:
   - [`language`](@/api/options.md#language)

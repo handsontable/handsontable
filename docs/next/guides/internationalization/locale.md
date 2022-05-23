@@ -71,13 +71,13 @@ const hot = new Handsontable(container, {
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
-- [IME support](@/guides/internationalization/ime-support.md)
 - [Language](@/guides/internationalization/language.md)
 - [Layout direction](@/guides/internationalization/layout-direction.md)
+- [IME support](@/guides/internationalization/ime-support.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`language`](@/api/options.md#language)

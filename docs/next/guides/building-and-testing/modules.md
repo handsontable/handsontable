@@ -835,11 +835,11 @@ You can also use modules with Handsontable's framework wrappers:
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Performance](@/guides/advanced-topics/performance.md)
 
-#### Related blog articles
+### Related blog articles
 
 - [Modularizing to improve the developer experience](https://handsontable.com/blog/modularizing-to-improve-the-developer-experience)
 - [Handsontable 11.0.0: modularization for React, Angular, and Vue](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue)

@@ -42,13 +42,13 @@ const hot = new Handsontable(container, {
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type.md)
 - [Cell type](@/guides/cell-types/cell-type.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`selectOptions`](@/api/options.md#selectoptions)

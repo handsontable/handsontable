@@ -74,11 +74,11 @@ ReactDOM.render(<App />, document.getElementById('example1'));
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Cell editor](@/guides/cell-functions/cell-editor.md)
 
-#### Related API reference
+### Related API reference
 
 - APIs:
   - [`BasePlugin`](@/api/basePlugin.md)

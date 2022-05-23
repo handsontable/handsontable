@@ -254,11 +254,11 @@ Handsontable.dom.addEvent(buttonWith, 'click', () => {
 
 ## Related articles
 
-#### Related blog articles
+### Related blog articles
 
 - [Handsontable 8.3.0 has been released](https://handsontable.com/blog/handsontable-8.3.0-has-been-released)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`maxCols`](@/api/options.md#maxcols)

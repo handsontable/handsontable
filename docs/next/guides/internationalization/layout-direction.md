@@ -263,13 +263,13 @@ You can apply the horizontal text alignment settings to:
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
-- [IME support](@/guides/internationalization/ime-support.md)
 - [Language](@/guides/internationalization/language.md)
 - [Locale](@/guides/internationalization/locale.md)
+- [IME support](@/guides/internationalization/ime-support.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`language`](@/api/options.md#language)

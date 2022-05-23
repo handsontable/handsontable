@@ -82,11 +82,11 @@ new Vue({
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Cell renderer](@/guides/cell-functions/cell-renderer.md)
 
-#### Related API reference
+### Related API reference
 
 - APIs:
   - [`BasePlugin`](@/api/basePlugin.md)

@@ -60,11 +60,11 @@ const hot = new Handsontable(container, {
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Context menu](@/guides/accessories-and-menus/context-menu.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`dropdownMenu`](@/api/options.md#dropdownmenu)

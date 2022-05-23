@@ -75,11 +75,11 @@ More complex data structures can be displayed with multiple headers, each repres
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Column groups](@/guides/columns/column-groups.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)

@@ -96,11 +96,11 @@ To get a commercial license key for your Handsontable copy, contact our [Sales T
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Software license](@/guides/technical-specification/software-license.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`licenseKey`](@/api/options.md#licensekey)

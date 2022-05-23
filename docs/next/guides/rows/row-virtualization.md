@@ -60,12 +60,12 @@ const hot = new Handsontable(container, {
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
-- [Performance](@/guides/advanced-topics/performance.md)
 - [Column virtualization](@/guides/rows/row-virtualization.md)
+- [Performance](@/guides/advanced-topics/performance.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`renderAllRows`](@/api/options.md#renderallrows)

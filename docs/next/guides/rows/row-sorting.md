@@ -309,15 +309,15 @@ List of methods exposed by the plugin:
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Column sorting](@/guides/columns/column-sorting.md)
 
-#### Related blog articles
+### Related blog articles
 
 - [Feature spotlight: Multi-column sorting](https://handsontable.com/blog/feature-spotlight-multi-column-sorting)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`columnSorting`](@/api/options.md#columnsorting)

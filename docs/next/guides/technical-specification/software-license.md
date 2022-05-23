@@ -44,11 +44,11 @@ For many years Handsontable was available as an open-source software, and releas
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [License key](@/guides/getting-started/license-key.md)
 
-#### Related API reference
+### Related API reference
 
 - Options: 
   - [`licenseKey`](@/api/options.md#licensekey)

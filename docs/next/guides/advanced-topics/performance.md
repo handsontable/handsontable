@@ -98,14 +98,14 @@ You can also optimize the use of **moment.js**. To find out more about this topi
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Batch operations](@/guides/advanced-topics/batch-operations.md)
-- [Column virtualization](@/guides/columns/column-virtualization.md)
 - [Modules](@/guides/building-and-testing/modules.md)
 - [Row virtualization](@/guides/rows/row-virtualization.md)
+- [Column virtualization](@/guides/columns/column-virtualization.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`autoColumnSize`](@/api/options.md#autocolumnsize)

@@ -78,18 +78,11 @@ app.mount('#example1');
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
-- [Adding comments via the context menu](@/guides/cell-features/comments.md#adding-comments-via-the-context-menu)
-- [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
-- [Context menu](@/guides/accessories-and-menus/context-menu.md)
-- [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
+- [Cell editor](@/guides/cell-functions/cell-editor.md)
 
-#### Related blog articles
-
-- [Customize Handsontable context menu](https://handsontable.com/blog/customize-handsontable-context-menu)
-
-#### Related API reference
+### Related API reference
 
 - APIs:
   - [`BasePlugin`](@/api/basePlugin.md)

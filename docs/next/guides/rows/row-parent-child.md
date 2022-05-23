@@ -209,11 +209,11 @@ The “Insert row above” and “Insert row below” options were modified to w
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Row header](@/guides/rows/row-header.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders)

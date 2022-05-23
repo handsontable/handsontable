@@ -107,11 +107,11 @@ const hot = new Handsontable(container, {
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Formatting cells](@/guides/cell-features/formatting-cells.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)

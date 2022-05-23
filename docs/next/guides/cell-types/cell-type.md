@@ -359,14 +359,14 @@ Empty cells may be treated differently in different contexts, for example, the [
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
-- [Cell editor](@/guides/cell-functions/cell-editor.md)
 - [Cell function](@/guides/cell-functions/cell-function.md)
+- [Cell editor](@/guides/cell-functions/cell-editor.md)
 - [Cell renderer](@/guides/cell-functions/cell-renderer.md)
 - [Cell validator](@/guides/cell-functions/cell-validator.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`editor`](@/api/options.md#editor)

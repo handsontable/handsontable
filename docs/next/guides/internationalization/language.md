@@ -279,13 +279,13 @@ Contains: `Object`
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
-- [IME support](@/guides/internationalization/ime-support.md)
 - [Layout direction](@/guides/internationalization/layout-direction.md)
 - [Locale](@/guides/internationalization/locale.md)
+- [IME support](@/guides/internationalization/ime-support.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`language`](@/api/options.md#language)

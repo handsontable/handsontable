@@ -667,6 +667,7 @@ const hot = new Handsontable(container, {
 ## Related API reference
 
 - Configuration options:
+  - [List of all options](@/api/options.md)
   - [`cell`](@/api/options.md#cell)
   - [`cells`](@/api/options.md#cells)
   - [`columns`](@/api/options.md#columns)
@@ -684,4 +685,3 @@ const hot = new Handsontable(container, {
 - Hooks:
   - [`afterCellMetaReset`](@/api/hooks.md#aftercellmetareset)
   - [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings)
-- [List of all options](@/api/options.md)

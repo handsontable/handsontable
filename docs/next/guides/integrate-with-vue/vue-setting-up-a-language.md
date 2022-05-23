@@ -104,13 +104,13 @@ new Vue({
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Language](@/guides/internationalization/language.md)
 - [Layout direction](@/guides/internationalization/layout-direction.md)
 - [Locale](@/guides/internationalization/locale.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`language`](@/api/options.md#language)

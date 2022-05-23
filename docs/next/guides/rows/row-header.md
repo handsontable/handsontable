@@ -69,11 +69,11 @@ A tree grid enables you to represent the nested data structures within the data 
 
 ## Related articles
 
-#### Related guides
+### Related guides
 
 - [Row parent-child](@/guides/rows/row-parent-child.md)
 
-#### Related API reference
+### Related API reference
 
 - Configuration options:
   - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
