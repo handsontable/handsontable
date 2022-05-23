@@ -355,7 +355,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-Empty cells may be treated in differently in different contexts, for example, the [ColumnSorting](@/api/columnSorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.
+Empty cells may be treated differently in different contexts, for example, the [ColumnSorting](@/api/columnSorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.
 
 ## Related articles
 
