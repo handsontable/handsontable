@@ -34,7 +34,7 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
       hiddenColumnsPlugin.hideColumns(columnsToHide);
 
       const lastHiddenColumn = columnsToHide[columnsToHide.length - 1];
-      const columnToSelect = this.columnIndexMapper.getFirstNotHiddenIndex(lastHiddenColumn, 1, true);
+      const columnToSelect = this.columnIndexMapper.getNearestNotHiddenIndex(lastHiddenColumn, 1, true);
 
       if (Number.isInteger(columnToSelect) && columnToSelect >= 0) {
         this.selectColumns(columnToSelect);

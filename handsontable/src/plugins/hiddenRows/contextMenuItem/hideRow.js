@@ -34,7 +34,7 @@ export default function hideRowItem(hiddenRowsPlugin) {
       hiddenRowsPlugin.hideRows(rowsToHide);
 
       const lastHiddenRow = rowsToHide[rowsToHide.length - 1];
-      const rowToSelect = this.rowIndexMapper.getFirstNotHiddenIndex(lastHiddenRow, 1, true);
+      const rowToSelect = this.rowIndexMapper.getNearestNotHiddenIndex(lastHiddenRow, 1, true);
 
       if (Number.isInteger(rowToSelect) && rowToSelect >= 0) {
         this.selectRows(rowToSelect);
