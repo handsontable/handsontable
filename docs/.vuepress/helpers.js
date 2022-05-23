@@ -139,13 +139,27 @@ function getSidebars(buildMode) {
 }
 
 /**
+ * Removes temporary directory from the path when needed.
+ *
+ * @param {string} normalizedPath Path for unification.
+ * @returns {string}
+ */
+function getNormalizedPath(normalizedPath) {
+  if (isEnvDev()) {
+    return normalizedPath.replace(new RegExp(`^/?${TMP_DIR_FOR_WATCH}`), '');
+  }
+
+  return normalizedPath;
+}
+
+/**
  * Parses the docs version from the URL.
  *
  * @param {string} url The URL to parse.
  * @returns {string}
  */
 function parseVersion(url) {
-  return url.split('/')[1] || getLatestVersion();
+  return getNormalizedPath(url).split('/')[1] || getLatestVersion();
 }
 
 /**
@@ -155,7 +169,7 @@ function parseVersion(url) {
  * @returns {string}
  */
 function parseFramework(url) {
-  const potentialFramework = url.split('/')[2]?.replace(FRAMEWORK_SUFFIX, '');
+  const potentialFramework = getNormalizedPath(url).split('/')[2]?.replace(FRAMEWORK_SUFFIX, '');
 
   if (getFrameworks().includes(potentialFramework)) {
     return potentialFramework;
@@ -204,6 +218,7 @@ function createSymlinks(buildMode) {
 module.exports = {
   TMP_DIR_FOR_WATCH,
   FRAMEWORK_SUFFIX,
+  getNormalizedPath,
   getVersions,
   getFrameworks,
   getDocsFrameworkedVersions,

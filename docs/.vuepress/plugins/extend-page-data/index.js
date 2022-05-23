@@ -1,6 +1,7 @@
 const {
   getSidebars,
   getLatestVersion,
+  getNormalizedPath,
   parseVersion,
   parseFramework,
   getEnvDocsFramework,
@@ -46,8 +47,7 @@ module.exports = (options, context) => {
     extendPageData($page) {
       $page.DOCS_VERSION = DOCS_VERSION;
       $page.DOCS_FRAMEWORK = DOCS_FRAMEWORK;
-      $page.normalizedPath = isEnvDev() ?
-        $page.path.replace(new RegExp(`^/?${TMP_DIR_FOR_WATCH}`), '') : $page.path;
+      $page.normalizedPath = getNormalizedPath($page.path);
       $page.frameworkedVersions = getDocsFrameworkedVersions(buildMode);
       $page.nonFrameworkedVersions = getDocsNonFrameworkedVersions(buildMode);
       $page.latestVersion = getLatestVersion();
