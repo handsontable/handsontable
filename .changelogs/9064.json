@@ -1,6 +1,6 @@
 {
-  "title": "Fixed maximum call stack size error in indexMapper",
-  "type": "fixed",
+  "title": "Fixed maximum call stack size error in indexMapper by introducing the new `getNearestNotHiddenIndex` method.",
+  "type": "added",
   "issue": 9064,
   "breaking": false,
   "framework": "none"
