@@ -323,13 +323,6 @@ Methods [`moveColumn`](@/api/manualColumnMove.md#movecolumn), [`moveColumns`](@/
 
 The "drag" methods comes with the `dropIndex` parameter. It directs where to **place** the dragged elements. The place you intend to drag the element is managed by **drop indexes**. You can imagine some sort of a drop zone between actual indexes of elements:
 
-<<<<<<< HEAD
-<ImageVersioned src="/docs/12.0/img/drag_action.svg" alt="drag_action" />
-
-The "move" methods comes with the `finalIndex` parameter. It tells where to **overlap** the first element from the moved ones. The place you intend to move the element is managed by **visual indexes**.
-
-<ImageVersioned src="/docs/12.0/img/move_action.svg" alt="move_action" />
-=======
 <ImageVersioned src="/docs/next/img/drag_action.svg" alt="drag_action" />
 
 The "move" methods comes with the `finalIndex` parameter. It tells where to **overlap** the first element from the moved ones. The place you intend to move the element is managed by **visual indexes**.
