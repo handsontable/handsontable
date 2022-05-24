@@ -4,6 +4,7 @@ module.exports = {
     'no-restricted-globals': 'off',
     'import/no-unresolved': 'off',
     'import/extensions': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
   },
   overrides: [
     {
