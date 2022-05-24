@@ -11,7 +11,6 @@ const {
   isEnvDev,
   getDefaultFramework,
   FRAMEWORK_SUFFIX,
-  TMP_DIR_FOR_WATCH,
   getNotSearchableLinks,
 } = require('../../helpers');
 const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
