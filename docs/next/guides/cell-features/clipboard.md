@@ -120,12 +120,12 @@ Handsontable.dom.addEvent(cutBtn, 'click', function () {
 
 ### Hooks
 
-The **CopyPaste** plugin exposes the following hooks to manipulate data during copy or cut operations:
+The [CopyPaste](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during copy or cut operations:
 
-- [`beforeCopy` &#8594;](@/api/hooks.md#beforecopy)
-- [`afterCopy` &#8594;](@/api/hooks.md#aftercopy)
-- [`beforeCut` &#8594;](@/api/hooks.md#beforecut)
-- [`afterCut` &#8594;](@/api/hooks.md#aftercut)
+- [`beforeCopy`](@/api/hooks.md#beforecopy)
+- [`afterCopy`](@/api/hooks.md#aftercopy)
+- [`beforeCut`](@/api/hooks.md#beforecut)
+- [`afterCut`](@/api/hooks.md#aftercut)
 
 Examples of how to use them are provided in their descriptions.
 
@@ -153,16 +153,16 @@ Due to security reason, modern browsers disallow to read from the system clipboa
 
 ### Hooks
 
-The **CopyPaste** plugin exposes the following hooks to manipulate data during the pasting operation:
+The [CopyPaste](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during the pasting operation:
 
-- [`beforePaste` &#8594;](@/api/hooks.md#beforepaste)
-- [`afterPaste` &#8594;](@/api/hooks.md#afterpaste)
+- [`beforePaste`](@/api/hooks.md#beforepaste)
+- [`afterPaste`](@/api/hooks.md#afterpaste)
 
 Examples of how to use them are provided in their descriptions.
 
 ## Limitations
 
-1.  The **CopyPaste** plugin doesn't copy, cut or paste cells' appearance.
+1.  The [`CopyPaste`](@/api/copyPaste.md) plugin doesn't copy, cut or paste cells' appearance.
 2.  The data copied from Handsontable will always remain as plain text. For example, if you copy a checked checkbox, the input will be kept as a value of `'true'`.
 3.  `document.execCommand` can be called only during an immediate-execute event, such as a `MouseEvent` or a `KeyboardEvent`.
 
@@ -173,3 +173,25 @@ Examples of how to use them are provided in their descriptions.
 | <kbd>**Ctrl**</kbd> + <kbd>**X**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**X**</kbd> | Cut the contents of the selected cells to the system clipboard  | &check; | &check; |
 | <kbd>**Ctrl**</kbd> + <kbd>**C**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
 | <kbd>**Ctrl**</kbd> + <kbd>**V**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
+
+## Related API reference
+
+- Configuration options:
+  - [`copyPaste`](@/api/options.md#copypaste)
+  - [`copyable`](@/api/options.md#copyable)
+  - [`skipColumnOnPaste`](@/api/options.md#skipcolumnonpaste)
+  - [`skipRowOnPaste`](@/api/options.md#skiprowonpaste)
+- Core methods:
+  - [`getCopyableData()`](@/api/core.md#getcopyabledata)
+  - [`getCopyableText()`](@/api/core.md#getcopyabletext)
+- Hooks:
+  - [`afterCopy`](@/api/hooks.md#aftercopy)
+  - [`afterCopyLimit`](@/api/hooks.md#aftercopylimit)
+  - [`afterCut`](@/api/hooks.md#aftercut)
+  - [`afterPaste`](@/api/hooks.md#afterpaste)
+  - [`beforeCopy`](@/api/hooks.md#beforecopy)
+  - [`beforeCut`](@/api/hooks.md#beforecut)
+  - [`beforePaste`](@/api/hooks.md#beforepaste)
+  - [`modifyCopyableRange`](@/api/hooks.md#modifycopyablerange)
+- Plugins:
+  - [`CopyPaste`](@/api/copyPaste.md)

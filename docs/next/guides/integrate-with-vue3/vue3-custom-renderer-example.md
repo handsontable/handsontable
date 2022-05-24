@@ -13,7 +13,7 @@ canonicalUrl: /vue3-custom-renderer-example
 
 You can declare a custom renderer for the `HotTable` component by declaring it as a function in the Handsontable options or creating a rendering component.
 
-[Find out which Vue 3 versions are supported &#8594;](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
+[Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
 ## Example - Declaring a renderer as a function
 
@@ -82,3 +82,31 @@ const app = createApp({
 app.mount('#example1');
 ```
 :::
+
+## Related articles
+
+### Related guides
+
+- [Cell renderer](@/guides/cell-functions/cell-renderer.md)
+
+### Related API reference
+
+- APIs:
+  - [`BasePlugin`](@/api/basePlugin.md)
+- Configuration options:
+  - [`renderer`](@/api/options.md#renderer)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
+  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
+- Hooks:
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
+  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
+  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)

@@ -27,7 +27,7 @@ To properly display RTL languages, configure Handsontable's [layout direction](@
 
 ## Loading the prepared language files
 
-To properly use the internationalization feature, you'll need to load the language sets. It's important that they're included after the Handsontable files. You can do it by getting the necessary files created with the [UMD standard](https://github.com/umdjs/umd):
+To properly use the internationalization feature, you'll need to load the language sets. It's important that they're included after the Handsontable files. You can do it by getting the necessary files created with the UMD standard:
 
 1. **ES modules (ESM)**
   ```js
@@ -138,7 +138,7 @@ You can create custom language sets for your implementations, or share them, as 
 
 It's really important for us, that the community is a important part of the growth of our library. We encourage you to create and share your translations!
 
-Additional languages files should be placed in the `src/i18n/languages` folder of the [Handsontable](https://github.com/handsontable/handsontable) repository with name corresponding to the chosen language code (described below, for example: `es-VE.js`). You can incorporate your translations to the Handsontable library by sending us a [pull request](@/guides/building-and-testing/building.md). It's important, that your changes are not made to the `/languages` and `/dist/languages` directories! Our release master will generate files which will be placed there in the building process. After that, you will be able to use the languages in `Handsontable`.
+Additional languages files should be placed in the `src/i18n/languages` folder of the Handsontable repository with name corresponding to the chosen language code (described below, for example: `es-VE.js`). You can incorporate your translations to the Handsontable library by sending us a [pull request](@/guides/building-and-testing/building.md). It's important, that your changes are not made to the `/languages` and `/dist/languages` directories! Our release master will generate files which will be placed there in the building process. After that, you will be able to use the languages in `Handsontable`.
 
 You can see a full template of a sample language at the bottom of this paragraph. We're basing it on our [default language pack](https://github.com/handsontable/handsontable/tree/master/src/i18n/languages/en-US.js). Parts of the file creation process are described below.
 
@@ -276,3 +276,26 @@ Returns: `Object`
 Handsontable.languages.dictionaryKeys
 
 Contains: `Object`
+
+## Related articles
+
+### Related guides
+
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Locale](@/guides/internationalization/locale.md)
+- [IME support](@/guides/internationalization/ime-support.md)
+
+### Related API reference
+
+- Configuration options:
+  - [`language`](@/api/options.md#language)
+  - [`layoutDirection`](@/api/options.md#layoutdirection)
+  - [`locale`](@/api/options.md#locale)
+- Core methods:
+  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
+  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
+  - [`isLtr()`](@/api/core.md#isltr)
+  - [`isRtl()`](@/api/core.md#isrtl)
+- Hooks:
+  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
+  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)

@@ -20,7 +20,7 @@ tags:
 
 ## Overview
 
-By default, the column width adjusts to the width of the content. However, if the width of the column content is less than `50px`, including `1px` for borders on the sides, the column width remains constant at `50px`. The column size can be passed as a `constant`, an `array` or a `function`.
+By default, the column width adjusts to the width of the content. However, if the width of the content is less than `50px`, including `1px` for borders on the sides, the column width remains constant at `50px`. The column size can be passed as a constant, an array, or a function.
 
 The content inside a cell will be wrapped if it doesn't fit the cell's width.
 
@@ -91,7 +91,7 @@ const hot3 = new Handsontable(container, {
 
 ## Adjust the column width manually
 
-Set the option `manualColumnResize` to `true` to allow users to manually resize the column width by dragging the handle between the adjacent column headers. If you double-click on that handle, the width will be instantly adjusted to the size of the longest value in the column. Don't forget to enable column headers by setting `colHeaders` to `true`.
+Set the option [`manualColumnResize`](@/api/options.md#manualcolumnresize) to `true` to allow users to manually resize the column width by dragging the handle between the adjacent column headers. If you double-click on that handle, the width will be instantly adjusted to the size of the longest value in the column. Don't forget to enable column headers by setting [`colHeaders`](@/api/options.md#colheaders) to `true`.
 
 You can adjust the size of one or multiple columns simultaneously, even if the selected columns are not placed next to each other.
 
@@ -122,7 +122,7 @@ Use the **context menu** to insert or remove columns. This will help you underst
 
 ### Fit all columns equally
 
-This example fits all columns to the container's width equally by setting the option `stretchH: 'all'`.
+This example fits all columns to the container's width equally by setting the option [`stretchH: 'all'`](@/api/options.md#stretchh).
 
 ::: example #example5
 ```js
@@ -143,7 +143,7 @@ const hot = new Handsontable(container, {
 
 ### Stretch only the last column
 
-In this example, the first three columns are set to be 80px wide, and the last column automatically fills the remaining space. This is achieved by setting the option `stretchH: 'last'`.
+In this example, the first three columns are set to be 80px wide, and the last column automatically fills the remaining space. This is achieved by setting the option [`stretchH: 'last'`](@/api/options.md#stretchh).
 
 ::: example #example6
 ```js
@@ -174,3 +174,22 @@ To increase the performance, you can turn off this feature by defining the fixed
 ## Size of the container
 
 Setting the dimensions of the container that holds Handsontable is described in detail on the [Grid Size](@/guides/getting-started/grid-size.md) page.
+
+## Related API reference
+
+- Configuration options:
+  - [`autoColumnSize`](@/api/options.md#autocolumnsize)
+  - [`colWidths`](@/api/options.md#colwidths)
+  - [`manualColumnResize`](@/api/options.md#manualcolumnresize)
+  - [`stretchH`](@/api/options.md#stretchh)
+- Core methods:
+  - [`getColWidth()`](@/api/core.md#getcolwidth)
+- Hooks:
+  - [`afterColumnResize`](@/api/hooks.md#aftercolumnresize)
+  - [`beforeColumnResize`](@/api/hooks.md#beforecolumnresize)
+  - [`beforeStretchingColumnWidth`](@/api/hooks.md#beforestretchingcolumnwidth)
+  - [`modifyAutoColumnSizeSeed`](@/api/hooks.md#modifyautocolumnsizeseed)
+  - [`modifyColWidth`](@/api/hooks.md#modifycolwidth)
+- Plugins:
+  - [`AutoColumnSize`](@/api/autoColumnSize.md)
+  - [`ManualColumnResize`](@/api/manualColumnResize.md)

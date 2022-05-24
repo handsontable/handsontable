@@ -58,3 +58,8 @@ All the information about the API and additional options can be found at our [of
 ## Custom distribution
 
 If you want to build your own custom Handsontable package distribution check out our [guide](@/guides/building-and-testing/building.md) covering all the details.
+
+## Related guides
+
+- [Building](@/guides/building-and-testing/building.md)
+- [Testing](@/guides/building-and-testing/testing.md)

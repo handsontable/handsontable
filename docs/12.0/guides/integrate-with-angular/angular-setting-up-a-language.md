@@ -7,7 +7,10 @@ canonicalUrl: /angular-setting-up-a-language
 
 # Setting up a translation in Angular
 
+[[toc]]
+
 ## Overview
+
 The following example shows a Handsontable instance with translations set up in Angular.
 
 ## Example
@@ -99,3 +102,26 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
 :::
+
+## Related articles
+
+### Related guides
+
+- [Language](@/guides/internationalization/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Locale](@/guides/internationalization/locale.md)
+
+### Related API reference
+
+- Configuration options:
+  - [`language`](@/api/options.md#language)
+  - [`layoutDirection`](@/api/options.md#layoutdirection)
+  - [`locale`](@/api/options.md#locale)
+- Core methods:
+  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
+  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
+  - [`isLtr()`](@/api/core.md#isltr)
+  - [`isRtl()`](@/api/core.md#isrtl)
+- Hooks:
+  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
+  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)
