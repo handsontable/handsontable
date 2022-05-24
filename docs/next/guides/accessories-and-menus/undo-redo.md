@@ -19,11 +19,11 @@ tags:
 
 ## Overview
 
-This feature allows you to revert changes made in the data grid. It is very useful in a normal day-to-day routine, especially when the change is unintentional. This feature stacks the changes made with the user interface of the grid. Modifications done programatically are ommitted.
+This feature allows you to revert changes made in the data grid. It is very useful in a normal day-to-day routine, especially when the change is unintentional. This feature stacks the changes made with the user interface of the grid. Modifications done programmatically are omitted.
 
-The basic methods are `undo()` and `redo()`. The `undo()` method rolls back the last performed action, and the `redo()` method restores it.
+The basic methods are [`undo()`](@/api/undoRedo.md#undo) and [`redo()`](@/api/undoRedo.md#redo). The [`undo()`](@/api/undoRedo.md#undo) method rolls back the last performed action, and the [`redo()`](@/api/undoRedo.md#redo) method restores it.
 
-This feature is provided by the `undoRedo` plugin, and is enabled by default.
+This feature is provided by the [`UndoRedo`](@/api/undoRedo.md) plugin, and is enabled by default.
 
 :::tip
 Not all user-triggered actions are covered by this feature. See the below list of actions that won't be added to the history of changes:
@@ -60,3 +60,25 @@ const hot = new Handsontable(container, {
 | <kbd>**Ctrl**</kbd> + <kbd>**Z**</kbd>                        | <kbd>**Cmd**</kbd> + <kbd>**Z**</kbd>                        | Undo the last action | &check; | &check; |
 | <kbd>**Ctrl**</kbd> + <kbd>**Y**</kbd>                        | <kbd>**Cmd**</kbd> + <kbd>**Y**</kbd>                        | Redo the last action | &check; | &check; |
 | <kbd>**Ctrl**</kbd> + <kbd>**Shift**</kbd> + <kbd>**Z**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**Z**</kbd> | Redo the last action | &check; | &check; |
+
+## Related API reference
+
+- Configuration options:
+  - [`undo`](@/api/options.md#undo)
+- Core methods:
+  - [`clearUndo()`](@/api/core.md#clearundo)
+  - [`isRedoAvailable()`](@/api/core.md#isredoavailable)
+  - [`isUndoAvailable()`](@/api/core.md#isundoavailable)
+  - [`redo()`](@/api/core.md#redo)
+  - [`undo()`](@/api/core.md#undo)
+- Hooks:
+  - [`afterRedo`](@/api/hooks.md#afterredo)
+  - [`afterRedoStackChange`](@/api/hooks.md#afterredostackchange)
+  - [`afterUndo`](@/api/hooks.md#afterundo)
+  - [`afterUndoStackChange`](@/api/hooks.md#afterundostackchange)
+  - [`beforeRedo`](@/api/hooks.md#beforeredo)
+  - [`beforeRedoStackChange`](@/api/hooks.md#beforeredostackchange)
+  - [`beforeUndo`](@/api/hooks.md#beforeundo)
+  - [`beforeUndoStackChange`](@/api/hooks.md#beforeundostackchange)
+- Plugins:
+  - [`UndoRedo`](@/api/undoRedo.md)

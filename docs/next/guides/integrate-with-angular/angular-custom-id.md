@@ -7,7 +7,10 @@ canonicalUrl: /angular-custom-id
 
 # Custom ID in Angular
 
+[[toc]]
+
 ## Overview
+
 A custom `id` can be passed in together with other attributes to the `hot-table` wrapper element. It will be applied to the root Handsontable element, allowing further customization of the table.
 
 ## Example
@@ -66,3 +69,4 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
 :::
+

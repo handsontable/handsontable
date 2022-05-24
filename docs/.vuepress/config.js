@@ -55,6 +55,10 @@ module.exports = {
       includeLevel: [2, 3],
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
+    externalLinks: {
+      target: '_blank',
+      rel: 'nofollow noopener noreferrer'
+    },
   },
   plugins: [
     extendPageDataPlugin,
