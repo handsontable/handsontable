@@ -41,7 +41,7 @@ Manually defining those functions for cells or columns would be tedious, so to s
 
 ## Cell functions getters
 
-If, for some reason, you have to get the `renderer`, `editor` or `validator` function of specific cell you can use standard `getCellMeta(row, col)` method to get all properties of particular cell and then refer to cell functions like so:
+If, for some reason, you have to get the `renderer`, `editor` or `validator` function of specific cell you can use standard [`getCellMeta()`](@/api/core.md#getcellmeta) method to get all properties of particular cell and then refer to cell functions like so:
 
 ```js
 const container = document.querySelector('#container');
@@ -54,7 +54,7 @@ cellProperties.editor; // get cell editor
 cellProperties.validator; // get cell validator
 ```
 
-However, you have to remember that `getCellMeta()` return cell properties "as they are", which means that if you use cell type to set cell functions, instead of defining functions directly those cell functions will be `undefined`:
+However, you have to remember that [`getCellMeta()`](@/api/core.md#getcellmeta) return cell properties "as they are", which means that if you use cell type to set cell functions, instead of defining functions directly those cell functions will be `undefined`:
 
 ```js
 const container = document.querySelector('#container');
@@ -76,8 +76,47 @@ cellProperties.type; // "numeric"
 
 To get the actual cell function use appropriate _cell function getter_:
 
-* `getCellRenderer(row, col)`
-* `getCellEditor(row, col)`
-* `getCellValidator(row, col)`
+* [`getCellRenderer(row, col)`](@/api/core.md#getcellrenderer)
+* [`getCellEditor(row, col)`](@/api/core.md#getcelleditor)
+* [`getCellValidator(row, col)`](@/api/core.md#getcellvalidator)
 
 Those functions will always return an appropriate value, regardless of whether cell functions have been defined directly or using a cell type.
+
+## Related articles
+
+### Related guides
+
+- [Cell editor](@/guides/cell-functions/cell-editor.md)
+- [Cell renderer](@/guides/cell-functions/cell-renderer.md)
+- [Cell validator](@/guides/cell-functions/cell-validator.md)
+- [Cell type](@/guides/cell-types/cell-type.md)
+
+### Related API reference
+
+- Configuration options:
+  - [`editor`](@/api/options.md#editor)
+  - [`renderer`](@/api/options.md#renderer)
+  - [`type`](@/api/options.md#type)
+  - [`validator`](@/api/options.md#validator)
+- Core methods:
+  - [`destroyEditor()`](@/api/core.md#destroyeditor)
+  - [`getActiveEditor()`](@/api/core.md#getactiveeditor)
+  - [`getCellEditor()`](@/api/core.md#getcelleditor)
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
+  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
+  - [`getCellValidator()`](@/api/core.md#getcellvalidator)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
+- Hooks:
+  - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
+  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
+  - [`afterValidate`](@/api/hooks.md#aftervalidate)
+  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)
+  - [`beforeValidate`](@/api/hooks.md#beforevalidate)

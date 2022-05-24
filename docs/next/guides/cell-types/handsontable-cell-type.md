@@ -7,6 +7,8 @@ canonicalUrl: /handsontable-cell-type
 
 # Handsontable cell type
 
+[[toc]]
+
 ## Overview
 
 This page describes how to use Handsontable as a cell editor in Handsontable.
@@ -24,8 +26,8 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 **Keyboard bindings while the HOT-in-HOT is opened:**
 
 * <kbd>**Escape**</kbd> - close editor and cancel change.
-* <kbd>**Enter**</kbd> - close editor and apply change\*, move the selection in the main HOT downwards or according to the `enterMoves` setting.
-* <kbd>**Tab**</kbd> - behaves as the <kbd>**Enter**</kbd> key, but move the selection in the main HOT to the right or to the left (depending on your [`layoutDirection`](@/api/options.md#layoutdirection) setting) or according to the `tabMoves` setting.
+* <kbd>**Enter**</kbd> - close editor and apply change\*, move the selection in the main HOT downwards or according to the [`enterMoves`](@/api/options.md#enterMoves) setting.
+* <kbd>**Tab**</kbd> - behaves as the <kbd>**Enter**</kbd> key, but move the selection in the main HOT to the right or to the left (depending on your [`layoutDirection`](@/api/options.md#layoutdirection) setting) or according to the [`tabMoves`](@/api/options.md#tabmoves)setting.
 * <kbd>**Arrow Down**</kbd> - move the selection in HOT-in-HOT downwards. If the last row was selected, this has no effect.
 * <kbd>**Arrow Up**</kbd> - move the selection in HOT-in-HOT upwards. If the first row was selected, deselect. If HOT-in-HOT was deselected, behave as the <kbd>**Enter**</kbd> key but move the selection in the main HOT upwards.
 * <kbd>**Arrow Right**</kbd> - move the text cursor in the text field to the left. If the text cursor was at the start position, behave as the <kbd>**Enter**</kbd> key but move the selection in the main HOT to the left.
@@ -90,3 +92,27 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related articles
+
+### Related guides
+
+- [Cell type](@/guides/cell-types/cell-type.md)
+
+### Related API reference
+
+- Configuration options:
+  - [`type`](@/api/options.md#type)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
+  - [`getDataType()`](@/api/core.md#getdatatype)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
+- Hooks:
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
