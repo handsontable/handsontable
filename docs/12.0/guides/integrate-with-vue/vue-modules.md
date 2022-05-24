@@ -18,6 +18,7 @@ To reduce the size of your app, you can use Handsontable by importing individual
 To use modules with Handsontable's [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation.md), follow the steps below:
 
 ### Step 1: Import the `handsontable/base` module
+
 In the entry point file of your application, import the `handsontable/base` module:
   ```js
   // your `main.js` file
@@ -29,6 +30,7 @@ In the entry point file of your application, import the `handsontable/base` modu
   ```
 
 ### Step 2: Import modules and their registering functions
+
 Import the modules that you want to use (for the full list of Handsontable modules, see the [modules cheatsheet](@/guides/building-and-testing/modules.md#modules-cheatsheet)).
 
 Also, import those modules' registering functions.
@@ -54,7 +56,8 @@ For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) ce
   ```
 
 ### Step 3: Register the modules
-Register your modules, using the registering functions that you imported (for the full list of Handsontable's registering functions, see the see the [modules cheatsheet](@/guides/building-and-testing/modules.md#modules-cheatsheet)):
+
+Register your modules, using the registering functions that you imported (for the full list of Handsontable's registering functions, see the see the modules cheatsheet):
   ```js
   import Vue from 'vue';
   import App from './App.vue';
@@ -83,3 +86,8 @@ Register your modules, using the registering functions that you imported (for th
     render: h => h(App),
   }).$mount('#app');
   ```
+
+## Related guides
+
+- [Modules](@/guides/building-and-testing/modules.md)
+- [Performance](@/guides/advanced-topics/performance.md)

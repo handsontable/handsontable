@@ -22,7 +22,7 @@ Learn how Handsontable works and what you can do with it, through:
 
 Explore Handsontable's features and source code:
 
-- [Demo &#8594;](@/guides/getting-started/demo.md)
+- [Demo](@/guides/getting-started/demo.md)
 
 ## Guides for your framework
 
@@ -51,7 +51,7 @@ Explore Handsontable's features and source code:
 
 ## What's new
 
-- [Release notes &#8594;](@/guides/upgrade-and-migration/release-notes.md)
+- [Release notes](@/guides/upgrade-and-migration/release-notes.md)
 - [Blog](https://handsontable.com/blog)
 - [Twitter](https://twitter.com/handsontable)
 

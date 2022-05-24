@@ -26,15 +26,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
-      # ------------
-      # Temporary solution for a problem with installing the examples' dependencies.
-      # See: https://github.com/npm/cli/issues/4774
-
-      - name: (Temporary) Install npm@8.4
-        run: npm i -g npm@8.4
-      # ------------
-
       - name: Install the dependencies
         run: npm ci
       - name: Build all packages

@@ -22,7 +22,7 @@ export const createContext = (name) => {
   });
 
   /**
-   * Add a keyboard shortcut to this `ShortcutContext`.
+   * Add a keyboard shortcut to this context.
    *
    * @memberof ShortcutContext#
    * @param {object} options The shortcut's options

@@ -7,6 +7,8 @@ canonicalUrl: /react-setting-up-a-language
 
 # Setting up a translation in React
 
+[[toc]]
+
 ## Overview
 
 The following example shows a Handsontable instance with translations set up in React.
@@ -91,3 +93,26 @@ const App = () => {
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
 :::
+
+## Related articles
+
+### Related guides
+
+- [Language](@/guides/internationalization/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Locale](@/guides/internationalization/locale.md)
+
+### Related API reference
+
+- Configuration options:
+  - [`language`](@/api/options.md#language)
+  - [`layoutDirection`](@/api/options.md#layoutdirection)
+  - [`locale`](@/api/options.md#locale)
+- Core methods:
+  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
+  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
+  - [`isLtr()`](@/api/core.md#isltr)
+  - [`isRtl()`](@/api/core.md#isrtl)
+- Hooks:
+  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
+  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)
