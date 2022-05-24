@@ -30,9 +30,31 @@ const {
 const { testCases } = require('./testCases');
 
 const [cliVersion] = process.argv.slice(2);
+/**
+ * Port to serve the static docs pages under.
+ *
+ * @type {number}
+ */
 const PORT = 8088;
+
+/**
+ * Timeout for the http server to serve all the documentation files.
+ *
+ * @type {number}
+ */
 const FILE_SERVE_TIMEOUT = 300;
+
+/**
+ * Timout for the examples to get initialized after loading the page.
+ * @type {number}
+ */
 const EXAMPLE_INIT_TIMEOUT = 300;
+
+/**
+ * Number of tries to perform if the number of the rendered examples differs from the expected count.
+ * @type {number}
+ */
+const CHECK_TRIES = 2;
 
 (async() => {
   if (cliVersion !== 'next' && !semver.valid(`${cliVersion}.0`)) {
@@ -75,9 +97,12 @@ const EXAMPLE_INIT_TIMEOUT = 300;
 
       for (let testIndex = 0; testIndex < testCases.length; testIndex++) {
         let pageEvaluation = await page.evaluate(testCases[testIndex]);
+        let tryCount = 0;
 
         // If the test fails, do another try after a timeout (some instances might have not been initialized yet).
-        if (!pageEvaluation.result) {
+        while (!pageEvaluation.result && tryCount < CHECK_TRIES) {
+          tryCount++;
+
           // Wait for the HOT instances to initialize.
           await sleep(EXAMPLE_INIT_TIMEOUT);
 
