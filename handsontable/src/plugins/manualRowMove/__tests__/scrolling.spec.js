@@ -13,7 +13,7 @@ describe('manualRowMove', () => {
   });
 
   describe('scrolling', () => {
-    it('should move the viewport down when the next mouse-overed element is below the table', () => {
+    it('should move the table\'s viewport down when the next mouse-overed element is below the table', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -45,7 +45,7 @@ describe('manualRowMove', () => {
       expect(getMaster().find('.wtHolder').scrollTop()).toBe(20);
     });
 
-    it('should move the viewport down when the next mouse-overed element is a row that belongs to ' +
+    it('should move the table\'s viewport down when the next mouse-overed element is a row that belongs to ' +
        'the bottom overlay', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
@@ -78,7 +78,7 @@ describe('manualRowMove', () => {
       expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(0);
     });
 
-    it('should move the viewport down when the next mouse-overed element is a row that belongs to ' +
+    it('should move the table\'s viewport down when the next mouse-overed element is a row that belongs to ' +
        'the bottom overlay (with hidden rows)', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
@@ -114,7 +114,7 @@ describe('manualRowMove', () => {
       expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(0);
     });
 
-    it('should not move the viewport when the next mouse-overed element is the last row that belongs ' +
+    it('should not move the table\'s viewport when the next mouse-overed element is the last row that belongs ' +
        'to the main table and there are some bottom overlay rows', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
@@ -147,7 +147,7 @@ describe('manualRowMove', () => {
       expect(getMaster().find('.wtHolder').scrollTop()).toBe(0);
     });
 
-    it('should move the viewport up when the next mouse-overed element is above the table', async() => {
+    it('should move the table\'s viewport up when the next mouse-overed element is above the table', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -183,7 +183,7 @@ describe('manualRowMove', () => {
       expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(105);
     });
 
-    it('should move the viewport up when the next mouse-overed element is a row that belongs to ' +
+    it('should move the table\'s viewport up when the next mouse-overed element is a row that belongs to ' +
        'the top overlay', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
@@ -220,7 +220,7 @@ describe('manualRowMove', () => {
       expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(100);
     });
 
-    it('should move the viewport up when the next mouse-overed element is a row that belongs to ' +
+    it('should move the table\'s viewport up when the next mouse-overed element is a row that belongs to ' +
        'the top overlay (with hidden rows)', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
@@ -260,7 +260,7 @@ describe('manualRowMove', () => {
       expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(100);
     });
 
-    it('should not move the viewport when the next mouse-overed element is the first row that belongs ' +
+    it('should not move the table\'s viewport when the next mouse-overed element is the first row that belongs ' +
        'to the main table and there are some top overlay rows', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
@@ -286,7 +286,7 @@ describe('manualRowMove', () => {
         .simulate('mouseup')
         .simulate('mousedown', {
           clientY: rowHeader.offset().top,
-        })
+        });
       nextRowHeader
         .simulate('mouseover')
         .simulate('mousemove', {

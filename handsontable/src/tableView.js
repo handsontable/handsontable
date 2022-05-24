@@ -1265,7 +1265,7 @@ class TableView {
   }
 
   /**
-   * Returns the first fully visible row in the table viewport.
+   * Returns the first fully visible column in the table viewport.
    *
    * @returns {number}
    */
@@ -1275,7 +1275,7 @@ class TableView {
   }
 
   /**
-   * Returns the last fully visible row in the table viewport.
+   * Returns the last fully visible column in the table viewport.
    *
    * @returns {number}
    */

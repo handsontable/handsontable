@@ -475,12 +475,6 @@ export class ManualRowMove extends BasePlugin {
       guidelineTop = hiderHeight - 1;
     }
 
-    let topOverlayHeight = 0;
-
-    if (this.hot.view._wt.wtOverlays.topOverlay) {
-      topOverlayHeight = this.hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE.offsetHeight;
-    }
-
     this.backlight.setPosition(backlightTop);
     this.guideline.setPosition(guidelineTop);
   }
