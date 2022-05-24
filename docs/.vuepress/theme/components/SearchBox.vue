@@ -287,7 +287,7 @@ export default {
     },
 
     isSearchable(page) {
-      return page.normalizedPath.startsWith(`/${this.$page.currentVersion}/`);
+      return page.isSearchable === true && page.normalizedPath.startsWith(`/${this.$page.currentVersion}/`);
     },
 
     onHotkey(event) {

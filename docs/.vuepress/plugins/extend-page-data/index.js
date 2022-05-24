@@ -1,6 +1,7 @@
 const {
   getSidebars,
   getLatestVersion,
+  getNormalizedPath,
   parseVersion,
   parseFramework,
   getEnvDocsFramework,
@@ -10,7 +11,7 @@ const {
   isEnvDev,
   getDefaultFramework,
   FRAMEWORK_SUFFIX,
-  TMP_DIR_FOR_WATCH,
+  getNotSearchableLinks,
 } = require('../../helpers');
 const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
 
@@ -22,6 +23,7 @@ const DOCS_FRAMEWORK = getEnvDocsFramework();
 
 collectAllUrls();
 
+const notSearchableLinks = getNotSearchableLinks(buildMode);
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const twoDigitDay = date.getDate();
@@ -46,8 +48,7 @@ module.exports = (options, context) => {
     extendPageData($page) {
       $page.DOCS_VERSION = DOCS_VERSION;
       $page.DOCS_FRAMEWORK = DOCS_FRAMEWORK;
-      $page.normalizedPath = isEnvDev() ?
-        $page.path.replace(new RegExp(`^/?${TMP_DIR_FOR_WATCH}`), '') : $page.path;
+      $page.normalizedPath = getNormalizedPath($page.path);
       $page.frameworkedVersions = getDocsFrameworkedVersions(buildMode);
       $page.nonFrameworkedVersions = getDocsNonFrameworkedVersions(buildMode);
       $page.latestVersion = getLatestVersion();
@@ -59,6 +60,9 @@ module.exports = (options, context) => {
       $page.isFrameworked = getDocsFrameworkedVersions(buildMode).includes($page.currentVersion);
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
+      $page.isSearchable = notSearchableLinks[$page.currentVersion]?.every((notSearchableLink) => {
+        return $page.normalizedPath.includes(notSearchableLink) === false;
+      });
 
       const isFrameworked = $page.isFrameworked;
       const buildingSingleVersion = DOCS_VERSION !== void 0 && (DOCS_FRAMEWORK !== void 0 || DOCS_FRAMEWORK === void 0
