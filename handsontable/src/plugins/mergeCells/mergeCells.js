@@ -768,9 +768,9 @@ export class MergeCells extends BasePlugin {
       const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.
 
       // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
-      mergedCellCopy.row = rowMapper.getFirstNotHiddenIndex(mergedCellCopy.row, 1);
+      mergedCellCopy.row = rowMapper.getNearestNotHiddenIndex(mergedCellCopy.row, 1);
       // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
-      mergedCellCopy.col = columnMapper.getFirstNotHiddenIndex(mergedCellCopy.col, 1);
+      mergedCellCopy.col = columnMapper.getNearestNotHiddenIndex(mergedCellCopy.col, 1);
       // The `rowSpan` property for a `TD` element should be at most equal to number of rendered rows in the merge area.
       mergedCellCopy.rowspan = Math.min(mergedCellCopy.rowspan, maxRowSpan);
       // The `colSpan` property for a `TD` element should be at most equal to number of rendered columns in the merge area.
@@ -888,7 +888,7 @@ export class MergeCells extends BasePlugin {
 
       if (isObject(mergeParentForViewportStart)) {
         const renderableIndexAtMergeStart = rowMapper.getRenderableFromVisualIndex(
-          rowMapper.getFirstNotHiddenIndex(mergeParentForViewportStart.row, 1));
+          rowMapper.getNearestNotHiddenIndex(mergeParentForViewportStart.row, 1));
 
         // Merge start is out of the viewport (i.e. when we scrolled to the bottom and we can see just part of a merge).
         if (renderableIndexAtMergeStart < calc.startRow) {
@@ -920,7 +920,7 @@ export class MergeCells extends BasePlugin {
       if (isObject(mergeParentForViewportEnd)) {
         const mergeEnd = mergeParentForViewportEnd.row + mergeParentForViewportEnd.rowspan - 1;
         const renderableIndexAtMergeEnd = rowMapper.getRenderableFromVisualIndex(
-          rowMapper.getFirstNotHiddenIndex(mergeEnd, -1));
+          rowMapper.getNearestNotHiddenIndex(mergeEnd, -1));
 
         // Merge end is out of the viewport.
         if (renderableIndexAtMergeEnd > calc.endRow) {
@@ -964,7 +964,7 @@ export class MergeCells extends BasePlugin {
 
       if (isObject(mergeParentForViewportStart)) {
         const renderableIndexAtMergeStart = columnMapper.getRenderableFromVisualIndex(
-          columnMapper.getFirstNotHiddenIndex(mergeParentForViewportStart.col, 1));
+          columnMapper.getNearestNotHiddenIndex(mergeParentForViewportStart.col, 1));
 
         // Merge start is out of the viewport (i.e. when we scrolled to the right and we can see just part of a merge).
         if (renderableIndexAtMergeStart < calc.startColumn) {
@@ -996,7 +996,7 @@ export class MergeCells extends BasePlugin {
       if (isObject(mergeParentForViewportEnd)) {
         const mergeEnd = mergeParentForViewportEnd.col + mergeParentForViewportEnd.colspan - 1;
         const renderableIndexAtMergeEnd = columnMapper.getRenderableFromVisualIndex(
-          columnMapper.getFirstNotHiddenIndex(mergeEnd, -1));
+          columnMapper.getNearestNotHiddenIndex(mergeEnd, -1));
 
         // Merge end is out of the viewport.
         if (renderableIndexAtMergeEnd > calc.endColumn) {
@@ -1033,15 +1033,15 @@ export class MergeCells extends BasePlugin {
     let firstNonHiddenColumn;
 
     if (rowspan === 0) {
-      firstNonHiddenRow = rowMapper.getFirstNotHiddenIndex(parentRow, 1);
+      firstNonHiddenRow = rowMapper.getNearestNotHiddenIndex(parentRow, 1);
     } else {
-      firstNonHiddenRow = rowMapper.getFirstNotHiddenIndex(parentRow + rowspan - 1, -1);
+      firstNonHiddenRow = rowMapper.getNearestNotHiddenIndex(parentRow + rowspan - 1, -1);
     }
 
     if (colspan === 0) {
-      firstNonHiddenColumn = columnMapper.getFirstNotHiddenIndex(parentColumn, 1);
+      firstNonHiddenColumn = columnMapper.getNearestNotHiddenIndex(parentColumn, 1);
     } else {
-      firstNonHiddenColumn = columnMapper.getFirstNotHiddenIndex(parentColumn + colspan - 1, -1);
+      firstNonHiddenColumn = columnMapper.getNearestNotHiddenIndex(parentColumn + colspan - 1, -1);
     }
 
     const renderableRow = parentRow >= 0 ?
