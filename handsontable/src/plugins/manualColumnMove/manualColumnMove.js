@@ -407,8 +407,13 @@ export class ManualColumnMove extends BasePlugin {
    */
   refreshPositions() {
     const priv = privatePool.get(this);
-    const firstVisible = this.hot.view._wt.wtTable.getFirstVisibleColumn();
-    const lastVisible = this.hot.view._wt.wtTable.getLastVisibleColumn();
+    const firstVisible = this.hot.view.getFirstFullyVisibleColumn();
+
+    if (this.isFixedColumnsStart(priv.hoveredColumn) && firstVisible > 0) {
+      this.hot.scrollViewportTo(
+        void 0, this.hot.columnIndexMapper.getFirstNotHiddenIndex(firstVisible - 1, -1));
+    }
+
     const wtTable = this.hot.view._wt.wtTable;
     const scrollableElement = this.hot.view._wt.wtOverlays.scrollableElement;
     const scrollStart = typeof scrollableElement.scrollX === 'number' ?
@@ -460,21 +465,9 @@ export class ManualColumnMove extends BasePlugin {
       // unfortunately first column is bigger than rest
       tdOffsetStart += priv.target.TD.offsetWidth;
 
-      if (priv.target.col > lastVisible && lastVisible < priv.countCols) {
-        this.hot.scrollViewportTo(void 0, lastVisible + 1, void 0, true);
-      }
-
     } else {
       // elsewhere on table
       priv.target.col = priv.hoveredColumn;
-
-      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumnsStart && firstVisible > 0) {
-        this.hot.scrollViewportTo(void 0, firstVisible - 1);
-      }
-    }
-
-    if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumnsStart && firstVisible > 0) {
-      this.hot.scrollViewportTo(void 0, firstVisible - 1);
     }
 
     let backlightStart = mouseOffsetStart;
