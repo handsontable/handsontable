@@ -14,7 +14,7 @@ The `'date'` cell type is used to display a date in a cell or column.
 
 ## Usage
 
-To trigger the date cell type, use the option `type: 'date'` in the `columns` array or `cells` function. The date cell uses [Pikaday datepicker](https://github.com/dbushell/Pikaday) as the UI control. Pikaday uses [Moment.js](https://github.com/moment/moment) as a date formatter.
+To trigger the date cell type, use the option `type: 'date'` in the [`columns`](@/api/options.md#columns) array or [`cells`](@/api/options.md#cells) function. The date cell uses [Pikaday datepicker](https://github.com/dbushell/Pikaday) as the UI control. Pikaday uses [Moment.js](https://github.com/moment/moment) as a date formatter.
 
 Note that date cell requires additional modules :
 
@@ -109,3 +109,31 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related articles
+
+### Related guides
+
+- [Cell type](@/guides/cell-types/cell-type.md)
+
+### Related API reference
+
+- Configuration options:
+  - [`correctFormat`](@/api/options.md#correctformat)
+  - [`dateFormat`](@/api/options.md#dateformat)
+  - [`datePickerConfig`](@/api/options.md#datepickerconfig)
+  - [`defaultDate`](@/api/options.md#defaultdate)
+  - [`type`](@/api/options.md#type)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
+  - [`getDataType()`](@/api/core.md#getdatatype)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
+- Hooks:
+    - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+    - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
+    - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+    - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

@@ -18,7 +18,7 @@ Rows can be pre-populated with template values using cell renderers.
 
 ## Example
 
-The example below shows how cell renderers can be used to populate the template values in empty rows. When a cell in the empty row is edited, the `beforeChange` callback fills the row with the template values.
+The example below shows how cell renderers can be used to populate the template values in empty rows. When a cell in the empty row is edited, the [`beforeChange`](@/api/hooks.md#beforechange) callback fills the row with the template values.
 
 ::: example #example1
 ```js
@@ -105,3 +105,8 @@ const hot = new Handsontable(container, {
 hot.loadData(data);
 ```
 :::
+
+## Related API reference
+
+- Hooks:
+  - [`beforeChange`](@/api/hooks.md#beforechange)

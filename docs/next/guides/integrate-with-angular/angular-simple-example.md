@@ -7,10 +7,14 @@ canonicalUrl: /angular-simple-example
 
 # Basic example in Angular
 
+[[toc]]
+
 ## Overview
+
 The following example is a basic implementation of the `@handsontable/angular` wrapper.
 
 ## Example
+
 ::: example :angular --html 1 --js 2
 ```html
 <app-root></app-root>

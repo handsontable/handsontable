@@ -25,11 +25,11 @@ Use <kbd>**Cmd**</kbd> on Mac or <kbd>**Ctrl**</kbd> on Windows to select non-ad
 
 There are different modes in which you can use this plugin. Choose between selecting a single cell, a range of adjacent cells, and multiple non-adjacent ranges of cells.
 
-Possible values of `selectionMode`:
+Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
-- `single` - A single cell can be selected.
-- `range` - Multiple cells within a single range can be selected.
-- `multiple` - Multiple non-adjacent ranges of cells can be selected.
+- [`single`](@/api/options.md#selectionmode) - A single cell can be selected.
+- [`range`](@/api/options.md#selectionmode) - Multiple cells within a single range can be selected.
+- [`multiple`](@/api/options.md#selectionmode) - Multiple non-contiguous ranges of cells can be selected.
 
 ::: example #example1 --html 1 --js 2
 ```html
@@ -71,7 +71,7 @@ selectOption.addEventListener('change', event => {
 
 ## Getting data from the selected ranges
 
-To retrieve the selected cells as an array of arrays, you should use the `getSelected()` or `getSelectedRange()` methods.
+To retrieve the selected cells as an array of arrays, you use the [`getSelected()`](@/api/core.md#getselected) or [`getSelectedRange()`](@/api/core.md#getselectedrange) methods.
 
 ::: example #example2 --css 2 --html 1 --js 3
 ```html
@@ -208,7 +208,7 @@ When you use keyboard navigation, and you cross an edge of the grid, you can set
 #### Jumping across vertical edges
 
 To enable jumping across the left and right edges:
-- Set the [`autoWrapRow` configuration option](@/api/options.md#autowraprow) to `true`.
+- Set the [`autoWrapRow`](@/api/options.md#autowraprow) configuration option to `true`.
 
 To jump across a vertical edge:
 - When cell selection is on a row's first cell, press the left arrow key.
@@ -217,7 +217,7 @@ To jump across a vertical edge:
 #### Jumping across horizontal edges
 
 To enable jumping across the top and bottom edges:
-- Set the [`autoWrapCol` configuration option](@/api/options.md#autowrapcol) to `true`.
+- Set the [`autoWrapCol`](@/api/options.md#autowrapcol) configuration option to `true`.
 
 To jump across a horizontal edge:
 - When cell selection is on a column's first cell, press the up arrow key.
@@ -243,3 +243,37 @@ To jump across a horizontal edge:
 
 <sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction.md).<br>
 <sup>**</sup> In case of multiple selection layers, only the last selection layer gets extended.
+
+## Related API reference
+
+- Configuration options:
+  - [`autoWrapCol`](@/api/options.md#autowrapcol)
+  - [`autoWrapRow`](@/api/options.md#autowraprow)
+  - [`fragmentSelection`](@/api/options.md#fragmentselection)
+  - [`disableVisualSelection`](@/api/options.md#disablevisualselection)
+  - [`dragToScroll`](@/api/options.md#dragtoscroll)
+  - [`selectionMode`](@/api/options.md#selectionmode)
+  - [`outsideClickDeselects`](@/api/options.md#outsideclickdeselects)
+- Core methods:
+  - [`deselectCell()`](@/api/core.md#deselectcell)
+  - [`getSelected()`](@/api/core.md#getselected)
+  - [`getSelectedLast()`](@/api/core.md#getselectedlast)
+  - [`getSelectedRange()`](@/api/core.md#getselectedrange)
+  - [`getSelectedRangeLast()`](@/api/core.md#getselectedrangelast)
+  - [`selectAll()`](@/api/core.md#selectall)
+  - [`selectCell()`](@/api/core.md#selectcell)
+  - [`selectCells()`](@/api/core.md#selectcells)
+  - [`selectColumns()`](@/api/core.md#selectcolumns)
+  - [`selectRows()`](@/api/core.md#selectrows)
+- Hooks:
+  - [`afterDeselect`](@/api/hooks.md#afterdeselect)
+  - [`afterDrawSelection`](@/api/hooks.md#afterdrawselection)
+  - [`afterModifyTransformEnd`](@/api/hooks.md#aftermodifytransformend)
+  - [`afterModifyTransformStart`](@/api/hooks.md#aftermodifytransformstart)
+  - [`afterSelection`](@/api/hooks.md#afterselection)
+  - [`afterSelectionByProp`](@/api/hooks.md#afterselectionbyprop)
+  - [`afterSelectionEnd`](@/api/hooks.md#afterselectionend)
+  - [`afterSelectionEndByProp`](@/api/hooks.md#afterselectionendbyprop)
+  - [`modifyTransformStart`](@/api/hooks.md#modifytransformstart)
+- Plugins:
+  - [`DragToScroll`](@/api/dragToScroll.md)

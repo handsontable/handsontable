@@ -21,7 +21,7 @@ Get an overview of Handsontable's building processes.
 
 ### Monorepo
 
-The [Handsontable repository](https://github.com/handsontable/handsontable) is a [monorepo](https://en.wikipedia.org/wiki/Monorepo) that contains the following projects:
+The Handsontable repository is a monorepo that contains the following projects:
 
 | Project                 | Location             | Description                                                                |
 | ----------------------- | -------------------- | -------------------------------------------------------------------------- |
@@ -61,7 +61,7 @@ Handsontable building processes require:
 
 ### `package.json` files
 
-Each Handsontable [project](#about-building) has its own [building](#building-the-packages) processes defined in its own `package.json` file. Apart from that, the root directory has its own `package.json` file as well:
+Each Handsontable [project](#about-building) has its own building processes defined in its own `package.json` file. Apart from that, the root directory has its own `package.json` file as well:
 
 | File                              | Holds tasks for building:                           |
 | --------------------------------- | --------------------------------------------------- |
@@ -282,3 +282,8 @@ From the `./wrappers/vue3` directory, you can also run individual Vue 3 `build` 
     - `./wrappers/vue3/dist/vue-handsontable.min.js`
     - `./wrappers/vue3/dist/vue-handsontable.min.js.map`
 :::
+
+## Related guides
+
+- [Packages](@/guides/building-and-testing/packages.md)
+- [Testing](@/guides/building-and-testing/testing.md)

@@ -25,7 +25,7 @@ Handsontable's locale settings affect certain actions performed on your data, su
 
 Without a properly-set locale, the above operations can work incorrectly.
 
-You can configure your locale settings, using the [`locale`](@/api/options.md#locale) [configuration option](@/guides/getting-started/setting-options.md).
+You can configure your locale settings, using the [`locale`](@/api/options.md#locale) configuration option.
 
 You can set the [`locale`](@/api/options.md#locale) option to any valid and canonicalized Unicode BCP 47 locale tag. By default, Handsontable's locale is `en-US`.
 
@@ -35,7 +35,7 @@ You can configure the locale setting:
 
 ## Setting the grid's locale
 
-To configure the locale of the entire grid, set the [`locale`](@/api/options.md#locale) [configuration option](@/guides/getting-started/setting-options.md) as a [top-level grid option](@/guides/getting-started/setting-options.md#setting-grid-options):
+To configure the locale of the entire grid, set the [`locale`](@/api/options.md#locale) configuration option as a top-level grid option:
 
 ```js
 const hot = new Handsontable(container, {
@@ -48,7 +48,7 @@ You can set the [`locale`](@/api/options.md#locale) option to any valid and cano
 
 ## Setting a column's locale
 
-To configure the locale of an individual column, set the [`locale`](@/api/options.md#locale) [configuration option](@/guides/getting-started/setting-options.md) as a [mid-level column option](@/guides/getting-started/setting-options.md#setting-column-options):
+To configure the locale of an individual column, set the [`locale`](@/api/options.md#locale) configuration option as a mid-level column option:
 
 ```js
 const hot = new Handsontable(container, {
@@ -68,3 +68,26 @@ const hot = new Handsontable(container, {
   ],
 });
 ```
+
+## Related articles
+
+### Related guides
+
+- [Language](@/guides/internationalization/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [IME support](@/guides/internationalization/ime-support.md)
+
+### Related API reference
+
+- Configuration options:
+  - [`language`](@/api/options.md#language)
+  - [`layoutDirection`](@/api/options.md#layoutdirection)
+  - [`locale`](@/api/options.md#locale)
+- Core methods:
+  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
+  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
+  - [`isLtr()`](@/api/core.md#isltr)
+  - [`isRtl()`](@/api/core.md#isrtl)
+- Hooks:
+  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
+  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)
