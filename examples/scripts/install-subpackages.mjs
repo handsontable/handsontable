@@ -31,7 +31,7 @@ if (!version) {
   }
 
   // Run `npm i` for all the examples in the versioned directory.
-  for (const frameworkPackage of thisPackageJson.workspaces) {
+  for (const frameworkPackage of thisPackageJson.internal.framework_dirs) {
     const frameworkUrls = glob.sync(`${frameworkPackage}`);
 
     for (const frameworkUrl of frameworkUrls) {
