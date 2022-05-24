@@ -94,6 +94,26 @@ function getLatestVersion() {
 function getSidebars(buildMode) {
   const sidebars = { };
   const frameworks = getFrameworks();
+  const getTransformedGuides = (guides, currentFramework) => {
+    const filterElementsForFramework = element =>
+      (Array.isArray(element.onlyFor) && element.onlyFor.includes(currentFramework)) ||
+      (typeof element.onlyFor === 'string' && element.onlyFor === currentFramework) ||
+      typeof element.onlyFor === 'undefined';
+    const guidesSections = JSON.parse(JSON.stringify(guides)); // Copy sidebar definition
+    const filteredGuidesSections = guidesSections.filter(filterElementsForFramework);
+
+    filteredGuidesSections.forEach((filteredGuidesSection) => {
+      filteredGuidesSection.children = filteredGuidesSection.children.reduce((newGuides, guide) => {
+        if (filterElementsForFramework(guide)) {
+          newGuides.push(guide.path);
+        }
+
+        return newGuides;
+      }, []);
+    });
+
+    return filteredGuidesSections;
+  };
 
   if (isEnvDev()) {
     getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
@@ -102,7 +122,7 @@ function getSidebars(buildMode) {
 
       sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/examples/`] = sidebarConfig.examples;
       sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/api/`] = sidebarConfig.api;
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/`] = sidebarConfig.guides;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/`] = getTransformedGuides(sidebarConfig.guides);
     });
 
     getDocsFrameworkedVersions(buildMode).forEach((version) => {
@@ -120,7 +140,8 @@ function getSidebars(buildMode) {
 
         sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/examples/`] = sidebarConfig.examples;
         sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/api/`] = apiTransformed;
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/`] = sidebarConfig.guides;
+        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/`] =
+          getTransformedGuides(sidebarConfig.guides, framework);
       });
     });
 
@@ -131,11 +152,73 @@ function getSidebars(buildMode) {
 
       sidebars[`/${version}/examples/`] = sidebarConfig.examples;
       sidebars[`/${version}/api/`] = sidebarConfig.api;
-      sidebars[`/${version}/`] = sidebarConfig.guides;
+      sidebars[`/${version}/`] = getTransformedGuides(sidebarConfig.guides, getEnvDocsFramework());
     });
   }
 
   return sidebars;
+}
+
+/**
+ * Get object containing list of not searchable links from the guides section for specific version of documentation.
+ *
+ * @param {string} buildMode The env name.
+ * @returns {object}
+ */
+function getNotSearchableLinks(buildMode) {
+  const frameworks = getFrameworks();
+  const notSearchableLinks = {};
+
+  const filterLinks = (guides, framework) => {
+    const links = [];
+    const isNotSearchable = element =>
+      (Array.isArray(element.onlyFor) && element.onlyFor.includes(framework) === false) ||
+      (typeof element.onlyFor === 'string' && element.onlyFor !== framework);
+
+    guides.forEach((guideSection) => {
+      if (isNotSearchable(guideSection)) {
+        links.push(...guideSection.children.map(guide => guide.path));
+
+      } else {
+        guideSection.children.forEach((guide) => {
+          if (isNotSearchable(guide)) {
+            links.push(guide.path);
+          }
+        });
+      }
+    });
+
+    return links;
+  };
+
+  if (isEnvDev()) {
+    getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
+      // eslint-disable-next-line
+      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
+
+      notSearchableLinks[version] = filterLinks(sidebarConfig.guides);
+    });
+
+    getDocsFrameworkedVersions(buildMode).forEach((version) => {
+      frameworks.forEach((framework) => {
+        // eslint-disable-next-line
+        const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
+
+        notSearchableLinks[version] = filterLinks(sidebarConfig.guides, framework);
+      });
+    });
+
+  } else {
+    getVersions(buildMode).forEach((version) => {
+      // eslint-disable-next-line
+      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
+      const framework = getEnvDocsFramework();
+
+      notSearchableLinks[version] = filterLinks(sidebarConfig.guides, framework);
+    });
+  }
+
+  return notSearchableLinks;
 }
 
 /**
@@ -210,6 +293,7 @@ module.exports = {
   getDocsNonFrameworkedVersions,
   getLatestVersion,
   getSidebars,
+  getNotSearchableLinks,
   parseVersion,
   parseFramework,
   getEnvDocsFramework,
