@@ -7,12 +7,15 @@ canonicalUrl: /angular-installation
 
 # Installation in Angular
 
+[[toc]]
+
 ## Overview
+
 Angular installation and basic usage guide.
 
 ### Install with npm
 
-This component needs the Handsontable library to work. Use [npm](https://www.npmjs.com/package/@handsontable/angular) to install the packages.
+This component needs the Handsontable library to work. Use npm to install the packages.
 
 ```bash
 npm install handsontable @handsontable/angular
@@ -62,3 +65,20 @@ Now, you can use the Handsontable component in your HTML files.
   licenseKey="non-commercial-and-evaluation">
 </hot-table>
 ```
+
+## Related API reference
+
+- Configuration options:
+  - [`maxCols`](@/api/options.md#maxcols)
+  - [`maxRows`](@/api/options.md#maxrows)
+  - [`minCols`](@/api/options.md#mincols)
+  - [`minRows`](@/api/options.md#minrows)
+  - [`minSpareCols`](@/api/options.md#minsparecols)
+  - [`minSpareRows`](@/api/options.md#minsparerows)
+  - [`startCols`](@/api/options.md#startcols)
+  - [`startRows`](@/api/options.md#startrows)
+- Hooks:
+  - [`afterInit`](@/api/hooks.md#afterinit)
+  - [`beforeInit`](@/api/hooks.md#beforeinit)
+  - [`beforeInitWalkontable`](@/api/hooks.md#beforeinitwalkontable)
+  - [`construct`](@/api/hooks.md#construct)

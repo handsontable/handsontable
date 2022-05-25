@@ -47,13 +47,12 @@ From the `docs` directory, you can run the following npm scripts:
 * `npm run docs:start` – Starts a local documentation server at `localhost:8080/docs/`.
 * `npm run docs:start:no-cache` – Starts a local documentation server without cache.
 * `npm run docs:api` – Generates the Handsontable API reference into `/next/api`.
-* `npm run docs:build` – Builds the documentation output into `/.vuepress/dist` and checks for broken links.
-* `npm run docs:build:no-check-links` – Builds the documentation output into `/.vuepress/dist`, without checking for broken links.
+* `npm run docs:build` – Builds the documentation output into `/.vuepress/dist`.
 * `npm run docs:docker:build` – Builds a Docker image for the staging environment (includes the docs for the `next` version).
 * `npm run docs:docker:build:staging` – Builds a Docker image for the staging environment (includes the docs for the `next` version).
 * `npm run docs:docker:build:production` – Builds a Docker image for the production environment (excludes the docs for the `next` version).
 * `npm run docs:version <semver.version>` – Creates a new documentation version in a new `/<semver.version>/` directory.
-* `npm run docs:check-links` – Checks for broken links (first, run `npm run docs:build:no-check-links`). You can also run it for a specific URL (e.g. `npm run docs:check-links https://handsontable.com`).
+* `npm run docs:check-links` – Checks for broken links (first, run `npm run docs:build`). You can also run it for a specific URL (e.g. `npm run docs:check-links https://handsontable.com`).
 * `npm run docs:lint` – Runs ESLint on the `/next/` directory's content.
 * `npm run docs:lint:fix` – Runs ESLint on the `/next/` directory's content and auto-fixes problems.
 * `npm run docs:assets:next` – Prepares the `next` documentation version's CSS and JavaScript.

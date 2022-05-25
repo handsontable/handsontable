@@ -7,7 +7,10 @@ canonicalUrl: /angular-custom-renderer-example
 
 # Custom renderer in Angular
 
+[[toc]]
+
 ## Overview
+
 The following example is an implementation of `@handsontable/angular` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
 
 ## Example
@@ -92,3 +95,31 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
 :::
+
+## Related articles
+
+### Related guides
+
+- [Cell renderer](@/guides/cell-functions/cell-renderer.md)
+
+### Related API reference
+
+- APIs:
+  - [`BasePlugin`](@/api/basePlugin.md)
+- Configuration options:
+  - [`renderer`](@/api/options.md#renderer)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
+  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
+- Hooks:
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
+  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
+  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)

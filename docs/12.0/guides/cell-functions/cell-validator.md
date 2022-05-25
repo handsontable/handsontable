@@ -187,3 +187,39 @@ const hot = new Handsontable(container, {
 Edit the above grid to see callback
 
 **Note:** Please keep in mind that changes in table are applied after running **all validators** (both synchronous and and asynchronous) from **every** changed cells.
+
+## Related articles
+
+### Related guides
+
+- [Custom renderer in React](@/guides/integrate-with-react/react-custom-renderer-example.md)
+- [Custom renderer in Angular](@/guides/integrate-with-angular/angular-custom-renderer-example.md)
+- [Custom renderer in Vue 2](@/guides/integrate-with-vue/vue-custom-renderer-example.md)
+- [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example.md)
+
+### Related API reference
+
+- APIs:
+  - [`BasePlugin`](@/api/basePlugin.md)
+- Configuration options:
+  - [`allowEmpty`](@/api/options.md#allowempty)
+  - [`allowInvalid`](@/api/options.md#allowinvalid)
+  - [`invalidCellClassName`](@/api/options.md#invalidcellclassname)
+  - [`validator`](@/api/options.md#validator)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
+  - [`getCellValidator()`](@/api/core.md#getcellvalidator)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
+  - [`validateCell()`](@/api/core.md#validatecell)
+  - [`validateCells()`](@/api/core.md#validatecells)
+  - [`validateColumns()`](@/api/core.md#validatecolumns)
+  - [`validateRows()`](@/api/core.md#validaterows)
+- Hooks:
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterValidate`](@/api/hooks.md#aftervalidate)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeValidate`](@/api/hooks.md#beforevalidate)

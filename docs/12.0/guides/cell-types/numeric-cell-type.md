@@ -15,15 +15,15 @@ By default, Handsontable treats all cell values as `string` type. This is becaus
 
 ## Usage
 
-To trigger the Numeric cell type, use the option `type: 'numeric'` in the `columns` array or `cells` function.
+To trigger the Numeric cell type, use the option `type: 'numeric'` in the [`columns`](@/api/options.md#columns) array or [`cells`](@/api/options.md#cells) function.
 
 ::: tip
-Ensure your cell values are numbers and not strings, as Handsontable will not parse strings to numbers.
+Ensure your cell values are numbers and not strings, as Handsontable doesn't parse strings to numbers.
 :::
 
 You can input float-type values in the numeric editor using a dot or a comma as a decimal separator. For example, both `500000.5`, `500000,5` will be accepted. You are not able to use a thousands separator in the editor.
 
-You can format the displayed values of the entered numbers using the `numericFormat` option. Note that it ** does not influence the way you enter data**.
+You can format the displayed values of the entered numbers using the [`numericFormat`](@/api/options.md#numericformat) option. Note that it ** does not influence the way you enter data**.
 
 ::: tip
 All the positive and negative integers whose magnitude is no greater than 253 (+/- 9007199254740991) are representable in the `Number` type, i.e., safe integer. Any calculations that are performed on bigger numbers won't be calculated precisely due to JavaScript limitations.
@@ -78,3 +78,28 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related articles
+
+### Related guides
+
+- [Cell type](@/guides/cell-types/cell-type.md)
+
+### Related API reference
+
+- Configuration options:
+  - [`numericFormat`](@/api/options.md#numericformat)
+  - [`type`](@/api/options.md#type)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
+  - [`getDataType()`](@/api/core.md#getdatatype)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
+- Hooks:
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

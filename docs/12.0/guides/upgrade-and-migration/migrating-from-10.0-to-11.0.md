@@ -58,7 +58,7 @@ import Handsontable from 'handsontable';
 
 #### Now
 
-Now, each module has its own TypeScript definitions file. They're all kept in a new directory called `types`: [`./handsontable/types`](https://github.com/handsontable/handsontable/tree/master/handsontable/types).
+Now, each module has its own TypeScript definitions file. They're all kept in a new directory called `types`: `./handsontable/types`.
 
 You can still import all of Handsontable's type definitions in the same as way as before. Additionally, you can also import individual modules from within the Handsontable package, with correct types:
 
@@ -91,9 +91,9 @@ For more details, see [this pull request](https://github.com/handsontable/handso
 
 #### Before
 
-- [`populateFromArray()`](@/api/core.md#populatefromarray) performed a separate `spliceRow` action for each populated row, and a separate `spliceColumn` action for each populated column.
+- [`populateFromArray()`](@/api/core.md#populatefromarray) performed a separate [`spliceRow`](@/api/options.md#splicerow) action for each populated row, and a separate `spliceColumn` action for each populated column.
 - The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered multiple times, separately for each populated row and column.
-- The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered by each `spliceRow` and `spliceColumn` action, with the `source` argument defined as `spliceRow` or `spliceCol`.
+- The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered by each [`spliceRow`](@/api/options.md#splicerow) and `spliceColumn` action, with the `source` argument defined as [`spliceRow`](@/api/options.md#splicerow) or [`spliceCol`](@/api/core.md#splicecol).
 
 ```js
 new Handsontable(element, {

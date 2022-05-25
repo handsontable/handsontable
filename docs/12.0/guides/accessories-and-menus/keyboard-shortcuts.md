@@ -218,12 +218,12 @@ You can customize your keyboard shortcuts, using the [`ShortcutManager`](@/api/s
 
 Every keyboard action is registered in a particular context:
 
-| Context  | Description                                                                                           | Type     |
-| -------- | ----------------------------------------------------------------------------------------------------- | -------- |
-| `grid`   | Activates when the user navigates the data grid (initial context)                                     | Built-in |
-| `editor` | Activates when the user opens a [cell editor](@/guides/cell-functions/cell-editor.md)                 | Built-in |
-| `menu`   | Activates when the user opens a cell's [context menu](@/guides/accessories-and-menus/context-menu.md) | Built-in |
-| Custom   | Your [custom context](#managing-keyboard-shortcut-contexts)                                           | Custom   |
+| Context  | Description                                                       | Type     |
+| -------- | ----------------------------------------------------------------- | -------- |
+| `grid`   | Activates when the user navigates the data grid (initial context) | Built-in |
+| `editor` | Activates when the user opens a cell editor                       | Built-in |
+| `menu`   | Activates when the user opens a cell's context menu               | Built-in |
+| Custom   | Your [custom context](#managing-keyboard-shortcut-contexts)       | Custom   |
 
 When the user interacts with the keyboard, only actions registered for the currently-active context are executed.
 
@@ -365,3 +365,21 @@ hot.addHook('beforeKeyDown', (event) => {
   }
 });
 ```
+
+## Related API reference
+
+- APIs:
+  - [`ShortcutContext`](@/api/shortcutContext.md)
+  - [`ShortcutManager`](@/api/shortcutManager.md)
+- Configuration options:
+  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
+  - [`enterMoves`](@/api/options.md#entermoves)
+  - [`tabMoves`](@/api/options.md#tabmoves)
+- Core methods:
+  - [`getShortcutManager()`](@/api/core.md#getshortcutmanager)
+  - [`isListening()`](@/api/core.md#islistening)
+  - [`listen()`](@/api/core.md#listen)
+  - [`unlisten()`](@/api/core.md#unlisten)
+- Hooks:
+  - [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown)
+  - [`beforeKeyDown`](@/api/hooks.md#beforekeydown)
