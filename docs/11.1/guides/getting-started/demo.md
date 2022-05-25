@@ -12,7 +12,7 @@ tags:
 
 [[toc]]
 
-Play around with Handsontable's source code, in your favorite framework.
+Play around with a demo of Handsontable, in your favorite framework.
 
 <div class="example-container"><iframe
     src="https://handsontable.github.io/handsontable/examples/11.1.0/docs/js/demo/"
