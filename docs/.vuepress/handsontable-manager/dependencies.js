@@ -1,3 +1,13 @@
+// TODO: this three imports can be removed after deploying the first version equal to the one configured in
+//  `MIN_FRAMEWORKED_DOCS_VERSION`.
+const semver = require('semver');
+const {
+  MIN_FRAMEWORKED_DOCS_VERSION
+} = require('../frameworkedConfig');
+const {
+  version: currentHandsontableVersion
+} = require('../../../handsontable/package.json');
+
 // eslint-disable-next-line no-restricted-globals
 const isBrowser = (typeof window !== 'undefined');
 
@@ -20,12 +30,17 @@ const getHotUrls = (version) => {
   };
 };
 const getCommonScript = (scriptName) => {
+  // TODO: the `frameworkedPrefix` logic can be removed (and prefix hardcoded) after deploying the first version
+  //  equal to the one configured in `MIN_FRAMEWORKED_DOCS_VERSION`.
+  const frameworkedPrefix = semver.gte(currentHandsontableVersion, semver.coerce(MIN_FRAMEWORKED_DOCS_VERSION)) ?
+    'javascript-data-grid/' : '';
+
   if (isBrowser) {
     // eslint-disable-next-line no-restricted-globals
-    return [`${window.location.origin}/docs/scripts/${scriptName}.js`, ['require', 'exports']];
+    return [`${window.location.origin}/docs/${frameworkedPrefix}scripts/${scriptName}.js`, ['require', 'exports']];
   }
 
-  return [`https://handsontable.com/docs/scripts/${scriptName}.js`, ['require', 'exports']];
+  return [`https://handsontable.com/docs/${frameworkedPrefix}scripts/${scriptName}.js`, ['require', 'exports']];
 };
 
 /**

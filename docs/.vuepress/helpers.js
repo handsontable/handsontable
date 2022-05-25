@@ -2,14 +2,18 @@ const fs = require('fs');
 const path = require('path');
 const semver = require('semver');
 const fsExtra = require('fs-extra');
+const {
+  MIN_FRAMEWORKED_DOCS_VERSION,
+  FRAMEWORK_SUFFIX,
+  SUPPORTED_FRAMEWORKS,
+  DEFAULT_FRAMEWORK,
+} = require('./frameworkedConfig');
 
 const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
   .filter(f => semver.valid(semver.coerce(f)));
 
 const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
 const TMP_DIR_FOR_WATCH = '.watch-tmp';
-const MIN_FRAMEWORKED_DOCS_VERSION = '12.1.0';
-const FRAMEWORK_SUFFIX = '-data-grid';
 
 /**
  * Get whether we work in dev mode (watch script).
@@ -64,7 +68,7 @@ function getVersions(buildMode) {
  * @returns {string[]}
  */
 function getFrameworks() {
-  return ['javascript', 'react', 'angular', 'vue2', 'vue3'];
+  return SUPPORTED_FRAMEWORKS;
 }
 
 /**
@@ -73,7 +77,7 @@ function getFrameworks() {
  * @returns {string}
  */
 function getDefaultFramework() {
-  return 'javascript';
+  return DEFAULT_FRAMEWORK;
 }
 
 /**
