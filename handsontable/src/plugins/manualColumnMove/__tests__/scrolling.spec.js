@@ -155,7 +155,7 @@ describe('manualColumnMove', () => {
 
     it('should move the table\'s viewport left when the next mouse-overed element is a column ' +
        'that belongs to the left overlay (with hidden columns)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         width: 250,
         height: 150,
