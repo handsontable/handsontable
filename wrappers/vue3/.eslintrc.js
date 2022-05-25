@@ -4,7 +4,6 @@ module.exports = {
     'no-restricted-globals': 'off',
     'import/no-unresolved': 'off',
     'import/extensions': 'off',
-    '@typescript-eslint/no-explicit-any': 'off',
   },
   overrides: [
     {
@@ -14,6 +13,9 @@ module.exports = {
       files: ['*.ts'],
       parser: '@typescript-eslint/parser',
       plugins: ['@typescript-eslint'],
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off',
+      },
     },
     {
       files: ['*.vue'],
@@ -25,7 +27,7 @@ module.exports = {
       parserOptions: {
         parser: '@typescript-eslint/parser',
         sourceType: 'module',
-      },
+      }
     },
   ],
 };
