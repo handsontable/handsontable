@@ -135,12 +135,12 @@ describe('manualRowMove', () => {
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('mousedown', {
-          clientY: rowHeader.offset().top,
+          clientY: rowHeader.offset().top + rowHeader.innerHeight() - 1,
         });
       nextRowHeader
         .simulate('mouseover')
         .simulate('mousemove', {
-          clientY: nextRowHeader.offset().top + 1
+          clientY: nextRowHeader[0].getBoundingClientRect().top + 1,
         })
         .simulate('mouseup');
 

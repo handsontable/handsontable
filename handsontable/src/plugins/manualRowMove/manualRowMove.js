@@ -423,11 +423,11 @@ export class ManualRowMove extends BasePlugin {
     const countRows = this.hot.countRows();
 
     if (this.isFixedRowTop(coords.row) && firstVisible > 0) {
-      this.hot.scrollViewportTo(this.hot.rowIndexMapper.getFirstNotHiddenIndex(firstVisible - 1, -1));
+      this.hot.scrollViewportTo(this.hot.rowIndexMapper.getNearestNotHiddenIndex(firstVisible - 1, -1));
     }
     if (this.isFixedRowBottom(coords.row) && lastVisible < countRows) {
       this.hot.scrollViewportTo(
-        this.hot.rowIndexMapper.getFirstNotHiddenIndex(lastVisible + 1, 1), undefined, true);
+        this.hot.rowIndexMapper.getNearestNotHiddenIndex(lastVisible + 1, 1), undefined, true);
     }
 
     const wtTable = this.hot.view._wt.wtTable;
