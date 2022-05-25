@@ -151,7 +151,7 @@ describe('CheckboxRenderer', () => {
     //  spec().$container.simulate('keydown',{
     //    keyCode: 32
     //  });
-    keyDown('space');
+    keyDownUp(' ');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -185,7 +185,7 @@ describe('CheckboxRenderer', () => {
 
     selectCell(0, 0);
 
-    keyDown('space');
+    keyDownUp(' ');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -206,13 +206,13 @@ describe('CheckboxRenderer', () => {
     });
 
     selectCell(0, 0);
-    keyDown('space');
+    keyDownUp(' ');
     selectCell(0, 1);
-    keyDown('space');
+    keyDownUp(' ');
     selectCell(1, 0);
-    keyDown('space');
+    keyDownUp(' ');
     selectCell(1, 1);
-    keyDown('space');
+    keyDownUp(' ');
 
     const checkboxes = spec().$container.find(':checkbox');
 
@@ -240,12 +240,12 @@ describe('CheckboxRenderer', () => {
     });
 
     selectCell(0, 0, 1, 0);
-    keyDown('space');
+    keyDownUp(' ');
 
     expect(getDataAtCol(0)).toEqual([true, true]);
 
     selectCell(0, 0, 1, 0);
-    keyDown('space');
+    keyDownUp(' ');
 
     expect(getDataAtCol(0)).toEqual([false, false]);
   });
@@ -262,7 +262,7 @@ describe('CheckboxRenderer', () => {
     });
 
     selectCell(0, 0, 199, 0);
-    keyDown('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(199, 0)).toEqual(true);
   });
@@ -288,7 +288,7 @@ describe('CheckboxRenderer', () => {
 
     selectCell(0, 0, 2, 0);
 
-    keyDown('space');
+    keyDownUp(' ');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -325,7 +325,7 @@ describe('CheckboxRenderer', () => {
 
     selectCells([[0, 0], [2, 0]]);
 
-    keyDown('space');
+    keyDownUp(' ');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -357,7 +357,7 @@ describe('CheckboxRenderer', () => {
 
     selectCells([[0, 0], [2, 0]]);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -389,7 +389,7 @@ describe('CheckboxRenderer', () => {
 
     selectCell(2, 0, 0, 0); // selStart = [2,0], selEnd = [0,0]
 
-    keyDown('space');
+    keyDownUp(' ');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -418,7 +418,7 @@ describe('CheckboxRenderer', () => {
 
     expect(getDataAtCell(0, 0)).toBe('true');
 
-    keyDown('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
   });
@@ -468,7 +468,7 @@ describe('CheckboxRenderer', () => {
 
     selectCell(0, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -503,7 +503,7 @@ describe('CheckboxRenderer', () => {
 
     selectCell(0, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     checkboxes = spec().$container.find(':checkbox');
     const selection = getSelected();
@@ -538,7 +538,7 @@ describe('CheckboxRenderer', () => {
 
     selectCell(0, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     checkboxes = spec().$container.find(':checkbox');
     const selection = getSelected();
@@ -576,7 +576,7 @@ describe('CheckboxRenderer', () => {
 
     selectCell(0, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -614,7 +614,7 @@ describe('CheckboxRenderer', () => {
 
     selectCell(0, 0);
 
-    keyDown('enter');
+    keyDownUp('enter');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -647,9 +647,9 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[true], [false], [true]]);
 
     selectCell(0, 0);
-    keyDown('delete');
+    keyDownUp('delete');
     selectCell(0, 1);
-    keyDown('delete');
+    keyDownUp('delete');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -683,9 +683,9 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[true], [false], [true]]);
 
     selectCell(0, 0);
-    keyDown('backspace');
+    keyDownUp('backspace');
     selectCell(0, 1);
-    keyDown('backspace');
+    keyDownUp('backspace');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -715,9 +715,9 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(1, 0)).toBe('bar');
 
     selectCell(0, 0);
-    keyDown('delete');
+    keyDownUp('delete');
     selectCell(1, 0);
-    keyDown('delete');
+    keyDownUp('delete');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -744,9 +744,9 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(1, 0)).toBe('bar');
 
     selectCell(0, 0);
-    keyDown('backspace');
+    keyDownUp('backspace');
     selectCell(1, 0);
-    keyDown('backspace');
+    keyDownUp('backspace');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -772,9 +772,9 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(0, 0)).toBe('foo');
 
     selectCell(0, 0);
-    keyDown('space');
+    keyDownUp(' ');
     selectCell(0, 0);
-    keyDown('c');
+    keyDownUp('c');
 
     expect(getDataAtCell(0, 0)).toBe('foo');
     expect(getData()).toEqual([['foo'], ['bar']]);
@@ -794,7 +794,7 @@ describe('CheckboxRenderer', () => {
     });
 
     selectCell(0, 0);
-    keyDown('f2');
+    keyDownUp('f2');
 
     expect(getDataAtCell(0, 0)).toBe(false);
 
@@ -814,12 +814,12 @@ describe('CheckboxRenderer', () => {
     addHook('afterChange', afterChangeCallback);
 
     selectCell(0, 0);
-    keyDown('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(true);
 
     selectCell(0, 0);
-    keyDown('c');
+    keyDownUp('c');
 
     expect(getDataAtCell(0, 0)).toBe(true);
     expect(afterChangeCallback.calls.count()).toEqual(1);
@@ -838,7 +838,7 @@ describe('CheckboxRenderer', () => {
     addHook('afterChange', afterChangeCallback);
 
     selectCell(0, 0);
-    keyDown('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -883,7 +883,7 @@ describe('CheckboxRenderer', () => {
     addHook('afterChange', afterChangeCallback);
 
     selectCell(0, 0);
-    keyDown('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -905,7 +905,7 @@ describe('CheckboxRenderer', () => {
     addHook('afterChange', afterChangeCallback);
 
     selectCell(0, 0);
-    keyDown('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -926,7 +926,7 @@ describe('CheckboxRenderer', () => {
     addHook('afterChange', afterChangeCallback);
 
     selectCell(0, 0);
-    keyDown('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -1125,7 +1125,7 @@ describe('CheckboxRenderer', () => {
       rowHeaders: ['<input type="checkbox"/> 1'],
     });
 
-    const headerCheckbox = getLeftClone().find('input[type="checkbox"]')[0];
+    const headerCheckbox = getInlineStartClone().find('input[type="checkbox"]')[0];
 
     expect(headerCheckbox.checked).toBe(false);
 
@@ -1135,6 +1135,15 @@ describe('CheckboxRenderer', () => {
     expect(spy.test.calls.count()).toBe(0);
 
     window.onerror = prevError;
+  });
+
+  it('should render the cell without messing with "dir" attribute', () => {
+    handsontable({
+      data: [['foo']],
+      renderer: 'checkbox'
+    });
+
+    expect(getCell(0, 0).getAttribute('dir')).toBeNull();
   });
 
   describe('CheckboxRenderer with ContextMenu', () => {

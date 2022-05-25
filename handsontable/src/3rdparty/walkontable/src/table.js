@@ -6,12 +6,12 @@ import {
   removeTextNodes,
   overlayContainsElement,
   closest,
+  outerHeight,
   outerWidth,
   innerHeight,
   isVisible,
 } from '../../../helpers/dom/element';
 import { isFunction } from '../../../helpers/function';
-import CellCoords from './cell/coords';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 import { Renderer } from './renderer';
@@ -20,12 +20,20 @@ import RowUtils from './utils/row';
 import {
   CLONE_TOP,
   CLONE_BOTTOM,
-  CLONE_LEFT,
-  CLONE_TOP_LEFT_CORNER,
-  CLONE_BOTTOM_LEFT_CORNER,
+  CLONE_INLINE_START,
+  CLONE_TOP_INLINE_START_CORNER,
+  CLONE_BOTTOM_INLINE_START_CORNER,
 } from './overlay';
 
 /**
+ * @todo These mixes are never added to the class Table, however their members are used here.
+ * @todo Continue: Potentially it works only, because some of these mixes are added to every inherited class.
+ * @todo Refactoring, move code from `if(this.isMaster)` into MasterTable, and others like that.
+ * @mixes stickyColumnsStart
+ * @mixes stickyRowsBottom
+ * @mixes stickyRowsTop
+ * @mixes calculatedRows
+ * @mixes calculatedColumns
  * @abstract
  */
 class Table {
@@ -98,7 +106,7 @@ class Table {
     this.wtRootElement = this.holder.parentNode;
 
     if (this.isMaster) {
-      this.alignOverlaysWithTrimmingContainer();
+      this.alignOverlaysWithTrimmingContainer(); // todo wow, It calls method from child class (MasterTable).
     }
     this.fixTableDomTree();
 
@@ -113,6 +121,7 @@ class Table {
 
     this.rowUtils = new RowUtils(this.dataAccessObject, this.wtSettings); // TODO refactoring, It can be passed through IOC.
     this.columnUtils = new ColumnUtils(this.dataAccessObject, this.wtSettings); // TODO refactoring, It can be passed through IOC.
+
     this.tableRenderer = new Renderer({ // TODO refactoring, It can be passed through IOC.
       TABLE: this.TABLE,
       THEAD: this.THEAD,
@@ -158,10 +167,6 @@ class Table {
     if (!this.COLGROUP) {
       this.COLGROUP = rootDocument.createElement('colgroup');
       this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
-    }
-
-    if (this.wtSettings.getSetting('columnHeaders').length && !this.THEAD.childNodes.length) {
-      this.THEAD.appendChild(rootDocument.createElement('TR'));
     }
   }
 
@@ -230,6 +235,7 @@ class Table {
       }
       if (this.isMaster) {
         holder.parentNode.className += 'ht_master handsontable';
+        holder.parentNode.setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
       }
       holder.appendChild(hider);
     }
@@ -260,11 +266,11 @@ class Table {
       this.holderOffset = offset(this.holder);
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
-      if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsLeft')) {
-        const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
+      if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
+        const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
         const previousState = this.correctHeaderWidth;
 
-        this.correctHeaderWidth = leftScrollPos > 0;
+        this.correctHeaderWidth = leftScrollPos !== 0;
 
         if (previousState !== this.correctHeaderWidth) {
           runFastDraw = false;
@@ -300,7 +306,7 @@ class Table {
 
       // Only master table rendering can be skipped
       if (this.isMaster) {
-        this.alignOverlaysWithTrimmingContainer();
+        this.alignOverlaysWithTrimmingContainer(); // todo It calls method from child class (MasterTable).
         const skipRender = {};
 
         this.wtSettings.getSetting('beforeDraw', true, skipRender);
@@ -311,7 +317,7 @@ class Table {
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
 
         if (this.is(CLONE_BOTTOM) ||
-            this.is(CLONE_BOTTOM_LEFT_CORNER)) {
+            this.is(CLONE_BOTTOM_INLINE_START_CORNER)) {
           // do NOT render headers on the bottom or bottom-left corner overlay
           this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
         }
@@ -373,19 +379,19 @@ class Table {
         positionChanged = wtOverlays.bottomOverlay.resetFixedPosition() || positionChanged;
       }
 
-      positionChanged = wtOverlays.leftOverlay.resetFixedPosition() || positionChanged;
+      positionChanged = wtOverlays.inlineStartOverlay.resetFixedPosition() || positionChanged;
 
-      if (wtOverlays.topLeftCornerOverlay) {
-        wtOverlays.topLeftCornerOverlay.resetFixedPosition();
+      if (wtOverlays.topInlineStartCornerOverlay) {
+        wtOverlays.topInlineStartCornerOverlay.resetFixedPosition();
       }
 
-      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
-        wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
+      if (wtOverlays.bottomInlineStartCornerOverlay && wtOverlays.bottomInlineStartCornerOverlay.clone) {
+        wtOverlays.bottomInlineStartCornerOverlay.resetFixedPosition();
       }
 
       if (positionChanged) {
         // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
-        // remove `innerBorderTop` and `innerBorderLeft` CSS classes to the DOM element. This happens
+        // remove `innerBorderTop` and `innerBorderInlineStart` CSS classes to the DOM element. This happens
         // when there is a switch between rendering from 0 to N rows/columns and vice versa).
         wtOverlays.refreshAll();
         wtOverlays.adjustElementsSize();
@@ -740,13 +746,13 @@ class Table {
     let row = index(TR);
     let col = cellElement.cellIndex;
 
-    if (overlayContainsElement(CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement)
+    if (overlayContainsElement(CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_TOP, cellElement, this.wtRootElement)) {
       if (CONTAINER.nodeName === 'THEAD') {
         row -= CONTAINER.childNodes.length;
       }
 
-    } else if (overlayContainsElement(CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)
+    } else if (overlayContainsElement(CLONE_BOTTOM_INLINE_START_CORNER, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_BOTTOM, cellElement, this.wtRootElement)) {
       const totalRows = this.wtSettings.getSetting('totalRows');
 
@@ -759,16 +765,16 @@ class Table {
       row = this.rowFilter.renderedToSource(row);
     }
 
-    if (overlayContainsElement(CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement)
-      || overlayContainsElement(CLONE_LEFT, cellElement, this.wtRootElement)
-      || overlayContainsElement(CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)) {
+    if (overlayContainsElement(CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_INLINE_START, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_BOTTOM_INLINE_START_CORNER, cellElement, this.wtRootElement)) {
       col = this.columnFilter.offsettedTH(col);
 
     } else {
       col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
     }
 
-    return new CellCoords(row, col);
+    return this.wot.createCellCoords(row, col);
   }
 
   /**
@@ -941,7 +947,7 @@ class Table {
    *
    * Negative column index is used to check the rows' headers.
    *
-   *                            For fixedColumnsLeft: 1 the master overlay
+   *                            For fixedColumnsStart: 1 the master overlay
    *                            do not render this first columns.
    *  Headers    -3   -2   -1    |
    *           +----+----+----║┄ ┄ +------+------+
@@ -985,7 +991,7 @@ class Table {
    * it is not possible to render headers partially. The "after" index can not be
    * lower than -1.
    *
-   *                            For fixedColumnsLeft: 1 the master overlay
+   *                            For fixedColumnsStart: 1 the master overlay
    *                            do not render this first columns.
    *  Headers    -3   -2   -1    |
    *           +----+----+----║┄ ┄ +------+------+
@@ -1081,6 +1087,52 @@ class Table {
    */
   hasDefinedSize() {
     return this.hasTableHeight && this.hasTableWidth;
+  }
+
+  /**
+   * Gets table's width. The returned width is the width of the rendered cells that fit in the
+   * current viewport. The value may change depends on the viewport position (scroll position).
+   *
+   * @returns {number}
+   */
+  getWidth() {
+    return outerWidth(this.TABLE);
+  }
+
+  /**
+   * Gets table's height. The returned height is the height of the rendered cells that fit in the
+   * current viewport. The value may change depends on the viewport position (scroll position).
+   *
+   * @returns {number}
+   */
+  getHeight() {
+    return outerHeight(this.TABLE);
+  }
+
+  /**
+   * Gets table's total width. The returned width is the width of all rendered cells (including headers)
+   * that can be displayed in the table.
+   *
+   * @returns {number}
+   */
+  getTotalWidth() {
+    const width = outerWidth(this.hider);
+
+    // when the overlay's table does not have any cells the hider returns 0, get then width from the table element
+    return width !== 0 ? width : this.getWidth();
+  }
+
+  /**
+   * Gets table's total height. The returned height is the height of all rendered cells (including headers)
+   * that can be displayed in the table.
+   *
+   * @returns {number}
+   */
+  getTotalHeight() {
+    const height = outerHeight(this.hider);
+
+    // when the overlay's table does not have any cells the hider returns 0, get then height from the table element
+    return height !== 0 ? height : this.getHeight();
   }
 
   /**

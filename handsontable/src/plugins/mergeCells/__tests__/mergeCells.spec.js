@@ -132,6 +132,28 @@ describe('MergeCells', () => {
   });
 
   describe('merged cells selection', () => {
+    it('should not change the selection after toggling the merge/unmerge state', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: true
+      });
+
+      selectCell(2, 2, 4, 4);
+      keyDownUp(['control', 'm']);
+
+      const mergedCell = getCell(2, 2);
+
+      expect(mergedCell.rowSpan).toBe(3);
+      expect(mergedCell.colSpan).toBe(3);
+      expect(getSelected()).toEqual([[2, 2, 4, 4]]);
+
+      keyDownUp(['control', 'm']);
+
+      expect(mergedCell.rowSpan).toBe(1);
+      expect(mergedCell.colSpan).toBe(1);
+      expect(getSelected()).toEqual([[2, 2, 4, 4]]);
+    });
+
     it('should select the whole range of cells which form a merged cell', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(4, 4),
@@ -411,19 +433,19 @@ describe('MergeCells', () => {
 
       hot.selectCell(2, 1);
 
-      keyDownUp('shift+enter');
-      keyDownUp('shift+enter');
-      keyDownUp('shift+enter');
+      keyDownUp(['shift', 'enter']);
+      keyDownUp(['shift', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
 
-      keyDownUp('shift+enter');
-      keyDownUp('shift+enter');
+      keyDownUp(['shift', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
 
-      keyDownUp('shift+enter');
-      keyDownUp('shift+enter');
+      keyDownUp(['shift', 'enter']);
+      keyDownUp(['shift', 'enter']);
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
     });
@@ -443,19 +465,19 @@ describe('MergeCells', () => {
 
       hot.selectCell(1, 2);
 
-      keyDownUp('shift+enter');
-      keyDownUp('shift+tab');
-      keyDownUp('shift+enter');
+      keyDownUp(['shift', 'enter']);
+      keyDownUp(['shift', 'tab']);
+      keyDownUp(['shift', 'enter']);
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('top-left-corner!');
 
-      keyDownUp('shift+tab');
-      keyDownUp('shift+enter');
+      keyDownUp(['shift', 'tab']);
+      keyDownUp(['shift', 'enter']);
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('J1');
 
-      keyDownUp('shift+tab');
-      keyDownUp('shift+enter');
+      keyDownUp(['shift', 'tab']);
+      keyDownUp(['shift', 'enter']);
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('I1');
     });
@@ -492,13 +514,13 @@ describe('MergeCells', () => {
 
         selectCell(0, 2);
 
-        keyDownUp('arrow_down');
+        keyDownUp('arrowdown');
 
         lastSelectedRange = getSelectedRangeLast();
 
         expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
 
-        keyDownUp('arrow_down');
+        keyDownUp('arrowdown');
 
         lastSelectedRange = getSelectedRangeLast();
 
@@ -520,15 +542,15 @@ describe('MergeCells', () => {
 
         selectCell(3, 2);
 
-        keyDownUp('shift+enter');
-        keyDownUp('shift+enter');
+        keyDownUp(['shift', 'enter']);
+        keyDownUp(['shift', 'enter']);
 
         let lastSelectedRange = getSelectedRangeLast();
 
         expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
 
-        keyDownUp('shift+enter');
-        keyDownUp('shift+enter');
+        keyDownUp(['shift', 'enter']);
+        keyDownUp(['shift', 'enter']);
 
         lastSelectedRange = getSelectedRangeLast();
 
@@ -536,13 +558,13 @@ describe('MergeCells', () => {
 
         selectCell(3, 2);
 
-        keyDownUp('arrow_up');
+        keyDownUp('arrowup');
 
         lastSelectedRange = getSelectedRangeLast();
 
         expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
 
-        keyDownUp('arrow_up');
+        keyDownUp('arrowup');
 
         lastSelectedRange = getSelectedRangeLast();
 
@@ -578,13 +600,13 @@ describe('MergeCells', () => {
 
         selectCell(2, 0);
 
-        keyDownUp('arrow_right');
+        keyDownUp('arrowright');
 
         lastSelectedRange = getSelectedRangeLast();
 
         expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
 
-        keyDownUp('arrow_right');
+        keyDownUp('arrowright');
 
         lastSelectedRange = getSelectedRangeLast();
 
@@ -606,13 +628,13 @@ describe('MergeCells', () => {
 
         selectCell(2, 3);
 
-        keyDownUp('shift+tab');
+        keyDownUp(['shift', 'tab']);
 
         let lastSelectedRange = getSelectedRangeLast();
 
         expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
 
-        keyDownUp('shift+tab');
+        keyDownUp(['shift', 'tab']);
 
         lastSelectedRange = getSelectedRangeLast();
 
@@ -620,13 +642,13 @@ describe('MergeCells', () => {
 
         selectCell(2, 3);
 
-        keyDownUp('arrow_left');
+        keyDownUp('arrowleft');
 
         lastSelectedRange = getSelectedRangeLast();
 
         expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
 
-        keyDownUp('arrow_left');
+        keyDownUp('arrowleft');
 
         lastSelectedRange = getSelectedRangeLast();
 
@@ -662,7 +684,7 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      const mainHolder = hot.view.wt.wtTable.holder;
+      const mainHolder = hot.view._wt.wtTable.holder;
 
       mainHolder.scrollTop = 130;
       hot.render();
@@ -717,7 +739,7 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      const mainHolder = hot.view.wt.wtTable.holder;
+      const mainHolder = hot.view._wt.wtTable.holder;
 
       $(mainHolder).scrollTop(99999);
       hot.render();
@@ -1380,7 +1402,7 @@ describe('MergeCells', () => {
         mergeCells: true,
       });
 
-      const corner = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
+      const corner = $('.ht_clone_top_inline_start_corner .htCore').find('thead').find('th').eq(0);
 
       simulateClick(corner, 'RMB');
       contextMenu();

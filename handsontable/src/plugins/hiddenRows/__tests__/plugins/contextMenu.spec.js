@@ -228,7 +228,7 @@ describe('HiddenRows', () => {
             },
           });
 
-          const $header = getTopLeftClone().find('thead tr th');
+          const $header = getTopInlineStartClone().find('thead tr th');
 
           contextMenu($header);
 
@@ -584,7 +584,6 @@ describe('HiddenRows', () => {
             selectRows(3, 4);
 
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
-
             expect(getSelected()).toEqual([[2, -1, 2, 1]]);
             expect(getSelectedRangeLast().highlight.row).toBe(2);
             expect(getSelectedRangeLast().highlight.col).toBe(0);
@@ -816,7 +815,7 @@ describe('HiddenRows', () => {
           expect(getCell(3, 0)).toBe(null);
           expect(getCell(4, 0)).toBe(null);
 
-          const header = getTopLeftClone().find('thead th:eq(0)');
+          const header = getTopInlineStartClone().find('thead th:eq(0)');
 
           contextMenu(header);
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);

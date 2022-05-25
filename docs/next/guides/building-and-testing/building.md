@@ -21,7 +21,7 @@ Get an overview of Handsontable's building processes.
 
 ### Monorepo
 
-The [Handsontable repository](https://github.com/handsontable/handsontable) is a [monorepo](https://en.wikipedia.org/wiki/Monorepo) that contains the following projects:
+The Handsontable repository is a monorepo that contains the following projects:
 
 | Project                 | Location             | Description                                                                |
 | ----------------------- | -------------------- | -------------------------------------------------------------------------- |
@@ -55,13 +55,13 @@ For more information on the distribution packages, see [this file](https://githu
 ### Building requirements
 
 Handsontable building processes require:
-- [Node.js](https://nodejs.org/) (version **15.11**+)
-- [npm](https://www.npmjs.com/) (version **7.17**+)
+- [Node.js](https://nodejs.org/) (version **16.14**+)
+- [npm](https://www.npmjs.com/) (version **8.5**+)
 - Node modules installed through `npm install` (e.g. [webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/))
 
 ### `package.json` files
 
-Each Handsontable [project](#about-building) has its own [building](#building-the-packages) processes defined in its own `package.json` file. Apart from that, the root directory has its own `package.json` file as well:
+Each Handsontable [project](#about-building) has its own building processes defined in its own `package.json` file. Apart from that, the root directory has its own `package.json` file as well:
 
 | File                              | Holds tasks for building:                           |
 | --------------------------------- | --------------------------------------------------- |
@@ -75,8 +75,8 @@ Each Handsontable [project](#about-building) has its own [building](#building-th
 ## Running your first build
 
 To run your first build:
-1. Install [Node.js](https://nodejs.org/) (version **15.11**+).
-2. Install [npm](https://www.npmjs.com/) (version **7.17**+).
+1. Install [Node.js](https://nodejs.org/) (version **16.14**+).
+2. Install [npm](https://www.npmjs.com/) (version **8.5**+).
 3. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
 4. From the root directory, run `npm install`.<br>All the required dependencies get installed.
 5. From the root directory, run `npm run build`.<br>All the Handsontable packages get built.
@@ -139,16 +139,16 @@ From the `./handsontable` directory, you can also run individual JavaScript `bui
   - Builds Walkontable, an essential part of Handsontable that's responsible for the rendering process.
 
 `npm run build:languages`
-  - Creates the [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the Universal Module Definition, for example:
+  - Creates the [language](@/guides/internationalization/language.md) bundles compatible with the Universal Module Definition, for example:
     - `./handsontable/dist/languages/de-DE.js`
     - `./handsontable/dist/languages/all.js`
 
 `build:languages.es`
-  - Creates the [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the ESM format, for example:
+  - Creates the [language](@/guides/internationalization/language.md) bundles compatible with the ESM format, for example:
     - `languages/en-US.mjs`
 
 `npm run build:languages.min`
-   - Creates the minified [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the Universal Module Definition, for example:
+   - Creates the minified [language](@/guides/internationalization/language.md) bundles compatible with the Universal Module Definition, for example:
      - `./handsontable/dist/languages/de-DE.min.js`
      - `./handsontable/dist/languages/all.min.js`
 :::
@@ -282,3 +282,8 @@ From the `./wrappers/vue3` directory, you can also run individual Vue 3 `build` 
     - `./wrappers/vue3/dist/vue-handsontable.min.js`
     - `./wrappers/vue3/dist/vue-handsontable.min.js.map`
 :::
+
+## Related guides
+
+- [Packages](@/guides/building-and-testing/packages.md)
+- [Testing](@/guides/building-and-testing/testing.md)

@@ -178,7 +178,7 @@ export class AutoColumnSize extends BasePlugin {
     this.hot.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
 
     // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
-    // This is necesseary for width recalculation for resize handler doubleclick (ManualColumnResize).
+    // This is necessary for width recalculation for resize handler doubleclick (ManualColumnResize).
     this.addHook('beforeColumnResize',
       (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
   }
@@ -210,7 +210,7 @@ export class AutoColumnSize extends BasePlugin {
     this.setSamplingOptions();
 
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
-    this.addHook('beforeChange', changes => this.onBeforeChange(changes));
+    this.addHook('beforeChangeRender', changes => this.onBeforeChange(changes));
     this.addHook('afterFormulasValuesUpdate', changes => this.onAfterFormulasValuesUpdate(changes));
     this.addHook('beforeViewRender', force => this.onBeforeViewRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
@@ -219,7 +219,7 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     const changedColumns = this.findColumnsWhereHeaderWasChanged();
@@ -239,7 +239,7 @@ export class AutoColumnSize extends BasePlugin {
     super.disablePlugin();
 
     // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
-    // This is necesseary for width recalculation for resize handler doubleclick (ManualColumnResize).
+    // This is necessary for width recalculation for resize handler doubleclick (ManualColumnResize).
     this.addHook('beforeColumnResize',
       (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
   }
@@ -389,7 +389,7 @@ export class AutoColumnSize extends BasePlugin {
    * Recalculates all columns width (overwrite cache values).
    */
   recalculateAllColumnsWidth() {
-    if (this.hot.view && this.hot.view.wt.wtTable.isVisible()) {
+    if (this.hot.view && this.hot.view._wt.wtTable.isVisible()) {
       this.clearCache();
       this.calculateAllColumnsWidth();
     }
@@ -449,7 +449,7 @@ export class AutoColumnSize extends BasePlugin {
    * @returns {number} Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn() {
-    const wot = this.hot.view.wt;
+    const wot = this.hot.view._wt;
 
     if (wot.wtViewport.columnsVisibleCalculator) {
       // Fist fully visible column is stored as renderable index.
@@ -478,7 +478,7 @@ export class AutoColumnSize extends BasePlugin {
    * @returns {number} Returns visual column index or -1 if table is not rendered.
    */
   getLastVisibleColumn() {
-    const wot = this.hot.view.wt;
+    const wot = this.hot.view._wt;
 
     if (wot.wtViewport.columnsVisibleCalculator) {
       // Last fully visible column is stored as renderable index.

@@ -3,20 +3,18 @@ import {
   closest,
   isChildOf,
   hasClass,
-  offset,
   outerWidth,
   outerHeight
 } from '../../helpers/dom/element';
 import { deepClone, deepExtend, isObject } from '../../helpers/object';
 import EventManager from '../../eventManager';
-import { CellCoords, CellRange } from '../../3rdparty/walkontable/src';
 import { BasePlugin } from '../base';
 import CommentEditor from './commentEditor';
 import { checkSelectionConsistency, markLabelAsSelected } from '../contextMenu/utils';
 import DisplaySwitch from './displaySwitch';
 import * as C from '../../i18n/constants';
 
-import './comments.css';
+import './comments.scss';
 
 export const PLUGIN_KEY = 'comments';
 export const PLUGIN_PRIORITY = 60;
@@ -82,7 +80,6 @@ const META_READONLY = 'readOnly';
  * commentsPlugin.removeComment();
  * ```
  */
-/* eslint-enable jsdoc/require-description-complete-sentence */
 export class Comments extends BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -154,7 +151,7 @@ export class Comments extends BasePlugin {
     }
 
     if (!this.editor) {
-      this.editor = new CommentEditor(this.hot.rootDocument);
+      this.editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl());
     }
 
     if (!this.eventManager) {
@@ -181,7 +178,10 @@ export class Comments extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *   - [`comments`](@/api/options.md#comments)
    */
   updatePlugin() {
     this.disablePlugin();
@@ -290,7 +290,7 @@ export class Comments extends BasePlugin {
    */
   setCommentAtCell(row, column, value) {
     this.setRange({
-      from: new CellCoords(row, column)
+      from: this.hot._createCellCoords(row, column)
     });
     this.setComment(value);
   }
@@ -323,7 +323,7 @@ export class Comments extends BasePlugin {
    */
   removeCommentAtCell(row, column, forceRender = true) {
     this.setRange({
-      from: new CellCoords(row, column)
+      from: this.hot._createCellCoords(row, column)
     });
     this.removeComment(forceRender);
   }
@@ -369,12 +369,9 @@ export class Comments extends BasePlugin {
 
     const meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
 
-    this.refreshEditor(true);
     this.editor.setValue(meta[META_COMMENT] ? meta[META_COMMENT][META_COMMENT_VALUE] : null || '');
-
-    if (this.editor.hidden) {
-      this.editor.show();
-    }
+    this.editor.show();
+    this.refreshEditor(true);
 
     return true;
   }
@@ -388,7 +385,7 @@ export class Comments extends BasePlugin {
    */
   showAtCell(row, column) {
     this.setRange({
-      from: new CellCoords(row, column)
+      from: this.hot._createCellCoords(row, column)
     });
 
     return this.show();
@@ -421,12 +418,12 @@ export class Comments extends BasePlugin {
 
     if (renderableRow === null) {
       renderableRow = rowIndexMapper
-        .getRenderableFromVisualIndex(rowIndexMapper.getFirstNotHiddenIndex(visualRow, -1));
+        .getRenderableFromVisualIndex(rowIndexMapper.getNearestNotHiddenIndex(visualRow, -1));
     }
 
     if (renderableColumn === null) {
       renderableColumn = columnIndexMapper
-        .getRenderableFromVisualIndex(columnIndexMapper.getFirstNotHiddenIndex(visualColumn, -1));
+        .getRenderableFromVisualIndex(columnIndexMapper.getNearestNotHiddenIndex(visualColumn, -1));
     }
 
     const isBeforeRenderedRows = renderableRow === null;
@@ -435,34 +432,15 @@ export class Comments extends BasePlugin {
     renderableRow = renderableRow ?? 0;
     renderableColumn = renderableColumn ?? 0;
 
-    const { rootWindow, view: { wt } } = this.hot;
-    const { wtTable, wtOverlays, wtViewport } = wt;
-    const scrollableElement = wtOverlays.scrollableElement;
+    const { rootWindow, view: { _wt: wt } } = this.hot;
+    const { wtTable } = wt;
 
     const TD = wtTable.getCell({
       row: renderableRow,
       col: renderableColumn,
     });
 
-    const cellOffset = offset(TD);
-    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getStretchedColumnWidth(renderableColumn);
-    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
-    let cellTopOffset = cellOffset.top;
-    let cellLeftOffset = cellOffset.left;
-
-    if (wtViewport.hasVerticalScroll() && scrollableElement !== rootWindow) {
-      cellTopOffset -= wtOverlays.topOverlay.getScrollPosition();
-    }
-
-    if (wtViewport.hasHorizontalScroll() && scrollableElement !== rootWindow) {
-      cellLeftOffset -= wtOverlays.leftOverlay.getScrollPosition();
-    }
-
-    const x = cellLeftOffset + lastColWidth;
-    const y = cellTopOffset + lastRowHeight;
-
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
-    const readOnly = this.getCommentMeta(visualRow, visualColumn, META_READONLY);
 
     if (commentStyle) {
       this.editor.setSize(commentStyle.width, commentStyle.height);
@@ -471,9 +449,43 @@ export class Comments extends BasePlugin {
       this.editor.resetSize();
     }
 
-    this.editor.setReadOnlyState(readOnly);
+    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getStretchedColumnWidth(renderableColumn);
+    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
+
+    const {
+      left,
+      top,
+      width: cellWidth,
+      height: cellHeight,
+    } = TD.getBoundingClientRect();
+    const {
+      width: editorWidth,
+      height: editorHeight,
+    } = this.editor.getSize();
+
+    const { innerWidth, innerHeight } = this.hot.rootWindow;
+    const documentElement = this.hot.rootDocument.documentElement;
+    let x = left + rootWindow.scrollX + lastColWidth;
+    let y = top + rootWindow.scrollY + lastRowHeight;
+
+    if (this.hot.isRtl()) {
+      x -= (editorWidth + lastColWidth);
+    }
+
+    // flip to the right or left the comments editor position when it goes out of browser viewport
+    if (this.hot.isLtr() && left + cellWidth + editorWidth > innerWidth) {
+      x = left + rootWindow.scrollX - editorWidth - 1;
+
+    } else if (this.hot.isRtl() && x < -(documentElement.scrollWidth - documentElement.clientWidth)) {
+      x = left + rootWindow.scrollX + lastColWidth + 1;
+    }
+
+    if (top + editorHeight > innerHeight) {
+      y -= (editorHeight - cellHeight + 1);
+    }
 
     this.editor.setPosition(x, y);
+    this.editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY));
   }
 
   /**
@@ -490,7 +502,7 @@ export class Comments extends BasePlugin {
     }
 
     let hasComment = false;
-    const cell = selected.getTopLeftCorner(); // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
+    const cell = selected.getTopStartCorner(); // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
 
     if (this.getCommentMeta(cell.row, cell.col, META_COMMENT_VALUE)) {
       hasComment = true;
@@ -545,7 +557,7 @@ export class Comments extends BasePlugin {
    * @param {MouseEvent} event The `mousedown` event.
    */
   onMouseDown(event) {
-    if (!this.hot.view || !this.hot.view.wt) {
+    if (!this.hot.view || !this.hot.view._wt) {
       return;
     }
 
@@ -582,7 +594,7 @@ export class Comments extends BasePlugin {
     priv.cellBelowCursor = rootDocument.elementFromPoint(event.clientX, event.clientY);
 
     if (this.targetIsCellWithComment(event)) {
-      const range = new CellRange(this.hot.getCoords(event.target));
+      const range = this.hot._createCellRange(this.hot.getCoords(event.target));
 
       this.displaySwitch.show(range);
 

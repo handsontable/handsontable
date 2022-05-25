@@ -104,6 +104,8 @@ export class AutocompleteEditor extends HandsontableEditor {
       scrollbarWidth += 15; // default scroll bar width if scroll bars are visible only when scrolling
     }
 
+    this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
+
     choicesListHot.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth : void 0,
@@ -255,21 +257,21 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {boolean}
    */
   flipDropdownIfNeeded() {
+    const trimmingContainer = getTrimmingContainer(this.hot.view._wt.wtTable.TABLE);
+    const isWindowAsScrollableElement = trimmingContainer === this.hot.rootWindow;
+    const preventOverflow = this.cellProperties.preventOverflow;
+
+    if (isWindowAsScrollableElement ||
+        !isWindowAsScrollableElement && (preventOverflow || preventOverflow === 'horizontal')) {
+      return false;
+    }
+
     const textareaOffset = offset(this.TEXTAREA);
     const textareaHeight = outerHeight(this.TEXTAREA);
     const dropdownHeight = this.getDropdownHeight();
-    const trimmingContainer = getTrimmingContainer(this.hot.view.wt.wtTable.TABLE);
     const trimmingContainerScrollTop = trimmingContainer.scrollTop;
-    const headersHeight = outerHeight(this.hot.view.wt.wtTable.THEAD);
-    let containerOffset = {
-      row: 0,
-      col: 0
-    };
-
-    if (trimmingContainer !== this.hot.rootWindow) {
-      containerOffset = offset(trimmingContainer);
-    }
-
+    const headersHeight = outerHeight(this.hot.view._wt.wtTable.THEAD);
+    const containerOffset = offset(trimmingContainer);
     const spaceAbove = textareaOffset.top - containerOffset.top - headersHeight + trimmingContainerScrollTop;
     const spaceBelow = trimmingContainer.scrollHeight - spaceAbove - headersHeight - textareaHeight;
     const flipNeeded = dropdownHeight > spaceBelow && spaceAbove > spaceBelow;
@@ -289,7 +291,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * Checks if the internal table should generate scrollbar or could be rendered without it.
    *
    * @private
-   * @param {number} spaceAvailable The free space as height definded in px available for dropdown list.
+   * @param {number} spaceAvailable The free space as height defined in px available for dropdown list.
    * @param {number} dropdownHeight The dropdown height.
    */
   limitDropdownIfNeeded(spaceAvailable, dropdownHeight) {
@@ -300,7 +302,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       let height = null;
 
       do {
-        lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.getSetting('defaultRowHeight');
+        lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view._wt.getSetting('defaultRowHeight');
         tempHeight += lastRowHeight;
         i += 1;
       } while (tempHeight < spaceAvailable);
@@ -338,10 +340,8 @@ export class AutocompleteEditor extends HandsontableEditor {
   unflipDropdown() {
     const dropdownStyle = this.htEditor.rootElement.style;
 
-    if (dropdownStyle.position === 'absolute') {
-      dropdownStyle.position = '';
-      dropdownStyle.top = '';
-    }
+    dropdownStyle.position = 'absolute';
+    dropdownStyle.top = '';
 
     this.htEditor.flipped = void 0;
   }
@@ -360,7 +360,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       width: trimDropdown ? void 0 : currentDropdownWidth
     });
 
-    this.htEditor.view.wt.wtTable.alignOverlaysWithTrimmingContainer();
+    this.htEditor.view._wt.wtTable.alignOverlaysWithTrimmingContainer();
   }
 
   /**
@@ -485,8 +485,6 @@ export class AutocompleteEditor extends HandsontableEditor {
         }, timeOffset);
       }
     }
-
-    super.onBeforeKeyDown(event);
   }
 
   /**

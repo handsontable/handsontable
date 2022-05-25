@@ -41,9 +41,9 @@
  *
  * @property {boolean} drawn Is Walkontable drawn.
  * @property {MasterTable} wtTable WtTable.
- * @property {LeftOverlay} leftOverlay LeftOverlay.
+ * @property {InlineStartOverlay} inlineStartOverlay InlineStartOverlay.
  * @property {TopOverlay} topOverlay TopOverlay.
- * @property {number} fixedColumnsLeft FixedColumnsLeft.
+ * @property {number} fixedColumnsStart FixedColumnsStart.
  * @property {number} fixedRowsBottom FixedRowsBottom.
  * @property {number} fixedRowsTop FixedRowsTop.
  * @property {number} totalColumns TotalColumns.
@@ -84,11 +84,11 @@
  *
  * @typedef ViewportDao
  *
- * @property {HTMLElement} leftOverlayTrimmingContainer LeftOverlayTrimmingContainer.
- * @property {number} leftParentOffset LeftParentOffset.
+ * @property {HTMLElement} inlineStartOverlayTrimmingContainer InlineStartOverlayTrimmingContainer.
+ * @property {number} inlineStartParentOffset InlineStartParentOffset.
  * @property {BottomOverlay} bottomOverlay BottomOverlay.
- * @property {number} leftScrollPosition LeftScrollPosition.
- * @property {LeftOverlay} leftOverlay LeftOverlay.
+ * @property {number} inlineStartScrollPosition InlineStartScrollPosition.
+ * @property {InlineStartOverlay} inlineStartOverlay InlineStartOverlay.
  * @property {TopOverlay} topOverlay TopOverlay.
  * @property {number} topParentOffset TopParentOffset.
  * @property {HTMLElement} topOverlayTrimmingContainer TopOverlayTrimmingContainer.

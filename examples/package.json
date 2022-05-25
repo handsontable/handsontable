@@ -1,7 +1,7 @@
 {
   "name": "handsontable-examples",
   "private": true,
-  "version": "11.1.0",
+  "version": "12.0.1",
   "scripts": {
     "clean": "node ./scripts/clean-subpackages.mjs",
     "test": "cd .. && npm run examples:test next",
@@ -16,7 +16,9 @@
       "node": true
     }
   },
-  "workspaces": [
-    "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|angular|react|vue)"
-  ]
+  "internal": {
+    "framework_dirs": [
+      "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|ts|angular|react|vue)"
+    ]
+  }
 }

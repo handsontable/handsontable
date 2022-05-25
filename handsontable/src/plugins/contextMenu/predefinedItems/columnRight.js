@@ -13,19 +13,19 @@ export default function columnRightItem() {
     name() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
     },
-    callback(key, normalizedSelection) {
+    callback() {
       const isSelectedByCorner = this.selection.isSelectedByCorner();
-      let columnRight = 0;
+      let columnRight = this.isRtl() ? 0 : this.countCols();
 
-      if (isSelectedByCorner) {
-        columnRight = this.countCols();
-
-      } else {
-        const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
-        const selectedColumn = latestSelection?.end?.col;
+      if (!isSelectedByCorner) {
+        const selectedRange = this.getSelectedRangeLast();
 
         // If there is no selection we have clicked on the corner and there is no data.
-        columnRight = isDefined(selectedColumn) ? selectedColumn + 1 : 0;
+        if (isDefined(selectedRange)) {
+          const { col } = selectedRange.getTopRightCorner();
+
+          columnRight = this.isRtl() ? col : col + 1;
+        }
       }
 
       this.alter('insert_col', columnRight, 1, 'ContextMenu.columnRight');

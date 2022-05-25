@@ -29,9 +29,8 @@ describe('settings', () => {
           fixedRowsBottom: 2
         });
 
-        expect(getBottomClone().find('thead tr').length).toEqual(1);
-        expect(getBottomClone().find('thead tr').height()).toEqual(0); // header is always invisible
-        expect(getBottomClone().find('tbody tr').length).toEqual(2);
+        expect(getBottomClone().find('thead tr').length).toBe(0);
+        expect(getBottomClone().find('tbody tr').length).toBe(2);
       });
     });
 
@@ -82,7 +81,7 @@ describe('settings', () => {
         });
 
         expect(getBottomClone().find('tbody tr').length).toEqual(2);
-        expect(getLeftClone().height()).toBe(0);
+        expect(getInlineStartClone().height()).toBe(0);
       });
 
       it('should not throw errors while scrolling vertically when fixed rows was set', async() => {
@@ -208,19 +207,19 @@ describe('settings', () => {
 
       expect(getMaster().height()).toBe(50); // 25px corner + 25px added row
       expect(getTopClone().height()).toBe(26); // 26px as rowHeaders is enabled
-      expect(getTopLeftClone().height()).toBe(26); // 26px as rowHeaders is enabled
-      expect(getLeftClone().height()).toBe(50);
+      expect(getTopInlineStartClone().height()).toBe(26); // 26px as rowHeaders is enabled
+      expect(getInlineStartClone().height()).toBe(50);
       expect(getBottomClone().height()).toBe(24);
-      expect(getBottomLeftClone().height()).toBe(24);
+      expect(getBottomInlineStartClone().height()).toBe(24);
 
       alter('insert_row', 0);
 
       expect(getMaster().height()).toBe(73);
       expect(getTopClone().height()).toBe(26);
-      expect(getTopLeftClone().height()).toBe(26);
-      expect(getLeftClone().height()).toBe(73);
+      expect(getTopInlineStartClone().height()).toBe(26);
+      expect(getInlineStartClone().height()).toBe(73);
       expect(getBottomClone().height()).toBe(47);
-      expect(getBottomLeftClone().height()).toBe(47);
+      expect(getBottomInlineStartClone().height()).toBe(47);
     });
 
     it('should not display double border when `window` is a scrollable container', () => {

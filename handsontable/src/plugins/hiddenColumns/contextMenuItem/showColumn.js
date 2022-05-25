@@ -25,10 +25,10 @@ export default function showColumnItem(hiddenColumnsPlugin) {
 
       // Add to the selection one more visual column on the left.
       startVisualColumn = this.columnIndexMapper
-        .getFirstNotHiddenIndex(startVisualColumn - 1, -1) ?? 0;
+        .getNearestNotHiddenIndex(startVisualColumn - 1, -1) ?? 0;
       // Add to the selection one more visual column on the right.
       endVisualColumn = this.columnIndexMapper
-        .getFirstNotHiddenIndex(endVisualColumn + 1, 1) ?? this.countCols() - 1;
+        .getNearestNotHiddenIndex(endVisualColumn + 1, 1) ?? this.countCols() - 1;
 
       hiddenColumnsPlugin.showColumns(columns);
 
@@ -59,8 +59,8 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       columns.length = 0;
 
       const selectedRangeLast = this.getSelectedRangeLast();
-      const visualStartColumn = selectedRangeLast.getTopLeftCorner().col;
-      const visualEndColumn = selectedRangeLast.getBottomRightCorner().col;
+      const visualStartColumn = selectedRangeLast.getTopStartCorner().col;
+      const visualEndColumn = selectedRangeLast.getBottomEndCorner().col;
       const columnIndexMapper = this.columnIndexMapper;
       const renderableStartColumn = columnIndexMapper.getRenderableFromVisualIndex(visualStartColumn);
       const renderableEndColumn = columnIndexMapper.getRenderableFromVisualIndex(visualEndColumn);
@@ -92,7 +92,7 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       } else {
         const lastVisualIndex = this.countCols() - 1;
         const lastRenderableIndex = columnIndexMapper.getRenderableFromVisualIndex(
-          columnIndexMapper.getFirstNotHiddenIndex(lastVisualIndex, -1)
+          columnIndexMapper.getNearestNotHiddenIndex(lastVisualIndex, -1)
         );
 
         // Handled column is the last rendered index and there are some visual indexes after it.

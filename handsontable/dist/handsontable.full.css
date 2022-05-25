@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 11.1.0
- * Release date: 13/01/2022 (built at 13/01/2022 11:51:27)
+ * Version: 12.0.1
+ * Release date: 16/05/2022 (built at 13/05/2022 13:50:27)
  */
 /**
  * Fix for bootstrap styles
@@ -183,20 +183,21 @@
   white-space: pre-wrap;
 }
 
-[dir=rtl] .handsontable th,
-[dir=rtl] .handsontable td {
+[dir=rtl].handsontable th, [dir=rtl].handsontable td {
   border-right-width: 0;
   border-left: 1px solid #ccc;
 }
 
 .handsontable th:last-child {
   /*Foundation framework fix*/
+  border-left: none;
   border-right: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
 }
 
-[dir=rtl] .handsontable th:last-child {
+[dir=rtl].handsontable th:last-child {
   /*Foundation framework fix*/
+  border-right: none;
   border-left: 1px solid #ccc;
 }
 
@@ -206,9 +207,7 @@
   border-left: 1px solid #ccc;
 }
 
-[dir=rtl] .handsontable th:first-child,
-[dir=rtl] .handsontable th:nth-child(2),
-[dir=rtl] .handsontable td:first-of-type {
+[dir=rtl].handsontable th:first-child, [dir=rtl].handsontable th:nth-child(2), [dir=rtl].handsontable td:first-of-type {
   border-right: 1px solid #ccc;
 }
 
@@ -218,7 +217,7 @@
   border-right: 1px solid #ccc;
 }
 
-[dir=rtl] .handsontable .ht_clone_top th:nth-child(2) {
+[dir=rtl].handsontable .ht_clone_top th:nth-child(2) {
   border-right-width: 0;
   border-left: 1px solid #ccc;
 }
@@ -227,7 +226,7 @@
   border-left: 1px solid #ccc;
 }
 
-[dir=rtl] .handsontable.htRowHeaders thead tr th:nth-child(2) {
+[dir=rtl].handsontable.htRowHeaders thead tr th:nth-child(2) {
   border-right: 1px solid #ccc;
 }
 
@@ -236,14 +235,13 @@
   border-top: 1px solid #ccc;
 }
 
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable tbody tr th,
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
+.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable tbody tr th,
+.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
   border-right-width: 0;
   border-left: 1px solid #ccc;
 }
 
-[dir=rtl] .ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable tbody tr th,
-[dir=rtl] .ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
+[dir=rtl].ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable tbody tr th, [dir=rtl].ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
   border-left-width: 0;
   border-right: 1px solid #ccc;
 }
@@ -317,11 +315,7 @@ innerBorderBottom - Property controlled by bottom overlay
   z-index: 100;
 }
 
-.ht_clone_right {
-  z-index: 110;
-}
-
-.ht_clone_left {
+.ht_clone_inline_start {
   z-index: 120;
 }
 
@@ -329,11 +323,7 @@ innerBorderBottom - Property controlled by bottom overlay
   z-index: 130;
 }
 
-.ht_clone_bottom_right_corner {
-  z-index: 140;
-}
-
-.ht_clone_bottom_left_corner {
+.ht_clone_bottom_inline_start_corner {
   z-index: 150;
 }
 
@@ -341,31 +331,8 @@ innerBorderBottom - Property controlled by bottom overlay
   z-index: 160;
 }
 
-.ht_clone_top_right_corner {
-  z-index: 170;
-}
-
-.ht_clone_top_left_corner {
+.ht_clone_top_inline_start_corner {
   z-index: 180;
-}
-
-/*
-  Cell borders
-  */
-.handsontable tbody tr th:nth-last-child(2) {
-  border-right: 1px solid #ccc;
-}
-
-[dir=rtl] .handsontable tbody tr th:nth-last-child(2) {
-  border-left: 1px solid #ccc;
-}
-
-.ht_clone_top_left_corner thead tr th:nth-last-child(2) {
-  border-right: 1px solid #ccc;
-}
-
-[dir=rtl] .ht_clone_top_left_corner thead tr th:nth-last-child(2) {
-  border-left: 1px solid #ccc;
 }
 
 .handsontable col.hidden {
@@ -379,7 +346,7 @@ innerBorderBottom - Property controlled by bottom overlay
 }
 
 .ht_master,
-.ht_clone_left,
+.ht_clone_inline_start,
 .ht_clone_top,
 .ht_clone_bottom {
   overflow: hidden;
@@ -391,12 +358,12 @@ innerBorderBottom - Property controlled by bottom overlay
 
 .handsontable .ht_master thead,
 .handsontable .ht_master tr th,
-.handsontable .ht_clone_left thead {
+.handsontable .ht_clone_inline_start thead {
   visibility: hidden;
 }
 
 .ht_clone_top .wtHolder,
-.ht_clone_left .wtHolder,
+.ht_clone_inline_start .wtHolder,
 .ht_clone_bottom .wtHolder {
   overflow: hidden;
 }
@@ -472,13 +439,23 @@ innerBorderBottom - Property controlled by bottom overlay
 
 .handsontable .manualColumnResizerGuide {
   position: absolute;
-  right: 0;
+  right: unset;
   top: 0;
   background-color: #34a9db;
   display: none;
   width: 0;
   border-right: 1px dashed #777;
+  border-left: none;
   margin-left: 5px;
+  margin-right: unset;
+}
+
+[dir=rtl].handsontable .manualColumnResizerGuide {
+  left: unset;
+  border-left: 1px dashed #777;
+  border-right: none;
+  margin-right: 5px;
+  margin-left: unset;
 }
 
 .handsontable .manualRowResizerGuide {
@@ -516,14 +493,26 @@ innerBorderBottom - Property controlled by bottom overlay
   /* Centering end */
   /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
   padding-left: 8px;
+  padding-right: 0;
   position: absolute;
   right: -9px;
+  left: unset;
   content: "";
   height: 10px;
   width: 5px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position-x: right;
+}
+
+[dir=rtl].handsontable span.colHeader.columnSorting::before {
+  /* Centering end */
+  /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
+  padding-right: 8px;
+  padding-left: 0;
+  left: -9px;
+  right: unset;
+  background-position-x: left;
 }
 
 .handsontable span.colHeader.columnSorting.ascending::before {
@@ -688,6 +677,18 @@ TextRenderer readOnly cell
   font-size: 9px;
 }
 
+[dir=rtl].handsontable .htSubmenu :after {
+  content: "";
+}
+
+[dir=rtl].handsontable .htSubmenu :before {
+  content: "◀";
+  color: #777;
+  position: absolute;
+  left: 5px;
+  font-size: 9px;
+}
+
 /*
 TextRenderer horizontal alignment
 */
@@ -747,7 +748,7 @@ TextRenderer placeholder value
 .handsontable.listbox tr:last-child th,
 .handsontable.listbox tr:first-child td,
 .handsontable.listbox td {
-  border-color: transparent;
+  border-color: transparent !important;
 }
 
 .handsontable.listbox th,
@@ -784,10 +785,11 @@ TextRenderer placeholder value
   color: #583707;
 }
 
-.collapsibleIndicator {
+.handsontable .collapsibleIndicator {
   position: absolute;
   top: 50%;
   transform: translate(0%, -50%);
+  left: unset;
   right: 5px;
   border: 1px solid #A6A6A6;
   line-height: 8px;
@@ -797,11 +799,16 @@ TextRenderer placeholder value
   width: 10px;
   height: 10px;
   cursor: pointer;
-  -webkit-box-shadow: 0 0 0 6px #eeeeee;
-  -moz-box-shadow: 0 0 0 6px #eeeeee;
-  box-shadow: 0 0 0 6px #eeeeee;
+  -webkit-box-shadow: 0 0 0 6px rgb(238, 238, 238);
+  -moz-box-shadow: 0 0 0 6px rgb(238, 238, 238);
+  box-shadow: 0 0 0 6px rgb(238, 238, 238);
   background: #eee;
   text-align: center;
+}
+
+[dir=rtl].handsontable .collapsibleIndicator {
+  right: unset;
+  left: 5px;
 }
 /*
 
@@ -827,16 +834,16 @@ TextRenderer placeholder value
   -webkit-appearance: none;
 }
 
-.topLeftSelectionHandle:not(.ht_master .topLeftSelectionHandle),
-.topLeftSelectionHandle-HitArea:not(.ht_master .topLeftSelectionHandle-HitArea) {
+.topSelectionHandle:not(.ht_master .topSelectionHandle),
+.topSelectionHandle-HitArea:not(.ht_master .topSelectionHandle-HitArea) {
   z-index: 9999;
 }
 
 /* Initial left/top coordinates - overwritten when actual position is set */
-.topLeftSelectionHandle,
-.topLeftSelectionHandle-HitArea,
-.bottomRightSelectionHandle,
-.bottomRightSelectionHandle-HitArea {
+.topSelectionHandle,
+.topSelectionHandle-HitArea,
+.bottomSelectionHandle,
+.bottomSelectionHandle-HitArea {
   left: -10000px;
   top: -10000px;
 }
@@ -1109,6 +1116,10 @@ AutocompleteRenderer down arrow
   text-align: center;
 }
 
+[dir=rtl].handsontable .htAutocompleteArrow {
+  float: left;
+}
+
 .handsontable td .htAutocompleteArrow:hover {
   color: #777;
 }
@@ -1137,32 +1148,42 @@ CheckboxRenderer
 .handsontable .htCheckboxRendererLabel.fullWidth {
   width: 100%;
 }
-.htCommentCell {
+.handsontable .htCommentCell {
   position: relative;
 }
 
-.htCommentCell:after {
+.handsontable .htCommentCell:after {
   content: "";
   position: absolute;
   top: 0;
   right: 0;
+  left: unset;
   border-left: 6px solid transparent;
+  border-right: none;
   border-top: 6px solid black;
 }
 
-.htComments {
+[dir=rtl].handsontable .htCommentCell:after {
+  left: 0;
+  right: unset;
+  border-right: 6px solid transparent;
+  border-left: none;
+}
+
+.htCommentsContainer .htComments {
   display: none;
   z-index: 1059;
   position: absolute;
 }
 
-.htCommentTextArea {
+.htCommentsContainer .htCommentTextArea {
   box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   border: none;
   border-left: 3px solid #ccc;
+  border-right: none;
   background-color: #fff;
   width: 215px;
   height: 90px;
@@ -1172,9 +1193,20 @@ CheckboxRenderer
   -webkit-appearance: none;
 }
 
-.htCommentTextArea:focus {
+[dir=rtl].htCommentsContainer .htCommentTextArea {
+  border-right: 3px solid #ccc;
+  border-left: none;
+}
+
+.htCommentsContainer .htCommentTextArea:focus {
   box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px, inset 0 0 0 1px #5292f7;
   border-left: 3px solid #5292f7;
+  border-right: none;
+}
+
+[dir=rtl].htCommentsContainer .htCommentTextArea:focus {
+  border-right: 3px solid #5292f7;
+  border-left: none;
 }
 /*!
  * Handsontable ContextMenu
@@ -1187,15 +1219,25 @@ CheckboxRenderer
 }
 
 .htContextMenu .ht_clone_top,
-.htContextMenu .ht_clone_left,
-.htContextMenu .ht_clone_corner {
+.htContextMenu .ht_clone_bottom,
+.htContextMenu .ht_clone_inline_start,
+.htContextMenu .ht_clone_top_inline_start_corner,
+.htContextMenu .ht_clone_bottom_inline_start_corner {
   display: none;
 }
 
 .htContextMenu .ht_master table.htCore {
-  border: 1px solid #ccc;
+  border-color: #ccc;
+  border-style: solid;
+  border-top-width: 1px;
   border-bottom-width: 2px;
+  border-left-width: 1px;
   border-right-width: 2px;
+}
+
+[dir=rtl].htContextMenu .ht_master table.htCore {
+  border-right-width: 1px;
+  border-left-width: 2px;
 }
 
 .htContextMenu .wtBorder {
@@ -1213,7 +1255,15 @@ CheckboxRenderer
 }
 
 .htContextMenu table tbody tr td:first-child {
-  border: 0;
+  border-top-width: 0;
+  border-bottom-width: 0;
+  border-left-width: 0;
+  border-right-width: 0;
+}
+
+[dir=rtl].htContextMenu table tbody tr td:first-child {
+  border-right-width: 0;
+  border-left-width: 0;
 }
 
 .htContextMenu table tbody tr td.htDimmed {
@@ -1286,6 +1336,10 @@ textarea.HandsontableCopyPaste {
   float: right;
 }
 
+[dir=rtl].handsontable .changeType {
+  float: left;
+}
+
 .handsontable .changeType:before {
   content: "▼ ";
 }
@@ -1304,15 +1358,25 @@ textarea.HandsontableCopyPaste {
 }
 
 .htDropdownMenu .ht_clone_top,
-.htDropdownMenu .ht_clone_left,
-.htDropdownMenu .ht_clone_corner {
+.htDropdownMenu .ht_clone_bottom,
+.htDropdownMenu .ht_clone_inline_start,
+.htDropdownMenu .ht_clone_top_inline_start_corner,
+.htDropdownMenu .ht_clone_bottom_inline_start_corner {
   display: none;
 }
 
 .htDropdownMenu table.htCore {
-  border: 1px solid #bbb;
+  border-color: #ccc;
+  border-style: solid;
+  border-top-width: 1px;
   border-bottom-width: 2px;
+  border-left-width: 1px;
   border-right-width: 2px;
+}
+
+[dir=rtl].htDropdownMenu table.htCore {
+  border-right-width: 1px;
+  border-left-width: 2px;
 }
 
 .htDropdownMenu .wtBorder {
@@ -1330,7 +1394,15 @@ textarea.HandsontableCopyPaste {
 }
 
 .htDropdownMenu table tbody tr td:first-child {
-  border: 0;
+  border-top-width: 0;
+  border-right-width: 0;
+  border-bottom-width: 0;
+  border-left-width: 0;
+}
+
+[dir=rtl].htDropdownMenu table tbody tr td:first-child {
+  border-left-width: 0;
+  border-right-width: 0;
 }
 
 .htDropdownMenu table tbody tr td.htDimmed {
@@ -1390,7 +1462,7 @@ textarea.HandsontableCopyPaste {
 }
 
 .htFiltersConditionsMenu .ht_clone_top,
-.htFiltersConditionsMenu .ht_clone_left,
+.htFiltersConditionsMenu .ht_clone_inline_start,
 .htFiltersConditionsMenu .ht_clone_corner {
   display: none;
 }
@@ -1416,7 +1488,15 @@ textarea.HandsontableCopyPaste {
 }
 
 .htFiltersConditionsMenu table tbody tr td:first-child {
-  border: 0;
+  border-top-width: 0;
+  border-right-width: 0;
+  border-bottom-width: 0;
+  border-left-width: 0;
+}
+
+[dir=rtl].htFiltersConditionsMenu table tbody tr td:first-child {
+  border-left-width: 0;
+  border-right-width: 0;
 }
 
 .htFiltersConditionsMenu table tbody tr td.htDimmed {
@@ -1521,7 +1601,13 @@ textarea.HandsontableCopyPaste {
 }
 
 .handsontable .htUISelectAll {
+  margin-left: 0;
   margin-right: 10px;
+}
+
+[dir=rtl].handsontable .htUISelectAll {
+  margin-right: 0;
+  margin-left: 10px;
 }
 
 .handsontable .htUIClearAll, .handsontable .htUISelectAll {
@@ -1536,10 +1622,22 @@ textarea.HandsontableCopyPaste {
   text-align: right;
 }
 
+[dir=rtl].handsontable .htUISelectionControls {
+  text-align: left;
+}
+
 .handsontable .htCheckboxRendererInput {
-  margin: 0 5px 0 0;
+  margin-top: 0;
+  margin-right: 5px;
+  margin-bottom: 0;
+  margin-left: 0;
   vertical-align: middle;
   height: 1em;
+}
+
+[dir=rtl].handsontable .htCheckboxRendererInput {
+  margin-left: 5px;
+  margin-right: 0;
 }
 
 /* UI elements */
@@ -1585,7 +1683,13 @@ textarea.HandsontableCopyPaste {
 }
 
 .handsontable .htUIInput.htUIButtonOK {
+  margin-left: 0;
   margin-right: 10px;
+}
+
+[dir=rtl].handsontable .htUIInput.htUIButtonOK {
+  margin-right: 0;
+  margin-left: 10px;
 }
 
 .handsontable .htUIInput.htUIButtonOK input {
@@ -1656,8 +1760,14 @@ textarea.HandsontableCopyPaste {
 
 .handsontable .htUIRadio {
   display: inline-block;
+  margin-left: 0;
   margin-right: 5px;
   height: 100%;
+}
+
+[dir=rtl].handsontable .htUIRadio {
+  margin-right: 0;
+  margin-left: 5px;
 }
 
 .handsontable .htUIRadio:last-child {
@@ -1665,7 +1775,13 @@ textarea.HandsontableCopyPaste {
 }
 
 .handsontable .htUIRadio > input[type=radio] {
+  margin-left: 0;
   margin-right: 0.5ex;
+}
+
+[dir=rtl].handsontable .htUIRadio > input[type=radio] {
+  margin-right: 0;
+  margin-left: 0.5ex;
 }
 
 .handsontable .htUIRadio label {
@@ -1699,11 +1815,27 @@ textarea.HandsontableCopyPaste {
 .handsontable th.beforeHiddenColumn::after {
   right: 1px;
   content: "◀";
+  /* left arrow */
+}
+
+[dir=rtl].handsontable th.beforeHiddenColumn::after {
+  right: initial;
+  left: 1px;
+  content: "▶";
+  /* right arrow */
 }
 
 .handsontable th.afterHiddenColumn::before {
   left: 1px;
   content: "▶";
+  /* right arrow */
+}
+
+[dir=rtl].handsontable th.afterHiddenColumn::before {
+  right: 1px;
+  left: initial;
+  content: "◀";
+  /* left arrow */
 }
 @charset "UTF-8";
 /*!
@@ -1742,8 +1874,8 @@ textarea.HandsontableCopyPaste {
 .handsontable th.afterHiddenRow.firstVisibleRow {
   border-top: 1px solid #CCC;
 }
-.htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_top_left_corner th:nth-child(2),
-.htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_left td:first-of-type {
+.htRowHeaders .ht_master.innerBorderInlineStart ~ .ht_clone_top_inline_start_corner th:nth-child(2),
+.htRowHeaders .ht_master.innerBorderInlineStart ~ .ht_clone_inline_start td:first-of-type {
   border-left: 0 none;
 }
 .handsontable .wtHider {
@@ -1780,7 +1912,8 @@ textarea.HandsontableCopyPaste {
   background: #757575;
   width: 2px;
   top: 0;
-  margin-left: -1px;
+  margin-inline-start: -1px;
+  margin-inline-end: 0;
   z-index: 205;
 }
 
@@ -1894,13 +2027,23 @@ textarea.HandsontableCopyPaste {
   /* Centering end */
   position: absolute;
   right: -15px;
+  left: unset;
   /* For purpose of continuous mouse over experience, when moving between the `::before` and the `::after` elements */
   padding-left: 5px;
+  padding-right: unset;
   font-size: 8px;
   height: 8px;
   line-height: 1.1;
   /* Workaround for IE9 - IE11 */
   text-decoration: underline;
+}
+
+[dir=rtl].handsontable span.colHeader.columnSorting::after {
+  left: -15px;
+  right: unset;
+  /* For purpose of continuous mouse over experience, when moving between the `::before` and the `::after` elements */
+  padding-right: 5px;
+  padding-left: unset;
 }
 
 /* Workaround for IE9 - IE11, https://stackoverflow.com/a/21902566, https://stackoverflow.com/a/32120247 */
@@ -1955,15 +2098,32 @@ textarea.HandsontableCopyPaste {
   padding-left: 7px;
 }
 
+[dir=rtl].handsontable th.ht_nestingLevels {
+  text-align: right;
+  padding-right: 7px;
+}
+
 .handsontable th div.ht_nestingLevels {
   display: inline-block;
   position: absolute;
   left: 11px;
+  right: unset;
 }
 
-.handsontable.innerBorderLeft th div.ht_nestingLevels,
-.handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingLevels {
+[dir=rtl].handsontable th div.ht_nestingLevels {
+  right: 11px;
+  left: unset;
+}
+
+.handsontable.innerBorderInlineStart th div.ht_nestingLevels,
+.handsontable.innerBorderInlineStart ~ .handsontable th div.ht_nestingLevels {
   right: 10px;
+  left: unset;
+}
+
+[dir=rtl].handsontable.innerBorderInlineStart th div.ht_nestingLevels, [dir=rtl].handsontable.innerBorderInlineStart ~ .handsontable th div.ht_nestingLevels {
+  left: 10px;
+  right: unset;
 }
 
 .handsontable th span.ht_nestingLevel {
@@ -1975,6 +2135,10 @@ textarea.HandsontableCopyPaste {
   width: 10px;
   height: 1px;
   float: left;
+}
+
+[dir=rtl].handsontable th span.ht_nestingLevel_empty {
+  float: right;
 }
 
 .handsontable th span.ht_nestingLevel::after {
@@ -1989,7 +2153,13 @@ textarea.HandsontableCopyPaste {
   display: inline-block;
   position: absolute;
   right: -2px;
+  left: unset;
   cursor: pointer;
+}
+
+[dir=rtl].handsontable th div.ht_nestingButton {
+  left: -2px;
+  right: unset;
 }
 
 .handsontable th div.ht_nestingButton.ht_nestingExpand::after {
@@ -2000,7 +2170,13 @@ textarea.HandsontableCopyPaste {
   content: "-";
 }
 
-.handsontable.innerBorderLeft th div.ht_nestingButton,
-.handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingButton {
+.handsontable.innerBorderInlineStart th div.ht_nestingButton,
+.handsontable.innerBorderInlineStart ~ .handsontable th div.ht_nestingButton {
   right: 0;
+  left: unset;
+}
+
+[dir=rtl].handsontable.innerBorderInlineStart th div.ht_nestingButton, [dir=rtl].handsontable.innerBorderInlineStart ~ .handsontable th div.ht_nestingButton {
+  left: 0;
+  right: unset;
 }

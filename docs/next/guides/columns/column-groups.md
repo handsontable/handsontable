@@ -18,9 +18,9 @@ Columns in Handsontable may be grouped using multiple levels of headers. We refe
 
 ## Nested headers
 
-The **Nested Headers** plugin allows creating a nested header structure using the `colspan` attribute. The header cannot be wider than its parent element, i.e., headers cannot overlap each other.
+The [NestedHeaders](@/api/nestedHeaders.md) plugin allows creating a nested header structure using the `colspan` attribute. The header cannot be wider than its parent element, i.e., headers cannot overlap each other.
 
-To make a header that spans across multiple columnns, its corresponding configuration array element should be provided as an object with `label` and `colspan` properties. The `label` property defines the header's label, while the `colspan` property defines the number of columns that the header should cover.
+To make a header that spans across multiple columns, its corresponding configuration array element should be provided as an object with `label` and `colspan` properties. The `label` property defines the header's label, while the `colspan` property defines the number of columns that the header should cover.
 
 The maximum value for `colspan` for nested headers is 1000, meaning that the maximum number of columns that a header can span is 1000.  This constraint is based on [_HTML table specification_](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan), which sets the limit of `colspan` to 1000.
 
@@ -59,15 +59,15 @@ const hot = new Handsontable(container, {
 
 ## Collapsible headers
 
-The **Collapsible Columns** plugin enables columns and their headers to be collapsed/expanded.
+The [CollapsibleColumns](@/api/collapsibleColumns.md) plugin enables columns and their headers to be collapsed/expanded.
 
 This plugin adds multi-column headers which have buttons. Clicking these buttons will collapse or expand all "child" headers, leaving the first one visible.
 
-The [Nested Headers](#nested-headers.md) plugin needs to be enabled for this to work properly.
+The [`NestedHeaders`](@/api/nestedHeaders.md) plugin needs to be enabled for this to work properly.
 
 ### Configuration
 
-To enable the Collapsible Columns plugin, either set the `collapsibleColumns` property to:
+To enable the Collapsible Columns plugin, either set the [`collapsibleColumns`](@/api/options.md#collapsiblecolumns) configuration option to:
 
 * `true` - this will enable the functionality for _all_ multi-column headers, every column with the `colspan` attribute defined will be extended with the "expand/collapse" button
 * An array of objects containing information specifying which headers should have the "expand/collapse" buttons for example:
@@ -107,3 +107,19 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related API reference
+
+- Configuration options:
+  - [`collapsibleColumns`](@/api/options.md#collapsiblecolumns)
+  - [`nestedHeaders`](@/api/options.md#nestedheaders)
+- Core methods:
+  - [`isColumnModificationAllowed()`](@/api/core.md#iscolumnmodificationallowed)
+- Hooks:
+  - [`afterColumnCollapse`](@/api/hooks.md#aftercolumncollapse)
+  - [`afterColumnExpand`](@/api/hooks.md#aftercolumnexpand)
+  - [`beforeColumnCollapse`](@/api/hooks.md#beforecolumncollapse)
+  - [`beforeColumnExpand`](@/api/hooks.md#beforecolumnexpand)
+- Plugins:
+  - [`CollapsibleColumns`](@/api/collapsibleColumns.md)
+  - [`NestedHeaders`](@/api/nestedHeaders.md)

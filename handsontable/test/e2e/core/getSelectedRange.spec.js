@@ -29,7 +29,7 @@ describe('Core.getSelectedRange', () => {
 
     expect(getSelectedRange().map(cellRange => cellRange.toObject())).toEqual([snapshot[0]]);
 
-    keyDown('ctrl');
+    keyDown('control/meta');
 
     $(getCell(2, 2)).simulate('mousedown');
     $(getCell(7, 2)).simulate('mouseover');
@@ -46,6 +46,8 @@ describe('Core.getSelectedRange', () => {
     $(getCell(7, 6)).simulate('mousedown');
     $(getCell(8, 7)).simulate('mouseover');
     $(getCell(8, 7)).simulate('mouseup');
+
+    keyUp('control/meta');
 
     const selectedRange = getSelectedRange().map(cellRange => cellRange.toObject());
 

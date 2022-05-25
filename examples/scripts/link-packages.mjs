@@ -12,11 +12,11 @@ import {
   displayErrorMessage,
   displayWarningMessage
 } from '../../scripts/utils/index.mjs';
-import examplesPackageJson from '../package.json';
-import mainPackageJson from '../../package.json';
+import examplesPackageJson from '../package.json' assert { type: 'json' };
+import mainPackageJson from '../../package.json' assert { type: 'json' };
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const workspaces = examplesPackageJson.workspaces;
+const exampleFrameworkSubdirs = examplesPackageJson.internal.framework_dirs;
 const hotWorkspaces = mainPackageJson.workspaces;
 const isPackageRequired = (packageName, packageLocation) => {
   const frameworkName = packageName.split('/').pop() || null;
@@ -73,13 +73,13 @@ for (const hotPackageGlob of hotWorkspaces) {
   const mainPackages = glob.sync(`../${hotPackageGlob}`);
 
   for (const mainPackageUrl of mainPackages) {
-    const { default: packagePackageJson } = await import(`../${mainPackageUrl}/package.json`);
+    const { default: packagePackageJson } = await import(`../${mainPackageUrl}/package.json`, { assert: { type: 'json' } });
     const packageName = packagePackageJson.name;
     packagesToLink.push(packageName);
   }
 }
 
-workspaces.forEach((packagesLocation) => {
+exampleFrameworkSubdirs.forEach((packagesLocation) => {
   const subdirs = glob.sync(`./${packagesLocation}`);
 
   subdirs.forEach((packageLocation) => {

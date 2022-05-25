@@ -24,7 +24,7 @@ describe('settings', () => {
 
       selectCell(0, 0);
 
-      const holderBoundingBox = hot.view.wt.wtTable.holder.getBoundingClientRect();
+      const holderBoundingBox = hot.view._wt.wtTable.holder.getBoundingClientRect();
       const verticalScrollbarCoords = {
         x: holderBoundingBox.left + holderBoundingBox.width - 3,
         y: holderBoundingBox.top + (holderBoundingBox.height / 2)
@@ -34,14 +34,14 @@ describe('settings', () => {
         y: holderBoundingBox.top + holderBoundingBox.height - 3
       };
 
-      $(hot.view.wt.wtTable.holder).simulate('mousedown', {
+      $(hot.view._wt.wtTable.holder).simulate('mousedown', {
         clientX: verticalScrollbarCoords.x,
         clientY: verticalScrollbarCoords.y
       });
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
 
-      $(hot.view.wt.wtTable.holder).simulate('mousedown', {
+      $(hot.view._wt.wtTable.holder).simulate('mousedown', {
         clientX: horizontalScrollbarCoords.x,
         clientY: horizontalScrollbarCoords.y
       });
@@ -201,9 +201,7 @@ describe('settings', () => {
 
       const LETTER_A_KEY = 97;
 
-      $(document.activeElement).simulate('keydown', {
-        keyCode: LETTER_A_KEY
-      });
+      keyDownUp('a');
 
       // textarea should receive the event and be an active element
       expect(keyPressed).toEqual(LETTER_A_KEY);
@@ -215,9 +213,7 @@ describe('settings', () => {
 
       await sleep(50);
 
-      $(document.activeElement).simulate('keydown', {
-        keyCode: LETTER_A_KEY
-      });
+      keyDownUp('a');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toBeNull();
@@ -244,9 +240,7 @@ describe('settings', () => {
 
       const LETTER_A_KEY = 97;
 
-      $(document.activeElement).simulate('keydown', {
-        keyCode: LETTER_A_KEY
-      });
+      keyDownUp('a');
 
       // textarea should receive the event and be an active element
       expect(keyPressed).toEqual(LETTER_A_KEY);
@@ -258,9 +252,7 @@ describe('settings', () => {
 
       await sleep(50);
 
-      $(document.activeElement).simulate('keydown', {
-        keyCode: LETTER_A_KEY
-      });
+      keyDownUp('a');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toBeNull();
@@ -276,7 +268,7 @@ describe('settings', () => {
         outsideClickDeselects: false
       });
       selectCell(0, 0);
-      keyDown('enter');
+      keyDownUp('enter');
       document.activeElement.value = 'Foo';
 
       textarea.focus();
@@ -289,9 +281,7 @@ describe('settings', () => {
 
       const LETTER_A_KEY = 97;
 
-      $(document.activeElement).simulate('keydown', {
-        keyCode: LETTER_A_KEY
-      });
+      keyDownUp('a');
 
       // textarea should receive the event and be an active element
       expect(keyPressed).toEqual(LETTER_A_KEY);
@@ -303,9 +293,7 @@ describe('settings', () => {
 
       await sleep(50);
 
-      $(document.activeElement).simulate('keydown', {
-        keyCode: LETTER_A_KEY
-      });
+      keyDownUp('a');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toEqual('Foo');
@@ -321,7 +309,7 @@ describe('settings', () => {
         outsideClickDeselects: () => false
       });
       selectCell(0, 0);
-      keyDown('enter');
+      keyDownUp('enter');
       document.activeElement.value = 'Foo';
 
       textarea.focus();
@@ -334,9 +322,7 @@ describe('settings', () => {
 
       const LETTER_A_KEY = 97;
 
-      $(document.activeElement).simulate('keydown', {
-        keyCode: LETTER_A_KEY
-      });
+      keyDownUp('a');
 
       // textarea should receive the event and be an active element
       expect(keyPressed).toEqual(LETTER_A_KEY);
@@ -348,9 +334,7 @@ describe('settings', () => {
 
       await sleep(50);
 
-      $(document.activeElement).simulate('keydown', {
-        keyCode: LETTER_A_KEY
-      });
+      keyDownUp('a');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toEqual('Foo');

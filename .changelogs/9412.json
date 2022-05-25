@@ -1,0 +1,7 @@
+{
+  "title": "Modified the main `build` and `test` scripts to exclude the examples from being built/tested.",
+  "type": "changed",
+  "issue": 9412,
+  "breaking": false,
+  "framework": "none"
+}

@@ -16,6 +16,7 @@ import { BaseRenderer } from './renderers/base';
 import { BaseValidator } from './validators/base';
 import { Plugins } from './plugins';
 import { CellType } from './cellTypes';
+import { ShortcutManager } from './shortcuts';
 
 export default class Core {
   addHook<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>): void;
@@ -70,6 +71,7 @@ export default class Core {
   getDataAtRow(row: number): CellValue[];
   getDataAtRowProp(row: number, prop: string): CellValue;
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): CellType | 'mixed';
+  getDirectionFactor(): 1 | -1;
   getInstance(): Core;
   getPlugin<T extends keyof Plugins>(pluginName: T): Plugins[T];
   getPlugin(pluginName: string): Plugins['basePlugin'];
@@ -82,8 +84,9 @@ export default class Core {
   getSelectedRange(): CellRange[] | undefined;
   getSelectedRangeLast(): CellRange | undefined;
   getSettings(): GridSettings;
+  getShortcutManager(): ShortcutManager;
   getSourceData(row?: number, column?: number, row2?: number, column2?: number): CellValue[][] | RowObject[];
-  getSourceDataArray(row?: number, column?: number, row2?: number, ccolumn2?: number): CellValue[][];
+  getSourceDataArray(row?: number, column?: number, row2?: number, column2?: number): CellValue[][];
   getSourceDataAtCell(row: number, column: number): CellValue;
   getSourceDataAtCol(column: number): CellValue[];
   getSourceDataAtRow(row: number): CellValue[] | RowObject;
@@ -99,8 +102,10 @@ export default class Core {
   isEmptyRow(row: number): boolean;
   isExecutionSuspended(): boolean;
   isListening(): boolean;
+  isLtr(): boolean;
   isRedoAvailable(): boolean;
   isRenderSuspended(): boolean;
+  isRtl(): boolean;
   isUndoAvailable(): boolean;
   listen(): void;
   loadData(data: CellValue[][] | RowObject[], source?: string): void;

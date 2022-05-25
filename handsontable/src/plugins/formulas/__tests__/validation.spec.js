@@ -60,9 +60,9 @@ describe('Formulas general', () => {
 
       selectCell(0, 0);
       // Opening an editor
-      keyDown('enter');
+      keyDownUp('enter');
       // Closing the editor and saving changes.
-      keyDown('enter');
+      keyDownUp('enter');
 
       await sleep(100); // Validator is asynchronous.
 
@@ -70,9 +70,9 @@ describe('Formulas general', () => {
 
       selectCell(0, 2);
       // Opening an editor
-      keyDown('enter');
+      keyDownUp('enter');
       // Closing the editor and saving changes.
-      keyDown('enter');
+      keyDownUp('enter');
 
       await sleep(100); // Validator is asynchronous.
 
@@ -370,6 +370,30 @@ describe('Formulas general', () => {
       expect(errorList.length).toEqual(0);
       // 3 from the visible cells + 1 from setDataAtCell
       expect(validatorCallsCount).toEqual(4);
+    });
+
+    it('should not throw type error while validating sheets added through the HyperFormula instance', () => {
+      const hf = HyperFormula.buildEmpty();
+
+      handsontable({
+        data: [
+          ['1', '2', '= mainSheet!A1 * mainSheet!B1']
+        ],
+        formulas: {
+          engine: hf,
+          sheetName: 'mainSheet'
+        },
+      });
+
+      const sheetId = hf.getSheetId(hf.addSheet('sheet2'));
+
+      hf.setSheetContent(sheetId, [
+        ['1', '2', '= mainSheet!A1 * mainSheet!B1']
+      ]);
+
+      expect(() => {
+        setDataAtCell(0, 1, 'test');
+      }).not.toThrowError();
     });
   });
 });

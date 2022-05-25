@@ -31,7 +31,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -42,12 +42,12 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtTable.holder).height()).toBe(OUTER_HEIGHT);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(CLIENT_WIDTH); // 200px - 15px scrollbar width
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(47);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).width()).toBe(100);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).height()).toBe(47);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).width()).toBe(100);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).height()).toBe(CLIENT_HEIGHT);
-    expect($(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder).width()).toBe(100);
-    expect($(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder).height()).toBe(47);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(47);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(CLIENT_HEIGHT);
+    expect($(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(47);
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).width()).toBe(CLIENT_WIDTH);
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
   });
@@ -62,7 +62,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -77,12 +77,12 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtTable.holder).height()).toBe(clientHeight);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(totalColumnsWidth);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(47);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).width()).toBe(100);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).height()).toBe(47);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).width()).toBe(100);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).height()).toBe(clientHeight);
-    expect($(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder).width()).toBe(100);
-    expect($(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder).height()).toBe(47);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(47);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(clientHeight);
+    expect($(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(47);
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).width()).toBe(totalColumnsWidth);
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
   });
@@ -92,7 +92,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -106,12 +106,12 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtTable.holder).height()).toBe(OUTER_HEIGHT);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(CLIENT_WIDTH); // 200px - 15px scrollbar width
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(47);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).width()).toBe(100);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).height()).toBe(47);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).width()).toBe(100);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).height()).toBe(CLIENT_HEIGHT);
-    expect($(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder).width()).toBe(100);
-    expect($(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder).height()).toBe(47);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(47);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(CLIENT_HEIGHT);
+    expect($(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(47);
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).width()).toBe(CLIENT_WIDTH);
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
   });
@@ -126,7 +126,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -144,12 +144,12 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtTable.holder).height()).toBe(clientHeight);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(totalColumnsWidth);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(47);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).width()).toBe(100);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).height()).toBe(47);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).width()).toBe(100);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).height()).toBe(clientHeight);
-    expect($(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder).width()).toBe(100);
-    expect($(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder).height()).toBe(47);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(47);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(clientHeight);
+    expect($(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(47);
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).width()).toBe(totalColumnsWidth);
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
   });
@@ -159,7 +159,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -194,17 +194,17 @@ describe('WalkontableOverlay', () => {
       bottom: expectedFixedTopBottomHeight + BODY_MARGIN,
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
       bottom: expectedFixedTopBottomHeight + BODY_MARGIN,
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.leftOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.inlineStartOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
       bottom: CLIENT_HEIGHT + BODY_MARGIN,
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: CLIENT_HEIGHT + BODY_MARGIN - expectedFixedTopBottomHeight,
       bottom: CLIENT_HEIGHT + BODY_MARGIN,
       left: BODY_MARGIN,
@@ -226,7 +226,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -258,17 +258,17 @@ describe('WalkontableOverlay', () => {
       bottom: expectedFixedTopBottomHeight + BODY_MARGIN, // 2 fixed top rows * 23px + body margin
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
       bottom: expectedFixedTopBottomHeight + BODY_MARGIN, // 2 fixed top rows * 23px + body margin
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.leftOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.inlineStartOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
       bottom: totalRowsHight + BODY_MARGIN, // 8 default browser margin
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: documentClientHeight - expectedFixedTopBottomHeight, // 2 fixed bottom rows * 23px + 1px cell top border
       bottom: documentClientHeight,
       left: BODY_MARGIN,
@@ -285,7 +285,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -318,17 +318,17 @@ describe('WalkontableOverlay', () => {
       bottom: expectedFixedTopBottomHeight + BODY_MARGIN,
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
       bottom: expectedFixedTopBottomHeight + BODY_MARGIN,
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.leftOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.inlineStartOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
       bottom: CLIENT_HEIGHT + BODY_MARGIN,
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: CLIENT_HEIGHT - expectedFixedTopBottomHeight + BODY_MARGIN,
       bottom: CLIENT_HEIGHT + BODY_MARGIN,
       left: BODY_MARGIN,
@@ -350,7 +350,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -386,17 +386,17 @@ describe('WalkontableOverlay', () => {
       bottom: 47,
       left: documentClientWidth - totalColumnsWidth,
     }));
-    expect(getTableRect(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: 0,
       bottom: 47,
       left: 0,
     }));
-    expect(getTableRect(wt.wtOverlays.leftOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.inlineStartOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: documentClientHeight - totalRowsHeight,
       bottom: documentClientHeight,
       left: 0,
     }));
-    expect(getTableRect(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: documentClientHeight - 47, // 2 fixed bottom rows * 23px + 1px cell top border
       bottom: documentClientHeight,
       left: 0,
@@ -427,10 +427,10 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtTable.holder).height()).toBe(200);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(200 - getScrollbarWidth()); // 200px - 15px scrollbar width
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(23);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).width()).toBe(50);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).height()).toBe(23);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).width()).toBe(50);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).height()).toBe(200 - getScrollbarWidth());
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(50);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(23);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(50);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(200 - getScrollbarWidth());
   });
 
   it('should cloned header overlays have to have proper dimensions (window object as scrollable element)', () => {
@@ -461,10 +461,10 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtTable.holder).height()).toBe(clientHeight);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(totalColumnsWidth);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(23);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).width()).toBe(50);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).height()).toBe(23);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).width()).toBe(50);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).height()).toBe(clientHeight);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(50);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(23);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(50);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(clientHeight);
   });
 
   it('should cloned header overlays have to have proper dimensions after table scroll (overflow hidden)', () => {
@@ -489,10 +489,10 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtTable.holder).height()).toBe(200);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(200 - getScrollbarWidth()); // 200px - 15px scrollbar width
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px (innerBorderTop)
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).width()).toBe(50);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px (innerBorderTop)
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).width()).toBe(50);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).height()).toBe(200 - getScrollbarWidth());
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(50);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px (innerBorderTop)
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(50);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(200 - getScrollbarWidth());
   });
 
   it('should cloned header overlays have to have proper dimensions after table scroll (window object as scrollable element)', () => {
@@ -527,10 +527,10 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtTable.holder).height()).toBe(clientHeight);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(totalColumnsWidth);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px (innerBorderTop)
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).width()).toBe(50);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px (innerBorderTop)
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).width()).toBe(50);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).height()).toBe(clientHeight);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(50);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px (innerBorderTop)
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(50);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(clientHeight);
   });
 
   it('should cloned header overlays have to have proper positions (overflow hidden)', () => {
@@ -570,12 +570,12 @@ describe('WalkontableOverlay', () => {
       bottom: 31,
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
       bottom: 31,
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.leftOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.inlineStartOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
       bottom: CLIENT_HEIGHT + BODY_MARGIN,
       left: BODY_MARGIN,
@@ -626,12 +626,12 @@ describe('WalkontableOverlay', () => {
       bottom: 23 + BODY_MARGIN, // 1 top row * 23px + body margin
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
       bottom: 23 + BODY_MARGIN, // 1 top row * 23px + body margin
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.leftOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.inlineStartOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
       bottom: totalRowsHight + BODY_MARGIN, // 8 default browser margin
       left: BODY_MARGIN,
@@ -678,12 +678,12 @@ describe('WalkontableOverlay', () => {
       bottom: 23 + BODY_MARGIN + 1, // 1 top row * 23px + body margin + 1px (innerBorderTop)
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
       bottom: 23 + BODY_MARGIN + 1, // 1 top row * 23px + body margin + 1px (innerBorderTop)
       left: BODY_MARGIN,
     }));
-    expect(getTableRect(wt.wtOverlays.leftOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.inlineStartOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
       bottom: CLIENT_HEIGHT + BODY_MARGIN,
       left: BODY_MARGIN,
@@ -741,16 +741,104 @@ describe('WalkontableOverlay', () => {
       bottom: 24,
       left: documentClientWidth - totalColumnsWidth,
     }));
-    expect(getTableRect(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: 0,
       bottom: 24,
       left: 0,
     }));
-    expect(getTableRect(wt.wtOverlays.leftOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
+    expect(getTableRect(wt.wtOverlays.inlineStartOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: documentClientHeight - totalRowsHeight,
       bottom: documentClientHeight + 1, // +1 innerBorderTop
       left: 0,
     }));
+  });
+
+  describe('overlay offset', () => {
+    beforeEach(function() {
+      spec().$wrapper
+        .css('overflow', '')
+        .css('width', '')
+        .css('height', '');
+
+      createDataArray(10, 10);
+
+      this.$wrapper.after($('<div class="space-filler" style="width: 4000px; height: 4000px">&nbsp;</div>'));
+      this.$wrapper.before($('<div class="space-filler" style="width: 4000px; height: 4000px">&nbsp;</div>'));
+    });
+
+    afterEach(() => {
+      jQuery('.space-filler').remove();
+    });
+
+    it('should reset top overlay\'s offset after the table is scroll out of the browser viewport (window object as scrollable element)', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+      });
+
+      wt.draw();
+      wt.scrollViewport({ row: getTotalRows() - 1, col: 0 }, true, false, false, true);
+      wt.draw();
+
+      // scroll the viewport precisely 1px before the top overlay disappears
+      window.scrollBy(0, 23);
+
+      expect(wt.wtOverlays.topOverlay.getOverlayOffset()).toBe(184);
+
+      // it causes the overlay to be reset to the initial position
+      window.scrollBy(0, 1);
+      wt.draw();
+
+      expect(wt.wtOverlays.topOverlay.getOverlayOffset()).toBe(0);
+    });
+
+    it('should reset left overlay\'s offset after the table is scroll out of the browser viewport (window object as scrollable element)', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsStart: 2,
+      });
+
+      wt.draw();
+      wt.scrollViewport({ row: 0, col: getTotalColumns() - 1 }, true, false, false, true);
+      wt.draw();
+
+      // scroll the viewport precisely 1px before the left overlay disappears
+      window.scrollBy(50, 0);
+
+      expect(wt.wtOverlays.inlineStartOverlay.getOverlayOffset()).toBe(400);
+
+      // it causes the overlay to be reset to the initial position
+      window.scrollBy(1, 1);
+
+      expect(wt.wtOverlays.inlineStartOverlay.getOverlayOffset()).toBe(0);
+    });
+
+    it('should reset bottom overlay\'s offset after the table is scroll out of the browser viewport(window object as scrollable element)', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+      wt.scrollViewport({ row: getTotalRows() - 1, col: 0 }, false, true, true, false);
+      wt.draw();
+
+      // scroll the viewport precisely 1px before the bottom overlay disappears
+      window.scrollBy(0, -230);
+
+      expect(wt.wtOverlays.bottomOverlay.getOverlayOffset()).toBe(184);
+
+      // it causes the overlay to be reset to the initial position
+      window.scrollBy(0, -1);
+
+      expect(wt.wtOverlays.bottomOverlay.getOverlayOffset()).toBe(0);
+    });
   });
 
   it('should adjust the header overlays sizes after table scroll (window object as scrollable element)', () => {
@@ -788,10 +876,10 @@ describe('WalkontableOverlay', () => {
 
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(totalColumnsWidth);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px (innerBorderTop)
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).width()).toBe(50);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px (innerBorderTop)
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).width()).toBe(50);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).height()).toBe(totalRowsHeight);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(50);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px (innerBorderTop)
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(50);
+    expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(totalRowsHeight);
 
     $expander.remove();
   });

@@ -27,6 +27,8 @@ const actionDictionary = new Map([
   }],
 ]);
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin CollapsibleColumns
  * @class CollapsibleColumns
@@ -158,7 +160,11 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *   - [`collapsibleColumns`](@/api/options.md#collapsiblecolumns)
+   *   - [`nestedHeaders`](@/api/options.md#nestedheaders)
    */
   updatePlugin() {
     // @TODO: Workaround for broken plugin initialization abstraction (#6806).
@@ -210,11 +216,11 @@ export class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    const headerLevels = this.hot.view.wt.getSetting('columnHeaders').length;
-    const mainHeaders = this.hot.view.wt.wtTable.THEAD;
-    const topHeaders = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
-    const topLeftCornerHeaders = this.hot.view.wt.wtOverlays.topLeftCornerOverlay ?
-      this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.THEAD : null;
+    const headerLevels = this.hot.view._wt.getSetting('columnHeaders').length;
+    const mainHeaders = this.hot.view._wt.wtTable.THEAD;
+    const topHeaders = this.hot.view._wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
+    const topLeftCornerHeaders = this.hot.view._wt.wtOverlays.topInlineStartCornerOverlay ?
+      this.hot.view._wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.THEAD : null;
 
     const removeButton = function(button) {
       if (button) {
@@ -454,7 +460,7 @@ export class CollapsibleColumns extends BasePlugin {
     const row = ((-1) * THEAD.childNodes.length) + Array.prototype.indexOf.call(THEAD.childNodes, TR);
     const { collapsible, origColspan } = this.headerStateManager.getHeaderSettings(row, column) ?? {};
 
-    if (collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsLeft) {
+    if (collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsStart) {
       const button = this.generateIndicator(row, column);
 
       TH.querySelector('div:first-child').appendChild(button);

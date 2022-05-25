@@ -509,12 +509,17 @@ export class Formulas extends BasePlugin {
       // Validate the cells that depend on the calculated formulas. Skip that cells
       // where the user directly changes the values - the Core triggers those validators.
       if (sheetId !== void 0 && !changedCellsSet.has(addressId)) {
-        const hot = getRegisteredHotInstances(this.engine).get(sheetId);
+        const boundHot = getRegisteredHotInstances(this.engine).get(sheetId);
+
+        // if `sheetId` is not bound to any Handsontable instance, skip the validation process
+        if (!boundHot) {
+          return;
+        }
 
         // It will just re-render certain cell when necessary.
-        hot.validateCell(
-          hot.getDataAtCell(visualRow, visualColumn),
-          hot.getCellMeta(visualRow, visualColumn),
+        boundHot.validateCell(
+          boundHot.getDataAtCell(visualRow, visualColumn),
+          boundHot.getCellMeta(visualRow, visualColumn),
           () => {}
         );
       }
@@ -589,13 +594,13 @@ export class Formulas extends BasePlugin {
     const withSheetId = range => ({ ...range, sheet: this.sheetId });
 
     const engineSourceRange = {
-      start: withSheetId(sourceRange.getTopLeftCorner()),
-      end: withSheetId(sourceRange.getBottomRightCorner())
+      start: withSheetId(sourceRange.getTopStartCorner()),
+      end: withSheetId(sourceRange.getBottomEndCorner())
     };
 
     const engineTargetRange = {
-      start: withSheetId(targetRange.getTopLeftCorner()),
-      end: withSheetId(targetRange.getBottomRightCorner())
+      start: withSheetId(targetRange.getTopStartCorner()),
+      end: withSheetId(targetRange.getBottomEndCorner())
     };
 
     // Blocks the autofill operation if HyperFormula says that at least one of

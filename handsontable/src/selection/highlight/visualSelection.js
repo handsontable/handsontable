@@ -1,15 +1,16 @@
-import { Selection, CellCoords, CellRange } from './../../3rdparty/walkontable/src';
+import { Selection } from './../../3rdparty/walkontable/src';
 
 class VisualSelection extends Selection {
+  /**
+   * Range of selection visually. Visual representation may have representation in a rendered selection.
+   *
+   * @type {null|CellRange}
+   */
+  visualCellRange = null;
+
   constructor(settings, visualCellRange) {
     super(settings, null);
-    /**
-     * Range of selection visually. Visual representation may have representation in a rendered selection.
-     *
-     * @type {null|CellRange}
-     */
     this.visualCellRange = visualCellRange || null;
-
     this.commit();
   }
   /**
@@ -20,8 +21,7 @@ class VisualSelection extends Selection {
    */
   add(coords) {
     if (this.visualCellRange === null) {
-      this.visualCellRange = new CellRange(coords);
-
+      this.visualCellRange = this.settings.createCellRange(coords);
     } else {
       this.visualCellRange.expand(coords);
     }
@@ -41,155 +41,89 @@ class VisualSelection extends Selection {
   }
 
   /**
-   * Search for the first visible coordinates in the range as range may start and/or end with the hidden index.
+   * Trims the passed cell range object by removing all coordinates that points to the hidden rows
+   * or columns. The result is a new cell range object that points only to the visible indexes or `null`.
    *
    * @private
-   * @param {CellCoords} startCoords Visual start coordinates for the range. Starting point for finding destination coordinates
-   * with visible coordinates (we are going from the starting coordinates to the end coordinates until the criteria are met).
-   * @param {CellCoords} endCoords Visual end coordinates for the range.
-   * @param {number} incrementByRow We are searching for a next visible rows by increasing (to be precise, or decreasing) indexes.
-   * This variable represent indexes shift. We are looking for an index:
-   * - for rows: from the left to the right (increasing indexes, then variable should have value 1) or
-   * other way around (decreasing indexes, then variable should have the value -1)
-   * - for columns: from the top to the bottom (increasing indexes, then variable should have value 1)
-   * or other way around (decreasing indexes, then variable should have the value -1).
-   * @param {number} incrementByColumn As above, just indexes shift for columns.
-   * @returns {null|CellCoords} Visual cell coordinates.
+   * @param {CellRange} cellRange Cells range object to be trimmed.
+   * @returns {CellRange} Visual non-hidden cells range coordinates.
    */
-  findVisibleCoordsInRange(startCoords, endCoords, incrementByRow, incrementByColumn = incrementByRow) {
-    const nextVisibleRow = this.findVisibleCoordsInRowsRange(startCoords.row, endCoords.row, incrementByRow);
+  trimToVisibleCellsRangeOnly({ from, to }) {
+    let visibleFromCoords = this.getNearestNotHiddenCoords(from, 1);
+    let visibleToCoords = this.getNearestNotHiddenCoords(to, -1);
+
+    if (visibleFromCoords === null || visibleToCoords === null) {
+      return null;
+    }
+
+    if (visibleFromCoords.row > visibleToCoords.row || visibleFromCoords.col > visibleToCoords.col) {
+      const isHeaderTypeSelection = this.settings.type === 'header' || this.settings.type === 'active-header';
+
+      if (!isHeaderTypeSelection) {
+        return null;
+      }
+
+      visibleFromCoords = from;
+      visibleToCoords = to;
+    }
+
+    return this.settings.createCellRange(visibleFromCoords, visibleFromCoords, visibleToCoords);
+  }
+
+  /**
+   * Gets nearest coordinates that points to the visible row and column indexes. If there are no visible
+   * rows and/or columns the `null` value is returned.
+   *
+   * @private
+   * @param {CellCoords} coords The coords object as starting point for finding the nearest visible coordinates.
+   * @param {1|-1} rowSearchDirection The search direction. For value 1, it means searching from top to bottom for
+   *                                  rows and from left to right for columns. For -1, it is the other way around.
+   * @param {1|-1} columnSearchDirection The same as above but for rows.
+   * @returns {CellCoords|null} Visual cell coordinates.
+   */
+  getNearestNotHiddenCoords(coords, rowSearchDirection, columnSearchDirection = rowSearchDirection) {
+    const nextVisibleRow = this.getNearestNotHiddenIndex(
+      this.settings.rowIndexMapper(), coords.row, rowSearchDirection);
 
     // There are no more visual rows in the range.
     if (nextVisibleRow === null) {
       return null;
     }
 
-    const nextVisibleColumn = this.findVisibleCoordsInColumnsRange(startCoords.col, endCoords.col, incrementByColumn);
+    const nextVisibleColumn = this.getNearestNotHiddenIndex(
+      this.settings.columnIndexMapper(), coords.col, columnSearchDirection);
 
     // There are no more visual columns in the range.
     if (nextVisibleColumn === null) {
       return null;
     }
 
-    return new CellCoords(nextVisibleRow, nextVisibleColumn);
+    return this.settings.createCellCoords(nextVisibleRow, nextVisibleColumn);
   }
 
   /**
-   * Searches the nearest visible row index, which is not hidden (is renderable).
+   * Gets nearest visual index. If there are no visible rows or columns the `null` value is returned.
    *
    * @private
-   * @param {CellCoords} startVisibleRow Visual row index which starts the range. Starting point for finding
-   * destination coordinates with visible coordinates (we are going from the starting coordinates to the end
-   * coordinates until the criteria are met).
-   * @param {CellCoords} endVisibleRow Visual row index which ends the range.
-   * @param {number} incrementBy We are searching for a next visible rows by increasing (to be precise, or decreasing)
-   * indexes. This variable represent indexes shift. From the left to the right (increasing indexes, then variable
-   * should have value 1) or other way around (decreasing indexes, then variable should have the value -1).
-   * @returns {number|null} The visual row index.
+   * @param {IndexMapper} indexMapper The IndexMapper instance for specific axis.
+   * @param {number} visualIndex The index as starting point for finding the nearest visible index.
+   * @param {1|-1} searchDirection The search direction. For value 1, it means searching from top to bottom for
+   *                               rows and from left to right for columns. For -1, it is the other way around.
+   * @returns {number|null} Visual row/column index.
    */
-  findVisibleCoordsInRowsRange(startVisibleRow, endVisibleRow, incrementBy) {
-    const {
-      row: startRowRenderable,
-    } = this.settings.visualToRenderableCoords({ row: startVisibleRow, col: -1 });
-
-    // There are no more visual rows in the range.
-    if (endVisibleRow === startVisibleRow && startRowRenderable === null) {
-      return null;
+  getNearestNotHiddenIndex(indexMapper, visualIndex, searchDirection) {
+    if (visualIndex < 0) {
+      return visualIndex;
     }
 
-    // We are looking for a next visible row in the range.
-    if (startRowRenderable === null) {
-      return this.findVisibleCoordsInRowsRange(startVisibleRow + incrementBy, endVisibleRow, incrementBy);
+    const nearestVisualIndex = indexMapper.getNearestNotHiddenIndex(visualIndex, searchDirection);
+    const isHeaderSelectionType = this.settings.type === 'header' || this.settings.type === 'active-header';
+
+    if (isHeaderSelectionType && nearestVisualIndex === null) {
+      return -1;
     }
 
-    // We found visible row index in the range.
-    return startVisibleRow;
-  }
-
-  /**
-   * Searches the nearest visible column index, which is not hidden (is renderable).
-   *
-   * @private
-   * @param {CellCoords} startVisibleColumn Visual column index which starts the range. Starting point for finding
-   * destination coordinates with visible coordinates (we are going from the starting coordinates to the end
-   * coordinates until the criteria are met).
-   * @param {CellCoords} endVisibleColumn Visual column index which ends the range.
-   * @param {number} incrementBy We are searching for a next visible columns by increasing (to be precise, or decreasing)
-   * indexes. This variable represent indexes shift. From the top to the bottom (increasing indexes, then variable
-   * should have value 1) or other way around (decreasing indexes, then variable should have the value -1).
-   * @returns {number|null} The visual column index.
-   */
-  findVisibleCoordsInColumnsRange(startVisibleColumn, endVisibleColumn, incrementBy) {
-    const {
-      col: startColumnRenderable,
-    } = this.settings.visualToRenderableCoords({ row: -1, col: startVisibleColumn });
-
-    // There are no more visual columns in the range.
-    if (endVisibleColumn === startVisibleColumn && startColumnRenderable === null) {
-      return null;
-    }
-
-    // We are looking for a next visible column in the range.
-    if (startColumnRenderable === null) {
-      return this.findVisibleCoordsInColumnsRange(startVisibleColumn + incrementBy, endVisibleColumn, incrementBy);
-    }
-
-    // We found visible column index in the range.
-    return startVisibleColumn;
-  }
-
-  /**
-   * Searches the nearest visible column and row index, which is not hidden (is renderable). If one
-   * of the axes' range is entirely hidden, then created CellCoords object will hold the `null` value
-   * under a specific axis. For example, when we select the hidden column, then the calculated `col`
-   * prop will be `null`. In that case, rows are calculated further (regardless of the column result)
-   * to make rows header highlightable.
-   *
-   * @private
-   * @param {CellCoords} visualFromCoords Visual start coordinates for the range. Starting point for finding destination coordinates
-   * with visible coordinates (we are going from the starting coordinates to the end coordinates until the criteria are met).
-   * @param {CellCoords} visualToCoords Visual end coordinates for the range.
-   * @param {number} incrementByRow We are searching for a next visible rows by increasing (to be precise, or decreasing) indexes.
-   * This variable represent indexes shift. We are looking for an index:
-   * - for rows: from the left to the right (increasing indexes, then variable should have value 1) or
-   * other way around (decreasing indexes, then variable should have the value -1)
-   * - for columns: from the top to the bottom (increasing indexes, then variable should have value 1)
-   * or other way around (decreasing indexes, then variable should have the value -1).
-   * @param {number} incrementByColumn As above, just indexes shift for columns.
-   * @returns {CellCoords[]|null} Visual cell coordinates.
-   */
-  findVisibleHeaderRange(visualFromCoords, visualToCoords, incrementByRow, incrementByColumn) {
-    const fromRangeVisualRow = this.findVisibleCoordsInRowsRange(
-      visualFromCoords.row,
-      visualToCoords.row,
-      incrementByRow
-    );
-    const toRangeVisualRow = this.findVisibleCoordsInRowsRange(
-      visualToCoords.row,
-      visualFromCoords.row,
-      -incrementByRow
-    );
-    const fromRangeVisualColumn = this.findVisibleCoordsInColumnsRange(
-      visualFromCoords.col,
-      visualToCoords.col,
-      incrementByColumn
-    );
-    const toRangeVisualColumn = this.findVisibleCoordsInColumnsRange(
-      visualToCoords.col,
-      visualFromCoords.col,
-      -incrementByColumn
-    );
-
-    // All rows and columns ranges are hidden.
-    if (fromRangeVisualRow === null && toRangeVisualRow === null &&
-        fromRangeVisualColumn === null && toRangeVisualColumn === null) {
-      return null;
-    }
-
-    return [
-      new CellCoords(fromRangeVisualRow, fromRangeVisualColumn),
-      new CellCoords(toRangeVisualRow, toRangeVisualColumn),
-    ];
+    return nearestVisualIndex;
   }
 
   /**
@@ -204,57 +138,20 @@ class VisualSelection extends Selection {
       return this;
     }
 
-    const {
-      from: visualFromCoords,
-      to: visualToCoords,
-    } = this.visualCellRange;
-
-    // We may move in two different directions while searching for visible rows and visible columns.
-    const incrementByRow = this.getRowSearchDirection(this.visualCellRange);
-    const incrementByColumn = this.getColumnSearchDirection(this.visualCellRange);
-    const fromRangeVisual = this.findVisibleCoordsInRange(
-      visualFromCoords,
-      visualToCoords,
-      incrementByRow,
-      incrementByColumn
-    );
-    const toRangeVisual = this.findVisibleCoordsInRange(
-      visualToCoords,
-      visualFromCoords,
-      -incrementByRow,
-      -incrementByColumn
-    );
+    const trimmedCellRange = this.trimToVisibleCellsRangeOnly(this.visualCellRange);
 
     // There is no visual start point (and also visual end point) in the range.
-    // We are looking for the first visible cell in a broader range.
-    if (fromRangeVisual === null || toRangeVisual === null) {
-      const isHeaderSelectionType = this.settings.type === 'header';
-      let cellRange = null;
-
-      // For the "header" selection type, find rows and column indexes, which should be
-      // highlighted, although one of the axes is completely hidden.
-      if (isHeaderSelectionType) {
-        const [fromRangeVisualHeader, toRangeVisualHeader] = this.findVisibleHeaderRange(
-          visualFromCoords,
-          visualToCoords,
-          incrementByRow,
-          incrementByColumn
-        );
-
-        cellRange = this.createRenderableCellRange(fromRangeVisualHeader, toRangeVisualHeader);
-      }
-
-      this.cellRange = cellRange;
-
+    if (trimmedCellRange === null) {
+      this.cellRange = null;
     } else {
-      this.cellRange = this.createRenderableCellRange(fromRangeVisual, toRangeVisual);
+      this.cellRange = this.createRenderableCellRange(trimmedCellRange.from, trimmedCellRange.to);
     }
 
     return this;
   }
 
   /**
-   * Some selection may be a part of broader cell range. This function adjusting coordinates of current selection
+   * Some selection may be a part of broader cell range. This function sync coordinates of current selection
    * and the broader cell range when needed (current selection can't be presented visually).
    *
    * @param {CellRange} broaderCellRange Visual range. Actual cell range may be contained in the broader cell range.
@@ -264,21 +161,21 @@ class VisualSelection extends Selection {
    *
    * @returns {VisualSelection}
    */
-  adjustCoordinates(broaderCellRange) {
-    // We may move in two different directions while searching for visible rows and visible columns.
-    const incrementByRow = this.getRowSearchDirection(broaderCellRange);
-    const incrementByColumn = this.getColumnSearchDirection(broaderCellRange);
-    const normFromCoords = broaderCellRange.from.clone().normalize();
-    const normToCoords = broaderCellRange.to.clone().normalize();
-    const singleCellRangeVisual =
-      this.findVisibleCoordsInRange(normFromCoords, normToCoords, incrementByRow, incrementByColumn);
+  syncWith(broaderCellRange) {
+    const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
+    const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
+    const singleCellRangeVisual = this.getNearestNotHiddenCoords(
+      broaderCellRange.from.clone().normalize(),
+      rowDirection,
+      columnDirection
+    );
 
-    if (singleCellRangeVisual !== null) {
+    if (singleCellRangeVisual !== null && broaderCellRange.overlaps(singleCellRangeVisual)) {
       // We can't show selection visually now, but we found fist visible range in the broader cell range.
       if (this.cellRange === null) {
         const singleCellRangeRenderable = this.settings.visualToRenderableCoords(singleCellRangeVisual);
 
-        this.cellRange = new CellRange(singleCellRangeRenderable);
+        this.cellRange = this.settings.createCellRange(singleCellRangeRenderable);
       }
 
       // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
@@ -307,11 +204,11 @@ class VisualSelection extends Selection {
 
     const isRowUndefined = from.row === null || to.row === null;
     const isColumnUndefined = from.col === null || to.col === null;
-    const topLeftCorner = new CellCoords(
+    const topLeftCorner = this.settings.createCellCoords(
       isRowUndefined ? null : Math.min(from.row, to.row),
       isColumnUndefined ? null : Math.min(from.col, to.col),
     );
-    const bottomRightCorner = new CellCoords(
+    const bottomRightCorner = this.settings.createCellCoords(
       isRowUndefined ? null : Math.max(from.row, to.row),
       isColumnUndefined ? null : Math.max(from.col, to.col),
     );
@@ -325,19 +222,20 @@ class VisualSelection extends Selection {
   }
 
   /**
-   * Returns the top left (TL) and bottom right (BR) selection coordinates (visual indexes).
+   * Returns the top left (or top right in RTL) and bottom right (or bottom left in RTL) selection
+   * coordinates (visual indexes).
    *
    * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
   getVisualCorners() {
-    const topLeft = this.settings.renderableToVisualCoords(this.cellRange.getTopLeftCorner());
-    const bottomRight = this.settings.renderableToVisualCoords(this.cellRange.getBottomRightCorner());
+    const topStart = this.settings.renderableToVisualCoords(this.cellRange.getTopStartCorner());
+    const bottomEnd = this.settings.renderableToVisualCoords(this.cellRange.getBottomEndCorner());
 
     return [
-      topLeft.row,
-      topLeft.col,
-      bottomRight.row,
-      bottomRight.col,
+      topStart.row,
+      topStart.col,
+      bottomEnd.row,
+      bottomEnd.col,
     ];
   }
 
@@ -346,7 +244,7 @@ class VisualSelection extends Selection {
    * translated to renderable indexes.
    *
    * @param {CellCoords} visualFromCoords The CellCoords object which contains coordinates that
-   *                                      points to the begining of the selection.
+   *                                      points to the beginning of the selection.
    * @param {CellCoords} visualToCoords The CellCoords object which contains coordinates that
    *                                    points to the end of the selection.
    * @returns {CellRange}
@@ -355,39 +253,7 @@ class VisualSelection extends Selection {
     const renderableFromCoords = this.settings.visualToRenderableCoords(visualFromCoords);
     const renderableToCoords = this.settings.visualToRenderableCoords(visualToCoords);
 
-    return new CellRange(renderableFromCoords, renderableFromCoords, renderableToCoords);
-  }
-
-  /**
-   * It returns rows shift needed for searching visual row.
-   *
-   * @private
-   * @param {CellRange} cellRange Selection range.
-   * @returns {number} Rows shift. It return 1 when we should increase indexes (moving from the top to the bottom) or
-   * -1 when we should decrease indexes (moving other way around).
-   */
-  getRowSearchDirection(cellRange) {
-    if (cellRange.from.row < cellRange.to.row) {
-      return 1; // Increasing row indexes.
-    }
-
-    return -1; // Decreasing row indexes.
-  }
-
-  /**
-   * It returns columns shift needed for searching visual column.
-   *
-   * @private
-   * @param {CellRange} cellRange Selection range.
-   * @returns {number} Columns shift. It return 1 when we should increase indexes (moving from the left to the right) or
-   * -1 when we should decrease indexes (moving other way around).
-   */
-  getColumnSearchDirection(cellRange) {
-    if (cellRange.from.col < cellRange.to.col) {
-      return 1; // Increasing column indexes.
-    }
-
-    return -1; // Decreasing column indexes.
+    return this.settings.createCellRange(renderableFromCoords, renderableFromCoords, renderableToCoords);
   }
 }
 

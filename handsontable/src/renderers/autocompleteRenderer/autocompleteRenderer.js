@@ -1,10 +1,9 @@
 import { htmlRenderer } from '../htmlRenderer';
 import { textRenderer } from '../textRenderer';
-import { CellCoords } from '../../3rdparty/walkontable/src';
 import EventManager from '../../eventManager';
 import { addClass, hasClass } from '../../helpers/dom/element';
 
-import './autocompleteRenderer.css';
+import './autocompleteRenderer.scss';
 
 export const RENDERER_TYPE = 'autocomplete';
 
@@ -45,7 +44,7 @@ export function autocompleteRenderer(instance, TD, row, col, prop, value, cellPr
     // not very elegant but easy and fast
     instance.acArrowListener = function(event) {
       if (hasClass(event.target, 'htAutocompleteArrow')) {
-        instance.view.wt.getSetting('onCellDblClick', null, new CellCoords(row, col), TD);
+        instance.view._wt.getSetting('onCellDblClick', null, instance._createCellCoords(row, col), TD);
       }
     };
 

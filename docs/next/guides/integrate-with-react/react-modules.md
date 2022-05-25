@@ -121,3 +121,8 @@ For example, to register the [`numeric`](@/guides/cell-types/numeric-cell-type.m
     document.getElementById('root')
   );
   ```
+
+## Related guides
+
+- [Modules](@/guides/building-and-testing/modules.md)
+- [Performance](@/guides/advanced-topics/performance.md)

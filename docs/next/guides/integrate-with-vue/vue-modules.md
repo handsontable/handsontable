@@ -112,3 +112,8 @@ For example, to register the [`numeric`](@/guides/cell-types/numeric-cell-type.m
     render: h => h(App),
   }).$mount('#app');
   ```
+
+## Related guides
+
+- [Modules](@/guides/building-and-testing/modules.md)
+- [Performance](@/guides/advanced-topics/performance.md)

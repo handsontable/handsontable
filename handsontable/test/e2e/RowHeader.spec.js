@@ -36,7 +36,7 @@ describe('RowHeader', () => {
       rowHeights: 25,
     });
 
-    const cloneTop = spec().$container.find('.ht_clone_left');
+    const cloneTop = spec().$container.find('.ht_clone_inline_start');
     const masterHolder = spec().$container.find('.ht_master .wtHolder');
 
     expect(cloneTop.height()).toBe(masterHolder.height());
@@ -54,7 +54,7 @@ describe('RowHeader', () => {
       rowHeaders: true
     });
 
-    const ths = getLeftClone().find('tbody th');
+    const ths = getInlineStartClone().find('tbody th');
 
     expect(ths.length).toEqual(startRows);
     expect($.trim(ths.eq(0).text())).toEqual('1');
@@ -72,7 +72,7 @@ describe('RowHeader', () => {
       rowHeaders: ['First', 'Second', 'Third']
     });
 
-    const ths = getLeftClone().find('tbody th');
+    const ths = getInlineStartClone().find('tbody th');
 
     expect(ths.length).toEqual(startRows);
     expect($.trim(ths.eq(0).text())).toEqual('First');
@@ -87,7 +87,7 @@ describe('RowHeader', () => {
       rowHeaders: false
     });
 
-    expect(getLeftClone().find('tbody th').length).toEqual(0);
+    expect(getInlineStartClone().find('tbody th').length).toEqual(0);
   });
 
   it('should hide rows headers after updateSetting', () => {
@@ -101,7 +101,7 @@ describe('RowHeader', () => {
     let headers = getHtCore().find('tbody th').length;
 
     expect(headers).toBeGreaterThan(0);
-    expect(getLeftClone().find('tbody th').length).toEqual(headers);
+    expect(getInlineStartClone().find('tbody th').length).toEqual(headers);
 
     hot.updateSettings({
       rowHeaders: false
@@ -110,7 +110,7 @@ describe('RowHeader', () => {
     headers = getHtCore().find('tbody th').length;
 
     expect(headers).toEqual(0);
-    expect(getLeftClone().width()).toEqual(0);
+    expect(getInlineStartClone().width()).toEqual(0);
   });
 
   it('should show rows headers after updateSettings', () => {
@@ -120,14 +120,14 @@ describe('RowHeader', () => {
     });
 
     expect(getHtCore().find('tbody th').length).toEqual(0);
-    expect(getLeftClone().find('tbody th').length).toEqual(0);
+    expect(getInlineStartClone().find('tbody th').length).toEqual(0);
 
     hot.updateSettings({
       rowHeaders: true
     });
 
     expect(getHtCore().find('tbody th').length).toEqual(5);
-    expect(getLeftClone().find('tbody th').length).toEqual(5);
+    expect(getInlineStartClone().find('tbody th').length).toEqual(5);
   });
 
   it('should show/hide rows headers after multiple updateSettings', () => {
@@ -137,28 +137,28 @@ describe('RowHeader', () => {
     });
 
     expect(getHtCore().find('tbody th').length).toEqual(0);
-    expect(getLeftClone().find('tbody th').length).toEqual(0);
+    expect(getInlineStartClone().find('tbody th').length).toEqual(0);
 
     hot.updateSettings({
       rowHeaders: true
     });
 
     expect(getHtCore().find('tbody th').length).toEqual(5);
-    expect(getLeftClone().width()).toBeGreaterThan(0);
+    expect(getInlineStartClone().width()).toBeGreaterThan(0);
 
     hot.updateSettings({
       rowHeaders: false
     });
 
     expect(getHtCore().find('tbody th').length).toEqual(0);
-    expect(getLeftClone().width()).toEqual(0);
+    expect(getInlineStartClone().width()).toEqual(0);
 
     hot.updateSettings({
       rowHeaders: true
     });
 
     expect(getHtCore().find('tbody th').length).toEqual(5);
-    expect(getLeftClone().width()).toBeGreaterThan(0);
+    expect(getInlineStartClone().width()).toBeGreaterThan(0);
   });
 
   it('should show new rows headers after updateSettings', () => {
@@ -167,7 +167,7 @@ describe('RowHeader', () => {
       rowHeaders: ['A', 'B', 'C']
     });
 
-    const leftClone = getLeftClone();
+    const leftClone = getInlineStartClone();
 
     expect(leftClone.find('tbody tr:eq(0) th:eq(0)').text()).toEqual('A');
     expect(leftClone.find('tbody tr:eq(1) th:eq(0)').text()).toEqual('B');
@@ -245,9 +245,9 @@ describe('RowHeader', () => {
 
     hot.render();
 
-    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(1)').outerWidth())
+    expect(spec().$container.find('.handsontable.ht_clone_inline_start tr:nth-child(1) th:nth-child(1)').outerWidth())
       .toEqual(66);
-    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(2)').outerWidth())
+    expect(spec().$container.find('.handsontable.ht_clone_inline_start tr:nth-child(1) th:nth-child(2)').outerWidth())
       .toEqual(96);
 
     expect(spec().$container.find('col').first().css('width')).toEqual('66px');
@@ -265,14 +265,14 @@ describe('RowHeader', () => {
     });
 
     expect(afterGetRowHeader).toHaveBeenCalledWith(0,
-      spec().$container.find('.ht_clone_left tbody tr:nth-child(1) th')[0]);
+      spec().$container.find('.ht_clone_inline_start tbody tr:nth-child(1) th')[0]);
     expect(afterGetRowHeader).toHaveBeenCalledWith(1,
-      spec().$container.find('.ht_clone_left tbody tr:nth-child(2) th')[0]);
+      spec().$container.find('.ht_clone_inline_start tbody tr:nth-child(2) th')[0]);
     expect(afterGetRowHeader).toHaveBeenCalledWith(2,
-      spec().$container.find('.ht_clone_left tbody tr:nth-child(3) th')[0]);
+      spec().$container.find('.ht_clone_inline_start tbody tr:nth-child(3) th')[0]);
     expect(afterGetRowHeader).toHaveBeenCalledWith(3,
-      spec().$container.find('.ht_clone_left tbody tr:nth-child(4) th')[0]);
+      spec().$container.find('.ht_clone_inline_start tbody tr:nth-child(4) th')[0]);
     expect(afterGetRowHeader).toHaveBeenCalledWith(4,
-      spec().$container.find('.ht_clone_left tbody tr:nth-child(5) th')[0]);
+      spec().$container.find('.ht_clone_inline_start tbody tr:nth-child(5) th')[0]);
   });
 });

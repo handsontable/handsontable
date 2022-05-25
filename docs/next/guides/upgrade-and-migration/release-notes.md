@@ -5,13 +5,71 @@ permalink: /next/release-notes
 canonicalUrl: /release-notes
 tags:
   - change log
+  - changelog
   - update
   - upgrade
+  - breaking change
 ---
 
 # Release notes
 
 [[toc]]
+
+## 12.0.1
+
+Released on 16th of May, 2022
+
+**Fixed**
+- Fixed an issue where checking or unchecking a checkbox in a row with [`autoRowSize: true`](@/api/options.md#autorowsize) and multi-line cell values caused rows to align incorrectly. [#7102](https://github.com/handsontable/handsontable/issues/7102)
+- Fixed an issue where checking or unchecking a checkbox changed the cell width. [#8211](https://github.com/handsontable/handsontable/issues/8211)
+- Fixed an issue where using a single Handsontable instance with multiple HyperFormula sheets could lead to an uncaught `TypeError`. [#8268](https://github.com/handsontable/handsontable/issues/8268)
+- Fixed an issue where nested column headers didn't expand properly. [#9099](https://github.com/handsontable/handsontable/issues/9099)
+- Fixed an issue where updating custom borders could lead to uncaught error exceptions. [#9455](https://github.com/handsontable/handsontable/issues/9455)
+
+## 12.0.0
+
+Released on 28th of April, 2022
+
+**Added**
+- Added [`ShortcutManager`](@/api/shortcutManager.md), a new API for customizing keyboard shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942)
+- Added support for right-to-left (RTL) languages, by introducing a new configuration option: [`layoutDirection`](@/api/options.md#layoutdirection). [#8760](https://github.com/handsontable/handsontable/issues/8760)
+- Added an Arabic translation. [#9208](https://github.com/handsontable/handsontable/issues/9208)
+- Added a new configuration option: [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart). [#8760](https://github.com/handsontable/handsontable/issues/8760)
+- Added a new keyboard shortcut (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Enter**</kbd>) for filling the selected range of cells with the value of the active cell. [#9366](https://github.com/handsontable/handsontable/issues/9366)
+- Added support for the <kbd>**Home**</kbd> and <kbd>**End**</kbd> keys inside cell editors, for moving the cursor to the beginning or end of the text. [#9367](https://github.com/handsontable/handsontable/issues/9367)
+- Added support for the latest Node LTS version. [#9149](https://github.com/handsontable/handsontable/issues/9149)
+
+**Changed**
+- **Breaking change**: Changed how [`updateSettings()`](@/api/core.md#updatesettings) handles data updates, to improve performance and the consistency of user experience. Now, when provided with a new data object, [`updateSettings()`](@/api/core.md#updatesettings) updates the data without resetting any states. [#7263](https://github.com/handsontable/handsontable/issues/7263) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#step-1-verify-your-updatesettings-calls)
+- **Breaking change**: Changed how `updatePlugin()` reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls, to improve performance and the consistency of user experience. Now, calls to [`updateSettings()`](@/api/core.md#updatesettings) update a plugin's state only when the options object contains a configuration option that's relevant to that particular plugin. [#9021](https://github.com/handsontable/handsontable/issues/9021) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#step-2-adjust-to-the-updateplugin-changes)
+- **Breaking change**: Changed the order of execution for two hooks: now, [`beforeKeyDown`](@/api/hooks.md#beforekeydown) is properly fired before [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown). [#6236](https://github.com/handsontable/handsontable/issues/6236) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#step-3-adjust-to-the-afterdocumentkeydown-changes)
+- **Breaking change**: Changed how default keyboard shortcuts are defined, to improve keyboard navigation consistency. Most of the shortcuts did not change and are now properly documented in the [keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#default-keyboard-shorcuts) guide. However, some shortcuts that were not defined explicitly, and were not listed in the documentation, don't work anymore (e.g., <kbd>**Enter**</kbd> opens a cell's editor, but <kbd>**Ctrl**</kbd> + <kbd>**Enter**</kbd> doesn't). This change doesn't affect custom keyboard shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#step-4-adjust-to-the-default-keyboard-shortcuts-changes)
+- **Breaking change**: Split a cross-platform modifier key (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>) into two separate keys, to improve keyboard navigation consistency. Now, the <kbd>**Cmd**</kbd> key triggers actions on macOS where the <kbd>**Ctrl**</kbd> key triggers actions on Windows. For example, on macOS, <kbd>**Ctrl**</kbd> + <kbd>**A**</kbd> doesn't work anymore: <kbd>**Cmd**</kbd> + <kbd>**A**</kbd> is used instead. [#9369](https://github.com/handsontable/handsontable/issues/9369) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#ctrl-vs-cmd)
+- **Breaking change**: Changed the actions of the following [keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#default-keyboard-shorcuts), to match the usual spreadsheet software behavior, and provide a more intuitive user experience: <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**↑**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**↑**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**↓**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**↓**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**←**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**←**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**→**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**→**</kbd>, <kbd>**Home**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Home**</kbd>, <kbd>**End**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**End**</kbd>, <kbd>**Shift**</kbd> + <kbd>**Page Up**</kbd>, and <kbd>**Shift**</kbd> + <kbd>**Page Down**</kbd>. [#9363](https://github.com/handsontable/handsontable/issues/9363) [#9364](https://github.com/handsontable/handsontable/issues/9364) [#9365](https://github.com/handsontable/handsontable/issues/9365) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#keyboard-shortcuts-changes-navigation)
+- Changed two scripts of the main Handsontable workspace (`./`), to speed up the build process: now, the `npm run build` and `npm run test` scripts don't build or test the Handsontable examples (`./examples`). [#9412](https://github.com/handsontable/handsontable/issues/9412)
+- Changed the version of the Moment.js dependency from 2.24.0 to 2.29.3, in reaction to a recently-found Moment.js security vulnerability that did not directly affect Handsontable. [#9381](https://github.com/handsontable/handsontable/issues/9381)
+- Changed the version of the HyperFormula optional dependency from ^1.2.0 to ^2.0.0. [#9411](https://github.com/handsontable/handsontable/issues/9411)
+
+**Fixed**
+- *React, Angular, Vue 2, Vue 3:* Fixed an issue where using [`updateSettings()`](@/api/core.md#updatesettings) caused problems for state managers. [#8372](https://github.com/handsontable/handsontable/issues/8372)
+- Fixed an issue where using [`updateSettings()`](@/api/core.md#updatesettings) caused hidden columns to reappear. [#7165](https://github.com/handsontable/handsontable/issues/7165)
+- Fixed an issue where using [`updateSettings()`](@/api/core.md#updatesettings) caused merged cells to unmerge. [#3315](https://github.com/handsontable/handsontable/issues/3315)
+- Fixed an issue where using [`updateSettings()`](@/api/core.md#updatesettings) caused the state of nested rows to reset. [#8838](https://github.com/handsontable/handsontable/issues/8838)
+- Fixed an issue where using [`updateSettings()`](@/api/core.md#updatesettings) caused problems with column sorting. [#7688](https://github.com/handsontable/handsontable/issues/7688)
+- *React:* Fixed an issue where using React's `setState()` within the [`afterFilter`](@/api/hooks.md#afterfilter) hook broke filtering. [#7567](https://github.com/handsontable/handsontable/issues/7567)
+- *Vue 2:* Fixed an issue where repeatedly changing Handsontable's height through [`updateSettings()`](@/api/core.md#updatesettings) caused Handsontable to crash. [#7546](https://github.com/handsontable/handsontable/issues/7546)
+- *Vue 2:* Fixed an issue where the `failed` validation status got erased when editing a new row. [#7541](https://github.com/handsontable/handsontable/issues/7541)
+- Fixed an issue where cell filtering did not use formula results. [#5455](https://github.com/handsontable/handsontable/issues/5455)
+- Fixed a wrong TypeScript definition in the [`BasePlugin`](@/api/basePlugin.md) class. [#9175](https://github.com/handsontable/handsontable/issues/9175)
+- Fixed an issue where the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Z**</kbd> and <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**Z**</kbd> keyboard shortcuts didn't behave properly inside cell editors. [#9367](https://github.com/handsontable/handsontable/issues/9367)
+- Fixed an issue where the dropdown menu contained unwanted rectangle elements. [#9240](https://github.com/handsontable/handsontable/issues/9240)
+- *React, Vue 2, Vue 3:* Fixed an issue with registering modules for the React, Vue 2, and Vue 3 wrappers, by adding an `"exports"` field to their `package.json` files. [#9140](https://github.com/handsontable/handsontable/issues/9140)
+
+**Removed**
+- **Breaking change**: Removed the <kbd>**Cmd**</kbd> + <kbd>**M**</kbd> keyboard shortcut (used for cell merging), as it conflicted with window minimizing on macOS. The <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> keyboard shortcut works the same as before. [#9368](https://github.com/handsontable/handsontable/issues/9368) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#keyboard-shortcuts-changes-cell-merging)
+- **Breaking change**: Removed the <kbd>**Shift**</kbd> + <kbd>**Page Up**</kbd>/<kbd>**Page Down**</kbd> keyboard shortcuts from the cell editing context. [#9401](https://github.com/handsontable/handsontable/issues/9401) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#keyboard-shortcuts-changes-edition)
+- Dropped support for Internet Explorer 11 and Edge Legacy (the non-Chromium version of Edge). Handsontable 11.x becomes the long-term support (LTS) version for Internet Explorer 11 and Edge Legacy, until the end of 2023. [#7026](https://github.com/handsontable/handsontable/issues/7026)
+- *React:* Removed the `enzyme` dependency from the React wrapper. [#9151](https://github.com/handsontable/handsontable/issues/9151)
 
 ## 11.1.0
 
@@ -63,14 +121,14 @@ Released on 17th of November, 2021
 
 **Changed**
 - **Breaking change**: Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888)
-- Moved the entire Handsontable package to its own, new subdirectory: `./handsontable`. [#8759](https://github.com/handsontable/handsontable/issues/8759) 
+- Moved the entire Handsontable package to its own, new subdirectory: `./handsontable`. [#8759](https://github.com/handsontable/handsontable/issues/8759)
 - Replaced the license files with updated versions. [#8877](https://github.com/handsontable/handsontable/issues/8877)
 
-**Fixed** 
-- Fixed an issue with incorrect filtering of locale-based data while using search input from a drop-down menu. [#6095](https://github.com/handsontable/handsontable/issues/6095) 
-- Fixed an error thrown when using the `populateFromArray()` method with its `method` argument set to `shift_right`. [#6929](https://github.com/handsontable/handsontable/issues/6929) 
-- Fixed an issue with the `beforeOnCellMouseDown` and `afterOnCellMouseDown` hooks using wrong coordinates. [#8498](https://github.com/handsontable/handsontable/issues/8498) 
-- Fixed a `TypeError` thrown when calling the `updateSettings()` method in Handsontable's modularized version. [#8830](https://github.com/handsontable/handsontable/issues/8830) 
+**Fixed**
+- Fixed an issue with incorrect filtering of locale-based data while using search input from a drop-down menu. [#6095](https://github.com/handsontable/handsontable/issues/6095)
+- Fixed an error thrown when using the `populateFromArray()` method with its `method` argument set to `shift_right`. [#6929](https://github.com/handsontable/handsontable/issues/6929)
+- Fixed an issue with the `beforeOnCellMouseDown` and `afterOnCellMouseDown` hooks using wrong coordinates. [#8498](https://github.com/handsontable/handsontable/issues/8498)
+- Fixed a `TypeError` thrown when calling the [`updateSettings()`](@/api/core.md#updatesettings) method in Handsontable's modularized version. [#8830](https://github.com/handsontable/handsontable/issues/8830)
 - Fixed two issues with the documentation's `canonicalUrl` entries. [#8886](https://github.com/handsontable/handsontable/issues/8886)
 - Fixed an error thrown when autofill's source is a `date` cell. [#8894](https://github.com/handsontable/handsontable/issues/8894)
 - *React:* Fixed a React wrapper issue where it's impossible to use different sets of props in editor components reused across multiple columns. [#8527](https://github.com/handsontable/handsontable/issues/8527)
@@ -295,7 +353,7 @@ Released on 1st of October, 2020
 
 **Added**
 
-* Added support for resizing non-contiguous selected rows and columns. ([#7162](https://github.com/handsontable/handsontable/issues/7162))
+* Added support for resizing non-adjacent selected rows and columns. ([#7162](https://github.com/handsontable/handsontable/issues/7162))
 * Added e2e tests and reorganized already existing ones. ([#6491](https://github.com/handsontable/handsontable/issues/6491))
 
 **Changed**
@@ -333,7 +391,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 **Breaking changes**
 
 * Modifying the table's data by reference and calling `render()` will not work properly anymore. From this point onward, all the data-related operations need to be performed using the API methods, such as `populateFromArray` or `setDataAtCell`.
-* The `modifyRow`, `modifyCol`, `unmodifyRow`, `unmodifyCol` hooks are no longer needed and were removed. Their functionality can be achived by using API. [More information in the 8.0.0 migration guide](https://handsontable.com/docs/8.0.0/migration-guide.html).
+* The `modifyRow`, `modifyCol`, `unmodifyRow`, `unmodifyCol` hooks are no longer needed and were removed. Their functionality can be achived by using API. [More information in the 8.0.0 migration guide](https://handsontable.com/docs/8.0.0/tutorial-migration-guide.html).
 * `skipLengthCache` hook was removed, `indexMapper` is now responsible for the cache and length.
 * The `ManualColumnFreeze` plugin doesn't use the `ManualColumnMove` plugin anymore.
 * The `CollapsibleColumns` plugin doesn't use the `HiddenColumns` plugin anymore.
@@ -609,7 +667,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * Fixed an issue with Undo/Redo not working with fixing columns. [#6869](https://github.com/handsontable/handsontable/issues/6869)
 * Added a missing argument in the `deepObjectSize` function. [#6821](https://github.com/handsontable/handsontable/pull/6821)
 * Fixed an issue where the table threw errors while clicking the cells if the Handsontable was initialized with `fixedRowsTop` and `fixedRowsBottom` higher than rows length. [#6718](https://github.com/handsontable/handsontable/issues/6718)
-* Fixed an issue where it was not possible to change the state of checkbox-type, non-contiguous cells using `SPACE`. [#4882](https://github.com/handsontable/handsontable/issues/4882)
+* Fixed an issue where it was not possible to change the state of checkbox-type, non-adjacent cells using `SPACE`. [#4882](https://github.com/handsontable/handsontable/issues/4882)
 * Fixed an issue where resizing made rows shorter than expected and caused row misalignment. [#6429](https://github.com/handsontable/handsontable/issues/6429)
 * Fixed an issue where Handsontable was missing rows when `preventOverflow` with `updateSettings` were used. [#4303](https://github.com/handsontable/handsontable/issues/4303)
 * Adding properties which were not defined on initialization or by `updateSettings` to the source data is possible only by the usage of `setSourceDataAtCell`. [#6664](https://github.com/handsontable/handsontable/issues/6664).

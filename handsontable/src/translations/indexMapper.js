@@ -1,4 +1,6 @@
 import { arrayMap } from '../helpers/array';
+import { toSingleLine } from '../helpers/templateLiteralTag';
+import { warn } from '../helpers/console';
 import {
   createIndexMap,
   getListWithInsertedItems,
@@ -15,6 +17,8 @@ import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
 import { ChangesObservable } from './changesObservable/observable';
+
+const deprecationWarns = new Set(['getFirstNotHiddenIndex']);
 
 /**
  * @class IndexMapper
@@ -33,7 +37,7 @@ import { ChangesObservable } from './changesObservable/observable';
  * There are different kinds of index maps which may be registered in the collections and can be used by a reference.
  * They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
  *
- * These are: {@link IndexesSequence}, {@link PhysicalIndexToValueMap}, {@link HidingMap}, and {@link TrimmingMap}.
+ * These are: {@link IndexesSequence}, {@link PhysicalIndexToValueMap}, {@link LinkedPhysicalIndexToValueMap}, {@link HidingMap}, and {@link TrimmingMap}.
  */
 export class IndexMapper {
   constructor() {
@@ -370,6 +374,10 @@ export class IndexMapper {
   /**
    * Search for the first visible, not hidden index (represented by a visual index).
    *
+   * The method is deprecated and will be removed in the nearest stable major version.
+   * Please use {@link IndexMapper#getNearestNotHiddenIndex} instead.
+   *
+   * @deprecated
    * @param {number} fromVisualIndex Visual start index. Starting point for finding destination index. Start point may be destination
    * point when handled index is NOT hidden.
    * @param {number} incrementBy We are searching for a next visible indexes by increasing (to be precise, or decreasing) indexes.
@@ -386,6 +394,12 @@ export class IndexMapper {
    */
   getFirstNotHiddenIndex(fromVisualIndex, incrementBy, searchAlsoOtherWayAround = false,
                          indexForNextSearch = fromVisualIndex - incrementBy) {
+    if (deprecationWarns.has('getFirstNotHiddenIndex')) {
+      deprecationWarns.delete('getFirstNotHiddenIndex');
+      warn(toSingleLine`The method "getFirstNotHiddenIndex" is deprecated and will be removed in the next\x20
+                        major release. Please use "getNearestNotHiddenIndex" instead.`);
+    }
+
     const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
 
     // First or next (it may be end of the table) index is beyond the table boundaries.
@@ -410,6 +424,49 @@ export class IndexMapper {
       searchAlsoOtherWayAround,
       indexForNextSearch
     );
+  }
+
+  /**
+   * Search for the nearest visible, not hidden index (represented by a visual index).
+   *
+   * @param {number} fromVisualIndex Visual start index. Starting point for finding destination index. Start point may be destination
+   * point when handled index is NOT hidden.
+   * @param {number} searchDirection The search direction. For value 1, it means searching from the starting
+   * point to the end of the dataset, and for -1, to the beginning of the dataset (row or column at index 0).
+   * @param {boolean} searchAlsoOtherWayAround The argument determine if an additional other way around search should be
+   * performed, when the search in the first direction had no effect in finding visual index.
+   *
+   * @returns {number|null} Visual column index or `null`.
+   */
+  getNearestNotHiddenIndex(fromVisualIndex, searchDirection, searchAlsoOtherWayAround = false) {
+    const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
+
+    if (physicalIndex === null) {
+      return null;
+    }
+
+    if (this.fromVisualToRenderableIndexesCache.has(fromVisualIndex)) {
+      return fromVisualIndex;
+    }
+
+    const visibleIndexes = Array.from(this.fromVisualToRenderableIndexesCache.keys());
+    let index = -1;
+
+    if (searchDirection > 0) {
+      index = visibleIndexes.findIndex(visualIndex => visualIndex > fromVisualIndex);
+    } else {
+      index = visibleIndexes.reverse().findIndex(visualIndex => visualIndex < fromVisualIndex);
+    }
+
+    if (index === -1) {
+      if (searchAlsoOtherWayAround) {
+        return this.getNearestNotHiddenIndex(fromVisualIndex, -searchDirection, false);
+      }
+
+      return null;
+    }
+
+    return visibleIndexes[index];
   }
 
   /**
@@ -678,7 +735,7 @@ export class IndexMapper {
       this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
       this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
       this.cacheFromPhysicalToVisualIndexes();
-      this.cacheFromVisualToRenderabIendexes();
+      this.cacheFromVisualToRenderableIndexes();
 
       // Currently there's support only for the "hiding" map type.
       if (this.hiddenIndexesChanged) {
@@ -721,7 +778,7 @@ export class IndexMapper {
    *
    * @private
    */
-  cacheFromVisualToRenderabIendexes() {
+  cacheFromVisualToRenderableIndexes() {
     const nrOfRenderableIndexes = this.getRenderableIndexesLength();
 
     this.fromVisualToRenderableIndexesCache.clear();

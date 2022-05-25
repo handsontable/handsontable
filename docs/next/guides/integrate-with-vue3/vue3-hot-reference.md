@@ -2,6 +2,7 @@
 title: 'Referencing the Handsontable instance in Vue 3'
 metaTitle: 'Referencing the Handsontable instance in Vue 3 - Guide - Handsontable Documentation'
 permalink: /next/vue3-hot-reference
+canonicalUrl: /vue3-hot-reference
 ---
 
 # Referencing the Handsontable instance in Vue 3
@@ -12,7 +13,7 @@ permalink: /next/vue3-hot-reference
 
 The following example implements the `@handsontable/vue3`, showing how to reference the Handsontable instance from the wrapper component.
 
-[Find out which Vue 3 versions are supported &#8594;](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
+[Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
 ## Example
 

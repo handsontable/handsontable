@@ -52,7 +52,7 @@ describe('HiddenRows', () => {
       simulateClick(firstHeader, 'LMB');
 
       keyDownUp('enter');
-      keyDownUp('ctrl+enter');
+      keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual([
         ['A3', 'B1', 'C1', 'D1', 'E1'],
@@ -74,12 +74,12 @@ describe('HiddenRows', () => {
         }
       });
 
-      const corner = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
+      const corner = $('.ht_clone_top_inline_start_corner .htCore').find('thead').find('th').eq(0);
 
       simulateClick(corner, 'LMB');
 
       keyDownUp('enter');
-      keyDownUp('ctrl+enter');
+      keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual([
         ['A3', 'A3', 'A3', 'A3', 'A3'],

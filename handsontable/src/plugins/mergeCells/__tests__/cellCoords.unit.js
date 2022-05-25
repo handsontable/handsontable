@@ -1,10 +1,17 @@
 import MergedCellCoords from '../cellCoords';
+import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
+
+function createMergedCellCoords(row, column, rowspan, colspan) {
+  return new MergedCellCoords(row, column, rowspan, colspan,
+    (...args) => new CellCoords(...args),
+    (...args) => new CellRange(...args));
+}
 
 describe('MergeCells', () => {
   describe('MergedCellCoords', () => {
     describe('constructor', () => {
       it('should create an merged cell object when creating a new instance', () => {
-        const mergedCell = new MergedCellCoords(1, 2, 3, 4);
+        const mergedCell = createMergedCellCoords(1, 2, 3, 4);
 
         expect(mergedCell.row).toEqual(1);
         expect(mergedCell.col).toEqual(2);
@@ -15,7 +22,7 @@ describe('MergeCells', () => {
 
     describe('`includes` method', () => {
       it('should return `true` if the provided coordinates are inside the merged cell', () => {
-        const mergedCell = new MergedCellCoords(2, 2, 3, 3);
+        const mergedCell = createMergedCellCoords(2, 2, 3, 3);
 
         expect(mergedCell.includes(2, 2)).toEqual(true);
         expect(mergedCell.includes(3, 3)).toEqual(true);
@@ -28,7 +35,7 @@ describe('MergeCells', () => {
 
     describe('`includesHorizontally` method', () => {
       it('should returns `true` if the provided `column` property is within the column span of the merged cell', () => {
-        const mergedCell = new MergedCellCoords(2, 2, 3, 3);
+        const mergedCell = createMergedCellCoords(2, 2, 3, 3);
 
         expect(mergedCell.includesHorizontally(1)).toEqual(false);
         expect(mergedCell.includesHorizontally(2)).toEqual(true);
@@ -40,7 +47,7 @@ describe('MergeCells', () => {
 
     describe('`includesVertically` method', () => {
       it('should returns `true` if the provided `row` property is within the row span of the merged cell', () => {
-        const mergedCell = new MergedCellCoords(2, 2, 3, 3);
+        const mergedCell = createMergedCellCoords(2, 2, 3, 3);
 
         expect(mergedCell.includesVertically(1)).toEqual(false);
         expect(mergedCell.includesVertically(2)).toEqual(true);
@@ -54,10 +61,12 @@ describe('MergeCells', () => {
       it('should trim the merged cell data to the Handsontable boundaries', () => {
         const hotMock = {
           countRows: () => 5,
-          countCols: () => 3
+          countCols: () => 3,
+          _createCellCoords: (row, column) => new CellCoords(row, column),
+          _createCellRange: (highlight, from, to) => new CellRange(highlight, from, to),
         };
 
-        let mergedCell = new MergedCellCoords(0, 0, 100, 100);
+        let mergedCell = createMergedCellCoords(0, 0, 100, 100);
 
         mergedCell.normalize(hotMock);
         expect(mergedCell.row).toEqual(0);
@@ -65,14 +74,14 @@ describe('MergeCells', () => {
         expect(mergedCell.rowspan).toEqual(5);
         expect(mergedCell.colspan).toEqual(3);
 
-        mergedCell = new MergedCellCoords(2, 2, 100, 100);
+        mergedCell = createMergedCellCoords(2, 2, 100, 100);
         mergedCell.normalize(hotMock);
         expect(mergedCell.row).toEqual(2);
         expect(mergedCell.col).toEqual(2);
         expect(mergedCell.rowspan).toEqual(3);
         expect(mergedCell.colspan).toEqual(1);
 
-        mergedCell = new MergedCellCoords(1, 1, 2, 2);
+        mergedCell = createMergedCellCoords(1, 1, 2, 2);
         mergedCell.normalize(hotMock);
         expect(mergedCell.row).toEqual(1);
         expect(mergedCell.col).toEqual(1);
@@ -84,7 +93,7 @@ describe('MergeCells', () => {
 
     describe('`shift` method', () => {
       it('should shift the merged cell right, when there was a column added to its left', () => {
-        const mergedCell = new MergedCellCoords(3, 3, 4, 4);
+        const mergedCell = createMergedCellCoords(3, 3, 4, 4);
 
         // Adding one column at index 1
         mergedCell.shift([1, 0], 1);
@@ -96,7 +105,7 @@ describe('MergeCells', () => {
       });
 
       it('should shift the merged cell left, when there was a column removed to its left', () => {
-        const mergedCell = new MergedCellCoords(3, 3, 4, 4);
+        const mergedCell = createMergedCellCoords(3, 3, 4, 4);
 
         // Removing one column at index 1
         mergedCell.shift([-1, 0], 1);
@@ -108,7 +117,7 @@ describe('MergeCells', () => {
       });
 
       it('should shift the merged cell down, when there was a row added above', () => {
-        const mergedCell = new MergedCellCoords(3, 3, 4, 4);
+        const mergedCell = createMergedCellCoords(3, 3, 4, 4);
 
         // Adding one row at index 1
         mergedCell.shift([0, 1], 1);
@@ -120,7 +129,7 @@ describe('MergeCells', () => {
       });
 
       it('should shift the merged cell up, when there was a row removed above', () => {
-        const mergedCell = new MergedCellCoords(3, 3, 4, 4);
+        const mergedCell = createMergedCellCoords(3, 3, 4, 4);
 
         // Removing one column at index 1
         mergedCell.shift([0, -1], 1);
@@ -132,7 +141,7 @@ describe('MergeCells', () => {
       });
 
       it('should expand the merged cell, when there was a column added between its borders', () => {
-        const mergedCell = new MergedCellCoords(3, 3, 4, 4);
+        const mergedCell = createMergedCellCoords(3, 3, 4, 4);
 
         // Adding one column at index 4
         mergedCell.shift([1, 0], 4);
@@ -144,7 +153,7 @@ describe('MergeCells', () => {
       });
 
       it('should contract the merged cell, when there was a column removed between its borders', () => {
-        const mergedCell = new MergedCellCoords(3, 3, 4, 4);
+        const mergedCell = createMergedCellCoords(3, 3, 4, 4);
 
         // Removing one column at index 4
         mergedCell.shift([-1, 0], 4);
@@ -156,7 +165,7 @@ describe('MergeCells', () => {
       });
 
       it('should expand the merged cell, when there was a row added between its borders', () => {
-        const mergedCell = new MergedCellCoords(3, 3, 4, 4);
+        const mergedCell = createMergedCellCoords(3, 3, 4, 4);
 
         // Adding one row at index 4
         mergedCell.shift([0, 1], 4);
@@ -168,7 +177,7 @@ describe('MergeCells', () => {
       });
 
       it('should contract the merged cell, when there was a row removed between its borders', () => {
-        const mergedCell = new MergedCellCoords(3, 3, 4, 4);
+        const mergedCell = createMergedCellCoords(3, 3, 4, 4);
 
         // Removing one row at index 4
         mergedCell.shift([0, -1], 4);
@@ -182,10 +191,10 @@ describe('MergeCells', () => {
 
     describe('`isFarther` method', () => {
       it('should return whether the "base" merged cell is farther in the defined direction than the provided merged cell', () => {
-        const TopLeftMergedCell = new MergedCellCoords(1, 1, 2, 2);
-        const TopRightMergedCell = new MergedCellCoords(1, 5, 2, 2);
-        const BottomLeftMergedCell = new MergedCellCoords(5, 1, 2, 2);
-        const BottomRightMergedCell = new MergedCellCoords(5, 5, 2, 2);
+        const TopLeftMergedCell = createMergedCellCoords(1, 1, 2, 2);
+        const TopRightMergedCell = createMergedCellCoords(1, 5, 2, 2);
+        const BottomLeftMergedCell = createMergedCellCoords(5, 1, 2, 2);
+        const BottomRightMergedCell = createMergedCellCoords(5, 5, 2, 2);
 
         expect(TopRightMergedCell.isFarther(TopLeftMergedCell, 'left')).toBe(false);
         expect(TopRightMergedCell.isFarther(TopLeftMergedCell, 'up')).toBe(false);

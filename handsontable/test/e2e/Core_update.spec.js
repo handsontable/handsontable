@@ -430,78 +430,30 @@ describe('Core_updateSettings', () => {
     expect(getCellValidator(0, 0)).toBeUndefined();
   });
 
-  it('should allow updating the table height', () => {
-    handsontable({
-      startRows: 22,
-      startCols: 5
-    });
-
-    const initialHeight = parseInt(spec().$container[0].style.height, 10);
-
-    updateSettings({
-      height: 300
-    });
-
-    expect(parseInt(spec().$container[0].style.height, 10)).toEqual(300);
-    expect(parseInt(spec().$container[0].style.height, 10)).not.toEqual(initialHeight);
-  });
-
-  it('should not reset the table height, when the updateSettings config object doesn\'t have any height specified', () => {
-    handsontable({
-      startRows: 22,
-      startCols: 5,
-      height: 300
-    });
-
-    const initialHeight = spec().$container[0].style.height;
-
-    updateSettings({
-      rowHeaders: true
-    });
-
-    expect(parseInt(spec().$container[0].style.height, 10)).toEqual(parseInt(initialHeight, 10));
-  });
-
-  it('should allow resetting the table height', () => {
-    handsontable({
-      startRows: 22,
-      startCols: 5,
-      height: 300
-    });
-
-    const initialHeight = spec().$container[0].style.height;
-
-    updateSettings({
-      height: null
-    });
-
-    expect(parseInt(spec().$container[0].style.height, 10)).not.toEqual(parseInt(initialHeight, 10));
-  });
-
   it('should allow updating the stretching type', () => {
     const hot = handsontable({
       stretchH: 'last'
     });
 
-    expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
+    expect(hot.view._wt.getSetting('stretchH')).toEqual('last');
 
     updateSettings({
       stretchH: 'all'
     });
 
-    expect(hot.view.wt.getSetting('stretchH')).toEqual('all');
+    expect(hot.view._wt.getSetting('stretchH')).toEqual('all');
 
     updateSettings({
       stretchH: 'none'
     });
 
-    expect(hot.view.wt.getSetting('stretchH')).toEqual('none');
+    expect(hot.view._wt.getSetting('stretchH')).toEqual('none');
 
     updateSettings({
       stretchH: 'last'
     });
 
-    expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
+    expect(hot.view._wt.getSetting('stretchH')).toEqual('last');
   });
 
   it('should change colHeader\'s row height if is needed', () => {
@@ -512,12 +464,12 @@ describe('Core_updateSettings', () => {
 
     const rowHeights = [];
 
-    rowHeights.push(spec().$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
+    rowHeights.push(spec().$container.find('.ht_clone_top_inline_start_corner thead th')[0].clientHeight);
     updateSettings({
       colHeaders: ['A<br/>A']
     });
 
-    rowHeights.push(spec().$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
+    rowHeights.push(spec().$container.find('.ht_clone_top_inline_start_corner thead th')[0].clientHeight);
 
     expect(rowHeights[0]).toBeLessThan(rowHeights[1]);
   });

@@ -29,7 +29,7 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin) {
         hide = true;
 
       } else if ((selection[0].from.col !== selection[0].to.col) ||
-                  selection[0].from.col >= this.getSettings().fixedColumnsLeft) {
+                  selection[0].from.col >= this.getSettings().fixedColumnsStart) {
         hide = true;
       }
 

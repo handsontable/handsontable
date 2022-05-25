@@ -1,6 +1,6 @@
 ---
-title: AutoFill values
-metaTitle: AutoFill - Guide - Handsontable Documentation
+title: Autofill values
+metaTitle: Autofill - Guide - Handsontable Documentation
 permalink: /next/autofill-values
 canonicalUrl: /autofill-values
 tags:
@@ -11,7 +11,7 @@ tags:
   - square
 ---
 
-# AutoFill values
+# Autofill values
 
 [[toc]]
 
@@ -44,14 +44,14 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-hot.loadData(data);
 // or, use `updateData()` to replace `data` without resetting states
+hot.loadData(data);
 ```
 :::
 
 ## Autofill in a vertical direction only and creating new rows
 
-In this configuration, the fill handle is restricted to move only vertically. New rows are automatically added to the bottom of the table by changing `autoInsertRow` to `true`.
+In this configuration, the fill handle is restricted to move only vertically. New rows are automatically added to the bottom of the table by changing [`autoInsertRow`](@/api/options.md#fillhandle) to `true`.
 
 ::: example #example2
 ```js
@@ -79,3 +79,15 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related API reference
+
+- Configuration options: 
+  - [`fillHandle`](@/api/options.md#fillhandle)
+- Hooks:
+  - [`afterAutofill`](@/api/hooks.md#afterautofill)
+  - [`beforeAutofill`](@/api/hooks.md#beforeautofill)
+  - [`beforeAutofillInsidePopulate`](@/api/hooks.md#beforeautofillinsidepopulate)
+  - [`modifyAutofillRange`](@/api/hooks.md#modifyautofillrange)
+- Plugins:
+  - [`Autofill`](@/api/autofill.md)

@@ -55,6 +55,15 @@ describe('TextRenderer', () => {
     expect(getCell(2, 2).innerHTML).toEqual('');
   });
 
+  it('should render the cell without messing with "dir" attribute', () => {
+    handsontable({
+      data: [['foo']],
+      renderer: 'text'
+    });
+
+    expect(getCell(0, 0).getAttribute('dir')).toBeNull();
+  });
+
   it('should add class name `htDimmed` to a read only cell', () => {
     const DIV = document.createElement('DIV');
     const instance = new Handsontable.Core(DIV, {});

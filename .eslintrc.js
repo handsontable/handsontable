@@ -1,6 +1,13 @@
 module.exports = {
   extends: ['airbnb-base'],
   parser: '@babel/eslint-parser',
+  parserOptions: {
+    babelOptions: {
+      plugins: [
+        '@babel/plugin-syntax-import-assertions',
+      ],
+    },
+  },
   plugins: [
     '@babel',
     'jsdoc',
@@ -113,6 +120,7 @@ module.exports = {
           'core',
           'TODO',
           'category',
+          'package',
           'template',
         ]
       }

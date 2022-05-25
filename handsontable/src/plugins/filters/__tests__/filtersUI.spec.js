@@ -258,9 +258,9 @@ describe('Filters UI', () => {
 
       document.activeElement.value = '123';
 
-      keyDownUp('arrow_up');
-      keyDownUp('arrow_up');
-      keyDownUp('arrow_up');
+      keyDownUp('arrowup');
+      keyDownUp('arrowup');
+      keyDownUp('arrowup');
 
       // The menu item is frozen on the lastly selected item
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().key).toBe('filter_by_condition');
@@ -388,7 +388,7 @@ describe('Filters UI', () => {
         .simulate('mouseup');
 
       setTimeout(() => {
-        keyDownUp('esc');
+        keyDownUp('escape');
 
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
         expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
@@ -407,7 +407,7 @@ describe('Filters UI', () => {
         height: 300
       });
 
-      const button = hot().view.wt.wtTable.getColumnHeader(1).querySelector('.changeType');
+      const button = hot().view._wt.wtTable.getColumnHeader(1).querySelector('.changeType');
 
       $(button).simulate('mousedown');
 
@@ -431,7 +431,7 @@ describe('Filters UI', () => {
         .simulate('click');
 
       await sleep(200);
-      keyDownUp('esc');
+      keyDownUp('escape');
 
       expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
@@ -447,7 +447,7 @@ describe('Filters UI', () => {
         height: 300
       });
 
-      const button = hot().view.wt.wtTable.getColumnHeader(1).querySelector('.changeType');
+      const button = hot().view._wt.wtTable.getColumnHeader(1).querySelector('.changeType');
 
       $(button).simulate('mousedown');
 
@@ -468,8 +468,8 @@ describe('Filters UI', () => {
 
       await sleep(200);
 
-      keyDownUp('esc');
-      keyDownUp('esc');
+      keyDownUp('escape');
+      keyDownUp('escape');
 
       expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
@@ -729,7 +729,7 @@ describe('Filters UI', () => {
 
       // Is equal to '5'
       document.activeElement.value = '5';
-      $(document.activeElement).simulate('keyup');
+      keyUp('5');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       dropdownMenu(0);
@@ -753,7 +753,7 @@ describe('Filters UI', () => {
 
       // Is equal to '5'
       document.activeElement.value = '5';
-      $(document.activeElement).simulate('keyup');
+      keyUp('5');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       dropdownMenu(3);
@@ -824,7 +824,7 @@ describe('Filters UI', () => {
       });
 
       const plugin = hot.getPlugin('filters');
-      const th = hot.view.wt.wtTable.getColumnHeader(1);
+      const th = hot.view._wt.wtTable.getColumnHeader(1);
       const filterButton = $(th).find('button');
 
       plugin.addCondition(1, 'begins_with', ['a', 'b', 'c', 'd']);
@@ -1020,7 +1020,7 @@ describe('Filters UI', () => {
       byValueMultipleSelect().element.querySelector('input').focus();
 
       setTimeout(() => {
-        keyDownUp('esc');
+        keyDownUp('escape');
 
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
         expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
@@ -1042,7 +1042,7 @@ describe('Filters UI', () => {
 
       setTimeout(() => {
         byValueMultipleSelect().itemsBox.listen();
-        keyDownUp('esc');
+        keyDownUp('escape');
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
         expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
         done();
@@ -1556,7 +1556,7 @@ describe('Filters UI', () => {
     expect(hot2.getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
     expect(hot2.getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
 
-    const th = hot2.view.wt.wtTable.getColumnHeader(1);
+    const th = hot2.view._wt.wtTable.getColumnHeader(1);
     const button = th.querySelector('.changeType');
 
     $(button).simulate('mousedown');
@@ -1654,7 +1654,7 @@ describe('Filters UI', () => {
 
     // Contains '2'
     document.activeElement.value = '2';
-    $(document.activeElement).simulate('keyup');
+    keyUp('2');
 
     simulateClick(dropdownMenuRootElement().querySelectorAll('.htUISelect')[1]);
     // contains
@@ -1664,7 +1664,7 @@ describe('Filters UI', () => {
 
     // Contains '5'
     document.activeElement.value = '5';
-    $(document.activeElement).simulate('keyup');
+    keyUp('5');
 
     // Select "OR"
     simulateClick(conditionRadioInput(1).element.querySelector('input'));
@@ -1812,7 +1812,7 @@ describe('Filters UI', () => {
       setTimeout(() => {
         // Greater than 12
         document.activeElement.value = '12';
-        $(document.activeElement).simulate('keyup');
+        keyUp('2');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toEqual(27);
@@ -1848,7 +1848,7 @@ describe('Filters UI', () => {
       setTimeout(() => {
         // Contains ej
         document.activeElement.value = 'ej';
-        $(document.activeElement).simulate('keyup');
+        keyUp('j');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toEqual(1);
@@ -1917,7 +1917,7 @@ describe('Filters UI', () => {
       setTimeout(() => {
         // Is equal to 'true'
         document.activeElement.value = 'true';
-        $(document.activeElement).simulate('keyup');
+        keyUp('t');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toEqual(18);
@@ -1983,7 +1983,7 @@ describe('Filters UI', () => {
 
       // Is equal to '5'
       document.activeElement.value = '5';
-      $(document.activeElement).simulate('keyup');
+      keyUp('5');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       expect(getData().length).toEqual(1);
@@ -1999,7 +1999,7 @@ describe('Filters UI', () => {
 
       // Less than
       document.activeElement.value = '8';
-      $(document.activeElement).simulate('keyup');
+      keyUp('8');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await sleep(10);
@@ -2028,7 +2028,7 @@ describe('Filters UI', () => {
 
       // Less than
       document.activeElement.value = '8';
-      $(document.activeElement).simulate('keyup');
+      keyUp('8');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       expect(getData().length).toBe(7);
@@ -2099,7 +2099,7 @@ describe('Filters UI', () => {
 
       // Greater than 12
       document.activeElement.value = '12';
-      $(document.activeElement).simulate('keyup');
+      keyUp('2');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       dropdownMenu(2);
@@ -2112,7 +2112,7 @@ describe('Filters UI', () => {
       await sleep(100);
 
       document.activeElement.value = 'b';
-      $(document.activeElement).simulate('keyup');
+      keyUp('b');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       // this condition needs extra time to apply filters
@@ -2128,7 +2128,7 @@ describe('Filters UI', () => {
       await sleep(100);
 
       document.activeElement.value = 'green';
-      $(document.activeElement).simulate('keyup');
+      keyUp('n');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await sleep(10);
@@ -2170,7 +2170,7 @@ describe('Filters UI', () => {
 
       // Greater than 12
       document.activeElement.value = '12';
-      $(document.activeElement).simulate('keyup');
+      keyUp('2');
       simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       dropdownMenu(2);
@@ -2181,7 +2181,7 @@ describe('Filters UI', () => {
       await sleep(200);
 
       document.activeElement.value = 'b';
-      $(document.activeElement).simulate('keyup');
+      keyUp('b');
       simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       dropdownMenu(4);
@@ -2228,7 +2228,7 @@ describe('Filters UI', () => {
       await sleep(200);
       // Greater than 12
       document.activeElement.value = '12';
-      $(document.activeElement).simulate('keyup');
+      keyUp('2');
       simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       dropdownMenu(2);
@@ -2238,7 +2238,7 @@ describe('Filters UI', () => {
 
       await sleep(200);
       document.activeElement.value = 'b';
-      $(document.activeElement).simulate('keyup');
+      keyUp('b');
       simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       // Change first added filter condition. First added condition is responsible for defining data root chain.
@@ -2252,8 +2252,8 @@ describe('Filters UI', () => {
 
       inputs[0].value = '1';
       inputs[1].value = '15';
-      $(inputs[0]).simulate('keyup');
-      $(inputs[1]).simulate('keyup');
+      keyUp('1', {}, inputs[0]);
+      keyUp('5', {}, inputs[1]);
       simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       await sleep(10);
@@ -2287,7 +2287,7 @@ describe('Filters UI', () => {
 
       // Greater than 25
       document.activeElement.value = '25';
-      $(document.activeElement).simulate('keyup');
+      keyUp('5');
       simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       dropdownMenu(2);
@@ -2440,7 +2440,7 @@ describe('Filters UI', () => {
 
       setTimeout(() => {
         document.activeElement.value = 'm';
-        $(document.activeElement).simulate('keyup');
+        keyUp('m');
         // disjunction
         $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
 
@@ -2469,7 +2469,7 @@ describe('Filters UI', () => {
 
       setTimeout(() => {
         document.activeElement.value = 'm';
-        $(document.activeElement).simulate('keyup');
+        keyUp('m');
 
         // conjunction
         $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
@@ -2511,7 +2511,7 @@ describe('Filters UI', () => {
 
       await sleep(300);
       document.activeElement.value = 'm';
-      $(document.activeElement).simulate('keyup');
+      keyUp('m');
 
       $(conditionSelectRootElements().second).simulate('click');
       $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")')
@@ -2520,7 +2520,7 @@ describe('Filters UI', () => {
 
       await sleep(300);
       document.activeElement.value = 'e';
-      $(document.activeElement).simulate('keyup');
+      keyUp('e');
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
       expect(getData().length).toBe(3);
@@ -2559,7 +2559,7 @@ describe('Filters UI', () => {
 
       setTimeout(() => {
         document.activeElement.value = 'm';
-        $(document.activeElement).simulate('keyup');
+        keyUp('m');
 
         $(conditionSelectRootElements().second).simulate('click');
         $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")')
@@ -2569,7 +2569,7 @@ describe('Filters UI', () => {
 
       setTimeout(() => {
         document.activeElement.value = 'e';
-        $(document.activeElement).simulate('keyup');
+        keyUp('e');
 
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
       }, 600);
@@ -2580,7 +2580,7 @@ describe('Filters UI', () => {
 
       setTimeout(() => {
         document.activeElement.value = '';
-        $(document.activeElement).simulate('keyup');
+        keyUp('Backspace');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
       }, 1200);
 
@@ -2609,7 +2609,7 @@ describe('Filters UI', () => {
 
       setTimeout(() => {
         document.activeElement.value = 'm';
-        $(document.activeElement).simulate('keyup');
+        keyUp('m');
 
         $(conditionSelectRootElements().second).simulate('click');
         $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")')
@@ -2619,7 +2619,7 @@ describe('Filters UI', () => {
 
       setTimeout(() => {
         document.activeElement.value = 'e';
-        $(document.activeElement).simulate('keyup');
+        keyUp('e');
 
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
       }, 600);
@@ -2665,7 +2665,7 @@ describe('Filters UI', () => {
       await sleep(200);
 
       document.activeElement.value = 'm';
-      $(document.activeElement).simulate('keyup');
+      keyUp('m');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await sleep(10);
@@ -2708,7 +2708,7 @@ describe('Filters UI', () => {
       await sleep(200);
 
       document.activeElement.value = 'm';
-      $(document.activeElement).simulate('keyup');
+      keyUp('m');
 
       $(conditionSelectRootElements().second).simulate('click');
       $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")')
@@ -2718,7 +2718,7 @@ describe('Filters UI', () => {
       await sleep(200);
 
       document.activeElement.value = 'e';
-      $(document.activeElement).simulate('keyup');
+      keyUp('e');
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
       dropdownMenu(1);
@@ -2756,7 +2756,7 @@ describe('Filters UI', () => {
       await sleep(200);
 
       document.activeElement.value = 'm';
-      $(document.activeElement).simulate('keyup');
+      keyUp('m');
 
       $(conditionSelectRootElements().second).simulate('click');
       $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")')
@@ -2766,7 +2766,7 @@ describe('Filters UI', () => {
       await sleep(200);
 
       document.activeElement.value = 'e';
-      $(document.activeElement).simulate('keyup');
+      keyUp('e');
       const $multipleSelectElements = $(byValueMultipleSelect().element
         .querySelectorAll('.htUIMultipleSelectHot td input'));
 
@@ -2799,7 +2799,7 @@ describe('Filters UI', () => {
       await sleep(200);
 
       document.activeElement.value = 'm';
-      $(document.activeElement).simulate('keyup');
+      keyUp('m');
 
       $(conditionSelectRootElements().second).simulate('click');
       $(conditionMenuRootElements().second).find('tbody td:contains("Ends with")')
@@ -2808,7 +2808,7 @@ describe('Filters UI', () => {
 
       await sleep(200);
       document.activeElement.value = 'e';
-      $(document.activeElement).simulate('keyup');
+      keyUp('e');
 
       let $multipleSelectElements = $(byValueMultipleSelect().element
         .querySelectorAll('.htUIMultipleSelectHot td input'));
@@ -2997,7 +2997,7 @@ describe('Filters UI', () => {
 
       // Greater than 12
       document.activeElement.value = '12';
-      $(document.activeElement).simulate('keyup');
+      keyUp('2');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       // sort
@@ -3016,7 +3016,7 @@ describe('Filters UI', () => {
 
       // Begins with 'b'
       document.activeElement.value = 'b';
-      $(document.activeElement).simulate('keyup');
+      keyUp('b');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await sleep(10);
@@ -3053,7 +3053,7 @@ describe('Filters UI', () => {
         $(conditionSelectRootElements().first).next().find('input')[0].focus();
 
         document.activeElement.value = '12';
-        $(document.activeElement).simulate('keyup');
+        keyUp('2');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         // sort
@@ -3076,7 +3076,7 @@ describe('Filters UI', () => {
         $(conditionSelectRootElements().first).next().find('input')[0].focus();
 
         document.activeElement.value = 'e';
-        $(document.activeElement).simulate('keyup');
+        keyUp('e');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toEqual(7);
@@ -3130,7 +3130,7 @@ describe('Filters UI', () => {
         $(conditionSelectRootElements().first).next().find('input')[0].focus();
 
         document.activeElement.value = '12';
-        $(document.activeElement).simulate('keyup');
+        keyUp('2');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         // sort
@@ -3153,7 +3153,7 @@ describe('Filters UI', () => {
         $(conditionSelectRootElements().first).next().find('input')[0].focus();
 
         document.activeElement.value = 'e';
-        $(document.activeElement).simulate('keyup');
+        keyUp('e');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toBe(9);
@@ -3204,7 +3204,7 @@ describe('Filters UI', () => {
 
       // Greater than 12
       document.activeElement.value = '12';
-      $(document.activeElement).simulate('keyup');
+      keyUp('2');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       // sort
@@ -3223,7 +3223,7 @@ describe('Filters UI', () => {
 
       // Begins with 'b'
       document.activeElement.value = 'b';
-      $(document.activeElement).simulate('keyup');
+      keyUp('b');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await sleep(10);
@@ -3260,7 +3260,7 @@ describe('Filters UI', () => {
         $(conditionSelectRootElements().first).next().find('input')[0].focus();
 
         document.activeElement.value = '12';
-        $(document.activeElement).simulate('keyup');
+        keyUp('2');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         // sort
@@ -3283,7 +3283,7 @@ describe('Filters UI', () => {
         $(conditionSelectRootElements().first).next().find('input')[0].focus();
 
         document.activeElement.value = 'e';
-        $(document.activeElement).simulate('keyup');
+        keyUp('e');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toEqual(7);
@@ -3337,7 +3337,7 @@ describe('Filters UI', () => {
         $(conditionSelectRootElements().first).next().find('input')[0].focus();
 
         document.activeElement.value = '12';
-        $(document.activeElement).simulate('keyup');
+        keyUp('2');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         // sort
@@ -3360,7 +3360,7 @@ describe('Filters UI', () => {
         $(conditionSelectRootElements().first).next().find('input')[0].focus();
 
         document.activeElement.value = 'e';
-        $(document.activeElement).simulate('keyup');
+        keyUp('e');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
         expect(getData().length).toBe(9);
@@ -4265,7 +4265,7 @@ describe('Filters UI', () => {
 
       // Begins with 'b'
       document.activeElement.value = 'b';
-      $(document.activeElement).simulate('keyup');
+      keyUp('b');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       expect(spec().$container.find('th:eq(1)').hasClass('htFiltersActive')).toEqual(true);
@@ -4318,5 +4318,72 @@ describe('Filters UI', () => {
     text = elements.map(element => $(element).text());
 
     expect(text).toEqual(['Furkan İnanç']);
+  });
+
+  it('should handle selection in value box properly', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      filters: true,
+      dropdownMenu: true
+    });
+
+    dropdownMenu(0);
+
+    await sleep(200);
+
+    const inputElement = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+
+    $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+    $(inputElement).focus();
+
+    await sleep(200);
+
+    keyDownUp('arrowdown');
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[0, 0, 0, 0]]);
+
+    keyDownUp('arrowdown');
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[1, 0, 1, 0]]);
+
+    keyDownUp('arrowup');
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[0, 0, 0, 0]]);
+
+    $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+    $(inputElement).focus();
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toBeUndefined();
+
+    $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+    $(inputElement).focus();
+
+    keyDownUp('tab');
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[0, 0, 0, 0]]);
+
+    keyDownUp('tab');
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[1, 0, 1, 0]]);
+
+    keyDownUp(['shift', 'tab']);
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[0, 0, 0, 0]]);
+  });
+
+  it('should inherit the actual layout direction option from the root Handsontable instance to the multiple ' +
+    'select component', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
+      colHeaders: true,
+      filters: true,
+      dropdownMenu: true,
+      layoutDirection: 'inherit',
+    });
+
+    dropdownMenu(0);
+
+    expect(byValueMultipleSelect().itemsBox.getSettings().layoutDirection).toBe('ltr');
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/vue",
-  "version": "11.1.0",
+  "version": "12.0.1",
   "description": "Best Data Grid for Vue with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
@@ -10,6 +10,12 @@
   "jsdelivr": "./dist/vue-handsontable.min.js",
   "unpkg": "./dist/vue-handsontable.min.js",
   "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./es/vue-handsontable.js",
+      "require": "./commonjs/vue-handsontable.js"
+    }
+  },
   "keywords": [
     "handsontable",
     "component",
@@ -44,7 +50,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "peerDependencies": {
-    "handsontable": ">=11.0.0",
+    "handsontable": ">=12.0.0",
     "vue": "^2.5.0"
   },
   "devDependencies": {
@@ -61,7 +67,7 @@
     "cross-env": "^5.2.0",
     "css-loader": "^3.0.0",
     "del-cli": "^3.0.1",
-    "handsontable": "^11.0.0",
+    "handsontable": "^12.0.0",
     "jest": "^26.6.3",
     "rollup": "^2.0.0",
     "rollup-plugin-babel": "^4.3.2",

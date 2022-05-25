@@ -19,7 +19,7 @@ We use Performance Lab to measure the execution times in various configurations.
 
 ## Set constant size
 
-You can set a constant size for your table's columns. This way, Handsontable won't have to calculate the optimal width for each column. To do this, define the column widths in the `colWidths` property of your Handsontable instance configuration as shown in the example below:
+You can set a constant size for your table's columns. This way, Handsontable won't have to calculate the optimal width for each column. To do this, define the column widths by setting the [`colWidths`](@/api/options.md#colwidths) configuration option:
 
 ```js
 const hot = new Handsontable(obj, {
@@ -36,7 +36,7 @@ When using this setting, Handsontable won't perform the column width calculation
 
 ## Turn off autoRowSize and/or autoColumnSize
 
-You can configure the value of the `autoRowSize` and `autoColumnSize` options. These allow you to define the amount of width/height-related calculations made during the table's initialization.
+You can configure the value of the [`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) options. These allow you to define the amount of width/height-related calculations made during the table's initialization.
 
 For more information, see our documentation for [rows](@/api/options.md#autorowsize) and [columns](@/api/options.md#autocolumnsize).
 
@@ -74,5 +74,37 @@ See the [batch operations](@/guides/advanced-topics/batch-operations.md) page to
 
 To reduce the bundle size and JavaScript parsing time, import only those [Handsontable modules](@/guides/building-and-testing/modules.md#list-of-all-modules) that you actually use, instead of importing the complete package.
 
-Read more:
-- [Modules &#8594;](@/guides/building-and-testing/modules.md)
+The following example shows you how to import and register the [`ContextMenu`](@/api/contextMenu.md) plugin.
+
+```js
+import Handsontable from 'handsontable/base';
+import { registerPlugin, ContextMenu } from 'handsontable/plugins';
+
+registerPlugin(ContextMenu);
+
+// switch the context menu on
+new Handsontable(container, {
+  contextMenu: true,
+  // other settings
+});
+```
+
+You can also optimize the use of **moment.js**. To find out more about this topic, see the [modules page](@/guides/building-and-testing/modules.md).
+
+## Related articles
+
+### Related guides
+
+- [Batch operations](@/guides/advanced-topics/batch-operations.md)
+- [Modules](@/guides/building-and-testing/modules.md)
+- [Row virtualization](@/guides/rows/row-virtualization.md)
+- [Column virtualization](@/guides/columns/column-virtualization.md)
+
+### Related API reference
+
+- Configuration options:
+  - [`autoColumnSize`](@/api/options.md#autocolumnsize)
+  - [`autoRowSize`](@/api/options.md#autorowsize)
+  - [`colWidths`](@/api/options.md#colwidths)
+  - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
+  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)

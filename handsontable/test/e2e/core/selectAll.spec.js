@@ -23,8 +23,8 @@ describe('Core.selectAll', () => {
 
     selectCells([[1, 1, 2, 2], [2, 2, 4, 4]]);
 
-    hot.view.wt.wtTable.holder.scrollTop = 150;
-    hot.view.wt.wtTable.holder.scrollLeft = 150;
+    hot.view._wt.wtTable.holder.scrollTop = 150;
+    hot.view._wt.wtTable.holder.scrollLeft = 150;
 
     selectAll();
 
@@ -44,8 +44,8 @@ describe('Core.selectAll', () => {
       `).toBeMatchToSelectionPattern();
 
     // "Select all" shouldn't scroll te table.
-    expect(hot.view.wt.wtTable.holder.scrollTop).toBe(150);
-    expect(hot.view.wt.wtTable.holder.scrollLeft).toBe(150);
+    expect(hot.view._wt.wtTable.holder.scrollTop).toBe(150);
+    expect(hot.view._wt.wtTable.holder.scrollLeft).toBe(150);
   });
 
   it('should select the row and column headers after calling the `selectAll` method, when all rows are trimmed', () => {

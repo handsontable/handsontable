@@ -4,6 +4,7 @@ const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
+const extendPageDataPlugin = require('./plugins/extend-page-data');
 const { getBuildDocsVersion, getLatestVersion } = require('./helpers');
 
 const buildMode = process.env.BUILD_MODE;
@@ -54,11 +55,17 @@ module.exports = {
       includeLevel: [2, 3],
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
+    externalLinks: {
+      target: '_blank',
+      rel: 'nofollow noopener noreferrer'
+    },
   },
   plugins: [
+    extendPageDataPlugin,
     'tabs',
     ['sitemap', {
       hostname: 'https://handsontable.com',
+      exclude: ['/404.html']
     }],
     ['@vuepress/active-header-links', {
       sidebarLinkSelector: '.table-of-contents a',

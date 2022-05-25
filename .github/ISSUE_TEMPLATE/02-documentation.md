@@ -1,9 +1,9 @@
 ---
 name: "Handsontable Documentation"
 about: Issues regarding Handsontable documentation.
-title: ""
-labels: "documentation"
-assignees: ""
+title: "Docs: "
+labels: "Docs: Content"
+assignees: "kirszenbaum"
 ---
 
 ### Description

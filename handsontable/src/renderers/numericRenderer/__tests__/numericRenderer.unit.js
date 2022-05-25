@@ -51,7 +51,7 @@ describe('numericRenderer', () => {
 
         numericRenderer(instance, TD, void 0, void 0, void 0, 1.002, cellMeta);
 
-        expect(TD.outerHTML).toBe('<td class="htRight htNumeric">1,00€</td>');
+        expect(TD.outerHTML).toBe('<td dir="ltr" class="htRight htNumeric">1,00€</td>');
       });
     });
 
@@ -63,7 +63,7 @@ describe('numericRenderer', () => {
 
         numericRenderer(instance, TD, void 0, void 0, void 0, 1, cellMeta);
 
-        expect(TD.outerHTML).toBe('<td class="htRight htNumeric">1</td>');
+        expect(TD.outerHTML).toBe('<td dir="ltr" class="htRight htNumeric">1</td>');
       });
 
       it('should add default class names for numeric values passed as a string', () => {
@@ -73,7 +73,7 @@ describe('numericRenderer', () => {
 
         numericRenderer(instance, TD, void 0, void 0, void 0, '100', cellMeta);
 
-        expect(TD.outerHTML).toBe('<td class="htRight htNumeric">100</td>');
+        expect(TD.outerHTML).toBe('<td dir="ltr" class="htRight htNumeric">100</td>');
       });
 
       it('should add default class names only if value is numeric', () => {
@@ -95,7 +95,7 @@ describe('numericRenderer', () => {
 
         numericRenderer(instance, TD, void 0, void 0, void 0, 1, cellMeta);
 
-        expect(TD.outerHTML).toBe('<td class="htCenter htNumeric">1</td>');
+        expect(TD.outerHTML).toBe('<td dir="ltr" class="htCenter htNumeric">1</td>');
       });
     });
   });

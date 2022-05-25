@@ -232,8 +232,7 @@ const REGISTERED_HOOKS = [
   'afterDestroy',
 
   /**
-   * General hook which captures `keydown` events attached to the document body. These events are delegated to the
-   * hooks system and consumed by Core and internal modules (e.g plugins, editors).
+   * Hook fired after keydown event is handled.
    *
    * @event Hooks#afterDocumentKeyDown
    * @param {Event} event A native `keydown` event object.
@@ -303,8 +302,8 @@ const REGISTERED_HOOKS = [
    * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#afterLoadData
    * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
@@ -318,8 +317,8 @@ const REGISTERED_HOOKS = [
    * modifies Handsontable's [`data`](@/api/options.md#data).
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#afterUpdateData
    * @since 11.1.0
@@ -804,8 +803,8 @@ const REGISTERED_HOOKS = [
    * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#beforeLoadData
    * @since 8.0.0
@@ -821,8 +820,8 @@ const REGISTERED_HOOKS = [
    * modifies Handsontable's [`data`](@/api/options.md#data).
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#beforeUpdateData
    * @since 11.1.0
@@ -834,10 +833,9 @@ const REGISTERED_HOOKS = [
   'beforeUpdateData',
 
   /**
-   * Fired before keydown event is handled. It can be used to overwrite default key bindings.
+   * Hook fired before keydown event is handled. It can be used to stop default key bindings.
    *
-   * __Note__: To prevent default behavior you need to call `event.stopImmediatePropagation()` in your `beforeKeyDown`
-   * handler.
+   * __Note__: To prevent default behavior you need to call `false` in your `beforeKeyDown` handler.
    *
    * @event Hooks#beforeKeyDown
    * @param {Event} event Original DOM event.

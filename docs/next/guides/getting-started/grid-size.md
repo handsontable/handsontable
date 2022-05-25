@@ -51,17 +51,19 @@ These dimensions will be set as inline styles in a container element, and `overf
 
 If container is a block element, then its parent has to have defined `height`. By default block element is `0px` height, so `100%` from `0px` is still `0px`.
 
-Changes called in `updateSettings` will re-render the grid with the new properties.
+Changes called in [`updateSettings()`](@/api/core.md#updatesettings) will re-render the grid with the new properties.
 
 ## What if the size is not set
 
-If you don't define the dimensions, Handsontable will generate as many rows and columns as possible to fill available space.
+If you don't define any dimensions, Handsontable generates as many rows and columns as needed to fill the available space. 
+
+If the grid's content doesn't fit inside the viewport, the browser's native scrollbars are used for scrolling. For this to work properly, Handsontable's [layout direction](@/guides/internationalization/layout-direction.md) (e.g., [`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)) must be the same as your HTML document's layout direction (`<html dir='rtl'>`). Otherwise, horizontal scrolling doesn't work.
 
 ## Autoresizing
 
 Handsontable observes window resizing. If the window's dimensions have changed, then we check if Handsontable should resize itself too. Due to the performance issue, we use the debounce method to respond on window resize.
 
-You can easily overwrite this behaviour by returning `false` in the `beforeRefreshDimensions` hook.
+You can easily overwrite this behaviour by returning `false` in the [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) hook.
 
 ```js
 {
@@ -71,7 +73,7 @@ You can easily overwrite this behaviour by returning `false` in the `beforeRefre
 
 ## Manual resizing
 
-The Handsontable instance exposes the `refreshDimensions()` method, which helps you to resize grid elements properly.
+The Handsontable instance exposes the [`refreshDimensions()`](@/api/core.md#refreshdimensions) method, which helps you to resize grid elements properly.
 
 ```js
 const hot = new Handsontable(...);
@@ -79,7 +81,7 @@ const hot = new Handsontable(...);
 hot.refreshDimensions();
 ```
 
-You can listen for two hooks, `beforeRefreshDimensions` and `afterRefreshDimensions`.
+You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) and [`afterRefreshDimensions`](@/api/hooks.md#afterrefreshdimensions).
 
 ::: example #example --html 1 --js 2
 ```html
@@ -127,3 +129,19 @@ sliceElem.addEventListener('transitionend', e => {
 });
 ```
 :::
+
+## Related API reference
+
+- Configuration options:
+  - [`height`](@/api/options.md#height)
+  - [`layoutDirection`](@/api/options.md#layoutdirection)
+  - [`preventOverflow`](@/api/options.md#preventoverflow)
+  - [`width`](@/api/options.md#width)
+- Core methods:
+  - [`refreshDimensions()`](@/api/core.md#refreshdimensions)
+  - [`updateSettings()`](@/api/core.md#updatesettings)
+- Hooks:
+  - [`afterCellMetaReset`](@/api/hooks.md#aftercellmetareset)
+  - [`afterRefreshDimensions`](@/api/hooks.md#afterrefreshdimensions)
+  - [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings)
+  - [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions)

@@ -13,6 +13,8 @@ export const PLUGIN_PRIORITY = 30;
 const PERSISTENT_STATE_KEY = 'manualRowHeights';
 const privatePool = new WeakMap();
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @plugin ManualRowResize
  * @class ManualRowResize
@@ -73,6 +75,14 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
+   * @private
+   * @returns {string}
+   */
+  get inlineDir() {
+    return this.hot.isRtl() ? 'right' : 'left';
+  }
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ManualRowResize#enablePlugin} method is called.
    *
@@ -102,7 +112,10 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin's state.
+   *
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   *  - [`manualRowResize`](@/api/options.md#manualrowresize)
    */
   updatePlugin() {
     this.disablePlugin();
@@ -174,8 +187,8 @@ export class ManualRowResize extends BasePlugin {
     this.currentTH = TH;
 
     const { view } = this.hot;
-    const { wt } = view;
-    const cellCoords = view.wt.wtTable.getCoords(this.currentTH);
+    const { _wt: wt } = view;
+    const cellCoords = wt.wtTable.getCoords(this.currentTH);
     const row = cellCoords.row;
 
     // Ignore row headers.
@@ -194,13 +207,13 @@ export class ManualRowResize extends BasePlugin {
     if (fixedRowTop) {
       relativeHeaderPosition = wt
         .wtOverlays
-        .topLeftCornerOverlay
+        .topInlineStartCornerOverlay
         .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
 
     } else if (fixedRowBottom) {
       relativeHeaderPosition = wt
         .wtOverlays
-        .bottomLeftCornerOverlay
+        .bottomInlineStartCornerOverlay
         .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
     }
 
@@ -209,7 +222,7 @@ export class ManualRowResize extends BasePlugin {
     if (!relativeHeaderPosition) {
       relativeHeaderPosition = wt
         .wtOverlays
-        .leftOverlay
+        .inlineStartOverlay
         .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
     }
 
@@ -222,8 +235,8 @@ export class ManualRowResize extends BasePlugin {
       const selectionRanges = this.hot.getSelectedRange();
 
       arrayEach(selectionRanges, (selectionRange) => {
-        const fromRow = selectionRange.getTopLeftCorner().row;
-        const toRow = selectionRange.getBottomLeftCorner().row;
+        const fromRow = selectionRange.getTopStartCorner().row;
+        const toRow = selectionRange.getBottomStartCorner().row;
 
         // Add every selected row for resize action.
         rangeEach(fromRow, toRow, (rowIndex) => {
@@ -243,7 +256,7 @@ export class ManualRowResize extends BasePlugin {
     this.startHeight = parseInt(box.height, 10);
 
     this.handle.style.top = `${this.startOffset + this.startHeight}px`;
-    this.handle.style.left = `${relativeHeaderPosition.left}px`;
+    this.handle.style[this.inlineDir] = `${relativeHeaderPosition.start}px`;
 
     this.handle.style.width = `${headerWidth}px`;
     this.hot.rootElement.appendChild(this.handle);
@@ -265,14 +278,14 @@ export class ManualRowResize extends BasePlugin {
    */
   setupGuidePosition() {
     const handleWidth = parseInt(outerWidth(this.handle), 10);
-    const handleRightPosition = parseInt(this.handle.style.left, 10) + handleWidth;
+    const handleEndPosition = parseInt(this.handle.style[this.inlineDir], 10) + handleWidth;
     const maximumVisibleElementWidth = parseInt(this.hot.view.maximumVisibleElementWidth(0), 10);
 
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
 
     this.guide.style.top = this.handle.style.top;
-    this.guide.style.left = `${handleRightPosition}px`;
+    this.guide.style[this.inlineDir] = `${handleEndPosition}px`;
     this.guide.style.width = `${maximumVisibleElementWidth - handleWidth}px`;
     this.hot.rootElement.appendChild(this.guide);
   }
@@ -338,7 +351,7 @@ export class ManualRowResize extends BasePlugin {
    */
   getActualRowHeight(row) {
     // TODO: this should utilize `this.hot.getRowHeight` after it's fixed and working properly.
-    const walkontableHeight = this.hot.view.wt.wtTable.getRowHeight(row);
+    const walkontableHeight = this.hot.view._wt.wtTable.getRowHeight(row);
 
     if (walkontableHeight !== void 0 && this.newSize < walkontableHeight) {
       return walkontableHeight;
