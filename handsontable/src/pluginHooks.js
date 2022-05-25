@@ -302,8 +302,8 @@ const REGISTERED_HOOKS = [
    * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#afterLoadData
    * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
@@ -317,8 +317,8 @@ const REGISTERED_HOOKS = [
    * modifies Handsontable's [`data`](@/api/options.md#data).
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#afterUpdateData
    * @since 11.1.0
@@ -803,8 +803,8 @@ const REGISTERED_HOOKS = [
    * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#beforeLoadData
    * @since 8.0.0
@@ -820,8 +820,8 @@ const REGISTERED_HOOKS = [
    * modifies Handsontable's [`data`](@/api/options.md#data).
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#beforeUpdateData
    * @since 11.1.0
