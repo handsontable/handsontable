@@ -97,7 +97,7 @@ describe('manualColumnMove', () => {
       const columnHeader = $(getCell(-1, 8));
       const nextElement = $(document.body);
 
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(365);
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBeGreaterThan(349);
 
       columnHeader
         .simulate('mousedown')
@@ -113,7 +113,7 @@ describe('manualColumnMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBeLessThan(365);
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBeLessThan(349);
     });
 
     it('should move the table\'s viewport left when the next mouse-overed element is a column ' +
@@ -135,7 +135,7 @@ describe('manualColumnMove', () => {
       const columnHeader = $(getCell(-1, 9));
       const leftOverlayColumnHeader = $(getCell(-1, 0));
 
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(365);
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBeGreaterThan(349);
 
       columnHeader
         .simulate('mousedown')
@@ -150,7 +150,7 @@ describe('manualColumnMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBeLessThan(365);
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBeLessThan(349);
     });
 
     it('should move the table\'s viewport left when the next mouse-overed element is a column ' +
@@ -175,7 +175,7 @@ describe('manualColumnMove', () => {
       const columnHeader = $(getCell(-1, 8));
       const leftOverlayColumnHeader = $(getCell(-1, 1));
 
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(215);
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBeGreaterThan(199);
 
       columnHeader
         .simulate('mousedown')
@@ -190,7 +190,7 @@ describe('manualColumnMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBeLessThan(215);
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBeLessThan(199);
     });
 
     it('should not move the table\'s viewport when the next mouse-overed element is the first column ' +
@@ -212,7 +212,7 @@ describe('manualColumnMove', () => {
       const columnHeader = $(getCell(-1, 9));
       const nextColumnHeader = $(getCell(-1, 8));
 
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(315);
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBeGreaterThan(299);
 
       columnHeader
         .simulate('mousedown')
@@ -227,7 +227,7 @@ describe('manualColumnMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(315);
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBeGreaterThan(299);
     });
   });
 });
