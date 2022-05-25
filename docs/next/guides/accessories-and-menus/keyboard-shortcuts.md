@@ -342,12 +342,12 @@ To replace a keyboard shortcut:
 5. Add your new keyboard shortcut, using the selected context's [`addShortcuts()`](@/api/shortcutContext.md#addshortcuts) method.
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
-const undoShortcut = gridContext.getShortcuts(['meta', 'z']);
+const undoShortcut = gridContext.getShortcuts(['control/meta', 'z']);
 
-gridContext.removeShortcutsByKeys(['meta', 'z']);
+gridContext.removeShortcutsByKeys(['control/meta', 'z']);
 
 undoShortcut.map((shortcut) => {
-  shortcut.keys = [['shift', 'meta', 'z']];
+  shortcut.keys = [['shift', 'control/meta', 'z']];
 });
 
 gridContext.addShortcuts(undoShortcut);
