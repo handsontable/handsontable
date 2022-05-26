@@ -9,6 +9,7 @@ import { objectEach } from '../../../helpers/object';
 import {
   RENDER_TYPE,
   FULLY_VISIBLE_TYPE,
+  PARTIALLY_VISIBLE_TYPE,
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 } from './calculator';
@@ -403,8 +404,10 @@ class Viewport {
     let runFastDraw = fastDraw;
 
     if (runFastDraw) {
-      const proposedRowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
-      const proposedColumnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
+      // const proposedRowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
+      // const proposedColumnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
+      const proposedRowsVisibleCalculator = this.createRowsCalculator(PARTIALLY_VISIBLE_TYPE);
+      const proposedColumnsVisibleCalculator = this.createColumnsCalculator(PARTIALLY_VISIBLE_TYPE);
 
       if (!(this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) &&
           this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator))) {
