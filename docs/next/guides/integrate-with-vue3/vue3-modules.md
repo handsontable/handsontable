@@ -13,13 +13,13 @@ To reduce the size of your Vue 3 app, use Handsontable [modules](@/guides/buildi
 
 [Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
-## Using modules with Vue 3
+## Use modules with Vue 3
 
 To use modules with Handsontable's [Vue 3 wrapper](@/guides/integrate-with-vue3/vue3-installation.md), follow the steps below:
 
-### Step 1: Import required modules
+### Step 1: Import core modules
 
-No matter which [optional modules](@/guides/building-and-testing/modules.md#list-of-all-modules) you use, you need to [import the required modules](@/guides/building-and-testing/modules.md#importing-required-modules).
+No matter which [optional modules](@/guides/building-and-testing/modules.md#list-of-all-modules) you use, you need to import the [core modules](@/guides/building-and-testing/modules.md#core-modules).
 
 In the entry point file of your application, import the `handsontable/base` module:
 ```js
@@ -35,8 +35,8 @@ import Handsontable from 'handsontable/base';
 
 Import optional modules of your choice:
 
-- [List of all modules &#8594;](@/guides/building-and-testing/modules.md#list-of-all-modules)
-- [Importing and registering all modules &#8594;](@/guides/building-and-testing/modules.md#importing-and-registering-all-modules)
+- [List of all modules](@/guides/building-and-testing/modules.md#list-of-all-modules)
+- [List of all module imports](@/guides/building-and-testing/modules.md#list-of-all-module-imports)
 
 For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and the [`UndoRedo`](@/api/undoRedo.md) plugin:
 ```js
@@ -60,7 +60,7 @@ import {
 
 Import the registering methods that let you register your chosen modules:
 
-- [Importing and registering all modules &#8594;](@/guides/building-and-testing/modules.md#importing-and-registering-all-modules)
+- [List of all module imports](@/guides/building-and-testing/modules.md#list-of-all-module-imports)
 
 For example, to import the registering methods of the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and of the [`UndoRedo`](@/api/undoRedo.md) plugin:
   ```js
