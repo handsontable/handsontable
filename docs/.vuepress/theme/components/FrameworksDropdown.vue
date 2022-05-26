@@ -15,9 +15,6 @@ import { getLinkTransformed } from '../../components/utils';
 const frameworkIdToFullName = new Map([
   ['javascript', 'JavaScript'],
   ['react', 'React'],
-  ['angular', 'Angular'],
-  ['vue2', 'Vue 2'],
-  ['vue3', 'Vue 3'],
 ]);
 
 export default {
