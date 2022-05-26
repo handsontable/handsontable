@@ -59,5 +59,10 @@
     "vuepress-plugin-sitemap": "^2.3.1",
     "vuepress-plugin-tabs": "^0.3.0",
     "xlsx-renderer": "^2.4.0"
+  },
+  "overrides": {
+    "vuepress-plugin-sitemap": {
+      "chalk": "^4.1.1"
+    }
   }
 }
