@@ -26,44 +26,44 @@ In prior versions of the Handsontable component, the calculation between physica
 
 ## Keywords (alphabetically)
 
-* `afterFilter`
-* `afterLoadData`
-* `afterRowMove`
-* `afterUnmergeCells`
-* `batch`
-* `beforeRowMove`
-* `CollapsibleColumns`
-* `ColumnSorting`
-* `data binding`
-* `dragColumns`
-* `dragRows`
-* `Filters`
+* [`afterFilter`](@/api/hooks.md#afterfilter)
+* [`afterLoadData`](@/api/hooks.md#afterloaddata)
+* [`afterRowMove`](@/api/hooks.md#afterrowmove)
+* [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)
+* `batch()`
+* [`beforeRowMove`](@/api/hooks.md#beforerowmove)
+* [`CollapsibleColumns`](@/api/collapsibleColumns.md)
+* [`ColumnSorting`](@/api/columnSorting.md)
+* [Data binding](@/guides/getting-started/binding-to-data.md)
+* [`dragColumns()`](@/api/manualColumnMove.md#dragcolumns)
+* [`dragRows`](@/api/manualRowMove.md#dragrows)
+* [`Filters`](@/api/filters.md)
 * `finalIndex`
 * `GanttChart`
-* `HiddenColumns`
+* [`HiddenColumns`](@/api/hiddenColumns.md)
 * `insert`
-* `isMovePossible`
-* `ManualColumnFreeze`
-* `ManualColumnMove`
-* `ManualRowMove`
-* `minRows`
-* `minSpareRows`
+* [`isMovePossible`](@/api/manualRowMove.md#ismovepossible)
+* [`ManualColumnFreeze`](@/api/manualColumnFreeze.md)
+* [`ManualColumnMove`](@/api/manualColumnMove.md)
+* [`ManualRowMove`](@/api/manualRowMove.md)
+* [`minRows`](@/api/options.md#minrows)
+* [`minSpareRows`](@/api/options.md#minsparerows)
 * `modifyCol`
 * `modifyRow`
-* `moveColumns`
-* `moveRows`
-* `NestedRows`
+* [`moveColumns`](@/api/manualColumnMove.md#movecolumns)
+* [`moveRows`](@/api/manualRowMove.md#moverows)
+* [`NestedRows`](@/api/nestedRows.md)
 * `ObserveChanges`
-* `populateFromArray`
+* [`populateFromArray()`](@/api/core.md#populatefromarray)
 * `RecordTranslator`
-* `setDataAtCell`
-* `setDataAtRowProp`
+* [`setDataAtCell()`](@/api/core.md#setdataatcell)
+* [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)
 * `skipLengthCache`
-* `toPhysicalColumn`
-* `toPhysicalRow`
-* `toVisualColumn`
-* `toVisualRow`
-* `TrimRows`
+* [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn)
+* [`toPhysicalRow()`](@/api/core.md#tophysicalrow)
+* [`toVisualColumn()`](@/api/core.md#tovisualcolumn)
+* [`toVisualRow()`](@/api/core.md#tovisualrow)
+* [`TrimRows`](@/api/trimRows.md)
 * `unmodifyCol`
 * `unmodifyRow`
 
@@ -121,7 +121,7 @@ modifyRow(row) {
 }
 ```
 
-In 8.0.0 it is no longer the case. To achieve the same functionality you need to use `rowIndexMapper`:
+In 8.0.0 it is no longer the case. To achieve the same functionality you need to use [`rowIndexMapper()`](@/api/core.md#rowindexmapper):
 
 ```js
 hotInstance.rowIndexMapper.moveIndexes([1, 0], 0);
@@ -142,7 +142,7 @@ modifyRow(row) {
 }
 ```
 
-Now, if you want to get the same results you need to use the `TrimmingMap`:
+Now, if you want to get the same results you need to use the [`TrimmingMap`](@/api/trimmingMap.md):
 
 ```js
 import { TrimmingMap } from "handsontable/es/translations";
@@ -157,7 +157,7 @@ hotInstance.render();
 
 ### `hiddenRow, hiddenColumn`
 
-If you used `hiddenColumn` or `hiddenColumn` in your application you need do an update and use a correspinging index mapper:
+If you used [`HiddenRows`](@/api/hiddenRows.md) or [`HiddenColumns`](@/api/hiddenColumns.md) in your application you need do an update and use a corresponding index mapper:
 
 Prior 8.0.0:
 
@@ -187,7 +187,7 @@ hot.rowIndexMapper.isHidden(hot.toPhysicalRow(visualRow));
 
 ## Removing redundant `render()` from `after*` hooks
 
-The sequence of `after...` hooks changed, for example: `afterLoadData`, `afterFilter`, `afterUnmergeCells` are now called **before the render**. In the previous versions, you had to call `render` to apply changes made with `after...` hooks. In some cases, depending on the number of hooks registered, it led to rendering all the cells multiple times. Many of these operations were redundant and unnecessary, resulting only in a performance bottleneck.
+The sequence of `after...` hooks changed, for example: [`afterLoadData`](@/api/hooks.md#afterloaddata), [`afterFilter`](@/api/hooks.md#afterfilter), [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells) are now called **before the render**. In the previous versions, you had to call [`render()`](@/api/core.md#render) to apply changes made with `after...` hooks. In some cases, depending on the number of hooks registered, it led to rendering all the cells multiple times. Many of these operations were redundant and unnecessary, resulting only in a performance bottleneck.
 
 From now on, you can alter the `Handsontable` instance in each hook and it will re-render only once. To benefit from this change you have to review all your hooks and remove unnecessary render calls. Example:
 
@@ -202,7 +202,7 @@ instance.addHook('afterFilter', function () {
 
 From version 8.0.0 you can set plugins separately. They no longer rely on each other tightly in terms of functionality, so it is up to the developer to use them simultaneously when needed. You can avoid unwanted "extra" functionality switched on by a supporting plugin.
 
-`NestedRows` and `Filters` no longer depend on nor enable `TrimRows` plugin. To keep using the `TrimRows` functionality, mostly use API or if your custom plugin is based on it, you need to enable the plugin explicitly:
+[`NestedRows`](@/api/nestedRows.md) and [`Filters`](@/api/filters.md) no longer depend on nor enable [`TrimRows`](@/api/trimRows.md) plugin. To keep using the [`TrimRows`](@/api/trimRows.md) functionality, mostly use API or if your custom plugin is based on it, you need to enable the plugin explicitly:
 
 Before 8.0.0
 
@@ -222,7 +222,7 @@ filters: true,
 trimRows: true
 ```
 
-`ManualColumnFreeze` does not rely on `manualColumnMove` plugin. To preserve the same functionality as before you need to set it explicitly:
+[`ManualColumnFreeze`](@/api/manualColumnFreeze.md) does not rely on the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin. To preserve the same functionality as before you need to set it explicitly:
 
 Before 8.0.0
 
@@ -237,7 +237,7 @@ manualColumnFreeze: true,
 manualColumnMove: true
 ```
 
-`ColumnSorting` will not enable `ObserveChanges`. To preserve the same functionality as before you need to set it explicitly:
+[`ColumnSorting`](@/api/columnSorting.md) will not enable `ObserveChanges`. To preserve the same functionality as before you need to set it explicitly:
 
 Before 8.0.0
 
@@ -252,7 +252,7 @@ columnSorting: true,
 observeChanges: true
 ```
 
-`CollapsibleColumns` plugin no longer uses `HiddenColumns` plugin, hence it will not be enabled. What's more, it won't enforce the inclusion of the second plugin anymore. To preserve the functionality of hiding columns separately (out of collapsing) as before you need to set it explicitly:
+[`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin no longer uses [`HiddenColumns`](@/api/hiddenColumns.md) plugin, hence it will not be enabled. What's more, it won't enforce the inclusion of the second plugin anymore. To preserve the functionality of hiding columns separately (out of collapsing) as before you need to set it explicitly:
 
 Before 8.0.0
 
@@ -269,11 +269,11 @@ hiddenColumns: true
 
 ## Data reference and ObserveChanges plugin
 
-Modifying the table’s data by reference and calling `render` is no longer feasible. Now all the data-related operations need to be performed using the API methods such as `populateFromArray` or `setDataAtCell`.
+Modifying the table’s data by reference and calling [`render()`](@/api/core.md#render) is no longer feasible. Now all the data-related operations need to be performed using the API methods such as [`populateFromArray()`](@/api/core.md#populatefromarray) or [`setDataAtCell()`](@/api/core.md#setdataatcell).
 
-The source data API was changed as well and it will no longer return a reference to the source data object. Instead, it returns a copy of the data, possibly already modified by the `modifySourceData` and `modifyRowData` hooks. The change applies to all "getter" source methods - `getSourceData`, `getSourceDataAtCell`, `getSourceDataAtRow`, `getSourceDataAtCol` and `getSourceDataArray`.
+The source data API was changed as well and it will no longer return a reference to the source data object. Instead, it returns a copy of the data, possibly already modified by the [`modifySourceData`](@/api/hooks.md#modifysourcedata) and [`modifyRowData`](@/api/hooks.md#modifyrowdata) hooks. The change applies to all "getter" source methods - [`getSourceData()`](@/api/core.md#getsourcedata), [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell), [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow), [`getSourceDataAtCol()`](@/api/core.md#getsourcedataatcol) and [`getSourceDataArray()`](@/api/core.md#getsourcedataarray).
 
-Since it breaks the link to original data source reference, `setSourceDataAtCell` method and `afterSetSourceDataAtCell` hook were introduced to maintain a similar functionality.
+Since it breaks the link to original data source reference, [`setSourceDataAtCell()`](@/api/core.md#getsourcedataatcell) method and [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell) hook were introduced to maintain a similar functionality.
 
 Before it was possible to set source data by reference to the data variable:
 
@@ -293,9 +293,9 @@ Now API should be used:
 hotInstance.setSourceDataAtCell(0, 0, 'A1');
 ```
 
-It is also worth to mention that `getSourceData` will return a clone of the entire dataset, when run without arguments - `getSourceData()`. However, if a row/column range is provided: `getSourceData(0, 0, 10, 10)`, it will filter the dataset with the `columns` and/or `dataSchema` options, and return only the columns configured to be visible.
+It is also worth to mention that [`getSourceData()`](@/api/core.md#getsourcedata) will return a clone of the entire dataset, when run without arguments - [`getSourceData()`](@/api/core.md#getsourcedata). However, if a row/column range is provided: `getSourceData(0, 0, 10, 10)`, it will filter the dataset with the [`columns`](@/api/options.md#columns) and/or [`dataSchema`](@/api/options.md#dataschema) options, and return only the columns configured to be visible.
 
-Before it was also possible to extend the row-object by `setDataAtRowProp()` method when working with **an array of objects as source data**. Since 8.0.0 the only way to do that is to use `setSourceDataAtCell`.
+Before it was also possible to extend the row-object by [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) method when working with **an array of objects as source data**. Since 8.0.0 the only way to do that is to use [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell).
 
 Check the following example:
 
@@ -315,11 +315,11 @@ hot.setSourceDataAtCell(0, 'available', true) // This usage will set a new prope
 
 Both plugins has been adapted to work with Index Mappers.
 
-Hooks, `beforeRowMove`, `afterRowMove`, `beforeColumnMove`, and `afterColumnMove` have different set of parameters now.
+Hooks, [`beforeRowMove`](@/api/hooks.md#beforerowmove), [`afterRowMove`](@/api/hooks.md#afterrowmove), [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove), and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) have different set of parameters now.
 
-Methods `moveColumn`, `moveColumns`, `moveRow`, and `moveRows` have their arguments changed. From this version onward, the `target` argument was changed to `finalIndex` argument. They work differently now and a **new `dragRow`, `dragRows`, `dragColumn` and `dragColumns` methods overtook old methods place in terms of functionality**. To put it bluntly, if you want to preserve previous functionality of `moveRows` rename it to the `dragRows`.
+Methods [`moveColumn`](@/api/manualColumnMove.md#movecolumn), [`moveColumns`](@/api/manualColumnMove.md#movecolumns), [`moveRow`](@/api/manualRowMove.md#moverow), and [`moveRows`](@/api/manualRowMove.md#moverows) have their arguments changed. From this version onward, the `target` argument was changed to `finalIndex` argument. They work differently now and a **new [`dragRow`](@/api/manualRowMove.md#dragrow), [`dragRows`](@/api/manualRowMove.md#dragrows), [`dragColumn`](@/api/manualColumnMove.md#dragcolumn) and [`dragColumns`](@/api/manualColumnMove.md#dragcolumns) methods overtook old methods place in terms of functionality**. To put it bluntly, if you want to preserve previous functionality of [`moveRows`](@/api/manualRowMove.md#moverows) rename it to the [`dragRows`](@/api/manualRowMove.md#dragrows).
 
-**Important note!** If `NestedRows` is set to `enabled` the move is possible only by the drag in the UI or `dragRow`/`dragRows` methods of the `ManualRowMove` plugin.
+**Important note!** If [`NestedRows`](@/api/nestedRows.md) is set to `enabled` the move is possible only by the drag in the UI or [`dragRow`](@/api/manualRowMove.md#dragrow)/[`dragRows`](@/api/manualRowMove.md#dragrows) methods of the [`ManualRowMove`](@/api/manualRowMove.md) plugin.
 
 The "drag" methods comes with the `dropIndex` parameter. It directs where to **place** the dragged elements. The place you intend to drag the element is managed by **drop indexes**. You can imagine some sort of a drop zone between actual indexes of elements:
 
@@ -331,15 +331,15 @@ The "move" methods comes with the `finalIndex` parameter. It tells where to **ov
 
 Please note that in case of "move" methods some move actions are limited. For example, if you initiate a move of **more than one element** to the **last position** (visual index = the number of items - 1) the operation will be canceled. The first element in the collection you would like to move will try to reach the last position (`finalIndex`) which is feasible. However, the next ones will attempt to reach the position exceeding the number of all items.
 
-You can find the plugin's isMovePossible API method useful when you want to determine if the move action is possible. `movePossible` parameter of `beforeRowMove`, `afterRowMove`, `beforeColumnMove`, and `afterColumnMove` hooks may be helpful as well.
+You can find the plugin's isMovePossible API method useful when you want to determine if the move action is possible. `movePossible` parameter of [`beforeRowMove`](@/api/hooks.md#beforerowmove), [`afterRowMove`](@/api/hooks.md#afterrowmove), [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove), and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) hooks may be helpful as well.
 
 ## Changes in ManualColumnFreeze plugin behavior
 
-The `ManualColumnFreeze` plugin itself also works differently. Before the **v8.0.0** frozen columns attempted to go back to original positions upon the unfreeze. Currently, the original position is **not calculated**. It unfreezes the column just after the "line of freeze". The functionality changed because after several actions like **moving** the former position was rather estimated than determined.
+The [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin itself also works differently. Before the **v8.0.0** frozen columns attempted to go back to original positions upon the unfreeze. Currently, the original position is **not calculated**. It unfreezes the column just after the "line of freeze". The functionality changed because after several actions like **moving** the former position was rather estimated than determined.
 
 ## Using minSpareRows option with TrimRows plugin
 
-Another breaking change is related to `minSpareRows` and `minRows`. The difference is visible when the data is being trimmed (i.e. by the `TrimRows` plugin) and the options are set. In previous versions the data which was supposed to be trimmed **included** `minSpareRows` and `minRows` which resulted in trimming them along with other rows. In version 8.0.0 **spare rows** are always present and cannot be removed by trimming.
+Another breaking change is related to [`minSpareRows`](@/api/options.md#minsparerows) and [`minRows`](@/api/options.md#minrows). The difference is visible when the data is being trimmed (i.e. by the [`TrimRows`](@/api/trimRows.md) plugin) and the options are set. In previous versions the data which was supposed to be trimmed **included** [`minSpareRows`](@/api/options.md#minsparerows) and [`minRows`](@/api/options.md#minrows) which resulted in trimming them along with other rows. In version 8.0.0 **spare rows** are always present and cannot be removed by trimming.
 
 Check the following code example:
 
@@ -359,7 +359,7 @@ The results after:
 
 ![after_8](/docs/next/img/spare_after_8.svg)
 
-To ensure your application works as expected you should review it and search the use cases of `minSpareRows` or `minRows`, if the application relied on this mechanism you may need to adapt it. For example, in prior versions the following code:
+To ensure your application works as expected you should review it and search the use cases of [`minSpareRows`](@/api/options.md#minsparerows) or [`minRows`](@/api/options.md#minrows), if the application relied on this mechanism you may need to adapt it. For example, in prior versions the following code:
 
 ```js
 const hotInstance = new Handsontable(container, {
@@ -413,7 +413,7 @@ createElements() {
 
 ## Indexes that exceed the data length
 
-Also, the methods `toVisualRow`, `toVisualColumn` and `toPhysicalRow`, `toPhysicalColumn` used to return index numbers that exceeded the overall length. For example:
+Also, the methods [`toVisualRow()`](@/api/core.md#tovisualrow), [`toVisualColumn()`](@/api/core.md#tovisualcolumn) and [`toPhysicalRow()`](@/api/core.md#tophysicalrow), [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn) used to return index numbers that exceeded the overall length. For example:
 
 ```js
 // Data set with just 10 rows.
@@ -488,7 +488,7 @@ beforeOnCellMouseDown(event, coords) {
 
 ## Load data hooks arguments order
 
-Hook `afterLoadData` has been changed. Its first argument will present a **data source** that was set during the **load data** action. Now, a flag informing whether a load of data was done during initialization is the second argument. Also, a new corresponding hook, `beforeLoadData`, has been introduced, it is called before loading data.
+Hook [`afterLoadData`](@/api/hooks.md#afterloaddata) has been changed. Its first argument will present a **data source** that was set during the **load data** action. Now, a flag informing whether a load of data was done during initialization is the second argument. Also, a new corresponding hook, [`beforeLoadData`](@/api/hooks.md#beforeloaddata), has been introduced, it is called before loading data.
 
 Before:
 
@@ -502,7 +502,7 @@ Now:
 afterLoadData?: (sourceData: object | void, initialLoad: boolean) => void;
 ```
 
-`beforeLoadData` has the same order of arguments:
+[`beforeLoadData`](@/api/hooks.md#beforeloaddata) has the same order of arguments:
 
 ```ts
 beforeLoadData?: (sourceData: object | void, initialLoad: boolean) => void;
@@ -544,7 +544,7 @@ hotInstance.getSelectedLast().map((indexIncludingHeader) => {
 });
 ```
 
-Selection Range object has a new method `normalize` that will do this for you:
+Selection Range object has a new method [`normalize`](@/api/cellCoords.md#normalize) that will do this for you:
 
 ```js
 hotInstance.getSelectedRangeLast().from.clone().normalize()

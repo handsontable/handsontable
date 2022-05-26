@@ -41,3 +41,14 @@ You can find the details about adding the license key on [this page](@/guides/ge
 ## Open-source license
 
 For many years Handsontable was available as an open-source software, and released under the MIT license. The last version available under permissive terms was [6.2.2](https://github.com/handsontable/handsontable/tree/6.2.2) released on December 19, 2018.
+
+## Related articles
+
+### Related guides
+
+- [License key](@/guides/getting-started/license-key.md)
+
+### Related API reference
+
+- Options: 
+  - [`licenseKey`](@/api/options.md#licensekey)

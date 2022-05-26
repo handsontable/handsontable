@@ -14,123 +14,7 @@ tags:
 
 ## Overview
 
-The plugin allows you to export data from Handsontable into a `CSV` file.
-
-## Available methods
-
-The plugin exposes the following methods to export data.
-
-* [**downloadFile(format, options)**](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
-* [**exportAsBlob(format, options)**](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
-* [**exportAsString(format, options)**](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
-
-All of them accept the same arguments:
-
-### format `String`
-
-This is required to prepare a predefined settings object. We currently allow for only `'csv'` to be used.
-
-### options `Object`
-
-This is an optional argument. It contains a set of supported options and extends the predefined `CSV` configuration. For the complete list of options that you can use, see [available options](#available-options-in-the-export-configuration).
-
-## Available options in the export configuration
-
-Below you can find all supported options:
-
-### bom `Boolean`
-
-Allows you to export data with a BOM signature.
-
-**Please note:** This property will prepend content with the UTF-16BE BOM signature (_FE FF_). The browser will convert the signature to the UTF-8 value (_EF BB BF_) automatically.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `true`
-
-### columnDelimiter `String`
-
-Allows you to define the columns delimiter.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `','`
-
-### columnHeaders `Boolean`
-
-When set to `true`, includes column headers in the exported data.
-
-You can use this property in all of the [available methods](#available-methods).
-
-The `columnHeaders` option doesn't support the [`NestedHeaders` plugin](@/api/nestedHeaders.md).
-
-Default value: `false`
-
-### exportHiddenColumns `Boolean`
-
-Allows you to export data from hidden columns.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `false`
-
-### exportHiddenRows `Boolean`
-
-Allows you to export data from hidden rows.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `false`
-
-### fileExtension `String`
-
-Allows you to define the file extension.
-
-You can use this property in the **downloadFile** method.
-
-Default value: `'csv'`
-
-### filename `String`
-
-Allows you to define the file name.
-
-You can use predefined placeholders, which will be replaced by the date.
-
-You can use this property in the **downloadFile** method.
-
-Default value: `'Handsontable [YYYY]-[MM]-[DD]'`
-
-### mimeType `String`
-
-Allows you to define the MIME type.
-
-You can use this property in the **downloadFile** and **exportAsBlob** methods.
-
-Default value: `'text/csv'`
-
-### range `Array`
-
-Allows you to define a range of dataset to export. It's represented by an array of numeric, visual indexes `[startRow, startColumn, endRow, endColumn]`.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `'text/csv'`
-
-### rowDelimiter `String`
-
-Allows you to define rows delimiter.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `'\r\n'`
-
-### rowHeaders `Boolean`
-
-Allows you to export data with their row header.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `false`
+The plugin allows you to export data from Handsontable into a CSV file.
 
 ## Live examples
 
@@ -265,3 +149,124 @@ button.addEventListener('click', () => {
 });
 ```
 :::
+
+## Available methods
+
+The plugin exposes the following methods to export data.
+
+* [**downloadFile(format, options)**](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
+* [**exportAsBlob(format, options)**](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
+* [**exportAsString(format, options)**](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
+
+All of them accept the same arguments:
+
+### format `String`
+
+This is required to prepare a predefined settings object. We currently allow for only `'csv'` to be used.
+
+### options `Object`
+
+This is an optional argument. It contains a set of supported options and extends the predefined CSV configuration. For the complete list of options that you can use, see [available options](#available-options-in-the-export-configuration).
+
+## Available options in the export configuration
+
+Below you can find all supported options:
+
+### bom `Boolean`
+
+Allows you to export data with a BOM signature.
+
+**Please note:** This property will prepend content with the UTF-16BE BOM signature (_FE FF_). The browser will convert the signature to the UTF-8 value (_EF BB BF_) automatically.
+
+You can use this property in all of the [available methods](#available-methods).
+
+Default value: `true`
+
+### columnDelimiter `String`
+
+Allows you to define the columns delimiter.
+
+You can use this property in all of the [available methods](#available-methods).
+
+Default value: `','`
+
+### columnHeaders `Boolean`
+
+When set to `true`, includes column headers in the exported data.
+
+You can use this property in all of the [available methods](#available-methods).
+
+The `columnHeaders` option doesn't support the [`NestedHeaders` plugin](@/api/nestedHeaders.md).
+
+Default value: `false`
+
+### exportHiddenColumns `Boolean`
+
+Allows you to export data from hidden columns.
+
+You can use this property in all of the [available methods](#available-methods).
+
+Default value: `false`
+
+### exportHiddenRows `Boolean`
+
+Allows you to export data from hidden rows.
+
+You can use this property in all of the [available methods](#available-methods).
+
+Default value: `false`
+
+### fileExtension `String`
+
+Allows you to define the file extension.
+
+You can use this property in the **downloadFile** method.
+
+Default value: `'csv'`
+
+### filename `String`
+
+Allows you to define the file name.
+
+You can use predefined placeholders, which will be replaced by the date.
+
+You can use this property in the **downloadFile** method.
+
+Default value: `'Handsontable [YYYY]-[MM]-[DD]'`
+
+### mimeType `String`
+
+Allows you to define the MIME type.
+
+You can use this property in the **downloadFile** and **exportAsBlob** methods.
+
+Default value: `'text/csv'`
+
+### range `Array`
+
+Allows you to define a range of dataset to export. It's represented by an array of numeric, visual indexes `[startRow, startColumn, endRow, endColumn]`.
+
+You can use this property in all of the [available methods](#available-methods).
+
+Default value: `'text/csv'`
+
+### rowDelimiter `String`
+
+Allows you to define rows delimiter.
+
+You can use this property in all of the [available methods](#available-methods).
+
+Default value: `'\r\n'`
+
+### rowHeaders `Boolean`
+
+Allows you to export data with their row header.
+
+You can use this property in all of the [available methods](#available-methods).
+
+Default value: `false`
+
+## Related API reference
+
+- Plugins:
+  - [`ExportFile`](@/api/exportFile.md)

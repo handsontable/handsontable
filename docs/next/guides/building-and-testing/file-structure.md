@@ -13,7 +13,7 @@ tags:
 
 # File structure
 
-Handsontable's source files are stored on GitHub, in a [mono repository](https://github.com/handsontable/handsontable).
+Handsontable's source files are stored on GitHub, in a mono repository.
 
 ```bash
 ├── bin                                     # Binary files

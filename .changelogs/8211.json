@@ -1,0 +1,7 @@
+{
+  "title": "Fixed columns width change after toggling the checkbox cell type editor.",
+  "type": "fixed",
+  "issue": 8211,
+  "breaking": false,
+  "framework": "none"
+}
