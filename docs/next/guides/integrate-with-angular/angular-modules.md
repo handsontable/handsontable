@@ -9,7 +9,7 @@ canonicalUrl: /angular-modules
 
 [[toc]]
 
-To reduce Handsontable's impact on the size of your Angular app, import only the [modules](@/guides/building-and-testing/modules.md) that you actually use.
+To reduce Handsontable's impact on the size of your Angular app, import only the [modules](@/guides/building-and-tooling/modules.md) that you actually use.
 
 ## Use modules in Angular
 
@@ -17,7 +17,7 @@ To use modules with Handsontable's [Angular wrapper](@/guides/integrate-with-ang
 
 ### Step 1: Import core modules
 
-No matter which [optional modules](@/guides/building-and-testing/modules.md#list-of-all-modules) you use, you need to import the [core modules](@/guides/building-and-testing/modules.md#core-modules).
+No matter which [optional modules](@/guides/building-and-tooling/modules.md#list-of-all-modules) you use, you need to import the [core modules](@/guides/building-and-tooling/modules.md#core-modules).
 
 In the entry point file of your application, import the `handsontable/base` module:
   ```js
@@ -34,8 +34,8 @@ In the entry point file of your application, import the `handsontable/base` modu
 
 Import optional modules of your choice:
 
-- [List of all modules](@/guides/building-and-testing/modules.md#list-of-all-modules)
-- [List of all module imports](@/guides/building-and-testing/modules.md#list-of-all-module-imports)
+- [List of all modules](@/guides/building-and-tooling/modules.md#list-of-all-modules)
+- [List of all module imports](@/guides/building-and-tooling/modules.md#list-of-all-module-imports)
 
 For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and the [`UndoRedo`](@/api/undoRedo.md) plugin:
   ```js
@@ -61,7 +61,7 @@ For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) ce
 
 Import the registering methods that let you register your chosen modules:
 
-- [List of all module imports](@/guides/building-and-testing/modules.md#list-of-all-module-imports)
+- [List of all module imports](@/guides/building-and-tooling/modules.md#list-of-all-module-imports)
 
 For example, to import the registering methods of the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and of the [`UndoRedo`](@/api/undoRedo.md) plugin:
   ```js
@@ -129,5 +129,5 @@ For example, to register the [`numeric`](@/guides/cell-types/numeric-cell-type.m
 
 ## Related guides
 
-- [Modules](@/guides/building-and-testing/modules.md)
-- [Performance](@/guides/advanced-topics/performance.md)
+- [Modules](@/guides/building-and-tooling/modules.md)
+- [Performance](@/guides/optimization/performance.md)

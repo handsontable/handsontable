@@ -10,7 +10,7 @@ import { isObjectEqual } from '../../helpers/object';
  * [Configuration options](@/guides/getting-started/setting-options.md) let you heavily customize your Handsontable instance. For example, you can:
  *
  * - Enable and disable built-in features
- * - Enable and configure additional [plugins](@/guides/building-and-testing/plugins.md)
+ * - Enable and configure additional [plugins](@/guides/building-and-tooling/custom-plugins.md)
  * - Personalize Handsontable's look
  * - Adjust Handsontable's behavior
  * - Implement your own custom features
@@ -4459,7 +4459,7 @@ export default () => {
      * | A number           | Set the offset manually                                 |
      *
      * Read more:
-     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
      * @memberof Options#
      * @type {number|string}
@@ -4487,7 +4487,7 @@ export default () => {
      * | A number           | Set the offset manually                                 |
      *
      * Read more:
-     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      * - [Column virtualization](@/guides/columns/column-virtualization.md)
      *
      * @memberof Options#
