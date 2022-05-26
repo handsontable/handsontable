@@ -3,11 +3,9 @@ const fs = require('fs');
 const semver = require('semver');
 const glob = require('glob');
 const frontMatter = require('front-matter');
-const { getLatestVersion } = require('../../helpers');
+const { getLatestVersion, getDocsBaseUrl } = require('../../helpers');
 
-const BASE_URL = 'https://handsontable.com/docs';
 const ROOT_DOCS_DIR = path.resolve(__dirname, '../../..');
-
 const canonicalURLs = new Map();
 
 /**
@@ -52,7 +50,7 @@ function getCanonicalUrl(canonicalUrl) {
     url = `/${latestDocsVersionForCanonical}${url}`;
   }
 
-  return `${BASE_URL}${url}/`.replace(/\/+$/, '/');
+  return `${getDocsBaseUrl()}/docs${url}/`.replace(/\/+$/, '/');
 }
 
 /**

@@ -4,6 +4,7 @@ const {
   getVersions,
   parseVersion,
   getBuildDocsVersion,
+  getDocsBaseUrl,
 } = require('../../helpers');
 const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
 
@@ -39,6 +40,7 @@ module.exports = (options, context) => {
       $page.DOCS_VERSION = DOCS_VERSION;
       $page.versions = getVersions(buildMode);
       $page.latestVersion = getLatestVersion();
+      $page.baseUrl = getDocsBaseUrl();
       $page.currentVersion = parseVersion($page.path);
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);

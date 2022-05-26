@@ -49,7 +49,7 @@ export default {
         '4.0.0',
       ].map(version => ({
         text: version.replace(/\.\d+$/, ''),
-        link: `https://handsontable.com/docs/${version}/`
+        link: `${this.$page.baseUrl}/docs/${version}/`
       }));
     }
   },
