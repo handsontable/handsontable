@@ -72,9 +72,9 @@ See the [batch operations](@/guides/advanced-topics/batch-operations.md) page to
 
 ## Use modules
 
-To reduce the bundle size and JavaScript parsing time, import only those [Handsontable modules](@/guides/building-and-testing/modules.md#list-of-all-modules) that you actually use, instead of importing the complete package.
+To reduce the bundle size and JavaScript parsing time, import only those of Handsontable's [modules](@/guides/building-and-testing/modules.md#list-of-all-modules) that you actually use, instead of importing the complete package.
 
-The following example shows you how to import and register the [`ContextMenu`](@/api/contextMenu.md) plugin.
+The following example shows how to import and register the [`ContextMenu`](@/api/contextMenu.md) plugin.
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -82,14 +82,12 @@ import { registerPlugin, ContextMenu } from 'handsontable/plugins';
 
 registerPlugin(ContextMenu);
 
-// switch the context menu on
 new Handsontable(container, {
   contextMenu: true,
-  // other settings
 });
 ```
 
-You can also optimize the use of **moment.js**. To find out more about this topic, see the [modules page](@/guides/building-and-testing/modules.md).
+You can also [optimize](@/guides/building-and-testing/modules.md#optimize-moment-js-locales) the size of Moment.js (Handsontable's dependency).
 
 ## Related articles
 
