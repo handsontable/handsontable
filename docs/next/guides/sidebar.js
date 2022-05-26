@@ -161,6 +161,7 @@ const optimizationItems = [
   // TODO 'guides/optimization/touch-events',
   'guides/optimization/performance',
   // TODO 'guides/optimization/key-concepts',
+  'guides/optimization/bundle-size',
 ];
 
 const securityItems = [

@@ -9,7 +9,7 @@ canonicalUrl: /angular-modules
 
 [[toc]]
 
-To reduce Handsontable's impact on the size of your Angular app, import only the [modules](@/guides/building-and-tooling/modules.md) that you actually use.
+Import just the modules that you actually need, to reduce Handsontable's impact on the size of your Angular app.
 
 ## Use modules in Angular
 
@@ -17,117 +17,87 @@ To use modules with Handsontable's [Angular wrapper](@/guides/integrate-with-ang
 
 ### Step 1: Import core modules
 
-No matter which [optional modules](@/guides/building-and-tooling/modules.md#list-of-all-modules) you use, you need to import the [core modules](@/guides/building-and-tooling/modules.md#core-modules).
+No matter which [optional modules](@/guides/building-and-tooling/modules.md#optional-modules) you use, you need to import the [core modules](@/guides/building-and-tooling/modules.md#core-modules).
 
 In the entry point file of your application, import the `handsontable/base` module:
-  ```js
-  import { BrowserModule } from '@angular/platform-browser';
-  import { NgModule } from '@angular/core';
-  import { AppComponent } from './app.component';
-  import { HotTableModule } from '@handsontable/angular';
 
-  // import the `handsontable/base` module
-  import Handsontable from 'handsontable/base';
-  ```
+```js
+import Handsontable from 'handsontable/base';
+```
 
 ### Step 2: Import optional modules
 
 Import optional modules of your choice:
 
+Import optional modules of your choice, along with their registering functions.
+
+- [Optional modules](@/guides/building-and-tooling/modules.md#optional-modules)
 - [List of all modules](@/guides/building-and-tooling/modules.md#list-of-all-modules)
 - [List of all module imports](@/guides/building-and-tooling/modules.md#list-of-all-module-imports)
 
-For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and the [`UndoRedo`](@/api/undoRedo.md) plugin:
-  ```js
-  import { BrowserModule } from '@angular/platform-browser';
-  import { NgModule } from '@angular/core';
-  import { AppComponent } from './app.component';
-  import { HotTableModule } from '@handsontable/angular';
+For example, to import the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type module and the [`UndoRedo`](@/api/undoRedo.md) plugin module:
 
-  import Handsontable from 'handsontable/base';
+```js
+import {
+registerCellType, // cell types' registering function
+NumericCellType,
+} from 'handsontable/cellTypes';
 
-  import {
-    // import the `NumericCellType` module
-    NumericCellType,
-  } from 'handsontable/cellTypes';
+import {
+registerPlugin, // plugins' registering function
+UndoRedo,
+} from 'handsontable/plugins';
+```
 
-  import {
-    // import the `UndoRedo` module
-    UndoRedo,
-  } from 'handsontable/plugins';
-  ```
+### Step 3: Register your modules
 
-### Step 3: Import your modules' registering methods
+Register your modules, to let Handsontable recognize them.
 
-Import the registering methods that let you register your chosen modules:
+For example, to register the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type module and the [`UndoRedo`](@/api/undoRedo.md) plugin module:
 
-- [List of all module imports](@/guides/building-and-tooling/modules.md#list-of-all-module-imports)
+```jsx
+registerCellType(NumericCellType);
+registerPlugin(UndoRedo);
+```
 
-For example, to import the registering methods of the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and of the [`UndoRedo`](@/api/undoRedo.md) plugin:
-  ```js
-  import { BrowserModule } from '@angular/platform-browser';
-  import { NgModule } from '@angular/core';
-  import { AppComponent } from './app.component';
-  import { HotTableModule } from '@handsontable/angular';
+###  Full example
 
-  import Handsontable from 'handsontable/base';
+```js
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { AppComponent } from './app.component';
+import { HotTableModule } from '@handsontable/angular';
 
-  import {
-    NumericCellType,
-    // import the `registerCellType()` method
-    registerCellType,
-  } from 'handsontable/cellTypes';
+import Handsontable from 'handsontable/base';
 
-  import {
-    UndoRedo,
-    // import the `registerPlugin()` method
-    registerPlugin,
-  } from 'handsontable/plugins';
-  ```
+import {
+  registerCellType,
+  NumericCellType,
+} from 'handsontable/cellTypes';
 
-### Step 4: Register your modules
-Register your chosen modules, using the registering methods.
+import {
+  registerPlugin,
+  UndoRedo,
+} from 'handsontable/plugins';
 
-For example, to register the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and the [`UndoRedo`](@/api/undoRedo.md) plugin: 
-  ```jsx
-  import { BrowserModule } from '@angular/platform-browser';
-  import { NgModule } from '@angular/core';
-  import { AppComponent } from './app.component';
-  import { HotTableModule } from '@handsontable/angular';
+registerCellType(NumericCellType);
+registerPlugin(UndoRedo);
 
-  import Handsontable from 'handsontable/base';
-
-  import {
-    registerCellType,
-    NumericCellType,
-  } from 'handsontable/cellTypes';
-
-  import {
-    registerPlugin,
-    UndoRedo,
-  } from 'handsontable/plugins';
-
-  // register the `NumericCellType` cell type
-  registerCellType(NumericCellType);
-
-  // register the `UndoRedo` plugin
-  registerPlugin(UndoRedo);
-
-  @NgModule({
-    declarations: [
-      AppComponent
-    ],
-    imports: [
-      BrowserModule,
-      HotTableModule
-    ],
-    providers: [],
-    bootstrap: [AppComponent]
-  })
-  export class AppModule { }
-  ```
+@NgModule({
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    BrowserModule,
+    HotTableModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+```
 
 ## Related guides
 
 - [Modules](@/guides/building-and-tooling/modules.md)
-- [Performance](@/guides/optimization/performance.md)
+- [Bundle size](@/guides/optimization/bundle-size.md)

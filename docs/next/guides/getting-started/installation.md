@@ -70,6 +70,8 @@ Run the following command in your terminal
 Import JavaScript and CSS into your application. You don't have to do that if you use CDN files.
 ```js
 import Handsontable from 'handsontable';
+
+// if you bundler allows it, import Handsontable's CSS
 import 'handsontable/dist/handsontable.full.css';
 ```
 
