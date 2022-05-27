@@ -69,11 +69,22 @@ class Scroll {
     if (column >= 0 && column <= Math.max(totalColumns - 1, 0)) {
       const firstVisibleColumn = this.getFirstVisibleColumn();
       const lastVisibleColumn = this.getLastVisibleColumn();
+      const firstRenderedColumn = this.dataAccessObject.wtTable.getFirstRenderedColumn();
+      const lastRenderedColumn = this.dataAccessObject.wtTable.getLastRenderedColumn();
 
-      if (column >= fixedColumnsStart && firstVisibleColumn > -1 && (column < firstVisibleColumn || snapToLeft)) {
-        result = inlineStartOverlay.scrollTo(column);
-      } else if (lastVisibleColumn === -1 || lastVisibleColumn > -1 && (column > lastVisibleColumn || snapToRight)) {
-        result = inlineStartOverlay.scrollTo(column, true);
+      // WIP
+      if (firstVisibleColumn === -1 && lastVisibleColumn === -1) {
+        if (column >= fixedColumnsStart && firstRenderedColumn > -1 && (column >= firstRenderedColumn || snapToLeft)) {
+          result = inlineStartOverlay.scrollTo(column);
+        } else if (lastRenderedColumn === -1 || lastRenderedColumn > -1 && (column <= lastRenderedColumn || snapToRight)) {
+          result = inlineStartOverlay.scrollTo(column, true);
+        }
+      } else {
+        if (column >= fixedColumnsStart && firstVisibleColumn > -1 && (column < firstVisibleColumn || snapToLeft)) {
+          result = inlineStartOverlay.scrollTo(column);
+        } else if (lastVisibleColumn === -1 || lastVisibleColumn > -1 && (column > lastVisibleColumn || snapToRight)) {
+          result = inlineStartOverlay.scrollTo(column, true);
+        }
       }
     }
 

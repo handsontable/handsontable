@@ -103,32 +103,22 @@ class ViewportColumnsCalculator {
     const totalColumns = priv.totalColumns;
     const viewportWidth = priv.viewportWidth;
 
-    // if ( calculationType === FULLY_VISIBLE_TYPE) {
-      // debugger;
-    // }
-
     for (let i = 0; i < totalColumns; i++) {
       columnWidth = this._getColumnWidth(i);
 
-      if (sum === scrollOffset) {
-        this.startColumn = i;
-      } else if (sum < scrollOffset && calculationType !== FULLY_VISIBLE_TYPE) {
+      if (sum <= scrollOffset && calculationType !== FULLY_VISIBLE_TYPE) {
         this.startColumn = i;
       }
 
       // +1 pixel for row header width compensation for horizontal scroll > 0
       const compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
-      const scrollOffsetWithViewportWidth = scrollOffset + compensatedViewportWidth;
 
-      // if (sum >= scrollOffset && sum + (calculationType === FULLY_VISIBLE_TYPE ? columnWidth : 0) <= scrollOffset + compensatedViewportWidth) { // eslint-disable-line max-len
-//       if (sum >= scrollOffset &&
-//           ( (sum + (calculationType === FULLY_VISIBLE_TYPE ? columnWidth : 0) <= scrollOffsetWithViewportWidth) ||
-//           columnWidth > compensatedViewportWidth )) {
-//         if (this.startColumn === null || this.startColumn === void 0) {
-//           this.startColumn = i;
-//         }
-//         this.endColumn = i;
-//       }
+      if (sum >= scrollOffset && sum + (calculationType === FULLY_VISIBLE_TYPE ? columnWidth : 0) <= scrollOffset + compensatedViewportWidth) { // eslint-disable-line max-len
+        if (this.startColumn === null || this.startColumn === void 0) {
+          this.startColumn = i;
+        }
+        this.endColumn = i;
+      }
       startPositions.push(sum);
       sum += columnWidth;
 
@@ -141,20 +131,20 @@ class ViewportColumnsCalculator {
       }
     }
 
-    // if (this.endColumn === totalColumns - 1 && needReverse) {
-    //   this.startColumn = this.endColumn;
+    if (this.endColumn === totalColumns - 1 && needReverse) {
+      this.startColumn = this.endColumn;
 
-    //   while (this.startColumn > 0) {
-    //     const viewportSum = startPositions[this.endColumn] + columnWidth - startPositions[this.startColumn - 1];
+      while (this.startColumn > 0) {
+        const viewportSum = startPositions[this.endColumn] + columnWidth - startPositions[this.startColumn - 1];
 
-    //     if (viewportSum <= viewportWidth || calculationType !== FULLY_VISIBLE_TYPE) {
-    //       this.startColumn -= 1;
-    //     }
-    //     if (viewportSum > viewportWidth) {
-    //       break;
-    //     }
-    //   }
-    // }
+        if (viewportSum <= viewportWidth || calculationType !== FULLY_VISIBLE_TYPE) {
+          this.startColumn -= 1;
+        }
+        if (viewportSum > viewportWidth) {
+          break;
+        }
+      }
+    }
 
     if (calculationType === RENDER_TYPE && this.startColumn !== null && overrideFn) {
       overrideFn(this);
