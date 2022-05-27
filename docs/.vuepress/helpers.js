@@ -69,10 +69,20 @@ function getBuildDocsVersion() {
   return process.env.DOCS_VERSION;
 }
 
+/**
+ * Gets docs base url (eq: https://handsontable.com).
+ *
+ * @returns {string}
+ */
+function getDocsBaseUrl() {
+  return `https://${process.env.BUILD_MODE === 'staging' ? 'dev.' : ''}handsontable.com`;
+}
+
 module.exports = {
   getVersions,
   getLatestVersion,
   getSidebars,
   parseVersion,
   getBuildDocsVersion,
+  getDocsBaseUrl,
 };
