@@ -4,6 +4,7 @@ const {
   getNormalizedPath,
   parseVersion,
   parseFramework,
+  getPrettyFrameworkName,
   getEnvDocsFramework,
   getEnvDocsVersion,
   getDocsFrameworkedVersions,
@@ -55,6 +56,7 @@ module.exports = (options, context) => {
       $page.currentVersion = parseVersion($page.normalizedPath);
       // Framework isn't stored in PATH for full build. However, it's defined in ENV variable.
       $page.currentFramework = DOCS_FRAMEWORK || parseFramework($page.normalizedPath);
+      $page.frameworkName = getPrettyFrameworkName($page.currentFramework);
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.isFrameworked = getDocsFrameworkedVersions(buildMode).includes($page.currentVersion);

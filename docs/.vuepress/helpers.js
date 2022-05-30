@@ -11,6 +11,15 @@ const TMP_DIR_FOR_WATCH = '.watch-tmp';
 const MIN_FRAMEWORKED_DOCS_VERSION = '12.1.0';
 const FRAMEWORK_SUFFIX = '-data-grid';
 
+// Please keep in mind that the first element is default framework.
+const frameworkToPrettyName = new Map([
+  ['javascript', 'JavaScript'],
+  ['react', 'React'],
+  ['angular', 'Angular'],
+  ['vue2', 'Vue 2'],
+  ['vue3', 'Vue 3'],
+]);
+
 /**
  * Get whether we work in dev mode (watch script).
  *
@@ -64,7 +73,7 @@ function getVersions(buildMode) {
  * @returns {string[]}
  */
 function getFrameworks() {
-  return ['javascript', 'react', 'angular', 'vue2', 'vue3'];
+  return Array.from(frameworkToPrettyName.keys());
 }
 
 /**
@@ -73,7 +82,17 @@ function getFrameworks() {
  * @returns {string}
  */
 function getDefaultFramework() {
-  return 'javascript';
+  return getFrameworks()[0];
+}
+
+/**
+ * Get pretty framework name.
+ *
+ * @param {string} framework Framework ID.
+ * @returns {string}
+ */
+function getPrettyFrameworkName(framework) {
+  return frameworkToPrettyName.get(framework);
 }
 
 /**
@@ -304,6 +323,7 @@ module.exports = {
   getNormalizedPath,
   getVersions,
   getFrameworks,
+  getPrettyFrameworkName,
   getDocsFrameworkedVersions,
   getDocsNonFrameworkedVersions,
   getLatestVersion,
