@@ -17,6 +17,8 @@ class Scroll {
    * @type {ScrollDao}
    */
   dataAccessObject;
+  lastScrolledColumnPos = -1;
+  lastScrolledRowPos = -1;
 
   /**
    * @param {ScrollDao} dataAccessObject Tha data access object.
@@ -36,10 +38,6 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
-    if (coords.col < 0 || coords.row < 0) {
-      return false;
-    }
-
     const scrolledHorizontally = this.scrollViewportHorizontally(coords.col, snapToRight, snapToLeft);
     const scrolledVertically = this.scrollViewportVertically(coords.row, snapToTop, snapToBottom);
 
@@ -55,37 +53,43 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
-    if (!this.dataAccessObject.drawn) {
+    const {
+      drawn,
+      totalColumns
+    } = this.dataAccessObject;
+
+    // do not scroll the viewport when the column points to a range outside of the dataset
+    if (!drawn || (column < 0 && column > totalColumns)) {
       return false;
     }
 
+    const firstVisibleColumn = this.getFirstVisibleColumn();
+    const lastVisibleColumn = this.getLastVisibleColumn();
     const {
       fixedColumnsStart,
       inlineStartOverlay,
-      totalColumns,
     } = this.dataAccessObject;
+
+    if (column < fixedColumnsStart) {
+      return false;
+    }
+
     let result = false;
 
-    if (column >= 0 && column <= Math.max(totalColumns - 1, 0)) {
-      const firstVisibleColumn = this.getFirstVisibleColumn();
-      const lastVisibleColumn = this.getLastVisibleColumn();
-      const firstRenderedColumn = this.dataAccessObject.wtTable.getFirstRenderedColumn();
-      const lastRenderedColumn = this.dataAccessObject.wtTable.getLastRenderedColumn();
+    // if there is no fully visible columns use the supporting variable (lastScrolledColumnPos) to
+    // determine the snapping type (left or right)
+    if (firstVisibleColumn === -1) {
+      result = inlineStartOverlay.scrollTo(column,
+        snapToLeft || snapToRight || column > this.lastScrolledColumnPos);
 
-      // WIP
-      if (firstVisibleColumn === -1 && lastVisibleColumn === -1) {
-        if (column >= fixedColumnsStart && firstRenderedColumn > -1 && (column >= firstRenderedColumn || snapToLeft)) {
-          result = inlineStartOverlay.scrollTo(column);
-        } else if (lastRenderedColumn === -1 || lastRenderedColumn > -1 && (column <= lastRenderedColumn || snapToRight)) {
-          result = inlineStartOverlay.scrollTo(column, true);
-        }
-      } else {
-        if (column >= fixedColumnsStart && firstVisibleColumn > -1 && (column < firstVisibleColumn || snapToLeft)) {
-          result = inlineStartOverlay.scrollTo(column);
-        } else if (lastVisibleColumn === -1 || lastVisibleColumn > -1 && (column > lastVisibleColumn || snapToRight)) {
-          result = inlineStartOverlay.scrollTo(column, true);
-        }
-      }
+    } else if (column < firstVisibleColumn || column > lastVisibleColumn) {
+      // if there is at least one fully visible column determine the snapping type based on that columns
+      result = inlineStartOverlay.scrollTo(column,
+        snapToLeft || snapToRight || column > lastVisibleColumn);
+    }
+
+    if (result) {
+      this.lastScrolledColumnPos = column;
     }
 
     return result;
@@ -100,28 +104,44 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewportVertically(row, snapToTop, snapToBottom) {
-    if (!this.dataAccessObject.drawn) {
+    const {
+      drawn,
+      totalRows
+    } = this.dataAccessObject;
+
+    // do not scroll the viewport when the row points to a range outside of the dataset
+    if (!drawn || (row < 0 && row > totalRows)) {
       return false;
     }
 
+    const firstVisibleRow = this.getFirstVisibleRow();
+    const lastVisibleRow = this.getLastVisibleRow();
     const {
       fixedRowsBottom,
       fixedRowsTop,
       topOverlay,
-      totalRows,
     } = this.dataAccessObject;
+
+    if (row < fixedRowsTop || row > totalRows - fixedRowsBottom) {
+      return false;
+    }
+
     let result = false;
 
-    if (row >= 0 && row <= Math.max(totalRows - 1, 0)) {
-      const firstVisibleRow = this.getFirstVisibleRow();
-      const lastVisibleRow = this.getLastVisibleRow();
+    // if there is no fully visible rows use the supporting variable (lastScrolledRowPos) to
+    // determine the snapping type (top or bottom)
+    if (firstVisibleRow === -1) {
+      result = topOverlay.scrollTo(row,
+        snapToTop || snapToBottom || row > this.lastScrolledRowPos);
 
-      if (row >= fixedRowsTop && firstVisibleRow > -1 && (row < firstVisibleRow || snapToTop)) {
-        result = topOverlay.scrollTo(row);
-      } else if (lastVisibleRow === -1 || lastVisibleRow > -1 &&
-                ((row > lastVisibleRow && row < totalRows - fixedRowsBottom) || snapToBottom)) {
-        result = topOverlay.scrollTo(row, true);
-      }
+    } else if (row < firstVisibleRow || row > lastVisibleRow) {
+      // if there is at least one fully visible row determine the snapping type based on that rows
+      result = topOverlay.scrollTo(row,
+        snapToTop || snapToBottom || row > lastVisibleRow);
+    }
+
+    if (result) {
+      this.lastScrolledRowPos = row;
     }
 
     return result;

@@ -242,8 +242,8 @@ export class InlineStartOverlay extends Overlay {
    * Scrolls horizontally to a column at the left edge of the viewport.
    *
    * @param {number} sourceCol  Column index which you want to scroll to.
-   * @param {boolean} [beyondRendered]  If `true`, scrolls according to the bottom
-   *                                    edge (top edge is by default).
+   * @param {boolean} [beyondRendered]  If `true`, scrolls according to the right
+   *                                    edge (left edge is by default).
    * @returns {boolean}
    */
   scrollTo(sourceCol, beyondRendered) {
@@ -252,9 +252,19 @@ export class InlineStartOverlay extends Overlay {
     const mainHolder = sourceInstance.wtTable.holder;
     let scrollbarCompensation = 0;
 
+    if (beyondRendered) {
+      const columnWidth = this.wot.wtTable.getColumnWidth(sourceCol);
+      const viewportWidth = this.wot.wtViewport.getViewportWidth();
+
+      if (columnWidth > viewportWidth) {
+        beyondRendered = false;
+      }
+    }
+
     if (beyondRendered && mainHolder.offsetWidth !== mainHolder.clientWidth) {
       scrollbarCompensation = getScrollbarWidth(this.domBindings.rootDocument);
     }
+
     if (beyondRendered) {
       newX += this.sumCellSizes(0, sourceCol + 1);
       newX -= this.wot.wtViewport.getViewportWidth();
