@@ -8,6 +8,7 @@ const conditionalBlock = require('./containers/conditionalBlock');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
+const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const {
   getEnvDocsVersion,
   getEnvDocsFramework,
@@ -109,6 +110,9 @@ module.exports = {
       target: '_blank',
       rel: 'nofollow noopener noreferrer'
     },
+    extendMarkdown(md) {
+      md.use(firstHeaderInjection);
+    }
   },
   configureWebpack: {
     resolve: {
