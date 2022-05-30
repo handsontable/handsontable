@@ -11,13 +11,27 @@ import {
  */
 class Scroll {
   /**
-   * Tha data access object.
+   * The data access object.
    *
    * @protected
    * @type {ScrollDao}
    */
   dataAccessObject;
+  /**
+   * Holds the last column the scroll was performed to. It determines scroll snapping (right or left)
+   * for the next horizontal scroll API call.
+   *
+   * @protected
+   * @type {number}
+   */
   lastScrolledColumnPos = -1;
+  /**
+   * Holds the last row the scroll was performed to. It determines scroll snapping (top or bottom)
+   * for the next vertical scroll API call.
+   *
+   * @protected
+   * @type {number}
+   */
   lastScrolledRowPos = -1;
 
   /**
@@ -74,18 +88,20 @@ class Scroll {
       return false;
     }
 
+    const autoSnapping = snapToRight === void 0 && snapToLeft === void 0;
     let result = false;
 
     // if there is no fully visible columns use the supporting variable (lastScrolledColumnPos) to
     // determine the snapping type (left or right)
     if (firstVisibleColumn === -1) {
-      result = inlineStartOverlay.scrollTo(column,
-        snapToLeft || snapToRight || column > this.lastScrolledColumnPos);
+      result = inlineStartOverlay
+        .scrollTo(column, autoSnapping ? column > this.lastScrolledColumnPos : snapToRight);
 
-    } else if (column < firstVisibleColumn || column > lastVisibleColumn) {
+    } else if (autoSnapping && (column < firstVisibleColumn || column > lastVisibleColumn) || !autoSnapping) {
       // if there is at least one fully visible column determine the snapping type based on that columns
-      result = inlineStartOverlay.scrollTo(column,
-        snapToLeft || snapToRight || column > lastVisibleColumn);
+      // or by snapToRight/snapToLeft flags, if provided.
+      result = inlineStartOverlay
+        .scrollTo(column, autoSnapping ? column > lastVisibleColumn : snapToRight);
     }
 
     if (result) {
@@ -126,18 +142,18 @@ class Scroll {
       return false;
     }
 
+    const autoSnapping = snapToTop === void 0 && snapToBottom === void 0;
     let result = false;
 
     // if there is no fully visible rows use the supporting variable (lastScrolledRowPos) to
     // determine the snapping type (top or bottom)
     if (firstVisibleRow === -1) {
-      result = topOverlay.scrollTo(row,
-        snapToTop || snapToBottom || row > this.lastScrolledRowPos);
+      result = topOverlay.scrollTo(row, autoSnapping ? row > this.lastScrolledRowPos : snapToBottom);
 
-    } else if (row < firstVisibleRow || row > lastVisibleRow) {
+    } else if (autoSnapping && (row < firstVisibleRow || row > lastVisibleRow) || !autoSnapping) {
       // if there is at least one fully visible row determine the snapping type based on that rows
-      result = topOverlay.scrollTo(row,
-        snapToTop || snapToBottom || row > lastVisibleRow);
+      // or by snapToTop/snapToBottom flags, if provided.
+      result = topOverlay.scrollTo(row, autoSnapping ? row > lastVisibleRow : snapToBottom);
     }
 
     if (result) {
