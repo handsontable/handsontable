@@ -1,0 +1,7 @@
+{
+  "title": "Fixed the Walkontable viewport calculations for oversized rows and columns.",
+  "type": "fixed",
+  "issue": 9473,
+  "breaking": false,
+  "framework": "none"
+}
