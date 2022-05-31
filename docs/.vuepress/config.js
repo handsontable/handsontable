@@ -10,6 +10,7 @@ const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const {
+  getDocsBaseUrl,
   getEnvDocsVersion,
   getEnvDocsFramework,
   TMP_DIR_FOR_WATCH,
@@ -91,7 +92,7 @@ module.exports = {
   description: 'Handsontable',
   base,
   head: [
-    ['link', { rel: 'icon', href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png' }],
+    ['link', { rel: 'icon', href: `${getDocsBaseUrl()}/static/images/template/ModCommon/favicon-32x32.png` }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     // Cookiebot - cookie consent popup
     ['script', {
@@ -123,7 +124,7 @@ module.exports = {
     extendPageDataPlugin,
     'tabs',
     ['sitemap', {
-      hostname: 'https://handsontable.com',
+      hostname: getDocsBaseUrl(),
       exclude: ['/404.html']
     }],
     ['@vuepress/active-header-links', {

@@ -20,7 +20,7 @@
     "docs:build:no-cache": "npm run docs:build -- --no-cache",
     "docs:build:no-split-versions": "vuepress build -d .vuepress/dist/docs ./",
     "docs:docker:build": "npm run docs:docker:build:staging",
-    "docs:docker:build:staging": "npm run docs:scripts:link-assets && npm run docs:build && docker build -f docker/Dockerfile -t docs-md ./",
+    "docs:docker:build:staging": "npm run docs:scripts:link-assets && cross-env BUILD_MODE=staging npm run docs:build && docker build -f docker/Dockerfile -t docs-md ./",
     "docs:docker:build:production": "cross-env BUILD_MODE=production npm run docs:build && docker build -f docker/Dockerfile -t docs-md:production ./",
     "docs:version": "cd .vuepress/tools/version && npm run docs:scripts:generate-legacy-docs-versions && node rollup-a-version.js",
     "docs:api": "node .vuepress/tools/jsdoc-convert/index.mjs",
@@ -29,6 +29,7 @@
   },
   "license": "CC BY 4.0",
   "devDependencies": {
+    "@babel/eslint-parser": "^7.18.2",
     "@babel/plugin-proposal-class-properties": "^7.13.0",
     "@babel/plugin-proposal-decorators": "^7.13.5",
     "@babel/plugin-syntax-class-properties": "^7.12.13",
@@ -39,7 +40,6 @@
     "@octokit/rest": "^18.6.7",
     "@vuepress/plugin-active-header-links": "^1.8.2",
     "@vuepress/shared-utils": "^1.8.2",
-    "babel-eslint": "^10.1.0",
     "broken-link-checker": "^0.7.8",
     "chalk": "^4.1.1",
     "copy-webpack-plugin": "^5.1.2",
@@ -62,5 +62,10 @@
     "vuepress-plugin-sitemap": "^2.3.1",
     "vuepress-plugin-tabs": "^0.3.0",
     "xlsx-renderer": "^2.4.0"
+  },
+  "overrides": {
+    "vuepress-plugin-sitemap": {
+      "chalk": "^4.1.1"
+    }
   }
 }
