@@ -1265,6 +1265,26 @@ class TableView {
   }
 
   /**
+   * Returns the first fully visible column in the table viewport.
+   *
+   * @returns {number}
+   */
+  getFirstFullyVisibleColumn() {
+    return this.instance.columnIndexMapper
+      .getVisualFromRenderableIndex(this.instance.view._wt.wtScroll.getFirstVisibleColumn());
+  }
+
+  /**
+   * Returns the last fully visible column in the table viewport.
+   *
+   * @returns {number}
+   */
+  getLastFullyVisibleColumn() {
+    return this.instance.columnIndexMapper
+      .getVisualFromRenderableIndex(this.instance.view._wt.wtScroll.getLastVisibleColumn());
+  }
+
+  /**
    * Destroys internal WalkOnTable's instance. Detaches all of the bonded listeners.
    *
    * @private

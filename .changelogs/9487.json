@@ -1,0 +1,7 @@
+{
+  "title": "Replace the HTML entities to its canonical form in the LICENSE.txt files.",
+  "type": "changed",
+  "issue": 9487,
+  "breaking": false,
+  "framework": "none"
+}

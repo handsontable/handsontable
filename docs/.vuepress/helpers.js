@@ -317,6 +317,15 @@ function createSymlinks(buildMode) {
   }
 }
 
+/**
+ * Gets docs base url (eq: https://handsontable.com).
+ *
+ * @returns {string}
+ */
+function getDocsBaseUrl() {
+  return `https://${process.env.BUILD_MODE === 'staging' ? 'dev.' : ''}handsontable.com`;
+}
+
 module.exports = {
   TMP_DIR_FOR_WATCH,
   FRAMEWORK_SUFFIX,
@@ -335,5 +344,6 @@ module.exports = {
   getEnvDocsVersion,
   getDefaultFramework,
   isEnvDev,
-  createSymlinks
+  createSymlinks,
+  getDocsBaseUrl,
 };
