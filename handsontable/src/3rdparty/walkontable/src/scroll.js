@@ -18,16 +18,16 @@ class Scroll {
    */
   dataAccessObject;
   /**
-   * Holds the last column the scroll was performed to. It determines scroll snapping (right or left)
-   * for the next horizontal scroll API call.
+   * Holds the last column the scroll was performed to. It determines scroll snapping direction
+   * (right or left) for the next horizontal scroll API call.
    *
    * @protected
    * @type {number}
    */
   lastScrolledColumnPos = -1;
   /**
-   * Holds the last row the scroll was performed to. It determines scroll snapping (top or bottom)
-   * for the next vertical scroll API call.
+   * Holds the last row the scroll was performed to. It determines scroll snapping direction
+   * (top or bottom) for the next vertical scroll API call.
    *
    * @protected
    * @type {number}
@@ -73,33 +73,35 @@ class Scroll {
     } = this.dataAccessObject;
 
     // do not scroll the viewport when the column points to a range outside of the dataset
-    if (!drawn || (column < 0 && column > totalColumns)) {
+    if (!drawn || !Number.isInteger(column) || column < 0 || column > totalColumns) {
       return false;
     }
 
     const firstVisibleColumn = this.getFirstVisibleColumn();
     const lastVisibleColumn = this.getLastVisibleColumn();
+    const autoSnapping = snapToRight === void 0 && snapToLeft === void 0;
     const {
       fixedColumnsStart,
       inlineStartOverlay,
     } = this.dataAccessObject;
 
-    if (column < fixedColumnsStart) {
+    // for auto-snapping (both snap* arguments are undefined) do not scroll the viewport
+    // when the columns points to the overlays
+    if (autoSnapping && column < fixedColumnsStart) {
       return false;
     }
 
-    const autoSnapping = snapToRight === void 0 && snapToLeft === void 0;
     let result = false;
 
     // if there is no fully visible columns use the supporting variable (lastScrolledColumnPos) to
-    // determine the snapping type (left or right)
+    // determine the snapping direction (left or right)
     if (firstVisibleColumn === -1) {
       result = inlineStartOverlay
         .scrollTo(column, autoSnapping ? column > this.lastScrolledColumnPos : snapToRight);
 
     } else if (autoSnapping && (column < firstVisibleColumn || column > lastVisibleColumn) || !autoSnapping) {
-      // if there is at least one fully visible column determine the snapping type based on that columns
-      // or by snapToRight/snapToLeft flags, if provided.
+      // if there is at least one fully visible column determine the snapping direction based on
+      // that columns or by snapToRight/snapToLeft flags, if provided.
       result = inlineStartOverlay
         .scrollTo(column, autoSnapping ? column > lastVisibleColumn : snapToRight);
     }
@@ -126,33 +128,35 @@ class Scroll {
     } = this.dataAccessObject;
 
     // do not scroll the viewport when the row points to a range outside of the dataset
-    if (!drawn || (row < 0 && row > totalRows)) {
+    if (!drawn || !Number.isInteger(row) || row < 0 || row > totalRows) {
       return false;
     }
 
     const firstVisibleRow = this.getFirstVisibleRow();
     const lastVisibleRow = this.getLastVisibleRow();
+    const autoSnapping = snapToTop === void 0 && snapToBottom === void 0;
     const {
       fixedRowsBottom,
       fixedRowsTop,
       topOverlay,
     } = this.dataAccessObject;
 
-    if (row < fixedRowsTop || row > totalRows - fixedRowsBottom) {
+    // for auto-snapping (both snap* arguments are undefined) do not scroll the viewport
+    // when the rows points to the overlays
+    if (autoSnapping && (row < fixedRowsTop || row > totalRows - fixedRowsBottom - 1)) {
       return false;
     }
 
-    const autoSnapping = snapToTop === void 0 && snapToBottom === void 0;
     let result = false;
 
     // if there is no fully visible rows use the supporting variable (lastScrolledRowPos) to
-    // determine the snapping type (top or bottom)
+    // determine the snapping direction (top or bottom)
     if (firstVisibleRow === -1) {
       result = topOverlay.scrollTo(row, autoSnapping ? row > this.lastScrolledRowPos : snapToBottom);
 
     } else if (autoSnapping && (row < firstVisibleRow || row > lastVisibleRow) || !autoSnapping) {
-      // if there is at least one fully visible row determine the snapping type based on that rows
-      // or by snapToTop/snapToBottom flags, if provided.
+      // if there is at least one fully visible row determine the snapping direction based on
+      // that rows or by snapToTop/snapToBottom flags, if provided.
       result = topOverlay.scrollTo(row, autoSnapping ? row > lastVisibleRow : snapToBottom);
     }
 

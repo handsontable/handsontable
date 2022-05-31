@@ -9,7 +9,6 @@ import { objectEach } from '../../../helpers/object';
 import {
   RENDER_TYPE,
   FULLY_VISIBLE_TYPE,
-  PARTIALLY_VISIBLE_TYPE,
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 } from './calculator';
@@ -404,10 +403,8 @@ class Viewport {
     let runFastDraw = fastDraw;
 
     if (runFastDraw) {
-      // const proposedRowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
-      // const proposedColumnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
-      const proposedRowsVisibleCalculator = this.createRowsCalculator(PARTIALLY_VISIBLE_TYPE);
-      const proposedColumnsVisibleCalculator = this.createColumnsCalculator(PARTIALLY_VISIBLE_TYPE);
+      const proposedRowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
+      const proposedColumnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
 
       if (!(this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) &&
           this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator))) {
@@ -449,6 +446,12 @@ class Viewport {
     }
 
     const { startRow, endRow } = proposedRowsVisibleCalculator;
+
+    // if there are no fully visible rows at all, return false
+    if (startRow === null && endRow === null) {
+      return false;
+    }
+
     const { startRow: renderedStartRow, endRow: renderedEndRow } = this.rowsRenderCalculator;
 
     if (startRow < renderedStartRow || (startRow === renderedStartRow && startRow > 0)) {
@@ -476,6 +479,12 @@ class Viewport {
     }
 
     const { startColumn, endColumn } = proposedColumnsVisibleCalculator;
+
+    // if there are no fully visible columns at all, return false
+    if (startColumn === null && endColumn === null) {
+      return false;
+    }
+
     const { startColumn: renderedStartColumn, endColumn: renderedEndColumn } = this.columnsRenderCalculator;
 
     if (startColumn < renderedStartColumn || (startColumn === renderedStartColumn && startColumn > 0)) {
