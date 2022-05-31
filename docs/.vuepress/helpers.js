@@ -261,7 +261,9 @@ function getNotSearchableLinks(buildMode) {
  * @returns {string}
  */
 function parseVersion(url) {
-  return getNormalizedPath(url).split('/')[1] || getLatestVersion();
+  const urlVersionSectionIndex = isEnvDev() ? 1 : 0;
+
+  return getNormalizedPath(url).split('/')[urlVersionSectionIndex] || getLatestVersion();
 }
 
 /**
