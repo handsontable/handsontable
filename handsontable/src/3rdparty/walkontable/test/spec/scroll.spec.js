@@ -855,7 +855,6 @@ describe('WalkontableScroll', () => {
     it('should scroll to last column on the right', () => {
       spec().data = createSpreadsheetData(10, 10);
 
-      spec().$wrapper.width(201).height(201);
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -980,7 +979,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getFirstVisibleColumn()).toEqual(2);
     });
 
-    xit('should scroll to a very wide column that is after viewport', () => {
+    it('should scroll to oversized (wider than table\'s viewport) column that is after viewport', () => {
       spec().data = createSpreadsheetData(10, 10);
 
       const wt = walkontable({
@@ -989,7 +988,7 @@ describe('WalkontableScroll', () => {
         totalColumns: getTotalColumns,
         columnWidth(col) {
           if (col === 3) {
-            return 300;
+            return 500;
           }
 
           return 50;
@@ -997,27 +996,38 @@ describe('WalkontableScroll', () => {
       });
 
       wt.draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
-      expect(wt.wtTable.getFirstVisibleColumn()).toEqual(0);
 
-      wt.scrollViewport(new Walkontable.CellCoords(0, 3)).draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
-      expect(wt.wtTable.getFirstVisibleColumn()).toEqual(3);
+      expect(wt.wtTable.getFirstVisibleColumn()).toBe(0);
+      expect(wt.wtTable.getLastVisibleColumn()).toBe(2);
 
-      wt.scrollViewport(new Walkontable.CellCoords(0, 2)).draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
-      expect(wt.wtTable.getFirstVisibleColumn()).toEqual(2);
+      wt.scrollViewport(new Walkontable.CellCoords(0, 3));
+      wt.draw();
 
-      wt.scrollViewport(new Walkontable.CellCoords(0, 3)).draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
-      expect(wt.wtTable.getFirstVisibleColumn()).toEqual(3);
+      expect(wt.wtTable.getFirstVisibleColumn()).toBe(-1); // there is no fully visible column in the viewport
+      expect(wt.wtTable.getLastVisibleColumn()).toBe(-1); // there is no fully visible column in the viewport
+      expect(wt.wtTable.getFirstRenderedColumn()).toBe(3);
+      expect(wt.wtTable.getLastRenderedColumn()).toBe(3);
 
-      wt.scrollViewport(new Walkontable.CellCoords(0, 4)).draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(4);
-      expect(wt.wtTable.getFirstVisibleColumn()).toEqual(3);
+      wt.scrollViewport(new Walkontable.CellCoords(0, 2));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleColumn()).toBe(2);
+      expect(wt.wtTable.getLastVisibleColumn()).toBe(2);
+
+      wt.scrollViewport(new Walkontable.CellCoords(0, 4));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleColumn()).toBe(4);
+      expect(wt.wtTable.getLastVisibleColumn()).toBe(4);
+
+      wt.scrollViewport(new Walkontable.CellCoords(0, 5));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleColumn()).toBe(4);
+      expect(wt.wtTable.getLastVisibleColumn()).toBe(5);
     });
 
-    xit('should scroll to a very wide column that is after viewport (with fixedColumnsStart)', () => {
+    it('should scroll to oversized (wider than table\'s viewport) column that is after viewport (with fixedColumnsStart)', () => {
       spec().data = createSpreadsheetData(1, 10);
 
       const wt = walkontable({
@@ -1026,7 +1036,7 @@ describe('WalkontableScroll', () => {
         totalColumns: getTotalColumns,
         columnWidth(col) {
           if (col === 3) {
-            return 300;
+            return 500;
           }
 
           return 50;
@@ -1035,25 +1045,26 @@ describe('WalkontableScroll', () => {
       });
 
       wt.draw();
+
       wt.scrollViewport(new Walkontable.CellCoords(0, 3));
       wt.draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
 
-      wt.draw();
+      expect(wt.wtTable.getFirstVisibleColumn()).toBe(-1); // there is no fully visible column in the viewport
+      expect(wt.wtTable.getLastVisibleColumn()).toBe(-1); // there is no fully visible column in the viewport
+      expect(wt.wtTable.getFirstRenderedColumn()).toBe(3);
+      expect(wt.wtTable.getLastRenderedColumn()).toBe(3);
+
       wt.scrollViewport(new Walkontable.CellCoords(0, 2));
       wt.draw();
-      expect(wt.wtTable.getFirstVisibleColumn()).toBeGreaterThan(2);
-      expect(wt.wtTable.getLastVisibleColumn()).toBeGreaterThan(2);
 
-      wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(0, 3));
-      wt.draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(3);
+      expect(wt.wtTable.getFirstVisibleColumn()).toBe(2);
+      expect(wt.wtTable.getLastVisibleColumn()).toBe(2);
 
-      wt.draw();
       wt.scrollViewport(new Walkontable.CellCoords(0, 4));
       wt.draw();
-      expect(wt.wtTable.getLastVisibleColumn()).toEqual(4);
+
+      expect(wt.wtTable.getFirstVisibleColumn()).toBe(4);
+      expect(wt.wtTable.getLastVisibleColumn()).toBe(4);
     });
   });
 
@@ -1062,82 +1073,202 @@ describe('WalkontableScroll', () => {
       spec().$wrapper.width(201).height(201);
     });
 
-    xit('should scroll to a very high row that is after viewport', () => {
-      spec().data = createSpreadsheetData(20, 1);
-
-      const txt = 'Very very very very very very very very very very very very very very very very very long text.';
-
-      spec().data[4][0] = txt;
+    it('should scroll to the last row on the bottom', () => {
+      spec().data = createSpreadsheetData(15, 10);
 
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
+        rowHeight: 23
       });
 
       wt.draw();
-      expect(wt.wtTable.getFirstVisibleRow()).toEqual(0);
 
-      wt.scrollViewport(new Walkontable.CellCoords(4, 0));
-      wt.draw();
-      expect(wt.wtTable.getLastVisibleRow()).toEqual(4);
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(0);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(7);
 
+      wt.scrollViewport(new Walkontable.CellCoords(14, 0));
       wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(5, 0));
-      wt.draw();
-      expect(wt.wtTable.getLastVisibleRow()).toEqual(5);
 
-      wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(4, 0));
-      wt.draw();
-      expect(wt.wtTable.getFirstVisibleRow()).toEqual(4);
-
-      wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(3, 0));
-      wt.draw();
-      expect(wt.wtTable.getFirstVisibleRow()).toEqual(3);
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(7);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(14);
     });
 
-    xit('should scroll to a very high row that is after viewport (at the end)', () => {
-      spec().data = createSpreadsheetData(20, 1);
-
-      const txt = 'Very very very very very very very very very very very very very very very very very long text.';
-
-      spec().data[19][0] = txt;
+    it('should not scroll back to a row that is in viewport', () => {
+      spec().data = createSpreadsheetData(15, 10);
 
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns
+        totalColumns: getTotalColumns,
+        rowHeight: 23
       });
 
       wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(18, 0));
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(0);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(7);
+
+      wt.scrollViewport(new Walkontable.CellCoords(14, 0));
       wt.draw();
-      expect(spec().$table.find('tbody tr').length).toBe(2);
-      expect(spec().$table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A18');
-      expect(spec().$table.find('tbody tr:eq(1) td:eq(0)').html()).toBe(txt);
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(7);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(14);
+
+      wt.scrollViewport(new Walkontable.CellCoords(14, 0));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(7); // nothing changed
+      expect(wt.wtTable.getLastVisibleRow()).toBe(14); // nothing changed
+
+      wt.scrollViewport(new Walkontable.CellCoords(13, 0));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(7); // nothing changed
+      expect(wt.wtTable.getLastVisibleRow()).toBe(14); // nothing changed
+
+      wt.scrollViewport(new Walkontable.CellCoords(12, 0));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(7); // nothing changed
+      expect(wt.wtTable.getLastVisibleRow()).toBe(14); // nothing changed
+    });
+
+    it('should scroll back to a row that is above viewport', () => {
+      spec().data = createSpreadsheetData(15, 10);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        rowHeight: 23
+      });
 
       wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(19, 0));
+      wt.scrollViewport(new Walkontable.CellCoords(14, 0));
       wt.draw();
-      expect(spec().$table.find('tbody tr').length).toBe(1);
-      expect(spec().$table.find('tbody tr:eq(0) td:eq(0)').html()).toBe(txt); // scrolled down
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(7);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(14);
+
+      wt.scrollViewport(new Walkontable.CellCoords(3, 0));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(3);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(10);
+
+      wt.scrollViewport(new Walkontable.CellCoords(4, 0));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(3); // nothing changed
+      expect(wt.wtTable.getLastVisibleRow()).toBe(10); // nothing changed
+
+      wt.scrollViewport(new Walkontable.CellCoords(14, 0));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(7);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(14);
+    });
+
+    it('should scroll to a row that is below viewport', () => {
+      spec().data = createSpreadsheetData(15, 10);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        rowHeight: 23
+      });
 
       wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(18, 0));
+      wt.scrollViewport(new Walkontable.CellCoords(4, 0));
       wt.draw();
-      expect(spec().$table.find('tbody tr').length).toBe(2);
-      expect(spec().$table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A18'); // scrolled up
-      expect(spec().$table.find('tbody tr:eq(1) td:eq(0)').html()).toBe(txt);
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(0);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(7);
+
+      wt.scrollViewport(new Walkontable.CellCoords(8, 0));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(1);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(8);
+    });
+
+    it('should scroll to a long row that is below viewport', () => {
+      spec().data = createSpreadsheetData(15, 10);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        rowHeight(row) {
+          if (row === 6) {
+            return 100;
+          }
+
+          return 23;
+        }
+      });
 
       wt.draw();
-      wt.scrollViewport(new Walkontable.CellCoords(17, 0));
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(0);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(5);
+
+      wt.scrollViewport(new Walkontable.CellCoords(6, 0));
       wt.draw();
-      expect(spec().$table.find('tbody tr').length).toBe(3);
-      expect(spec().$table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A17'); // scrolled up
-      expect(spec().$table.find('tbody tr:eq(1) td:eq(0)').html()).toBe('A18');
-      expect(spec().$table.find('tbody tr:eq(2) td:eq(0)').html()).toBe(txt);
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(3);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(6);
+    });
+
+    it('should scroll to oversized (longer than table\'s viewport) row that is below viewport', () => {
+      spec().data = createSpreadsheetData(15, 10);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        rowHeight(row) {
+          if (row === 6) {
+            return 500;
+          }
+
+          return 23;
+        }
+      });
+
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(0);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(5);
+
+      wt.scrollViewport(new Walkontable.CellCoords(6, 0));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(-1); // there is no fully visible row in the viewport
+      expect(wt.wtTable.getLastVisibleRow()).toBe(-1); // there is no fully visible row in the viewport
+      expect(wt.wtTable.getFirstRenderedRow()).toBe(6);
+      expect(wt.wtTable.getLastRenderedRow()).toBe(6);
+
+      wt.scrollViewport(new Walkontable.CellCoords(5, 0));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(5);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(5);
+
+      wt.scrollViewport(new Walkontable.CellCoords(7, 0));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(7);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(7);
+
+      wt.scrollViewport(new Walkontable.CellCoords(8, 0));
+      wt.draw();
+
+      expect(wt.wtTable.getFirstVisibleRow()).toBe(7);
+      expect(wt.wtTable.getLastVisibleRow()).toBe(8);
     });
   });
 
