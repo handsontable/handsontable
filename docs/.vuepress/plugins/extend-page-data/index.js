@@ -26,9 +26,6 @@ const DOCS_FRAMEWORK = getEnvDocsFramework();
 collectAllUrls();
 
 const notSearchableLinks = getNotSearchableLinks(buildMode);
-
-console.log(notSearchableLinks);
-
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const twoDigitDay = date.getDate();

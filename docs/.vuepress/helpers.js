@@ -229,11 +229,7 @@ function getNotSearchableLinks(buildMode) {
       // eslint-disable-next-line
       const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-      if (Array.isArray(notSearchableLinks[version]) === false) {
-        notSearchableLinks[version] = [];
-      }
-
-      notSearchableLinks[version].push(...filterLinks(sidebarConfig.guides));
+      notSearchableLinks[version] = filterLinks(sidebarConfig.guides);
     });
 
     getDocsFrameworkedVersions(buildMode).forEach((version) => {
@@ -242,14 +238,10 @@ function getNotSearchableLinks(buildMode) {
           notSearchableLinks[framework] = {};
         }
 
-        if (Array.isArray(notSearchableLinks[framework][version]) === false) {
-          notSearchableLinks[framework][version] = [];
-        }
-
         // eslint-disable-next-line
         const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-        notSearchableLinks[framework][version].push(...filterLinks(sidebarConfig.guides, framework));
+        notSearchableLinks[framework][version] = filterLinks(sidebarConfig.guides, framework);
       });
     });
 

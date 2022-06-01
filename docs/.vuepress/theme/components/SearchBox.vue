@@ -287,7 +287,13 @@ export default {
     },
 
     isSearchable(page) {
-      return page.isSearchable === true && page.normalizedPath.startsWith(`/${this.$page.currentVersion}/`);
+      let framework = '';
+
+      if (this.$page.currentFramework) {
+        framework = `${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
+      }
+
+      return page.isSearchable === true && page.normalizedPath.startsWith(`/${this.$page.currentVersion}/${framework}`);
     },
 
     onHotkey(event) {
