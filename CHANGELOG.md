@@ -46,6 +46,7 @@ For more information on this release, see:
 - Changed two scripts of the main Handsontable workspace (`./`), to speed up the build process: now, the `npm run build` and `npm run test` scripts don't build or test the Handsontable examples (`./examples`). [#9412](https://github.com/handsontable/handsontable/issues/9412)
 - Changed the version of the Moment.js dependency from 2.24.0 to 2.29.3, in reaction to a recently-found Moment.js security vulnerability that did not directly affect Handsontable. [#9381](https://github.com/handsontable/handsontable/issues/9381)
 - Changed the version of the HyperFormula optional dependency from ^1.2.0 to ^2.0.0. [#9411](https://github.com/handsontable/handsontable/issues/9411)
+- Changed an internal property name, from `hot.view.wt` to `hot.view._wt`, to make it clear that Walkontable (Handsontable's rendering engine) is not a part of Handsontable's public API. [#8760](https://github.com/handsontable/handsontable/issues/8760)
 
 ### Fixed
 - *React, Angular, Vue 2, Vue 3:* Fixed an issue where using `updateSettings()` caused problems for state managers. [#8372](https://github.com/handsontable/handsontable/issues/8372)

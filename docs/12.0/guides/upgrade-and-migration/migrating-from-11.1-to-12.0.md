@@ -220,3 +220,17 @@ To keep the previous (pre-12.0) behavior of a default keyboard shortcut, use the
 - [Remove a default keyboard shortcut](@/guides/accessories-and-menus/keyboard-shortcuts.md#removing-a-keyboard-shortcut)
 - [Replace a default keyboard shortcut](@/guides/accessories-and-menus/keyboard-shortcuts.md#replacing-a-keyboard-shortcut)
 - [Block a default keyboard shortcut's action](@/guides/accessories-and-menus/keyboard-shortcuts.md#blocking-a-keyboard-shortcut-s-actions)
+
+## Step 5: Don't refer to Walkontable
+
+Handsontable 12.0.0 makes it clear that Handsontable's rendering engine (internally referred to as "Walkontable") is not a part of Handsontable's public API.
+
+To emphasize this, we changed the following property name:
+
+| Before        | After          |
+| ------------- | -------------- |
+| `hot.view.wt` | `hot.view._wt` |
+
+#### Migrating to Handsontable 12.0
+
+Referring to Walkontable has never been a supported customization method. Use Handsontable's public APIs instead.
