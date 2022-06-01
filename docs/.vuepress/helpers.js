@@ -229,26 +229,44 @@ function getNotSearchableLinks(buildMode) {
       // eslint-disable-next-line
       const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-      notSearchableLinks[version] = filterLinks(sidebarConfig.guides);
+      if (Array.isArray(notSearchableLinks[version]) === false) {
+        notSearchableLinks[version] = [];
+      }
+
+      notSearchableLinks[version].push(...filterLinks(sidebarConfig.guides));
     });
 
     getDocsFrameworkedVersions(buildMode).forEach((version) => {
       frameworks.forEach((framework) => {
+        if (typeof notSearchableLinks[framework] !== 'object') {
+          notSearchableLinks[framework] = {};
+        }
+
+        if (Array.isArray(notSearchableLinks[framework][version]) === false) {
+          notSearchableLinks[framework][version] = [];
+        }
+
         // eslint-disable-next-line
         const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-        notSearchableLinks[version] = filterLinks(sidebarConfig.guides, framework);
+        notSearchableLinks[framework][version].push(...filterLinks(sidebarConfig.guides, framework));
       });
     });
 
   } else {
-    getVersions(buildMode).forEach((version) => {
-      // eslint-disable-next-line
-      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
-      const framework = getEnvDocsFramework();
+    const version = getEnvDocsVersion();
+    const framework = getEnvDocsFramework();
+    // eslint-disable-next-line
+    const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-      notSearchableLinks[version] = filterLinks(sidebarConfig.guides, framework);
-    });
+    if (framework !== void 0) {
+      notSearchableLinks[framework] = {
+        [version]: filterLinks(sidebarConfig.guides, framework),
+      };
+
+    } else {
+      notSearchableLinks[version] = filterLinks(sidebarConfig.guides);
+    }
   }
 
   return notSearchableLinks;

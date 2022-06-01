@@ -26,6 +26,9 @@ const DOCS_FRAMEWORK = getEnvDocsFramework();
 collectAllUrls();
 
 const notSearchableLinks = getNotSearchableLinks(buildMode);
+
+console.log(notSearchableLinks);
+
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const twoDigitDay = date.getDate();
@@ -64,9 +67,17 @@ module.exports = (options, context) => {
       $page.isFrameworked = getDocsFrameworkedVersions(buildMode).includes($page.currentVersion);
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
-      $page.isSearchable = notSearchableLinks[$page.currentVersion]?.every((notSearchableLink) => {
-        return $page.normalizedPath.includes(notSearchableLink) === false;
-      });
+
+      if ($page.currentFramework !== void 0) {
+        $page.isSearchable =
+          notSearchableLinks[$page.currentFramework][$page.currentVersion]?.every(
+            notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);
+
+      } else {
+        $page.isSearchable =
+          notSearchableLinks[$page.currentVersion]?.every(
+            notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);
+      }
 
       const isFrameworked = $page.isFrameworked;
       const buildingSingleVersion = DOCS_VERSION !== void 0 && (DOCS_FRAMEWORK !== void 0 || DOCS_FRAMEWORK === void 0
