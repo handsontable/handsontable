@@ -289,7 +289,8 @@ export default {
     isSearchable(page) {
       let framework = '';
 
-      if (this.$page.currentFramework) {
+      // Only dev environment contain framework element as a part of the `normalizedPath` key's value.
+      if (this.$page.isEnvDev === true && this.$page.currentFramework) {
         framework = `${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
       }
 

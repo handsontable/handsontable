@@ -64,6 +64,7 @@ module.exports = (options, context) => {
       $page.isFrameworked = getDocsFrameworkedVersions(buildMode).includes($page.currentVersion);
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
+      $page.isEnvDev = isEnvDev();
 
       if ($page.currentFramework !== void 0) {
         $page.isSearchable =
