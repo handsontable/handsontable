@@ -5,26 +5,52 @@ import { fastInnerHTML } from '../../../helpers/dom/element';
  */
 class GhostTable {
   /**
-   * Reference to NestedHeaders plugin.
+   * Reference to the Handsontable instance
    *
-   * @type {NestedHeaders}
+   * @private
+   * @type {Handsontable}
    */
-  nestedHeaders;
+  hot;
+  /**
+   * @private
+   * @type {(row: number, column: number) => any}
+   */
+  nestedHeaderSettingsGetter;
+  /**
+   * @private
+   * @type {number}
+   */
+  layersCount = 0;
   /**
    * Temporary element created to get minimal headers widths.
    *
+   * @private
    * @type {*}
    */
   container;
   /**
-   * Cached the headers widths.
+   * PhysicalIndexToValueMap to keep and track of the columns' widths.
    *
-   * @type {Array}
+   * @private
+   * @type {PhysicalIndexToValueMap}
    */
-  widthsCache = [];
+  widthsMap;
 
-  constructor(plugin) {
-    this.nestedHeaders = plugin;
+  constructor(hot, nestedHeaderSettingsGetter) {
+    this.hot = hot;
+    this.nestedHeaderSettingsGetter = nestedHeaderSettingsGetter;
+    this.widthsMap = this.hot.columnIndexMapper
+      .createAndRegisterIndexMap('nestedHeaders.ghostTable.widthMap', 'physicalIndexToValue');
+  }
+
+  setLayersCount(layersCount) {
+    this.layersCount = layersCount;
+
+    return this;
+  }
+
+  getWidth(visualColumn) {
+    return this.widthsMap.getValueAtIndex(this.hot.toPhysicalColumn(visualColumn));
   }
 
   /**
@@ -33,24 +59,24 @@ class GhostTable {
    * @private
    */
   buildWidthsMapper() {
-    this.container = this.nestedHeaders.hot.rootDocument.createElement('div');
-
-    this.buildGhostTable(this.container);
-    this.nestedHeaders.hot.rootElement.appendChild(this.container);
+    this.container = this.hot.rootDocument.createElement('div');
+    this.container.classList.add('handsontable');
+    this._buildGhostTable(this.container);
+    this.hot.rootDocument.body.appendChild(this.container);
 
     const columns = this.container.querySelectorAll('tr:last-of-type th');
     const maxColumns = columns.length;
 
-    this.widthsCache.length = 0;
+    this.widthsMap.clear();
 
-    for (let i = 0; i < maxColumns; i++) {
-      this.widthsCache.push(columns[i].offsetWidth);
+    for (let column = 0; column < maxColumns; column++) {
+      this.widthsMap.setValueAtIndex(this.hot.toPhysicalColumn(column), columns[column].offsetWidth);
     }
 
-    this.container.parentNode.removeChild(this.container);
-    this.container = null;
+    // this.container.parentNode.removeChild(this.container);
+    // this.container = null;
 
-    this.nestedHeaders.hot.render();
+    this.hot.render();
   }
 
   /**
@@ -59,35 +85,26 @@ class GhostTable {
    * @private
    * @param {HTMLElement} container The element where the DOM nodes are injected.
    */
-  buildGhostTable(container) {
-    const { rootDocument } = this.nestedHeaders.hot;
+  _buildGhostTable(container) {
+    const { rootDocument } = this.hot;
     const fragment = rootDocument.createDocumentFragment();
     const table = rootDocument.createElement('table');
-    let lastRowColspan = false;
-    const isDropdownEnabled = !!this.nestedHeaders.hot.getSettings().dropdownMenu;
-    const maxRows = this.nestedHeaders.getLayersCount();
-    const maxCols = this.nestedHeaders.hot.countCols();
-    const lastRowIndex = maxRows - 1;
+    const isDropdownEnabled = !!this.hot.getSettings().dropdownMenu;
+    const maxCols = this.hot.countCols();
 
-    for (let row = 0; row < maxRows; row++) {
+    for (let row = 0; row < this.layersCount; row++) {
       const tr = rootDocument.createElement('tr');
-
-      lastRowColspan = false;
 
       for (let col = 0; col < maxCols; col++) {
         const th = rootDocument.createElement('th');
-        const headerSettings = this.nestedHeaders.getHeaderSettings(row, col);
+        const headerSettings = {...this.nestedHeaderSettingsGetter(row, col)};
 
-        if (headerSettings && !headerSettings.isPlaceholder) {
+        if (headerSettings && (headerSettings.isPlaceholder === false ||
+            headerSettings.isPlaceholder && this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(col)))) {
           let label = headerSettings.label;
 
-          if (row === lastRowIndex) {
-            if (headerSettings.colspan > 1) {
-              lastRowColspan = true;
-            }
-            if (isDropdownEnabled) {
-              label += '<button class="changeType"></button>';
-            }
+          if (isDropdownEnabled) {
+            label += '<button class="changeType"></button>';
           }
 
           fastInnerHTML(th, label);
@@ -99,21 +116,6 @@ class GhostTable {
       table.appendChild(tr);
     }
 
-    // We have to be sure the last row contains only the single columns.
-    if (lastRowColspan) {
-      {
-        const tr = rootDocument.createElement('tr');
-
-        for (let col = 0; col < maxCols; col++) {
-          const td = rootDocument.createElement('th');
-
-          tr.appendChild(td);
-        }
-
-        table.appendChild(tr);
-      }
-    }
-
     fragment.appendChild(table);
     container.appendChild(fragment);
   }
@@ -122,10 +124,9 @@ class GhostTable {
    * Clear the widths cache.
    */
   clear() {
+    this.widthsMap.clear();
     this.container = null;
-    this.widthsCache.length = 0;
   }
-
 }
 
 export default GhostTable;

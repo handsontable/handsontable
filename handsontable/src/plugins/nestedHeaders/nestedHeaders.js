@@ -81,7 +81,7 @@ export class NestedHeaders extends BasePlugin {
    * @type {GhostTable}
    */
   // @TODO This should be changed after refactor handsontable/utils/ghostTable.
-  ghostTable = new GhostTable(this);
+  ghostTable = new GhostTable(this.hot, (row, column) => this.getHeaderSettings(row, column));
 
   /**
    * The flag which determines that the nested header settings contains overlapping headers
@@ -184,7 +184,9 @@ export class NestedHeaders extends BasePlugin {
         });
     }
 
-    this.ghostTable.buildWidthsMapper();
+    this.ghostTable
+      .setLayersCount(this.getLayersCount())
+      .buildWidthsMapper();
     super.updatePlugin();
   }
 
@@ -565,7 +567,7 @@ export class NestedHeaders extends BasePlugin {
    * @returns {number}
    */
   onModifyColWidth(width, column) {
-    const cachedWidth = this.ghostTable.widthsCache[column];
+    const cachedWidth = this.ghostTable.getWidth(column);
 
     return width > cachedWidth ? width : cachedWidth;
   }
