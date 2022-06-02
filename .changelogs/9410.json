@@ -1,0 +1,7 @@
+{
+  "title": "Updated the Pikaday dependency to 1.8.2.",
+  "type": "changed",
+  "issue": 9410,
+  "breaking": false,
+  "framework": "none"
+}
