@@ -17,7 +17,8 @@ const {
   isEnvDev,
   getDocsFrameworkedVersions,
   getLatestVersion,
-  FRAMEWORK_SUFFIX
+  getIgnoredFilesPatterns,
+  FRAMEWORK_SUFFIX,
 } = require('./helpers');
 
 const buildMode = process.env.BUILD_MODE;
@@ -86,7 +87,8 @@ module.exports = {
   patterns: [
     `${isEnvDev() ? `${TMP_DIR_FOR_WATCH}/` : ''}${versionPartialPath}${isEnvDev() && getEnvDocsFramework() ?
       `${frameworkPartialPath}` : ''}**/*.md`,
-    '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'
+    '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md',
+    ...getIgnoredFilesPatterns(buildMode),
   ],
   description: 'Handsontable',
   base,

@@ -265,6 +265,34 @@ function getNotSearchableLinks(buildMode) {
 }
 
 /**
+ * Get ignored files for particular build.
+ *
+ * Note: Please keep in mind that this method is useful only for full build.
+ *
+ * @param {string} buildMode The env name.
+ * @returns {Array<string>}
+ */
+function getIgnoredFilesPatterns(buildMode) {
+  if (isEnvDev() === false) {
+    const notSearchableLinks = getNotSearchableLinks(buildMode);
+    const version = getEnvDocsVersion();
+    const framework = getEnvDocsFramework();
+    let ignoredFiles;
+
+    if (framework !== void 0) {
+      ignoredFiles = notSearchableLinks[framework][version];
+
+    } else {
+      ignoredFiles = notSearchableLinks[version];
+    }
+
+    return ignoredFiles.map(excludedPath => `!${version}/${excludedPath}.md`);
+  }
+
+  return [];
+}
+
+/**
  * Parses the docs version from the URL.
  *
  * @param {string} url The URL to parse.
@@ -356,4 +384,5 @@ module.exports = {
   isEnvDev,
   createSymlinks,
   getDocsBaseUrl,
+  getIgnoredFilesPatterns,
 };
