@@ -2155,7 +2155,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterColumnFreeze
    * @since 12.0.2
-   *  @param {number} column Visual column index of frozen column.
+   * @param {number} column Visual column index of frozen column.
    */
   'afterColumnFreeze',
 
@@ -2175,7 +2175,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterColumnUnfreeze
    * @since 12.0.2
-   *  @param {number} column Visual column index of unfrozen column.
+   * @param {number} column Visual column index of unfrozen column.
    */
   'afterColumnUnfreeze',
 ];
