@@ -2151,6 +2151,15 @@ const REGISTERED_HOOKS = [
   'afterColumnExpand',
 
   /**
+   * Fired by {@link ManualColumnFreeze} plugin right after freezing a column.
+   *
+   * @event Hooks#afterColumnFreeze
+   * @since 12.0.2
+   *  @param {number} column Visual column index of frozen column.
+   */
+  'afterColumnFreeze',
+
+  /**
    * Fired by {@link AutoColumnSize} plugin within SampleGenerator utility.
    *
    * @event Hooks#modifyAutoColumnSizeSeed
@@ -2160,6 +2169,15 @@ const REGISTERED_HOOKS = [
    * @param {*} cellValue Value of the cell.
    */
   'modifyAutoColumnSizeSeed',
+
+  /**
+   * Fired by {@link ManualColumnFreeze} plugin right after unfreezing a column.
+   *
+   * @event Hooks#afterColumnUnfreeze
+   * @since 12.0.2
+   *  @param {number} column Visual column index of unfrozen column.
+   */
+  'afterColumnUnfreeze',
 ];
 
 /**

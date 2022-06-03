@@ -15,6 +15,8 @@ export default function freezeColumnItem(manualColumnFreezePlugin) {
 
       manualColumnFreezePlugin.freezeColumn(selectedColumn);
 
+      this.runHooks('afterColumnFreeze', selectedColumn);
+
       this.render();
       this.view.adjustElementsSize(true);
     },
