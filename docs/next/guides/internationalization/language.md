@@ -127,6 +127,7 @@ By default, Handsontable uses the **English - United States** language-country s
 * `pl-PL.js` for **Polish - Poland** (`pl-PL` code).
 * `pt-BR.js` for **Portuguese - Brazil** (`pt-BR` code).
 * `ru-RU.js` for **Russian - Russia** (`ru-RU` code).
+* `sr-SP.js` for **Serbian (Latin) - Serbia** (`sr-SP` code).
 * `zh-CN.js` for **Chinese - China** (`zh-CN` code).
 * `zh-TW.js` for **Chinese - Taiwan** (`zh-TW` code).
 
