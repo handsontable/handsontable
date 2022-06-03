@@ -2154,7 +2154,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link ManualColumnFreeze} plugin right after freezing a column.
    *
    * @event Hooks#afterColumnFreeze
-   * @since 12.0.2
+   * @since 12.1.0
    * @param {number} column Visual column index of frozen column.
    */
   'afterColumnFreeze',
@@ -2174,7 +2174,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link ManualColumnFreeze} plugin right after unfreezing a column.
    *
    * @event Hooks#afterColumnUnfreeze
-   * @since 12.0.2
+   * @since 12.1.0
    * @param {number} column Visual column index of unfrozen column.
    */
   'afterColumnUnfreeze',
