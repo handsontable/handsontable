@@ -1,22 +1,31 @@
 import { fastInnerHTML } from '../../../helpers/dom/element';
 
 /**
+ * The class generates the nested headers structure in the DOM and reads the column width for
+ * each column. The hierarchy is built only for visible, non-hidden columns. Each time the
+ * column is shown or hidden, the structure is rebuilt, and the width of the columns in the
+ * map updated.
+ *
  * @private
  */
 class GhostTable {
   /**
-   * Reference to the Handsontable instance
+   * Reference to the Handsontable instance.
    *
    * @private
    * @type {Handsontable}
    */
   hot;
   /**
+   * The function for retrieving the nested headers settings.
+   *
    * @private
-   * @type {(row: number, column: number) => any}
+   * @type {Function}
    */
   nestedHeaderSettingsGetter;
   /**
+   * The value that holds information about the number of the nested header layers (header rows).
+   *
    * @private
    * @type {number}
    */
@@ -40,27 +49,36 @@ class GhostTable {
     this.hot = hot;
     this.nestedHeaderSettingsGetter = nestedHeaderSettingsGetter;
     this.widthsMap = this.hot.columnIndexMapper
-      .createAndRegisterIndexMap('nestedHeaders.ghostTable.widthMap', 'physicalIndexToValue');
+      .createAndRegisterIndexMap('nestedHeaders.widthMap', 'physicalIndexToValue');
   }
 
+  /**
+   * Sets the number of nested headers layers count.
+   *
+   * @param {number} layersCount Total number of headers levels.
+   * @returns {GhostTable}
+   */
   setLayersCount(layersCount) {
     this.layersCount = layersCount;
 
     return this;
   }
 
+  /**
+   * Gets the column width based on the visual column index.
+   *
+   * @param {number} visualColumn Visual column index.
+   * @returns {number|null}
+   */
   getWidth(visualColumn) {
     return this.widthsMap.getValueAtIndex(this.hot.toPhysicalColumn(visualColumn));
   }
 
   /**
    * Build cache of the headers widths.
-   *
-   * @private
    */
-  buildWidthsMapper() {
+  buildWidthsMap() {
     this.container = this.hot.rootDocument.createElement('div');
-    this.container.classList.add('handsontable');
     this._buildGhostTable(this.container);
     this.hot.rootDocument.body.appendChild(this.container);
 
@@ -70,13 +88,14 @@ class GhostTable {
     this.widthsMap.clear();
 
     for (let column = 0; column < maxColumns; column++) {
-      this.widthsMap.setValueAtIndex(this.hot.toPhysicalColumn(column), columns[column].offsetWidth);
+      const visualColumnsIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(column);
+      const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnsIndex);
+
+      this.widthsMap.setValueAtIndex(physicalColumnIndex, columns[column].offsetWidth);
     }
 
-    // this.container.parentNode.removeChild(this.container);
-    // this.container = null;
-
-    this.hot.render();
+    this.container.parentNode.removeChild(this.container);
+    this.container = null;
   }
 
   /**
@@ -86,21 +105,26 @@ class GhostTable {
    * @param {HTMLElement} container The element where the DOM nodes are injected.
    */
   _buildGhostTable(container) {
-    const { rootDocument } = this.hot;
+    const { rootDocument, columnIndexMapper } = this.hot;
     const fragment = rootDocument.createDocumentFragment();
     const table = rootDocument.createElement('table');
     const isDropdownEnabled = !!this.hot.getSettings().dropdownMenu;
-    const maxCols = this.hot.countCols();
+    const maxRenderedCols = columnIndexMapper.getRenderableIndexesLength();
 
     for (let row = 0; row < this.layersCount; row++) {
       const tr = rootDocument.createElement('tr');
 
-      for (let col = 0; col < maxCols; col++) {
-        const th = rootDocument.createElement('th');
-        const headerSettings = {...this.nestedHeaderSettingsGetter(row, col)};
+      for (let col = 0; col < maxRenderedCols; col++) {
+        let visualColumnsIndex = columnIndexMapper.getVisualFromRenderableIndex(col);
 
-        if (headerSettings && (headerSettings.isPlaceholder === false ||
-            headerSettings.isPlaceholder && this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(col)))) {
+        if (visualColumnsIndex === null) {
+          visualColumnsIndex = col;
+        }
+
+        const th = rootDocument.createElement('th');
+        const headerSettings = this.nestedHeaderSettingsGetter(row, visualColumnsIndex);
+
+        if (headerSettings && (!headerSettings.isPlaceholder || headerSettings.isHidden)) {
           let label = headerSettings.label;
 
           if (isDropdownEnabled) {

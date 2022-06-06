@@ -181,12 +181,15 @@ export class NestedHeaders extends BasePlugin {
               this.#stateManager.triggerColumnModification(actionName, columnIndex);
             }
           });
+
+          this.ghostTable.buildWidthsMap();
         });
     }
 
     this.ghostTable
       .setLayersCount(this.getLayersCount())
-      .buildWidthsMapper();
+      .buildWidthsMap();
+
     super.updatePlugin();
   }
 
