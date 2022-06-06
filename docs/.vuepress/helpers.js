@@ -15,9 +15,6 @@ const FRAMEWORK_SUFFIX = '-data-grid';
 const frameworkToPrettyName = new Map([
   ['javascript', 'JavaScript'],
   ['react', 'React'],
-  ['angular', 'Angular'],
-  ['vue2', 'Vue 2'],
-  ['vue3', 'Vue 3'],
 ]);
 
 /**
