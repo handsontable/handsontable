@@ -124,7 +124,7 @@ export class ManualColumnFreeze extends BasePlugin {
       settings._fixedColumnsStart += 1;
     }
 
-    this.runHooks('afterColumnFreeze', column);
+    this.runHooks('afterColumnFreeze', column, freezePerformed);
   }
 
   /**
