@@ -1,8 +1,14 @@
 import { BasePlugin } from '../base';
+import Hooks from '../../pluginHooks';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 
 import './manualColumnFreeze.css';
+
+Hooks.getSingleton().register('beforeColumnFreeze');
+Hooks.getSingleton().register('afterColumnFreeze');
+Hooks.getSingleton().register('beforeColumnUnfreeze');
+Hooks.getSingleton().register('afterColumnUnfreeze');
 
 export const PLUGIN_KEY = 'manualColumnFreeze';
 export const PLUGIN_PRIORITY = 110;
@@ -101,8 +107,8 @@ export class ManualColumnFreeze extends BasePlugin {
     const priv = privatePool.get(this);
     const settings = this.hot.getSettings();
     // Columns are already fixed.
-    const freezePerformed = settings.fixedColumnsStart === this.hot.countCols()
-      || column <= settings.fixedColumnsStart - 1;
+    const freezePerformed = settings.fixedColumnsStart < this.hot.countCols()
+      && column > settings.fixedColumnsStart - 1;
 
     if (!priv.afterFirstUse) {
       priv.afterFirstUse = true;
@@ -124,7 +130,7 @@ export class ManualColumnFreeze extends BasePlugin {
       settings._fixedColumnsStart += 1;
     }
 
-    this.runHooks('afterColumnFreeze', column, freezePerformed);
+    this.hot.runHooks('afterColumnFreeze', column, freezePerformed);
   }
 
   /**
@@ -136,7 +142,7 @@ export class ManualColumnFreeze extends BasePlugin {
     const priv = privatePool.get(this);
     const settings = this.hot.getSettings();
     // Columns are not fixed.
-    const unfreezePerformed = settings.fixedColumnsStart <= 0 || (column > settings.fixedColumnsStart - 1);
+    const unfreezePerformed = settings.fixedColumnsStart > 0 && (column <= settings.fixedColumnsStart - 1);
 
     if (!priv.afterFirstUse) {
       priv.afterFirstUse = true;
@@ -158,7 +164,7 @@ export class ManualColumnFreeze extends BasePlugin {
       this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart);
     }
 
-    this.runHooks('afterColumnUnfreeze', column, unfreezePerformed);
+    this.hot.runHooks('afterColumnUnfreeze', column, unfreezePerformed);
   }
 
   /**
