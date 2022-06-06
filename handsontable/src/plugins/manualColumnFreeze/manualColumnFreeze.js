@@ -100,22 +100,31 @@ export class ManualColumnFreeze extends BasePlugin {
   freezeColumn(column) {
     const priv = privatePool.get(this);
     const settings = this.hot.getSettings();
+    // Columns are already fixed.
+    const freezePerformed = settings.fixedColumnsStart === this.hot.countCols()
+      || column <= settings.fixedColumnsStart - 1;
 
     if (!priv.afterFirstUse) {
       priv.afterFirstUse = true;
     }
 
-    if (settings.fixedColumnsStart === this.hot.countCols() || column <= settings.fixedColumnsStart - 1) {
-      return; // already fixed
+    const beforeColumnFreezeHook = this.hot.runHooks('beforeColumnFreeze', column, freezePerformed);
+
+    if (beforeColumnFreezeHook === false) {
+      return;
     }
 
-    this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart);
+    if (freezePerformed) {
+      this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart);
 
-    // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
-    // However, keeping the old name still in effect. When both option names are used together,
-    // the error is thrown. To prevent that, the plugin needs to modify the original option key
-    // to bypass the validation.
-    settings._fixedColumnsStart += 1;
+      // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
+      // However, keeping the old name still in effect. When both option names are used together,
+      // the error is thrown. To prevent that, the plugin needs to modify the original option key
+      // to bypass the validation.
+      settings._fixedColumnsStart += 1;
+    }
+
+    this.runHooks('afterColumnFreeze', column);
   }
 
   /**
@@ -126,22 +135,30 @@ export class ManualColumnFreeze extends BasePlugin {
   unfreezeColumn(column) {
     const priv = privatePool.get(this);
     const settings = this.hot.getSettings();
+    // Columns are not fixed.
+    const unfreezePerformed = settings.fixedColumnsStart <= 0 || (column > settings.fixedColumnsStart - 1);
 
     if (!priv.afterFirstUse) {
       priv.afterFirstUse = true;
     }
 
-    if (settings.fixedColumnsStart <= 0 || (column > settings.fixedColumnsStart - 1)) {
-      return; // not fixed
+    const beforeColumnUnfreezeHook = this.hot.runHooks('beforeColumnUnfreeze', column, unfreezePerformed);
+
+    if (beforeColumnUnfreezeHook === false) {
+      return;
     }
 
-    // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
-    // However, keeping the old name still in effect. When both option names are used together,
-    // the error is thrown. To prevent that, the plugin needs to modify the original option key
-    // to bypass the validation.
-    settings._fixedColumnsStart -= 1;
+    if (unfreezePerformed) {
+      // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
+      // However, keeping the old name still in effect. When both option names are used together,
+      // the error is thrown. To prevent that, the plugin needs to modify the original option key
+      // to bypass the validation.
+      settings._fixedColumnsStart -= 1;
 
-    this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart);
+      this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart);
+    }
+
+    this.runHooks('afterColumnUnfreeze', column, unfreezePerformed);
   }
 
   /**

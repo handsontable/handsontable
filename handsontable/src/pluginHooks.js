@@ -1366,6 +1366,26 @@ const REGISTERED_HOOKS = [
   'afterPaste',
 
   /**
+   * Fired by {@link ManualColumnFreeze} plugin before freezing a column.
+   *
+   * @event Hooks#beforeColumnFreeze
+   * @since 12.1.0
+   * @param {number} column Visual column index of frozen column.
+   * @param {boolean} freezePerformed Indicates if order of columns will be changed by freeze.
+   */
+  'beforeColumnFreeze',
+
+  /**
+   * Fired by {@link ManualColumnFreeze} plugin right after freezing a column.
+   *
+   * @event Hooks#afterColumnFreeze
+   * @since 12.1.0
+   * @param {number} column Visual column index of frozen column.
+   * @param {boolean} freezePerformed Indicates if order of columns was changed by freeze.
+   */
+  'afterColumnFreeze',
+
+  /**
    * Fired by {@link ManualColumnMove} plugin before change order of the visual indexes. This hook is fired when
    * {@link Options#manualColumnMove} option is enabled.
    *
@@ -1404,6 +1424,26 @@ const REGISTERED_HOOKS = [
    * @param {boolean} orderChanged Indicates if order of columns was changed by move.
    */
   'afterColumnMove',
+
+  /**
+   * Fired by {@link ManualColumnFreeze} plugin before freezing a column.
+   *
+   * @event Hooks#beforeColumnUnfreeze
+   * @since 12.1.0
+   * @param {number} column Visual column index of unfrozen column.
+   * @param {boolean} unfreezePerformed Indicates if order of columns will be changed by unfreeze.
+   */
+  'beforeColumnUnfreeze',
+
+  /**
+   * Fired by {@link ManualColumnFreeze} plugin right after unfreezing a column.
+   *
+   * @event Hooks#afterColumnUnfreeze
+   * @since 12.1.0
+   * @param {number} column Visual column index of unfrozen column.
+   * @param {boolean} unfreezePerformed Indicates if order of columns was changed by unfreeze.
+   */
+  'afterColumnUnfreeze',
 
   /**
    * Fired by {@link ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when
@@ -2151,15 +2191,6 @@ const REGISTERED_HOOKS = [
   'afterColumnExpand',
 
   /**
-   * Fired by {@link ManualColumnFreeze} plugin right after freezing a column.
-   *
-   * @event Hooks#afterColumnFreeze
-   * @since 12.1.0
-   * @param {number} column Visual column index of frozen column.
-   */
-  'afterColumnFreeze',
-
-  /**
    * Fired by {@link AutoColumnSize} plugin within SampleGenerator utility.
    *
    * @event Hooks#modifyAutoColumnSizeSeed
@@ -2169,15 +2200,6 @@ const REGISTERED_HOOKS = [
    * @param {*} cellValue Value of the cell.
    */
   'modifyAutoColumnSizeSeed',
-
-  /**
-   * Fired by {@link ManualColumnFreeze} plugin right after unfreezing a column.
-   *
-   * @event Hooks#afterColumnUnfreeze
-   * @since 12.1.0
-   * @param {number} column Visual column index of unfrozen column.
-   */
-  'afterColumnUnfreeze',
 ];
 
 /**
