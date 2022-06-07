@@ -231,24 +231,62 @@ function getNotSearchableLinks(buildMode) {
 
     getDocsFrameworkedVersions(buildMode).forEach((version) => {
       frameworks.forEach((framework) => {
+        if (typeof notSearchableLinks[framework] !== 'object') {
+          notSearchableLinks[framework] = {};
+        }
+
         // eslint-disable-next-line
         const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-        notSearchableLinks[version] = filterLinks(sidebarConfig.guides, framework);
+        notSearchableLinks[framework][version] = filterLinks(sidebarConfig.guides, framework);
       });
     });
 
   } else {
-    getVersions(buildMode).forEach((version) => {
-      // eslint-disable-next-line
-      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
-      const framework = getEnvDocsFramework();
+    const version = getEnvDocsVersion();
+    const framework = getEnvDocsFramework();
+    // eslint-disable-next-line
+    const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-      notSearchableLinks[version] = filterLinks(sidebarConfig.guides, framework);
-    });
+    if (framework !== void 0) {
+      notSearchableLinks[framework] = {
+        [version]: filterLinks(sidebarConfig.guides, framework),
+      };
+
+    } else {
+      notSearchableLinks[version] = filterLinks(sidebarConfig.guides);
+    }
   }
 
   return notSearchableLinks;
+}
+
+/**
+ * Get ignored files for particular build.
+ *
+ * Note: Please keep in mind that this method is useful only for full build.
+ *
+ * @param {string} buildMode The env name.
+ * @returns {Array<string>}
+ */
+function getIgnoredFilesPatterns(buildMode) {
+  if (isEnvDev() === false) {
+    const notSearchableLinks = getNotSearchableLinks(buildMode);
+    const version = getEnvDocsVersion();
+    const framework = getEnvDocsFramework();
+    let ignoredFiles;
+
+    if (framework !== void 0) {
+      ignoredFiles = notSearchableLinks[framework][version];
+
+    } else {
+      ignoredFiles = notSearchableLinks[version];
+    }
+
+    return ignoredFiles.map(excludedPath => `!${version}/${excludedPath}.md`);
+  }
+
+  return [];
 }
 
 /**
@@ -343,4 +381,5 @@ module.exports = {
   isEnvDev,
   createSymlinks,
   getDocsBaseUrl,
+  getIgnoredFilesPatterns,
 };
