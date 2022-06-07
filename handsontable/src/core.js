@@ -4459,11 +4459,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   const shortcutManager = createShortcutManager({
-    beforeKeyDown: (event) => {
-      if (this.isListening() === false) { // Performing action (executing a callback) and triggering hook only for listening Handsontable.
-        return false;
-      }
+    handleEvent(event) {
+      const isListening = instance.isListening();
+      const isKeyboardEventWithKey = event?.key !== void 0;
 
+      return isListening && isKeyboardEventWithKey;
+    },
+    beforeKeyDown: (event) => {
       return this.runHooks('beforeKeyDown', event);
     },
     afterKeyDown: (event) => {

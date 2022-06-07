@@ -12,12 +12,13 @@ const modifierKeysObserver = createKeysObserver();
  * A key recorder, used for tracking key events.
  *
  * @param {EventTarget} ownerWindow A starting `window` element
- * @param {Function} beforeKeyDown A hook fired before the `keydown` event is handled. You can use it to [block a keyboard shortcut's actions](@/guides/accessories-and-menus/keyboard-shortcuts.md#blocking-a-keyboard-shortcut-s-actions).
+ * @param {Function} handleEvent A condition on which event is handled.
+ * @param {Function} beforeKeyDown A hook fired before the `keydown` event is handled.
  * @param {Function} afterKeyDown A hook fired after the `keydown` event is handled
  * @param {Function} callback `KeyEvent`'s listener's callback function
  * @returns {object}
  */
-export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) {
+export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDown, callback) {
   /**
    * Check if a pressed key is tracked or not.
    *
@@ -74,6 +75,10 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
    * @param {KeyboardEvent} event The event object
    */
   const onkeydown = (event) => {
+    if (handleEvent(event) === false) {
+      return;
+    }
+
     const result = beforeKeyDown(event);
 
     if (result === false || isImmediatePropagationStopped(event)) {
@@ -109,6 +114,10 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
    * @param {KeyboardEvent} event The event object
    */
   const onkeyup = (event) => {
+    if (handleEvent(event) === false) {
+      return;
+    }
+
     const pressedKey = normalizeEventKey(event.key);
 
     if (isModifierKey(pressedKey) === false) {
@@ -124,6 +133,10 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
    * @private
    */
   const onblur = () => {
+    if (handleEvent() === false) {
+      return;
+    }
+
     modifierKeysObserver.releaseAll();
   };
 
