@@ -221,9 +221,9 @@ To keep the previous (pre-12.0) behavior of a default keyboard shortcut, use the
 - [Replace a default keyboard shortcut](@/guides/accessories-and-menus/keyboard-shortcuts.md#replacing-a-keyboard-shortcut)
 - [Block a default keyboard shortcut's action](@/guides/accessories-and-menus/keyboard-shortcuts.md#blocking-a-keyboard-shortcut-s-actions)
 
-## Step 5: Don't refer to Walkontable
+## Step 5: Avoid referring to `_wt`
 
-Handsontable 12.0.0 makes it clear that Handsontable's rendering engine (internally referred to as "Walkontable") is not a part of Handsontable's public API.
+Handsontable 12.0.0 makes it clear that Handsontable's rendering engine (`_wt`, internally referred to as "Walkontable") is not a part of Handsontable's public API.
 
 To emphasize this, we changed the following property name:
 
@@ -233,4 +233,13 @@ To emphasize this, we changed the following property name:
 
 #### Migrating to Handsontable 12.0
 
-Referring to Walkontable has never been a supported customization method. Use Handsontable's public APIs instead.
+`_wt` has no public documentation and offers no guarantee against breaking changes.
+
+If you use a private implementation of Handsontable, and you can't avoid referring to Walkontable (for example, in your custom editor or plugin), update your Walkontable references from `hot.view.wt` to `hot.view._wt`.
+
+::: tip
+**New method: [`getEditedCellRect()`](@/api/baseEditor.md#geteditedcellrect)**
+
+If your custom editor needs to know the size and position of the edited cell,
+now you can get them without referring to `_wt`. Instead, use the new [`getEditedCellRect()`](@/api/baseEditor.md#geteditedcellrect) method.
+:::
