@@ -1370,7 +1370,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeColumnFreeze
    * @since 12.1.0
-   * @param {number} column Visual column index of frozen column.
+   * @param {number} column The visual column index of the column that is going to get frozen.
    * @param {boolean} freezePerformed Indicates if order of columns will be changed by freeze.
    * @returns {boolean|undefined} If `false` the column will not be frozen, `true` otherwise.
    */
