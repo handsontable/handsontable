@@ -27,11 +27,11 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
         height: 200
       });
 
-    // try to scroll the viewport max to the left
-    getMaster().find('.wtHolder').scrollLeft(-9999);
+      // try to scroll the viewport max to the left
+      getMaster().find('.wtHolder').scrollLeft(-9999);
 
-    // there should be no scroll as the 8 columns fit to the table's width
-    expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
+      // there should be no scroll as the 8 columns fit to the table's width
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
     });
   });
 });
