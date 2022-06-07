@@ -1366,7 +1366,7 @@ const REGISTERED_HOOKS = [
   'afterPaste',
 
   /**
-   * Fired by {@link ManualColumnFreeze} plugin before freezing a column.
+   * Fired by the {@link ManualColumnFreeze} plugin, before freezing a column.
    *
    * @event Hooks#beforeColumnFreeze
    * @since 12.1.0
