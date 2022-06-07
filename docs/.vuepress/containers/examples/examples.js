@@ -91,7 +91,6 @@ module.exports = {
     const m = token.info.trim().match(EXAMPLE_REGEX);
     const version = parseVersion(env.relativePath);
 
-
     if (token.nesting === 1 && m) { // open preview
       let [, , id, klass, preset, args] = m;
 

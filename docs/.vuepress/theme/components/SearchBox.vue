@@ -6,6 +6,7 @@
       :value="query"
       :class="{ 'focused': focused }"
       :placeholder="placeholder"
+      :style="inputCustomCssProps"
       autocomplete="off"
       spellcheck="false"
       @input="query = $event.target.value"
@@ -128,7 +129,10 @@ export default {
       query: '',
       focused: false,
       focusIndex: 0,
-      placeholder: undefined
+      placeholder: undefined,
+      inputCustomCssProps: {
+        '--search-icon-url': `url('${this.$router.options.base}/img/search.svg')`,
+      }
     };
   },
 
@@ -364,7 +368,9 @@ export default {
     line-height 2rem
     padding 0 0.5rem 0 2rem
     outline none
-    background #fff url('/docs/img/search.svg') 0.6rem 0.5rem no-repeat
+    /* Fallback for IE, should work in production */
+    background #fff url('/docs/javascript-data-grid/img/search.svg') 0.6rem 0.5rem no-repeat
+    background #fff var(--search-icon-url) 0.6rem 0.5rem no-repeat
     background-size 1rem
     &:focus
       color #104bcd
