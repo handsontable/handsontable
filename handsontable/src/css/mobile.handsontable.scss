@@ -29,11 +29,12 @@
 }
 
 /* Initial left/top coordinates - overwritten when actual position is set */
-.topSelectionHandle,
-.topSelectionHandle-HitArea,
-.bottomSelectionHandle,
-.bottomSelectionHandle-HitArea {
-  left: -10000px;
+.handsontable .topSelectionHandle,
+.handsontable .topSelectionHandle-HitArea,
+.handsontable .bottomSelectionHandle,
+.handsontable .bottomSelectionHandle-HitArea {
+  inset-inline-start: -10000px;
+  inset-inline-end: unset;
   top: -10000px;
 }
 
