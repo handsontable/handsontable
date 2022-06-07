@@ -49,7 +49,7 @@ class GhostTable {
     this.hot = hot;
     this.nestedHeaderSettingsGetter = nestedHeaderSettingsGetter;
     this.widthsMap = this.hot.columnIndexMapper
-      .createAndRegisterIndexMap('nestedHeaders.widthMap', 'physicalIndexToValue');
+      .createAndRegisterIndexMap('nestedHeaders.widthsMap', 'physicalIndexToValue');
   }
 
   /**
@@ -79,6 +79,7 @@ class GhostTable {
    */
   buildWidthsMap() {
     this.container = this.hot.rootDocument.createElement('div');
+    this.container.classList.add('handsontable', 'htGhostTable', 'htAutoSize');
     this._buildGhostTable(this.container);
     this.hot.rootDocument.body.appendChild(this.container);
 

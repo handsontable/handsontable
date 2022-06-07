@@ -38,7 +38,7 @@ describe('NestedHeaders', () => {
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
-        expect(ghostTable.widthsCache.length).toBeGreaterThan(0);
+        expect(ghostTable.widthsMap.getLength()).toBe(10);
       });
 
       it('should properly prepare widths cache, even if container is smaller than needed', () => {
@@ -54,7 +54,13 @@ describe('NestedHeaders', () => {
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
-        expect(ghostTable.widthsCache[ghostTable.widthsCache.length - 1]).toBeGreaterThan(50);
+        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(92);
+        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(92);
+        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(92);
+        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(92);
+        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(92);
+        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(92);
+        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(92);
       });
 
       it('should properly prepare widths cache, even if container is smaller than needed (different headers configuration #1)', () => {
@@ -72,9 +78,16 @@ describe('NestedHeaders', () => {
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
-        expect(ghostTable.widthsCache).toEqual([
-          19, 20, 16, 18, 18, 16, 17, 88, 89, 21
-        ]);
+        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(19);
+        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(19);
+        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(16);
+        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(19);
+        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(19);
+        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(16);
+        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(16);
+        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(88);
+        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(88);
+        expect(ghostTable.widthsMap.getValueAtIndex(9)).toBeAroundValue(21);
       });
 
       it('should container be removed after initialization', () => {
@@ -100,7 +113,7 @@ describe('NestedHeaders', () => {
             ['a', 'b', 'c', 'd', 'e', 'f', 'g']
           ]
         });
-        const beforeUpdate = getPlugin('nestedHeaders').ghostTable.widthsCache[1];
+        const widthBeforeUpdate = getPlugin('nestedHeaders').ghostTable.getWidth(1);
 
         updateSettings({
           nestedHeaders: [
@@ -108,9 +121,10 @@ describe('NestedHeaders', () => {
           ]
         });
 
-        const afterUpdate = getPlugin('nestedHeaders').ghostTable.widthsCache[1];
+        const widthAfterUpdate = getPlugin('nestedHeaders').ghostTable.getWidth(1);
 
-        expect(afterUpdate).toBeGreaterThan(beforeUpdate);
+        expect(widthAfterUpdate).not.toBe(widthBeforeUpdate);
+        expect(widthAfterUpdate).toBeAroundValue(120);
       });
     });
   });
