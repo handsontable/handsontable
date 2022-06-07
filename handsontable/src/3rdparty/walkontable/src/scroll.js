@@ -18,16 +18,16 @@ class Scroll {
    */
   dataAccessObject;
   /**
-   * Holds the last column the scroll was performed to. It determines scroll snapping direction
-   * (right or left) for the next horizontal scroll API call.
+   * Holds the last column reached by the scroll, which determines the scroll snapping direction
+   * (left or right) for a next horizontal scroll.
    *
    * @protected
    * @type {number}
    */
   lastScrolledColumnPos = -1;
   /**
-   * Holds the last row the scroll was performed to. It determines scroll snapping direction
-   * (top or bottom) for the next vertical scroll API call.
+   * Holds the last row reached by the scroll, which determines the scroll snapping direction
+   * (top or bottom) for a next vertical scroll.
    *
    * @protected
    * @type {number}

@@ -4005,10 +4005,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * we are using the index for numbering only this rows which may be rendered (we don't consider hidden rows).
    * @param {number} [column] Column index. If the last argument isn't defined we treat the index as a visual column index.
    * Otherwise, we are using the index for numbering only this columns which may be rendered (we don't consider hidden columns).
-   * @param {boolean} [snapToBottom=false] If `true`, viewport is scrolled to show the cell on the bottom of the table.
-   * However, if the cell is longer than the table's viewport height then the cell is snapped to the top edge.
-   * @param {boolean} [snapToRight=false] If `true`, viewport is scrolled to show the cell on the right side of the table.
-   * However, if the cell is wider than the table's viewport width then the cell is snapped to the left edge (right in RTL).
+   * @param {boolean} [snapToBottom=false] If `true`, the viewport is scrolled to show the cell at the bottom of the table.
+   * However, if the cell's height is greater than the table's viewport height, the cell is snapped to the top edge.
+   * @param {boolean} [snapToRight=false] If `true`, the viewport is scrolled to show the cell at the right side of the table.
+   * However, if the cell is wider than the table's viewport width, the cell is snapped to the left edge (or to the right edge, if the layout direction is set to `rtl`).
    * @param {boolean} [considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @returns {boolean} `true` if scroll was successful, `false` otherwise.
