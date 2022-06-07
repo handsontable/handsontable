@@ -3377,7 +3377,7 @@ export default () => {
      * The `preventWheel` option configures preventing the `wheel` event's default action
      * on overlays.
      *
-     * You can set the `preventOverflow` option to one of the following:
+     * You can set the `preventWheel` option to one of the following:
      *
      * | Setting           | Description                                      |
      * | ----------------- | ------------------------------------------------ |
