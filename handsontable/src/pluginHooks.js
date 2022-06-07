@@ -1377,7 +1377,7 @@ const REGISTERED_HOOKS = [
   'beforeColumnFreeze',
 
   /**
-   * Fired by {@link ManualColumnFreeze} plugin right after freezing a column.
+   * Fired by the {@link ManualColumnFreeze} plugin, right after freezing a column.
    *
    * @event Hooks#afterColumnFreeze
    * @since 12.1.0
