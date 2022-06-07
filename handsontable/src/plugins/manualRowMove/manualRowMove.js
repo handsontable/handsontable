@@ -356,7 +356,7 @@ export class ManualRowMove extends BasePlugin {
    * @returns {boolean}
    */
   isFixedRowBottom(row) {
-    return row > this.hot.getSettings().fixedRowsBottom;
+    return row > this.hot.countRows() - 1 - this.hot.getSettings().fixedRowsBottom;
   }
 
   /**
@@ -418,16 +418,16 @@ export class ManualRowMove extends BasePlugin {
   refreshPositions() {
     const priv = privatePool.get(this);
     const coords = priv.target.coords;
-    const firstVisible = this.hot.view._wt.wtTable.getFirstVisibleRow();
-    const lastVisible = this.hot.view._wt.wtTable.getLastVisibleRow();
-    const fixedRows = this.hot.getSettings().fixedRowsTop;
+    const firstVisible = this.hot.view.getFirstFullyVisibleRow();
+    const lastVisible = this.hot.view.getLastFullyVisibleRow();
     const countRows = this.hot.countRows();
 
-    if (coords.row < fixedRows && firstVisible > 0) {
-      this.hot.scrollViewportTo(firstVisible - 1);
+    if (this.isFixedRowTop(coords.row) && firstVisible > 0) {
+      this.hot.scrollViewportTo(this.hot.rowIndexMapper.getNearestNotHiddenIndex(firstVisible - 1, -1));
     }
-    if (coords.row >= lastVisible && lastVisible < countRows) {
-      this.hot.scrollViewportTo(lastVisible + 1, undefined, true);
+    if (this.isFixedRowBottom(coords.row) && lastVisible < countRows) {
+      this.hot.scrollViewportTo(
+        this.hot.rowIndexMapper.getNearestNotHiddenIndex(lastVisible + 1, 1), undefined, true);
     }
 
     const wtTable = this.hot.view._wt.wtTable;
@@ -443,11 +443,6 @@ export class ManualRowMove extends BasePlugin {
     if (this.isFixedRowTop(coords.row)) {
       tdOffsetTop += wtTable.holder.scrollTop;
     }
-
-    // todo: fixedRowsBottom
-    // if (this.isFixedRowBottom(coords.row)) {
-    //
-    // }
 
     if (coords.row < 0) {
       // if hover on colHeader
@@ -478,16 +473,6 @@ export class ManualRowMove extends BasePlugin {
     if (tdOffsetTop >= hiderHeight - 1) {
       // prevent display guideline below table
       guidelineTop = hiderHeight - 1;
-    }
-
-    let topOverlayHeight = 0;
-
-    if (this.hot.view._wt.wtOverlays.topOverlay) {
-      topOverlayHeight = this.hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE.offsetHeight;
-    }
-
-    if (coords.row >= fixedRows && (guidelineTop - wtTable.holder.scrollTop) < topOverlayHeight) {
-      this.hot.scrollViewportTo(coords.row);
     }
 
     this.backlight.setPosition(backlightTop);
