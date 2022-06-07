@@ -1,0 +1,7 @@
+{
+  "title": "Removed inconsistency in the ShortcutManager",
+  "type": "fixed",
+  "issue": 9562,
+  "breaking": false,
+  "framework": "none"
+}
