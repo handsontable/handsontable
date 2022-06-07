@@ -1433,6 +1433,7 @@ const REGISTERED_HOOKS = [
    * @since 12.1.0
    * @param {number} column Visual column index of unfrozen column.
    * @param {boolean} unfreezePerformed Indicates if order of columns will be changed by unfreeze.
+   * @returns {boolean|undefined} If `false` the column will not be unfrozen, `true` otherwise.
    */
   'beforeColumnUnfreeze',
 
