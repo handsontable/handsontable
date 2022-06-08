@@ -1432,7 +1432,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeColumnUnfreeze
    * @since 12.1.0
    * @param {number} column The visual index of the column that is going to unfreeze.
-   * @param {boolean} unfreezePerformed Indicates if order of columns will be changed by unfreeze.
+   * @param {boolean} unfreezePerformed If `true`: the column is going to unfreeze. If `false`: the column is not going to unfreeze.
    * @returns {boolean|undefined} If `false`: the column is not going to unfreeze, and the `afterColumnUnfreeze` hook won't fire.
    */
   'beforeColumnUnfreeze',
