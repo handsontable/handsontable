@@ -1381,7 +1381,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterColumnFreeze
    * @since 12.1.0
-   * @param {number} column The visual column index of the frozen column.
+   * @param {number} column The visual index of the frozen column.
    * @param {boolean} freezePerformed Indicates if order of columns was changed by freeze.
    */
   'afterColumnFreeze',
