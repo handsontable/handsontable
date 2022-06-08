@@ -1443,7 +1443,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterColumnUnfreeze
    * @since 12.1.0
    * @param {number} column The visual index of the unfrozen column.
-   * @param {boolean} unfreezePerformed Indicates if order of columns was changed by unfreeze.
+   * @param {boolean} unfreezePerformed If `true`: the column got successfully unfrozen. If `false`: the column didn't get unfrozen.
    */
   'afterColumnUnfreeze',
 
