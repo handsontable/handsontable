@@ -1372,7 +1372,7 @@ const REGISTERED_HOOKS = [
    * @since 12.1.0
    * @param {number} column The visual index of the column that is going to freeze.
    * @param {boolean} freezePerformed Indicates if order of columns will be changed by freeze.
-   * @returns {boolean|undefined} If `false` the column will not be frozen, `true` otherwise.
+   * @returns {boolean|undefined} If `false`: the column is not going to freeze, and the `afterColumnFreeze` hook won't fire.
    */
   'beforeColumnFreeze',
 
