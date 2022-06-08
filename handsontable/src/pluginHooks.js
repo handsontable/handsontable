@@ -1382,7 +1382,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterColumnFreeze
    * @since 12.1.0
    * @param {number} column The visual index of the frozen column.
-   * @param {boolean} freezePerformed Indicates if order of columns was changed by freeze.
+   * @param {boolean} freezePerformed If `true`: the column got successfully frozen. If `false`: the column didn't get frozen.
    */
   'afterColumnFreeze',
 
