@@ -291,7 +291,14 @@ export default {
     },
 
     isSearchable(page) {
-      return page.isSearchable === true && page.normalizedPath.startsWith(`/${this.$page.currentVersion}/`);
+      let framework = '';
+
+      // Only dev environment contain framework element as a part of the `normalizedPath` key's value.
+      if (this.$page.isEnvDev === true && this.$page.currentFramework) {
+        framework = `${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
+      }
+
+      return page.isSearchable === true && page.normalizedPath.startsWith(`/${this.$page.currentVersion}/${framework}`);
     },
 
     onHotkey(event) {

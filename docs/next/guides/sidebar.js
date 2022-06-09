@@ -191,22 +191,22 @@ const sidebar = [
   {
     title: 'Integrate with React',
     children: integrateWithReactItems,
-    onlyFor: ['react', 'angular', 'vue2', 'vue3'],
+    onlyFor: ['react'],
   },
   {
     title: 'Integrate with Angular',
     children: integrateWithAngularItems,
-    onlyFor: ['javascript', 'angular', 'vue2', 'vue3'],
+    onlyFor: ['javascript'],
   },
   {
     title: 'Integrate with Vue 2',
     children: integrateWithVueItems,
-    onlyFor: ['javascript', 'angular', 'vue2', 'vue3'],
+    onlyFor: ['javascript'],
   },
   {
     title: 'Integrate with Vue 3',
     children: integrateWithVue3Items,
-    onlyFor: ['javascript', 'angular', 'vue2', 'vue3'],
+    onlyFor: ['javascript'],
   },
   { title: 'Columns', children: columnsItems },
   { title: 'Rows', children: rowsItems },
