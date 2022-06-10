@@ -81,7 +81,7 @@
     "dompurify": "^2.1.1",
     "moment": "2.29.3",
     "numbro": "2.1.2",
-    "pikaday": "1.8.0"
+    "pikaday": "1.8.2"
   },
   "optionalDependencies": {
     "hyperformula": "^2.0.0"

@@ -842,7 +842,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
       expect(wt.wtOverlays.inlineStartOverlay.getOverlayOffset()).toBe(0);
     });
 
-    it('should reset bottom overlay\'s offset after the table is scroll out of the browser viewport(window object as scrollable element)', () => {
+    it('should reset bottom overlay\'s offset after the table is scroll out of the browser viewport (window object as scrollable element)', () => {
       const wt = walkontable({
         rtlMode: true,
         data: getData,

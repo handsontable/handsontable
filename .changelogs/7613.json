@@ -1,0 +1,7 @@
+{
+  "title": "Improved the UI experience for row and column moving for cases where there are some hidden rows and/or columns and the scrollbar appears.",
+  "type": "fixed",
+  "issue": 7613,
+  "breaking": false,
+  "framework": "none"
+}
