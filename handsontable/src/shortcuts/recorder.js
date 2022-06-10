@@ -133,10 +133,6 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
    * @private
    */
   const onblur = () => {
-    if (handleEvent() === false) {
-      return;
-    }
-
     modifierKeysObserver.releaseAll();
   };
 
