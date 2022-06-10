@@ -1,0 +1,7 @@
+{
+  "title": "Fixed columns widths calculation for nested headers when hidden columns are applied.",
+  "type": "fixed",
+  "issue": 9496,
+  "breaking": false,
+  "framework": "none"
+}
