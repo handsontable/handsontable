@@ -22,7 +22,7 @@ To make this possible, Handsontable is divided into modules.
 ### Use modules
 
 To get the most out of using Handsontable's modules:
-1. Import the [core modules](#core-modules).
+1. Import the [base module](#base-module).
 2. Import [optional modules](#optional-modules) of your choice.
 3. Remove redundant code (tree shaking).
 
@@ -46,21 +46,21 @@ We successfully tested Handsontable with the following bundlers:
 
 If Handsontable's modules don't work with your bundler, report it as a [bug](https://github.com/handsontable/handsontable/issues/new?assignees=&labels=&template=01-handsontable.md&title=).
 
-## Core modules
+## Base module
 
-No matter which of the optional modules you use, the following modules are always required:
+No matter which of the optional modules you use, the base module (`handsontable/base`) is always required.
 
+The base module covers:
 - Handsontable's core functionalities
 - The default cell type: [`text`](@/guides/cell-types/cell-type.md#available-cell-types)
-- Handsontable's CSS
 - Required dependencies:
   - [moment.js](https://momentjs.com/) (you can easily [optimize](@/guides/optimization/bundle-size.md#optimize-moment-js) its size)
   - [DOMpurify](https://www.npmjs.com/package/dompurify)
   - [core-js](https://www.npmjs.com/package/core-js)
 
-### Import core modules
+### Import the base module
 
-To import the core modules:
+To import the base module:
 1. Import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the full bundle).
 2. If your bundler allows it, import Handsontable's CSS file as a whole (just like when you [install](@/guides/getting-started/installation.md) Handsontable).
 
@@ -121,11 +121,11 @@ Each editor module contains a different type of cell editor:
 | `TextEditor`         | `text`            |
 :::
 
-#### Import a single editor module
+#### Import an editor module
 
-To import a single editor module:
+To import an editor module:
 
-1. Make sure you import the [core modules](#import-core-modules):
+1. Make sure you import the [base module](#base-module):
     ```js
     import Handsontable from 'handsontable/base';
     // if you bundler allows it, import Handsontable's CSS
@@ -154,39 +154,6 @@ import {
 } from 'handsontable/editors';
 
 registerEditor(PasswordEditor);
-```
-
-#### Import all editor modules
-
-To import all editor modules at once:
-
-1. Make sure you import the [core modules](#import-core-modules):
-    ```js
-    import Handsontable from 'handsontable/base';
-    // if you bundler allows it, import Handsontable's CSS
-    import 'handsontable/dist/handsontable.full.css';
-    ```
-2. Import the `registerAllEditors` module:
-   ```js
-   import { registerAllEditors } from 'handsontable/editors';
-   ```
-3. Call the `registerAllEditors()` function, which:
-   - Imports all editor modules
-   - Registers all editor modules, to let Handsontable recognize them
-   ```js
-   registerAllEditors();
-   ```
-
-A full example:
-
-```js
-import Handsontable from 'handsontable/base';
-import 'handsontable/dist/handsontable.full.css';
-import {
-  registerAllEditors,
-} from 'handsontable/editors';
-
-registerAllEditors();
 ```
 
 ### Renderer modules
@@ -222,11 +189,11 @@ Each renderer module contains a different type of cell renderer:
 | `textRenderer`         | `text`              |
 :::
 
-#### Import a single renderer module
+#### Import a renderer module
 
-To import a single renderer module:
+To import a renderer module:
 
-1. Make sure you import the [core modules](#import-core-modules):
+1. Make sure you import the [base module](#base-module):
     ```js
     import Handsontable from 'handsontable/base';
     // if you bundler allows it, import Handsontable's CSS
@@ -257,39 +224,6 @@ import {
 registerRenderer(autocompleteRenderer);
 ```
 
-#### Import all renderer modules
-
-To import all renderer modules at once:
-
-1. Make sure you import the [core modules](#import-core-modules):
-    ```js
-    import Handsontable from 'handsontable/base';
-    // if you bundler allows it, import Handsontable's CSS
-    import 'handsontable/dist/handsontable.full.css';
-    ```
-2. Import the `registerAllRenderers` module:
-   ```js
-   import { registerAllRenderers } from 'handsontable/renderers';
-   ```
-3. Call the `registerAllRenderers()` function, which:
-   - Imports all renderer modules
-   - Registers all renderer modules, to let Handsontable recognize them
-   ```js
-   registerAllRenderers();
-   ```
-
-A full example:
-
-```js
-import Handsontable from 'handsontable/base';
-import 'handsontable/dist/handsontable.full.css';
-import {
-  registerAllRenderers,
-} from 'handsontable/renderers';
-
-registerAllRenderers();
-```
-
 ### Validator modules
 
 Validator modules contain Handsontable's [cell validators](@/guides/cell-functions/cell-validator.md).
@@ -317,11 +251,11 @@ Each validator module contains a different type of cell validator:
 | `timeValidator`         | `time`               |
 :::
 
-#### Import a single validator module
+#### Import a validator module
 
-To import a single validator module:
+To import a validator module:
 
-1. Make sure you import the [core modules](#import-core-modules):
+1. Make sure you import the [base module](#base-module):
     ```js
     import Handsontable from 'handsontable/base';
     // if you bundler allows it, import Handsontable's CSS
@@ -350,39 +284,6 @@ import {
 } from 'handsontable/validators';
 
 registerValidator(numericValidator);
-```
-
-#### Import all validator modules
-
-To import all validator modules at once:
-
-1. Make sure you import the [core modules](#import-core-modules):
-    ```js
-    import Handsontable from 'handsontable/base';
-    // if you bundler allows it, import Handsontable's CSS
-    import 'handsontable/dist/handsontable.full.css';
-    ```
-2. Import the `registerAllValidators` module:
-   ```js
-   import { registerAllValidators } from 'handsontable/validators';
-   ```
-3. Call the `registerAllValidators()` function, which:
-   - Imports all validator modules
-   - Registers all validator modules, to let Handsontable recognize them
-   ```js
-   registerAllValidators();
-   ```
-
-A full example:
-
-```js
-import Handsontable from 'handsontable/base';
-import 'handsontable/dist/handsontable.full.css';
-import {
-  registerAllValidators,
-} from 'handsontable/validators';
-
-registerAllValidators();
 ```
 
 ### Cell type modules
@@ -422,11 +323,11 @@ Each cell type module contains a different cell type:
 | `TimeCellType`         | `time`          |
 :::
 
-#### Import a single cell type module
+#### Import a cell type module
 
-To import a single cell type module:
+To import a cell type module:
 
-1. Make sure you import the [core modules](#import-core-modules):
+1. Make sure you import the [base module](#base-module):
     ```js
     import Handsontable from 'handsontable/base';
     // if you bundler allows it, import Handsontable's CSS
@@ -455,39 +356,6 @@ import {
 } from 'handsontable/cellTypes';
 
 registerCellType(CheckboxCellType);
-```
-
-#### Import all cell type modules
-
-To import all cell type modules at once:
-
-1. Make sure you import the [core modules](#import-core-modules):
-    ```js
-    import Handsontable from 'handsontable/base';
-    // if you bundler allows it, import Handsontable's CSS
-    import 'handsontable/dist/handsontable.full.css';
-    ```
-2. Import the `registerAllCellTypes` module:
-   ```js
-   import { registerAllCellTypes } from 'handsontable/cellTypes';
-   ```
-3. Call the `registerAllCellTypes()` function, which:
-   - Imports all cell type modules
-   - Registers all cell type modules, to let Handsontable recognize them
-   ```js
-   registerAllCellTypes();
-   ```
-
-A full example:
-
-```js
-import Handsontable from 'handsontable/base';
-import 'handsontable/dist/handsontable.full.css';
-import {
-  registerAllCellTypes,
-} from 'handsontable/cellTypes';
-
-registerAllCellTypes();
 ```
 
 ### Plugin modules
@@ -577,11 +445,11 @@ Each plugin module contains a different plugin:
 | `UndoRedo`                 | [`UndoRedo`](@/api/undoRedo.md)                       |
 :::
 
-#### Import a single plugin module
+#### Import a plugin module
 
-To import a single plugin module:
+To import a plugin module:
 
-1. Make sure you import the [core modules](#import-core-modules):
+1. Make sure you import the [base module](#base-module):
     ```js
     import Handsontable from 'handsontable/base';
     // if you bundler allows it, import Handsontable's CSS
@@ -610,39 +478,6 @@ import {
 } from 'handsontable/plugins';
 
 registerPlugin(ContextMenu);
-```
-
-#### Import all plugin modules
-
-To import all plugin modules at once:
-
-1. Make sure you import the [core modules](#import-core-modules):
-    ```js
-    import Handsontable from 'handsontable/base';
-    // if you bundler allows it, import Handsontable's CSS
-    import 'handsontable/dist/handsontable.full.css';
-    ```
-2. Import the `registerAllPlugins` module:
-   ```js
-   import { registerAllPlugins } from 'handsontable/plugins';
-   ```
-3. Call the `registerAllPlugins()` function, which:
-   - Imports all plugin modules
-   - Registers all plugin modules, to let Handsontable recognize them
-   ```js
-   registerAllPlugins();
-   ```
-
-A full example:
-
-```js
-import Handsontable from 'handsontable/base';
-import 'handsontable/dist/handsontable.full.css';
-import {
-  registerAllPlugins,
-} from 'handsontable/plugins';
-
-registerAllPlugins();
 ```
 
 ### Translation modules
@@ -696,11 +531,11 @@ Each translation module contains a different translation package:
 | `zhTW` | Chinese - Taiwan            |
 :::
 
-#### Import a single translation module
+#### Import a translation module
 
-To import a single translation module:
+To import a translation module:
 
-1. Make sure you import the [core modules](#import-core-modules):
+1. Make sure you import the [base module](#base-module):
     ```js
     import Handsontable from 'handsontable/base';
     // if you bundler allows it, import Handsontable's CSS
@@ -751,7 +586,7 @@ See how to import and register all of Handsontable's modules:
 
 ::: details Import and register all modules
 ```js
-// core modules
+// the base module
 import Handsontable from 'handsontable/base';
 
 // editor modules

@@ -202,7 +202,7 @@ module.exports = {
     { title: 'Formulas', children: formulasItems },
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
-    { title: 'Building and tooling', children: buildingAndToolingItems },
+    { title: 'Tools and building', children: buildingAndToolingItems },
     { title: 'Optimization', children: optimizationItems },
     { title: 'Security', children: securityItems },
     { title: 'Technical specification', children: technicalSpecificationItems },

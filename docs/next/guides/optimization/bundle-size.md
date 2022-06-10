@@ -15,7 +15,7 @@ Use modules and optimize Moment.js, to reduce Handsontable's bundle size.
 
 ## Use modules
 
-To reduce the bundle size and JavaScript parsing time, import only those of Handsontable's [modules](@/guides/building-and-tooling/modules.md#list-of-all-modules) that you actually use, instead of importing the complete package.
+To reduce the bundle size and JavaScript parsing time, import only those of Handsontable's [modules](@/guides/building-and-tooling/modules.md) that you actually use, instead of importing the complete package.
 
 The following example shows how to import and register the [`ContextMenu`](@/api/contextMenu.md) plugin.
 
