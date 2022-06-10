@@ -278,6 +278,15 @@ export class TopOverlay extends Overlay {
     let newY = this.getTableParentOffset();
     let scrollbarCompensation = 0;
 
+    if (bottomEdge) {
+      const rowHeight = this.wot.wtTable.getRowHeight(sourceRow);
+      const viewportHeight = this.wot.wtViewport.getViewportHeight();
+
+      if (rowHeight > viewportHeight) {
+        bottomEdge = false;
+      }
+    }
+
     if (bottomEdge && mainHolder.offsetHeight !== mainHolder.clientHeight) {
       scrollbarCompensation = getScrollbarWidth(this.domBindings.rootDocument);
     }

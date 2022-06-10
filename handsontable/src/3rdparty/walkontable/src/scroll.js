@@ -11,12 +11,28 @@ import {
  */
 class Scroll {
   /**
-   * Tha data access object.
+   * The data access object.
    *
    * @protected
    * @type {ScrollDao}
    */
   dataAccessObject;
+  /**
+   * Holds the last column reached by the scroll, which determines the scroll snapping direction
+   * (left or right) for a next horizontal scroll.
+   *
+   * @protected
+   * @type {number}
+   */
+  lastScrolledColumnPos = -1;
+  /**
+   * Holds the last row reached by the scroll, which determines the scroll snapping direction
+   * (top or bottom) for a next vertical scroll.
+   *
+   * @protected
+   * @type {number}
+   */
+  lastScrolledRowPos = -1;
 
   /**
    * @param {ScrollDao} dataAccessObject Tha data access object.
@@ -36,10 +52,6 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
-    if (coords.col < 0 || coords.row < 0) {
-      return false;
-    }
-
     const scrolledHorizontally = this.scrollViewportHorizontally(coords.col, snapToRight, snapToLeft);
     const scrolledVertically = this.scrollViewportVertically(coords.row, snapToTop, snapToBottom);
 
@@ -55,26 +67,47 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
-    if (!this.dataAccessObject.drawn) {
+    const {
+      drawn,
+      totalColumns
+    } = this.dataAccessObject;
+
+    // do not scroll the viewport when the column points to a range outside of the dataset
+    if (!drawn || !Number.isInteger(column) || column < 0 || column > totalColumns) {
       return false;
     }
 
+    const firstVisibleColumn = this.getFirstVisibleColumn();
+    const lastVisibleColumn = this.getLastVisibleColumn();
+    const autoSnapping = snapToRight === void 0 && snapToLeft === void 0;
     const {
       fixedColumnsStart,
       inlineStartOverlay,
-      totalColumns,
     } = this.dataAccessObject;
+
+    // for auto-snapping (both snap* arguments are undefined) do not scroll the viewport
+    // when the columns points to the overlays
+    if (autoSnapping && column < fixedColumnsStart) {
+      return false;
+    }
+
     let result = false;
 
-    if (column >= 0 && column <= Math.max(totalColumns - 1, 0)) {
-      const firstVisibleColumn = this.getFirstVisibleColumn();
-      const lastVisibleColumn = this.getLastVisibleColumn();
+    // if there is no fully visible columns use the supporting variable (lastScrolledColumnPos) to
+    // determine the snapping direction (left or right)
+    if (firstVisibleColumn === -1) {
+      result = inlineStartOverlay
+        .scrollTo(column, autoSnapping ? column > this.lastScrolledColumnPos : snapToRight);
 
-      if (column >= fixedColumnsStart && firstVisibleColumn > -1 && (column < firstVisibleColumn || snapToLeft)) {
-        result = inlineStartOverlay.scrollTo(column);
-      } else if (lastVisibleColumn === -1 || lastVisibleColumn > -1 && (column > lastVisibleColumn || snapToRight)) {
-        result = inlineStartOverlay.scrollTo(column, true);
-      }
+    } else if (autoSnapping && (column < firstVisibleColumn || column > lastVisibleColumn) || !autoSnapping) {
+      // if there is at least one fully visible column determine the snapping direction based on
+      // that columns or by snapToRight/snapToLeft flags, if provided.
+      result = inlineStartOverlay
+        .scrollTo(column, autoSnapping ? column > lastVisibleColumn : snapToRight);
+    }
+
+    if (result) {
+      this.lastScrolledColumnPos = column;
     }
 
     return result;
@@ -89,28 +122,46 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewportVertically(row, snapToTop, snapToBottom) {
-    if (!this.dataAccessObject.drawn) {
+    const {
+      drawn,
+      totalRows
+    } = this.dataAccessObject;
+
+    // do not scroll the viewport when the row points to a range outside of the dataset
+    if (!drawn || !Number.isInteger(row) || row < 0 || row > totalRows) {
       return false;
     }
 
+    const firstVisibleRow = this.getFirstVisibleRow();
+    const lastVisibleRow = this.getLastVisibleRow();
+    const autoSnapping = snapToTop === void 0 && snapToBottom === void 0;
     const {
       fixedRowsBottom,
       fixedRowsTop,
       topOverlay,
-      totalRows,
     } = this.dataAccessObject;
+
+    // for auto-snapping (both snap* arguments are undefined) do not scroll the viewport
+    // when the rows points to the overlays
+    if (autoSnapping && (row < fixedRowsTop || row > totalRows - fixedRowsBottom - 1)) {
+      return false;
+    }
+
     let result = false;
 
-    if (row >= 0 && row <= Math.max(totalRows - 1, 0)) {
-      const firstVisibleRow = this.getFirstVisibleRow();
-      const lastVisibleRow = this.getLastVisibleRow();
+    // if there is no fully visible rows use the supporting variable (lastScrolledRowPos) to
+    // determine the snapping direction (top or bottom)
+    if (firstVisibleRow === -1) {
+      result = topOverlay.scrollTo(row, autoSnapping ? row > this.lastScrolledRowPos : snapToBottom);
 
-      if (row >= fixedRowsTop && firstVisibleRow > -1 && (row < firstVisibleRow || snapToTop)) {
-        result = topOverlay.scrollTo(row);
-      } else if (lastVisibleRow === -1 || lastVisibleRow > -1 &&
-                ((row > lastVisibleRow && row < totalRows - fixedRowsBottom) || snapToBottom)) {
-        result = topOverlay.scrollTo(row, true);
-      }
+    } else if (autoSnapping && (row < firstVisibleRow || row > lastVisibleRow) || !autoSnapping) {
+      // if there is at least one fully visible row determine the snapping direction based on
+      // that rows or by snapToTop/snapToBottom flags, if provided.
+      result = topOverlay.scrollTo(row, autoSnapping ? row > lastVisibleRow : snapToBottom);
+    }
+
+    if (result) {
+      this.lastScrolledRowPos = row;
     }
 
     return result;
