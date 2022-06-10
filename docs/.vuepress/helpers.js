@@ -1,10 +1,8 @@
-const fs = require('fs');
 const path = require('path');
 const semver = require('semver');
 
-const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
-  .filter(f => semver.valid(semver.coerce(f)));
-
+// TODO: fetch release versions list from GH API
+const unsortedVersions = ['9.0', '10.0', '11.0', '11.1', '12.0'];
 const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
 
 /**
@@ -29,44 +27,40 @@ function getLatestVersion() {
 }
 
 /**
+ * Checks if this documentation build points to the latest available version of the documentation.
+ *
+ * @returns {boolean}
+ */
+function isThisDocsTheLatestVersion() {
+  return getLatestVersion() === getThisDocsVersion();
+}
+
+/**
+ * Gets the current (this) version of docs.
+ *
+ * @returns {string}
+ */
+function getThisDocsVersion() {
+  // TODO: fetch the version from the branch name?
+  return '9.0';
+}
+
+/**
  * Gets the sidebar object for docs.
  *
- * @param {string} buildMode The env name.
  * @returns {object}
  */
-function getSidebars(buildMode) {
+function getSidebars() {
   const sidebars = { };
-  const versions = getVersions(buildMode);
 
-  versions.forEach((version) => {
-    // eslint-disable-next-line
-    const s = require(path.join(__dirname, `../${version}/sidebars.js`));
+  // eslint-disable-next-line
+  const s = require(path.join(__dirname, '../content/sidebars.js'));
 
-    sidebars[`/${version}/examples/`] = s.examples;
-    sidebars[`/${version}/api/`] = s.api;
-    sidebars[`/${version}/`] = s.guides;
-  });
+  sidebars['/content/examples/'] = s.examples;
+  sidebars['/content/api/'] = s.api;
+  sidebars['/content/'] = s.guides;
 
   return sidebars;
-}
-
-/**
- * Parses the docs version from the URL.
- *
- * @param {string} url The URL to parse.
- * @returns {string}
- */
-function parseVersion(url) {
-  return url.split('/')[1] || this.getLatestVersion();
-}
-
-/**
- * Gets docs version that is currently building (based on the environment variable).
- *
- * @returns {string}
- */
-function getBuildDocsVersion() {
-  return process.env.DOCS_VERSION;
 }
 
 /**
@@ -81,8 +75,8 @@ function getDocsBaseUrl() {
 module.exports = {
   getVersions,
   getLatestVersion,
+  isThisDocsTheLatestVersion,
+  getThisDocsVersion,
   getSidebars,
-  parseVersion,
-  getBuildDocsVersion,
   getDocsBaseUrl,
 };

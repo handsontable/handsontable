@@ -72,10 +72,9 @@ const getPreviewTab = (id, cssContent, htmlContent, code) => {
 
 module.exports = {
   type: 'example',
-  render(tokens, index, opts, env) {
+  render(tokens, index, opts, env, renderer, version) {
     const token = tokens[index];
     const m = token.info.trim().match(EXAMPLE_REGEX);
-    const version = env.relativePath.split('/')[0];
 
     if (token.nesting === 1 && m) { // open preview
       let [, , id, klass, preset, args] = m;
