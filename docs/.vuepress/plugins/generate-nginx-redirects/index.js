@@ -29,7 +29,6 @@ module.exports = (options, context) => {
       } catch (ex) {
         logger.error(`Something bad happens while writing to the file (${outputFile}): ${ex}`);
       }
-
     },
 
     /**
