@@ -19,7 +19,7 @@ To use modules with Handsontable's [Vue 3 wrapper](@/guides/integrate-with-vue3/
 
 ### Step 1: Import core modules
 
-No matter which [optional modules](@/guides/building-and-tooling/modules.md#optional-modules) you use, you need to import the [core modules](@/guides/building-and-tooling/modules.md#core-modules).
+No matter which [optional modules](@/guides/tools-and-building/modules.md#optional-modules) you use, you need to import the [core modules](@/guides/tools-and-building/modules.md#core-modules).
 
 In the entry point file of your application, import the `handsontable/base` module:
 
@@ -31,9 +31,9 @@ import Handsontable from 'handsontable/base';
 
 Import optional modules of your choice, along with their registering functions.
 
-- [Optional modules](@/guides/building-and-tooling/modules.md#optional-modules)
-- [List of all modules](@/guides/building-and-tooling/modules.md#list-of-all-modules)
-- [List of all module imports](@/guides/building-and-tooling/modules.md#list-of-all-module-imports)
+- [Optional modules](@/guides/tools-and-building/modules.md#optional-modules)
+- [List of all modules](@/guides/tools-and-building/modules.md#list-of-all-modules)
+- [List of all module imports](@/guides/tools-and-building/modules.md#list-of-all-module-imports)
 
 For example, to import the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type module and the [`UndoRedo`](@/api/undoRedo.md) plugin module:
 
@@ -87,5 +87,5 @@ createApp(App).use(router).mount('#app');
 
 ## Related guides
 
-- [Modules](@/guides/building-and-tooling/modules.md)
+- [Modules](@/guides/tools-and-building/modules.md)
 - [Bundle size](@/guides/optimization/bundle-size.md)

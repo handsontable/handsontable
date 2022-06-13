@@ -10,7 +10,7 @@ import { isObjectEqual } from '../../helpers/object';
  * [Configuration options](@/guides/getting-started/setting-options.md) let you heavily customize your Handsontable instance. For example, you can:
  *
  * - Enable and disable built-in features
- * - Enable and configure additional [plugins](@/guides/building-and-tooling/custom-plugins.md)
+ * - Enable and configure additional [plugins](@/guides/tools-and-building/custom-plugins.md)
  * - Personalize Handsontable's look
  * - Adjust Handsontable's behavior
  * - Implement your own custom features

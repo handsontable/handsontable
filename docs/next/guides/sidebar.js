@@ -148,12 +148,12 @@ const internationalizationItems = [
 ];
 
 const buildingAndToolingItems = [
-  'guides/building-and-tooling/packages',
-  'guides/building-and-tooling/modules',
-  'guides/building-and-tooling/custom-plugins',
-  'guides/building-and-tooling/custom-builds',
-  'guides/building-and-tooling/testing',
-  'guides/building-and-tooling/folder-structure',
+  'guides/tools-and-building/packages',
+  'guides/tools-and-building/modules',
+  'guides/tools-and-building/custom-plugins',
+  'guides/tools-and-building/custom-builds',
+  'guides/tools-and-building/testing',
+  'guides/tools-and-building/folder-structure',
 ];
 
 const optimizationItems = [

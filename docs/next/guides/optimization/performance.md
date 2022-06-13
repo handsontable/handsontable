@@ -77,7 +77,7 @@ See the [batch operations](@/guides/optimization/batch-operations.md) page to fi
 - [Batch operations](@/guides/optimization/batch-operations.md)
 - [Row virtualization](@/guides/rows/row-virtualization.md)
 - [Column virtualization](@/guides/columns/column-virtualization.md)
-- [Modules](@/guides/building-and-tooling/modules.md)
+- [Modules](@/guides/tools-and-building/modules.md)
 - [Bundle size](@/guides/optimization/bundle-size.md)
 
 ### Related API reference

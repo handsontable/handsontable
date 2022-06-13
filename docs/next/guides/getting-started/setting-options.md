@@ -79,7 +79,7 @@ Configuration options can come from:
 * Handsontable's [plugins](@/api/plugins.md)
 * Handsontable's [hooks](@/api/hooks.md)
 
-If you use Handsontable through [modules](@/guides/building-and-tooling/modules.md): to use an option that comes from a Handsontable plugin, you need to import and register that plugin when initializing your Handsontable instance.
+If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, you need to import and register that plugin when initializing your Handsontable instance.
 
 To find out if an option comes from a plugin, check the `Category` label in the [configuration options' API reference](@/api/options.md).
 
@@ -99,7 +99,7 @@ const hot = new Handsontable(container, {
 ```
 
 ::: tip
-If you use Handsontable through [modules](@/guides/building-and-tooling/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
+If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 :::
 
 #### Example
@@ -179,7 +179,7 @@ To apply configuration options to an individual column (or a range of columns), 
     ```
 
 ::: tip
-If you use Handsontable through [modules](@/guides/building-and-tooling/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
+If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 :::
 
 #### Example
@@ -281,7 +281,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
     ```
 
 ::: tip
-If you use Handsontable through [modules](@/guides/building-and-tooling/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
+If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 :::
 
 #### Example
@@ -372,7 +372,7 @@ To apply configuration options to individual cells, use the [`cell`](@/api/optio
     ```
 
 ::: tip
-If you use Handsontable through [modules](@/guides/building-and-tooling/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
+If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 :::
 
 #### Example
