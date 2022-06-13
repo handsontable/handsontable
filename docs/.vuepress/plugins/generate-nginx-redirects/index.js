@@ -41,8 +41,8 @@ module.exports = (options, context) => {
         logger.error('The "currentVersion" and/or "latestVersion" is not set.');
       }
 
-      if ($page.latestVersion && $page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
-        const from = dedupeSlashes(`/${$page.latestVersion}${$page.frontmatter.permalink}/`);
+      if ($page.frontmatter.permalink) {
+        const from = dedupeSlashes(`${$page.frontmatter.permalink}/`);
         const to = dedupeSlashes(`/${context.base}${$page.frontmatter.permalink}/`);
 
         // http://nginx.org/en/docs/http/ngx_http_rewrite_module.html#rewrite
