@@ -14,6 +14,7 @@ tags:
 [[toc]]
 
 ## Overview
+
 The following guide provides information on using a data source and manipulating how the data is displayed in the data grid.
 
 ## Compatible data types

@@ -2,6 +2,7 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/introduction' },
   { path: 'guides/getting-started/demo' },
   { path: 'guides/getting-started/installation' },
+  { path: 'guides/getting-started/react-simple-example', onlyFor: ['react'] },
   { path: 'guides/getting-started/binding-to-data' },
   { path: 'guides/getting-started/saving-data' },
   { path: 'guides/getting-started/setting-options' },

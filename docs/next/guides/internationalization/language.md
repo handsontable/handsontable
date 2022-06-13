@@ -70,6 +70,7 @@ To properly use the internationalization feature, you'll need to load the langua
 
 Please right click on a cell to see the translated context menu. Language files were loaded after loading Handsontable.
 
+::: only-for javascript
 ::: example #example1 :hot-lang
 ```js
 const container = document.querySelector('#example1');
@@ -90,6 +91,158 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+:::
+:::
+
+::: only-for react
+::: tip
+Note that the `language` property is bound to the component separately using `language={this.language}"`, but it could be included in the `settings` property just as well.
+:::
+:::
+
+::: only-for react
+::: example #example1 :react-languages
+```jsx
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { getLanguagesDictionaries } from 'handsontable/i18n';
+import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: createSpreadsheetData(5, 10),
+  colHeaders: true,
+  rowHeaders: true,
+  contextMenu: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () => {
+  const [language, setLanguage] = useState('en-US');
+  const [languageList, setLanguageList] = useState([]);
+
+  useEffect(() => {
+    setLanguageList(getLanguagesDictionaries());
+  }, []);
+
+  const updateHotLanguage = event => {
+    setLanguage(event.target.value);
+  };
+
+  return (
+    <div>
+      <label htmlFor="languages">Select language:
+        {' '}
+        <select value={language} onChange={updateHotLanguage} id="languages">
+          {languageList.map(({ languageCode }) => (
+            <option key={languageCode} value={languageCode}>
+              {languageCode}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <br/>
+      <br/>
+
+      <HotTable language={language} settings={hotSettings}/>
+    </div>
+  );
+}
+
+ReactDOM.render(<App/>, document.getElementById('example1'));
+```
+:::
+:::
+
+::: only-for react
+### Demo: Different currencies
+:::
+
+::: only-for react
+::: example #example2 :react-numbro
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable, HotColumn } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+import 'handsontable/dist/handsontable.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+import numbro from 'numbro';
+import languages from 'numbro/dist/languages.min.js';
+
+// register the languages you need
+numbro.registerLanguage(languages['ja-JP']);
+numbro.registerLanguage(languages['tr-TR']);
+
+// define formats
+const formatJP = {
+  pattern: '0,0.00 $',
+  culture: 'ja-JP'
+};
+
+const formatTR = {
+  pattern: '0,0.00 $',
+  culture: 'tr-TR'
+};
+
+const hotSettings = {
+  data: [
+    {
+      productName: 'Product A',
+      JP_price: 1.32,
+      TR_price: 100.56
+    },
+    {
+      productName: 'Product B',
+      JP_price: 2.22,
+      TR_price: 453.5
+    },
+    {
+      productName: 'Product C',
+      JP_price: 3.1,
+      TR_price: 678.1
+    }
+  ],
+  autoRowSize: false,
+  autoColumnSize: false,
+  colHeaders: ['Product name', 'Price in Japan', 'Price in Turkey'],
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+}
+
+const App = () => {
+  return (
+    <HotTable settings={hotSettings}>
+      <HotColumn data="productName" type="text" width="120" />
+      <HotColumn
+        data="JP_price"
+        type="numeric"
+        numericFormat={formatJP}
+        width="120"
+      />
+      <HotColumn
+        data="TR_price"
+        type="numeric"
+        numericFormat={formatTR}
+        width="120"
+      />
+    </HotTable>
+  )
+}
+
+ReactDOM.render(<App />, document.getElementById('example1'));
+```
+:::
 :::
 
 ## List of translatable features
