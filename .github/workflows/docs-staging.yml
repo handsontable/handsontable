@@ -6,6 +6,8 @@ env:
 
 on:
   push:
+    branches:
+      - '!docs-snapshot/**'
     paths:
       - 'docs/**'
   workflow_dispatch:
