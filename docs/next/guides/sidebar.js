@@ -10,20 +10,6 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/license-key' },
 ];
 
-const integrateWithReactItems = [
-  { path: 'guides/integrate-with-react/react-installation' },
-  { path: 'guides/integrate-with-react/react-simple-example' },
-  { path: 'guides/integrate-with-react/react-modules' },
-  { path: 'guides/integrate-with-react/react-hot-column' },
-  { path: 'guides/integrate-with-react/react-setting-up-a-language' },
-  { path: 'guides/integrate-with-react/react-custom-context-menu-example' },
-  { path: 'guides/integrate-with-react/react-custom-editor-example' },
-  { path: 'guides/integrate-with-react/react-custom-renderer-example' },
-  { path: 'guides/integrate-with-react/react-language-change-example' },
-  { path: 'guides/integrate-with-react/react-redux-example' },
-  { path: 'guides/integrate-with-react/react-hot-reference' },
-];
-
 const integrateWithAngularItems = [
   { path: 'guides/integrate-with-angular/angular-installation' },
   { path: 'guides/integrate-with-angular/angular-simple-example' },
@@ -188,26 +174,9 @@ const upgradeAndMigrationItems = [
 
 const sidebar = [
   { title: 'Getting Started', children: gettingStartedItems },
-  {
-    title: 'Integrate with React',
-    children: integrateWithReactItems,
-    onlyFor: ['react'],
-  },
-  {
-    title: 'Integrate with Angular',
-    children: integrateWithAngularItems,
-    onlyFor: ['javascript'],
-  },
-  {
-    title: 'Integrate with Vue 2',
-    children: integrateWithVueItems,
-    onlyFor: ['javascript'],
-  },
-  {
-    title: 'Integrate with Vue 3',
-    children: integrateWithVue3Items,
-    onlyFor: ['javascript'],
-  },
+  { title: 'Integrate with Angular', children: integrateWithAngularItems, onlyFor: ['javascript'] },
+  { title: 'Integrate with Vue 2', children: integrateWithVueItems, onlyFor: ['javascript'] },
+  { title: 'Integrate with Vue 3', children: integrateWithVue3Items, onlyFor: ['javascript'], },
   { title: 'Columns', children: columnsItems },
   { title: 'Rows', children: rowsItems },
   { title: 'Cell Features', children: cellFeaturesItems },
