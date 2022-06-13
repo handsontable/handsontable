@@ -582,9 +582,181 @@ The table below lists all of Handsontable's modules:
 
 ## List of all module imports
 
-See how to import and register all of Handsontable's modules:
+To quickly register all modules in bulk, use these registering functions:
+- `registerAllEditors()`
+- `registerAllRenderers()`
+- `registerAllValidators()`
+- `registerAllCellTypes()`
+- `registerAllPlugins()`
+- `registerAllModules()`
 
-::: details Import and register all modules
+::: details Import and register all modules in bulk
+```js
+// the base module
+import Handsontable from 'handsontable/base';
+
+// editor modules
+import {
+  AutocompleteEditor,
+  BaseEditor,
+  CheckboxEditor,
+  DateEditor,
+  DropdownEditor,
+  HandsontableEditor,
+  NumericEditor,
+  PasswordEditor,
+  SelectEditor,
+  TextEditor,
+} from 'handsontable/editors';
+
+// renderer modules
+import {
+  baseRenderer,
+  autocompleteRenderer,
+  checkboxRenderer,
+  htmlRenderer,
+  numericRenderer,
+  passwordRenderer,
+  textRenderer,
+} from 'handsontable/renderers';
+
+// validator modules
+import {
+  autocompleteValidator,
+  dateValidator,
+  numericValidator,
+  timeValidator,
+} from 'handsontable/validators';
+
+// cell type modules
+import {
+  AutocompleteCellType,
+  CheckboxCellType,
+  DateCellType,
+  DropdownCellType,
+  HandsontableCellType,
+  NumericCellType,
+  PasswordCellType,
+  TextCellType,
+  TimeCellType,
+} from 'handsontable/cellTypes';
+
+// plugin modules
+import {
+  AutoColumnSize,
+  AutoRowSize,
+  Autofill,
+  BasePlugin,
+  BindRowsWithHeaders,
+  CollapsibleColumns,
+  ColumnSorting,
+  ColumnSummary,
+  Comments,
+  ContextMenu,
+  CopyPaste,
+  CustomBorders,
+  DragToScroll,
+  DropdownMenu,
+  ExportFile,
+  Filters,
+  Formulas,
+  HiddenColumns,
+  HiddenRows,
+  ManualColumnFreeze,
+  ManualColumnMove,
+  ManualColumnResize,
+  ManualRowMove,
+  ManualRowResize,
+  MergeCells,
+  MultiColumnSorting,
+  MultipleSelectionHandles,
+  NestedHeaders,
+  NestedRows,
+  PersistentState,
+  Search,
+  TouchScroll,
+  TrimRows,
+  UndoRedo,
+} from 'handsontable/plugins';
+
+// translation modules
+import {
+  deCH,
+  deDE,
+  enUS,
+  esMX,
+  frFR,
+  itIT,
+  jaJP,
+  koKR,
+  lvLV,
+  nbNO,
+  nlNL,
+  plPL,
+  ptBR,
+  ruRU,
+  zhCN,
+  zhTW,
+} from 'handsontable/i18n';
+
+// registering functions that let you quickly register all modules at once
+import {
+  registerAllEditors,
+  registerAllRenderers,
+  registerAllValidators,
+  registerAllCellTypes,
+  registerAllPlugins,
+  registerAllModules,
+} from 'handsontable/registry'
+
+// register individual translations
+registerLanguageDictionary(arAR);
+registerLanguageDictionary(deCH);
+registerLanguageDictionary(deDE);
+registerLanguageDictionary(enUS);
+registerLanguageDictionary(esMX);
+registerLanguageDictionary(frFR);
+registerLanguageDictionary(itIT);
+registerLanguageDictionary(jaJP);
+registerLanguageDictionary(koKR);
+registerLanguageDictionary(lvLV);
+registerLanguageDictionary(nbNO);
+registerLanguageDictionary(nlNL);
+registerLanguageDictionary(plPL);
+registerLanguageDictionary(ptBR);
+registerLanguageDictionary(ruRU);
+registerLanguageDictionary(zhCN);
+registerLanguageDictionary(zhTW);
+
+// register all editors at once
+registerAllEditors();
+
+// register all renderers at once
+registerAllRenderers();
+
+// register all validators at once
+registerAllValidators();
+
+// register all cell types at once
+registerAllCellTypes();
+
+// register all plugins at once
+registerAllPlugins();
+
+// or, register all of Handsontable's modules at once
+registerAllModules();
+```
+:::
+
+To register individual modules explicitly, use these registering functions:
+- `registerEditor()`
+- `registerRenderer()`
+- `registerValidator()`
+- `registerCellType()`
+- `registerPlugin()`
+- `registerLanguageDictionary()`
+
+::: details Import and register all modules explicitly
 ```js
 // the base module
 import Handsontable from 'handsontable/base';
@@ -627,6 +799,7 @@ import {
 
 // cell type modules
 import {
+  registerCellType, // cell types' registering function
   AutocompleteCellType,
   CheckboxCellType,
   DateCellType,
@@ -636,7 +809,6 @@ import {
   PasswordCellType,
   TextCellType,
   TimeCellType,
-  registerCellType, // cell types' registering function
 } from 'handsontable/cellTypes';
 
 // plugin modules
@@ -699,16 +871,6 @@ import {
   zhTW,
 } from 'handsontable/i18n';
 
-// registering functions that let you quickly register all modules at once
-import {
-  registerAllEditors,
-  registerAllRenderers,
-  registerAllValidators,
-  registerAllCellTypes,
-  registerAllPlugins,
-  registerAllModules,
-} from 'handsontable/registry'
-
 // register individual translations
 registerLanguageDictionary(arAR);
 registerLanguageDictionary(deCH);
@@ -739,8 +901,6 @@ registerEditor(NumericEditor);
 registerEditor(PasswordEditor);
 registerEditor(SelectEditor);
 registerEditor(TextEditor);
-// or, register all editors at once
-registerAllEditors();
 
 // register individual renderers
 registerRenderer(baseRenderer);
@@ -750,16 +910,12 @@ registerRenderer(htmlRenderer);
 registerRenderer(numericRenderer);
 registerRenderer(passwordRenderer);
 registerRenderer(textRenderer);
-// or, register all renderers at once
-registerAllRenderers();
 
 // register individual validators
 registerValidator(autocompleteValidator);
 registerValidator(dateValidator);
 registerValidator(numericValidator);
 registerValidator(timeValidator);
-// or, register all validators at once
-registerAllValidators();
 
 // register individual cell types
 registerCellType(AutocompleteCellType);
@@ -771,8 +927,6 @@ registerCellType(NumericCellType);
 registerCellType(PasswordCellType);
 registerCellType(TimeCellType);
 registerCellType(TextCellType);
-// or, register all cell types at once
-registerAllCellTypes();
 
 // register individual plugins
 registerPlugin(AutoColumnSize);
@@ -808,11 +962,6 @@ registerPlugin(Search);
 registerPlugin(TouchScroll);
 registerPlugin(TrimRows);
 registerPlugin(UndoRedo);
-// or, register all plugins at once
-registerAllPlugins();
-
-// or, register all of Handsontable's modules at once
-registerAllModules();
 ```
 :::
 
