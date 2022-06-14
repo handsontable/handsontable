@@ -331,12 +331,12 @@ To import a cell type module:
     ```js
     import {
       registerCellType,
-      CheckboxCellType,
+      NumericCellType,
     } from 'handsontable/cellTypes';
     ```
 3. Register your cell type module, to let Handsontable recognize it. For example:
     ```js
-    registerCellType(CheckboxCellType);
+    registerCellType(NumericCellType);
     ```
 
 A full example:
@@ -346,10 +346,10 @@ import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 import {
   registerCellType,
-  CheckboxCellType,
+  NumericCellType,
 } from 'handsontable/cellTypes';
 
-registerCellType(CheckboxCellType);
+registerCellType(NumericCellType);
 ```
 
 ### Plugin modules
