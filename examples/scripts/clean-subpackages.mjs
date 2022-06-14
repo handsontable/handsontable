@@ -5,19 +5,9 @@ import rimraf from 'rimraf';
 import { promisify } from 'util';
 
 const rimrafPromisified = promisify(rimraf);
-
 const [version] = process.argv.slice(2);
 
-(async() => {
-  if (!version) {
-    console.log(`Removing:
-    ./node_modules
-    ./package-lock.json`);
-
-    rimraf.sync('./node_modules');
-    rimraf.sync('./package-lock.json');
-  }
-
+if (version) {
   console.log(`Removing:
   ${version}/**/(js|ts|angular|angular-*|react|vue)/node_modules
   ${version}/**/(js|ts|angular|angular-*|react|vue)/**/node_modules
@@ -34,4 +24,11 @@ const [version] = process.argv.slice(2);
   removes.push(rimrafPromisified(`${version}/@(!(node_modules))/+(js|ts|angular|angular-*|react|vue)/package-lock.json`));
 
   await Promise.all(removes);
-})();
+} else {
+  console.log(`Removing:
+  ./node_modules
+  ./package-lock.json`);
+
+  rimraf.sync('./node_modules');
+  rimraf.sync('./package-lock.json');
+}
