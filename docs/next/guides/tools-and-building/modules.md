@@ -24,7 +24,7 @@ To make this possible, Handsontable is divided into modules.
 To get the most out of using Handsontable's modules:
 1. Import the [base module](#base-module).
 2. Import [optional modules](#optional-modules) of your choice.
-3. Remove redundant code (tree shaking).
+3. Remove redundant code (so-called tree shaking).
 
 #### Use modules in frameworks
 
@@ -48,15 +48,11 @@ If Handsontable's modules don't work with your bundler, report it as a [bug](htt
 
 ## Base module
 
-No matter which of the optional modules you use, the base module (`handsontable/base`) is always required.
+No matter which of the optional modules you use, you always need to import the base module (`handsontable/base`).
 
 The base module covers:
 - Handsontable's core functionalities
 - The default cell type: [`text`](@/guides/cell-types/cell-type.md#available-cell-types)
-- Required dependencies:
-  - [moment.js](https://momentjs.com/) (you can easily [optimize](@/guides/optimization/bundle-size.md#optimize-moment-js) its size)
-  - [DOMpurify](https://www.npmjs.com/package/dompurify)
-  - [core-js](https://www.npmjs.com/package/core-js)
 
 ### Import the base module
 
