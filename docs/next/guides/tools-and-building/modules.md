@@ -55,7 +55,7 @@ No matter which of the optional modules you use, you always need to import the b
 ### Import the base module
 
 To import the base module:
-1. Import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the full bundle).
+1. Import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the full distribution [package](@/guides/tools-and-building/packages.md)).
 2. If your bundler allows it, import Handsontable's CSS file as a whole (just like when you [install](@/guides/getting-started/installation.md) Handsontable).
 
 ```js
