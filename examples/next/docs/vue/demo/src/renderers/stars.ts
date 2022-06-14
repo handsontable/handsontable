@@ -1,7 +1,8 @@
 import Handsontable from "handsontable";
 import { baseRenderer } from "handsontable/renderers";
 
-export const starsRenderer: typeof baseRenderer = (
+export const starsRenderer: typeof baseRenderer = function(
+  this: Handsontable,
   instance,
   td,
   row,
@@ -9,7 +10,7 @@ export const starsRenderer: typeof baseRenderer = (
   prop,
   value,
   cellProperties
-) => {
+) {
   Handsontable.renderers.TextRenderer.apply(this, [
     instance,
     td,

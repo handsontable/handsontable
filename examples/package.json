@@ -18,7 +18,7 @@
   },
   "internal": {
     "framework_dirs": [
-      "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|ts|angular|react|vue)"
+      "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|ts|angular|angular-*|react|vue)"
     ]
   }
 }
