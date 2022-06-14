@@ -15,9 +15,9 @@ Import just the modules that you actually need, to reduce Handsontable's impact 
 
 To use modules with Handsontable's [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation.md), follow the steps below:
 
-### Step 1: Import core modules
+### Step 1: Import base modules
 
-No matter which [optional modules](@/guides/tools-and-building/modules.md#optional-modules) you use, you need to import the [core modules](@/guides/tools-and-building/modules.md#core-modules).
+No matter which [optional modules](@/guides/tools-and-building/modules.md#optional-modules) you use, you need to import the [base module](@/guides/tools-and-building/modules.md#base-module).
 
 In the entry point file of your application, import the `handsontable/base` module:
 
