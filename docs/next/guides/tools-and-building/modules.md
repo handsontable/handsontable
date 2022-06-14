@@ -34,7 +34,7 @@ To find out how to use modules with Handsontable's framework wrappers, see the f
 - [Modules in Vue 2](@/guides/integrate-with-vue/vue-modules.md)
 - [Modules in Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)
 
-### Bundler support
+#### Bundler support
 
 To use Handsontable's modules, your environment needs to support the `import` syntax, which is typically provided by a bundler.
 
