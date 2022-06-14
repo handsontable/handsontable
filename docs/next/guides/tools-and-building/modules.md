@@ -150,13 +150,13 @@ Each cell type module is made of:
 - An [editor](@/guides/cell-functions/cell-editor.md) module
 - A [validator](@/guides/cell-functions/cell-validator.md) module (optionally)
 
-You can import renderer, editor, and validator modules individually.
-For the full list of those modules, see the [List of all modules](#list-of-all-modules) section.
-
 ::: tip
 To find out which renderer, editor, and validator a given cell type is made of,
 see the API reference of the [`type`](@/api/options.md#type) configuration option.
 :::
+
+You can import renderer, editor, and validator modules individually.
+For the full list of those modules, see the [List of all modules](#list-of-all-modules) section.
 
 For example, you can import the `numeric` cell type as a whole:
 
