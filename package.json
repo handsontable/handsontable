@@ -59,7 +59,7 @@
     "data-spreadsheet"
   ],
   "dependencies": {
-    "moment": "2.20.1",
+    "moment": "2.29.3",
     "numbro": "^2.0.6",
     "pikaday": "1.5.1"
   },
