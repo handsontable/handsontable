@@ -48,9 +48,7 @@ If Handsontable's modules don't work with your bundler, report it as a [bug](htt
 
 ## Base module
 
-No matter which of the optional modules you use, you always need to import the base module (`handsontable/base`).
-
-The base module covers:
+No matter which of the optional modules you use, you always need to import the base module (`handsontable/base`), which covers:
 - Handsontable's core functionalities
 - The default cell type: [`text`](@/guides/cell-types/cell-type.md#available-cell-types)
 
