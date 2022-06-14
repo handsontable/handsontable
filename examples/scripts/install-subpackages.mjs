@@ -34,21 +34,27 @@ if (!version) {
   for (const frameworkPackage of thisPackageJson.internal.framework_dirs) {
     const frameworkUrls = glob.sync(`${frameworkPackage}`);
 
+    const installs = [];
+
     for (const frameworkUrl of frameworkUrls) {
       if ((version && frameworkUrl.startsWith(version))) {
         console.log(`\nRunning npm install for ${frameworkUrl}:\n`);
 
-        await execa('npm', ['install', '--no-audit'], {
+        installs.push(execa('npm', ['install', '--no-audit'], {
           cwd: frameworkUrl,
           stdio: 'inherit'
-        });
+        }));
       }
     }
 
+    await Promise.all(installs);
+
     // Link the main-level packages from the base ./node_modules to the local ./node_modules (to be read by the
     // examples).
-    await spawnProcess(
-      `node --experimental-json-modules ./scripts/link-packages.mjs --f js ts angular angular-9 angular-10 react vue --examples-version ${version}`
-    );
+    await spawnProcess([
+      'node --experimental-json-modules ./scripts/link-packages.mjs',
+      '--f js ts angular angular-9 angular-10 angular-11 react vue',
+      `--examples-version ${version}`,
+    ].join(' '));
   }
 })();
