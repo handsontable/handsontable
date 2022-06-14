@@ -101,7 +101,7 @@ Note that the `language` property is bound to the component separately using `la
 :::
 
 ::: only-for react
-::: example #example1 :react-languages
+::: example #example2 :react-languages
 ```jsx
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
@@ -155,7 +155,7 @@ const App = () => {
   );
 }
 
-ReactDOM.render(<App/>, document.getElementById('example1'));
+ReactDOM.render(<App/>, document.getElementById('example2'));
 ```
 :::
 :::
@@ -165,7 +165,7 @@ ReactDOM.render(<App/>, document.getElementById('example1'));
 :::
 
 ::: only-for react
-::: example #example2 :react-numbro
+::: example #example3 :react-numbro
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -240,7 +240,7 @@ const App = () => {
   )
 }
 
-ReactDOM.render(<App />, document.getElementById('example1'));
+ReactDOM.render(<App />, document.getElementById('example3'));
 ```
 :::
 :::
