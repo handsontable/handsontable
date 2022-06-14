@@ -1,14 +1,7 @@
 const babelPresetConfig = () => ({
-  targets: {
-    chrome: '41',
-    firefox: '34',
-    ie: '9',
-    safari: '9'
-  },
   modules: false,
   debug: false,
-  useBuiltIns: 'usage',
-  corejs: 3,
+  useBuiltIns: false,
 });
 
 module.exports = {
