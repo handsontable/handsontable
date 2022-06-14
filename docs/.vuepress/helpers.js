@@ -186,6 +186,10 @@ function getNormalizedPath(normalizedPath) {
     return normalizedPath.replace(new RegExp(`^/?${TMP_DIR_FOR_WATCH}`), '');
   }
 
+  if (normalizedPath[0] !== '/') {
+    normalizedPath = `/${normalizedPath}`;
+  }
+
   return normalizedPath;
 }
 
@@ -296,9 +300,7 @@ function getIgnoredFilesPatterns(buildMode) {
  * @returns {string}
  */
 function parseVersion(url) {
-  const urlVersionSectionIndex = isEnvDev() ? 1 : 0;
-
-  return getNormalizedPath(url).split('/')[urlVersionSectionIndex] || getLatestVersion();
+  return getNormalizedPath(url).split('/')[1] || getLatestVersion();
 }
 
 /**

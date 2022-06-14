@@ -14,7 +14,7 @@ const generatePrefixes = (version, framework) => {
   );
 
   const versionPrefix = !isLatestVersion || version === 'next' ? `${version}/` : '';
-  const frameworkPrefix = `${framework}-data-grid/`;
+  const frameworkPrefix = framework ? `${framework}-data-grid/` : '';
 
   return {
     versionPrefix,

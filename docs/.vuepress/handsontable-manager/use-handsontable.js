@@ -8,7 +8,7 @@ const {
 const ATTR_VERSION = 'data-hot-version';
 
 const useHandsontable = (version, callback = () => {}, preset = 'hot') => {
-  const framework = isBrowser ? window.location.pathname.match(/([a-z]+)-data-grid/)?.[1] : null;
+  const framework = isBrowser ? window.location.pathname.match(/([a-z]+)-data-grid/)?.[1] : void 0;
   const getDependency = buildDependencyGetter(version, framework);
 
   const loadDependency = dep => new Promise((resolve) => {
