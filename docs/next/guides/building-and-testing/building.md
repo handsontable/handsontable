@@ -27,9 +27,9 @@ The Handsontable repository is a monorepo that contains the following projects:
 | ----------------------- | -------------------- | -------------------------------------------------------------------------- |
 | `handsontable`          | `./handsontable`     | Main Handsontable project                                                  |
 | `@handsontable/angular` | `./wrappers/angular` | [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md) |
-| `@handsontable/react`   | `./wrappers/react`   | [React wrapper](@/guides/integrate-with-react/react-installation.md)       |
+| `@handsontable/react`   | `./wrappers/react`   | [React wrapper](https://handsontable.com/docs/react-data-grid)             |
 | `@handsontable/vue`     | `./wrappers/vue`     | [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation.md)           |
-| `@handsontable/vue3`    | `./wrappers/vue3`    | [Vue 3 wrapper](@/guides/integrate-with-vue3/vue3-installation.md)          |
+| `@handsontable/vue3`    | `./wrappers/vue3`    | [Vue 3 wrapper](@/guides/integrate-with-vue3/vue3-installation.md)         |
 
 All the projects are released together, under the same version number.
 But each project has its own [building](#building-processes) and [testing](@/guides/building-and-testing/testing.md) processes.

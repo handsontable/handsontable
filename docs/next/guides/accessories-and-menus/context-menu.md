@@ -215,11 +215,12 @@ const hot = new Handsontable(container, {
 
 - [Adding comments via the context menu](@/guides/cell-features/comments.md#adding-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
-- [Custom context menu in React](@/guides/integrate-with-react/react-custom-context-menu-example.md)
+- [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
+::: only-for javascript
 - [Custom context menu in Angular](@/guides/integrate-with-angular/angular-custom-context-menu-example.md)
 - [Custom context menu in Vue 2](@/guides/integrate-with-vue/vue-custom-context-menu-example.md)
 - [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example.md)
-- [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
+:::
 
 ### Related blog articles
 

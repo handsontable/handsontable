@@ -736,7 +736,6 @@ const hot = new Handsontable(container, {
 
 ### Related guides
 
-- [Custom editor in React](@/guides/integrate-with-react/react-custom-editor-example.md)
 - [Custom editor in Angular](@/guides/integrate-with-angular/angular-custom-editor-example.md)
 - [Custom editor in Vue 2](@/guides/integrate-with-vue/vue-custom-editor-example.md)
 - [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example.md)
