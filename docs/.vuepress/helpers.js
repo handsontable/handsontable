@@ -11,6 +11,12 @@ const TMP_DIR_FOR_WATCH = '.watch-tmp';
 const MIN_FRAMEWORKED_DOCS_VERSION = '12.1.0';
 const FRAMEWORK_SUFFIX = '-data-grid';
 
+// Please keep in mind that the first element is default framework.
+const frameworkToPrettyName = new Map([
+  ['javascript', 'JavaScript'],
+  ['react', 'React'],
+]);
+
 /**
  * Get whether we work in dev mode (watch script).
  *
@@ -64,7 +70,7 @@ function getVersions(buildMode) {
  * @returns {string[]}
  */
 function getFrameworks() {
-  return ['javascript', 'react', 'angular', 'vue2', 'vue3'];
+  return Array.from(frameworkToPrettyName.keys());
 }
 
 /**
@@ -73,7 +79,17 @@ function getFrameworks() {
  * @returns {string}
  */
 function getDefaultFramework() {
-  return 'javascript';
+  return getFrameworks()[0];
+}
+
+/**
+ * Get pretty framework name.
+ *
+ * @param {string} framework Framework ID.
+ * @returns {string}
+ */
+function getPrettyFrameworkName(framework) {
+  return frameworkToPrettyName.get(framework);
 }
 
 /**
@@ -170,6 +186,10 @@ function getNormalizedPath(normalizedPath) {
     return normalizedPath.replace(new RegExp(`^/?${TMP_DIR_FOR_WATCH}`), '');
   }
 
+  if (normalizedPath[0] !== '/') {
+    normalizedPath = `/${normalizedPath}`;
+  }
+
   return normalizedPath;
 }
 
@@ -215,24 +235,62 @@ function getNotSearchableLinks(buildMode) {
 
     getDocsFrameworkedVersions(buildMode).forEach((version) => {
       frameworks.forEach((framework) => {
+        if (typeof notSearchableLinks[framework] !== 'object') {
+          notSearchableLinks[framework] = {};
+        }
+
         // eslint-disable-next-line
         const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-        notSearchableLinks[version] = filterLinks(sidebarConfig.guides, framework);
+        notSearchableLinks[framework][version] = filterLinks(sidebarConfig.guides, framework);
       });
     });
 
   } else {
-    getVersions(buildMode).forEach((version) => {
-      // eslint-disable-next-line
-      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
-      const framework = getEnvDocsFramework();
+    const version = getEnvDocsVersion();
+    const framework = getEnvDocsFramework();
+    // eslint-disable-next-line
+    const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
 
-      notSearchableLinks[version] = filterLinks(sidebarConfig.guides, framework);
-    });
+    if (framework !== void 0) {
+      notSearchableLinks[framework] = {
+        [version]: filterLinks(sidebarConfig.guides, framework),
+      };
+
+    } else {
+      notSearchableLinks[version] = filterLinks(sidebarConfig.guides);
+    }
   }
 
   return notSearchableLinks;
+}
+
+/**
+ * Get ignored files for particular build.
+ *
+ * Note: Please keep in mind that this method is useful only for full build.
+ *
+ * @param {string} buildMode The env name.
+ * @returns {Array<string>}
+ */
+function getIgnoredFilesPatterns(buildMode) {
+  if (isEnvDev() === false) {
+    const notSearchableLinks = getNotSearchableLinks(buildMode);
+    const version = getEnvDocsVersion();
+    const framework = getEnvDocsFramework();
+    let ignoredFiles;
+
+    if (framework !== void 0) {
+      ignoredFiles = notSearchableLinks[framework][version];
+
+    } else {
+      ignoredFiles = notSearchableLinks[version];
+    }
+
+    return ignoredFiles.map(excludedPath => `!${version}/${excludedPath}.md`);
+  }
+
+  return [];
 }
 
 /**
@@ -298,12 +356,22 @@ function createSymlinks(buildMode) {
   }
 }
 
+/**
+ * Gets docs base url (eq: https://handsontable.com).
+ *
+ * @returns {string}
+ */
+function getDocsBaseUrl() {
+  return `https://${process.env.BUILD_MODE === 'staging' ? 'dev.' : ''}handsontable.com`;
+}
+
 module.exports = {
   TMP_DIR_FOR_WATCH,
   FRAMEWORK_SUFFIX,
   getNormalizedPath,
   getVersions,
   getFrameworks,
+  getPrettyFrameworkName,
   getDocsFrameworkedVersions,
   getDocsNonFrameworkedVersions,
   getLatestVersion,
@@ -315,5 +383,7 @@ module.exports = {
   getEnvDocsVersion,
   getDefaultFramework,
   isEnvDev,
-  createSymlinks
+  createSymlinks,
+  getDocsBaseUrl,
+  getIgnoredFilesPatterns,
 };

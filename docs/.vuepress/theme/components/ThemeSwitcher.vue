@@ -2,7 +2,7 @@
   <label id="switch" class="switch">
     <div class="inner">
       <input type="checkbox" v-on:change="toggleTheme" id="slider" :checked="isDarkTheme">
-      <span class="slider round"></span>
+      <span :style="sliderCustomCssProps" class="slider round"></span>
     </div>
   </label>
 </template>
@@ -39,6 +39,10 @@ export default {
     return {
       isDarkTheme: null,
       htmlDomEl: null,
+      sliderCustomCssProps: {
+        '--light-icon-url': `url('${this.$router.options.base}/img/light-theme-icon.svg')`,
+        '--dark-icon-url': `url('${this.$router.options.base}/img/dark-theme-icon.svg')`
+      }
     };
   },
   beforeMount() {
@@ -136,14 +140,15 @@ export default {
   height: 26px;
   width: 26px;
   left: 0px;
-  bottom: 4px;
   top: 0;
   bottom: 0;
   margin: auto 0;
   -webkit-transition: 0.4s;
   transition: 0.4s;
   box-shadow: 0 0px 3px #2020203d;
-  background: #ffffff url('/docs/img/light-theme-icon.svg');
+  /* Fallback for IE, should work in production */
+  background: #ffffff url('/docs/javascript-data-grid/img/light-theme-icon.svg');
+  background: #ffffff var(--light-icon-url);
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;
@@ -161,7 +166,9 @@ input:checked + .slider:before {
   -webkit-transform: translateX(16px);
   -ms-transform: translateX(16px);
   transform: translateX(16px);
-  background: #ffffff url('/docs/img/dark-theme-icon.svg');
+  /* Fallback for IE, should work in production */
+  background: #ffffff url('/docs/javascript-data-grid/img/dark-theme-icon.svg');
+  background: #ffffff var(--dark-icon-url);
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;

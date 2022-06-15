@@ -2,10 +2,10 @@ const JSFIDDLE_ENDPOINT = 'https://jsfiddle.net/api/post/library/pure/';
 
 const { getDependencies } = require('../../handsontable-manager');
 
-const jsfiddle = (id, html, code, css, version, preset) => {
+const jsfiddle = (id, html, code, css, version, preset, framework) => {
   const isBabelPanel = preset.includes('react') || preset.includes('vue');
   const isAngularPanel = preset.includes('angular');
-  const imports = getDependencies(version, preset).reduce(
+  const imports = getDependencies(version, preset, framework).reduce(
     (p, c) =>
       p +
       (c[0] ? `<script src="${c[0]}"></script>\n` : '') +

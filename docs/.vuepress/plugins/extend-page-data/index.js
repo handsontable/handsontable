@@ -4,6 +4,8 @@ const {
   getNormalizedPath,
   parseVersion,
   parseFramework,
+  getDocsBaseUrl,
+  getPrettyFrameworkName,
   getEnvDocsFramework,
   getEnvDocsVersion,
   getDocsFrameworkedVersions,
@@ -52,17 +54,28 @@ module.exports = (options, context) => {
       $page.frameworkedVersions = getDocsFrameworkedVersions(buildMode);
       $page.nonFrameworkedVersions = getDocsNonFrameworkedVersions(buildMode);
       $page.latestVersion = getLatestVersion();
+      $page.baseUrl = getDocsBaseUrl();
       $page.currentVersion = parseVersion($page.normalizedPath);
       // Framework isn't stored in PATH for full build. However, it's defined in ENV variable.
       $page.currentFramework = DOCS_FRAMEWORK || parseFramework($page.normalizedPath);
+      $page.frameworkName = getPrettyFrameworkName($page.currentFramework);
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.isFrameworked = getDocsFrameworkedVersions(buildMode).includes($page.currentVersion);
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
-      $page.isSearchable = notSearchableLinks[$page.currentVersion]?.every((notSearchableLink) => {
-        return $page.normalizedPath.includes(notSearchableLink) === false;
-      });
+      $page.isEnvDev = isEnvDev();
+
+      if ($page.currentFramework !== void 0) {
+        $page.isSearchable =
+          notSearchableLinks[$page.currentFramework][$page.currentVersion]?.every(
+            notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);
+
+      } else {
+        $page.isSearchable =
+          notSearchableLinks[$page.currentVersion]?.every(
+            notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);
+      }
 
       const isFrameworked = $page.isFrameworked;
       const buildingSingleVersion = DOCS_VERSION !== void 0 && (DOCS_FRAMEWORK !== void 0 || DOCS_FRAMEWORK === void 0

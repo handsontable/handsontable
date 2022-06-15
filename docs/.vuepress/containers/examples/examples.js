@@ -9,7 +9,8 @@ const { buildCode } = require('./code-builder');
 const { jsfiddle } = require('./jsfiddle');
 const {
   getDefaultFramework,
-  isEnvDev
+  isEnvDev,
+  parseVersion
 } = require('../../helpers');
 const {
   getContainerFrontMatterLength,
@@ -88,7 +89,7 @@ module.exports = {
   render(tokens, index, opts, env) {
     const token = tokens[index];
     const m = token.info.trim().match(EXAMPLE_REGEX);
-    const version = env.relativePath.split('/')[0];
+    const version = parseVersion(env.relativePath);
 
     if (token.nesting === 1 && m) { // open preview
       let [, , id, klass, preset, args] = m;
@@ -188,7 +189,7 @@ module.exports = {
       tokens.splice(index + 1, 0, ...newTokens);
 
       return `
-          ${!noEdit ? jsfiddle(id, htmlContent, jsContent, cssContent, version, preset) : ''}
+          ${!noEdit ? jsfiddle(id, htmlContent, jsContent, cssContent, version, preset, framework) : ''}
           <tabs
             :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
             cache-lifetime="0"
