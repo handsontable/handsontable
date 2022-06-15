@@ -125,7 +125,7 @@ import Handsontable from 'handsontable';
 
 If you're using Handsontable as a traditional UMD package, import the full distribution of Handsontable as a minified JavaScript file.
 
-Use a `script` tag. For example, if you're loading Handsontable's JavaScript from a CDN:
+Use the `script` tag. For example, if you're loading Handsontable's JavaScript from a CDN:
 
 ```html
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
@@ -147,7 +147,7 @@ If your bundler allows it, you can import Handsontable's full distribution CSS f
 import 'handsontable/dist/handsontable.full.css';
 ```
 
-### Using a `link` tag
+### Using the `link` tag
 
 You can also import Handsontable's CSS using a link tag:
 
@@ -157,7 +157,7 @@ You can also import Handsontable's CSS using a link tag:
 
 ## Create a container
 
-In your HTML, add an empty `div` tag, which serves as a container for your Handsontable instance.
+In your HTML, add an empty `div`, which serves as a container for your Handsontable instance.
 
 ```html
 <div id="my-container"></div>
