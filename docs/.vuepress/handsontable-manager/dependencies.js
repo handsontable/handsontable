@@ -1,13 +1,37 @@
+const semver = require('semver');
+const {
+  version: currentHandsontableVersion
+} = require('../../../handsontable/package.json');
+
 // eslint-disable-next-line no-restricted-globals
 const isBrowser = (typeof window !== 'undefined');
 
 const formatVersion = version => (/^\d+\.\d+$/.test(version) ? version : 'latest');
-const getHotUrls = (version) => {
+const generatePrefixes = (version, framework) => {
+  const isLatestVersion = semver.satisfies(
+    semver.coerce(version)?.version,
+    semver.coerce(currentHandsontableVersion)?.version.replace(/\.([a-z0-9]|-)+$/, '.x')
+  );
+
+  const versionPrefix = !isLatestVersion || version === 'next' ? `${version}/` : '';
+  const frameworkPrefix = framework ? `${framework}-data-grid/` : '';
+
+  return {
+    versionPrefix,
+    frameworkPrefix
+  };
+};
+const getHotUrls = (version, framework) => {
+  const {
+    versionPrefix,
+    frameworkPrefix
+  } = generatePrefixes(version, framework);
+
   if (version === 'next' && isBrowser) {
     return {
-      handsontableJs: '/docs/handsontable/handsontable.full.js',
-      handsontableCss: '/docs/handsontable/handsontable.full.css',
-      languagesJs: '/docs/handsontable/languages/all.js'
+      handsontableJs: `/docs/${versionPrefix}${frameworkPrefix}handsontable/handsontable.full.js`,
+      handsontableCss: `/docs/${versionPrefix}${frameworkPrefix}handsontable/handsontable.full.css`,
+      languagesJs: `/docs/${versionPrefix}${frameworkPrefix}handsontable/languages/all.js`
     };
   }
 
@@ -19,13 +43,26 @@ const getHotUrls = (version) => {
     languagesJs: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/languages/all.js`
   };
 };
-const getCommonScript = (scriptName) => {
+const getCommonScript = (scriptName, version, framework) => {
+  const {
+    versionPrefix,
+    frameworkPrefix
+  } = generatePrefixes(version, framework);
+
   if (isBrowser) {
     // eslint-disable-next-line no-restricted-globals
-    return [`${window.location.origin}/docs/scripts/${scriptName}.js`, ['require', 'exports']];
+    return [
+      `${window.location.origin}/docs/${versionPrefix}${frameworkPrefix}scripts/${scriptName}.js`,
+      ['require', 'exports']
+    ];
+
   }
 
-  return [`https://handsontable.com/docs/scripts/${scriptName}.js`, ['require', 'exports']];
+  return [
+    `https://handsontable.com/docs/${versionPrefix}${frameworkPrefix}scripts/${scriptName}.js`,
+    ['require', 'exports']
+  ];
+
 };
 
 /**
@@ -33,14 +70,15 @@ const getCommonScript = (scriptName) => {
  * The function `buildDependencyGetter` is the best place to care about that.
  *
  * @param {string} version The current selected documentation version.
+ * @param {string} framework The current selected documentation framework.
  * @returns {Function} Returns a function factory with the signature
  *                     `{function(dependency: string): [string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?]`.
  */
-const buildDependencyGetter = (version) => {
-  const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version);
+const buildDependencyGetter = (version, framework) => {
+  const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version, framework);
   const mappedVersion = formatVersion(version);
-  const fixer = getCommonScript('fixer');
-  const helpers = getCommonScript('helpers');
+  const fixer = getCommonScript('fixer', version, framework);
+  const helpers = getCommonScript('helpers', version, framework);
 
   return (dependency) => {
     /* eslint-disable max-len */
@@ -109,8 +147,8 @@ const presetMap = {
   /* eslint-enable max-len */
 };
 
-const getDependencies = (version, preset) => {
-  const getter = buildDependencyGetter(version);
+const getDependencies = (version, preset, framework) => {
+  const getter = buildDependencyGetter(version, framework);
 
   if (!Array.isArray(presetMap[preset])) {
     throw new Error(`The preset "${preset}" was not found.`);
@@ -119,4 +157,9 @@ const getDependencies = (version, preset) => {
   return presetMap[preset].map(x => getter(x));
 };
 
-module.exports = { getDependencies, buildDependencyGetter, presetMap };
+module.exports = {
+  isBrowser,
+  getDependencies,
+  buildDependencyGetter,
+  presetMap
+};
