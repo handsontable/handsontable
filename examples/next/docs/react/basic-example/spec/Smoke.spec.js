@@ -21,7 +21,6 @@ describe('Smoke check', () => {
   it('should render Handsontable', async () => {
     const hotCell = await page.$('.handsontable td');
 
-    // assertion
     await expect(hotCell).toBeTruthy();
   });
 });
