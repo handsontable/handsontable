@@ -5,7 +5,7 @@
 #  It's triggered on the "push" event to the develop branch or manual dispatching from the "Actions" tab on GitHub.
 #
 #  Depending on the version of the examples (recognized from the modified files or provided in the dispatch prompt), it
-#    either builds only the versioned examples or Handsontable + the framework wrappers before it:
+#  either builds only the versioned examples or Handsontable + the framework wrappers before it:
 #
 #  - Semver-compliant version (eg. 11.0.0, 10.1.0):
 #      - Installs the dependencies of examples for the provided versions and all wrappers
@@ -17,7 +17,7 @@
 #      - Builds the examples
 #
 #  After the above steps are finished, the example builds are gathered and deployed to the `examples` directory on the
-#    `gh-pages` branch.
+#  `gh-pages` branch.
 #
 #  The structure of the examples on the `gh-pages` branch should look as follows:
 #
@@ -336,7 +336,7 @@ jobs:
       fail-fast: false
       matrix:
         version: ${{fromJson(needs.prepare-matrix.outputs.versions)}}
-        framework: [angular, js, react, vue, vue3, ts]
+        framework: [angular, angular-9, angular-10, angular-11, angular-12, angular-13, js, react, vue, vue3, ts]
 
     env:
       FRAMEWORK_EXAMPLES_PATH: examples/${{ matrix.version }}/docs/${{ matrix.framework }}

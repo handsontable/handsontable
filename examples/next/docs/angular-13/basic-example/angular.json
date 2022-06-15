@@ -31,7 +31,11 @@
               "node_modules/handsontable/dist/handsontable.full.css"
             ],
             "scripts": [],
-            "preserveSymlinks": true
+            "preserveSymlinks": true,
+            "allowedCommonJsDependencies": [
+              "core-js",
+              "pikaday"
+            ]
           },
           "configurations": {
             "production": {
