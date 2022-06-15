@@ -11,20 +11,65 @@ tags:
 
 [[toc]]
 
-## Overview
-This guide details how to install Handsontable.
+Install Handsontable in your preferred way.
 
 ::: tip
-This section is dedicated to the pure JavaScript version of Handsontable. If you use a framework in your project, follow one of the available guides to install and use the library:
- - [Integrate with React](@/guides/integrate-with-react/react-installation.md)
- - [Integrate with Angular](@/guides/integrate-with-angular/angular-installation.md)
- - [Integrate with Vue 2](@/guides/integrate-with-vue/vue-installation.md)
- - [Integrate with Vue 3](@/guides/integrate-with-vue3/vue3-installation.md)
+To use Handsontable with a framework, see:
+
+ - [Installation in React](@/guides/integrate-with-react/react-installation.md)
+ - [Installation in Angular](@/guides/integrate-with-angular/angular-installation.md)
+ - [Installation in Vue 2](@/guides/integrate-with-vue/vue-installation.md)
+ - [Installation in Vue 3](@/guides/integrate-with-vue3/vue3-installation.md)
 :::
 
-## Download and install the library
+## Overview
 
-You can install the package locally by running one the following commands in your terminal
+<code-group>
+  <code-block title="npm">
+
+  ```bash
+  npm install handsontable
+  ```
+
+  </code-block>
+  <code-block title="Your HTML">
+
+  ```html
+  <div id="your-container"></div>
+  ```
+
+  </code-block>
+  <code-block title="Your application">
+
+  ```js
+  import Handsontable from 'handsontable';
+  
+  const container = document.getElementById('your-container');
+  
+  const yourHandsontableInstance = new Handsontable(container, {
+    data: Handsontable.helper.createSpreadsheetData(5, 5),
+    licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+  });
+  ```
+
+  </code-block>
+</code-group>
+
+To start using Handsontable in your application:
+
+1. [Install Handsontable](#install-handsontable).
+2. [Import Handsontable's JavaScript into your application](#import-handsontable-s-javascript).
+3. [Import Handsontable's CSS into your application](#import-handsontable-s-css).
+4. [Create an HTML container](#create-a-container).
+5. [Initialize Handsontable](#initialize-handsontable).
+
+## Install Handsontable
+
+Get Handsontable's files in your preferred way.
+
+### Using a package manager
+
+To install Handsontable locally using a package manager, run one of these commands:
 
 <code-group>
   <code-block title="npm">
@@ -41,7 +86,7 @@ You can install the package locally by running one the following commands in you
   ```
 
   </code-block>
-  <code-block title="Nuget">
+  <code-block title="NuGet">
 
   ```bash
   PM> Install-Package Handsontable
@@ -50,36 +95,61 @@ You can install the package locally by running one the following commands in you
   </code-block>
 </code-group>
 
-Alternatively, you can get the files from a CDN, using the following locations:
+### Using a CDN
 
-- https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js
-- https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css
+To get Handsontable's files from a CDN, use the following locations:
 
-## Import JavaScript into your application
+```js
+https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js
 
-If you are using the CommonJS package or the ECMAScript module (from npm, Yarn, etc), import the full distribution into your application as a JavaScript file using the preferred method of your bundler, for example:
+https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css
+```
+
+## Import Handsontable's JavaScript
+
+Import Handsontable's JavaScript into your application.
+
+### Full distribution
+
+#### Using CommonJS or a package manager
+
+If you're using Handsontable as a CommonJS package, or as an ECMAScript module (using a package manager), import the full distribution of Handsontable as a JavaScript file.
+
+Use your bundler's preferred importing method. For example:
 
 ```js
 import Handsontable from 'handsontable';
 ```
 
-For a more optimized build, you can also individual parts of Handsontable using [modules](@/guides/tools-and-building/modules.md).
+#### Using UMD
 
-Alternatively, if you are using the traditional UMD package, import the full distribution into your application as a minified JavaScript file using a script tag. For example, assuming the file is loaded from a CDN, the script tag will be the following:
+If you're using Handsontable as a traditional UMD package, import the full distribution of Handsontable as a minified JavaScript file.
+
+Use a `script` tag. For example, if you're loading Handsontable's JavaScript from a CDN:
 
 ```html
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 ```
 
-## Import CSS into your application
+### Individual modules
 
-If your bundler allows it, you might import Handsontable's full distribution CSS file using an `import` statement.
+For a more optimized build, you can also import individual parts of Handsontable's JavaScript, using [modules](@/guides/tools-and-building/modules.md).
 
-```
+## Import Handsontable's CSS
+
+Import Handsontable's CSS into your application.
+
+### Using `import`
+
+If your bundler allows it, you can import Handsontable's full distribution CSS file using an `import` statement.
+
+```js
 import 'handsontable/dist/handsontable.full.css';
 ```
 
-Otherwise, just use a link tag:
+### Using a `link` tag
+
+You can also import Handsontable's CSS using a link tag:
 
 ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
@@ -87,13 +157,13 @@ Otherwise, just use a link tag:
 
 ## Create a container
 
-Insert an empty div tag in your HTML that will serve as the container for your instance of Handsontable.
+In your HTML, add an empty `div` tag, which serves as a container for your Handsontable instance.
 
 ```html
-<div id="example"></div>
+<div id="my-container"></div>
 ```
 
-## Initialize the grid
+## Initialize Handsontable
 
 Now turn your container into a data grid with sample data.
 ```js
@@ -104,7 +174,7 @@ const data = [
   ['2021', 30, 15, 12, 13]
 ];
 
-const container = document.getElementById('example');
+const container = document.getElementById('my-container');
 const hot = new Handsontable(container, {
   data: data,
   rowHeaders: true,

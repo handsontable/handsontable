@@ -16,7 +16,7 @@ import { isObjectEqual } from '../../helpers/object';
  * - Implement your own custom features
  *
  * To apply [configuration options](@/guides/getting-started/setting-options.md), pass them as
- * a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid),
+ * a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-handsontable),
  * using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
  *
  * ```js
@@ -2519,7 +2519,7 @@ export default () => {
     /**
      * The `layoutDirection` option configures whether Handsontable renders from the left to the right, or from the right to the left.
      *
-     * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
+     * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-handsontable). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
      *
      * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/setting-options.md#setting-grid-options).
      * You can't set it for individual columns, rows, or cells.
