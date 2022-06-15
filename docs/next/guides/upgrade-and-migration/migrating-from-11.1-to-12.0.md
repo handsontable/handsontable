@@ -229,13 +229,13 @@ To emphasize this, we changed the following property name:
 
 | Before                    | After                      |
 | ------------------------- | -------------------------- |
-| `handsontableInstance.wt` | `handsontableInstance._wt` |
+| `handsontableInstance.view.wt` | `handsontableInstance.view._wt` |
 
 #### Migrating to Handsontable 12.0
 
 `_wt` has no public documentation and offers no guarantee against breaking changes.
 
-If you use a private implementation of Handsontable, and you can't avoid referring to Walkontable (for example, in your custom editor or plugin), update your Walkontable references from `handsontableInstance.wt` to `handsontableInstance._wt`.
+If you use a private implementation of Handsontable, and you can't avoid referring to Walkontable (for example, in your custom editor or plugin), update your Walkontable references from `handsontableInstance.view.wt` to `handsontableInstance.view._wt`.
 
 ::: tip
 **New method: [`getEditedCellRect()`](@/api/baseEditor.md#geteditedcellrect)**
