@@ -71,7 +71,7 @@ function serveFiles(PORT) {
  * @param {string} version Version of the docs to look for in.
  * @returns {Promise}
  */
-async function findExampleContainers(version) {
+async function findExampleContainersInFiles(version) {
   return replaceInFiles({
     files: path.join(mdDir, version, '**/*.md'),
     from: /::: example/g,
@@ -98,22 +98,71 @@ async function setupBrowser() {
 }
 
 /**
+ * Get the paths from the `sidebar.js` file along with their inherited `onlyFor` conditions.
+ *
+ * @param {string} version The version being processed.
+ * @returns {object}
+ */
+function fetchPathsWithConditions(version) {
+  const { sidebar } = require(`../../../${version}/guides/sidebar.js`);
+  const paths = {};
+
+  sidebar.forEach((menuEntry) => {
+    menuEntry.children.forEach((childEntry) => {
+      if (!paths[childEntry.path]) {
+        paths[childEntry.path] = {
+          onlyFor: []
+        };
+      }
+
+      const pathEntry = paths[childEntry.path];
+
+      if (childEntry.onlyFor) {
+        pathEntry.onlyFor.push(...childEntry.onlyFor);
+      }
+
+      if (menuEntry.onlyFor) {
+        pathEntry.onlyFor.push(...menuEntry.onlyFor);
+      }
+
+      if (pathEntry.onlyFor.length) {
+        // remove duplicates
+        pathEntry.onlyFor = [...new Set(pathEntry.onlyFor)];
+
+      } else {
+        delete pathEntry.onlyFor;
+      }
+    });
+  });
+
+  return paths;
+}
+
+/**
  * Get the permalinks of all the pages containing the `::: example` container.
  *
- * @param {object} searchResults Search results returned from the `findExampleContainers` function.
+ * @param {object} searchResults Search results returned from the `findExampleContainersInFiles` function.
+ * @param {string} version The version being processed.
+ * @param {object} pathsWithConditions Paths along with their conditional frameworks.
  * @returns {string[]}
  */
-function fetchPermalinks(searchResults) {
+function fetchPermalinks(searchResults, version, pathsWithConditions) {
   const permalinks = [];
 
   searchResults.paths.forEach((filePath) => {
+    const relativePathWithoutExtension = filePath.split(`docs/${version}/`)[1].replace('.md', '');
+    let onlyFor = pathsWithConditions[relativePathWithoutExtension].onlyFor;
+
     const mdFile = fs.readFileSync(filePath, {
       encoding: 'utf8'
     });
 
     const permalink = /permalink: (.*)\n/g.exec(mdFile)[1];
 
-    permalinks.push(permalink);
+    permalinks.push({
+      permalink,
+      onlyFor
+    });
   });
 
   return permalinks;
@@ -156,8 +205,9 @@ module.exports = {
   sleep,
   firstUppercase,
   serveFiles,
-  findExampleContainers,
+  findExampleContainersInFiles,
   setupBrowser,
   fetchPermalinks,
+  fetchPathsWithConditions,
   extendPermalink
 };

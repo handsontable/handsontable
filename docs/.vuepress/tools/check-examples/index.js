@@ -18,9 +18,10 @@ const {
   sleep,
   firstUppercase,
   serveFiles,
-  findExampleContainers,
+  findExampleContainersInFiles,
   setupBrowser,
   fetchPermalinks,
+  fetchPathsWithConditions,
   extendPermalink
 } = require('./helpers');
 const {
@@ -75,8 +76,9 @@ const CHECK_TRIES = 2;
 
   const brokenExamplePaths = [];
   const suspiciousPaths = [];
-  const searchResults = await findExampleContainers(cliVersion);
-  const permalinks = fetchPermalinks(searchResults);
+  const searchResults = await findExampleContainersInFiles(cliVersion);
+  const pathsWithConditions = fetchPathsWithConditions(cliVersion);
+  const permalinks = fetchPermalinks(searchResults, cliVersion, pathsWithConditions);
   const {
     browser,
     page
@@ -91,7 +93,11 @@ const CHECK_TRIES = 2;
     logger.info(`\n${firstUppercase(framework)} flavor:`);
 
     for (let i = 0; i < permalinks.length; i++) {
-      const permalink = extendPermalink(permalinks[i], framework, cliVersion);
+      if (permalinks[i].onlyFor && !permalinks[i].onlyFor.includes(framework)) {
+        continue;
+      }
+
+      const permalink = extendPermalink(permalinks[i].permalink, framework, cliVersion);
 
       await page.goto(`http://localhost:${PORT}/docs${permalink}`, {});
 
