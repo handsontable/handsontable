@@ -227,15 +227,15 @@ Handsontable 12.0.0 makes it clear that Handsontable's rendering engine (`_wt`, 
 
 To emphasize this, we changed the following property name:
 
-| Before        | After          |
-| ------------- | -------------- |
-| `hot.view.wt` | `hot.view._wt` |
+| Before                    | After                      |
+| ------------------------- | -------------------------- |
+| `handsontableInstance.wt` | `handsontableInstance._wt` |
 
 #### Migrating to Handsontable 12.0
 
 `_wt` has no public documentation and offers no guarantee against breaking changes.
 
-If you use a private implementation of Handsontable, and you can't avoid referring to Walkontable (for example, in your custom editor or plugin), update your Walkontable references from `hot.view.wt` to `hot.view._wt`.
+If you use a private implementation of Handsontable, and you can't avoid referring to Walkontable (for example, in your custom editor or plugin), update your Walkontable references from `handsontableInstance.wt` to `handsontableInstance._wt`.
 
 ::: tip
 **New method: [`getEditedCellRect()`](@/api/baseEditor.md#geteditedcellrect)**
