@@ -47,12 +47,14 @@ const FILE_SERVE_TIMEOUT = 300;
 
 /**
  * Timout for the examples to get initialized after loading the page.
+ *
  * @type {number}
  */
 const EXAMPLE_INIT_TIMEOUT = 300;
 
 /**
  * Number of tries to perform if the number of the rendered examples differs from the expected count.
+ *
  * @type {number}
  */
 const CHECK_TRIES = 2;
@@ -86,7 +88,7 @@ const CHECK_TRIES = 2;
 
   logger.info('Checking if the examples got rendered correctly:');
 
-  /* eslint-disable no-await-in-loop */
+  /* eslint-disable no-await-in-loop, no-continue */
   for (let f = 0; f < FRAMEWORKS_TO_CHECK.length; f++) {
     const framework = FRAMEWORKS_TO_CHECK[f];
 
@@ -107,7 +109,7 @@ const CHECK_TRIES = 2;
 
         // If the test fails, do another try after a timeout (some instances might have not been initialized yet).
         while (!pageEvaluation.result && tryCount < CHECK_TRIES) {
-          tryCount++;
+          tryCount += 1;
 
           // Wait for the HOT instances to initialize.
           await sleep(EXAMPLE_INIT_TIMEOUT);

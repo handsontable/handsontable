@@ -104,6 +104,7 @@ async function setupBrowser() {
  * @returns {object}
  */
 function fetchPathsWithConditions(version) {
+  // eslint-disable-next-line import/no-dynamic-require, global-require
   const { sidebar } = require(`../../../${version}/guides/sidebar.js`);
   const paths = {};
 
@@ -151,7 +152,7 @@ function fetchPermalinks(searchResults, version, pathsWithConditions) {
 
   searchResults.paths.forEach((filePath) => {
     const relativePathWithoutExtension = filePath.split(`docs/${version}/`)[1].replace('.md', '');
-    let onlyFor = pathsWithConditions[relativePathWithoutExtension].onlyFor;
+    const onlyFor = pathsWithConditions[relativePathWithoutExtension].onlyFor;
 
     const mdFile = fs.readFileSync(filePath, {
       encoding: 'utf8'
