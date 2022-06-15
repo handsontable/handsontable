@@ -318,7 +318,7 @@ jobs:
   # ------------------------ END --------------------------
 
   install-and-build:
-    name: ${{ matrix.version }} -> ${{ matrix.framework }} - Install and build
+    name: ${{ matrix.version }} -> ${{ matrix.framework }} - Install, build, and test
     needs: [ prepare-matrix, build-handsontable-es-cjs, build-handsontable-umd, build-angular, build-react, build-vue, build-vue3 ]
     if: |
       always() &&
