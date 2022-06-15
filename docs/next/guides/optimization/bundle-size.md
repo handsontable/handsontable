@@ -51,7 +51,6 @@ And then explicitly load Moment.js, importing just those locales that you need:
 
 ```js
 import Handsontable from 'handsontable/base';
-import 'handsontable/dist/handsontable.full.css';
 import { registerCellType, DateCellType } from 'handsontable/cellTypes';
 
 // explicitly import Moment.js

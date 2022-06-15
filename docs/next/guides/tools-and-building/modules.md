@@ -52,17 +52,15 @@ No matter which of the optional modules you use, you always need to import the b
 - Handsontable's core functionalities
 - The default cell type: [`text`](@/guides/cell-types/cell-type.md#available-cell-types)
 
-#### Import the base module
+### Import the base module
 
-1. Import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the full bundle).
-2. If your bundler allows it, import Handsontable's CSS file as a whole (just like when you [install](@/guides/getting-started/installation.md) Handsontable).
-  <br>Otherwise, import Handsontable's stylesheet (`node_modules/handsontable/dist/handsontable.full.css`) in a way that's recommended for your bundler.
+To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the [full distribution package](@/guides/tools-and-building/packages.md)).
 
 ```js
 import Handsontable from 'handsontable/base';
-// if you bundler allows it, import Handsontable's CSS
-import 'handsontable/dist/handsontable.full.css';
 ```
+
+The CSS stylesheets of Handsontable are not modular and should be imported according to the [installation instructions](@/guides/getting-started/installation.md).
 
 Now, you're ready to use any [optional modules](#optional-modules) of your choice.
 
@@ -115,8 +113,6 @@ Each cell type module contains a different cell type:
 1. Make sure you import the [base module](#base-module):
     ```js
     import Handsontable from 'handsontable/base';
-    // if you bundler allows it, import Handsontable's CSS
-    import 'handsontable/dist/handsontable.full.css';
     ```
 2. Import the registering function and a cell type module of your choice. For example:
     ```js
@@ -134,7 +130,6 @@ Each cell type module contains a different cell type:
 
     ```js
     import Handsontable from 'handsontable/base';
-    import 'handsontable/dist/handsontable.full.css';
     import {
       registerCellType,
       NumericCellType,
@@ -162,7 +157,6 @@ For example, you can import the `numeric` cell type as a whole:
 
 ```js
 import Handsontable from 'handsontable/base';
-import 'handsontable/dist/handsontable.full.css';
 import {
   registerCellType,
   NumericCellType,
@@ -185,7 +179,6 @@ Or, you can import the `numeric` cell type's renderer, editor, and validator ind
 
 ```js
 import Handsontable from 'handsontable/base';
-import 'handsontable/dist/handsontable.full.css';
 import {
   registerRenderer,
   numericRenderer,
@@ -309,8 +302,6 @@ Each plugin module contains a different plugin:
 1. Make sure you import the [base module](#base-module):
     ```js
     import Handsontable from 'handsontable/base';
-    // if you bundler allows it, import Handsontable's CSS
-    import 'handsontable/dist/handsontable.full.css';
     ```
 2. Import registering function and a plugin module of your choice. For example:
     ```js
@@ -328,7 +319,6 @@ Each plugin module contains a different plugin:
 
     ```js
     import Handsontable from 'handsontable/base';
-    import 'handsontable/dist/handsontable.full.css';
     import {
       registerPlugin,
       ContextMenu,
@@ -393,8 +383,6 @@ Each translation module contains a different translation package:
 1. Make sure you import the [base module](#base-module):
     ```js
     import Handsontable from 'handsontable/base';
-    // if you bundler allows it, import Handsontable's CSS
-    import 'handsontable/dist/handsontable.full.css';
     ```
 2. Import the registering function and and a translation module of your choice. For example:
     ```js
@@ -412,7 +400,6 @@ Each translation module contains a different translation package:
 
     ```js
     import Handsontable from 'handsontable/base';
-    import 'handsontable/dist/handsontable.full.css';
     import {
       registerLanguageDictionary,
       plPL,
@@ -427,7 +414,7 @@ The table below lists all of Handsontable's modules:
 
 | Type                                                         | Modules                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Required / optional |
 | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| Core functionalities                                         | `handsontable/base`<br>`handsontable/dist/handsontable.full.css`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Required            |
+| Core functionalities                                         | `handsontable/base`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Required            |
 | [Cell types](@/guides/cell-types/cell-type.md)               | `AutocompleteCellType`<br>`CheckboxCellType`<br>`DateCellType`<br>`DropdownCellType`<br>`HandsontableCellType`<br>`NumericCellType`<br>`PasswordCellType`<br>`TextCellType`<br>`TimeCellType`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Optional            |
 | [Cell renderers](@/guides/cell-functions/cell-renderer.md)   | `baseRenderer`<br>`autocompleteRenderer`<br>`checkboxRenderer`<br>`htmlRenderer`<br>`numericRenderer`<br>`passwordRenderer`<br>`textRenderer`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Optional            |
 | [Cell editors](@/guides/cell-functions/cell-editor.md)       | `AutocompleteEditor`<br>`BaseEditor`<br>`CheckboxEditor`<br>`DateEditor`<br>`DropdownEditor`<br>`HandsontableEditor`<br>`NumericEditor`<br>`PasswordEditor`<br>`SelectEditor`<br>`TextEditor`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Optional            |

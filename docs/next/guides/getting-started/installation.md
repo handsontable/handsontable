@@ -24,7 +24,7 @@ This section is dedicated to the pure JavaScript version of Handsontable. If you
 
 ## Download and install the library
 
-Run the following command in your terminal
+You can install the package locally by running one the following commands in your terminal
 
 <code-group>
   <code-block title="npm">
@@ -48,36 +48,54 @@ Run the following command in your terminal
   ```
 
   </code-block>
-  <code-block title="CDN">
-
-  ```html
-  // minified JS
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
-
-  // minified CSS
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
-  ```
-
-  </code-block>
 </code-group>
 
-## Create a placeholder
+Alternatively, you can get the files from a CDN, using the following locations:
+
+- https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js
+- https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css
+
+## Import JavaScript into your application
+
+If you are using the CommonJS package or the ECMAScript module (from npm, Yarn, etc), import the full distribution into your application as a JavaScript file using the preferred method of your bundler, for example:
+
+```js
+import Handsontable from 'handsontable';
+```
+
+For a more optimized build, you can also individual parts of Handsontable using [modules](@/guides/tools-and-building/modules.md).
+
+Alternatively, if you are using the traditional UMD package, import the full distribution into your application as a minified JavaScript file using a script tag. For example, assuming the file is loaded from a CDN, the script tag will be the following:
+
+```html
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+```
+
+## Import CSS into your application
+
+If your bundler allows it, you might import Handsontable's full distribution CSS file using an `import` statement.
+
+```
+import 'handsontable/dist/handsontable.full.css';
+```
+
+Otherwise, just use a link tag:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
+```
+
+## Create a container
+
+Insert an empty div tag in your HTML that will serve as the container for your instance of Handsontable.
 
 ```html
 <div id="example"></div>
 ```
 
-Import JavaScript and CSS into your application. You don't have to do that if you use CDN files.
-```js
-import Handsontable from 'handsontable';
-
-// if you bundler allows it, import Handsontable's CSS
-import 'handsontable/dist/handsontable.full.css';
-```
-
 ## Initialize the grid
 
-Now turn your placeholder into a data grid with sample data.
+Now turn your container into a data grid with sample data.
 ```js
 const data = [
   ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
