@@ -187,7 +187,7 @@ const data = [
   ['2021', 30, 15, 12, 13]
 ];
 
-const container = document.getElementById('my-container');
+const container = document.getElementById('example');
 const hot = new Handsontable(container, {
   data: data,
   rowHeaders: true,
