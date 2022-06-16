@@ -24,7 +24,7 @@ To install Handsontable using a framework, see:
 
 ## Overview
 
-The most common installation boils down to the snippets presented in the tabs below. We will break it down into details further down the page.
+You can get started with Handsontable in a few different ways. The most common is:
 
 <code-group>
   <code-block title="npm">
@@ -44,31 +44,31 @@ The most common installation boils down to the snippets presented in the tabs be
   <code-block title="Your application">
 
   ```js
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.css";
+  import Handsontable from "handsontable";
+  import "handsontable/dist/handsontable.full.css";
 
-const data = [
-  ["", "Tesla", "Volvo", "Toyota", "Ford"],
-  ["2019", 10, 11, 12, 13],
-  ["2020", 20, 11, 14, 13],
-  ["2021", 30, 15, 12, 13],
-];
+  const data = [
+    ["", "Tesla", "Volvo", "Toyota", "Ford"],
+    ["2019", 10, 11, 12, 13],
+    ["2020", 20, 11, 14, 13],
+    ["2021", 30, 15, 12, 13],
+  ];
 
-const container = document.getElementById("example");
+  const container = document.getElementById("example");
 
-const hot = new Handsontable(container, {
-  data: data,
-  rowHeaders: true,
-  colHeaders: true,
-  height: "auto",
-  licenseKey: "non-commercial-and-evaluation", // for non-commercial use only
-});
+  const hot = new Handsontable(container, {
+    data: data,
+    rowHeaders: true,
+    colHeaders: true,
+    height: "auto",
+    licenseKey: "non-commercial-and-evaluation", // for non-commercial use only
+  });
   ```
 
   </code-block>
 </code-group>
 
-To start using Handsontable in your application:
+For more details and other installation methods, follow these steps:
 
 1. [Install Handsontable](#install-handsontable).
 2. [Import Handsontable's JavaScript into your application](#import-handsontable-s-javascript).
@@ -112,19 +112,18 @@ To install Handsontable locally using a package manager, run one of these comman
 
 To get Handsontable's files from a CDN, use the following locations:
 
-```js
-https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js
-
-https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css
-```
+- [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js)
+- [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css)
 
 ## Import Handsontable's JavaScript
 
 Import Handsontable's JavaScript into your application.
 
-### Full distribution
+::: tip
+For a more optimized build, import individual parts of Handsontable's JavaScript, using [modules](@/guides/tools-and-building/modules.md).
+:::
 
-#### Using CommonJS or a package manager
+### Using CommonJS or a package manager
 
 If you're using Handsontable as a CommonJS package, or as an ECMAScript module (using a package manager), import the full distribution of Handsontable as a JavaScript file.
 
@@ -134,7 +133,7 @@ Use your bundler's preferred method of importing files. For example:
 import Handsontable from 'handsontable';
 ```
 
-#### Using the `script` tag
+### Using the `script` tag
 
 If you're using Handsontable as a traditional UMD package, import the full distribution of Handsontable as a minified JavaScript file.
 
@@ -143,10 +142,6 @@ Use the `script` tag. For example, if you're loading Handsontable's JavaScript f
 ```html
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 ```
-
-### Individual modules
-
-For a more optimized build, you can also import individual parts of Handsontable's JavaScript, using [modules](@/guides/tools-and-building/modules.md).
 
 ## Import Handsontable's CSS
 
