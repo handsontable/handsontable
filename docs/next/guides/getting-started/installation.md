@@ -14,7 +14,7 @@ tags:
 Install Handsontable in your preferred way.
 
 ::: tip
-To use Handsontable with a framework, see:
+To install Handsontable using a framework, see:
 
  - [Installation in React](@/guides/integrate-with-react/react-installation.md)
  - [Installation in Angular](@/guides/integrate-with-angular/angular-installation.md)
@@ -115,7 +115,7 @@ Import Handsontable's JavaScript into your application.
 
 If you're using Handsontable as a CommonJS package, or as an ECMAScript module (using a package manager), import the full distribution of Handsontable as a JavaScript file.
 
-Use your bundler's preferred importing method. For example:
+Use your bundler's preferred method of importing files. For example:
 
 ```js
 import Handsontable from 'handsontable';
@@ -141,7 +141,7 @@ Import Handsontable's CSS into your application.
 
 ### Using `import`
 
-If your bundler allows it, you can import Handsontable's full distribution CSS file using an `import` statement.
+If your bundler allows it, you can import Handsontable's full distribution CSS file, using an `import` statement.
 
 ```js
 import 'handsontable/dist/handsontable.full.css';
@@ -206,7 +206,13 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-## Related API reference
+## Related articles
+
+### Related guides
+
+- [Modules](@/guides/tools-and-building/modules.md)
+
+### Related API reference
 
 - Configuration options:
   - [`maxCols`](@/api/options.md#maxcols)

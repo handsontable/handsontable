@@ -54,16 +54,16 @@ No matter which of the optional modules you use, you always need to import the b
 
 ### Import the base module
 
-To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the [full distribution package](@/guides/tools-and-building/packages.md)).
+To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the [full distribution package](@/guides/tools-and-building/packages.md)):
 
 ```js
 import Handsontable from 'handsontable/base';
 ```
 
-The CSS stylesheets of Handsontable are not modular and should be imported according to the [installation instructions](@/guides/getting-started/installation.md).
+Handsontable's CSS stylesheets are not modular. You need to import them separately:
+- [Import Handsontable's CSS](@/guides/getting-started/installation.md#import-handsontable-s-css)
 
 Now, you're ready to use any [optional modules](#optional-modules) of your choice.
-
 ## Optional modules
 
 Handsontable's optional modules are grouped into:
@@ -892,6 +892,7 @@ import { registerLanguageDictionary } from 'handsontable/i18n/registry';
 ### Related guides
 
 - [Bundle size](@/guides/optimization/bundle-size.md)
+- [Installation](@/guides/getting-started/installation.md)
 - [Modules in React](@/guides/integrate-with-react/react-modules.md)
 - [Modules in Angular](@/guides/integrate-with-angular/angular-modules.md)
 - [Modules in Vue 2](@/guides/integrate-with-vue/vue-modules.md)
