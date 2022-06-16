@@ -37,7 +37,7 @@ The most common installation boils down to the snippets presented in the tabs be
   <code-block title="Your HTML">
 
   ```html
-  <div id="your-container"></div>
+  <div id="example"></div>
   ```
 
   </code-block>
