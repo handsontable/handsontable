@@ -173,7 +173,7 @@ You can also import Handsontable's CSS using a link tag:
 In your HTML, add an empty `div`, which serves as a container for your Handsontable instance.
 
 ```html
-<div id="my-container"></div>
+<div id="example"></div>
 ```
 
 ## Initialize Handsontable
