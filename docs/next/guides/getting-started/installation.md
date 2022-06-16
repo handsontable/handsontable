@@ -24,6 +24,8 @@ To install Handsontable using a framework, see:
 
 ## Overview
 
+The most common installation boils down to the snippets presented in the tabs below. We will break it down into details further down the page.
+
 <code-group>
   <code-block title="npm">
 
