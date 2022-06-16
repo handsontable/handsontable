@@ -134,7 +134,7 @@ Use your bundler's preferred method of importing files. For example:
 import Handsontable from 'handsontable';
 ```
 
-#### Using UMD
+#### Using the `script` tag
 
 If you're using Handsontable as a traditional UMD package, import the full distribution of Handsontable as a minified JavaScript file.
 
