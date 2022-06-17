@@ -1,27 +1,3 @@
-const {
-  getDefaultFramework
-} = require('../../helpers');
-const { getContainerFramework } = require('../helpers');
-
-/**
- * When using nested containers (for example, `::: example` inside `::: only-for`, Vuepress mistakenly treats the
- * closing `:::` markup as an actual paragraph, this method removes it.
- *
- * @param {object[]} tokens Array of tokens.
- * @param {number} closingContainerIndex Index of the closing element of he `only-for` container.
- * @returns {object[]}
- */
-function removeLeftoverMarkup(tokens, closingContainerIndex) {
-  if (
-    tokens[closingContainerIndex].markup === ':::' &&
-    tokens[closingContainerIndex + 2].content === ':::'
-  ) {
-    tokens.splice(closingContainerIndex + 1, 3);
-  }
-
-  return tokens;
-}
-
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * Container used to display/hide blocks of content relevant to specific frameworks.
@@ -48,24 +24,4 @@ function removeLeftoverMarkup(tokens, closingContainerIndex) {
  */
 module.exports = {
   type: 'only-for',
-  render(tokens, index, opts, env) {
-    const framework = getContainerFramework(env.relativePath) || getDefaultFramework();
-    const args = tokens[index].info.trim().split(' ');
-
-    if (tokens[index].nesting === 1 && !args.includes(framework)) {
-      const firstBlockTokenIndex = index + 1;
-      let lastBlockTokenIndex = firstBlockTokenIndex;
-
-      while (tokens[lastBlockTokenIndex + 1].markup !== ':::') {
-        lastBlockTokenIndex += 1;
-      }
-
-      tokens.splice(firstBlockTokenIndex, lastBlockTokenIndex - firstBlockTokenIndex + 1);
-
-    } else {
-      tokens = removeLeftoverMarkup(tokens, index);
-    }
-
-    return '';
-  }
 };
