@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - 'docs-snapshot/**'
-  workflow_dispatch:
 
 defaults:
   run:
