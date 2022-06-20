@@ -254,6 +254,10 @@ Handsontable.dom.addEvent(buttonWith, 'click', () => {
 
 ## Related articles
 
+### Related guides
+
+- [Performance](@/guides/optimization/performance.md)
+
 ### Related blog articles
 
 - [Handsontable 8.3.0 has been released](https://handsontable.com/blog/handsontable-8.3.0-has-been-released)

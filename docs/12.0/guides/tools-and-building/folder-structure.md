@@ -1,17 +1,18 @@
 ---
-title: File structure
-metaTitle: File structure - Guide - Handsontable Documentation
-permalink: /12.0/file-structure
-canonicalUrl: /file-structure
+title: Folder structure
+metaTitle: Folder structure - Guide - Handsontable Documentation
+permalink: /12.0/folder-structure
+canonicalUrl: /folder-structure
 tags:
   - directory
   - repository
   - file tree
+  - file structure
   - folders
   - files
 ---
 
-# File structure
+# Folder structure
 
 Handsontable's source files are stored on GitHub, in a mono repository.
 
