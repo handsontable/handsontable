@@ -1,17 +1,17 @@
 ---
-title: Building
-metaTitle: Building - Guide - Handsontable Documentation
-permalink: /12.0/building
-canonicalUrl: /building
+title: Custom builds
+metaTitle: Custom builds - Guide - Handsontable Documentation
+permalink: /12.0/custom-builds
+canonicalUrl: /custom-builds
 tags:
-  - custom build
+  - building
   - bundling
   - contributing
 ---
 
-# Building
+# Custom builds
 
-Learn how to build Handsontable packages, using the available npm tasks.
+Create your own build of Handsontable, using the available npm tasks.
 
 [[toc]]
 
@@ -32,7 +32,7 @@ The Handsontable repository is a monorepo that contains the following projects:
 | `@handsontable/vue3`    | `./wrappers/vue3`    | [Vue 3 wrapper](@/guides/integrate-with-vue3/vue3-installation.md)          |
 
 All the projects are released together, under the same version number.
-But each project has its own [building](#building-processes) and [testing](@/guides/building-and-testing/testing.md) processes.
+But each project has its own [building](#building-processes) and [testing](@/guides/tools-and-building/testing.md) processes.
 
 ### Building processes
 
@@ -285,5 +285,5 @@ From the `./wrappers/vue3` directory, you can also run individual Vue 3 `build` 
 
 ## Related guides
 
-- [Packages](@/guides/building-and-testing/packages.md)
-- [Testing](@/guides/building-and-testing/testing.md)
+- [Packages](@/guides/tools-and-building/packages.md)
+- [Testing](@/guides/tools-and-building/testing.md)
