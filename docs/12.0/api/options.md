@@ -2616,26 +2616,6 @@ _options.layoutDirection : string_
 The `layoutDirection` option configures whether Handsontable renders from the left to the right, or from the right to the left.
 
 You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-handsontable). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
-     *
-     * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/setting-options.md#setting-grid-options).
-     * You can't set it for individual columns, rows, or cells.
-@@ -4460,7 +4460,7 @@ export default () => {
-     * | A number           | Set the offset manually                                 |
-     *
-     * Read more:
-     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
-     *
-     * @memberof Options#
-     * @type {number|string}
-@@ -4488,7 +4488,7 @@ export default () => {
-     * | A number           | Set the offset manually                                 |
-     *
-     * Read more:
-     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
-     * - [Column virtualization](@/guides/columns/column-virtualization.md)
-     *
-     * @memberof Options#
-
 
 You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/setting-options.md#setting-grid-options).
 You can't set it for individual columns, rows, or cells.
@@ -2649,8 +2629,8 @@ You can set the `layoutDirection` option to one of the following strings:
 | `ltr`               | Render Handsontable from the left to the right,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `rtl` |
 
 Read more:
-- [Layout direction &#8594;](@/guides/internationalization/layout-direction.md)
-- [Language &#8594;](@/guides/internationalization/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Language](@/guides/internationalization/language.md)
 - [`language`](#language)
 - [`locale`](#locale)
 - [`fixedColumnsStart`](#fixedcolumnsstart)
