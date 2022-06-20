@@ -1,5 +1,5 @@
 {
-  "name": "handsontable-examples",
+  "name": "handsontable-examples-internal",
   "private": true,
   "version": "12.0.1",
   "scripts": {
@@ -18,7 +18,7 @@
   },
   "internal": {
     "framework_dirs": [
-      "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|ts|angular|react|vue)"
+      "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|ts|angular|angular-*|react|vue)"
     ]
   }
 }
