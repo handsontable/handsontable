@@ -72,7 +72,7 @@ const hot = new Handsontable(container, {
   }
 });
 
-Handsontable.dom.addEvent(load, 'click', () => {
+load.addEventListener('click', () => {
   ajax('/docs/next/scripts/json/load.json', 'GET', '', res => {
     const data = JSON.parse(res.response);
 
@@ -82,7 +82,7 @@ Handsontable.dom.addEvent(load, 'click', () => {
     exampleConsole.innerText = 'Data loaded';
   });
 });
-Handsontable.dom.addEvent(save, 'click', () => {
+save.addEventListener('click', () => {
   // save all cell's data
   ajax('/docs/next/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
     const response = JSON.parse(res.response);
@@ -95,7 +95,7 @@ Handsontable.dom.addEvent(save, 'click', () => {
   });
 });
 
-Handsontable.dom.addEvent(autosave, 'click', () => {
+autosave.addEventListener('click', () => {
   if (autosave.checked) {
     exampleConsole.innerText = 'Changes will be autosaved';
   } else {

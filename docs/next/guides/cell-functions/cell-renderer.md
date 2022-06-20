@@ -167,7 +167,7 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
 
     img.src = value;
 
-    Handsontable.dom.addEvent(img, 'mousedown', event =>{
+    img.addEventListener('mousedown', event =>{
       event.preventDefault(); // prevent selection quirk
     });
 
@@ -217,13 +217,13 @@ function customRenderer(instance, td) {
   }
 }
 
-Handsontable.dom.addEvent(container, 'mousedown', event => {
+container.addEventListener('mousedown', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     event.stopPropagation();
   }
 });
 
-Handsontable.dom.addEvent(container, 'mouseup', event => {
+container.addEventListener('mouseup', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     isChecked = !event.target.checked;
     hot.render();

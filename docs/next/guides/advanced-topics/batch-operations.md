@@ -234,7 +234,7 @@ const logOutput = msg => {
   logDiv.insertBefore(div, logDiv.firstChild);
 }
 
-Handsontable.dom.addEvent(buttonWithout, 'click', () => {
+buttonWithout.addEventListener('click', () => {
   const t1 = performance.now();
   alterTable();
   const t2 = performance.now();
@@ -242,7 +242,7 @@ Handsontable.dom.addEvent(buttonWithout, 'click', () => {
   logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
 });
 
-Handsontable.dom.addEvent(buttonWith, 'click', () => {
+buttonWith.addEventListener('click', () => {
   const t1 = performance.now();
   hot.batch(alterTable);
   const t2 = performance.now();

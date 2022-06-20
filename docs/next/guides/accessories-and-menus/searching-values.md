@@ -101,7 +101,7 @@ const hot = new Handsontable(container, {
 });
 
 // add a search input listener
-Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+searchField.addEventListener('keyup', function(event) {
   // get the `Search` plugin's instance
   const search = hot.getPlugin('search');
   // use the `Search` plugin's `query()` method
@@ -157,7 +157,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+searchField.addEventListener('keyup', function(event) {
   const search = hot.getPlugin('search');
   const queryResult = search.query(this.value);
 
@@ -209,7 +209,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+searchField.addEventListener('keyup', function(event) {
   const search = hot.getPlugin('search');
   // use the `Search`'s `query()` method
   const queryResult = search.query(this.value);
@@ -275,7 +275,7 @@ const hot4 = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+searchField.addEventListener('keyup', function(event) {
   searchResultCount = 0;
 
   const search = hot4.getPlugin('search');

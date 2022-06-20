@@ -97,19 +97,19 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-Handsontable.dom.addEvent(copyBtn, 'mousedown', function () {
+copyBtn.addEventListener('mousedown', function() {
   hot.selectCell(1, 1);
 });
 
-Handsontable.dom.addEvent(copyBtn, 'click', function () {
+copyBtn.addEventListener('click', function() {
   document.execCommand('copy');
 });
 
-Handsontable.dom.addEvent(cutBtn, 'mousedown', function () {
+cutBtn.addEventListener('mousedown', function() {
   hot.selectCell(1, 1);
 });
 
-Handsontable.dom.addEvent(cutBtn, 'click', function () {
+cutBtn.addEventListener('click', function() {
   document.execCommand('cut');
 });
 ```
