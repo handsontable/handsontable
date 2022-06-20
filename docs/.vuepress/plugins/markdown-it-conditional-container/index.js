@@ -1,10 +1,9 @@
-const { getEnvDocsFramework, parseFramework } = require('../../helpers');
+const { getEnvDocsFramework, parseFramework, getDefaultFramework } = require('../../helpers');
 
 module.exports = function conditionalContainer(markdown) {
   const foundOpenTokenType = 'container_only-for_open';
   const foundCloseTokenType = 'container_only-for_close';
   let endIndex;
-  let startIndex;
 
   const findAndRemove = (state) => {
     const relativePath = state.env?.relativePath; // Sometimes the `env` key is an empty object.
@@ -13,11 +12,7 @@ module.exports = function conditionalContainer(markdown) {
       return;
     }
 
-    const frameworkId = getEnvDocsFramework() || parseFramework(relativePath);
-
-    if (frameworkId === void 0) {
-      return;
-    }
+    const frameworkId = getEnvDocsFramework() || parseFramework(relativePath) || getDefaultFramework();
 
     for (let index = state.tokens.length - 1; index >= 0; index -= 1) {
       const token = state.tokens[index];
@@ -27,9 +22,11 @@ module.exports = function conditionalContainer(markdown) {
       }
 
       if (token.type === foundOpenTokenType) {
-        startIndex = index;
+        const onlyForFrameworks = token.info.replace(/\s*only-for /, '').split(' ');
 
-        state.tokens.splice(startIndex, endIndex - startIndex + 1);
+        if (onlyForFrameworks.includes(frameworkId) === false) {
+          state.tokens.splice(index, endIndex - index + 1);
+        }
       }
     }
   };
