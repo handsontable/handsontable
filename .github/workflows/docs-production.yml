@@ -28,11 +28,11 @@ jobs:
       - uses: actions/github-script@7a5c598405937d486b0331594b5da2b14db670da # https://github.com/actions/github-script/releases/tag/v6.1.0
         id: get-docs-version
         with:
-          script: context.ref.match(/^refs\/heads\/docs\-snapshot\/(\d+\.\d+)$/)[1] ?? ''
+          script: console.log(context.ref.match(/^refs\/heads\/docs\-snapshot\/(\d+\.\d+)$/)[1] ?? '')
           result-encoding: string
 
-      - name: Processed Docs version
-        run: if [ -z "${{steps.get-docs-version.outputs.result}}"]; then echo "Docs version is empty"; exit 1; fi
+      - name: Validate Docs version
+        run: if [ -z "${{steps.get-docs-version.outputs.result}}" ]; then echo "Docs version is empty"; exit 1; fi
 
       - name: Docker login into GHCR
         run: |
