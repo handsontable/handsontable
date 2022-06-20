@@ -24,6 +24,10 @@ jobs:
         id: get-docs-version
         with:
           script: context.ref.match(/^refs\/heads\/docs\-snapshot\/(\d+\.\d+)$/)[1]
+          result-encoding: string
+
+      - name: Processed Docs version
+        run: echo "${{steps.get-docs-version.outputs.result}}"
 
       - name: Docker login into GHCR
         run: |
