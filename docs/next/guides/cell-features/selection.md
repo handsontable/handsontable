@@ -134,9 +134,8 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 ```html
 <div id="example3" class="hot"></div>
 
-<div id="buttons" class="controls" style="margin-top: 10px">
-  <button id="set-data-action">Change selected data</button>
-  <button id="add-css-class-action">Make selected cells red</button>
+<div class="controls">
+  <button id="set-data-action">Change selected data and change the CSS class of the cell</button>
 </div>
 ```
 ```css
@@ -146,7 +145,7 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 ```
 ```js
 const container = document.querySelector('#example3');
-const buttons = document.querySelector('#buttons');
+const button = document.querySelector('#set-data-action');
 
 const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -161,7 +160,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-buttons.addEventListener('click', event => {
+button.addEventListener('click', event => {
   const selected = hot.getSelected() || [];
   const target = event.target.id;
 
@@ -176,13 +175,8 @@ buttons.addEventListener('click', event => {
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
       for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
-        if (target === 'set-data-action') {
-          hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
-        }
-
-        if (target === 'add-css-class-action') {
-          hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
-        }
+        hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
+        hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
       }
     }
   }

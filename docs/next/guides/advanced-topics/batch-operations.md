@@ -166,10 +166,10 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 ::: example #example1 --html 1 --js 2
 ```html
 <div id="example1"></div>
-<p>
-  <button id="buttonWithout" class="button button--primary">Run without batch method</button>&nbsp;
+<div class="controls">
+  <button id="buttonWithout" class="button button--primary">Run without batch method</button>
   <button id="buttonWith" class="button button--primary">Run with batch method</button>
-</p>
+</div>
 <div id="logOutput"></div>
 ```
 ```js
