@@ -1,6 +1,6 @@
 const gettingStartedItems = [
   'guides/getting-started/introduction',
-  'guides/getting-started/demo',
+  // 'guides/getting-started/demo', (temporarily hidden, till the demo is fixed)
   'guides/getting-started/installation',
   'guides/getting-started/binding-to-data',
   'guides/getting-started/saving-data',
