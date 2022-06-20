@@ -1,15 +1,15 @@
 ---
-title: Plugins
-metaTitle: Plugins - Guide - Handsontable Documentation
-permalink: /next/plugins
-canonicalUrl: /plugins
+title: Custom plugins
+metaTitle: Custom plugins - Guide - Handsontable Documentation
+permalink: /next/custom-plugins
+canonicalUrl: /custom-plugins
 tags:
-  - custom plugin
+  - plugin development
   - skeleton
   - extend
 ---
 
-# Plugins
+# Custom plugins
 
 [[toc]]
 
