@@ -147,20 +147,21 @@ const internationalizationItems = [
   'guides/internationalization/ime-support',
 ];
 
-const buildingAndTestingItems = [
-  'guides/building-and-testing/building',
-  'guides/building-and-testing/testing',
-  'guides/building-and-testing/packages',
-  'guides/building-and-testing/modules',
-  'guides/building-and-testing/plugins',
-  'guides/building-and-testing/file-structure',
+const buildingAndToolingItems = [
+  'guides/tools-and-building/packages',
+  'guides/tools-and-building/modules',
+  'guides/tools-and-building/custom-plugins',
+  'guides/tools-and-building/custom-builds',
+  'guides/tools-and-building/testing',
+  'guides/tools-and-building/folder-structure',
 ];
 
-const advancedTopicsItems = [
-  'guides/advanced-topics/batch-operations',
-  // TODO 'guides/advanced-topics/touch-events',
-  'guides/advanced-topics/performance',
-  // TODO 'guides/advanced-topics/key-concepts',
+const optimizationItems = [
+  'guides/optimization/batch-operations',
+  // TODO 'guides/optimization/touch-events',
+  'guides/optimization/performance',
+  // TODO 'guides/optimization/key-concepts',
+  'guides/optimization/bundle-size',
 ];
 
 const securityItems = [
@@ -188,23 +189,23 @@ const upgradeAndMigrationItems = [
 
 module.exports = {
   sidebar: [
-    { title: 'Getting Started', children: gettingStartedItems },
+    { title: 'Getting started', children: gettingStartedItems },
     { title: 'Integrate with React', children: integrateWithReactItems },
     { title: 'Integrate with Angular', children: integrateWithAngularItems },
     { title: 'Integrate with Vue 2', children: integrateWithVueItems },
     { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
-    { title: 'Cell Features', children: cellFeaturesItems },
-    { title: 'Cell Functions', children: cellFunctionsItems },
-    { title: 'Cell Types', children: cellTypesItems },
+    { title: 'Cell features', children: cellFeaturesItems },
+    { title: 'Cell functions', children: cellFunctionsItems },
+    { title: 'Cell types', children: cellTypesItems },
     { title: 'Formulas', children: formulasItems },
-    { title: 'Accessories and Menus', children: accessoriesAndMenusItems },
+    { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
-    { title: 'Building and Testing', children: buildingAndTestingItems },
-    { title: 'Advanced Topics', children: advancedTopicsItems },
+    { title: 'Tools and building', children: buildingAndToolingItems },
+    { title: 'Optimization', children: optimizationItems },
     { title: 'Security', children: securityItems },
-    { title: 'Technical Specification', children: technicalSpecificationItems },
-    { title: 'Upgrade and Migration', children: upgradeAndMigrationItems }
+    { title: 'Technical specification', children: technicalSpecificationItems },
+    { title: 'Upgrade and migration', children: upgradeAndMigrationItems }
   ],
 };

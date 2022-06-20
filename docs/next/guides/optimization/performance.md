@@ -68,42 +68,17 @@ hot.batch(() => {
 });
 ```
 
-See the [batch operations](@/guides/advanced-topics/batch-operations.md) page to find more information on how to use batching.
-
-## Use modules
-
-If you need only a few parts of Handsontable, you can think of importing them as **modules**. Eventually, this can lead to lowering the bundle size. This can be done in several steps:
-
-- import the base
-- import the module you want to use and its registering method
-- register it
-- use it
-
-The following example shows you how to import and register the [`ContextMenu`](@/api/contextMenu.md) plugin.
-
-```js
-import Handsontable from 'handsontable/base';
-import { registerPlugin, ContextMenu } from 'handsontable/plugins';
-
-registerPlugin(ContextMenu);
-
-// switch the context menu on
-new Handsontable(container, {
-  contextMenu: true,
-  // other settings
-});
-```
-
-You can also optimize the use of **moment.js**. To find out more about this topic, see the [modules page](@/guides/building-and-testing/modules.md).
+See the [batch operations](@/guides/optimization/batch-operations.md) page to find more information on how to use batching.
 
 ## Related articles
 
 ### Related guides
 
-- [Batch operations](@/guides/advanced-topics/batch-operations.md)
-- [Modules](@/guides/building-and-testing/modules.md)
+- [Batch operations](@/guides/optimization/batch-operations.md)
 - [Row virtualization](@/guides/rows/row-virtualization.md)
 - [Column virtualization](@/guides/columns/column-virtualization.md)
+- [Modules](@/guides/tools-and-building/modules.md)
+- [Bundle size](@/guides/optimization/bundle-size.md)
 
 ### Related API reference
 
