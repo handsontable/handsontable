@@ -20,14 +20,19 @@ jobs:
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2
 
+      - name: View context attributes
+        uses: actions/github-script@7a5c598405937d486b0331594b5da2b14db670da # https://github.com/actions/github-script/releases/tag/v6.1.0
+        with:
+          script: console.log(context)
+
       - uses: actions/github-script@7a5c598405937d486b0331594b5da2b14db670da # https://github.com/actions/github-script/releases/tag/v6.1.0
         id: get-docs-version
         with:
-          script: context.ref.match(/^refs\/heads\/docs\-snapshot\/(\d+\.\d+)$/)[1]
+          script: context.ref.match(/^refs\/heads\/docs\-snapshot\/(\d+\.\d+)$/)[1] ?? ''
           result-encoding: string
 
       - name: Processed Docs version
-        run: echo "${{steps.get-docs-version.outputs.result}}"
+        run: if [ -z "${{steps.get-docs-version.outputs.result}}"]; then echo "Docs version is empty"; exit 1; fi
 
       - name: Docker login into GHCR
         run: |
