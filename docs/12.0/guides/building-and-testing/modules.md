@@ -8,7 +8,7 @@ tags:
 ---
 
 # Modules
-
+ 
 To reduce the size of your app, you can use Handsontable by importing individual modules.
 
 [[toc]]
