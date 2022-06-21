@@ -444,7 +444,7 @@ You can use custom-named expressions in your formula expressions. A named expres
 <div class="controls">
   <input id="named-expressions-input" type="text" value="=10 * Sheet1!$A$2">
   <button id="named-expressions-button">Calculate price</button>
-</form>
+</div>
 ```
 ```js
 const data = [
