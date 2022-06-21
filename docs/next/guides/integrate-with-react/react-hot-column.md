@@ -399,10 +399,10 @@ const App = () => {
 
   return (
     <HighlightContext.Provider value={darkMode}>
-      <h3>
+      <div className="controls">
         <input id="dark-mode" type="checkbox" onClick={toggleDarkMode} />{" "}
         <label htmlFor="dark-mode">Dark mode</label>
-      </h3>
+      </div>
       <HotTable settings={hotSettings}>
         <HotColumn>
           {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}

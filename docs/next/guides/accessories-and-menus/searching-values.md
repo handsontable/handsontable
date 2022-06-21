@@ -77,7 +77,9 @@ The example below:
 
 ::: example #example1 --html 1 --js 2
 ```html
-<input id="search_field" type="search" placeholder="Search"/>
+<div class="controls">
+  <input id="search_field" type="search" placeholder="Search"/>
+</div>
 <div id="example1"></div>
 ```
 ```js
@@ -131,7 +133,9 @@ The example below highlights its search results in bold red. To do this, it:
 }
 ````
 ```html
-<input id="search_field2" type="search" placeholder="Search"/>
+<div class="controls">
+  <input id="search_field2" type="search" placeholder="Search"/>
+</div>
 <div id="example2"></div>
 ```
 ```js
@@ -178,7 +182,9 @@ The example below searches only for exact search query matches. To do this, it:
 
 ::: example #example3 --html 1 --js 2
 ```html
-<input id="search_field3" type="search" placeholder="Search"/>
+<div class="controls">
+  <input id="search_field3" type="search" placeholder="Search"/>
+</div>
 <div id="example3"></div>
 ```
 ```js
@@ -232,7 +238,9 @@ The example below displays the number of matching search results. To do this, it
 
 ::: example #example4 --html 1 --js 2
 ```html
-<input id="search_field4" type="search" placeholder="Search"/>
+<div class="controls">
+  <input id="search_field4" type="search" placeholder="Search"/>
+</div>
 <p><span id="resultCount">0</span> results</p>
 <div id="example4"></div>
 ```

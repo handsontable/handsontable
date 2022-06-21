@@ -117,7 +117,7 @@ const App = () => {
 
   return (
     <div>
-      <div className="controllers">
+      <div className="controls">
         <label>
           <input onChange={handleChange('fixedRowsTop', [0, 2])} type="checkbox" />
           Add fixed rows
