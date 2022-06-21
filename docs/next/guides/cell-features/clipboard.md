@@ -76,7 +76,7 @@ The **CopyPaste** plugin listens to the browser's `copy` and `cut` events. If tr
 
 ::: example #example2 --html 1 --js 2
 ```html
-<div id="example2" class="hot"></div>
+<div id="example2"></div>
 <div class="controls">
   <button id="copy">Select and copy cell B2</button>
   <button id="cut">Select and cut cell B2</button>

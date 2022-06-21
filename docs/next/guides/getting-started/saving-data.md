@@ -22,7 +22,7 @@ Use the [`afterChange`](@/api/hooks.md#afterchange) callback to track changes ma
 
 ::: example #example1 --html 1 --js 2
 ```html
-<div id="example1" class="hot"></div>
+<div id="example1"></div>
 
 <div class="controls">
   <button id="load" class="button button--primary button--blue">Load data</button>&nbsp;

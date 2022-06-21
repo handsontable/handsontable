@@ -174,7 +174,7 @@ Note that selecting a column in the Filter component resets the state of the tab
 
 ::: example #example4 --html 1 --js 2
 ```html
-<div id="example4" class="hot"></div>
+<div id="example4"></div>
 <div id="externalFilter">
   <div class="columnChoose">
     <label>Choose Column: </label>

@@ -33,7 +33,7 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 ::: example #example1 --html 1 --js 2
 ```html
-<div id="example1" class="hot"></div>
+<div id="example1"></div>
 <div class="controls">
   <select id="selectOption" style="width: auto; margin-top: 16px">
     <option>Single selection</option>
@@ -75,7 +75,7 @@ To retrieve the selected cells as an array of arrays, you use the [`getSelected(
 
 ::: example #example2 --html 1 --js 2
 ```html
-<div id="example2" class="hot"></div>
+<div id="example2"></div>
 <output class="console" id="output">Here you will see the log</output>
 <div class="controls">
   <button id="getButton">Get data</button>
@@ -120,7 +120,7 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 
 ::: example #example3 --html 1 --css 2 --js 3
 ```html
-<div id="example3" class="hot"></div>
+<div id="example3"></div>
 
 <div class="controls">
   <button id="set-data-action">Change selected data and change the CSS class of the cell</button>
