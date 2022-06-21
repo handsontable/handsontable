@@ -400,8 +400,7 @@ const App = () => {
   return (
     <HighlightContext.Provider value={darkMode}>
       <div className="controls">
-        <input id="dark-mode" type="checkbox" onClick={toggleDarkMode} />{" "}
-        <label htmlFor="dark-mode">Dark mode</label>
+        <label><input type="checkbox" onClick={toggleDarkMode}/> Dark mode</label>
       </div>
       <HotTable settings={hotSettings}>
         <HotColumn>

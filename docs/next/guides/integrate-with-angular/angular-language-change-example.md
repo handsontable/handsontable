@@ -30,10 +30,10 @@ import { createSpreadsheetData } from './helpers';
 @Component({
   selector: 'app-root',
   template: `
-  <label for="languages">Select language:</label>
+  <div class="controls"><label>Select language:
   <select [(ngModel)]="language">
     <option *ngFor="let l of languages" [value]="l.languageCode">{{l.languageCode}}</option>
-  </select><br/><br/>
+  </select></label></div>
   <div>
     <hot-table [language]="language" [settings]="hotSettings"></hot-table>
   </div>
