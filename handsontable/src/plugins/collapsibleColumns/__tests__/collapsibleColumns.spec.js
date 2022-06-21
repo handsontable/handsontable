@@ -2821,7 +2821,7 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should collapse all headers (complicated nested headers settings)', () => {
+    it('should collapse all headers (complicated nested headers settings)', async() => {
       const $wrapper = $('<div></div>').css({
         width: 400,
         height: 300,
@@ -2944,7 +2944,8 @@ describe('CollapsibleColumns', () => {
         `);
 
       hot.scrollViewportTo(0, 63);
-      hot.render();
+
+      await sleep(20);
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>

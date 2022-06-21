@@ -1,0 +1,7 @@
+{
+  "title": "Fixed a bug where the table can be scrolled outside of the table viewport when it runs in RTL document mode and on mobile devices.",
+  "type": "fixed",
+  "issue": 9475,
+  "breaking": false,
+  "framework": "none"
+}
