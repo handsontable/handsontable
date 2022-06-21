@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue where columns wider than the table's viewport width and rows with height greater than the table's viewport height didn't render correctly.",
-  "type": "fixed",
-  "issue": 9473,
-  "breaking": false,
-  "framework": "none"
-}

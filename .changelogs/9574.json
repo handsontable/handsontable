@@ -1,7 +1,0 @@
-{
-  "title": "Moved the `@angular/core` dependency to peer dependencies.",
-  "type": "changed",
-  "issue": 9574,
-  "breaking": false,
-  "framework": "angular"
-}
