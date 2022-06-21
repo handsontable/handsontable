@@ -170,10 +170,11 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
   <button id="buttonWithout" class="button button--primary">Run without batch method</button>
   <button id="buttonWith" class="button button--primary">Run with batch method</button>
 </div>
-<div id="logOutput"></div>
+<output class="console" id="output">Here you will see the log</output>
 ```
 ```js
 const container = document.querySelector('#example1');
+const console = document.querySelector('#output');
 
 const data1 = [
   [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
@@ -225,13 +226,13 @@ const alterTable = () => {
   hot.render(); // Render is needed here to populate the new "className"s
 }
 
-const logOutput = msg => {
-  const logDiv = document.querySelector('#logOutput');
-  const div = document.createElement('div');
-  const now = new Date();
+let logText = '';
+let counter = 0;
 
-  div.innerText = '[' + now.toTimeString().slice(0, 8) + '] ' + msg;
-  logDiv.insertBefore(div, logDiv.firstChild);
+const logOutput = msg => {
+  counter++;
+  logText = `[${counter}] ${msg}\n${logText}`;
+  console.innerText = logText;
 }
 
 buttonWithout.addEventListener('click', () => {

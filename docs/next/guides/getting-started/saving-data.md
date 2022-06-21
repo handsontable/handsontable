@@ -33,12 +33,12 @@ Use the [`afterChange`](@/api/hooks.md#afterchange) callback to track changes ma
   </label>
 </div>
 
-<pre id="example1console" class="console">Click "Load" to load data from server</pre>
+<output class="console" id="output">Click "Load" to load data from server</output>
 
 ```
 ```js
 const container = document.querySelector('#example1');
-const exampleConsole = document.querySelector('#example1console');
+const exampleConsole = document.querySelector('#output');
 const autosave = document.querySelector('#autosave');
 const load = document.querySelector('#load');
 const save = document.querySelector('#save');

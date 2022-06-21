@@ -241,13 +241,13 @@ The example below displays the number of matching search results. To do this, it
 <div class="controls">
   <input id="search_field4" type="search" placeholder="Search"/>
 </div>
-<p><span id="resultCount">0</span> results</p>
+<output class="console" id="output">0 results</output>
 <div id="example4"></div>
 ```
 ```js
 const container = document.querySelector('#example4');
 const searchField = document.querySelector('#search_field4');
-const resultCount = document.querySelector('#resultCount');
+const output = document.querySelector('#output');
 
 let searchResultCount = 0;
 
@@ -290,7 +290,7 @@ searchField.addEventListener('keyup', function(event) {
   const queryResult = search.query(this.value);
 
   console.log(queryResult);
-  resultCount.innerText = searchResultCount.toString();
+  output.innerText = `${searchResultCount} results`;
   hot4.render();
 });
 ```

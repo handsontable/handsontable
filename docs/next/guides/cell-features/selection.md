@@ -73,25 +73,13 @@ selectOption.addEventListener('change', event => {
 
 To retrieve the selected cells as an array of arrays, you use the [`getSelected()`](@/api/core.md#getselected) or [`getSelectedRange()`](@/api/core.md#getselectedrange) methods.
 
-::: example #example2 --css 2 --html 1 --js 3
+::: example #example2 --html 1 --js 2
 ```html
 <div id="example2" class="hot"></div>
-<pre id="output"></pre>
+<output class="console" id="output">Here you will see the log</output>
 <div class="controls">
   <button id="getButton">Get data</button>
 </div>
-```
-```css
-#output {
-  margin: 16px 0 7px;
-  width: 100%;
-  height: 160px;
-  overflow:scroll;
-  border: 1px solid #ccc;
-  background: #fff;
-  color: #2c3e50;
-  box-sizing: border-box;
-}
 ```
 ```js
 const container = document.querySelector('#example2');
@@ -121,7 +109,7 @@ getButton.addEventListener('click', event => {
     data.push(hot.getData(...item));
   }
 
-  output.innerText = JSON.stringify(data, null, 2);
+  output.innerText = JSON.stringify(data);
 });
 ```
 :::
