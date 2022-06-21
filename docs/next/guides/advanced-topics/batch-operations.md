@@ -174,6 +174,8 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 ```
 ```js
 const container = document.querySelector('#example1');
+const buttonWithout = document.querySelector('#buttonWithout');
+const buttonWith = document.querySelector('#buttonWith');
 const console = document.querySelector('#output');
 
 const data1 = [
