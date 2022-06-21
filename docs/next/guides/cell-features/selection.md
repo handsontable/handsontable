@@ -34,7 +34,7 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 ::: example #example1 --html 1 --js 2
 ```html
 <div id="example1" class="hot"></div>
-<div>
+<div class="controls">
   <select id="selectOption" style="width: auto; margin-top: 16px">
     <option>Single selection</option>
     <option>Range selection</option>
