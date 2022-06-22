@@ -31,7 +31,7 @@
               "../../../../../handsontable/tmp/dist/handsontable.full.css"
             ],
             "scripts": [],
-            "preserveSymlinks": true
+            "preserveSymlinks": false
           },
           "configurations": {
             "production": {
