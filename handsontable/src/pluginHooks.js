@@ -1366,6 +1366,27 @@ const REGISTERED_HOOKS = [
   'afterPaste',
 
   /**
+   * Fired by the {@link ManualColumnFreeze} plugin, before freezing a column.
+   *
+   * @event Hooks#beforeColumnFreeze
+   * @since 12.1.0
+   * @param {number} column The visual index of the column that is going to freeze.
+   * @param {boolean} freezePerformed If `true`: the column is going to freeze. If `false`: the column is not going to freeze.
+   * @returns {boolean|undefined} If `false`: the column is not going to freeze, and the `afterColumnFreeze` hook won't fire.
+   */
+  'beforeColumnFreeze',
+
+  /**
+   * Fired by the {@link ManualColumnFreeze} plugin, right after freezing a column.
+   *
+   * @event Hooks#afterColumnFreeze
+   * @since 12.1.0
+   * @param {number} column The visual index of the frozen column.
+   * @param {boolean} freezePerformed If `true`: the column got successfully frozen. If `false`: the column didn't get frozen.
+   */
+  'afterColumnFreeze',
+
+  /**
    * Fired by {@link ManualColumnMove} plugin before change order of the visual indexes. This hook is fired when
    * {@link Options#manualColumnMove} option is enabled.
    *
@@ -1404,6 +1425,27 @@ const REGISTERED_HOOKS = [
    * @param {boolean} orderChanged Indicates if order of columns was changed by move.
    */
   'afterColumnMove',
+
+  /**
+   * Fired by the {@link ManualColumnFreeze} plugin, before unfreezing a column.
+   *
+   * @event Hooks#beforeColumnUnfreeze
+   * @since 12.1.0
+   * @param {number} column The visual index of the column that is going to unfreeze.
+   * @param {boolean} unfreezePerformed If `true`: the column is going to unfreeze. If `false`: the column is not going to unfreeze.
+   * @returns {boolean|undefined} If `false`: the column is not going to unfreeze, and the `afterColumnUnfreeze` hook won't fire.
+   */
+  'beforeColumnUnfreeze',
+
+  /**
+   * Fired by the {@link ManualColumnFreeze} plugin, right after unfreezing a column.
+   *
+   * @event Hooks#afterColumnUnfreeze
+   * @since 12.1.0
+   * @param {number} column The visual index of the unfrozen column.
+   * @param {boolean} unfreezePerformed If `true`: the column got successfully unfrozen. If `false`: the column didn't get unfrozen.
+   */
+  'afterColumnUnfreeze',
 
   /**
    * Fired by {@link ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when
