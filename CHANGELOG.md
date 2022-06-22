@@ -15,18 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed bug related to desynchronization of bottom layers position when table's height is set by settings [#4454](https://github.com/handsontable/handsontable/issues/4454)
 - Fixed a bug related to the comments positioning. [#4785](https://github.com/handsontable/handsontable/issues/4785)
 - Fixed comment positioning in a scrollable element. [#6744](https://github.com/handsontable/handsontable/issues/6744)
-- Fixed overlay desynchronization for multiline cell values [#7102](https://github.com/handsontable/handsontable/issues/7102)
 - Improved the UI experience for row and column moving for cases where there are some hidden rows and/or columns and the scrollbar appears. [#7613](https://github.com/handsontable/handsontable/issues/7613)
-- Fixed columns width change after toggling the checkbox cell type editor. [#8211](https://github.com/handsontable/handsontable/issues/8211)
-- Fixed type error in validation process in cases when Handsontable uses multiple HF sheets. [#8268](https://github.com/handsontable/handsontable/issues/8268)
 - Fixed table DOM element's size update after changing `height`/`width` options. [#8688](https://github.com/handsontable/handsontable/issues/8688)
-- Fixed columns width calculations for nested headers [#9099](https://github.com/handsontable/handsontable/issues/9099)
-- Add support for the latest Node LTS version that is used for development purposes. [#9149](https://github.com/handsontable/handsontable/issues/9149)
 - Fixed the issue where Handsontable initialized within the `<form>` element could trigger a dropdown menu while pressing the `enter` key on different form's input elements. [#9295](https://github.com/handsontable/handsontable/issues/9295)
 - Fixed merge cells toggling bug for table initialized in RTL layout direction mode. [#9362](https://github.com/handsontable/handsontable/issues/9362)
-- Updated the Moment.js dependency from `2.24.0` to `2.29.3`, in reaction to a minor security vulnerability found recently in Moment.js. [#9381](https://github.com/handsontable/handsontable/issues/9381)
-- Fixed PageUp/PageDown keyboard shortcuts for context menu [#9394](https://github.com/handsontable/handsontable/issues/9394)
-- Fixed a bug where updating custom borders could lead to uncaught error exceptions [#9455](https://github.com/handsontable/handsontable/issues/9455)
 - Fixed an issue where columns wider than the table's viewport width and rows with height greater than the table's viewport height didn't render correctly. [#9473](https://github.com/handsontable/handsontable/issues/9473)
 - Fixed a bug where the table can be scrolled outside of the table viewport when it runs in RTL document mode and on mobile devices. [#9475](https://github.com/handsontable/handsontable/issues/9475)
 - Fixed columns widths calculation for nested headers when hidden columns are applied. [#9496](https://github.com/handsontable/handsontable/issues/9496)
@@ -36,24 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added `getNearestNotHiddenIndex()`, a new method that finds a visual index of the nearest not-hidden row or column, and works even with large numbers of hidden rows or columns. The previous method, `getFirstNotHiddenIndex()` still works, but is marked as deprecated. [#9064](https://github.com/handsontable/handsontable/issues/9064)
 - Added Czech language [#9343](https://github.com/handsontable/handsontable/issues/9343)
-- Added Cmd/Ctrl + Enter keyboard shortcut that allows to fill the selected range of cells with the value of the active cell. [#9366](https://github.com/handsontable/handsontable/issues/9366)
-- Adds support for Home/End and fix buggy behavior of the Cmd/Ctrl+Z/Shift+Z keyboard shortcuts. [#9367](https://github.com/handsontable/handsontable/issues/9367)
 - Added localization support for the Serbian language [#9469](https://github.com/handsontable/handsontable/issues/9469)
 
 ### Changed
-- **Breaking change**: Changed behavior of the Cmd/Ctrl + Arrow keyboard shortcuts. [#9363](https://github.com/handsontable/handsontable/issues/9363)
-- **Breaking change**: Changed behavior of the Home/End and Ctrl/Cmd + Home/End keyboard shortcuts. [#9364](https://github.com/handsontable/handsontable/issues/9364)
-- **Breaking change**: Changed behavior of the Cmd/Ctrl + Shift + Arrow keys and Shift + PageUp/Down keyboard shortcuts. [#9365](https://github.com/handsontable/handsontable/issues/9365)
-- **Breaking change**: Removed the Command+M keyboard shortcut that triggered cells merging (Control+M still works). [#9368](https://github.com/handsontable/handsontable/issues/9368)
-- **Breaking change**: Distinguished the meta keys (Cmd/Ctrl) depending on OS. The Command key is used to trigger the keyboard shortcut actions on macOS and the Control key on non-macOS systems. [#9369](https://github.com/handsontable/handsontable/issues/9369)
 - Updated the Pikaday dependency to 1.8.2. [#9410](https://github.com/handsontable/handsontable/issues/9410)
-- Update the HyperFormula optional dependency for Handsontable. [#9411](https://github.com/handsontable/handsontable/issues/9411)
-- Modified the main `build` and `test` scripts to exclude the examples from being built/tested. [#9412](https://github.com/handsontable/handsontable/issues/9412)
 - Replace the HTML entities to its canonical form in the LICENSE.txt files. [#9487](https://github.com/handsontable/handsontable/issues/9487)
 - *Angular:* Moved the `@angular/core` dependency to peer dependencies. [#9574](https://github.com/handsontable/handsontable/issues/9574)
-
-### Removed
-- **Breaking change**: Removed the `Shift+PageUp/PageDown` keyboard shortcuts from cell editing context. [#9401](https://github.com/handsontable/handsontable/issues/9401)
 
 ## [12.0.1] - 2022-05-16
 
