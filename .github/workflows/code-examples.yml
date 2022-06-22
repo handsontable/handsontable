@@ -197,7 +197,8 @@ jobs:
       - run: cd handsontable
       - run: npm run swap-package-links
       - run: npm run in angular build
-      - run: tar -zcf tmp.tar.gz -C ./wrappers/angular/dist/hot-table ./
+      - run: rm -rf ./wrappers/angular/node_modules
+      - run: tar -zcf tmp.tar.gz -C ./wrappers/angular ./
       - name: Upload the build artifact.
         uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
         with:
@@ -451,10 +452,10 @@ jobs:
           matrix.framework == 'vue3'
 
       # Setup symlinks for the needed packages
-      # - run: |
-      #     node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable
-      #     node --experimental-json-modules ./scripts/swap-package-links.mjs @handsontable/${{ matrix.framework }}
-      #   if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
+      - run: |
+          node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable
+          node --experimental-json-modules ./scripts/swap-package-links.mjs @handsontable/${{ matrix.framework }}
+        if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
 
       # ---------------------------------------------------------
       # --- Only applicable if processing the `next` version ---
