@@ -103,7 +103,7 @@ exampleFrameworkSubdirs.forEach((packagesLocation) => {
       }
 
       // Additional linking to all the examples for Angular (required to load css files from `angular.json`)
-      if (frameworkName === `angular`) {
+      if (/^angular(-\d+)?$/.test(frameworkName)) {
         const angularPackageJson = fse.readJSONSync(`${packageLocation}/package.json`);
         const workspacesList = angularPackageJson?.workspaces.packages || angularPackageJson?.workspaces;
 
