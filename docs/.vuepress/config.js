@@ -4,7 +4,6 @@ const highlight = require('./highlight');
 const snippets = require('./containers/snippets');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
-const conditionalBlock = require('./containers/conditionalBlock');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
@@ -134,7 +133,6 @@ module.exports = {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
     }],
-    ['container', conditionalBlock],
     ['container', snippets],
     ['container', examples],
     ['container', sourceCodeLink],
