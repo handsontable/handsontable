@@ -451,10 +451,10 @@ jobs:
           matrix.framework == 'vue3'
 
       # Setup symlinks for the needed packages
-      - run: |
-          node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable
-          node --experimental-json-modules ./scripts/swap-package-links.mjs @handsontable/${{ matrix.framework }}
-        if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
+      # - run: |
+      #     node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable
+      #     node --experimental-json-modules ./scripts/swap-package-links.mjs @handsontable/${{ matrix.framework }}
+      #   if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
 
       # ---------------------------------------------------------
       # --- Only applicable if processing the `next` version ---
