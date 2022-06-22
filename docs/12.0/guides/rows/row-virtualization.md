@@ -63,7 +63,7 @@ const hot = new Handsontable(container, {
 ### Related guides
 
 - [Column virtualization](@/guides/rows/row-virtualization.md)
-- [Performance](@/guides/advanced-topics/performance.md)
+- [Performance](@/guides/optimization/performance.md)
 
 ### Related API reference
 
