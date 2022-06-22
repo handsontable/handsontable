@@ -25,10 +25,11 @@ Released on 28th of June, 2022
 - Added [`getNearestNotHiddenIndex()`](@/api/indexMapper.md#getnearestnothiddenindex), a new method that finds the visual index of the nearest not-hidden row or column, and works even with large numbers of hidden rows or columns. The previous method, [`getFirstNotHiddenIndex()`](@/api/indexMapper.md#getfirstnothiddenindex), still works, but is marked as deprecated. [#9064](https://github.com/handsontable/handsontable/issues/9064)
 - Added a Czech translation. [#9343](https://github.com/handsontable/handsontable/issues/9343)
 - Added a Serbian translation. [#9469](https://github.com/handsontable/handsontable/issues/9469)
+- Added new hooks: [`beforeColumnFreeze`](@/api/hooks.md#beforecolumnfreeze), [`afterColumnFreeze`](@/api/hooks.md#aftercolumnfreeze), [`beforeColumnUnfreeze`](@/api/hooks.md#beforecolumnunfreeze), and [`afterColumnUnfreeze`](@/api/hooks.md#aftercolumnunfreeze). [#9248](https://github.com/handsontable/handsontable/issues/9248)
 
 **Changed**
 - Updated the Pikaday dependency to 1.8.2. [#9410](https://github.com/handsontable/handsontable/issues/9410)
-- Replaced HTML entities appearing in Handsontable's license texts with their canonical counterparts. [#9487](https://github.com/handsontable/handsontable/issues/9487)
+- Replaced HTML entities appearing in Handsontable's license texts with canonical counterparts. [#9487](https://github.com/handsontable/handsontable/issues/9487)
 - *Angular:* Moved the `@angular/core` dependency to peer dependencies. [#9574](https://github.com/handsontable/handsontable/issues/9574)
 
 **Fixed**

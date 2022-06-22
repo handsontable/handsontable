@@ -24,7 +24,7 @@ For more information on this release, see:
 
 ### Changed
 - Updated the Pikaday dependency to 1.8.2. [#9410](https://github.com/handsontable/handsontable/issues/9410)
-- Replaced HTML entities appearing in Handsontable's license texts with their canonical counterparts. [#9487](https://github.com/handsontable/handsontable/issues/9487)
+- Replaced HTML entities appearing in Handsontable's license texts with canonical counterparts. [#9487](https://github.com/handsontable/handsontable/issues/9487)
 - *Angular:* Moved the `@angular/core` dependency to peer dependencies. [#9574](https://github.com/handsontable/handsontable/issues/9574)
 
 ### Fixed
