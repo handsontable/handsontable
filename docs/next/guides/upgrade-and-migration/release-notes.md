@@ -15,6 +15,38 @@ tags:
 
 [[toc]]
 
+## 12.1.0
+
+Released on 28th of June, 2022
+
+**Added**
+- Added smart positioning of comments. [#4785](https://github.com/handsontable/handsontable/issues/4785)
+- Added smoother row and column moving. [#7613](https://github.com/handsontable/handsontable/issues/7613)
+- Added [`getNearestNotHiddenIndex()`](@/api/indexMapper.md#getnearestnothiddenindex), a new method that finds the visual index of the nearest not-hidden row or column, and works even with large numbers of hidden rows or columns. The previous method, [`getFirstNotHiddenIndex()`](@/api/indexMapper.md#getfirstnothiddenindex), still works, but is marked as deprecated. [#9064](https://github.com/handsontable/handsontable/issues/9064)
+- Added a Czech translation. [#9343](https://github.com/handsontable/handsontable/issues/9343)
+- Added a Serbian translation. [#9469](https://github.com/handsontable/handsontable/issues/9469)
+
+**Changed**
+- Updated the Pikaday dependency to 1.8.2. [#9410](https://github.com/handsontable/handsontable/issues/9410)
+- Replaced HTML entities appearing in Handsontable's license texts with their canonical counterparts. [#9487](https://github.com/handsontable/handsontable/issues/9487)
+- *Angular:* Moved the `@angular/core` dependency to peer dependencies. [#9574](https://github.com/handsontable/handsontable/issues/9574)
+
+**Fixed**
+- Fixed an issue where dropdown and autocomplete cell editors rendered incorrectly if the [`preventOverflow`](@/api/options.md#preventoverflow) option was set to `'horizontal'`. [#3828](https://github.com/handsontable/handsontable/issues/3828)
+- Fixed an issue where frozen rows were getting duplicated. [#4454](https://github.com/handsontable/handsontable/issues/4454)
+- Fixed an issue where comments displayed outside the viewport. [#4785](https://github.com/handsontable/handsontable/issues/4785)
+- Fixed an issue where comments got positioned incorrectly when Handsontable ran within a scrollable element. [#6744](https://github.com/handsontable/handsontable/issues/6744)
+- Fixed an issue where setting Handsontable's [`height`](@/api/options.md#height) to `'auto'` resulted in wrong heights of cell editors. [#8688](https://github.com/handsontable/handsontable/issues/8688)
+- Fixed an issue with Handsontable running within an HTML `<form>`, where pressing <kbd>Enter</kbd> inside another form's `<input>` element opened Handsontable's dropdown menu. [#9295](https://github.com/handsontable/handsontable/issues/9295)
+- Fixed an issue where it was impossible to unmerge cells in the RTL layout direction. [#9362](https://github.com/handsontable/handsontable/issues/9362)
+- Fixed an issue where columns wider than the viewport's width and rows higher than the viewport's height didn't render correctly. [#9473](https://github.com/handsontable/handsontable/issues/9473)
+- Fixed an issue where dragging to scroll on mobile didn't work properly in the RTL layout direction. [#9475](https://github.com/handsontable/handsontable/issues/9475)
+- Fixed an issue where hiding columns with nested headers caused incorrect column width calculation (for the [`stretchH: 'all'`](@/api/options.md#stretchh) option). [#9496](https://github.com/handsontable/handsontable/issues/9496)
+- Fixed an issue where [`ShortcutManager`](@/api/shortcutManager.md) unnecessarily handled the `keyup` event with no `key` defined. [#9562](https://github.com/handsontable/handsontable/issues/9562)
+
+**Removed**
+- *React:* Removed method deprecation warnings for React 17+. [#8748](https://github.com/handsontable/handsontable/issues/8748)
+
 ## 12.0.1
 
 Released on 16th of May, 2022

@@ -17,7 +17,7 @@ For more information on this release, see:
 ### Added
 - Added smart positioning of comments. [#4785](https://github.com/handsontable/handsontable/issues/4785)
 - Added smoother row and column moving. [#7613](https://github.com/handsontable/handsontable/issues/7613)
-- Added `getNearestNotHiddenIndex()`, a new method that finds the visual index of the nearest not-hidden row or column, and works even with large numbers of hidden rows or columns. The previous method, `getFirstNotHiddenIndex()` still works, but is marked as deprecated. [#9064](https://github.com/handsontable/handsontable/issues/9064)
+- Added `getNearestNotHiddenIndex()`, a new method that finds the visual index of the nearest not-hidden row or column, and works even with large numbers of hidden rows or columns. The previous method, `getFirstNotHiddenIndex()`, still works, but is marked as deprecated. [#9064](https://github.com/handsontable/handsontable/issues/9064)
 - Added a Czech translation. [#9343](https://github.com/handsontable/handsontable/issues/9343)
 - Added a Serbian translation. [#9469](https://github.com/handsontable/handsontable/issues/9469)
 
@@ -34,7 +34,7 @@ For more information on this release, see:
 - Fixed an issue where setting Handsontable's `height` to `'auto'` resulted in wrong heights of cell editors. [#8688](https://github.com/handsontable/handsontable/issues/8688)
 - Fixed an issue with Handsontable running within an HTML `<form>`, where pressing <kbd>Enter</kbd> inside another form's `<input>` element opened Handsontable's dropdown menu. [#9295](https://github.com/handsontable/handsontable/issues/9295)
 - Fixed an issue where it was impossible to unmerge cells in the RTL layout direction. [#9362](https://github.com/handsontable/handsontable/issues/9362)
-- Fixed an issue where columns wider than the table's viewport width and rows higher than the table's viewport height didn't render correctly. [#9473](https://github.com/handsontable/handsontable/issues/9473)
+- Fixed an issue where columns wider than the viewport's width and rows higher than the viewport's height didn't render correctly. [#9473](https://github.com/handsontable/handsontable/issues/9473)
 - Fixed an issue where dragging to scroll on mobile didn't work properly in the RTL layout direction. [#9475](https://github.com/handsontable/handsontable/issues/9475)
 - Fixed an issue where hiding columns with nested headers caused incorrect column width calculation (for the `stretchH: 'all'` option). [#9496](https://github.com/handsontable/handsontable/issues/9496)
 - Fixed an issue where `ShortcutManager` unnecessarily handled the `keyup` event with no `key` defined. [#9562](https://github.com/handsontable/handsontable/issues/9562)
