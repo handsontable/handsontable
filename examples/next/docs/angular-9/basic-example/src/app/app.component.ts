@@ -8,6 +8,7 @@ import Handsontable from 'handsontable';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+
   hotSettings: Handsontable.GridSettings = {
     data: [
         ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
