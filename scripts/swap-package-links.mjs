@@ -12,7 +12,7 @@ import {
 let [pkgName] = process.argv.slice(2);
 
 if (pkgName) {
-  pkgName = pkgName.replace(/\-\d+/, '');
+  pkgName = pkgName.replace(/-\d+/, '');
 }
 
 const PACKAGE_LOCATIONS = new Map([

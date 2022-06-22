@@ -354,12 +354,12 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
+        if: steps.path-check.outputs.n-a != 'true'
         with:
           path: ${{ env.NODE_MODULES_PATHS }}
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-        if: steps.path-check.outputs.n-a != 'true'
 
       # ---------------------------------------------------------
       # --- Only applicable if processing the `next` version. ---
@@ -392,7 +392,7 @@ jobs:
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'angular'
+          startsWith(matrix.framework, 'angular')
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
         with:
           name: angular-build
@@ -401,7 +401,7 @@ jobs:
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'angular'
+          startsWith(matrix.framework, 'angular')
 
       # Downloading the @handsontable/react build
       - name: Download the @handsontable/react build artifact
