@@ -32,7 +32,7 @@ const hot = new Handsontable(container, {
 
 ### bindRowsWithHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/dataMap/metaManager/metaSchema.js#L433
+::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/dataMap/metaManager/metaSchema.js#L433
 
 :::
 
@@ -48,7 +48,7 @@ You can set the `bindRowsWithHeaders` option to one of the following:
 | `true`  | Enable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin  |
 
 Read more:
-- [Plugins: `BindRowsWithHeaders` &#8594;](@/api/bindRowsWithHeaders.md)
+- [Plugins: `BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -61,7 +61,7 @@ bindRowsWithHeaders: true
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L111
 
 :::
 
@@ -73,7 +73,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L91
+::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L91
 
 :::
 
@@ -85,7 +85,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L68
+::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L68
 
 :::
 
@@ -97,7 +97,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L61
+::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L61
 
 :::
 

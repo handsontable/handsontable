@@ -21,7 +21,7 @@ included in a dataset, but skipped in the process of rendering.
 
 ### getHiddenIndexes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/translations/maps/hidingMap.js#L22
+::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/translations/maps/hidingMap.js#L22
 
 :::
 
