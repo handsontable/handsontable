@@ -20,6 +20,7 @@ For more information on this release, see:
 - Added `getNearestNotHiddenIndex()`, a new method that finds the visual index of the nearest not-hidden row or column, and works even with large numbers of hidden rows or columns. The previous method, `getFirstNotHiddenIndex()`, still works, but is marked as deprecated. [#9064](https://github.com/handsontable/handsontable/issues/9064)
 - Added a Czech translation. [#9343](https://github.com/handsontable/handsontable/issues/9343)
 - Added a Serbian translation. [#9469](https://github.com/handsontable/handsontable/issues/9469)
+- Added new hooks: `beforeColumnFreeze`, `afterColumnFreeze`, `beforeColumnUnfreeze`, and `afterColumnUnfreeze`. [#9248](https://github.com/handsontable/handsontable/issues/9248)
 
 ### Changed
 - Updated the Pikaday dependency to 1.8.2. [#9410](https://github.com/handsontable/handsontable/issues/9410)
