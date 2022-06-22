@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated the Pikaday dependency to 1.8.2. [#9410](https://github.com/handsontable/handsontable/issues/9410)
-- Replace the HTML entities to its canonical form in the LICENSE.txt files. [#9487](https://github.com/handsontable/handsontable/issues/9487)
+- Replaced the HTML entities to its canonical form in the LICENSE.txt files. [#9487](https://github.com/handsontable/handsontable/issues/9487)
 - *Angular:* Moved the `@angular/core` dependency to peer dependencies. [#9574](https://github.com/handsontable/handsontable/issues/9574)
 
 ## [12.0.1] - 2022-05-16
