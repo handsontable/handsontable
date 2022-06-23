@@ -32,7 +32,6 @@ For more information on this release, see:
 - Fixed an issue where frozen rows were getting duplicated. [#4454](https://github.com/handsontable/handsontable/issues/4454)
 - Fixed an issue where comments displayed outside the viewport. [#4785](https://github.com/handsontable/handsontable/issues/4785)
 - Fixed an issue where comments got positioned incorrectly when Handsontable ran within a scrollable element. [#6744](https://github.com/handsontable/handsontable/issues/6744)
-- Fixed an issue where setting Handsontable's `height` to `'auto'` resulted in wrong heights of cell editors. [#8688](https://github.com/handsontable/handsontable/issues/8688)
 - Fixed an issue with Handsontable running within an HTML `<form>`, where pressing <kbd>Enter</kbd> inside another form's `<input>` element opened Handsontable's dropdown menu. [#9295](https://github.com/handsontable/handsontable/issues/9295)
 - Fixed an issue where it was impossible to unmerge cells in the RTL layout direction. [#9362](https://github.com/handsontable/handsontable/issues/9362)
 - Fixed an issue where columns wider than the viewport's width and rows higher than the viewport's height didn't render correctly. [#9473](https://github.com/handsontable/handsontable/issues/9473)
