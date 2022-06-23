@@ -353,7 +353,7 @@ webpackContext.id = "D9WN";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AppComponent", function() { return AppComponent; });
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "Ub9n");
-/* harmony import */ var _handsontable_angular__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @handsontable/angular */ "lKqD");
+/* harmony import */ var _handsontable_angular__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @handsontable/angular */ "+P78");
 /* harmony import */ var handsontable__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! handsontable */ "5DfS");
 
 
@@ -414,7 +414,7 @@ AppComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineCompo
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AppModule", function() { return AppModule; });
 /* harmony import */ var _angular_platform_browser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/platform-browser */ "vlQ6");
-/* harmony import */ var _handsontable_angular__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @handsontable/angular */ "lKqD");
+/* harmony import */ var _handsontable_angular__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @handsontable/angular */ "+P78");
 /* harmony import */ var _app_component__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./app.component */ "Sy1n");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @angular/core */ "Ub9n");
 

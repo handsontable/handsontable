@@ -398,7 +398,7 @@
 
       var _handsontable_angular__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(
       /*! @handsontable/angular */
-      "lKqD");
+      "+P78");
       /* harmony import */
 
 
@@ -503,7 +503,7 @@
 
       var _handsontable_angular__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(
       /*! @handsontable/angular */
-      "lKqD");
+      "+P78");
       /* harmony import */
 
 

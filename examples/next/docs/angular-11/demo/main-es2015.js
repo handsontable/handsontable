@@ -384,7 +384,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _renderers_progressBar__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./renderers/progressBar */ "SLW5");
 /* harmony import */ var _utils_hooks_callbacks__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utils/hooks-callbacks */ "pqXO");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @angular/core */ "Ub9n");
-/* harmony import */ var _handsontable_angular__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @handsontable/angular */ "lKqD");
+/* harmony import */ var _handsontable_angular__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @handsontable/angular */ "+P78");
 
 
 
@@ -488,7 +488,7 @@ const progressBarRenderer = (instance, td, row, column, prop, value, cellPropert
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AppModule", function() { return AppModule; });
 /* harmony import */ var _angular_platform_browser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/platform-browser */ "vlQ6");
-/* harmony import */ var _handsontable_angular__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @handsontable/angular */ "lKqD");
+/* harmony import */ var _handsontable_angular__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @handsontable/angular */ "+P78");
 /* harmony import */ var _data_grid_data_grid_component__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../data-grid/data-grid.component */ "MxVa");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @angular/core */ "Ub9n");
 
