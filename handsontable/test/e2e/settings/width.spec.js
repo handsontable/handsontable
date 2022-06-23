@@ -29,7 +29,8 @@ describe('settings', () => {
       expect($(hot.rootElement).width()).not.toBe(initialWidth);
     });
 
-    it('should reset the table width', () => {
+    // temporarily disabled due to reverting PR https://github.com/handsontable/handsontable/pull/9415
+    xit('should reset the table width', () => {
       const hot = handsontable({
         startRows: 5,
         startCols: 15,

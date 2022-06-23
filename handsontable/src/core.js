@@ -2469,7 +2469,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     } else if (height !== void 0) {
       instance.rootElement.style.height = isNaN(height) ? `${height}` : `${height}px`;
-      instance.rootElement.style.overflow = height === 'auto' ? '' : 'hidden';
+      instance.rootElement.style.overflow = 'hidden';
     }
 
     if (typeof settings.width !== 'undefined') {
@@ -2479,12 +2479,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         width = width();
       }
 
-      if (width === null) {
-        instance.rootElement.style.width = '';
-
-      } else {
-        instance.rootElement.style.width = isNaN(width) ? `${width}` : `${width}px`;
-      }
+      instance.rootElement.style.width = isNaN(width) ? `${width}` : `${width}px`;
     }
 
     if (!init) {

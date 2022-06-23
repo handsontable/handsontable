@@ -29,7 +29,8 @@ describe('settings', () => {
       expect($(hot.rootElement).height()).not.toBe(initialHeight);
     });
 
-    it('should reset the table height', () => {
+    // temporarily disabled due to reverting PR https://github.com/handsontable/handsontable/pull/9415
+    xit('should reset the table height', () => {
       const hot = handsontable({
         startRows: 20,
         startCols: 5,
@@ -65,7 +66,8 @@ describe('settings', () => {
       expect(spec().$container.height()).toBe(107);
     });
 
-    it('should update the table height after setting the new value as "auto"', () => {
+    // temporarily disabled due to reverting PR https://github.com/handsontable/handsontable/pull/9415
+    xit('should update the table height after setting the new value as "auto"', () => {
       const hot = handsontable({
         startRows: 20,
         startCols: 5,
