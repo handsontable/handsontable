@@ -1,0 +1,7 @@
+{
+  "title": "Added new hooks: `beforeColumnFreeze`, `afterColumnFreeze`, `beforeColumnUnfreeze`, and `afterColumnUnfreeze`.",
+  "type": "added",
+  "issue": 9248,
+  "breaking": false,
+  "framework": "none"
+}
