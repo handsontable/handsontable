@@ -408,7 +408,7 @@ jobs:
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'react'
+          startsWith(matrix.framework, 'react')
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
         with:
           name: react-build
@@ -417,14 +417,14 @@ jobs:
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'react'
+          startsWith(matrix.framework, 'react')
 
       # Downloading the @handsontable/vue build
       - name: Download the @handsontable/vue build artifact
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'vue'
+          startsWith(matrix.framework, 'vue')
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
         with:
           name: vue-build
@@ -433,14 +433,14 @@ jobs:
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'vue'
+          startsWith(matrix.framework, 'vue')
 
       # Downloading the @handsontable/vue3 build
       - name: Download the @handsontable/vue3 build artifact
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'vue3'
+          startsWith(matrix.framework, 'vue')
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
         with:
           name: vue3-build
@@ -449,7 +449,7 @@ jobs:
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'vue3'
+          startsWith(matrix.framework, 'vue')
 
       # Setup symlinks for the needed packages
       - run: |
