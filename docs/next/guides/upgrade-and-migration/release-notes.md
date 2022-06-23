@@ -20,7 +20,7 @@ tags:
 Released on 28th of June, 2022
 
 **Added**
-- Added smart positioning of comments. [#4785](https://github.com/handsontable/handsontable/issues/4785)
+- Added smart positioning of comment boxes. [#4785](https://github.com/handsontable/handsontable/issues/4785)
 - Added smoother row and column moving. [#7613](https://github.com/handsontable/handsontable/issues/7613)
 - Added [`getNearestNotHiddenIndex()`](@/api/indexMapper.md#getnearestnothiddenindex), a new method that finds the visual index of the nearest not-hidden row or column, and works even with large numbers of hidden rows or columns. The previous method, [`getFirstNotHiddenIndex()`](@/api/indexMapper.md#getfirstnothiddenindex), still works, but is marked as deprecated. [#9064](https://github.com/handsontable/handsontable/issues/9064)
 - Added a Czech translation. [#9343](https://github.com/handsontable/handsontable/issues/9343)
