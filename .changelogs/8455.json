@@ -1,0 +1,7 @@
+{
+  "title": "fixed typo in mergeCells API docs",
+  "type": "changed",
+  "issue": 8455,
+  "breaking": false,
+  "framework": "none"
+}
