@@ -162,11 +162,11 @@ To check for broken links:
     ```bash
     npm run docs:build
     ```
-3. Check for the broken links, run:
+3. Check for broken links. From the `docs` directory, run:
    ```bash
    npm run docs:check-links
    ```
-5. Open the broken links report: `./docs/report-check-links.xlsx`.
+4. Open the broken links report: `/docs/report-check-links.xlsx`.
 
 ## Markdown containers
 
