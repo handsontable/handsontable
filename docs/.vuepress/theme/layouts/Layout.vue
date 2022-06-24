@@ -29,7 +29,7 @@ export default {
   },
   computed: {
     isLatest() {
-      return this.$page.currentVersion === this.$page.latestVersion;
+      return this.$page.isThisTheLatestVersion;
     },
 
     isNext() {

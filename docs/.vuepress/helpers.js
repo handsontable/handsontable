@@ -1,9 +1,8 @@
 const path = require('path');
-const semver = require('semver');
+const execa = require('execa');
 
-// TODO: fetch release versions list from GH API
-const unsortedVersions = ['9.0', '10.0', '11.0', '11.1', '12.0'];
-const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
+// TODO: fetch release versions list from GH API or so
+const availableVersions = ['9.0', '10.0', '11.0', '11.1', '12.0'];
 
 /**
  * Gets all available docs versions.
@@ -32,8 +31,10 @@ function getLatestVersion() {
  * @returns {boolean}
  */
 function isThisDocsTheLatestVersion() {
-  return getLatestVersion() === getThisDocsVersion();
+  return false;
 }
+
+const versionFromBranchRegExp = /^docs\-snapshot\/(\d+\.\d+)$/;
 
 /**
  * Gets the current (this) version of docs.
@@ -41,8 +42,13 @@ function isThisDocsTheLatestVersion() {
  * @returns {string}
  */
 function getThisDocsVersion() {
-  // TODO: fetch the version from the branch name?
-  return '9.0';
+  const branchName = execa.sync('git rev-parse --abbrev-ref HEAD', { shell: true }).stdout;
+
+  if (versionFromBranchRegExp.test(branchName)) {
+    return branchName.match(versionFromBranchRegExp)[1];
+  }
+
+  return 'next';
 }
 
 /**

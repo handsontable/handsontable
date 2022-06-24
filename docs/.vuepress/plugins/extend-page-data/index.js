@@ -2,6 +2,7 @@ const {
   getSidebars,
   getLatestVersion,
   getThisDocsVersion,
+  isThisDocsTheLatestVersion,
   getVersions,
   getDocsBaseUrl,
 } = require('../../helpers');
@@ -36,6 +37,7 @@ module.exports = (options, context) => {
     extendPageData($page) {
       $page.versions = getVersions(buildMode);
       $page.latestVersion = getLatestVersion();
+      $page.isThisTheLatestVersion = isThisDocsTheLatestVersion();
       $page.currentVersion = getThisDocsVersion();
       $page.baseUrl = getDocsBaseUrl();
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
