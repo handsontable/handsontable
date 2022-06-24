@@ -26,18 +26,28 @@ manualColumnFreeze: true,
 
 ### manualColumnFreeze
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/dataMap/metaManager/metaSchema.js#L2181
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/dataMap/metaManager/metaSchema.js#L2962
 
 :::
 
 _manualColumnFreeze.manualColumnFreeze : boolean_
 
-Disables or enables [ManualColumnFreeze](#manualcolumnfreeze) plugin.
+The `manualColumnFreeze` option configures the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin.
+
+You can set the `manualColumnFreeze` option to one of the following:
+
+| Setting  | Description                                                            |
+| -------- | ---------------------------------------------------------------------- |
+| `true`   | Enable the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin  |
+| `false`  | Disable the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin |
+
+Read more:
+- [Column freezing &#8594;](@/guides/columns/column-freezing.md#user-triggered-freeze)
 
 **Default**: <code>undefined</code>
 **Example**
 ```js
-// enable fixed columns
+// enable the `ManualColumnFreeze` plugin
 manualColumnFreeze: true,
 ```
 
@@ -45,7 +55,7 @@ manualColumnFreeze: true,
 
 ### disablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L69
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L69
 
 :::
 
@@ -57,7 +67,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L55
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L55
 
 :::
 
@@ -69,7 +79,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### freezeColumn
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L95
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L95
 
 :::
 
@@ -89,7 +99,7 @@ so you need to call the `render()` method afterward.
 
 ### isEnabled
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L48
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L48
 
 :::
 
@@ -102,7 +112,7 @@ hook and if it returns `true` than the [ManualColumnFreeze#enablePlugin](@/api/m
 
 ### unfreezeColumn
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L117
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L117
 
 :::
 
@@ -119,7 +129,7 @@ Unfreezes the given column (remove it from fixed columns and bring to it's previ
 
 ### updatePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L80
 
 :::
 

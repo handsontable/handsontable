@@ -18,10 +18,15 @@ The following example is an implementation of the `@handsontable/react` componen
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
-import Handsontable from 'handsontable';
+import { ContextMenu } from 'handsontable/plugins/contextMenu';
+import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
+
+// register Handsontable's modules
+registerAllModules();
 
 const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  data: createSpreadsheetData(5, 5),
   colHeaders: true,
   height: 'auto',
   contextMenu: {
@@ -30,7 +35,7 @@ const hotSettings = {
         name: 'Insert row above this one (custom name)'
       },
       'row_below': {},
-      'separator': Handsontable.plugins.ContextMenu.SEPARATOR,
+      'separator': ContextMenu.SEPARATOR,
       'clear_custom': {
         name: 'Clear all cells (custom)',
         callback: function() {

@@ -1,8 +1,8 @@
 ---
 title: 'Setting up a translation in React'
 metaTitle: 'Setting up a translation in React - Guide - Handsontable Documentation'
-permalink: /react-setting-up-a-locale
-canonicalUrl: /react-setting-up-a-locale
+permalink: /react-setting-up-a-language
+canonicalUrl: /react-setting-up-a-language
 ---
 
 # Setting up a translation in React
@@ -17,9 +17,13 @@ The following example shows a Handsontable instance with translations set up in 
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
 import 'handsontable/dist/handsontable.min.css';
+
+// register Handsontable's modules
+registerAllModules();
 
 import numbro from 'numbro';
 import languages from 'numbro/dist/languages.min.js';

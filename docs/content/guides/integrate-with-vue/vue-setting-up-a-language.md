@@ -1,8 +1,8 @@
 ---
 title: 'Setting up a translation in Vue 2'
 metaTitle: 'Setting up a translation in Vue 2 - Guide - Handsontable Documentation'
-permalink: /vue-setting-up-a-locale
-canonicalUrl: /vue-setting-up-a-locale
+permalink: /vue-setting-up-a-language
+canonicalUrl: /vue-setting-up-a-language
 ---
 
 # Setting up a translation in Vue 2
@@ -44,9 +44,14 @@ The following example shows a Handsontable instance with translations set up in 
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
-import 'handsontable/dist/handsontable.min.css';
 import numbro from 'numbro';
 import languages from 'numbro/dist/languages.min.js';
+import { registerAllModules } from 'handsontable/registry';
+
+import 'handsontable/dist/handsontable.min.css';
+
+// register Handsontable's modules
+registerAllModules();
 
 // register the languages you need
 numbro.registerLanguage(languages['ja-JP']);

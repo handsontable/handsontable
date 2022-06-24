@@ -12,8 +12,9 @@ const gettingStartedItems = [
 const integrateWithReactItems = [
   'guides/integrate-with-react/react-installation',
   'guides/integrate-with-react/react-simple-example',
+  'guides/integrate-with-react/react-modules',
   'guides/integrate-with-react/react-hot-column',
-  'guides/integrate-with-react/react-setting-up-a-locale',
+  'guides/integrate-with-react/react-setting-up-a-language',
   'guides/integrate-with-react/react-custom-context-menu-example',
   'guides/integrate-with-react/react-custom-editor-example',
   'guides/integrate-with-react/react-custom-renderer-example',
@@ -25,8 +26,9 @@ const integrateWithReactItems = [
 const integrateWithAngularItems = [
   'guides/integrate-with-angular/angular-installation',
   'guides/integrate-with-angular/angular-simple-example',
+  'guides/integrate-with-angular/angular-modules',
   'guides/integrate-with-angular/angular-custom-id',
-  'guides/integrate-with-angular/angular-setting-up-a-locale',
+  'guides/integrate-with-angular/angular-setting-up-a-language',
   'guides/integrate-with-angular/angular-custom-context-menu-example',
   'guides/integrate-with-angular/angular-custom-editor-example',
   'guides/integrate-with-angular/angular-custom-renderer-example',
@@ -37,8 +39,9 @@ const integrateWithAngularItems = [
 const integrateWithVueItems = [
   'guides/integrate-with-vue/vue-installation',
   'guides/integrate-with-vue/vue-simple-example',
+  'guides/integrate-with-vue/vue-modules',
   'guides/integrate-with-vue/vue-hot-column',
-  'guides/integrate-with-vue/vue-setting-up-a-locale',
+  'guides/integrate-with-vue/vue-setting-up-a-language',
   'guides/integrate-with-vue/vue-custom-id-class-style',
   'guides/integrate-with-vue/vue-custom-context-menu-example',
   'guides/integrate-with-vue/vue-custom-editor-example',
@@ -163,6 +166,7 @@ const upgradeAndMigrationItems = [
   'guides/upgrade-and-migration/migrating-from-7.4-to-8.0',
   'guides/upgrade-and-migration/migrating-from-8.4-to-9.0',
   'guides/upgrade-and-migration/migrating-from-9.0-to-10.0',
+  'guides/upgrade-and-migration/migrating-from-10.0-to-11.0',
 ];
 
 module.exports = {

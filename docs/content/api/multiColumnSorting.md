@@ -64,55 +64,78 @@ columns: [{
 
 ### multiColumnSorting
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/dataMap/metaManager/metaSchema.js#L2052
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/dataMap/metaManager/metaSchema.js#L2775
 
 :::
 
 _multiColumnSorting.multiColumnSorting : boolean | object_
 
-Turns on [Multi-column sorting](@/guides/rows/row-sorting.md). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
-* `initialConfig` - Array containing objects, every with predefined keys:
-  * `column` - sorted column
-  * `sortOrder` - order in which column will be sorted
-    * `'asc'` = ascending
-    * `'desc'` = descending
-* `indicator` - display status for sorting order indicator (an arrow icon in the column header, specifying the sorting order).
-  * `true` = show sort indicator for sorted columns
-  * `false` = don't show sort indicator for sorted columns
-* `headerAction` - allow to click on the headers to sort
-  * `true` = turn on possibility to click on the headers to sort
-  * `false` = turn off possibility to click on the headers to sort
-* `sortEmptyCells` - how empty values should be handled, for more information see @{link Options#allowEmpty}
-  * `true` = the table sorts empty cells
-  * `false` = the table moves all empty cells to the end of the table
-* `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
+The `multiColumnSorting` option configures the [`MultiColumnSorting`](@/api/columnSorting.md) plugin.
+
+You can set the `multiColumnSorting` option to one of the following:
+
+| Setting    | Description                                                                                                                                                |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `true`     | Enable the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin with the default configuration                                                       |
+| `false`    | Disable the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin                                                                                     |
+| An object  | - Enable the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin<br>- Modify the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin options |
+
+If you set the `multiColumnSorting` option to an object,
+you can set the following [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin options:
+
+| Option                   | Possible settings                                                                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `indicator`              | `true`: Display an arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
+| `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
+| `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
+| `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-functions)                                                                |
+
+If you set the `multiColumnSorting` option to an object,
+you can also sort individual columns at Handsontable's initialization.
+In the `multiColumnSorting` object, add an object named `initialConfig`,
+with the following properties:
+
+| Option      | Possible settings   | Description                                                      |
+| ----------- | ------------------- | ---------------------------------------------------------------- |
+| `column`    | A number            | The index of the column that you want to sort at initialization  |
+| `sortOrder` | `'asc'` \| `'desc'` | The sorting order:<br>`'asc'`: ascending<br>`'desc'`: descending |
+
+Read more:
+- [Row sorting &#8594;](@/guides/rows/row-sorting.md)
 
 **Default**: <code>undefined</code>
 **Example**
 ```js
-// as boolean
+// enable the `MultiColumnSorting` plugin
 multiColumnSorting: true
 
-// as an object with initial sort config (sort ascending for column at index 1 and then sort descending for column at index 0)
+// enable the `MultiColumnSorting` plugin with custom configuration
 multiColumnSorting: {
-  initialConfig: [{
-    column: 1,
-    sortOrder: 'asc'
-  }, {
-    column: 0,
-    sortOrder: 'desc'
-  }]
+  // sort empty cells as well
+  sortEmptyCells: true,
+  // display an arrow icon in the column header
+  indicator: true,
+  // disable clicking on the column header to sort the column
+  headerAction: false,
+  // add a custom compare function
+  compareFunctionFactory(sortOrder, columnMeta) {
+    return function(value, nextValue) {
+      // some value comparisons which will return -1, 0 or 1...
+    }
+  }
 }
 
-// as an object which define specific sorting options for all columns
+// enable the `MultiColumnSorting` plugin
 multiColumnSorting: {
-  sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
-  indicator: true, // true = shows indicator for all columns, false = don't show indicator for columns
-  headerAction: false, // true = allow to click on the headers to sort, false = turn off possibility to click on the headers to sort
-  compareFunctionFactory: function(sortOrder, columnMeta) {
-    return function(value, nextValue) {
-      // Some value comparisons which will return -1, 0 or 1...
-    }
+  // at initialization, sort column 1 in ascending order
+  initialConfig: {
+    column: 1,
+    sortOrder: 'asc'
+  },
+  // at initialization, sort column 2 in descending order
+  initialConfig: {
+    column: 2,
+    sortOrder: 'desc'
   }
 }
 ```
@@ -121,7 +144,7 @@ multiColumnSorting: {
 
 ### clearSort
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/multiColumnSorting/multiColumnSorting.js#L151
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L151
 
 :::
 
@@ -133,7 +156,7 @@ Clear the sort performed on the table.
 
 ### disablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/multiColumnSorting/multiColumnSorting.js#L115
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L115
 
 :::
 
@@ -145,7 +168,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/multiColumnSorting/multiColumnSorting.js#L104
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L104
 
 :::
 
@@ -157,7 +180,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getSortConfig
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/multiColumnSorting/multiColumnSorting.js#L172
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L172
 
 :::
 
@@ -176,7 +199,7 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 
 ### isEnabled
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/multiColumnSorting/multiColumnSorting.js#L97
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L97
 
 :::
 
@@ -189,7 +212,7 @@ hook and if it returns `true` than the [MultiColumnSorting#enablePlugin](@/api/m
 
 ### isSorted
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/multiColumnSorting/multiColumnSorting.js#L160
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L160
 
 :::
 
@@ -201,7 +224,7 @@ Checks if the table is sorted (any column have to be sorted).
 
 ### setSortConfig
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/multiColumnSorting/multiColumnSorting.js#L200
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L200
 
 :::
 
@@ -233,7 +256,7 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
 
 ### sort
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/multiColumnSorting/multiColumnSorting.js#L144
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L144
 
 :::
 

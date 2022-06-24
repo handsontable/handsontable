@@ -61,52 +61,79 @@ columns: [{
 
 ### columnSorting
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/dataMap/metaManager/metaSchema.js#L1888
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/dataMap/metaManager/metaSchema.js#L2513
 
 :::
 
 _columnSorting.columnSorting : boolean | object_
 
-Turns on [Column sorting](@/guides/rows/row-sorting.md). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
-* `initialConfig` - Object with predefined keys:
-  * `column` - sorted column
-  * `sortOrder` - order in which column will be sorted
-    * `'asc'` = ascending
-    * `'desc'` = descending
-* `indicator` - display status for sorting order indicator (an arrow icon in the column header, specifying the sorting order).
-  * `true` = show sort indicator for sorted columns
-  * `false` = don't show sort indicator for sorted columns
-* `headerAction` - allow to click on the headers to sort
-  * `true` = turn on possibility to click on the headers to sort
-  * `false` = turn off possibility to click on the headers to sort
-* `sortEmptyCells` - how empty values should be handled, for more information see @{link Options#allowEmpty}
-  * `true` = the table sorts empty cells
-  * `false` = the table moves all empty cells to the end of the table
-* `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
+The `columnSorting` option configures the [`ColumnSorting`](@/api/columnSorting.md) plugin.
+
+You can set the `columnSorting` option to one of the following:
+
+| Setting    | Description                                                                                                                            |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `true`     | Enable the [`ColumnSorting`](@/api/columnSorting.md) plugin with the default configuration                                             |
+| `false`    | Disable the [`ColumnSorting`](@/api/columnSorting.md) plugin                                                                           |
+| An object  | - Enable the [`ColumnSorting`](@/api/columnSorting.md) plugin<br>- Modify the [`ColumnSorting`](@/api/columnSorting.md) plugin options |
+
+If you set the `columnSorting` option to an object,
+you can set the following [`ColumnSorting`](@/api/columnSorting.md) plugin options:
+
+| Option                   | Possible settings                                                                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `indicator`              | `true`: Display an arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
+| `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
+| `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
+| `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-functions)                                                                |
+
+If you set the `columnSorting` option to an object,
+you can also sort individual columns at Handsontable's initialization.
+In the `columnSorting` object, add an object named `initialConfig`,
+with the following properties:
+
+| Option      | Possible settings   | Description                                                      |
+| ----------- | ------------------- | ---------------------------------------------------------------- |
+| `column`    | A number            | The index of the column that you want to sort at initialization  |
+| `sortOrder` | `'asc'` \| `'desc'` | The sorting order:<br>`'asc'`: ascending<br>`'desc'`: descending |
+
+Read more:
+- [Row sorting &#8594;](@/guides/rows/row-sorting.md)
+- [Row sorting: Custom compare functions &#8594;](@/guides/rows/row-sorting.md#custom-compare-functions)
 
 **Default**: <code>undefined</code>
 **Example**
 ```js
-// as boolean
+// enable the `ColumnSorting` plugin
 columnSorting: true
 
-// as an object with initial sort config (sort ascending for column at index 1)
+// enable the `ColumnSorting` plugin with custom configuration
 columnSorting: {
-  initialConfig: {
-    column: 1,
-    sortOrder: 'asc'
+  // sort empty cells as well
+  sortEmptyCells: true,
+  // display an arrow icon in the column header
+  indicator: true,
+  // disable clicking on the column header to sort the column
+  headerAction: false,
+  // add a custom compare function
+  compareFunctionFactory(sortOrder, columnMeta) {
+    return function(value, nextValue) {
+      // some value comparisons which will return -1, 0 or 1...
+    }
   }
 }
 
-// as an object which define specific sorting options for all columns
+// enable the `ColumnSorting` plugin
 columnSorting: {
-  sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
-  indicator: true, // true = shows indicator for all columns, false = don't show indicator for columns
-  headerAction: false, // true = allow to click on the headers to sort, false = turn off possibility to click on the headers to sort
-  compareFunctionFactory: function(sortOrder, columnMeta) {
-    return function(value, nextValue) {
-      // Some value comparisons which will return -1, 0 or 1...
-    }
+  // at initialization, sort column 1 in ascending order
+  initialConfig: {
+    column: 1,
+    sortOrder: 'asc'
+  },
+  // at initialization, sort column 2 in descending order
+  initialConfig: {
+    column: 2,
+    sortOrder: 'desc'
   }
 }
 ```
@@ -115,7 +142,7 @@ columnSorting: {
 
 ### clearSort
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L263
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/columnSorting/columnSorting.js#L263
 
 :::
 
@@ -127,7 +154,7 @@ Clear the sort performed on the table.
 
 ### destroy
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L797
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/columnSorting/columnSorting.js#L797
 
 :::
 
@@ -139,7 +166,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L174
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/columnSorting/columnSorting.js#L174
 
 :::
 
@@ -151,7 +178,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L139
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/columnSorting/columnSorting.js#L139
 
 :::
 
@@ -163,7 +190,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getSortConfig
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L284
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/columnSorting/columnSorting.js#L284
 
 :::
 
@@ -182,7 +209,7 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 
 ### isEnabled
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L132
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/columnSorting/columnSorting.js#L132
 
 :::
 
@@ -195,7 +222,7 @@ hook and if it returns `true` than the [ColumnSorting#enablePlugin](@/api/column
 
 ### isSorted
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L272
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/columnSorting/columnSorting.js#L272
 
 :::
 
@@ -207,7 +234,7 @@ Checks if the table is sorted (any column have to be sorted).
 
 ### setSortConfig
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L316
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/columnSorting/columnSorting.js#L316
 
 :::
 
@@ -239,7 +266,7 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
 
 ### sort
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L224
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/columnSorting/columnSorting.js#L224
 
 :::
 

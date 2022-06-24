@@ -88,12 +88,12 @@ To decide how a column summary is calculated, you can use one of the following s
 
 | Function                                                                                                                   | Description                                                                                            |
 | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| [`sum`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L146-L161)     | Returns the sum of all values in a column.                                                             |
-| [`min`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L193-L226)     | Returns the lowest value in a column.                                                                  |
-| [`max`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L193-L226)     | Returns the highest value in a column.                                                                 |
-| [`count`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L293-L313)   | Returns the number of all non-empty cells in a column.                                                 |
-| [`average`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L315-L327) | Returns the sum of all values in a column,<br>divided by the number of non-empty cells in that column. |
-| [`custom`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L138-L139)  | Lets you implement a [custom summary function](#implementing-a-custom-summary-function).                                                  |
+| [`sum`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/plugins/columnSummary/columnSummary.js#L146-L161)     | Returns the sum of all values in a column.                                                             |
+| [`min`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/plugins/columnSummary/columnSummary.js#L193-L226)     | Returns the lowest value in a column.                                                                  |
+| [`max`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/plugins/columnSummary/columnSummary.js#L193-L226)     | Returns the highest value in a column.                                                                 |
+| [`count`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/plugins/columnSummary/columnSummary.js#L293-L313)   | Returns the number of all non-empty cells in a column.                                                 |
+| [`average`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/plugins/columnSummary/columnSummary.js#L315-L327) | Returns the sum of all values in a column,<br>divided by the number of non-empty cells in that column. |
+| [`custom`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/plugins/columnSummary/columnSummary.js#L138-L139)  | Lets you implement a [custom summary function](#implementing-a-custom-summary-function).                                                  |
 
 ### Column summary options
 

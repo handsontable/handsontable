@@ -32,20 +32,28 @@ const hot = new Handsontable(container, {
 
 ### bindRowsWithHeaders
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/dataMap/metaManager/metaSchema.js#L2671
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/dataMap/metaManager/metaSchema.js#L3734
 
 :::
 
 _bindRowsWithHeaders.bindRowsWithHeaders : boolean | string_
 
-Enables the functionality of the [BindRowsWithHeaders](#bindrowswithheaders) plugin which allows binding the table rows with their headers.
-If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
-if at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
+The `bindRowsWithHeaders` option configures the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin.
+
+You can set the `bindRowsWithHeaders` option to one of the following:
+
+| Setting | Description                                                                  |
+| ------- | ---------------------------------------------------------------------------- |
+| `false` | Disable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin |
+| `true`  | Enable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin  |
+
+Read more:
+- [Plugins: `BindRowsWithHeaders` &#8594;](@/api/bindRowsWithHeaders.md)
 
 **Default**: <code>undefined</code>
 **Example**
 ```js
-// keep row data and row headers in sync
+// enable the `BindRowsWithHeaders` plugin
 bindRowsWithHeaders: true
 ```
 
@@ -53,7 +61,7 @@ bindRowsWithHeaders: true
 
 ### destroy
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L111
 
 :::
 
@@ -65,7 +73,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L91
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L91
 
 :::
 
@@ -77,7 +85,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L68
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L68
 
 :::
 
@@ -89,7 +97,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L61
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L61
 
 :::
 
