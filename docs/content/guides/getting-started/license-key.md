@@ -45,7 +45,14 @@ To use it with a framework, pass the string to a `licenseKey` prop:
 ```
 
 </code-block>
-<code-block title="Vue">
+<code-block title="Vue 2">
+
+```html
+<hot-table :settings="settings" licenseKey="00000-00000-00000-00000-00000" />
+```
+
+</code-block>
+<code-block title="Vue 3">
 
 ```html
 <hot-table :settings="settings" licenseKey="00000-00000-00000-00000-00000" />

@@ -39,8 +39,8 @@ new Vue({
       hotSettings: {
         data:
           [
-            ['A1', 'https://handsontable.com/docs/11.0/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-            ['A2', 'https://handsontable.com/docs/11.0/img/examples/javascript-the-good-parts.jpg']],
+            ['A1', 'https://handsontable.com/docs/11.1/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+            ['A2', 'https://handsontable.com/docs/11.1/img/examples/javascript-the-good-parts.jpg']],
         columns: [
           {},
           {

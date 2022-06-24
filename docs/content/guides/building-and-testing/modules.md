@@ -23,7 +23,7 @@ Thanks to [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guid
 
 The graph presents a comparison of size in KB for a full bundle, basic optimization and with optimized translations. The sample code is avaiable just below - it shows sample countries and cities and although it looks small it will generate over 345 KB (Gzipped). [Webpack 5](https://webpack.js.org/) with a default configuration for production builds was used to prepare this example.
 
-![bundle_size_comparison](/docs/11.0/img/bundle_size_comparison.png)
+![bundle_size_comparison](/docs/11.1/img/bundle_size_comparison.png)
 
 You can compare the following examples to see the difference in the size of the final build. Note: this is an example in a nutshell, just to present a comparison, the next section shows how to do it step by step. First, take a look at the settings, it is the same object in both cases:
 
@@ -826,6 +826,7 @@ new Handsontable(container, {
 ## Using modules with frameworks
 
 You can also use modules with Handsontable's framework wrappers:
-- [Using modules in React](@/guides/integrate-with-react/react-modules.md)
-- [Using modules in Angular](@/guides/integrate-with-angular/angular-modules.md)
-- [Using modules in Vue](@/guides/integrate-with-vue/vue-modules.md)
+- [Using modules with React](@/guides/integrate-with-react/react-modules.md)
+- [Using modules with Angular](@/guides/integrate-with-angular/angular-modules.md)
+- [Using modules with Vue 2](@/guides/integrate-with-vue/vue-modules.md)
+- [Using modules with Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)

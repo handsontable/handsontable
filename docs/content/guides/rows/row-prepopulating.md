@@ -101,6 +101,7 @@ const hot = new Handsontable(container, {
   }
 });
 
+// or, use `updateData()` to replace `data` without resetting states
 hot.loadData(data);
 ```
 :::

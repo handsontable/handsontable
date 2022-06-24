@@ -32,4 +32,5 @@ Handsontable's source files are stored on GitHub, in a [mono repository](https:/
     ├── angular                             # Wrapper for Angular
     ├── react                               # Wrapper for React
     └── vue                                 # Wrapper for Vue 2
+    └── vue3                                # Wrapper for Vue 3
 ```

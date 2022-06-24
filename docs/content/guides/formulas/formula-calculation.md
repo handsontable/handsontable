@@ -37,7 +37,7 @@ This plugin comes with a library of 386 functions grouped into categories, such 
 *   Online calculators
 *   Low connectivity apps
 
-### Version support
+### HyperFormula version support
 
 Different [versions of Handsontable](https://github.com/handsontable/handsontable/releases) support different [versions of HyperFormula](https://github.com/handsontable/hyperformula/releases).
 
@@ -114,6 +114,7 @@ const data2 = [
   ['Number of sheets in this workbook', '=SHEETS()'],
 ];
 
+// create an external HyperFormula instance
 const hyperformulaInstance = HyperFormula.buildEmpty({
   // to use an external HyperFormula instance,
   // initialize it with the `'internal-use-in-handsontable'` license key
