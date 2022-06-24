@@ -2,7 +2,7 @@ const path = require('path');
 const execa = require('execa');
 
 // TODO: fetch release versions list from GH API or so
-const availableVersions = ['9.0', '10.0', '11.0', '11.1', '12.0'];
+const availableVersions = ['12.1', '12.0', '11.1', '11.0', '10.0', '9.0'];
 
 /**
  * Gets all available docs versions.
