@@ -34,7 +34,7 @@ function isThisDocsTheLatestVersion() {
   return false;
 }
 
-const versionFromBranchRegExp = /^docs\-snapshot\/(\d+\.\d+)$/;
+const versionFromBranchRegExp = /^docs-snapshot\/(\d+\.\d+)$/;
 
 /**
  * Gets the current (this) version of docs.
