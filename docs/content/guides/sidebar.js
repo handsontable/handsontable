@@ -162,6 +162,7 @@ const upgradeAndMigrationItems = [
   // TODO 'guides/upgrade-and-migration/roadmap',
   'guides/upgrade-and-migration/migrating-from-7.4-to-8.0',
   'guides/upgrade-and-migration/migrating-from-8.4-to-9.0',
+  'guides/upgrade-and-migration/migrating-from-9.0-to-10.0',
 ];
 
 module.exports = {

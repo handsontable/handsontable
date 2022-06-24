@@ -3,6 +3,7 @@ title: GhostTable
 metaTitle: GhostTable - API Reference - Handsontable Documentation
 permalink: /api/ghost-table
 canonicalUrl: /api/ghost-table
+hotPlugin: false
 editLink: false
 ---
 
@@ -13,7 +14,7 @@ editLink: false
 
 ### columns
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L39
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L38
 
 :::
 
@@ -25,7 +26,7 @@ Added columns collection.
 
 ### container
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L21
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L20
 
 :::
 
@@ -37,7 +38,7 @@ Container element where every table will be injected.
 
 ### hot
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L15
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L14
 
 :::
 
@@ -49,7 +50,7 @@ Handsontable instance.
 
 ### injected
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L27
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L26
 
 :::
 
@@ -61,7 +62,7 @@ Flag which determine is table was injected to DOM.
 
 ### rows
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L33
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L32
 
 :::
 
@@ -73,7 +74,7 @@ Added rows collection.
 
 ### samples
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L46
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L45
 
 :::
 
@@ -86,7 +87,7 @@ Samples prepared for calculations.
 
 ### settings
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L53
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L52
 
 :::
 
@@ -100,7 +101,7 @@ Ghost table settings.
 
 ### addColumn
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L117
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L116
 
 :::
 
@@ -118,7 +119,7 @@ Add column.
 
 ### addColumnHeadersRow
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L89
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L88
 
 :::
 
@@ -135,7 +136,7 @@ Add a row consisting of the column headers.
 
 ### addRow
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L64
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L63
 
 :::
 
@@ -153,7 +154,7 @@ Add row.
 
 ### appendColumnHeadersRow
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L281
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L280
 
 :::
 
@@ -165,7 +166,7 @@ Creates DOM elements for headers and appends them to the THEAD element of the ta
 
 ### clean
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L351
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L350
 
 :::
 
@@ -177,7 +178,7 @@ Remove table from document and reset internal state.
 
 ### createCol
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L320
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L319
 
 :::
 
@@ -195,7 +196,7 @@ Create table column elements.
 
 ### createColElement
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L392
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L391
 
 :::
 
@@ -212,7 +213,7 @@ Create col element.
 
 ### createColGroupsCol
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L223
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L222
 
 :::
 
@@ -224,7 +225,7 @@ Create colgroup col elements.
 
 ### createContainer
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L443
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L442
 
 :::
 
@@ -241,7 +242,7 @@ Create container for tables.
 
 ### createRow
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L245
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L244
 
 :::
 
@@ -259,7 +260,7 @@ Create table row element.
 
 ### createTable
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L406
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L405
 
 :::
 
@@ -276,7 +277,7 @@ Create table element.
 
 ### getHeights
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L147
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L146
 
 :::
 
@@ -293,7 +294,7 @@ Get calculated heights.
 
 ### getSetting
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L209
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L208
 
 :::
 
@@ -310,7 +311,7 @@ Get a single Ghost Table setting.
 
 ### getSettings
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L199
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L198
 
 :::
 
@@ -322,7 +323,7 @@ Get the Ghost Table settings.
 
 ### getWidths
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L162
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L161
 
 :::
 
@@ -339,7 +340,7 @@ Get calculated widths.
 
 ### injectTable
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L368
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L367
 
 :::
 
@@ -356,7 +357,7 @@ Inject generated table into document.
 
 ### isHorizontal
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L469
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L468
 
 :::
 
@@ -368,7 +369,7 @@ Checks if table is raised horizontally (checking columns).
 
 ### isVertical
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L460
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L459
 
 :::
 
@@ -380,7 +381,7 @@ Checks if table is raised vertically (checking rows).
 
 ### removeTable
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L378
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L377
 
 :::
 
@@ -392,7 +393,7 @@ Remove table from document.
 
 ### setSetting
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L186
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L185
 
 :::
 
@@ -410,7 +411,7 @@ Set a single setting of the Ghost Table.
 
 ### setSettings
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/utils/ghostTable.js#L176
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/utils/ghostTable.js#L175
 
 :::
 

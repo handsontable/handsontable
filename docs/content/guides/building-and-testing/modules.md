@@ -21,7 +21,7 @@ Thanks to [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guid
 
 The graph presents a comparison of size in KB for a full bundle, basic optimization and with optimized translations. The sample code is avaiable just below - it shows sample countries and cities and although it looks small it will generate over 345 KB (Gzipped). [Webpack 5](https://webpack.js.org/) with a default configuration for production builds was used to prepare this example.
 
-![bundle_size_comparison](/docs/9.0/img/bundle_size_comparison.png)
+![bundle_size_comparison](/docs/10.0/img/bundle_size_comparison.png)
 
 You can compare the following examples to see the difference in the size of the final build. Note: this is an example in a nutshell, just to present a comparison, the next section shows how to do it step by step. First, take a look at the settings, it is the same object in both cases:
 
@@ -351,9 +351,9 @@ new Handsontable(container, {
 
 And that is all! You can use the checkbox cell type!
 
-## Importing locales
+## Importing translations
 
-Importing locales works slightly different than in case of other elements. Let's try adding the `pl-PL` locale.
+Importing translations works slightly different than in case of other elements. Let's try adding the `pl-PL` translation.
 
 Start with importing the base and the language code:
 
@@ -375,7 +375,7 @@ registerLanguageDictionary(plPL.languageCode, plPL);
 registerLanguageDictionary(plPL);
 ```
 
-Now, you can use newly registered locale. The full example looks like this:
+Now, you can use newly registered translation. The full example looks like this:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -383,14 +383,14 @@ import { registerLanguageDictionary, plPL } from 'handsontable/i18n';
 
 registerLanguageDictionary(plPL);
 
-// use the locales
+// use the translation
 new Handsontable(container, {
   language: 'pl-PL',
 // rest of the settings
 });
 ```
 
-And that is all! You can use the PL-pl locale!
+And that is all! You can use the PL-pl translation!
 
 ## Optimizing moment.js locales
 

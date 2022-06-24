@@ -29,7 +29,7 @@ module.exports = {
     'content/**/*.md'
   ],
   description: 'Handsontable',
-  base: '/docs/9.0/',
+  base: `/docs/${getThisDocsVersion()}/`,
   head: [
     ['link', { rel: 'icon', href: `${getDocsBaseUrl()}/static/images/template/ModCommon/favicon-32x32.png` }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],

@@ -63,7 +63,7 @@ const hot = new Handsontable(container, {
 
     clearTimeout(autosaveNotification);
 
-    ajax('/docs/9.0/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
+    ajax('/docs/10.0/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
       exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
       autosaveNotification = setTimeout(() => {
         exampleConsole.innerText ='Changes will be autosaved';
@@ -73,7 +73,7 @@ const hot = new Handsontable(container, {
 });
 
 Handsontable.dom.addEvent(load, 'click', () => {
-  ajax('/docs/9.0/scripts/json/load.json', 'GET', '', res => {
+  ajax('/docs/10.0/scripts/json/load.json', 'GET', '', res => {
     const data = JSON.parse(res.response);
 
     hot.loadData(data.data);
@@ -83,7 +83,7 @@ Handsontable.dom.addEvent(load, 'click', () => {
 });
 Handsontable.dom.addEvent(save, 'click', () => {
   // save all cell's data
-  ajax('/docs/9.0/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
+  ajax('/docs/10.0/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
     const response = JSON.parse(res.response);
 
     if (response.result === 'ok') {
@@ -140,9 +140,9 @@ You can save any type of data in local storage to preserve the table state after
 
 When `persistentState` is enabled it exposes hooks listed below:
 
-* [persistentStateSave](@/api/pluginHooks.md#persistentstatesave)
-* [persistentStateLoad](@/api/pluginHooks.md#persistentstateload)
-* [persistentStateReset](@/api/pluginHooks.md#persistentstatereset)
+* [persistentStateSave](@/api/hooks.md#persistentstatesave)
+* [persistentStateLoad](@/api/hooks.md#persistentstateload)
+* [persistentStateReset](@/api/hooks.md#persistentstatereset)
 
 ## `persistentState` vs `LocalStorage API`
 

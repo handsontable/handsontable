@@ -94,7 +94,7 @@ new Vue({
       },
       settings: {
         height: 'auto',
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: 'non-commercial-and-evaluation'
       }
     }
   },

@@ -17,7 +17,7 @@ To reflect the type or category of data in a particular column, give it a custom
 
 ## Default headers
 
-Setting the [colHeaders](@/api/metaSchema.md#colheaders) option to `true` enables the default column headers as shown in the example below:
+Setting the [colHeaders](@/api/options.md#colheaders) option to `true` enables the default column headers as shown in the example below:
 
 ::: example #example1
 ```js

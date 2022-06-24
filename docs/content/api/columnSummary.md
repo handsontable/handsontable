@@ -13,8 +13,26 @@ editLink: false
 
 ## Description
 
-Allows making pre-defined calculations on the cell values and display the results within Handsontable.
-[See the demo for more information](@/guides/columns/column-summary.md).
+The `ColumnSummary` plugin lets you [easily summarize your columns](@/guides/columns/column-summary.md).
+
+You can use the [built-in summary functions](@/guides/columns/column-summary.md#built-in-summary-functions),
+or implement a [custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function).
+
+For each column summary, you can set the following configuration options:
+
+| Option | Required | Type | Default | Description |
+|---|---|---|---|---|
+| `sourceColumn` | No | Number | Same as `destinationColumn` | [Selects a column to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+| `ranges` | No | Array | - | [Selects ranges of rows to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+| `type` | Yes | String | - | [Sets a summary function](@/guides/columns/column-summary.md#step-3-calculate-your-summary) |
+| `destinationRow` | Yes | Number | - | [Sets the destination cell's row coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+| `destinationColumn` | Yes | Number | - | [Sets the destination cell's column coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+| `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary.md#forcing-numeric-values) |
+| `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell) |
+| `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary.md#throwing-data-type-errors) |
+| `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
+| `roundFloat` | No | Number | - | [Rounds summary result](@/guides/columns/column-summary.md#rounding-a-column-summary-result) |
+| `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function) |
 
 **Example**
 ```js
@@ -25,20 +43,20 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   columnSummary: [
     {
+      type: 'min',
       destinationRow: 4,
       destinationColumn: 1,
-      type: 'min'
     },
     {
+      type: 'max',
       destinationRow: 0,
       destinationColumn: 3,
-      reversedRowCoords: true,
-      type: 'max'
+      reversedRowCoords: true
     },
     {
+      type: 'sum',
       destinationRow: 4,
       destinationColumn: 5,
-      type: 'sum',
       forceNumeric: true
     }
   ]
@@ -49,29 +67,43 @@ const hot = new Handsontable(container, {
 
 ### columnSummary
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/dataMap/metaManager/metaSchema.js#L2704
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/dataMap/metaManager/metaSchema.js#L2757
 
 :::
 
 _columnSummary.columnSummary : Array&lt;object&gt; | function_
 
-Allows making pre-defined calculations on the cell values and display the results within Handsontable.
+The `ColumnSummary` plugin lets you [easily summarize your columns](@/guides/columns/column-summary.md).
 
-Possible types:
- * `'sum'`
- * `'min'`
- * `'max'`
- * `'count'`
- * `'average'`
- * `'custom'` - add `customFunction`.
+You can use the [built-in summary functions](@/guides/columns/column-summary.md#built-in-summary-functions),
+or implement a [custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function).
 
-[See the demo for more information](@/guides/columns/column-summary.md).
+For each column summary, you can set the following configuration options:
+
+| Option | Required | Type | Default | Description |
+|---|---|---|---|---|
+| `sourceColumn` | No | Number | Same as `destinationColumn` | [Selects a column to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+| `ranges` | No | Array | - | [Selects ranges of rows to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+| `type` | Yes | String | - | [Sets a summary function](@/guides/columns/column-summary.md#step-3-calculate-your-summary) |
+| `destinationRow` | Yes | Number | - | [Sets the destination cell's row coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+| `destinationColumn` | Yes | Number | - | [Sets the destination cell's column coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+| `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary.md#forcing-numeric-values) |
+| `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell) |
+| `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary.md#throwing-data-type-errors) |
+| `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
+| `roundFloat` | No | Number | - | [Rounds summary result](@/guides/columns/column-summary.md#rounding-a-column-summary-result) |
+| `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function) |
 
 **Default**: <code>undefined</code>
 **Example**
 ```js
 columnSummary: [
   {
+    sourceColumn: 0,
+    ranges: [
+      [0, 2], [4], [6, 8]
+    ],
+    type: 'custom',
     destinationRow: 4,
     destinationColumn: 1,
     forceNumeric: true,
@@ -79,8 +111,7 @@ columnSummary: [
     suppressDataTypeErrors: false,
     readOnly: true,
     roundFloat: false,
-    type: 'custom',
-    customFunction: function(endpoint) {
+    customFunction(endpoint) {
        return 100;
     }
   }
@@ -91,7 +122,7 @@ columnSummary: [
 
 ### disablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSummary/columnSummary.js#L109
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSummary/columnSummary.js#L127
 
 :::
 
@@ -103,7 +134,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSummary/columnSummary.js#L77
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSummary/columnSummary.js#L95
 
 :::
 
@@ -115,11 +146,11 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSummary/columnSummary.js#L70
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSummary/columnSummary.js#L88
 
 :::
 
 _columnSummary.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
 hook and if it returns `true` than the [ColumnSummary#enablePlugin](@/api/columnSummary.md#enableplugin) method is called.

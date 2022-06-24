@@ -3,6 +3,7 @@ title: Core
 metaTitle: Core - API Reference - Handsontable Documentation
 permalink: /api/core
 canonicalUrl: /api/core
+hotPlugin: false
 editLink: false
 ---
 
@@ -29,7 +30,7 @@ hot.setDataAtCell(0, 0, 'new value');
 
 ### columnIndexMapper
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L154
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L154
 
 :::
 
@@ -41,7 +42,7 @@ Instance of index mapper which is responsible for managing the column indexes.
 
 ### isDestroyed
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L111
 
 :::
 
@@ -54,7 +55,7 @@ after `afterDestroy` hook is called.
 
 ### rowIndexMapper
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L162
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L162
 
 :::
 
@@ -67,7 +68,7 @@ Instance of index mapper which is responsible for managing the row indexes.
 
 ### addHook
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L4107
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L4082
 
 :::
 
@@ -75,7 +76,7 @@ _core.addHook(key, callback)_
 
 Adds listener to the specified hook name (only for this Handsontable instance).
 
-**See**: [Hooks#add](@/api/pluginHooks.md#add)
+**See**: [Hooks#add](@/api/hooks.md#add)
 **Example**
 ```js
 hot.addHook('beforeInit', myCallback);
@@ -83,14 +84,14 @@ hot.addHook('beforeInit', myCallback);
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | `string` | Hook name (see [Hooks](@/api/pluginHooks.md)). |
+| key | `string` | Hook name (see [Hooks](@/api/hooks.md)). |
 | callback | `function` <br/> `Array` | Function or array of functions. |
 
 
 
 ### addHookOnce
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L4143
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L4118
 
 :::
 
@@ -99,7 +100,7 @@ _core.addHookOnce(key, callback)_
 Adds listener to specified hook name (only for this Handsontable instance). After the listener is triggered,
 it will be automatically removed.
 
-**See**: [Hooks#once](@/api/pluginHooks.md#once)
+**See**: [Hooks#once](@/api/hooks.md#once)
 **Example**
 ```js
 hot.addHookOnce('beforeInit', myCallback);
@@ -107,14 +108,14 @@ hot.addHookOnce('beforeInit', myCallback);
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | `string` | Hook name (see [Hooks](@/api/pluginHooks.md)). |
+| key | `string` | Hook name (see [Hooks](@/api/hooks.md)). |
 | callback | `function` <br/> `Array` | Function or array of functions. |
 
 
 
 ### alter
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2432
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2430
 
 :::
 
@@ -147,7 +148,7 @@ hot.alter('remove_row', [[1, 3], [5, 2]]);
 
 ### batch
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1894
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1892
 
 :::
 
@@ -191,7 +192,7 @@ hot.batch(() => {
 
 ### batchExecution
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1858
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1856
 
 :::
 
@@ -225,7 +226,7 @@ hot.batchExecution(() => {
 
 ### batchRender
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1744
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1742
 
 :::
 
@@ -261,7 +262,7 @@ hot.batchRender(() => {
 
 ### clear
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2421
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2419
 
 :::
 
@@ -271,9 +272,21 @@ Clears the data from the table (the table settings remain intact).
 
 
 
+### clearUndo
+
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L958
+
+:::
+
+_core.clearUndo() ⇒ boolean_
+
+[UndoRedo#clear](@/api/undoRedo.md#clear).
+
+
+
 ### colToProp
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2541
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2539
 
 :::
 
@@ -292,7 +305,7 @@ If the data source is an array of arrays, it returns the columns index.
 
 ### countCols
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3585
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3560
 
 :::
 
@@ -305,7 +318,7 @@ Returns the total number of visible columns in the table.
 
 ### countEmptyCols
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3667
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3642
 
 :::
 
@@ -324,7 +337,7 @@ columns at right hand edge of the table.
 
 ### countEmptyRows
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3643
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3618
 
 :::
 
@@ -343,7 +356,7 @@ number of empty rows at the bottom of the table.
 
 ### countRenderedCols
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3621
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3596
 
 :::
 
@@ -356,7 +369,7 @@ Returns the number of rendered columns (including columns partially or fully ren
 
 ### countRenderedRows
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3599
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3574
 
 :::
 
@@ -369,7 +382,7 @@ Returns the number of rendered rows (including rows partially or fully rendered 
 
 ### countRows
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3574
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3549
 
 :::
 
@@ -382,7 +395,7 @@ Returns the total number of visual rows in the table.
 
 ### countSourceCols
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3563
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3538
 
 :::
 
@@ -395,7 +408,7 @@ Returns the total number of columns in the data source.
 
 ### countSourceRows
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3552
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3527
 
 :::
 
@@ -408,7 +421,7 @@ Returns the total number of rows in the data source.
 
 ### countVisibleCols
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3632
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3607
 
 :::
 
@@ -421,7 +434,7 @@ Returns the number of visible columns. Returns -1 if table is not visible.
 
 ### countVisibleRows
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3610
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3585
 
 :::
 
@@ -434,7 +447,7 @@ Returns the number of visible rows (rendered rows that fully fit inside viewport
 
 ### deselectCell
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3856
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3831
 
 :::
 
@@ -446,7 +459,7 @@ Deselects the current cell selection on the table.
 
 ### destroy
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3952
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3927
 
 :::
 
@@ -454,12 +467,12 @@ _core.destroy()_
 
 Removes the table from the DOM and destroys the instance of the Handsontable.
 
-**Emits**: [`Hooks#event:afterDestroy`](@/api/pluginHooks.md#afterdestroy)
+**Emits**: [`Hooks#event:afterDestroy`](@/api/hooks.md#afterdestroy)
 
 
 ### destroyEditor
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1454
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1452
 
 :::
 
@@ -477,7 +490,7 @@ Destroys the current editor, render the table and prepares the editor of the new
 
 ### emptySelectedCells
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1600
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1598
 
 :::
 
@@ -495,7 +508,7 @@ Erases content from cells that have been selected in the table.
 
 ### getActiveEditor
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L4049
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L4024
 
 :::
 
@@ -508,7 +521,7 @@ Returns the active editor class instance.
 
 ### getCell
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2466
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2464
 
 :::
 
@@ -529,7 +542,7 @@ Returns `null` if the TD is not rendered on screen (probably because that part o
 
 ### getCellEditor
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3124
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3097
 
 :::
 
@@ -555,7 +568,7 @@ hot.getCellEditor(hot.getCellMeta(1, 1));
 
 ### getCellMeta
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3023
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3023
 
 :::
 
@@ -563,7 +576,7 @@ _core.getCellMeta(row, column) ⇒ object_
 
 Returns the cell properties object for the given `row` and `column` coordinates.
 
-**Emits**: [`Hooks#event:beforeGetCellMeta`](@/api/pluginHooks.md#beforegetcellmeta), [`Hooks#event:afterGetCellMeta`](@/api/pluginHooks.md#aftergetcellmeta)
+**Emits**: [`Hooks#event:beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta), [`Hooks#event:afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -575,7 +588,7 @@ Returns the cell properties object for the given `row` and `column` coordinates.
 
 ### getCellMetaAtRow
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3079
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3052
 
 :::
 
@@ -592,7 +605,7 @@ Returns an array of cell meta objects for specified physical row index.
 
 ### getCellRenderer
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3104
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3077
 
 :::
 
@@ -618,7 +631,7 @@ hot.getCellRenderer(hot.getCellMeta(1, 1));
 
 ### getCellsMeta
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3012
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3012
 
 :::
 
@@ -631,7 +644,7 @@ Get all the cells meta settings at least once generated in the table (in order o
 
 ### getCellValidator
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3144
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3117
 
 :::
 
@@ -657,7 +670,7 @@ hot.getCellValidator(hot.getCellMeta(1, 1));
 
 ### getColHeader
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3365
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3338
 
 :::
 
@@ -666,7 +679,7 @@ _core.getColHeader([column]) ⇒ Array | string | number_
 Returns an array of column headers (in string format, if they are enabled). If param `column` is given, it
 returns the header at the given column.
 
-**Emits**: [`Hooks#event:modifyColHeader`](@/api/pluginHooks.md#modifycolheader)
+**Emits**: [`Hooks#event:modifyColHeader`](@/api/hooks.md#modifycolheader)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -677,7 +690,7 @@ returns the header at the given column.
 
 ### getColWidth
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3476
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3449
 
 :::
 
@@ -685,7 +698,7 @@ _core.getColWidth(column) ⇒ number_
 
 Returns the width of the requested column.
 
-**Emits**: [`Hooks#event:modifyColWidth`](@/api/pluginHooks.md#modifycolwidth)
+**Emits**: [`Hooks#event:modifyColWidth`](@/api/hooks.md#modifycolwidth)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -696,7 +709,7 @@ Returns the width of the requested column.
 
 ### getCoords
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2505
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2503
 
 :::
 
@@ -719,7 +732,7 @@ hot.getCoords(hot.getCell(1, 1));
 
 ### getCopyableData
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2171
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2169
 
 :::
 
@@ -737,7 +750,7 @@ Returns the data's copyable value at specified `row` and `column` index.
 
 ### getCopyableText
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2155
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2153
 
 :::
 
@@ -758,7 +771,7 @@ line character.
 
 ### getData
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2123
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2121
 
 :::
 
@@ -792,7 +805,7 @@ hot.getData(2, 1, 3, 3);
 
 ### getDataAtCell
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2618
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2616
 
 :::
 
@@ -813,7 +826,7 @@ __Note__: If data is reordered, sorted or trimmed, the currently visible order w
 
 ### getDataAtCol
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2649
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2647
 
 :::
 
@@ -833,7 +846,7 @@ __Note__: If columns were reordered or sorted, the currently visible order will 
 
 ### getDataAtProp
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2668
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2666
 
 :::
 
@@ -852,7 +865,7 @@ You can also provide a column index as the first argument.
 
 ### getDataAtRow
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2830
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2828
 
 :::
 
@@ -872,7 +885,7 @@ __Note__: If rows were reordered, sorted or trimmed, the currently visible order
 
 ### getDataAtRowProp
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2634
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2632
 
 :::
 
@@ -893,13 +906,13 @@ __Note__: If data is reordered, sorted or trimmed, the currently visible order w
 
 ### getDataType
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2851
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2849
 
 :::
 
 _core.getDataType(rowFrom, columnFrom, rowTo, columnTo) ⇒ string_
 
-Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](@/api/metaSchema.md#type)).
+Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](@/api/options.md#type)).
 If there are cells with different types in the selected range, it returns `'mixed'`.
 
 __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
@@ -917,7 +930,7 @@ __Note__: If data is reordered, sorted or trimmed, the currently visible order w
 
 ### getInstance
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L4096
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L4071
 
 :::
 
@@ -930,11 +943,11 @@ Returns the Handsontable instance.
 
 ### getPlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L4060
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L4035
 
 :::
 
-_core.getPlugin(pluginName) ⇒ BasePlugin | undefined_
+_core.getPlugin(pluginName) ⇒ [BasePlugin](@/api/basePlugin.md) | undefined_
 
 Returns plugin instance by provided its name.
 
@@ -944,11 +957,11 @@ Returns plugin instance by provided its name.
 | pluginName | `string` | The plugin name. |
 
 
-**Returns**: `BasePlugin` | `undefined` - The plugin instance or undefined if there is no plugin.
+**Returns**: [`BasePlugin`](@/api/basePlugin.md) | `undefined` - The plugin instance or undefined if there is no plugin.
 
 ### getRowHeader
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3298
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3271
 
 :::
 
@@ -956,7 +969,7 @@ _core.getRowHeader([row]) ⇒ Array | string | number_
 
 Returns an array of row headers' values (if they are enabled). If param `row` was given, it returns the header of the given row as a string.
 
-**Emits**: [`Hooks#event:modifyRowHeader`](@/api/pluginHooks.md#modifyrowheader)
+**Emits**: [`Hooks#event:modifyRowHeader`](@/api/hooks.md#modifyrowheader)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -967,7 +980,7 @@ Returns an array of row headers' values (if they are enabled). If param `row` wa
 
 ### getRowHeight
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3535
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3508
 
 :::
 
@@ -977,7 +990,7 @@ Returns the row height.
 
 Mind that this method is different from the [AutoRowSize](@/api/autoRowSize.md) plugin's [`getRowHeight()`](@/api/autoRowSize.md#getrowheight) method.
 
-**Emits**: [`Hooks#event:modifyRowHeight`](@/api/pluginHooks.md#modifyrowheight)
+**Emits**: [`Hooks#event:modifyRowHeight`](@/api/hooks.md#modifyrowheight)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -988,7 +1001,7 @@ Mind that this method is different from the [AutoRowSize](@/api/autoRowSize.md) 
 
 ### getSchema
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2184
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2182
 
 :::
 
@@ -1002,7 +1015,7 @@ structure in the first row.
 
 ### getSelected
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1526
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1524
 
 :::
 
@@ -1021,7 +1034,7 @@ you need to use `getSelectedLast` method.
 
 ### getSelectedLast
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1545
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1543
 
 :::
 
@@ -1035,11 +1048,11 @@ Returns the last coordinates applied to the table as a an array `[startRow, star
 
 ### getSelectedRange
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1564
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1562
 
 :::
 
-_core.getSelectedRange() ⇒ Array&lt;CellRange&gt; | undefined_
+_core.getSelectedRange() ⇒ Array&lt;[CellRange](@/api/cellRange.md)&gt; | undefined_
 
 Returns the current selection as an array of CellRange objects.
 
@@ -1048,25 +1061,25 @@ Additionally to collect the coordinates of the currently selected area (as it wa
 you need to use `getSelectedRangeLast` method.
 
 
-**Returns**: `Array<CellRange>` | `undefined` - Selected range object or undefined if there is no selection.
+**Returns**: `Array<[CellRange](@/api/cellRange.md)>` | `undefined` - Selected range object or undefined if there is no selection.
 
 ### getSelectedRangeLast
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1581
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1579
 
 :::
 
-_core.getSelectedRangeLast() ⇒ CellRange | undefined_
+_core.getSelectedRangeLast() ⇒ [CellRange](@/api/cellRange.md) | undefined_
 
 Returns the last coordinates applied to the table as a CellRange object.
 
 **Since**: 0.36.0
 
-**Returns**: `CellRange` | `undefined` - Selected range object or undefined` if there is no selection.
+**Returns**: [`CellRange`](@/api/cellRange.md) | `undefined` - Selected range object or undefined` if there is no selection.
 
 ### getSettings
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2410
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2408
 
 :::
 
@@ -1079,7 +1092,7 @@ Returns the object settings.
 
 ### getSourceData
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2687
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2685
 
 :::
 
@@ -1105,7 +1118,7 @@ sorted or trimmed only physical indexes are correct.
 
 ### getSourceDataArray
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2715
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2713
 
 :::
 
@@ -1131,7 +1144,7 @@ sorted or trimmed only physical indexes are correct.
 
 ### getSourceDataAtCell
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2816
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2814
 
 :::
 
@@ -1150,7 +1163,7 @@ Returns a single value from the data source.
 
 ### getSourceDataAtCol
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2743
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2741
 
 :::
 
@@ -1168,7 +1181,7 @@ Returns an array of column values from the data source.
 
 ### getSourceDataAtRow
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2801
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2799
 
 :::
 
@@ -1189,7 +1202,7 @@ sorted or trimmed only physical indexes are correct.
 
 ### getTranslatedPhrase
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L4206
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L4181
 
 :::
 
@@ -1208,7 +1221,7 @@ Get language phrase for specified dictionary key.
 
 ### getValue
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2389
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2387
 
 :::
 
@@ -1221,7 +1234,7 @@ Get value from the selected cell.
 
 ### hasColHeaders
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3345
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3318
 
 :::
 
@@ -1234,16 +1247,16 @@ Returns information about if this table is configured to display column headers.
 
 ### hasHook
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L4124
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L4099
 
 :::
 
 _core.hasHook(key) ⇒ boolean_
 
 Check if for a specified hook name there are added listeners (only for this Handsontable instance). All available
-hooks you will find [Hooks](@/api/pluginHooks.md).
+hooks you will find [Hooks](@/api/hooks.md).
 
-**See**: [Hooks#has](@/api/pluginHooks.md#has)
+**See**: [Hooks#has](@/api/hooks.md#has)
 **Example**
 ```js
 const hasBeforeInitListeners = hot.hasHook('beforeInit');
@@ -1257,7 +1270,7 @@ const hasBeforeInitListeners = hot.hasHook('beforeInit');
 
 ### hasRowHeaders
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3334
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3307
 
 :::
 
@@ -1270,7 +1283,7 @@ Returns information about if this table is configured to display row headers.
 
 ### isColumnModificationAllowed
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3091
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3064
 
 :::
 
@@ -1282,7 +1295,7 @@ Checks if the data format and config allows user to modify the column structure.
 
 ### isEmptyCol
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3707
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3682
 
 :::
 
@@ -1300,7 +1313,7 @@ Check if all cells in the the column declared by the `column` argument are empty
 
 ### isEmptyRow
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3695
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3670
 
 :::
 
@@ -1318,7 +1331,7 @@ Check if all cells in the row declared by the `row` argument are empty.
 
 ### isExecutionSuspended
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1780
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1778
 
 :::
 
@@ -1332,7 +1345,7 @@ in [Core#suspendExecution](@/api/core.md#suspendexecution).
 
 ### isListening
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1443
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1441
 
 :::
 
@@ -1343,9 +1356,21 @@ Returns `true` if the current Handsontable instance is listening to keyboard inp
 
 **Returns**: `boolean` - `true` if the instance is listening, `false` otherwise.
 
+### isRedoAvailable
+
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L947
+
+:::
+
+_core.isRedoAvailable() ⇒ boolean_
+
+[UndoRedo#isRedoAvailable](@/api/undoRedo.md#isredoavailable).
+
+
+
 ### isRenderSuspended
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1633
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1631
 
 :::
 
@@ -1356,9 +1381,21 @@ Checks if the table rendering process was suspended. See explanation in [Core#su
 **Since**: 8.3.0
 
 
+### isUndoAvailable
+
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L936
+
+:::
+
+_core.isUndoAvailable() ⇒ boolean_
+
+[UndoRedo#isUndoAvailable](@/api/undoRedo.md#isundoavailable).
+
+
+
 ### listen
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1414
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1412
 
 :::
 
@@ -1367,12 +1404,12 @@ _core.listen()_
 Listen to the keyboard input on document body. This allows Handsontable to capture keyboard events and respond
 in the right way.
 
-**Emits**: [`Hooks#event:afterListen`](@/api/pluginHooks.md#afterlisten)
+**Emits**: [`Hooks#event:afterListen`](@/api/hooks.md#afterlisten)
 
 
 ### loadData
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1980
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1978
 
 :::
 
@@ -1382,7 +1419,7 @@ Loads new data to Handsontable. Loading new data resets the cell meta.
 Since 8.0.0 loading new data also resets states corresponding to rows and columns
 (for example, row/column sequence, column width, row height, frozen columns etc.).
 
-**Emits**: [`Hooks#event:beforeLoadData`](@/api/pluginHooks.md#beforeloaddata), [`Hooks#event:afterLoadData`](@/api/pluginHooks.md#afterloaddata), [`Hooks#event:afterChange`](@/api/pluginHooks.md#afterchange)
+**Emits**: [`Hooks#event:beforeLoadData`](@/api/hooks.md#beforeloaddata), [`Hooks#event:afterLoadData`](@/api/hooks.md#afterloaddata), [`Hooks#event:afterChange`](@/api/hooks.md#afterchange)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1393,7 +1430,7 @@ Since 8.0.0 loading new data also resets states corresponding to rows and column
 
 ### populateFromArray
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1466
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1464
 
 :::
 
@@ -1402,7 +1439,7 @@ _core.populateFromArray(row, column, input, [endRow], [endCol], [source], [metho
 Populate cells at position with 2D input array (e.g. `[[1, 2], [3, 4]]`). Use `endRow`, `endCol` when you
 want to cut input when a certain row is reached.
 
-Optional `method` argument has the same effect as pasteMode option (see [Options#pasteMode](@/api/metaSchema.md#pastemode)).
+Optional `method` argument has the same effect as pasteMode option (see [Options#pasteMode](@/api/options.md#pastemode)).
 
 
 | Param | Type | Default | Description |
@@ -1422,7 +1459,7 @@ Optional `method` argument has the same effect as pasteMode option (see [Options
 
 ### propToCol
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2554
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2552
 
 :::
 
@@ -1438,9 +1475,21 @@ Returns column index that corresponds with the given property.
 
 **Returns**: `number` - Visual column index.
 
+### redo
+
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L925
+
+:::
+
+_core.redo() ⇒ boolean_
+
+[UndoRedo#redo](@/api/undoRedo.md#redo).
+
+
+
 ### refreshDimensions
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1940
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1938
 
 :::
 
@@ -1448,12 +1497,12 @@ _core.refreshDimensions()_
 
 Updates dimensions of the table. The method compares previous dimensions with the current ones and updates accordingly.
 
-**Emits**: [`Hooks#event:beforeRefreshDimensions`](@/api/pluginHooks.md#beforerefreshdimensions), [`Hooks#event:afterRefreshDimensions`](@/api/pluginHooks.md#afterrefreshdimensions)
+**Emits**: [`Hooks#event:beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions), [`Hooks#event:afterRefreshDimensions`](@/api/hooks.md#afterrefreshdimensions)
 
 
 ### removeCellMeta
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2906
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2904
 
 :::
 
@@ -1461,7 +1510,7 @@ _core.removeCellMeta(row, column, key)_
 
 Remove a property defined by the `key` argument from the cell meta object for the provided `row` and `column` coordinates.
 
-**Emits**: [`Hooks#event:beforeRemoveCellMeta`](@/api/pluginHooks.md#beforeremovecellmeta), [`Hooks#event:afterRemoveCellMeta`](@/api/pluginHooks.md#afterremovecellmeta)
+**Emits**: [`Hooks#event:beforeRemoveCellMeta`](@/api/hooks.md#beforeremovecellmeta), [`Hooks#event:afterRemoveCellMeta`](@/api/hooks.md#afterremovecellmeta)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1473,7 +1522,7 @@ Remove a property defined by the `key` argument from the cell meta object for th
 
 ### removeHook
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L4161
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L4136
 
 :::
 
@@ -1481,7 +1530,7 @@ _core.removeHook(key, callback)_
 
 Removes the hook listener previously registered with [Core#addHook](@/api/core.md#addhook).
 
-**See**: [Hooks#remove](@/api/pluginHooks.md#remove)
+**See**: [Hooks#remove](@/api/hooks.md#remove)
 **Example**
 ```js
 hot.removeHook('beforeInit', myCallback);
@@ -1496,7 +1545,7 @@ hot.removeHook('beforeInit', myCallback);
 
 ### render
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1721
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1719
 
 :::
 
@@ -1512,7 +1561,7 @@ optimal moments in its lifecycle.
 
 ### resumeExecution
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1821
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1819
 
 :::
 
@@ -1545,7 +1594,7 @@ hot.resumeExecution(); // It updates the cache internally
 
 ### resumeRender
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1680
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1678
 
 :::
 
@@ -1578,7 +1627,7 @@ hot.resumeRender(); // It re-renders the table internally
 
 ### runHooks
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L4179
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L4154
 
 :::
 
@@ -1586,7 +1635,7 @@ _core.runHooks(key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ \*_
 
 Run the callbacks for the hook provided in the `key` argument using the parameters given in the other arguments.
 
-**See**: [Hooks#run](@/api/pluginHooks.md#run)
+**See**: [Hooks#run](@/api/hooks.md#run)
 **Example**
 ```js
 // Run built-in hook
@@ -1609,7 +1658,7 @@ hot.runHooks('customAction', 10, 'foo');
 
 ### scrollViewportTo
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3889
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3864
 
 :::
 
@@ -1631,7 +1680,7 @@ Scroll viewport to coordinates specified by the `row` and `column` arguments.
 
 ### selectAll
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3866
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3841
 
 :::
 
@@ -1649,7 +1698,7 @@ Select the whole table. The previous selection will be overwritten.
 
 ### selectCell
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3719
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3694
 
 :::
 
@@ -1689,7 +1738,7 @@ hot.selectCell(2, 'address', 3, 'phone_number', false);
 
 ### selectCells
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3758
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3733
 
 :::
 
@@ -1729,7 +1778,7 @@ hot.selectCells(selected);
 
 ### selectColumns
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3806
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3781
 
 :::
 
@@ -1760,7 +1809,7 @@ hot.selectColumns('id', 'last_name');
 
 ### selectRows
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3833
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3808
 
 :::
 
@@ -1787,7 +1836,7 @@ hot.selectRows(1, 4);
 
 ### setCellMeta
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2977
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2977
 
 :::
 
@@ -1795,7 +1844,7 @@ _core.setCellMeta(row, column, key, value)_
 
 Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
 
-**Emits**: [`Hooks#event:beforeSetCellMeta`](@/api/pluginHooks.md#beforesetcellmeta), [`Hooks#event:afterSetCellMeta`](@/api/pluginHooks.md#aftersetcellmeta)
+**Emits**: [`Hooks#event:beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta), [`Hooks#event:afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1808,7 +1857,7 @@ Sets a property defined by the `key` property to the meta object of a cell corre
 
 ### setCellMetaObject
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2960
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2960
 
 :::
 
@@ -1827,7 +1876,7 @@ Set cell meta data object defined by `prop` to the corresponding params `row` an
 
 ### setDataAtCell
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1321
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1319
 
 :::
 
@@ -1848,7 +1897,7 @@ Set new value to a cell. To change many cells at once (recommended way), pass an
 
 ### setDataAtRowProp
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1375
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1373
 
 :::
 
@@ -1869,7 +1918,7 @@ Set new value to a cell. To change many cells at once (recommended way), pass an
 
 ### setSourceDataAtCell
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2757
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2755
 
 :::
 
@@ -1889,7 +1938,7 @@ Set the provided value in the source data set at the provided coordinates.
 
 ### spliceCellsMeta
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2932
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2930
 
 :::
 
@@ -1909,7 +1958,7 @@ Removes or adds one or more rows of the cell meta objects to the cell meta colle
 
 ### spliceCol
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1496
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1494
 
 :::
 
@@ -1930,7 +1979,7 @@ Adds/removes data from the column. This method works the same as Array.splice fo
 
 ### spliceRow
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1511
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1509
 
 :::
 
@@ -1951,7 +2000,7 @@ Adds/removes data from the row. This method works the same as Array.splice for a
 
 ### suspendExecution
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1793
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1791
 
 :::
 
@@ -1979,7 +2028,7 @@ hot.resumeExecution(); // It updates the cache internally
 
 ### suspendRender
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1645
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1643
 
 :::
 
@@ -2016,7 +2065,7 @@ hot.resumeRender(); // It re-renders the table internally
 
 ### toHTML
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L4220
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L4195
 
 :::
 
@@ -2029,7 +2078,7 @@ Converts instance into outerHTML of HTMLTableElement.
 
 ### toPhysicalColumn
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2605
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2603
 
 :::
 
@@ -2050,7 +2099,7 @@ reordered, moved or trimmed.
 
 ### toPhysicalRow
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2592
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2590
 
 :::
 
@@ -2071,7 +2120,7 @@ reordered, moved or trimmed.
 
 ### toTableElement
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L4230
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L4205
 
 :::
 
@@ -2084,7 +2133,7 @@ Converts instance into HTMLTableElement.
 
 ### toVisualColumn
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2579
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2577
 
 :::
 
@@ -2105,7 +2154,7 @@ based on a physical index.
 
 ### toVisualRow
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2566
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2564
 
 :::
 
@@ -2124,9 +2173,21 @@ based on a physical index.
 
 **Returns**: `number` - Returns visual row index.
 
+### undo
+
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L914
+
+:::
+
+_core.undo() ⇒ boolean_
+
+[UndoRedo#undo](@/api/undoRedo.md#undo).
+
+
+
 ### unlisten
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1429
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L1427
 
 :::
 
@@ -2139,7 +2200,7 @@ any keyboard events.
 
 ### updateSettings
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L2196
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L2194
 
 :::
 
@@ -2154,7 +2215,7 @@ the settings made post-initialization. (for example - ignore changes made using 
 Since 8.0.0 passing `columns` or `data` inside `settings` objects will result in resetting states corresponding to rows and columns
 (for example, row/column sequence, column width, row height, frozen columns etc.).
 
-**Emits**: [`Hooks#event:afterCellMetaReset`](@/api/pluginHooks.md#aftercellmetareset), [`Hooks#event:afterUpdateSettings`](@/api/pluginHooks.md#afterupdatesettings)
+**Emits**: [`Hooks#event:afterCellMetaReset`](@/api/hooks.md#aftercellmetareset), [`Hooks#event:afterUpdateSettings`](@/api/hooks.md#afterupdatesettings)
 **Example**
 ```js
 hot.updateSettings({
@@ -2166,14 +2227,14 @@ hot.updateSettings({
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| settings | `object` |  | New settings object (see [Options](@/api/metaSchema.md)). |
+| settings | `object` |  | New settings object (see [Options](@/api/options.md)). |
 | [init] | `boolean` | <code>false</code> | `optional` Internally used for in initialization mode. |
 
 
 
 ### validateCells
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3170
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3143
 
 :::
 
@@ -2201,7 +2262,7 @@ hot.validateCells((valid) => {
 
 ### validateColumns
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3218
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3191
 
 :::
 
@@ -2230,7 +2291,7 @@ hot.validateColumns([3, 4, 5], (valid) => {
 
 ### validateRows
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L3192
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/core.js#L3165
 
 :::
 

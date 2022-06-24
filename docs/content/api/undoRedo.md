@@ -10,6 +10,7 @@ editLink: false
 # UndoRedo
 
 [[toc]]
+
 ## Description
 
 Handsontable UndoRedo plugin allows to undo and redo certain actions done in the table.
@@ -21,11 +22,32 @@ __Note__, that not all actions are currently undo-able. The UndoRedo plugin is e
 undo: true
 ```
 
+## Options
+
+### undo
+
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/dataMap/metaManager/metaSchema.js#L1836
+
+:::
+
+_undoRedo.undo : boolean_
+
+If `true`, undo/redo functionality is enabled.
+Note: `undefined` by default but it acts as enabled.
+You need to switch it to `false` to disable it completely.
+
+**Default**: <code>undefined</code>
+**Example**
+```js
+// enable undo and redo
+undo: true,
+```
+
 ## Methods
 
 ### clear
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/undoRedo/undoRedo.js#L326
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L326
 
 :::
 
@@ -37,7 +59,7 @@ Clears undo history.
 
 ### destroy
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/undoRedo/undoRedo.js#L388
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L388
 
 :::
 
@@ -49,7 +71,7 @@ Destroys the instance.
 
 ### disable
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/undoRedo/undoRedo.js#L368
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L368
 
 :::
 
@@ -61,7 +83,7 @@ Disables the plugin.
 
 ### done
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/undoRedo/undoRedo.js#L167
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L167
 
 :::
 
@@ -69,7 +91,7 @@ _undoRedo.done(wrappedAction, [source])_
 
 Stash information about performed actions.
 
-**Emits**: [`Hooks#event:beforeUndoStackChange`](@/api/pluginHooks.md#beforeundostackchange), [`Hooks#event:afterUndoStackChange`](@/api/pluginHooks.md#afterundostackchange), [`Hooks#event:beforeRedoStackChange`](@/api/pluginHooks.md#beforeredostackchange), [`Hooks#event:afterRedoStackChange`](@/api/pluginHooks.md#afterredostackchange)
+**Emits**: [`Hooks#event:beforeUndoStackChange`](@/api/hooks.md#beforeundostackchange), [`Hooks#event:afterUndoStackChange`](@/api/hooks.md#afterundostackchange), [`Hooks#event:beforeRedoStackChange`](@/api/hooks.md#beforeredostackchange), [`Hooks#event:afterRedoStackChange`](@/api/hooks.md#afterredostackchange)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -80,7 +102,7 @@ Stash information about performed actions.
 
 ### enable
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/undoRedo/undoRedo.js#L348
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L348
 
 :::
 
@@ -92,7 +114,7 @@ Enables the plugin.
 
 ### isEnabled
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/undoRedo/undoRedo.js#L337
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L337
 
 :::
 
@@ -104,7 +126,7 @@ Checks if the plugin is enabled.
 
 ### isRedoAvailable
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/undoRedo/undoRedo.js#L315
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L315
 
 :::
 
@@ -117,7 +139,7 @@ Checks if redo action is available.
 
 ### isUndoAvailable
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/undoRedo/undoRedo.js#L304
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L304
 
 :::
 
@@ -130,7 +152,7 @@ Checks if undo action is available.
 
 ### redo
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/undoRedo/undoRedo.js#L257
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L257
 
 :::
 
@@ -138,12 +160,12 @@ _undoRedo.redo()_
 
 Redo the previous action performed to the table (used to reverse an undo).
 
-**Emits**: [`Hooks#event:beforeUndoStackChange`](@/api/pluginHooks.md#beforeundostackchange), [`Hooks#event:afterUndoStackChange`](@/api/pluginHooks.md#afterundostackchange), [`Hooks#event:beforeRedoStackChange`](@/api/pluginHooks.md#beforeredostackchange), [`Hooks#event:afterRedoStackChange`](@/api/pluginHooks.md#afterredostackchange), [`Hooks#event:beforeRedo`](@/api/pluginHooks.md#beforeredo), [`Hooks#event:afterRedo`](@/api/pluginHooks.md#afterredo)
+**Emits**: [`Hooks#event:beforeUndoStackChange`](@/api/hooks.md#beforeundostackchange), [`Hooks#event:afterUndoStackChange`](@/api/hooks.md#afterundostackchange), [`Hooks#event:beforeRedoStackChange`](@/api/hooks.md#beforeredostackchange), [`Hooks#event:afterRedoStackChange`](@/api/hooks.md#afterredostackchange), [`Hooks#event:beforeRedo`](@/api/hooks.md#beforeredo), [`Hooks#event:afterRedo`](@/api/hooks.md#afterredo)
 
 
 ### undo
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/undoRedo/undoRedo.js#L210
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/undoRedo/undoRedo.js#L210
 
 :::
 
@@ -151,4 +173,4 @@ _undoRedo.undo()_
 
 Undo the last action performed to the table.
 
-**Emits**: [`Hooks#event:beforeUndoStackChange`](@/api/pluginHooks.md#beforeundostackchange), [`Hooks#event:afterUndoStackChange`](@/api/pluginHooks.md#afterundostackchange), [`Hooks#event:beforeRedoStackChange`](@/api/pluginHooks.md#beforeredostackchange), [`Hooks#event:afterRedoStackChange`](@/api/pluginHooks.md#afterredostackchange), [`Hooks#event:beforeUndo`](@/api/pluginHooks.md#beforeundo), [`Hooks#event:afterUndo`](@/api/pluginHooks.md#afterundo)
+**Emits**: [`Hooks#event:beforeUndoStackChange`](@/api/hooks.md#beforeundostackchange), [`Hooks#event:afterUndoStackChange`](@/api/hooks.md#afterundostackchange), [`Hooks#event:beforeRedoStackChange`](@/api/hooks.md#beforeredostackchange), [`Hooks#event:afterRedoStackChange`](@/api/hooks.md#afterredostackchange), [`Hooks#event:beforeUndo`](@/api/hooks.md#beforeundo), [`Hooks#event:afterUndo`](@/api/hooks.md#afterundo)

@@ -37,11 +37,6 @@ canonicalUrl: /third-party-licenses
     License: Open source (MIT)<br>
     [https://github.com/mgechev/javascript-algorithms](https://github.com/mgechev/javascript-algorithms)
 
-- **dataMap.js** (implementation of functional dataSchema and data prop)<br>
-    Author: Nicholas Bollweg<br>
-    License: Open source (MIT)<br>
-    [https://github.com/handsontable/handsontable/blob/master/src/dataMap.js](https://github.com/handsontable/handsontable/blob/master/src/dataMap.js)
-
 - **DOMPurify** (an XSS sanitizer for HTML)<br>
     Author: Mario Heiderich<br>
     License: Open source (Apache 2.0)<br>

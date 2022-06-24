@@ -15,7 +15,7 @@ editLink: false
 
 The search plugin provides an easy interface to search data across Handsontable.
 
-In order to enable search mechanism, [Options#search](@/api/metaSchema.md#search) option must be set to `true`.
+In order to enable search mechanism, [Options#search](@/api/options.md#search) option must be set to `true`.
 
 **Example**
 ```js
@@ -43,22 +43,22 @@ searchPlugin.setSearchResultClass(customClass);
 
 ### search
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/dataMap/metaManager/metaSchema.js#L1517
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/dataMap/metaManager/metaSchema.js#L1539
 
 :::
 
-_search.search : boolean_
+_search.search : boolean | object_
 
-Setting to `true` enables the [Search](@/api/search.md) plugin (see [demo](@/guides/accessories-and-menus/searching-values.md)).
+If set to `true`, enables the [Search](#search) plugin with a default configuration.
+If set to an object, enables the [Search](#search) plugin with a custom configuration.
+See the guide on [how to search values in Handsontable](@/guides/accessories-and-menus/searching-values.md).
 
 **Default**: <code>false</code>
 **Example**
 ```js
-// enable search plugin
+// set to `true`, to enable the Search plugin with a default configuration
 search: true,
-
-// or
-// as an object with detailed configuration
+// or set to an object, to enable the Search plugin with a custom configuration
 search: {
   searchResultClass: 'customClass',
   queryMethod: function(queryStr, value) {
@@ -68,13 +68,16 @@ search: {
     ...
   }
 }
+
+// set to `false, to disable the Search plugin
+search: false,
 ```
 
 ## Methods
 
 ### destroy
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/search/search.js#L296
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/search/search.js#L296
 
 :::
 
@@ -86,7 +89,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/search/search.js#L120
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/search/search.js#L120
 
 :::
 
@@ -98,7 +101,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/search/search.js#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/search/search.js#L103
 
 :::
 
@@ -110,7 +113,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getCallback
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/search/search.js#L187
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/search/search.js#L187
 
 :::
 
@@ -123,7 +126,7 @@ Gets the callback function.
 
 ### getQueryMethod
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/search/search.js#L205
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/search/search.js#L205
 
 :::
 
@@ -136,7 +139,7 @@ Gets the query method function.
 
 ### getSearchResultClass
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/search/search.js#L223
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/search/search.js#L223
 
 :::
 
@@ -149,20 +152,20 @@ Gets search result cells class name.
 
 ### isEnabled
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/search/search.js#L96
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/search/search.js#L96
 
 :::
 
 _search.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
 hook and if it returns `true` than the [AutoRowSize#enablePlugin](@/api/autoRowSize.md#enableplugin) method is called.
 
 
 
 ### query
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/search/search.js#L149
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/search/search.js#L149
 
 :::
 
@@ -182,7 +185,7 @@ Makes the query.
 
 ### setCallback
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/search/search.js#L196
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/search/search.js#L196
 
 :::
 
@@ -199,7 +202,7 @@ Sets the callback function. This function will be called during querying for eac
 
 ### setQueryMethod
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/search/search.js#L214
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/search/search.js#L214
 
 :::
 
@@ -216,7 +219,7 @@ Sets the query method function. The function is responsible for determining whet
 
 ### setSearchResultClass
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/search/search.js#L232
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/search/search.js#L232
 
 :::
 
@@ -233,7 +236,7 @@ Sets search result cells class name. This class name will be added to each cell 
 
 ### updatePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/search/search.js#L134
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/search/search.js#L134
 
 :::
 

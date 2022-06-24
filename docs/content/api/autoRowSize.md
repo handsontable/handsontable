@@ -39,7 +39,7 @@ autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
 You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
 height. __Note__, that this might have a negative impact on performance.
 
-To configure this plugin see [Options#autoRowSize](@/api/metaSchema.md#autorowsize).
+To configure this plugin see [Options#autoRowSize](@/api/options.md#autorowsize).
 
 **Example**
 ```js
@@ -61,13 +61,13 @@ if (plugin.isEnabled()) {
 
 ### autoRowSize
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/dataMap/metaManager/metaSchema.js#L2445
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/dataMap/metaManager/metaSchema.js#L2485
 
 :::
 
 _autoRowSize.autoRowSize : object | boolean_
 
-Enables or disables [AutoRowSize](@/api/autoRowSize.md) plugin. Default value is `undefined`, which has the same effect as `false`
+Enables or disables [AutoRowSize](#autorowsize) plugin. Default value is `undefined`, which has the same effect as `false`
 (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
 
 __Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
@@ -92,7 +92,7 @@ autoRowSize: {syncLimit: '40%'},
 
 ### inProgress
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L137
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L137
 
 :::
 
@@ -104,7 +104,7 @@ _autoRowSize.inProgress : boolean_
 
 ### measuredRows
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L143
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L143
 
 :::
 
@@ -117,7 +117,7 @@ Number of already measured rows (we already know their sizes).
 
 ### calculateAllRowsHeight
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L253
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L253
 
 :::
 
@@ -135,7 +135,7 @@ To retrieve height for specified row use [AutoRowSize#getRowHeight](@/api/autoRo
 
 ### calculateRowsHeight
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L210
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L210
 
 :::
 
@@ -154,7 +154,7 @@ Calculate a given rows height.
 
 ### clearCache
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L430
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L432
 
 :::
 
@@ -166,7 +166,7 @@ Clears cached heights.
 
 ### clearCacheByRange
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L440
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L442
 
 :::
 
@@ -183,7 +183,7 @@ Clears cache by range.
 
 ### destroy
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L564
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L566
 
 :::
 
@@ -195,7 +195,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L193
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L193
 
 :::
 
@@ -207,7 +207,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L173
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L173
 
 :::
 
@@ -219,7 +219,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getColumnHeaderHeight
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L387
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L389
 
 :::
 
@@ -231,7 +231,7 @@ Get the calculated column header height.
 
 ### getFirstVisibleRow
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L396
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L398
 
 :::
 
@@ -244,7 +244,7 @@ Get the first visible row.
 
 ### getLastVisibleRow
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L414
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L416
 
 :::
 
@@ -257,7 +257,7 @@ Gets the last visible row.
 
 ### getRowHeight
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L371
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L373
 
 :::
 
@@ -277,33 +277,33 @@ Mind that this method is different from the [Core](@/api/core.md)'s [`getRowHeig
 
 ### getSyncCalculationLimit
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L344
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L344
 
 :::
 
 _autoRowSize.getSyncCalculationLimit() ⇒ number_
 
 Gets value which tells how many rows should be calculated synchronously (rest of the rows will be calculated
-asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see [Options#autoRowSize](@/api/metaSchema.md#autorowsize)).
+asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see [Options#autoRowSize](@/api/options.md#autorowsize)).
 
 
 
 ### isEnabled
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L164
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L164
 
 :::
 
 _autoRowSize.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
 hook and if it returns `true` than the [AutoRowSize#enablePlugin](@/api/autoRowSize.md#enableplugin) method is called.
 
 
 
 ### isNeedRecalculate
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L455
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L457
 
 :::
 
@@ -315,7 +315,7 @@ Checks if all heights were calculated. If not then return `true` (need recalcula
 
 ### recalculateAllRowsHeight
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/autoRowSize/autoRowSize.js#L331
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/autoRowSize/autoRowSize.js#L331
 
 :::
 

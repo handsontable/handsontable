@@ -58,9 +58,11 @@ Default value: `','`
 
 ### columnHeaders `Boolean`
 
-Allows to export data with their column header.
+When set to `true`, includes column headers in the exported data.
 
 You can use this property in all of the [available methods](#available-methods).
+
+The `columnHeaders` option doesn't support the [`NestedHeaders` plugin](@/api/nestedHeaders.md).
 
 Default value: `false`
 

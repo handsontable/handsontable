@@ -56,7 +56,7 @@ That's better.
 
 ## Using an alias
 
-The final touch is to using the registered aliases, so that users can easily refer to it without the need to now the actual validator function is.
+The final touch is to use the registered aliases, so that users can easily refer to it without the need to now the actual validator function is.
 
 To sum up, a well prepared validator function should look like this:
 

@@ -14,7 +14,7 @@ editLink: false
 ## Description
 
 This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the
-[Options#columnSorting](@/api/metaSchema.md#columnsorting) property to the correct value (see the examples below).
+[Options#columnSorting](@/api/options.md#columnsorting) property to the correct value (see the examples below).
 
 **Example**
 ```js
@@ -61,7 +61,7 @@ columns: [{
 
 ### columnSorting
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/dataMap/metaManager/metaSchema.js#L1866
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/dataMap/metaManager/metaSchema.js#L1888
 
 :::
 
@@ -79,7 +79,7 @@ Turns on [Column sorting](@/guides/rows/row-sorting.md). Can be either a boolean
 * `headerAction` - allow to click on the headers to sort
   * `true` = turn on possibility to click on the headers to sort
   * `false` = turn off possibility to click on the headers to sort
-* `sortEmptyCells` - how empty values ([more information here](@/api/metaSchema.md#allowempty)) should be handled
+* `sortEmptyCells` - how empty values should be handled, for more information see @{link Options#allowEmpty}
   * `true` = the table sorts empty cells
   * `false` = the table moves all empty cells to the end of the table
 * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
@@ -115,7 +115,7 @@ columnSorting: {
 
 ### clearSort
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L264
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L263
 
 :::
 
@@ -127,7 +127,7 @@ Clear the sort performed on the table.
 
 ### destroy
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L798
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L797
 
 :::
 
@@ -139,7 +139,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L175
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L174
 
 :::
 
@@ -151,7 +151,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L139
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L139
 
 :::
 
@@ -163,7 +163,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getSortConfig
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L285
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L284
 
 :::
 
@@ -182,20 +182,20 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 
 ### isEnabled
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L132
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L132
 
 :::
 
 _columnSorting.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the Handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+Checks if the plugin is enabled in the Handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
 hook and if it returns `true` than the [ColumnSorting#enablePlugin](@/api/columnSorting.md#enableplugin) method is called.
 
 
 
 ### isSorted
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L273
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L272
 
 :::
 
@@ -207,7 +207,7 @@ Checks if the table is sorted (any column have to be sorted).
 
 ### setSortConfig
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L317
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L316
 
 :::
 
@@ -239,7 +239,7 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
 
 ### sort
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L225
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/columnSorting/columnSorting.js#L224
 
 :::
 
@@ -247,7 +247,7 @@ _columnSorting.sort(sortConfig)_
 
 Sorts the table by chosen columns and orders.
 
-**Emits**: [`Hooks#event:beforeColumnSort`](@/api/pluginHooks.md#beforecolumnsort), [`Hooks#event:afterColumnSort`](@/api/pluginHooks.md#aftercolumnsort)
+**Emits**: [`Hooks#event:beforeColumnSort`](@/api/hooks.md#beforecolumnsort), [`Hooks#event:afterColumnSort`](@/api/hooks.md#aftercolumnsort)
 **Example**
 ```js
 // sort ascending first visual column

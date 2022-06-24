@@ -14,101 +14,323 @@ tags:
 
 [[toc]]
 
-## Overview
+You can easily summarize your columns, using the [`ColumnSummary`](@/api/columnSummary.md) plugin.
 
-With this feature, you can create a summary row at the bottom of the table.
+## About column summary
 
-Each cell in the summary row presents the result of a calculation based on the values in the column. Think of this plugin as a pre-defined set of functions such as `sum`, `average`, `max`, and more.
+The [`ColumnSummary`](@/api/columnSummary.md) plugin lets you quickly calculate and display a column summary.
 
-## Basic example
+To customize your column summaries, you can:
+- Decide how a summary is calculated:
+    - Either select one of the [built-in summary functions](#built-in-summary-functions)
+    - Or implement a [custom summary function](#implementing-a-custom-summary-function)
+- [Select columns and ranges of rows](#step-2-select-cells-that-you-want-to-summarize) that you want to summarize
+- [Display your summary result](#step-4-provide-the-destination-cell-s-coordinates) in a specific cell
 
-This example retrieves information about the values in the following three columns:
+### Column summary example
 
-- The `min` value in Column 1
-- The `max` value in Column 3
-- The `sum` of all values in Column 5
-
-The index of the first column and row in Handsontable always starts from 0. In this case **Column 1** has index 0.
+The example below calculates and displays five different column summaries:
 
 ::: example #example1
 ```js
-// Generate an array of arrays with a dummy data
-const generateData = (rows = 3, columns = 7, additionalRows = true) => {
-  let counter = 0;
-
-  const array2d = [...new Array(rows)]
-    .map(_ => [...new Array(columns)]
-    .map(_ => counter++));
-
-  if (additionalRows) {
-    array2d.push([]);
-    array2d.push([]);
-  }
-
-  return array2d;
-};
-
 const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
-  data: generateData(),
-  height: 'auto',
-  colHeaders(index) { // replace the default header labels
-    return 'Column ' + (index + 1);
-  },
-  rowHeaders: true,
-  contextMenu: true,
   licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    [1, 2, 3, 4, 5],
+    [6, 7, 8, 9, 10],
+    [11, 12, 13, 14, 15],
+    [null]
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  // enable and configure the `ColumnSummary` plugin
   columnSummary: [
     {
-      destinationRow: 4,
-      destinationColumn: 1,
-      type: 'min'
-    },
-    {
-      destinationRow: 4,
-      destinationColumn: 3,
-      type: 'max'
-    },
-    {
-      destinationRow: 4,
-      destinationColumn: 5,
+      sourceColumn: 0,
       type: 'sum',
-      forceNumeric: true
+      destinationRow: 3,
+      destinationColumn: 0
+    },
+    {
+      sourceColumn: 1,
+      type: 'min',
+      destinationRow: 3,
+      destinationColumn: 1
+    },
+    {
+      sourceColumn: 2,
+      type: 'max',
+      destinationRow: 3,
+      destinationColumn: 2
+    },
+    {
+      sourceColumn: 3,
+      type: 'count',
+      destinationRow: 3,
+      destinationColumn: 3
+    },
+    {
+      sourceColumn: 4,
+      type: 'average',
+      destinationRow: 3,
+      destinationColumn: 4
     }
   ]
 });
 ```
 :::
 
-## Basic setup
+### Built-in summary functions
 
-To initialize the **columnSummary** plugin, you need to set a property in the Settings object. The `columnSummary` property should be declared as an `array of objects`, where each object represents a single endpoint, i.e., the "output" cell or a single calculation.
+To decide how a column summary is calculated, you can use one of the following summary functions:
+
+| Function                                                                                                                   | Description                                                                                            |
+| -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| [`sum`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L146-L161)     | Returns the sum of all values in a column.                                                             |
+| [`min`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L193-L226)     | Returns the lowest value in a column.                                                                  |
+| [`max`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L193-L226)     | Returns the highest value in a column.                                                                 |
+| [`count`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L293-L313)   | Returns the number of all non-empty cells in a column.                                                 |
+| [`average`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L315-L327) | Returns the sum of all values in a column,<br>divided by the number of non-empty cells in that column. |
+| [`custom`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L138-L139)  | Lets you implement a [custom summary function](#implementing-a-custom-summary-function).                                                  |
+
+### Column summary options
+
+You can customize each of your column summaries with configuration options.
+
+For the full list of available options, see the [API reference](@/api/columnSummary.md#options).
+
+## Setting up a column summary
+
+To set up a column summary, follow the steps below.
+
+### Step 1: Enable the `ColumnSummary` plugin
+
+To enable the [`ColumnSummary`](@/api/columnSummary.md) plugin, set the [`columnSummary`](@/api/options.md#columnsummary) [configuration option](@/guides/getting-started/setting-options.md) to an array of objects.
+
+Each object represents a single column summary.
 
 ```js
-columnSummary: [
-  {
-    destinationRow: 2,
-    destinationColumn: 2,
-    type: 'min',
-    // other options...
-  },
-  {
-    destinationRow: 3,
-    destinationColumn: 3,
-    type: 'max',
-    // other options...
-  }
-]
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    [1, 2, 3, 4, 5],
+    [6, 7, 8, 9, 10],
+    [11, 12, 13, 14, 15]
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  // set the `columnSummary` configuration option to an array of objects
+  columnSummary: [
+    {},
+    {}
+  ]
+});
 ```
 
-## Setting the destination cell
+::: tip
+You can also set the [`columnSummary`](@/api/options.md#columnsummary) option [to a function](#providing-column-summary-configuration-as-a-function).
+:::
 
-You need to provide the destination coordinates of a row and a column for the cell to display the calculations results. To do this, you need to set two options in the Handsontable configuration, as shown in the example below:
+### Step 2: Select cells that you want to summarize
+
+By default, a column summary takes all cells of the column in which it displays its result (see the [`destinationColumn`](@/api/columnSummary.md#options) option in [step 4](#step-4-provide-the-destination-cell-s-coordinates)).
+
+To summarize any other column, use the [`sourceColumn`](@/api/columnSummary.md#options) option:
+
+```js
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    [1, 2, 3, 4, 5],
+    [6, 7, 8, 9, 10],
+    [11, 12, 13, 14, 15]
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  columnSummary: [
+    {
+      // set this column summary to summarize the first column
+      // (i.e. a column with physical index `0`)
+      sourceColumn: 0,
+    },
+    {
+      // set this column summary to summarize the second column
+      // (i.e. a column with physical index `1`)
+      sourceColumn: 1,
+    }
+  ]
+});
+```
+
+You can also summarize individual ranges of rows (rather than a whole column). To do this, set the [`ranges`](@/api/columnSummary.md#options) option to an array of arrays, where each array represents a single row range.
+
+```js
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    [1, 2, 3, 4, 5],
+    [6, 7, 8, 9, 10],
+    [11, 12, 13, 14, 15]
+    [1, 2, 3, 4, 5],
+    [6, 7, 8, 9, 10],
+    [11, 12, 13, 14, 15]
+    [1, 2, 3, 4, 5],
+    [6, 7, 8, 9, 10],
+    [11, 12, 13, 14, 15]
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  columnSummary: [
+    {
+      sourceColumn: 0,
+      // set this column summary to only summarize rows with physical indexes 0-2, 4, and 6-8
+      ranges: [
+        [0, 2], [4], [6, 8]
+      ],
+    },
+    {
+      sourceColumn: 0,
+      // set this column summary to only summarize rows with physical indexes 0-5
+      ranges: [
+        [0, 5]
+      ],
+    }
+  ]
+});
+```
+
+### Step 3: Calculate your summary
+
+Now, decide how you want to calculate your column summary.
+
+You can:
+- Either select one of the [built-in summary functions](#built-in-summary-functions)
+- Or implement a [custom summary function](#implementing-a-custom-summary-function)
+
+```js
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    [1, 2, 3, 4, 5],
+    [6, 7, 8, 9, 10],
+    [11, 12, 13, 14, 15]
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  columnSummary: [
+    {
+      sourceColumn: 0,
+      // set this column summary to return the sum all values in the summarized column
+      type: 'sum',
+    },
+    {
+      sourceColumn: 1,
+      // set this column summary to return the lowest value in the summarized column
+      type: 'min',
+    }
+  ]
+});
+```
+
+### Step 4: Provide the destination cell's coordinates
+
+To display your column summary result in a cell, provide the destination cell's coordinates.
+
+Set the [`destinationRow`](@/api/columnSummary.md#options) and [`destinationColumn`](@/api/columnSummary.md#options) options to the physical coordinates of your required cell.
+
+```js
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    [1, 2, 3, 4, 5],
+    [6, 7, 8, 9, 10],
+    [11, 12, 13, 14, 15]
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  columnSummary: [
+    {
+      sourceColumn: 0,
+      type: 'sum',
+      // set this column summary to display its result in cell (4, 0)
+      destinationRow: 4,
+      destinationColumn: 0
+    },
+    {
+      sourceColumn: 1,
+      type: 'min',
+      // set this column summary to display its result in cell (4, 1)
+      destinationRow: 4,
+      destinationColumn: 1
+    }
+  ]
+});
+```
+
+### Step 5: Make room for the destination cell
+
+The [`ColumnSummary`](@/api/columnSummary.md) plugin doesn't automatically add new rows to display its summary results.
+
+So, if you always want to display your column summary result below your existing rows, you need to:
+1. Add an empty row to the bottom of your grid (to avoid overwriting your existing rows).
+2. Reverse row coordinates for your column summary (to always display your summary result at the bottom).
+    ::: tip
+    To reverse row coordinates for your column summary, set the [`reversedRowCoords`](@/api/columnSummary.md#options) option to `true`, and adjust the [`destinationRow`](@/api/columnSummary.md#options) coordinate.
+    :::
+
+```js
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    [1, 2, 3, 4, 5],
+    [6, 7, 8, 9, 10],
+    [11, 12, 13, 14, 15],
+    // add an empty row
+    [null]
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  columnSummary: [
+    {
+      sourceColumn: 0,
+      type: 'sum',
+      // for this column summary, count row coordinates backward
+      reversedRowCoords: true,
+      // now, to always display this column summary in the bottom row,
+      // set `destinationRow` to `0` (i.e. the last possible row)
+      destinationRow: 0,
+      destinationColumn: 0
+    },
+    {
+      sourceColumn: 1,
+      type: 'min',
+      // for this column summary, count row coordinates backward
+      reversedRowCoords: true,
+      // now, to always display this column summary in the bottom row,
+      // set `destinationRow` to `0` (i.e. the last possible row)
+      destinationRow: 0,
+      destinationColumn: 1
+    }
+  ]
+});
+```
+
+## Setting up column summaries, using a function
+
+Instead of [setting up the column summary options manually](#setting-up-a-column-summary), you can provide the whole column summary configuration as a function that returns a required array of objects.
+
+The example below sets up five different column summaries. To do this, it:
+- Defines a function named `generateData` which generates an array of arrays with dummy numeric data, and which lets you add an empty row at the bottom of the grid (to make room for displaying column summaries)
+- Sets Handsontable's [`columnSummary`](@/api/options.md#columnsummary) [configuration option](@/guides/getting-started/setting-options.md) to a function that:
+    - Iterates over visible columns
+    - For each visible column, adds a column summary with a configuration
+    - To display the column summaries in the empty row added by `generateData`, sets the [`reversedRowCoords`](@/api/columnSummary.md#options) option to `true`, and the [`destinationRow`](@/api/columnSummary.md#options) option to `0`
 
 ::: example #example7
 ```js
-// Generate an array of arrays with a dummy data
+// generate an array of arrays with dummy numeric data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
 
@@ -116,8 +338,8 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
     .map(_ => [...new Array(columns)]
     .map(_ => counter++));
 
+  // add an empty row at the bottom, to display column summaries
   if (additionalRows) {
-    array2d.push([]);
     array2d.push([]);
   }
 
@@ -127,204 +349,27 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 const container = document.querySelector('#example7');
 
 const hot = new Handsontable(container, {
-  data: generateData(),
-  height: 'auto',
-  colHeaders: true,
-  rowHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',
-  columnSummary: [
-    {
-      destinationRow: 4,
-      destinationColumn: 1,
-      type: 'min'
-    }
-  ]
-});
-```
-:::
-
-If the destination cell is at the bottom of the table, you might find the `reversedRowCoords` useful. It counts the rows' coordinates from the bottom up.
-
-In the example below, enabling this option will put the calculation result in a cell in the 5th column (starting from 0) and the 2nd row from the bottom of the table.
-
-::: example #example8
-```js
-// Generate an array of arrays with a dummy data
-const generateData = (rows = 3, columns = 7, additionalRows = true) => {
-  let counter = 0;
-
-  const array2d = [...new Array(rows)]
-    .map(_ => [...new Array(columns)]
-    .map(_ => counter++));
-
-  if (additionalRows) {
-    array2d.push([]);
-    array2d.push([]);
-  }
-
-  return array2d;
-};
-
-const container = document.querySelector('#example8');
-
-const hot = new Handsontable(container, {
-  data: generateData(),
-  height: 'auto',
-  colHeaders: true,
-  rowHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation',
-  columnSummary: [
-    {
-      destinationRow: 1,
-      destinationColumn: 4,
-      reversedRowCoords: true,
-      type: 'min'
-    }
-  ]
-});
-```
-:::
-
-## Setting the calculation range
-
-By default, the plugin makes calculations on data from all rows in the endpoint's destination column. However, you can specify it differently by column and row.
-
-The properties responsible for this are `ranges` and `sourceColumn`.
-
-### Row ranges
-
-The `**ranges**` option specifies the row range that will be included in the calculations. It should be declared as an `array of arrays`, where each of the arrays represents a single row range.
-
-In the example below, this configuration would perform the calculations for rows: `0`, `1`, `2`, `3`, `4`, `6`, `8` and `9`.
-
-::: example #example9
-```js
-// Generate an array of arrays with a dummy data
-const generateData = (rows = 3, columns = 7, additionalRows = true) => {
-  let counter = 0;
-
-  const array2d = [...new Array(rows)]
-    .map(_ => [...new Array(columns)]
-    .map(_ => counter++));
-
-  if (additionalRows) {
-    array2d.push([]);
-    array2d.push([]);
-  }
-
-  return array2d;
-};
-
-const container = document.querySelector('#example9');
-
-const hot = new Handsontable(container, {
-  data: generateData(10, 3),
-  colHeaders: true,
-  rowHeaders: true,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
-  columnSummary: [
-    {
-      ranges: [
-        [0, 4], [6], [8, 9]
-      ],
-      destinationRow: 0,
-      destinationColumn: 0,
-      reversedRowCoords: true,
-      type: 'sum',
-      forceNumeric: true
-    }
-  ]
-});
-```
-:::
-
-### Column source
-
-The **sourceColumn** option specifies the column to work on.
-
-For example, this will make operations on the 3rd column (again, we're starting from 0):
-
-::: example #example10
-```js
-// Generate an array of arrays with a dummy data
-const generateData = (rows = 3, columns = 7, additionalRows = true) => {
-  let counter = 0;
-
-  const array2d = [...new Array(rows)]
-    .map(_ => [...new Array(columns)]
-    .map(_ => counter++));
-
-  if (additionalRows) {
-    array2d.push([]);
-    array2d.push([]);
-  }
-
-  return array2d;
-};
-
-const container = document.querySelector('#example10');
-
-const hot = new Handsontable(container, {
-  data: generateData(5, 5),
-  height: 'auto',
-  colHeaders: true,
-  rowHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation',
-  columnSummary: [
-    {
-      sourceColumn: 2,
-      destinationRow: 0,
-      destinationColumn: 0,
-      reversedRowCoords: true,
-      type: 'sum',
-      forceNumeric: true
-    }
-  ]
-});
-```
-:::
-
-## Providing the settings as a function
-
-You can provide a function instead of an array as the config item. The function has to return an array of objects, similarly to a traditional setup method. See the example below:
-
-::: example #example11
-```js
-// Generate an array of arrays with a dummy data
-const generateData = (rows = 3, columns = 7, additionalRows = true) => {
-  let counter = 0;
-
-  const array2d = [...new Array(rows)]
-    .map(_ => [...new Array(columns)]
-    .map(_ => counter++));
-
-  if (additionalRows) {
-    array2d.push([]);
-    array2d.push([]);
-  }
-
-  return array2d;
-};
-
-const container = document.querySelector('#example11');
-
-const hot = new Handsontable(container, {
-  data: generateData(5, 5, false),
+  // initialize a Handsontable instance with the generated data
+  data: generateData(5, 5, true),
   height: 'auto',
   rowHeaders: true,
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
-  licenseKey: 'non-commercial-and-evaluation',
+  // set the `columnSummary` configuration option to a function
   columnSummary() {
     const configArray = [];
     const summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
 
     for (let i = 0; i < this.hot.countCols(); i++) { // iterate over visible columns
+      // for each visible column, add a column summary with a configuration
       configArray.push({
         sourceColumn: i,
+        type: summaryTypes[i],
+        // count row coordinates backward
+        reversedRowCoords: true,
+        // display the column summary in the bottom row (because of the reversed row coordinates)
         destinationRow: 0,
         destinationColumn: i,
-        type: summaryTypes[i],
         forceNumeric: true
       });
     }
@@ -335,13 +380,14 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-This allows many possible usages: for example, you can sum subtotals for nested groups.
+Using a function to provide a column summary configuration lets you set up all sorts of more complex column summaries. For example, you can sum subtotals for nested groups:
 
-::: example #example12
+::: example #example8
 ```js
-const container = document.getElementById('example12');
+const container = document.getElementById('example8');
 
 const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
   data: [
     {
       value: null,
@@ -365,7 +411,6 @@ const hot = new Handsontable(container, {
   nestedRows: true,
   rowHeaders: true,
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
-  licenseKey: 'non-commercial-and-evaluation',
   columnSummary() {
     const endpoints = [];
     const nestedRowsPlugin = this.hot.getPlugin('nestedRows');
@@ -409,98 +454,44 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-## Available calculations
+## Implementing a custom summary function
 
-### Sum
+Apart from using the [built-in summary functions](#built-in-summary-functions), you can also implement your own custom function that performs any summary calculation you want.
 
-Calculates the sum of values in the specified column and row range.
+To implement a custom summary function:
 
-Usage:
+1. [Set up your column summary](#setting-up-a-column-summary).
+2. In your [column summary object](#step-1-enable-the-columnsummary-plugin), set the `type` option to `'custom'`:
+    ```js
+    columnSummary: [
+        {
+          sourceColumn: 1,
+          // set the `type` option to `'custom'`
+          type: 'custom',
+          destinationRow: 0,
+          destinationColumn: 5,
+          reversedRowCoords: true
+        },
+    ```
+3. In your [column summary object](#step-1-enable-the-columnsummary-plugin), add your custom summary function:
+    ```js
+    columnSummary: [
+        {
+          type: 'custom',
+          destinationRow: 0,
+          destinationColumn: 5,
+          reversedRowCoords: true,
+          // add your custom summary function
+          customFunction(endpoint) {
+            // implement your function here
+          },
+    ```
 
+The example below implements a function that counts the number of even values in a column:
+
+::: example #example9
 ```js
-columnSummary: [
-  {
-    // ...
-    type: 'sum'
-  }
-]
-```
-
-### Min
-
-Finds the lowest value in the specified column and row range.
-
-```js
-columnSummary: [
-  {
-    // ...
-    type: 'min'
-  }
-]
-```
-
-### Max
-
-Finds the highest value in the specified column and row range.
-
-```js
-columnSummary: [
-  {
-    // ...
-    type: 'max'
-  }
-]
-```
-
-### Count
-
-Counts the non-empty values in the specified column and row range.
-
-```js
-columnSummary: [
-  {
-    // ...
-    type: 'count'
-  }
-]
-```
-
-### Average
-
-Calculates the average from the values in the specified column and row range.
-
-```js
-columnSummary: [
-  {
-    // ...
-    type: 'average'
-  }
-]
-```
-
-### Custom
-
-Takes a custom function and applies it to the values in the specified column and row range.
-
-```js
-columnSummary: [
-  {
-    // ...
-    type: 'custom',
-    customFunction(endpoint) {
-      // endpoint is an object containing the endpoint data
-
-      // your function
-    }
-  }
-]
-```
-
-### Example of calculations
-
-::: example #example13
-```js
-// Generate an array of arrays with a dummy data
+// generate an array of arrays with dummy numeric data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
 
@@ -516,60 +507,31 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   return array2d;
 };
 
-const container = document.querySelector('#example13');
+const container = document.querySelector('#example9');
 
 const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  // initialize a Handsontable instance with the generated numeric data
   data: generateData(5, 7),
   height: 'auto',
   colHeaders: true,
   rowHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // enable the `ColumnSummary` plugin
   columnSummary: [
+    // configure a column summary
     {
-      destinationRow: 0,
-      destinationColumn: 0,
-      reversedRowCoords: true,
-      type: 'sum',
-      forceNumeric: true
-    },
-    {
-      destinationRow: 0,
-      destinationColumn: 1,
-      reversedRowCoords: true,
-      type: 'min',
-      forceNumeric: true
-    },
-    {
-      destinationRow: 0,
-      destinationColumn: 2,
-      reversedRowCoords: true,
-      type: 'max',
-      forceNumeric: true
-    },
-    {
-      destinationRow: 0,
-      destinationColumn: 3,
-      reversedRowCoords: true,
-      type: 'count',
-      forceNumeric: true
-    },
-    {
-      destinationRow: 0,
-      destinationColumn: 4,
-      reversedRowCoords: true,
-      type: 'average',
-      forceNumeric: true
-    },
-    {
+      // set the `type` option to `'custom'`
+      type: 'custom',
       destinationRow: 0,
       destinationColumn: 5,
       reversedRowCoords: true,
-      type: 'custom',
-      customFunction(endpoint) { // this function counts the even values in the column
+      // add your custom summary function
+      customFunction(endpoint) {
+        // implement a function that counts the number of even values in the column
         const hotInstance = this.hot;
         let evenCount = 0;
 
-        // helper function
+        // a helper function
         const checkRange = rowRange => {
           let i = rowRange[1] || rowRange[0];
           let counter = 0;
@@ -601,81 +563,18 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-## Additional options
+## Rounding a column summary result
 
-### Forcing numeric values
+You can round a column summary result to a specific number of digits after the decimal point.
 
-If your table doesn't contain only numeric data, you can try to force the values to be numeric in the calculations. For example, "9a" can be treated as "9" thanks to this option. To enable this feature, you will need to set the `forceNumeric` property to `true`.
+To enable this feature, set the `roundFloat` option to your preferred number of digits. For example:
 
-Enabling this option can prove useful, as text-based Handsontable cells stores their contents as strings.
-
-By default this option is **disabled**.
-
-::: example #example14
+::: example #example12
 ```js
-const container = document.querySelector('#example14');
+const container = document.querySelector('#example12');
 
 const hot = new Handsontable(container, {
-  data: [
-    [0, 1, 2],
-    ['3c', '4', 5],
-    [], []
-  ],
-  colHeaders: true,
-  rowHeaders: true,
-  height: 'auto',
-  columnSummary: [
-    {
-      destinationRow: 0,
-      destinationColumn: 0,
-      reversedRowCoords: true,
-      type: 'sum',
-      forceNumeric: true
-    },
-    {
-      destinationRow: 0,
-      destinationColumn: 1,
-      reversedRowCoords: true,
-      type: 'sum',
-      forceNumeric: true
-    }
-  ],
-  licenseKey: 'non-commercial-and-evaluation'
-});
-```
-:::
-
-### Throwing datatype errors
-
-If your table doesn't contain only numeric data, you can either skip the non-numeric entries in the calculation, throw an error, or try to parse them to `float` using the `forceNumeric` option. If you choose to throw the errors, you need to set the `suppressDataTypeErrors` property to `false`.
-
-By default, `suppressDataTypeErrors` is set to `true`.
-
-```js
-columnSummary: [
-  {
-    // ...
-    suppressDataTypeErrors: false
-  }
-]
-```
-
-### Making the endpoint cells read-only
-
-You can make the cells with the calculation results "read-only" by setting the `readOnly` option to `true`.
-
-This option is set to `true` by default.
-
-### Rounding values after the decimal point
-
-If you wish to round the calculation result to a specific number of digits after the decimal point, you need to use the `roundFloat` parameter.
-This setting rounds the calculation result to the appropriate amount of digits.
-
-::: example #example15
-```js
-const container = document.querySelector('#example15');
-
-const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
   data: [
     [0.5, 0.5],
     [0.5, 0.5],
@@ -684,21 +583,116 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
   columnSummary: [
     {
+      type: 'average',
       destinationRow: 0,
       destinationColumn: 0,
-      reversedRowCoords: true,
-      type: 'average'
+      reversedRowCoords: true
     },
     {
+      type: 'average',
       destinationRow: 0,
       destinationColumn: 1,
       reversedRowCoords: true,
-      type: 'average',
+      // round this column summary result to two digits after the decimal point
       roundFloat: 2
+    }
+  ]
+});
+```
+:::
+
+## Dealing with non-numeric values
+
+To summarize a column that contains non-numeric data, you can:
+
+- Either [force your column summary to treat non-numeric values as numeric values](#forcing-numeric-values)
+- Or [throw an error whenever a non-numeric value is passed to your column summary](#throwing-data-type-errors)
+- Or make your column summary skip any non-numeric values
+
+### Forcing numeric values
+
+You can force your column summary to treat non-numeric values as numeric values.
+
+:::tip
+The `forceNumeric` option uses JavaScript's [parseFloat()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat) function.
+
+This means that e.g. `3c` is treated as `3`, but `c3` is still treated as `c3`.
+:::
+
+To enable this feature, set the `forceNumeric` option to `true` (by default, `forceNumeric` is set to `false`). For example:
+
+::: example #example10
+```js
+const container = document.querySelector('#example10');
+
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    [0, 1, 2],
+    ['3c', '4b', 5],
+    [], []
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  columnSummary: [
+    {
+      type: 'sum',
+      destinationRow: 0,
+      destinationColumn: 0,
+      reversedRowCoords: true,
+      // force this column summary to treat non-numeric values as numeric values
+      forceNumeric: true
+    },
+    {
+      type: 'sum',
+      destinationRow: 0,
+      destinationColumn: 1,
+      reversedRowCoords: true,
+      // force this column summary to treat non-numeric values as numeric values
+      forceNumeric: true
+    }
+  ]
+});
+```
+:::
+
+### Throwing data type errors
+
+You can throw a data type error whenever a non-numeric value is passed to your column summary.
+
+To throw data type errors, set the `suppressDataTypeErrors` option to `false` (by default, `suppressDataTypeErrors` is set to `true`). For example:
+
+::: example #example11
+```js
+const container = document.querySelector('#example11');
+
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    [0, 1, 2],
+    ['3c', '4b', 5],
+    [], []
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  columnSummary: [
+    {
+      type: 'sum',
+      destinationRow: 0,
+      destinationColumn: 0,
+      reversedRowCoords: true,
+      // enable throwing data type errors for this column summary
+      suppressDataTypeErrors: false
+    },
+    {
+      type: 'sum',
+      destinationRow: 0,
+      destinationColumn: 1,
+      reversedRowCoords: true,
+      // enable throwing data type errors for this column summary
+      suppressDataTypeErrors: false
     }
   ]
 });

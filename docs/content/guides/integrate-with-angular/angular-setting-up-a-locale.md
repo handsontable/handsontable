@@ -8,7 +8,7 @@ canonicalUrl: /angular-setting-up-a-locale
 # Setting up a translation in Angular
 
 ## Overview
-The following example shows a Handsontable instance with locales set up in Angular.
+The following example shows a Handsontable instance with translations set up in Angular.
 
 ## Example
 ::: example :angular-numbro --html 1 --js 2

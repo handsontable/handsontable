@@ -192,7 +192,7 @@ The next section details how the plugin may be used just for certain columns.
 
 ## Plugin options for certain columns only
 
-The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator`, can be set just for a particular column. This can be done by using [columns](@/api/metaSchema.md#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**:
+The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator`, can be set just for a particular column. This can be done by using [columns](@/api/options.md#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**:
 
 ::: example #example4
 ```js
@@ -288,10 +288,10 @@ beforeColumnSort(currentSortConfig, destinationSortConfigs) {
 
 The plugin provides two hooks:
 
-* [beforeColumnSort](@/api/pluginHooks.md#beforecolumnsort) runs before the sort
+* [beforeColumnSort](@/api/hooks.md#beforecolumnsort) runs before the sort
   * The sort configuration obtained by the `getSortConfig` method within the callback will match the sort configuration preserved before the hook call
   * The callback for `beforeColumnSort` will return `false` and stop the table from being sorted, which results in the `afterColumnSort` hook not being called
-* [afterColumnSort](@/api/pluginHooks.md#aftercolumnsort) always runs after sorting unless the callback for `beforeColumnSort` hook returns `false`
+* [afterColumnSort](@/api/hooks.md#aftercolumnsort) always runs after sorting unless the callback for `beforeColumnSort` hook returns `false`
 
 ::: tip
 Hooks are also run when you use the `clearSort` method or provide a configuration that won't be processed, causing validation to fail.

@@ -18,7 +18,7 @@ You are required to specify the license under which you use the software. This c
 | Name | Type |
 | :--- | :--- |
 | [Non-Commercial License](https://handsontable.com/static/licenses/non-commercial/v2/handsontable-non-commercial-license.pdf) | Proprietary |
-| [Commercial License Agreement](https://handsontable.com/static/licenses/v4.1/handsontable-general-terms.pdf) | Proprietary |
+| Commercial License Agreement | Proprietary |
 
 ## Non-commercial use
 

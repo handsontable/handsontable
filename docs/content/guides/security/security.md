@@ -11,7 +11,11 @@ canonicalUrl: /security
 
 ## Overview
 
-We take security very seriously at Handsontable. We integrate with Security Tools and Policies to provide a secure js grid. This document provides information on our Security Certification, Audits, and Policies.
+At Handsontable, security is our utmost priority. To provide a secure and trustworthy JavaScript component, we integrate with various security tools and implement industry-standard security policies.
+
+### SonarCloud results
+
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=handsontable_handsontable)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
 
 ## Secure data transportation
 
@@ -54,6 +58,8 @@ We hold a Security Certificate for a Security Audit carried out on November 30, 
 
 The security tests were carried out in accordance with industry-standard methodologies, including OWASP TOP10 and OWASP ASVS.
 
+Download the Security Certificate [here](https://github.com/handsontable/handsontable/files/6967577/Security_certificate.pdf).
+
 ## Code auditing
 
 We use [Snyk](https://snyk.io/test/github/handsontable/handsontable?targetFile=package.json) to audit our code. Snyk integrates seamlessly into development workflows, checking for vulnerabilities in our source code and any dependencies, including open source.
@@ -64,7 +70,7 @@ Snyk provides security status notifications via email or Slack to:
 
 ## Insurance
 
-We are insured by Lloyds of London. Our policy protects Handsontable and our customers:
+Our insurance protects our customers in the following areas:
 
 | Our Customers | Handsoncode (Us)  |
 |--|--|

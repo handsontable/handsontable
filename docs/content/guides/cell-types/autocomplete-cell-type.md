@@ -133,7 +133,7 @@ const hot = new Handsontable(container, {
     {
       type: 'autocomplete',
       source(query, process) {
-        fetch('/docs/9.0/scripts/json/autocomplete.json')
+        fetch('/docs/10.0/scripts/json/autocomplete.json')
           .then(response => response.json())
           .then(response => process(response.data));
       },

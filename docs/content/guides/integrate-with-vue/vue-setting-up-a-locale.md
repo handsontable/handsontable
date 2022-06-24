@@ -9,7 +9,7 @@ canonicalUrl: /vue-setting-up-a-locale
 
 ## Overview
 
-The following example shows a Handsontable instance with locales set up in Vue.
+The following example shows a Handsontable instance with translations set up in Vue.
 
 ## Example
 

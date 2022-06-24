@@ -14,7 +14,7 @@ editLink: false
 ## Description
 
 This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu or using API.
-You can turn it on by setting a [Options#manualColumnFreeze](@/api/metaSchema.md#manualcolumnfreeze) property to `true`.
+You can turn it on by setting a [Options#manualColumnFreeze](@/api/options.md#manualcolumnfreeze) property to `true`.
 
 **Example**
 ```js
@@ -26,13 +26,13 @@ manualColumnFreeze: true,
 
 ### manualColumnFreeze
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/dataMap/metaManager/metaSchema.js#L2159
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/dataMap/metaManager/metaSchema.js#L2181
 
 :::
 
 _manualColumnFreeze.manualColumnFreeze : boolean_
 
-Disables or enables [ManualColumnFreeze](@/api/manualColumnFreeze.md) plugin.
+Disables or enables [ManualColumnFreeze](#manualcolumnfreeze) plugin.
 
 **Default**: <code>undefined</code>
 **Example**
@@ -45,7 +45,7 @@ manualColumnFreeze: true,
 
 ### disablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L69
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L69
 
 :::
 
@@ -57,7 +57,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L55
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L55
 
 :::
 
@@ -69,13 +69,16 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### freezeColumn
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L92
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L95
 
 :::
 
 _manualColumnFreeze.freezeColumn(column)_
 
-Freezes the given column (add it to fixed columns).
+Freezes the specified column (adds it to fixed columns).
+
+`freezeColumn()` doesn't re-render the table,
+so you need to call the `render()` method afterward.
 
 
 | Param | Type | Description |
@@ -86,20 +89,20 @@ Freezes the given column (add it to fixed columns).
 
 ### isEnabled
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L48
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L48
 
 :::
 
 _manualColumnFreeze.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
 hook and if it returns `true` than the [ManualColumnFreeze#enablePlugin](@/api/manualColumnFreeze.md#enableplugin) method is called.
 
 
 
 ### unfreezeColumn
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L114
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L117
 
 :::
 
@@ -116,7 +119,7 @@ Unfreezes the given column (remove it from fixed columns and bring to it's previ
 
 ### updatePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/manualColumnFreeze/manualColumnFreeze.js#L80
 
 :::
 

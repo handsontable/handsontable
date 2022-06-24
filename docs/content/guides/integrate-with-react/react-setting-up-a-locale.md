@@ -9,7 +9,7 @@ canonicalUrl: /react-setting-up-a-locale
 
 ## Overview
 
-The following example shows a Handsontable instance with locales set up in React.
+The following example shows a Handsontable instance with translations set up in React.
 
 ## Example
 
