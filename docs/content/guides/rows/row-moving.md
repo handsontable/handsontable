@@ -15,7 +15,7 @@ This page shows how to move rows in Handsontable.
 
 ## Enabling plugins
 
-To enable move features, set `manualRowMove: true`.
+To enable move features, set the [`manualRowMove`](@/api/options.md#manualrowmove) option to `true`.
 
 A draggable move handle appears above the selected row header. You can click and drag it to any location in the row header body.
 
@@ -47,11 +47,23 @@ Both of these methods trigger the [beforeRowMove](@/api/hooks.md#beforerowmove) 
 
 The [dragRows](@/api/manualRowMove.md#dragrows) method has a `dropIndex` parameter, which points to where the elements are being dropped.
 
-![dragRows method](/docs/11.1/img/drag_action.svg)
+![dragRows method](/docs/12.0/img/drag_action.svg)
 
 
 The [moveRows](@/api/manualRowMove.md#moverows) method has a `finalIndex` parameter, which points to where the elements will be placed after the _moving_ action - `finalIndex` being the index of the first moved element.
 
-![moveRows method](/docs/11.1/img/move_action.svg)
+![moveRows method](/docs/12.0/img/move_action.svg)
 
 The [moveRows](@/api/manualRowMove.md#moverows) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [isMovePossible](@/api/manualRowMove.md#ismovepossible) API method and the `movePossible` parameters `beforeRowMove` and `afterRowMove` hooks help in determine such situations.
+
+## Related API reference
+
+- Options:
+  - [`manualRowMove`](@/api/options.md#manualrowmove)
+- Core methods:
+  - [`toVisualRow`](@/api/core.md#tovisualrow)
+- Hooks:
+  - [`afterRowMove`](@/api/hooks.md#afterrowmove)
+  - [`beforeRowMove`](@/api/hooks.md#beforerowmove)
+- Plugins:
+  - [`ManualRowMove`](@/api/manualRowMove.md)

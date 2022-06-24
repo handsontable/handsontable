@@ -15,7 +15,7 @@ The merging cells feature enables you to combine the contents of two or more cel
 
 ## How to merge cells
 
-To enable the merge cells feature, set the `mergeCells` option to be `true` or an array.
+To enable the merge cells feature, set the [`mergeCells`](@/api/options.md#mergecells) option to  `true` or to an array.
 
 To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array: `mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }]`.
 
@@ -39,3 +39,21 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related keyboard shortcuts
+
+| Windows                                | macOS                                  | Action                              |  Excel  | Sheets  |
+| -------------------------------------- | -------------------------------------- | ----------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> | <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
+
+## Related API reference
+
+- Configuration options:
+  - [`mergeCells`](@/api/options.md#mergecells)
+- Hooks:
+  - [`afterMergeCells`](@/api/hooks.md#aftermergecells)
+  - [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)
+  - [`beforeMergeCells`](@/api/hooks.md#beforemergecells)
+  - [`beforeUnmergeCells`](@/api/hooks.md#beforeunmergecells)
+- Plugins:
+  - [`MergeCells`](@/api/mergeCells.md)

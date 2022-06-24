@@ -39,8 +39,8 @@ new Vue({
       hotSettings: {
         data:
           [
-            ['A1', 'https://handsontable.com/docs/11.1/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-            ['A2', 'https://handsontable.com/docs/11.1/img/examples/javascript-the-good-parts.jpg']],
+            ['A1', 'https://handsontable.com/docs/12.0/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+            ['A2', 'https://handsontable.com/docs/12.0/img/examples/javascript-the-good-parts.jpg']],
         columns: [
           {},
           {
@@ -79,3 +79,31 @@ new Vue({
 });
 ```
 :::
+
+## Related articles
+
+### Related guides
+
+- [Cell renderer](@/guides/cell-functions/cell-renderer.md)
+
+### Related API reference
+
+- APIs:
+  - [`BasePlugin`](@/api/basePlugin.md)
+- Configuration options:
+  - [`renderer`](@/api/options.md#renderer)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
+  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
+- Hooks:
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
+  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
+  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)

@@ -116,9 +116,9 @@ The wrapper allows creating custom renderers using Vue 2 components. The data yo
 To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
 
 ::: tip
-Handsontable's `autoRowSize` and `autoColumnSize` options require calculating the widths/heights of some of the cells before rendering them into the table. For this reason, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
+Handsontable's [`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) options require calculating the widths/heights of some of the cells before rendering them into the table. For this reason, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
 
-Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that `autoColumnSize` is enabled by default.
+Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that [`autoColumnSize`](@/api/options.md#autocolumnsize) is enabled by default.
 :::
 
 ::: example #custom-renderer-example :vue --html 1 --js 2
@@ -192,7 +192,7 @@ To prevent this problem, it is possible to pass the `wrapperRendererCacheSize` o
 
 You can also utilize the Vue 2 components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/vue`.
 
-This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close`, and `focus` methods. These are abstract in the `BaseEditor`. For more info, check the documentation on [creating custom editors from scratch](@/guides/cell-functions/cell-editor.md#selecteditor-creating-editor-from-scratch).
+This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the [`getValue`](@/api/baseEditor.md#getvalue), [`setValue`](@/api/baseEditor.md#setvalue), [`open`](@/api/baseEditor.md#open), [`close`](@/api/baseEditor.md#close), and [`focus`](@/api/baseEditor.md#focus) methods. These are abstract in the `BaseEditor`. For more info, check the documentation on [creating custom editors from scratch](@/guides/cell-functions/cell-editor.md#selecteditor-creating-editor-from-scratch).
 
 ::: example #custom-editor-example :vue --html 1 --js 2
 ```html

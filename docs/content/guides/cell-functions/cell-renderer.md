@@ -120,19 +120,19 @@ const data = [
     title: '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
     description: 'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
     comments: 'I would rate it &#x2605;&#x2605;&#x2605;&#x2605;&#x2606;',
-    cover: 'https://handsontable.com/docs/11.1/img/examples/professional-javascript-developers-nicholas-zakas.jpg'
+    cover: 'https://handsontable.com/docs/12.0/img/examples/professional-javascript-developers-nicholas-zakas.jpg'
   },
   {
     title: '<a href="https://shop.oreilly.com/product/9780596517748.do">JavaScript: The Good Parts</a>',
     description: 'This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.',
     comments: 'This is the book about JavaScript',
-    cover: 'https://handsontable.com/docs/11.1/img/examples/javascript-the-good-parts.jpg'
+    cover: 'https://handsontable.com/docs/12.0/img/examples/javascript-the-good-parts.jpg'
   },
   {
     title: '<a href="https://shop.oreilly.com/product/9780596805531.do">JavaScript: The Definitive Guide</a>',
     description: '<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.',
     comments: 'I\'ve never actually read it, but the <a href="https://shop.oreilly.com/product/9780596805531.do">comments</a> are highly <strong>positive</strong>.',
-    cover: 'https://handsontable.com/docs/11.1/img/examples/javascript-the-definitive-guide.jpg'
+    cover: 'https://handsontable.com/docs/12.0/img/examples/javascript-the-definitive-guide.jpg'
   }
 ];
 
@@ -248,3 +248,34 @@ If you did't find a suitable _Handsontable event_ put the cell content into a wr
 ## Performance considerations
 
 Cell renderers are called separately for every displayed cell, during every table render. Table can be rendered multiple times during its lifetime (after table scroll, after table sorting, after cell edit etc.), therefore you should keep your `renderer` functions as simple and fast as possible or you might experience a performance drop, especially when dealing with large sets of data.
+
+## Related articles
+
+### Related guides
+
+- [Custom renderer in React](@/guides/integrate-with-react/react-custom-renderer-example.md)
+- [Custom renderer in Angular](@/guides/integrate-with-angular/angular-custom-renderer-example.md)
+- [Custom renderer in Vue 2](@/guides/integrate-with-vue/vue-custom-renderer-example.md)
+- [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example.md)
+
+### Related API reference
+
+- APIs:
+  - [`BasePlugin`](@/api/basePlugin.md)
+- Configuration options:
+  - [`renderer`](@/api/options.md#renderer)
+- Core methods:
+  - [`getCellMeta()`](@/api/core.md#getcellmeta)
+  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
+  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
+  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
+  - [`setCellMeta()`](@/api/core.md#setcellmeta)
+  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
+  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
+- Hooks:
+  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
+  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
+  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
+  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)

@@ -1,27 +1,33 @@
 ---
-title: Internationalization (i18n)
-metaTitle: Internationalization (i18n) - Guide - Handsontable Documentation
-permalink: /internationalization-i18n
-canonicalUrl: /internationalization-i18n
+title: Language
+metaTitle: Language - Guide - Handsontable Documentation
+permalink: /language
+canonicalUrl: /language
+tags:
+  - internationalization
+  - localization
+  - translation
+  - L10n
+  - i18n
 ---
 
-# Internationalization (i18n)
+# Language
 
 [[toc]]
 
-## Overview
+Display Handsontable's UI text in other languages, and add your own translations.
 
-Internationalization allows Handsontable to easily change the text of the UI for the purpose of translating it to specific languages. We provide the developer with predefined languages, which can be applied by loading the language set and changing just one setting, and an ability to use their own language sets, created using templates of existing language files.
+## About language settings
 
-To adjust your internationalization settings, you can configure the following:
-- [Language settings](#language-settings)
-- [Locale settings](#locale-settings)
+You can easily change the text of the UI for the purpose of translating it to specific languages. We provide the developer with predefined languages, which can be applied by loading the language set and changing just one setting, and an ability to use their own language sets, created using templates of existing language files.
 
-## Language settings
+::: tip
+To properly display RTL languages, configure Handsontable's [layout direction](@/guides/internationalization/layout-direction.md).
+:::
 
-### Loading the prepared language files
+## Loading the prepared language files
 
-To properly use the internationalization feature, you'll need to load the language sets. It's important that they're included after the Handsontable files. You can do it by getting the necessary files created with the [UMD standard](https://github.com/umdjs/umd):
+To properly use the internationalization feature, you'll need to load the language sets. It's important that they're included after the Handsontable files. You can do it by getting the necessary files created with the UMD standard:
 
 1. **ES modules (ESM)**
   ```js
@@ -60,7 +66,7 @@ To properly use the internationalization feature, you'll need to load the langua
   </script>
   ```
 
-#### Demo
+### Demo
 
 Please right click on a cell to see the translated context menu. Language files were loaded after loading Handsontable.
 
@@ -86,9 +92,9 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-### Internationalization for features
+## List of translatable features
 
-Below you'll find a list of features which can be translated with the internationalization feature.
+Below you'll find a list of features which can be translated:
 
 * Dropdown menu
 * Filtering
@@ -102,12 +108,13 @@ Below you'll find a list of features which can be translated with the internatio
 * Merge cells
 * Read-only
 
-### List of available languages
+## List of available languages
 
 By default, Handsontable uses the **English - United States** language-country set (`en-US` code) for creating the text of UI elements. However, it can be used like every extra, "non-standard" language file, thus the `en-US.js` file can be found in `/dist/languages`, `/languages` and `/src/languages` folders. Currently, we also distribute extra language-country files:
 
-* `de-DE.js` for **German - Germany** (`de-DE` code).
+* `ar-AR.js` for **Arabic - Global** (`ar-AR` code). To render this language as intended, set the [layout direction](@/guides/internationalization/language.md) to RTL.
 * `de-CH.js` for **German - Switzerland** (`de-CH` code).
+* `de-DE.js` for **German - Germany** (`de-DE` code).
 * `es-MX.js` for **Spanish - Mexico** (`es-MX` code).
 * `fr-FR.js` for **French - France** (`fr-FR` code).
 * `it-IT.js` for **Italian - Italy** (`it-IT` code).
@@ -126,11 +133,11 @@ By default, Handsontable uses the **English - United States** language-country s
 
 You can create custom language sets for your implementations, or share them, as they're easily appliable to any Handsontable implementation.
 
-### Language file
+## Language file
 
 It's really important for us, that the community is a important part of the growth of our library. We encourage you to create and share your translations!
 
-Additional languages files should be placed in the `src/i18n/languages` folder of the [Handsontable](https://github.com/handsontable/handsontable) repository with name corresponding to the chosen language code (described below, for example: `es-VE.js`). You can incorporate your translations to the Handsontable library by sending us a [pull request](@/guides/building-and-testing/building.md). It's important, that your changes are not made to the `/languages` and `/dist/languages` directories! Our release master will generate files which will be placed there in the building process. After that, you will be able to use the languages in `Handsontable`.
+Additional languages files should be placed in the `src/i18n/languages` folder of the Handsontable repository with name corresponding to the chosen language code (described below, for example: `es-VE.js`). You can incorporate your translations to the Handsontable library by sending us a [pull request](@/guides/tools-and-building/custom-builds.md). It's important, that your changes are not made to the `/languages` and `/dist/languages` directories! Our release master will generate files which will be placed there in the building process. After that, you will be able to use the languages in `Handsontable`.
 
 You can see a full template of a sample language at the bottom of this paragraph. We're basing it on our [default language pack](https://github.com/handsontable/handsontable/tree/master/src/i18n/languages/en-US.js). Parts of the file creation process are described below.
 
@@ -206,9 +213,9 @@ You can see a full template of a sample language at the bottom of this paragraph
     };
     ```
 
-7.  Voilà! You've created a language which can be used just by you or shared with others. We wait for at least 5 positive feedback from users to accept a created [pull request](@/guides/building-and-testing/building.md).
+7.  Voilà! You've created a language which can be used just by you or shared with others. We wait for at least 5 positive feedback from users to accept a created [pull request](@/guides/tools-and-building/custom-builds.md).
 
-#### Local language
+### Local language
 
 You can register a language dictionary which is not a part of the `Handsontable` package. To do so, use the static `Handsontable.languages.registerLanguageDictionary` method and the static constant `Handsontable.languages.dictionaryKeys` which are described briefly in the next section.
 
@@ -222,7 +229,7 @@ Handsontable.languages.registerLanguageDictionary({
 });
 ```
 
-### Using custom keys in the translation
+## Using custom keys in the translation
 
 You can register a language dictionary containing custom keys. These entries can be used like any other keys, so you're not limited to using our pre-defined constants (the ones that are present within `src/i18n/constants.js` file and may be accessed by `Handsontable.languages.dictionaryKeys` alias).
 
@@ -234,61 +241,6 @@ enUSDictionary.customKey = 'Hello world';
 Handsontable.languages.registerLanguageDictionary(enUSDictionary); // re-registration
 Handsontable.languages.getTranslatedPhrase('en-US', 'customKey'); // 'Hello world'
 ```
-
-## Locale settings
-
-You can configure your locale settings, using the [`locale`](@/api/options.md#locale) [configuration option](@/guides/getting-started/setting-options.md).
-
-The locale setting affects certain actions performed on your data, such as:
-- Filtering
-- Searching
-- Comparing locale-based data
-
-Without a properly-set locale, the above operations can work incorrectly.
-
-By default, Handsontable's locale is `en-US`.
-
-You can configure the locale setting:
-- [For the entire grid](#setting-the-grid-s-locale)
-- [For individual columns](#setting-a-column-s-locale)
-
-### Setting the grid's locale
-
-To configure the locale of the entire grid, set the [`locale`](@/api/options.md#locale) [configuration option](@/guides/getting-started/setting-options.md) as a [top-level grid option](@/guides/getting-started/setting-options.md#setting-grid-options):
-
-```js
-const hot = new Handsontable(container, {
-  // set the entire grid's locale to Polish
-  locale: 'pl-PL',
-});
-```
-
-You can set the [`locale`](@/api/options.md#locale) option to any valid and canonicalized Unicode BCP 47 locale tag.
-
-### Setting a column's locale
-
-To configure the locale of an individual column, set the [`locale`](@/api/options.md#locale) [configuration option](@/guides/getting-started/setting-options.md) as a [mid-level column option](@/guides/getting-started/setting-options.md#setting-column-options):
-
-```js
-const hot = new Handsontable(container, {
-  columns: [
-    {
-      // set the first column's locale to Polish
-      locale: 'pl-PL',
-    },
-    {
-      // set the second column's locale to German
-      locale: 'de-DE',
-    },
-    {
-      // set the third column's locale to Japanese
-      locale: 'ja-JP',
-    },
-  ],
-});
-```
-
-You can set the [`locale`](@/api/options.md#locale) option to any valid and canonicalized Unicode BCP 47 locale tag.
 
 ## Static Handsontable methods and properties
 
@@ -323,3 +275,26 @@ Returns: `Object`
 Handsontable.languages.dictionaryKeys
 
 Contains: `Object`
+
+## Related articles
+
+### Related guides
+
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Locale](@/guides/internationalization/locale.md)
+- [IME support](@/guides/internationalization/ime-support.md)
+
+### Related API reference
+
+- Configuration options:
+  - [`language`](@/api/options.md#language)
+  - [`layoutDirection`](@/api/options.md#layoutdirection)
+  - [`locale`](@/api/options.md#locale)
+- Core methods:
+  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
+  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
+  - [`isLtr()`](@/api/core.md#isltr)
+  - [`isRtl()`](@/api/core.md#isrtl)
+- Hooks:
+  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
+  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)

@@ -1,15 +1,15 @@
 ---
-title: Plugins
-metaTitle: Plugins - Guide - Handsontable Documentation
-permalink: /plugins
-canonicalUrl: /plugins
+title: Custom plugins
+metaTitle: Custom plugins - Guide - Handsontable Documentation
+permalink: /custom-plugins
+canonicalUrl: /custom-plugins
 tags:
-  - custom plugin
+  - plugin development
   - skeleton
   - extend
 ---
 
-# Plugins
+# Custom plugins
 
 [[toc]]
 
@@ -19,10 +19,10 @@ Plugins are a great way of extending Handsontable's capabilities. In fact, most 
 
 This guide shows you how to create a custom plugin.
 
-### 1. Prerequisites
+### 1. Prerequisitese
 
 Import the following:
-- `BasePlugin` - a built-in interface that lets you work within Handsontable's lifecycle,
+- [`BasePlugin`](@/api/basePlugin.md) - a built-in interface that lets you work within Handsontable's lifecycle,
 - `registerPlugin` - a utility to register a plugin in the Handsontable plugin registry.
 
 
@@ -30,10 +30,10 @@ Import the following:
 import { BasePlugin, registerPlugin } from 'handsontable/plugins';
 ```
 
-### 2. Extend the `BasePlugin`
-The best way to start creating your own plugin is to extend the `BasePlugin`.
+### 2. Extend the [`BasePlugin`](@/api/basePlugin.md)
+The best way to start creating your own plugin is to extend the [`BasePlugin`](@/api/basePlugin.md).
 
-The `BasePlugin` interface takes care of:
+The [`BasePlugin`](@/api/basePlugin.md) interface takes care of:
 * Backward compatibility
 * Memory leak prevention
 * Properly binding your plugin's instance to Handsontable
@@ -45,6 +45,8 @@ export class CustomPlugin extends BasePlugin {
   * Define a unique key (a string) for your plugin.
   * The key becomes the plugin's alias.
   * Handsontable registers the plugin under that alias.
+  * When an `updateSettings()` call includes the plugin's alias,
+  * your plugin's state gets updated.
   * You can also use the alias to recognize the plugin's
   * options passed through the Setting object at Handsontable's initialization.
   *
@@ -54,6 +56,19 @@ export class CustomPlugin extends BasePlugin {
     return 'customPlugin';
   }
 
+ /**
+  * Define additional setting keys (an array of strings) for your plugin.
+  * When an `updateSettings()` call includes at least one of those setting keys,
+  * your plugin's state gets updated.
+  * If you set SETTING_KEYS() to return `true`, your plugin updates on every `updateSettings()` call.
+  * If you set SETTING_KEYS() to return `false`, your plugin never updates on any `updateSettings()` call.
+  *
+  * @returns {Array|boolean}
+  */
+  static get SETTING_KEYS() {
+    return true;
+  }
+
   /**
    * Extend the default constructor and define internal properties for your plugin.
    *
@@ -61,7 +76,7 @@ export class CustomPlugin extends BasePlugin {
    */
   constructor(hotInstance) {
      /**
-     * The `BasePlugin`'s constructor adds a `this.hot` property to your plugin.
+     * The [`BasePlugin`](@/api/basePlugin.md)'s constructor adds a `this.hot` property to your plugin.
      * The `this.hot` property:
      * - Is a reference to the Handsontable instance.
      * - Can't be overwritten.
@@ -158,7 +173,9 @@ export class CustomPlugin extends BasePlugin {
 
   /**
    * The `updatePlugin` method is called on the `afterUpdateSettings` hook
-   * (unless the `updateSettings` method turned the plugin off).
+   * (unless the `updateSettings` method turned the plugin off),
+   * but only if the config object passed to the `updateSettings` method
+   * contains entries relevant to that particular plugin.
    *
    * The `updatePlugin` method should contain anything that your plugin needs to do to work correctly
    * after updating the Handsontable instance settings.
@@ -259,3 +276,12 @@ const pluginInstance = hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
 
 pluginInstance.externalMethodExample();
 ```
+
+## Related API reference
+
+- APIs:
+  - [`BasePlugin`](@/api/basePlugin.md)
+- Core methods:
+  - [`getPlugin()`](@/api/core.md#getplugin)
+- Hooks:
+  - [`afterPluginsInitialized`](@/api/hooks.md#afterpluginsinitialized)

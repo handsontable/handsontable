@@ -15,14 +15,14 @@ Text alignment functionality enables you to predefine the horizontal and vertica
 
 ## Horizontal and vertical alignment
 
-To initialize Handsontable with predefined horizontal and vertical alignment, provide the alignment details for the `className` cells in the form of a grid, configuring `cells` by `col`,`row`, and `className`. Cells can be configured individually, or the entire grid can be configured. See the code sample below for an example.
+To initialize Handsontable with predefined horizontal and vertical alignment, provide the alignment details for the [`className`](@/api/options.md#classname) cells in the form of a grid, configuring [`cells`](@/api/options.md#cells) by `col`,`row`, and [`className`](@/api/options.md#classname). Cells can be configured individually, or the entire grid can be configured. See the code sample below for an example.
 
 Available class names:
 
 * Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`,
 * Vertical: `htTop`, `htMiddle`, `htBottom`.
 
-Alignment changes can be tracked using `afterSetCellMeta` callback.
+Alignment changes can be tracked using the [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta) hook.
 
 ## Basic example
 
@@ -56,3 +56,11 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Related API reference
+
+- Configuration options:
+  - [`className`](@/api/options.md#classname)
+- Hooks:
+  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
+  - [`beforeCellAlignment`](@/api/hooks.md#beforecellalignment)

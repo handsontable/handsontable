@@ -25,7 +25,7 @@ The **Nested Rows** plugin extends Handsontable, adding new functionality that d
 
 ## Quick Setup
 
-To enable the plugin, simply set the `nestedRows` property to `true`.
+To enable the plugin, simply set the [`nestedRows`](@/api/options.md#nestedrows) option to `true`.
 
 ```js
 const hot = new Handsontable(container, {
@@ -33,7 +33,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-Note that using all the functionalities provided by the plugin requires enabling the row headers and the Handsontable context menu. To do this set `rowHeaders` and `contextMenu` to `true`. The _collapse_ / _expand_ buttons are located in the row headers, and the row modification options _add row_, _insert child_, etc., are in the Context Menu.
+Note that using all the functionalities provided by the plugin requires enabling the row headers and the Handsontable context menu. To do this set [`rowHeaders`](@/api/options.md#rowheaders) and [`contextMenu`](@/api/options.md#contextmenu) to `true`. The _collapse_ / _expand_ buttons are located in the row headers, and the row modification options _add row_, _insert child_, etc., are in the Context Menu.
 
 ## Preparing the data source
 
@@ -206,3 +206,28 @@ The context menu has been extended with a few Nested Rows related options, such 
 * Detach from parent
 
 The “Insert row above” and “Insert row below” options were modified to work properly with the nested data structure.
+
+## Related articles
+
+### Related guides
+
+- [Row header](@/guides/rows/row-header.md)
+
+### Related API reference
+
+- Configuration options:
+  - [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders)
+  - [`contextMenu`](@/api/options.md#contextmenu)
+  - [`nestedRows`](@/api/options.md#nestedrows)
+  - [`rowHeaders`](@/api/options.md#rowheaders)
+- Core methods:
+  - [`getRowHeader()`](@/api/core.md#getrowheader)
+- Hooks:
+  - [`afterAddChild`](@/api/hooks.md#afteraddchild)
+  - [`afterDetachChild`](@/api/hooks.md#afterdetachchild)
+  - [`beforeAddChild`](@/api/hooks.md#beforeaddchild)
+  - [`beforeDetachChild`](@/api/hooks.md#beforedetachchild)
+- Plugins:
+  - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
+  - [`ContextMenu`](@/api/contextMenu.md)
+  - [`NestedRows`](@/api/nestedRows.md)

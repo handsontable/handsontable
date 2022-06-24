@@ -9,84 +9,87 @@ canonicalUrl: /react-modules
 
 [[toc]]
 
-## Overview
+Import just the modules that you actually need, to reduce Handsontable's impact on the size of your React app.
 
-To reduce the size of your app, you can use Handsontable by importing individual [modules](@/guides/building-and-testing/modules.md).
-
-## Using modules in React
+## Use modules in React
 
 To use modules with Handsontable's [React wrapper](@/guides/integrate-with-react/react-installation.md), follow the steps below:
 
-### Step 1: Import the `handsontable/base` module
+### Step 1: Import the base module
+
+No matter which [optional modules](@/guides/tools-and-building/modules.md#optional-modules) you use, you need to import the [base module](@/guides/tools-and-building/modules.md#base-module).
+
 In the entry point file of your application, import the `handsontable/base` module:
-  ```js
-  // your `index.js` file
-  import React from 'react';
-  import ReactDOM from 'react-dom';
-  import './index.css';
-  import App from './App';
 
-  // import the `handsontable/base` module
-  import Handsontable from 'handsontable/base';
-  ```
+```jsx
+import Handsontable from 'handsontable/base';
+```
 
-### Step 2: Import modules and their registering functions
-Import the modules that you want to use (for the full list of Handsontable modules, see the [modules cheatsheet](@/guides/building-and-testing/modules.md#modules-cheatsheet)).
+### Step 2: Import optional modules
 
-Also, import those modules' registering functions.
+Import optional modules of your choice, along with their registering functions.
 
-For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and the [`UndoRedo`](@/api/undoRedo.md) plugin:
-  ```js
-  import React from 'react';
-  import ReactDOM from 'react-dom';
-  import './index.css';
-  import App from './App';
+- [Optional modules](@/guides/tools-and-building/modules.md#optional-modules)
+- [List of all modules](@/guides/tools-and-building/modules.md#list-of-all-modules)
+- [List of all module imports](@/guides/tools-and-building/modules.md#list-of-all-module-imports)
 
-  import Handsontable from 'handsontable/base';
+For example, to import the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type module and the [`UndoRedo`](@/api/undoRedo.md) plugin module:
 
-  // import the `NumericCellType` module and the `registerCellType()` function
-  import {
-    registerCellType,
-    NumericCellType,
-  } from 'handsontable/cellTypes';
+```jsx
+import {
+registerCellType, // cell types' registering function
+NumericCellType,
+} from 'handsontable/cellTypes';
 
-  // import the `UndoRedo` module and the `registerPlugin()` function
-  import {
-    registerPlugin,
-    UndoRedo,
-  } from 'handsontable/plugins';
-  ```
+import {
+registerPlugin, // plugins' registering function
+UndoRedo,
+} from 'handsontable/plugins';
+```
 
-### Step 3: Register the modules
-Register your modules, using the registering functions that you imported (for the full list of Handsontable's registering functions, see the [modules cheatsheet](@/guides/building-and-testing/modules.md#modules-cheatsheet)):
-  ```jsx
-  import React from 'react';
-  import ReactDOM from 'react-dom';
-  import './index.css';
-  import App from './App';
+### Step 3: Register your modules
 
-  import Handsontable from 'handsontable/base';
+Register your modules, to let Handsontable recognize them.
 
-  import {
-    registerCellType,
-    NumericCellType,
-  } from 'handsontable/cellTypes';
+For example, to register the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type module and the [`UndoRedo`](@/api/undoRedo.md) plugin module:
 
-  import {
-    registerPlugin,
-    UndoRedo,
-  } from 'handsontable/plugins';
+```jsx
+registerCellType(NumericCellType);
+registerPlugin(UndoRedo);
+```
 
-  // register the `NumericCellType` module
-  registerCellType(NumericCellType);
+### Full example
 
-  // register the `UndoRedo` module
-  registerPlugin(UndoRedo);
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import App from './App';
 
-  ReactDOM.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-    document.getElementById('root')
-  );
-  ```
+import Handsontable from 'handsontable/base';
+
+import {
+  registerCellType,
+  NumericCellType,
+} from 'handsontable/cellTypes';
+
+import {
+  registerPlugin,
+  UndoRedo,
+} from 'handsontable/plugins';
+
+registerCellType(NumericCellType);
+registerPlugin(UndoRedo);
+
+ReactDOM.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+  document.getElementById('root')
+);
+```
+
+## Related guides
+
+- [Modules](@/guides/tools-and-building/modules.md)
+- [Bundle size](@/guides/optimization/bundle-size.md)

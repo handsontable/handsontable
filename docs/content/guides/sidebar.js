@@ -1,6 +1,6 @@
 const gettingStartedItems = [
   'guides/getting-started/introduction',
-  'guides/getting-started/demo',
+  // 'guides/getting-started/demo', (temporarily hidden, till the demo is fixed)
   'guides/getting-started/installation',
   'guides/getting-started/binding-to-data',
   'guides/getting-started/saving-data',
@@ -133,7 +133,7 @@ const formulasItems = [
 const accessoriesAndMenusItems = [
   'guides/accessories-and-menus/context-menu',
   'guides/accessories-and-menus/undo-redo',
-  'guides/accessories-and-menus/keyboard-navigation',
+  'guides/accessories-and-menus/keyboard-shortcuts',
   'guides/accessories-and-menus/searching-values',
   'guides/accessories-and-menus/icon-pack',
   'guides/accessories-and-menus/export-to-csv',
@@ -141,26 +141,27 @@ const accessoriesAndMenusItems = [
 ];
 
 const internationalizationItems = [
-  'guides/internationalization/internationalization-i18n',
-  // TODO 'guides/internationalization/rtl',
+  'guides/internationalization/language',
+  'guides/internationalization/locale',
+  'guides/internationalization/layout-direction',
   'guides/internationalization/ime-support',
 ];
 
-const buildingAndTestingItems = [
-  'guides/building-and-testing/building',
-  'guides/building-and-testing/testing',
-  'guides/building-and-testing/packages',
-  'guides/building-and-testing/modules',
-  'guides/building-and-testing/plugins',
-  'guides/building-and-testing/file-structure',
+const buildingAndToolingItems = [
+  'guides/tools-and-building/packages',
+  'guides/tools-and-building/modules',
+  'guides/tools-and-building/custom-plugins',
+  'guides/tools-and-building/custom-builds',
+  'guides/tools-and-building/testing',
+  'guides/tools-and-building/folder-structure',
 ];
 
-const advancedTopicsItems = [
-  // TODO 'guides/advanced-topics/accessibility',
-  'guides/advanced-topics/batch-operations',
-  // TODO 'guides/advanced-topics/touch-events',
-  'guides/advanced-topics/performance',
-  // TODO 'guides/advanced-topics/key-concepts',
+const optimizationItems = [
+  'guides/optimization/batch-operations',
+  // TODO 'guides/optimization/touch-events',
+  'guides/optimization/performance',
+  // TODO 'guides/optimization/key-concepts',
+  'guides/optimization/bundle-size',
 ];
 
 const securityItems = [
@@ -183,27 +184,28 @@ const upgradeAndMigrationItems = [
   'guides/upgrade-and-migration/migrating-from-8.4-to-9.0',
   'guides/upgrade-and-migration/migrating-from-9.0-to-10.0',
   'guides/upgrade-and-migration/migrating-from-10.0-to-11.0',
+  'guides/upgrade-and-migration/migrating-from-11.1-to-12.0',
 ];
 
 module.exports = {
   sidebar: [
-    { title: 'Getting Started', children: gettingStartedItems },
+    { title: 'Getting started', children: gettingStartedItems },
     { title: 'Integrate with React', children: integrateWithReactItems },
     { title: 'Integrate with Angular', children: integrateWithAngularItems },
     { title: 'Integrate with Vue 2', children: integrateWithVueItems },
     { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
-    { title: 'Cell Features', children: cellFeaturesItems },
-    { title: 'Cell Functions', children: cellFunctionsItems },
-    { title: 'Cell Types', children: cellTypesItems },
+    { title: 'Cell features', children: cellFeaturesItems },
+    { title: 'Cell functions', children: cellFunctionsItems },
+    { title: 'Cell types', children: cellTypesItems },
     { title: 'Formulas', children: formulasItems },
-    { title: 'Accessories and Menus', children: accessoriesAndMenusItems },
+    { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
-    { title: 'Building and Testing', children: buildingAndTestingItems },
-    { title: 'Advanced Topics', children: advancedTopicsItems },
+    { title: 'Tools and building', children: buildingAndToolingItems },
+    { title: 'Optimization', children: optimizationItems },
     { title: 'Security', children: securityItems },
-    { title: 'Technical Specification', children: technicalSpecificationItems },
-    { title: 'Upgrade and Migration', children: upgradeAndMigrationItems }
+    { title: 'Technical specification', children: technicalSpecificationItems },
+    { title: 'Upgrade and migration', children: upgradeAndMigrationItems }
   ],
 };

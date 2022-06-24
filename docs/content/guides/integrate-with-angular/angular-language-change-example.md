@@ -7,12 +7,16 @@ canonicalUrl: /angular-language-change-example
 
 # Language change in Angular
 
+[[toc]]
+
 ## Overview
+
 The following example is an implementation of the `@handsontable/angular` component with an option to change the Context Menu language.
 
 Select a language from the selector above the table and open the Context Menu to see the result.
 
 ## Example
+
 ::: example :angular-languages --html 1 --js 2
 ```html
 <app-root></app-root>
@@ -70,3 +74,26 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
+
+## Related articles
+
+### Related guides
+
+- [Language](@/guides/internationalization/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Locale](@/guides/internationalization/locale.md)
+
+### Related API reference
+
+- Configuration options:
+  - [`language`](@/api/options.md#language)
+  - [`layoutDirection`](@/api/options.md#layoutdirection)
+  - [`locale`](@/api/options.md#locale)
+- Core methods:
+  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
+  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
+  - [`isLtr()`](@/api/core.md#isltr)
+  - [`isRtl()`](@/api/core.md#isrtl)
+- Hooks:
+  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
+  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)
