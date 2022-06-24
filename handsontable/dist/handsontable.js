@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.1.0
- * Release date: 28/06/2022 (built at 22/06/2022 13:58:14)
+ * Release date: 28/06/2022 (built at 23/06/2022 15:45:20)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -27163,7 +27163,7 @@ function Core(rootElement, userSettings) {
       }
     } else if (height !== void 0) {
       instance.rootElement.style.height = isNaN(height) ? "".concat(height) : "".concat(height, "px");
-      instance.rootElement.style.overflow = height === 'auto' ? '' : 'hidden';
+      instance.rootElement.style.overflow = 'hidden';
     }
 
     if (typeof settings.width !== 'undefined') {
@@ -27173,11 +27173,7 @@ function Core(rootElement, userSettings) {
         width = width();
       }
 
-      if (width === null) {
-        instance.rootElement.style.width = '';
-      } else {
-        instance.rootElement.style.width = isNaN(width) ? "".concat(width) : "".concat(width, "px");
-      }
+      instance.rootElement.style.width = isNaN(width) ? "".concat(width) : "".concat(width, "px");
     }
 
     if (!init) {
@@ -44943,7 +44939,7 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "22/06/2022 13:58:14";
+Handsontable.buildDate = "23/06/2022 15:45:20";
 Handsontable.version = "12.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -53218,11 +53214,7 @@ var MasterTable = /*#__PURE__*/function (_Table) {
 
         if (!preventOverflow) {
           this.holder.style.overflow = 'visible';
-          this.holder.style.width = '';
-          this.holder.style.height = '';
           this.wtRootElement.style.overflow = 'visible';
-          this.wtRootElement.style.width = '';
-          this.wtRootElement.style.height = '';
         }
       } else {
         var trimmingElementParent = trimmingElement.parentElement;

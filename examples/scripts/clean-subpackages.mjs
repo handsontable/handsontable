@@ -13,7 +13,8 @@ if (version) {
   ${version}/**/(js|ts|angular|angular-*|react|vue)/**/node_modules
   ${version}/**/(js|ts|angular|angular-*|react|vue)/**/dist
   ${version}/**/(js|ts|angular|angular-*|react|vue)/**/.cache
-  ${version}/**/(js|ts|angular|angular-*|react|vue)/package-lock.json`);
+  ${version}/**/(js|ts|angular|angular-*|react|vue)/package-lock.json
+  ${version}/**/(angular|angular-*)/**/.angular`);
 
   const removes = [];
 
@@ -22,6 +23,7 @@ if (version) {
   removes.push(rimrafPromisified(`${version}/@(!(node_modules))/+(js|ts|angular|angular-*|react|vue)/@(!(node_modules))/dist`));
   removes.push(rimrafPromisified(`${version}/@(!(node_modules))/+(js|ts|angular|angular-*|react|vue)/@(!(node_modules))/.cache`));
   removes.push(rimrafPromisified(`${version}/@(!(node_modules))/+(js|ts|angular|angular-*|react|vue)/package-lock.json`));
+  removes.push(rimrafPromisified(`${version}/@(!(node_modules))/+(angular|angular-*)/@(!(node_modules))/.angular`));
 
   await Promise.all(removes);
 } else {
