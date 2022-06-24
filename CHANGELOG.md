@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 For more information on this release, see:
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-1-0)
-- [Blog post](PLACEHOLDER)
+- [Blog post](https://handsontable.com/blog/handsontable-12.1.0-data-grid-new-hooks-new-translations-and-rendering-improvements)
 
 ### Added
 - Added smart positioning of comment boxes. [#4785](https://github.com/handsontable/handsontable/issues/4785)
