@@ -7,6 +7,7 @@ const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
 const { getThisDocsVersion, getDocsBaseUrl } = require('./helpers');
 
+const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
 const buildMode = process.env.BUILD_MODE;
 const environmentHead = buildMode === 'production' ?
   [
@@ -29,7 +30,7 @@ module.exports = {
     'content/**/*.md'
   ],
   description: 'Handsontable',
-  base: `/docs/${getThisDocsVersion()}/`,
+  base: `/docs/${docsBase === 'latest' ? '' : `${docsBase}/`}`,
   head: [
     ['link', { rel: 'icon', href: `${getDocsBaseUrl()}/static/images/template/ModCommon/favicon-32x32.png` }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
