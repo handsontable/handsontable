@@ -23,8 +23,9 @@ For more information on this release, see:
 - Added new hooks: `beforeColumnFreeze`, `afterColumnFreeze`, `beforeColumnUnfreeze`, and `afterColumnUnfreeze`. [#9248](https://github.com/handsontable/handsontable/issues/9248)
 
 ### Changed
-- Updated the Pikaday dependency to 1.8.2. [#9410](https://github.com/handsontable/handsontable/issues/9410)
 - Replaced HTML entities appearing in Handsontable's license texts with canonical counterparts. [#9487](https://github.com/handsontable/handsontable/issues/9487)
+- Updated the Pikaday optional dependency to 1.8.2, to let Handsontable work with Parcel 2 without errors. [#9410](https://github.com/handsontable/handsontable/issues/9410)
+- *React:* Changed the wrapper's lifecycle methods, to let Handsontable work with React 17+ without warnings. [#8748](https://github.com/handsontable/handsontable/issues/8748)
 - *Angular:* Moved the `@angular/core` dependency to peer dependencies. [#9574](https://github.com/handsontable/handsontable/issues/9574)
 
 ### Fixed
@@ -38,9 +39,6 @@ For more information on this release, see:
 - Fixed an issue where dragging-to-scroll on mobile didn't work properly in the RTL layout direction. [#9475](https://github.com/handsontable/handsontable/issues/9475)
 - Fixed an issue where hiding columns with nested headers caused incorrect column width calculation (for the `stretchH: 'all'` option). [#9496](https://github.com/handsontable/handsontable/issues/9496)
 - Fixed an issue where `ShortcutManager` unnecessarily handled `keyup` events with no `key` defined. [#9562](https://github.com/handsontable/handsontable/issues/9562)
-
-### Removed
-- *React:* Removed method deprecation warnings for React 17+. [#8748](https://github.com/handsontable/handsontable/issues/8748)
 
 ## [12.0.1] - 2022-05-16
 
