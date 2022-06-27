@@ -8,39 +8,43 @@ const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const buildMode = process.env.BUILD_MODE;
 
-const cleanUp = () => {
+/**
+ * Cleans the dist.
+ */
+async function cleanUp() {
   logger.info('Clean up dist');
-  fse.removeSync(path.resolve(__dirname, '../dist'));
-};
 
-const buildVersion = (version) => {
+  await fse.remove(path.resolve(__dirname, '../dist'));
+}
+
+/**
+ * Builds the docs.
+ *
+ * @param {string} version The docs version to build.
+ */
+async function buildVersion(version) {
   logger.info(`Version ${version} build started at`, new Date().toString());
 
-  spawnProcess(
-    `node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-${version.replace('.', '-')}`,
-    {
-      cwd: path.resolve(__dirname, '../../'),
-      env: {
-        DOCS_BASE: 'latest'
-      },
-    },
-    true
-  );
-  spawnProcess(
-    `node_modules/.bin/vuepress build -d .vuepress/dist/pre-${version.replace('.', '-')}`,
-    {
-      cwd: path.resolve(__dirname, '../../'),
-      env: {
-        DOCS_BASE: version
-      },
-    },
-    true
-  );
-  logger.success('Version build finished at', new Date().toString());
+  const cwd = path.resolve(__dirname, '../../');
 
-  return version;
-};
-const concatenate = (version) => {
+  await Promise.all([
+    spawnProcess(
+      `node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-${version.replace('.', '-')}`,
+      { cwd, env: { DOCS_BASE: 'latest' }, }
+    ),
+    spawnProcess(
+      `node_modules/.bin/vuepress build -d .vuepress/dist/pre-${version.replace('.', '-')}`,
+      { cwd, env: { DOCS_BASE: version }, }
+    )
+  ]).then(() => logger.success('Version build finished at', new Date().toString()));
+}
+
+/**
+ * Concatenates the dist's.
+ *
+ * @param {version} version The docs version to concatenate.
+ */
+async function concatenate(version) {
   const prebuildLatest = path.resolve(__dirname, '../../', `.vuepress/dist/pre-latest-${version.replace('.', '-')}`);
   const prebuildVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/pre-${version.replace('.', '-')}`);
   const distLatest = path.resolve(__dirname, '../../', '.vuepress/dist/docs');
@@ -48,25 +52,21 @@ const concatenate = (version) => {
 
   logger.info('Apply built version to the `docs/`', version);
 
-  fse.moveSync(prebuildLatest, distLatest);
-  fse.moveSync(prebuildVersioned, distVersioned);
-};
-const buildApp = async() => {
-  const startedAt = new Date().toString();
+  await fse.move(prebuildLatest, distLatest);
+  await fse.move(prebuildVersioned, distVersioned);
+}
 
-  logger.info('Build started at', startedAt);
+const startedAt = new Date().toString();
 
-  if (buildMode) {
-    logger.info('buildMode: ', buildMode);
-  }
+logger.info('Build started at', startedAt);
 
-  cleanUp();
-  buildVersion(getThisDocsVersion());
-  concatenate(getThisDocsVersion());
+if (buildMode) {
+  logger.info('buildMode: ', buildMode);
+}
 
-  logger.log('Build has started at', startedAt);
-  logger.success('Build finished at', new Date().toString());
+await cleanUp();
+await buildVersion(getThisDocsVersion());
+await concatenate(getThisDocsVersion());
 
-};
-
-buildApp();
+logger.log('Build has started at', startedAt);
+logger.success('Build finished at', new Date().toString());
