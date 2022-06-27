@@ -35,7 +35,7 @@ module.exports = (options, context) => {
      * @param {object} $page The $page value of the page you’re currently reading.
      */
     extendPageData($page) {
-      $page.versions = getVersions(buildMode);
+      $page.versions = getVersions();
       $page.latestVersion = getLatestVersion();
       $page.isThisTheLatestVersion = isThisDocsTheLatestVersion();
       $page.currentVersion = getThisDocsVersion();

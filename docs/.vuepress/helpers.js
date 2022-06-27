@@ -10,7 +10,7 @@ const availableVersions = ['12.0', '11.1', '11.0', '10.0', '9.0'];
  * @param {string} buildMode The env name.
  * @returns {string[]}
  */
-function getVersions(buildMode) {
+function getVersions(buildMode = process.env.BUILD_MODE) {
   const next = buildMode !== 'production' ? ['next'] : [];
 
   return [...next, ...availableVersions];
