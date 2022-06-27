@@ -5,7 +5,7 @@ const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
-const { getThisDocsVersion, getDocsBaseUrl } = require('./helpers');
+const { getThisDocsVersion, getDocsBaseUrl, isThisDocsTheLatestVersion } = require('./helpers');
 
 const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
 const buildMode = process.env.BUILD_MODE;
@@ -21,6 +21,8 @@ const environmentHead = buildMode === 'production' ?
     `],
   ]
   : [];
+
+console.log('isThisDocsTheLatestVersion', isThisDocsTheLatestVersion());
 
 module.exports = {
   define: {

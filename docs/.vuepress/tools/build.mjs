@@ -27,16 +27,16 @@ async function buildVersion(version) {
 
   const cwd = path.resolve(__dirname, '../../');
 
-  await Promise.all([
-    spawnProcess(
-      `node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-${version.replace('.', '-')}`,
-      { cwd, env: { DOCS_BASE: 'latest' }, }
-    ),
-    spawnProcess(
-      `node_modules/.bin/vuepress build -d .vuepress/dist/pre-${version.replace('.', '-')}`,
-      { cwd, env: { DOCS_BASE: version }, }
-    )
-  ]).then(() => logger.success('Version build finished at', new Date().toString()));
+  await spawnProcess(
+    `node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-${version.replace('.', '-')}`,
+    { cwd, env: { DOCS_BASE: 'latest' }, }
+  );
+  await spawnProcess(
+    `node_modules/.bin/vuepress build -d .vuepress/dist/pre-${version.replace('.', '-')}`,
+    { cwd, env: { DOCS_BASE: version }, }
+  );
+
+  logger.success('Version build finished at', new Date().toString())
 }
 
 /**
