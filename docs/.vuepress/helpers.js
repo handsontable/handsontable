@@ -2,7 +2,7 @@ const path = require('path');
 const execa = require('execa');
 
 // TODO: fetch release versions list from GH API or so
-const availableVersions = ['12.1', '12.0', '11.1', '11.0', '10.0', '9.0'];
+const availableVersions = ['12.0', '11.1', '11.0', '10.0', '9.0'];
 
 /**
  * Gets all available docs versions.
@@ -31,7 +31,7 @@ function getLatestVersion() {
  * @returns {boolean}
  */
 function isThisDocsTheLatestVersion() {
-  return false;
+  return getThisDocsVersion() === getLatestVersion();
 }
 
 const versionFromBranchRegExp = /^docs-snapshot\/(\d+\.\d+)$/;
