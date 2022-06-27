@@ -55,8 +55,8 @@ For more information on the distribution packages, see [this file](https://githu
 ### Building requirements
 
 Handsontable building processes require:
-- [Node.js](https://nodejs.org/) (version **16.14**+)
-- [npm](https://www.npmjs.com/) (version **8.5**+)
+- [Node.js](https://nodejs.org/) (version **16.15**+)
+- [npm](https://www.npmjs.com/) (version **8.11**+)
 - Node modules installed through `npm install` (e.g. [webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/))
 
 ### `package.json` files
