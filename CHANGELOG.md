@@ -15,7 +15,6 @@ For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-12.1.0-data-grid-new-hooks-new-translations-and-rendering-improvements)
 
 ### Added
-- Added smart positioning of comment boxes. [#4785](https://github.com/handsontable/handsontable/issues/4785)
 - Added smoother row and column moving when some row or columns are hidden. [#7613](https://github.com/handsontable/handsontable/issues/7613)
 - Added `getNearestNotHiddenIndex()`, a new method that finds the visual index of the nearest not-hidden row or column and works even with large numbers of hidden rows or columns. The previous method, `getFirstNotHiddenIndex()`, still works, but is marked as deprecated. [#9064](https://github.com/handsontable/handsontable/issues/9064)
 - Added a Czech translation. [#9343](https://github.com/handsontable/handsontable/issues/9343)
