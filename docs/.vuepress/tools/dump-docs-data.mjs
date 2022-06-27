@@ -1,9 +1,9 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { promises as fsp } from 'fs';
-import utils from './utils.js';
 import { Octokit } from '@octokit/rest';
 import semver from 'semver';
+import utils from './utils.js';
 
 const { logger } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -34,50 +34,45 @@ async function readFromGitHub() {
   const octokit = new Octokit();
   let versions = [];
 
-  try {
-    const releases = await octokit.rest.repos
-      .listReleases({
-        owner: 'handsontable',
-        repo: 'handsontable',
-        per_page: 50,
-      });
+  const releases = await octokit.rest.repos
+    .listReleases({
+      owner: 'handsontable',
+      repo: 'handsontable',
+      per_page: 50,
+    });
 
-    if (releases.status !== 200) {
-      throw new Error('Incorrect response from the GitHub API.');
-    }
+  if (releases.status !== 200) {
+    throw new Error('Incorrect response from the GitHub API.');
+  }
 
-    const tagsSet = new Set();
+  const tagsSet = new Set();
 
-    releases.data
-      .map(item => item.tag_name)
-      .sort((a, b) => semver.rcompare(a, b))
-      .forEach(tag => tagsSet.add(`${semver.parse(tag).major}.${semver.parse(tag).minor}`));
+  releases.data
+    .map(item => item.tag_name)
+    .sort((a, b) => semver.rcompare(a, b))
+    .forEach(tag => tagsSet.add(`${semver.parse(tag).major}.${semver.parse(tag).minor}`));
 
-    const tags = Array.from(tagsSet);
+  const tags = Array.from(tagsSet);
 
-    versions = tags.slice(0, tags.indexOf(MIN_DOCS_VERSION) + 1);
+  versions = tags.slice(0, tags.indexOf(MIN_DOCS_VERSION) + 1);
 
-    logger.log(`Fetched the following Docs versions: ${versions.join(', ')}`);
-    logger.log(`GitHub API rate limits:
+  logger.log(`Fetched the following Docs versions: ${versions.join(', ')}`);
+  logger.log(`GitHub API rate limits:
   Limit: ${releases.headers['x-ratelimit-limit']}
   Used: ${releases.headers['x-ratelimit-used']}
   Remaining: ${releases.headers['x-ratelimit-remaining']}
-`);
-
-  } catch (ex) {
-    logger.error('Something bad happened while fetching the releases from GitHub API:', ex.message);
-  }
+  `);
 
   return {
     versions,
     latestVersion: versions[0]
-  }
+  };
 }
 
 let docsData = null;
 
 // for building use always the GH API
-if (process.env.DOCS_BASE) {
+if (process.env.DOCS_BASE && process.env.DOCS_BASE !== 'latest') {
   docsData = await readFromGitHub();
 } else {
   // for local development use the latest Docs image...

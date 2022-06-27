@@ -1,8 +1,6 @@
 const path = require('path');
 const execa = require('execa');
-
-// TODO: fetch release versions list from GH API or so
-const availableVersions = ['12.0', '11.1', '11.0', '10.0', '9.0'];
+const docsData = require('./public/docs-data.json');
 
 /**
  * Gets all available docs versions.
@@ -13,7 +11,7 @@ const availableVersions = ['12.0', '11.1', '11.0', '10.0', '9.0'];
 function getVersions(buildMode = process.env.BUILD_MODE) {
   const next = buildMode !== 'production' ? ['next'] : [];
 
-  return [...next, ...availableVersions];
+  return [...next, ...docsData.versions];
 }
 
 /**
@@ -22,7 +20,7 @@ function getVersions(buildMode = process.env.BUILD_MODE) {
  * @returns {string}
  */
 function getLatestVersion() {
-  return availableVersions[0];
+  return docsData.latestVersion;
 }
 
 /**
