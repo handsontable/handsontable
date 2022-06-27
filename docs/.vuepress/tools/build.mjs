@@ -36,7 +36,7 @@ async function buildVersion(version) {
     { cwd, env: { DOCS_BASE: version }, }
   );
 
-  logger.success('Version build finished at', new Date().toString())
+  logger.success('Version build finished at', new Date().toString());
 }
 
 /**
