@@ -1,7 +1,0 @@
-{
-  "title": "Added `getNearestNotHiddenIndex()`, a new method that finds a visual index of the nearest not-hidden row or column, and works even with large numbers of hidden rows or columns. The previous method, `getFirstNotHiddenIndex()` still works, but is marked as deprecated.",
-  "type": "added",
-  "issue": 9064,
-  "breaking": false,
-  "framework": "none"
-}

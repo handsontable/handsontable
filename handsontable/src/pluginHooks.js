@@ -1371,7 +1371,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeColumnFreeze
    * @since 12.1.0
    * @param {number} column The visual index of the column that is going to freeze.
-   * @param {boolean} freezePerformed If `true`: the column is going to freeze. If `false`: the column is not going to freeze.
+   * @param {boolean} freezePerformed If `true`: the column is going to freeze. If `false`: the column is not going to freeze (which might happen if the column is already frozen).
    * @returns {boolean|undefined} If `false`: the column is not going to freeze, and the `afterColumnFreeze` hook won't fire.
    */
   'beforeColumnFreeze',
@@ -1432,7 +1432,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeColumnUnfreeze
    * @since 12.1.0
    * @param {number} column The visual index of the column that is going to unfreeze.
-   * @param {boolean} unfreezePerformed If `true`: the column is going to unfreeze. If `false`: the column is not going to unfreeze.
+   * @param {boolean} unfreezePerformed If `true`: the column is going to unfreeze. If `false`: the column is not going to unfreeze (which might happen if the column is already unfrozen).
    * @returns {boolean|undefined} If `false`: the column is not going to unfreeze, and the `afterColumnUnfreeze` hook won't fire.
    */
   'beforeColumnUnfreeze',
