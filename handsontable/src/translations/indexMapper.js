@@ -1,4 +1,6 @@
 import { arrayMap } from '../helpers/array';
+import { toSingleLine } from '../helpers/templateLiteralTag';
+import { warn } from '../helpers/console';
 import {
   createIndexMap,
   getListWithInsertedItems,
@@ -15,6 +17,8 @@ import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
 import { ChangesObservable } from './changesObservable/observable';
+
+const deprecationWarns = new Set(['getFirstNotHiddenIndex']);
 
 /**
  * @class IndexMapper
@@ -370,6 +374,10 @@ export class IndexMapper {
   /**
    * Search for the first visible, not hidden index (represented by a visual index).
    *
+   * This method is deprecated and will be removed in a next major version of Handsontable.
+   * Use the {@link IndexMapper#getNearestNotHiddenIndex} method instead.
+   *
+   * @deprecated
    * @param {number} fromVisualIndex Visual start index. Starting point for finding destination index. Start point may be destination
    * point when handled index is NOT hidden.
    * @param {number} incrementBy We are searching for a next visible indexes by increasing (to be precise, or decreasing) indexes.
@@ -386,6 +394,12 @@ export class IndexMapper {
    */
   getFirstNotHiddenIndex(fromVisualIndex, incrementBy, searchAlsoOtherWayAround = false,
                          indexForNextSearch = fromVisualIndex - incrementBy) {
+    if (deprecationWarns.has('getFirstNotHiddenIndex')) {
+      deprecationWarns.delete('getFirstNotHiddenIndex');
+      warn(toSingleLine`The method "getFirstNotHiddenIndex" is deprecated and will be removed in the next\x20
+                        major release. Please use "getNearestNotHiddenIndex" instead.`);
+    }
+
     const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
 
     // First or next (it may be end of the table) index is beyond the table boundaries.
@@ -410,6 +424,49 @@ export class IndexMapper {
       searchAlsoOtherWayAround,
       indexForNextSearch
     );
+  }
+
+  /**
+   * Search for the nearest not-hidden row or column.
+   *
+   * @param {number} fromVisualIndex The visual index of the row or column from which the search starts.<br><br>
+   * If the row or column from which the search starts is not hidden, the method simply returns the `fromVisualIndex` number.
+   * @param {number} searchDirection The search direction.<br><br>`1`: search from `fromVisualIndex` to the end of the dataset.<br><br>
+   * `-1`: search from `fromVisualIndex` to the beginning of the dataset (i.e., to the row or column at visual index `0`).
+   * @param {boolean} searchAlsoOtherWayAround `true`: if a search in a first direction failed, try the opposite direction.<br><br>
+   * `false`: search in one direction only.
+   *
+   * @returns {number|null} A visual index of a row or column, or `null`.
+   */
+  getNearestNotHiddenIndex(fromVisualIndex, searchDirection, searchAlsoOtherWayAround = false) {
+    const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
+
+    if (physicalIndex === null) {
+      return null;
+    }
+
+    if (this.fromVisualToRenderableIndexesCache.has(fromVisualIndex)) {
+      return fromVisualIndex;
+    }
+
+    const visibleIndexes = Array.from(this.fromVisualToRenderableIndexesCache.keys());
+    let index = -1;
+
+    if (searchDirection > 0) {
+      index = visibleIndexes.findIndex(visualIndex => visualIndex > fromVisualIndex);
+    } else {
+      index = visibleIndexes.reverse().findIndex(visualIndex => visualIndex < fromVisualIndex);
+    }
+
+    if (index === -1) {
+      if (searchAlsoOtherWayAround) {
+        return this.getNearestNotHiddenIndex(fromVisualIndex, -searchDirection, false);
+      }
+
+      return null;
+    }
+
+    return visibleIndexes[index];
   }
 
   /**
@@ -678,7 +735,7 @@ export class IndexMapper {
       this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
       this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
       this.cacheFromPhysicalToVisualIndexes();
-      this.cacheFromVisualToRenderabIendexes();
+      this.cacheFromVisualToRenderableIndexes();
 
       // Currently there's support only for the "hiding" map type.
       if (this.hiddenIndexesChanged) {
@@ -721,7 +778,7 @@ export class IndexMapper {
    *
    * @private
    */
-  cacheFromVisualToRenderabIendexes() {
+  cacheFromVisualToRenderableIndexes() {
     const nrOfRenderableIndexes = this.getRenderableIndexesLength();
 
     this.fromVisualToRenderableIndexesCache.clear();

@@ -127,7 +127,7 @@ class Viewport {
    * @returns {boolean}
    */
   hasVerticalScroll() {
-    return this.getWorkspaceActualHeight() > this.getWorkspaceHeight();
+    return this.wtTable.hider.offsetHeight > this.getWorkspaceHeight();
   }
 
   /**
@@ -136,7 +136,7 @@ class Viewport {
    * @returns {boolean}
    */
   hasHorizontalScroll() {
-    return this.getWorkspaceActualWidth() > this.getWorkspaceWidth();
+    return this.wtTable.hider.offsetWidth > this.getWorkspaceWidth();
   }
 
   /**
@@ -184,22 +184,6 @@ class Viewport {
    */
   getWorkspaceOffset() {
     return offset(this.wtTable.TABLE);
-  }
-
-  /**
-   * @returns {number}
-   */
-  getWorkspaceActualHeight() {
-    return outerHeight(this.wtTable.TABLE);
-  }
-
-  /**
-   * @returns {number}
-   */
-  getWorkspaceActualWidth() {
-    return outerWidth(this.wtTable.TABLE) ||
-      outerWidth(this.wtTable.TBODY) ||
-      outerWidth(this.wtTable.THEAD); // IE8 reports 0 as <table> offsetWidth;
   }
 
   /**
@@ -462,6 +446,12 @@ class Viewport {
     }
 
     const { startRow, endRow } = proposedRowsVisibleCalculator;
+
+    // if there are no fully visible rows at all, return false
+    if (startRow === null && endRow === null) {
+      return false;
+    }
+
     const { startRow: renderedStartRow, endRow: renderedEndRow } = this.rowsRenderCalculator;
 
     if (startRow < renderedStartRow || (startRow === renderedStartRow && startRow > 0)) {
@@ -489,6 +479,12 @@ class Viewport {
     }
 
     const { startColumn, endColumn } = proposedColumnsVisibleCalculator;
+
+    // if there are no fully visible columns at all, return false
+    if (startColumn === null && endColumn === null) {
+      return false;
+    }
+
     const { startColumn: renderedStartColumn, endColumn: renderedEndColumn } = this.columnsRenderCalculator;
 
     if (startColumn < renderedStartColumn || (startColumn === renderedStartColumn && startColumn > 0)) {

@@ -12,42 +12,34 @@ tags:
 
 [[toc]]
 
-Play around with Handsontable's source code, in your favorite framework.
+Play around with a demo of Handsontable, in your favorite framework.
 
-<BigExample preview="/examples/next/docs/js/demo/">
-  <BigExampleSource 
-  label="JavaScript"
-  icon="js"
-  target="/examples/next/docs/js/demo/"></BigExampleSource>
-  <BigExampleSource 
-  label="TypeScript"
-  icon="ts"
-  target="/examples/next/docs/ts/demo/"></BigExampleSource>
-  <BigExampleSource 
-  label="Angular"    
-  icon="angular"
-  target="/examples/next/docs/angular/demo/"></BigExampleSource>
-  <BigExampleSource 
-  label="React"
-  icon="react"
-  target="/examples/next/docs/react/demo/"></BigExampleSource>
-  <BigExampleSource 
-  label="Vue"
-  icon="vue"
-  target="/examples/next/docs/vue/demo/"></BigExampleSource>
-</BigExample>
+<div class="example-container"><iframe
+    src="https://handsontable.github.io/handsontable/examples/next/docs/js/demo/"
+    allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone;
+      midi; payment; usb; vr; xr-spatial-tracking"
+    sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+  ></iframe></div>
+
+## Find the code on GitHub
+
+- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/js/demo/)
+- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/ts/demo/)
+- [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/angular/demo/)
+- [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/react/demo/)
+- [Vue demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/vue/demo/)
 
 ## Try out the demo's features
 
-Explore the demo, to discover Handsontable's most popular features:
+Explore the demo and discover Handsontable's most popular features:
 
-- [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
-- [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
-- [Column groups &#8594;](@/guides/columns/column-groups.md)
-- [Column menu &#8594;](@/guides/columns/column-menu.md)
-- [Column filter &#8594;](@/guides/columns/column-filter.md)- 
-- [Column hiding &#8594;](@/guides/columns/column-hiding.md)
-- [Row sorting &#8594;](@/guides/rows/row-sorting.md)
+- [Context menu](@/guides/accessories-and-menus/context-menu.md)
+- [Dropdown cell type](@/guides/cell-types/dropdown-cell-type.md)
+- [Column groups](@/guides/columns/column-groups.md)
+- [Column menu](@/guides/columns/column-menu.md)
+- [Column filter](@/guides/columns/column-filter.md)- 
+- [Column hiding](@/guides/columns/column-hiding.md)
+- [Row sorting](@/guides/rows/row-sorting.md)
 - And more!
 
 ## Edit the demo's source code

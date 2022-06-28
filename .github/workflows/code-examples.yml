@@ -5,7 +5,7 @@
 #  It's triggered on the "push" event to the develop branch or manual dispatching from the "Actions" tab on GitHub.
 #
 #  Depending on the version of the examples (recognized from the modified files or provided in the dispatch prompt), it
-#    either builds only the versioned examples or Handsontable + the framework wrappers before it:
+#  either builds only the versioned examples or Handsontable + the framework wrappers before it:
 #
 #  - Semver-compliant version (eg. 11.0.0, 10.1.0):
 #      - Installs the dependencies of examples for the provided versions and all wrappers
@@ -17,7 +17,7 @@
 #      - Builds the examples
 #
 #  After the above steps are finished, the example builds are gathered and deployed to the `examples` directory on the
-#    `gh-pages` branch.
+#  `gh-pages` branch.
 #
 #  The structure of the examples on the `gh-pages` branch should look as follows:
 #
@@ -318,7 +318,7 @@ jobs:
   # ------------------------ END --------------------------
 
   install-and-build:
-    name: ${{ matrix.version }} -> ${{ matrix.framework }} - Install and build
+    name: ${{ matrix.version }} -> ${{ matrix.framework }} - Install, build, and test
     needs: [ prepare-matrix, build-handsontable-es-cjs, build-handsontable-umd, build-angular, build-react, build-vue, build-vue3 ]
     if: |
       always() &&
@@ -336,7 +336,7 @@ jobs:
       fail-fast: false
       matrix:
         version: ${{fromJson(needs.prepare-matrix.outputs.versions)}}
-        framework: [angular, js, react, vue, vue3, ts]
+        framework: [angular, angular-9, angular-10, angular-11, angular-12, angular-13, js, react, vue, vue3, ts]
 
     env:
       FRAMEWORK_EXAMPLES_PATH: examples/${{ matrix.version }}/docs/${{ matrix.framework }}
@@ -354,12 +354,12 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
+        if: steps.path-check.outputs.n-a != 'true'
         with:
           path: ${{ env.NODE_MODULES_PATHS }}
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-        if: steps.path-check.outputs.n-a != 'true'
 
       # ---------------------------------------------------------
       # --- Only applicable if processing the `next` version. ---
@@ -392,7 +392,7 @@ jobs:
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'angular'
+          startsWith(matrix.framework, 'angular')
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
         with:
           name: angular-build
@@ -401,14 +401,14 @@ jobs:
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'angular'
+          startsWith(matrix.framework, 'angular')
 
       # Downloading the @handsontable/react build
       - name: Download the @handsontable/react build artifact
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'react'
+          startsWith(matrix.framework, 'react')
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
         with:
           name: react-build
@@ -417,14 +417,14 @@ jobs:
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'react'
+          startsWith(matrix.framework, 'react')
 
       # Downloading the @handsontable/vue build
       - name: Download the @handsontable/vue build artifact
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'vue'
+          startsWith(matrix.framework, 'vue')
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
         with:
           name: vue-build
@@ -433,14 +433,14 @@ jobs:
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'vue'
+          startsWith(matrix.framework, 'vue')
 
       # Downloading the @handsontable/vue3 build
       - name: Download the @handsontable/vue3 build artifact
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'vue3'
+          startsWith(matrix.framework, 'vue')
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
         with:
           name: vue3-build
@@ -449,7 +449,7 @@ jobs:
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          matrix.framework == 'vue3'
+          startsWith(matrix.framework, 'vue')
 
       # Setup symlinks for the needed packages
       - run: |
@@ -460,15 +460,6 @@ jobs:
       # ---------------------------------------------------------
       # --- Only applicable if processing the `next` version ---
       # -------------------- END --------------------------------
-
-      # ------------
-      # Temporary solution for a problem with installing the examples' dependencies.
-      # See: https://github.com/npm/cli/issues/4774
-
-      - name: (Temporary) Install npm@8.4
-        run: npm i -g npm@8.4
-      # ------------
-
       - name: Install dependencies for examples/${{ matrix.version }}/docs/${{ matrix.framework }}
         if: steps.path-check.outputs.n-a != 'true'
         run: |
@@ -481,6 +472,11 @@ jobs:
         run: |
           cd ${{ env.FRAMEWORK_EXAMPLES_PATH }}
           npm run build --workspaces
+      - name: Test all examples in ${{ env.FRAMEWORK_EXAMPLES_PATH }}
+        if: steps.path-check.outputs.n-a != 'true'
+        run: |
+          cd ${{ env.FRAMEWORK_EXAMPLES_PATH }}
+          npm run test --workspaces
       - name: Copy the builds to a temporary directory
         if: steps.path-check.outputs.n-a != 'true'
         run: |

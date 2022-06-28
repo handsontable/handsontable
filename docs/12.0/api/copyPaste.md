@@ -102,7 +102,7 @@ copyPaste: {
 
 _copyPaste.columnsLimit : number_
 
-Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
+Maximum number of columns than can be copied to clipboard using <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>.
 
 **Default**: <code>Infinity</code>  
 
@@ -115,7 +115,7 @@ Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> 
 
 _copyPaste.pasteMode : string_
 
-Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior.
+Defines paste (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**V**</kbd>) behavior.
 * Default value `"overwrite"` will paste clipboard value over current selection.
 * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
 * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
@@ -131,7 +131,7 @@ Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior.
 
 _copyPaste.rowsLimit : number_
 
-Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
+Maximum number of rows than can be copied to clipboard using <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>.
 
 **Default**: <code>Infinity</code>  
 

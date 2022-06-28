@@ -14,14 +14,14 @@ To upgrade your Handsontable version from 9.0.x to 10.0.x, follow this guide.
 
 ## Step 1: Rename your hooks
 
-If you use the `beforeRender` or `afterRender` hooks, update their names in your app ([#8632](https://github.com/handsontable/handsontable/pull/8632)).
+If you use the [`beforeRender`](@/api/hooks.md#beforerender) or [`afterRender`](@/api/hooks.md#afterrender) hooks, update their names in your app ([#8632](https://github.com/handsontable/handsontable/pull/8632)).
 
-| Before         | After              |
-| -------------- | ------------------ |
-| `beforeRender` | `beforeViewRender` |
-| `afterRender`  | `afterViewRender`  |
+| Before                                        | After                                                 |
+| --------------------------------------------- | ----------------------------------------------------- |
+| [`beforeRender`](@/api/hooks.md#beforerender) | [`beforeViewRender`](@/api/hooks.md#beforeviewrender) |
+| [`afterRender`](@/api/hooks.md#afterrender)   | [`afterViewRender`](@/api/hooks.md#afterviewrender)   |
 
-There are still hooks that are named `beforeRender` and `afterRender`, but they do completely new things now. For more details, see the [Handsontable 10.0 API reference](@/api/hooks.md):
+There are still hooks that are named [`beforeRender`](@/api/hooks.md#beforerender) and [`afterRender`](@/api/hooks.md#afterrender), but they do completely new things now. For more details, see the [Handsontable 10.0 API reference](@/api/hooks.md):
 - [`beforeRender`](@/api/hooks.md#beforerender)
 - [`afterRender`](@/api/hooks.md#afterrender)
 - [`beforeViewRender`](@/api/hooks.md#beforeviewrender)

@@ -13,9 +13,9 @@ canonicalUrl: /row-moving
 
 This page shows how to move rows in Handsontable.
 
-## Enabling plugins
+## Enabling the `ManualRowMove` plugin
 
-To enable move features, set `manualRowMove: true`.
+To enable row moving, set the [`manualRowMove`](@/api/options.md#manualrowmove) option to `true`.
 
 A draggable move handle appears above the selected row header. You can click and drag it to any location in the row header body.
 
@@ -55,3 +55,15 @@ The [moveRows](@/api/manualRowMove.md#moverows) method has a `finalIndex` parame
 ![moveRows method](/docs/next/img/move_action.svg)
 
 The [moveRows](@/api/manualRowMove.md#moverows) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [isMovePossible](@/api/manualRowMove.md#ismovepossible) API method and the `movePossible` parameters `beforeRowMove` and `afterRowMove` hooks help in determine such situations.
+
+## Related API reference
+
+- Options:
+  - [`manualRowMove`](@/api/options.md#manualrowmove)
+- Core methods:
+  - [`toVisualRow`](@/api/core.md#tovisualrow)
+- Hooks:
+  - [`afterRowMove`](@/api/hooks.md#afterrowmove)
+  - [`beforeRowMove`](@/api/hooks.md#beforerowmove)
+- Plugins:
+  - [`ManualRowMove`](@/api/manualRowMove.md)

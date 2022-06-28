@@ -7,7 +7,8 @@
   "scripts": {
     "start": "parcel index.html --open",
     "build": "parcel build index.html",
-    "check-types": "tsc --noEmit --skipLibCheck"
+    "check-types": "tsc --noEmit --skipLibCheck",
+    "test": "node -e 'console.log(\"No tests found\")'"
   },
   "dependencies": {
     "handsontable": "latest",

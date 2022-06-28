@@ -5,7 +5,7 @@ const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
-const { getBuildDocsVersion, getLatestVersion } = require('./helpers');
+const { getBuildDocsVersion, getLatestVersion, getDocsBaseUrl } = require('./helpers');
 
 const buildMode = process.env.BUILD_MODE;
 const versionPartialPath = getBuildDocsVersion() || '**';
@@ -40,7 +40,7 @@ module.exports = {
   description: 'Handsontable',
   base,
   head: [
-    ['link', { rel: 'icon', href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png' }],
+    ['link', { rel: 'icon', href: `${getDocsBaseUrl()}/static/images/template/ModCommon/favicon-32x32.png` }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     // Cookiebot - cookie consent popup
     ['script', {
@@ -55,12 +55,17 @@ module.exports = {
       includeLevel: [2, 3],
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
+    externalLinks: {
+      target: '_blank',
+      rel: 'nofollow noopener noreferrer'
+    },
   },
   plugins: [
     extendPageDataPlugin,
     'tabs',
     ['sitemap', {
-      hostname: 'https://handsontable.com',
+      hostname: getDocsBaseUrl(),
+      exclude: ['/404.html']
     }],
     ['@vuepress/active-header-links', {
       sidebarLinkSelector: '.table-of-contents a',

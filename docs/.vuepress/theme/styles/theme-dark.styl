@@ -1,6 +1,7 @@
-@import 'theme-dark-palette'
-
 html.theme-dark {
+  @import 'theme-dark-palette'
+
+  color-scheme dark
 
   &,
   div#app,
@@ -12,6 +13,7 @@ html.theme-dark {
 
   body {
     color $fontColor
+    background-color $backgroundColor
   }
 
   a {
@@ -26,6 +28,10 @@ html.theme-dark {
     path {
       fill #ffffff
     }
+  }
+
+  .handsontable {
+    color-scheme light
   }
 
   /* Navbar */
@@ -102,38 +108,10 @@ html.theme-dark {
     }
   }
 
-  /* Scrollbar stylings */
-  scrollbar() {
-    // works on Chrome, Edge, and Safari
-    &::-webkit-scrollbar {
-      width 12px // width of the entire scrollbar
-    }
-
-    &::-webkit-scrollbar-track {
-      background $backgroundColor // color of the tracking area
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background-color $scrollbarThumb // color of the scroll thumb
-      border-radius 20px // roundness of the scroll thumb
-      border 2px solid $backgroundColor // creates padding around scroll thumb
-    }
-
-    &::-webkit-scrollbar-corner {
-      background $backgroundColor
-    }
-
-    // works on Firefox
-    & {
-      scrollbar-width thin
-      scrollbar-color $scrollbarThumb $backgroundColor
-    }
-  }
-
   /* Sidebar */
   .sidebar {
+    scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
     border-right-color $sectionBorderColor
-    scrollbar()
 
     // sidebar collapsible headings
     & .sidebar-heading {
@@ -168,8 +146,8 @@ html.theme-dark {
 
   /* Table of contents */
   .table-of-contents {
+    scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
     border-left-color $sectionBorderColor
-    scrollbar()
 
     .toc-container-header {
       color $fontColor
@@ -217,6 +195,7 @@ html.theme-dark {
       border-radius 0
 
       &.selected-preview {
+        color-scheme light
         color $tabsComponentBackgroundColor /* Related to issue #8355 */
         background-color white; /* Related to issue #8355 */
       }
@@ -229,15 +208,13 @@ html.theme-dark {
 
         &#code {
           pre {
-            padding 20px 24px
-
-            scrollbar()
+            scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
           }
         }
 
         &#html {
           pre {
-            scrollbar()
+            scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
           }
         }
       }
@@ -289,7 +266,7 @@ html.theme-dark {
   /* Language specific code blocks */
   div[class*="language-"] {
     pre {
-      scrollbar()
+      scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
     }
   }
 
@@ -311,7 +288,7 @@ html.theme-dark {
 
   /* Table styling starts */
   .scrollable-table {
-    scrollbar()
+    scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
   }
 
   table:not(.selected-preview *):not(.pika-table):not(.htCore) {
@@ -382,7 +359,7 @@ html.theme-dark {
   }
 
   #CybotCookiebotDialogDetailBodyContentCookieContainerTypeDetails, #CybotCookiebotDialogDetailBodyContentTextAbout {
-    scrollbar()
+    scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
   }
 
   .CybotCookiebotDialogDetailBodyContentCookieContainerTypes {

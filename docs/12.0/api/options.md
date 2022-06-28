@@ -16,13 +16,13 @@ editLink: false
 [Configuration options](@/guides/getting-started/setting-options.md) let you heavily customize your Handsontable instance. For example, you can:
 
 - Enable and disable built-in features
-- Enable and configure additional [plugins](@/guides/building-and-testing/plugins.md)
+- Enable and configure additional [plugins](@/guides/tools-and-building/custom-plugins.md)
 - Personalize Handsontable's look
 - Adjust Handsontable's behavior
 - Implement your own custom features
 
 To apply [configuration options](@/guides/getting-started/setting-options.md), pass them as
-a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid),
+a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-handsontable),
 using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
 
 ```js
@@ -1164,7 +1164,7 @@ You can set the `copyable` option to one of the following:
 
 | Setting                                                                                                        | Description                                                                                                                        |
 | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>C</kbd>, add the cell's value to the clipboard |
+| `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add the cell's value to the clipboard |
 | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - Disable copying for this cell                                                                                                    |
 
 Read more:
@@ -1263,14 +1263,12 @@ copyPaste: {
 
 _options.correctFormat : boolean_
 
-The `correctFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' date format correction.
+The `correctFormat` option configures what happens when the format of a date entered into a [`date`](@/guides/cell-types/date-cell-type.md) cell doesn't match the format specified by the [`dateFormat`](#dateformat) option:
 
-You can set the `correctFormat` option to one of the following
-
-| Setting           | Description                                                           |
-| ----------------- | --------------------------------------------------------------------- |
-| `false` (default) | Don't correct dates                                                   |
-| `true`            | Enforce the date format set by the [`dateFormat`](#dateformat) option |
+| Setting           | Description                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------- |
+| `false` (default) | Don't correct the entered date's format (treat the entered date as invalid)        |
+| `true`            | Correct the entered date's format to match the [`dateFormat`](#dateformat) setting |
 
 Read more:
 - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
@@ -1890,14 +1888,14 @@ columns: [
 
 _options.enterBeginsEditing : boolean_
 
-The `enterBeginsEditing` option configures the action of the <kbd>Enter</kbd> key.
+The `enterBeginsEditing` option configures the action of the <kbd>**Enter**</kbd> key.
 
 You can set the `enterBeginsEditing` option to one of the following:
 
 | Setting          | Description                                                                                                                                                                                               |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `true` (default) | - On pressing <kbd>Enter</kbd> once, start editing the currently-selected cell<br>- On pressing <kbd>Enter</kbd> twice, move to another cell,<br>as configured by the [`enterMoves`](#entermoves) setting |
-| `false`          | - On pressing <kbd>Enter</kbd> once, move to another cell,<br>as configured by the [`enterMoves`](#entermoves) setting                                                                                    |
+| `true` (default) | - On pressing <kbd>**Enter**</kbd> once, enter the editing mode of the active cell<br>- On pressing <kbd>**Enter**</kbd> twice, move to another cell,<br>as configured by the [`enterMoves`](#entermoves) setting |
+| `false`          | - On pressing <kbd>**Enter**</kbd> once, move to another cell,<br>as configured by the [`enterMoves`](#entermoves) setting                                                                                    |
 
 Read more:
 - [`enterMoves`](#entermoves)
@@ -1923,21 +1921,21 @@ enterBeginsEditing: false,
 
 _options.enterMoves : object | function_
 
-The `enterMoves` option configures the action of the <kbd>Enter</kbd> key.
+The `enterMoves` option configures the action of the <kbd>**Enter**</kbd> key.
 
 If the [`enterBeginsEditing`](#enterbeginsediting) option is set to `true`,
-the `enterMoves` setting applies to the **second** pressing of the <kbd>Enter</kbd> key.
+the `enterMoves` setting applies to the **second** pressing of the <kbd>**Enter**</kbd> key.
 
 If the [`enterBeginsEditing`](#enterbeginsediting) option is set to `false`,
-the `enterMoves` setting applies to the **first** pressing of the <kbd>Enter</kbd> key.
+the `enterMoves` setting applies to the **first** pressing of the <kbd>**Enter**</kbd> key.
 
 You can set the `enterMoves` option to an object with the following properties
 (or to a function that returns such an object):
 
 | Property | Type   | Description                                                                                                                                              |
 | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `col`    | Number | - On pressing <kbd>Enter</kbd>, move selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `col` columns left |
-| `row`    | Number | - On pressing <kbd>Enter</kbd>, move selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `row` rows up          |
+| `col`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `col` columns left |
+| `row`    | Number | - On pressing <kbd>**Enter**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Enter**</kbd>, move selection `row` rows up          |
 
 Read more:
 - [`enterBeginsEditing`](#enterbeginsediting)
@@ -2617,7 +2615,7 @@ _options.layoutDirection : string_
 
 The `layoutDirection` option configures whether Handsontable renders from the left to the right, or from the right to the left.
 
-You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
+You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-handsontable). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
 
 You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/setting-options.md#setting-grid-options).
 You can't set it for individual columns, rows, or cells.
@@ -2631,8 +2629,8 @@ You can set the `layoutDirection` option to one of the following strings:
 | `ltr`               | Render Handsontable from the left to the right,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `rtl` |
 
 Read more:
-- [Layout direction &#8594;](@/guides/internationalization/layout-direction.md)
-- [Language &#8594;](@/guides/internationalization/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Language](@/guides/internationalization/language.md)
 - [`language`](#language)
 - [`locale`](#locale)
 - [`fixedColumnsStart`](#fixedcolumnsstart)
@@ -4200,15 +4198,14 @@ stretchH: 'all',
 
 _options.strict : boolean_
 
-The `strict` option configures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
-cells' strict/lazy mode.
+The `strict` option configures the behavior of [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells.
 
 You can set the `strict` option to one of the following:
 
-| Setting | Mode                                                                                  | Description                                                                                                                                       |
-| ------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode) | The value entered must match an autocomplete option (case-sensitive)                                                                              |
-| `false` | [Lazy mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-lazy-mode)     | The value entered doesn't have to match an autocomplete option.<br>The end user can:<br>- Choose from suggested options<br>- Enter a custom value |
+| Setting | Mode                                                                                          | Description                                                                                |
+| ------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode)         | The end user:<br>- Can only choose one of suggested values<br>- Can't enter a custom value |
+| `false` | [Flexible mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-flexible-mode)     | The end user:<br>- Can choose one of suggested values<br>- Can enter a custom value        |
 
 Read more:
 - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
@@ -4283,15 +4280,14 @@ tableClassName: ['first-class-name', 'second-class-name'],
 
 _options.tabMoves : object | function_
 
-The `tabMoves` option configures the action of the <kbd>Tab</kbd> key.
+The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
 
 You can set the `tabMoves` option to an object with the following properties
 (or to a function that returns such an object):
 
 | Property | Type   | Description                                                                                                                                              |
 | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `row`    | Number | - On pressing <kbd>Tab</kbd>, move selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move selection `row` rows up              |
-| `col`    | Number | - On pressing <kbd>Tab</kbd>, move selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move selection `col` columns left     |
+| `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd> + <kbd>**Tab**</kbd>, move selection `row` rows up              |
 
 **Default**: <code>{row: 0, col: 1}</code>  
 **Category**: [Core](@/api/core.md)  
@@ -4641,7 +4637,7 @@ You can set the `viewportColumnRenderingOffset` option to one of the following:
 | A number           | Set the offset manually                                 |
 
 Read more:
-- [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+- [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
 
 **Default**: <code>&#x27;auto&#x27;</code>  
 **Category**: [Core](@/api/core.md)  
@@ -4671,7 +4667,7 @@ You can set the `viewportRowRenderingOffset` option to one of the following:
 | A number           | Set the offset manually                                 |
 
 Read more:
-- [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+- [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
 - [Column virtualization &#8594;](@/guides/columns/column-virtualization.md)
 
 **Default**: <code>&#x27;auto&#x27;</code>  

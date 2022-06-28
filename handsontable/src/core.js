@@ -236,6 +236,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   let selection = new Selection(tableMeta, {
+    rowIndexMapper: () => instance.rowIndexMapper,
+    columnIndexMapper: () => instance.columnIndexMapper,
     countCols: () => instance.countCols(),
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
@@ -2102,8 +2104,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * To replace Handsontable's [`data`](@/api/options.md#data) and reset states, use the [`loadData()`](#loaddata) method.
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @memberof Core#
    * @function updateData
@@ -2148,8 +2150,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * To replace Handsontable's [`data`](@/api/options.md#data) without resetting states, use the [`updateData()`](#updatedata) method.
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @memberof Core#
    * @function loadData
@@ -3986,7 +3988,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   const getIndexToScroll = (indexMapper, visualIndex) => {
     // Looking for a visual index on the right and then (when not found) on the left.
-    return indexMapper.getFirstNotHiddenIndex(visualIndex, 1, true);
+    return indexMapper.getNearestNotHiddenIndex(visualIndex, 1, true);
   };
 
   /**
@@ -3998,8 +4000,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * we are using the index for numbering only this rows which may be rendered (we don't consider hidden rows).
    * @param {number} [column] Column index. If the last argument isn't defined we treat the index as a visual column index.
    * Otherwise, we are using the index for numbering only this columns which may be rendered (we don't consider hidden columns).
-   * @param {boolean} [snapToBottom=false] If `true`, viewport is scrolled to show the cell on the bottom of the table.
-   * @param {boolean} [snapToRight=false] If `true`, viewport is scrolled to show the cell on the right side of the table.
+   * @param {boolean} [snapToBottom=false] If `true`, the viewport is scrolled to show the cell at the bottom of the table.
+   * However, if the cell's height is greater than the table's viewport height, the cell is snapped to the top edge.
+   * @param {boolean} [snapToRight=false] If `true`, the viewport is scrolled to show the cell at the right side of the table.
+   * However, if the cell is wider than the table's viewport width, the cell is snapped to the left edge (or to the right edge, if the layout direction is set to `rtl`).
    * @param {boolean} [considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @returns {boolean} `true` if scroll was successful, `false` otherwise.
@@ -4452,11 +4456,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   const shortcutManager = createShortcutManager({
-    beforeKeyDown: (event) => {
-      if (this.isListening() === false) { // Performing action (executing a callback) and triggering hook only for listening Handsontable.
-        return false;
-      }
+    handleEvent(event) {
+      const isListening = instance.isListening();
+      const isKeyboardEventWithKey = event?.key !== void 0;
 
+      return isListening && isKeyboardEventWithKey;
+    },
+    beforeKeyDown: (event) => {
       return this.runHooks('beforeKeyDown', event);
     },
     afterKeyDown: (event) => {
@@ -4535,7 +4541,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     captureCtrl: true,
     callback: () => {
       selection.setRangeStart(instance._createCellCoords(
-        instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
+        instance.rowIndexMapper.getNearestNotHiddenIndex(0, 1),
         instance.getSelectedRangeLast().highlight.col,
       ));
     },
@@ -4553,7 +4559,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     captureCtrl: true,
     callback: () => {
       const { from, to } = instance.getSelectedRangeLast();
-      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1);
+      const row = instance.rowIndexMapper.getNearestNotHiddenIndex(0, 1);
 
       selection.setRangeStart(from.clone());
       selection.setRangeEnd(instance._createCellCoords(row, to.col));
@@ -4569,7 +4575,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     captureCtrl: true,
     callback: () => {
       selection.setRangeStart(instance._createCellCoords(
-        instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
+        instance.rowIndexMapper.getNearestNotHiddenIndex(instance.countRows() - 1, -1),
         instance.getSelectedRangeLast().highlight.col,
       ));
     },
@@ -4587,7 +4593,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     captureCtrl: true,
     callback: () => {
       const { from, to } = instance.getSelectedRangeLast();
-      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1);
+      const row = instance.rowIndexMapper.getNearestNotHiddenIndex(instance.countRows() - 1, -1);
 
       selection.setRangeStart(from.clone());
       selection.setRangeEnd(instance._createCellCoords(row, to.col));
@@ -4603,7 +4609,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     captureCtrl: true,
     callback: () => {
       const row = instance.getSelectedRangeLast().highlight.row;
-      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(
+      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(
         ...(instance.isRtl() ? [instance.countCols() - 1, -1] : [0, 1])
       );
 
@@ -4623,7 +4629,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     captureCtrl: true,
     callback: () => {
       const { from, to } = instance.getSelectedRangeLast();
-      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(
+      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(
         ...(instance.isRtl() ? [instance.countCols() - 1, -1] : [0, 1])
       );
 
@@ -4641,7 +4647,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     captureCtrl: true,
     callback: () => {
       const row = instance.getSelectedRangeLast().highlight.row;
-      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(
+      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(
         ...(instance.isRtl() ? [0, 1] : [instance.countCols() - 1, -1])
       );
 
@@ -4661,7 +4667,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     captureCtrl: true,
     callback: () => {
       const { from, to } = instance.getSelectedRangeLast();
-      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(
+      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(
         ...(instance.isRtl() ? [0, 1] : [instance.countCols() - 1, -1])
       );
 
@@ -4675,7 +4681,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     callback: () => {
       const fixedColumns = parseInt(instance.getSettings().fixedColumnsStart, 10);
       const row = instance.getSelectedRangeLast().highlight.row;
-      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(fixedColumns, 1);
+      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(fixedColumns, 1);
 
       selection.setRangeStart(instance._createCellCoords(row, column));
     },
@@ -4685,7 +4691,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     callback: () => {
       selection.setRangeEnd(instance._createCellCoords(
         selection.selectedRange.current().from.row,
-        instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
+        instance.columnIndexMapper.getNearestNotHiddenIndex(0, 1),
       ));
     },
   }, {
@@ -4694,8 +4700,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     callback: () => {
       const fixedRows = parseInt(instance.getSettings().fixedRowsTop, 10);
       const fixedColumns = parseInt(instance.getSettings().fixedColumnsStart, 10);
-      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(fixedRows, 1);
-      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(fixedColumns, 1);
+      const row = instance.rowIndexMapper.getNearestNotHiddenIndex(fixedRows, 1);
+      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(fixedColumns, 1);
 
       selection.setRangeStart(instance._createCellCoords(row, column));
     },
@@ -4706,7 +4712,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     callback: () => {
       selection.setRangeStart(instance._createCellCoords(
         instance.getSelectedRangeLast().highlight.row,
-        instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
+        instance.columnIndexMapper.getNearestNotHiddenIndex(instance.countCols() - 1, -1),
       ));
     },
     runOnlyIf: () => instance.view.isMainTableNotFullyCoveredByOverlays(),
@@ -4715,7 +4721,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     callback: () => {
       selection.setRangeEnd(instance._createCellCoords(
         selection.selectedRange.current().from.row,
-        instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
+        instance.columnIndexMapper.getNearestNotHiddenIndex(instance.countCols() - 1, -1),
       ));
     },
   }, {
@@ -4723,8 +4729,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     captureCtrl: true,
     callback: () => {
       const fixedRows = parseInt(instance.getSettings().fixedRowsBottom, 10);
-      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - fixedRows - 1, -1);
-      const column = instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1);
+      const row = instance.rowIndexMapper.getNearestNotHiddenIndex(instance.countRows() - fixedRows - 1, -1);
+      const column = instance.columnIndexMapper.getNearestNotHiddenIndex(instance.countCols() - 1, -1);
 
       selection.setRangeStart(instance._createCellCoords(row, column));
     },
@@ -4743,7 +4749,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     callback: () => {
       const { to } = instance.getSelectedRangeLast();
       const nextRowIndexToSelect = Math.max(to.row - instance.countVisibleRows(), 0);
-      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(nextRowIndexToSelect, 1);
+      const row = instance.rowIndexMapper.getNearestNotHiddenIndex(nextRowIndexToSelect, 1);
 
       if (row !== null) {
         const coords = instance._createCellCoords(row, to.col);
@@ -4768,7 +4774,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     callback: () => {
       const { to } = instance.getSelectedRangeLast();
       const nextRowIndexToSelect = Math.min(to.row + instance.countVisibleRows(), instance.countRows() - 1);
-      const row = instance.rowIndexMapper.getFirstNotHiddenIndex(nextRowIndexToSelect, -1);
+      const row = instance.rowIndexMapper.getNearestNotHiddenIndex(nextRowIndexToSelect, -1);
 
       if (row !== null) {
         const coords = instance._createCellCoords(row, to.col);
