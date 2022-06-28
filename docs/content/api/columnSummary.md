@@ -67,7 +67,7 @@ const hot = new Handsontable(container, {
 
 ### columnSummary
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/dataMap/metaManager/metaSchema.js#L877
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/dataMap/metaManager/metaSchema.js#L877
 
 :::
 
@@ -93,8 +93,8 @@ Each object configures a single column summary, using the following properties:
 | `customFunction`         | A function                                                              | [Custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function)                         |
 
 Read more:
-- [Column summary &#8594;](@/guides/columns/column-summary.md)
-- [Plugins: `ColumnSummary` &#8594;](@/api/columnSummary.md)
+- [Column summary](@/guides/columns/column-summary.md)
+- [Plugins: `ColumnSummary`](@/api/columnSummary.md)
 
 **Default**: <code>undefined</code>
 **Example**
@@ -124,7 +124,7 @@ columnSummary: [
 
 ### disablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/plugins/columnSummary/columnSummary.js#L127
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/columnSummary/columnSummary.js#L127
 
 :::
 
@@ -136,7 +136,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/plugins/columnSummary/columnSummary.js#L95
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/columnSummary/columnSummary.js#L95
 
 :::
 
@@ -148,7 +148,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/plugins/columnSummary/columnSummary.js#L88
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/columnSummary/columnSummary.js#L88
 
 :::
 

@@ -32,7 +32,7 @@ To run Jasmine tests in your command line (using Puppeteer), first install all n
 To run all tests from the monorepo's root directory, use the following command:
 * `npm run test`
 
-To run individual tests, go to to the `./handsontable` directory, and use the following commands:
+To run individual tests, go to to the `/handsontable` directory, and use the following commands:
 * `npm test` - runs all test cases (Handsontable and Walkontable).
 * `npm test:unit` - runs all unit tests.
 * `npm test:walkontable` - runs only Walkontable tests.

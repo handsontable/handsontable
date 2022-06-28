@@ -22,13 +22,13 @@ Each `ShortcutContext` object stores and manages its own set of keyboard shortcu
 
 ### addShortcut
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/shortcuts/context.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/shortcuts/context.js#L43
 
 :::
 
 _shortcutContext.addShortcut(options)_
 
-Add a keyboard shortcut to this `ShortcutContext`.
+Add a keyboard shortcut to this context.
 
 
 | Param | Type | Default | Description |
@@ -48,7 +48,7 @@ Add a keyboard shortcut to this `ShortcutContext`.
 
 ### addShortcuts
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/shortcuts/context.js#L126
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/shortcuts/context.js#L126
 
 :::
 
@@ -73,7 +73,7 @@ Add multiple keyboard shortcuts to this context.
 
 ### getShortcuts
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/shortcuts/context.js#L184
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/shortcuts/context.js#L184
 
 :::
 
@@ -90,7 +90,7 @@ Get a shortcut's details.
 
 ### hasShortcut
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/shortcuts/context.js#L200
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/shortcuts/context.js#L200
 
 :::
 
@@ -107,7 +107,7 @@ Check if a shortcut exists in this context.
 
 ### removeShortcutsByGroup
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/shortcuts/context.js#L158
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/shortcuts/context.js#L158
 
 :::
 
@@ -124,7 +124,7 @@ Remove a group of shortcuts from this context.
 
 ### removeShortcutsByKeys
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/760fb398da288281451296618fbdf1ddc1056371/handsontable/src/shortcuts/context.js#L146
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/shortcuts/context.js#L146
 
 :::
 
