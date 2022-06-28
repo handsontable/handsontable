@@ -13,9 +13,9 @@ canonicalUrl: /row-moving
 
 This page shows how to move rows in Handsontable.
 
-## Enabling plugins
+## Enabling the `ManualRowMove` plugin
 
-To enable move features, set the [`manualRowMove](@/api/options.md#manualrowmove) option to `true`.
+To enable row moving, set the [`manualRowMove`](@/api/options.md#manualrowmove) option to `true`.
 
 A draggable move handle appears above the selected row header. You can click and drag it to any location in the row header body.
 
