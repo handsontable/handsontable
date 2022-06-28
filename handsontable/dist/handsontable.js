@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.1.0
- * Release date: 28/06/2022 (built at 23/06/2022 15:45:20)
+ * Release date: 28/06/2022 (built at 28/06/2022 12:07:35)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -5974,7 +5974,7 @@ var REGISTERED_HOOKS = [
  * @event Hooks#beforeColumnFreeze
  * @since 12.1.0
  * @param {number} column The visual index of the column that is going to freeze.
- * @param {boolean} freezePerformed If `true`: the column is going to freeze. If `false`: the column is not going to freeze.
+ * @param {boolean} freezePerformed If `true`: the column is going to freeze. If `false`: the column is not going to freeze (which might happen if the column is already frozen).
  * @returns {boolean|undefined} If `false`: the column is not going to freeze, and the `afterColumnFreeze` hook won't fire.
  */
 'beforeColumnFreeze',
@@ -6031,7 +6031,7 @@ var REGISTERED_HOOKS = [
  * @event Hooks#beforeColumnUnfreeze
  * @since 12.1.0
  * @param {number} column The visual index of the column that is going to unfreeze.
- * @param {boolean} unfreezePerformed If `true`: the column is going to unfreeze. If `false`: the column is not going to unfreeze.
+ * @param {boolean} unfreezePerformed If `true`: the column is going to unfreeze. If `false`: the column is not going to unfreeze (which might happen if the column is already unfrozen).
  * @returns {boolean|undefined} If `false`: the column is not going to unfreeze, and the `afterColumnUnfreeze` hook won't fire.
  */
 'beforeColumnUnfreeze',
@@ -38171,7 +38171,7 @@ var _default = function _default() {
      * @example
      * ```js
      * // enable the `MergeCells` plugin
-     * margeCells: true,
+     * mergeCells: true,
      *
      * // enable the `MergeCells` plugin
      * // and merge specific cells at initialization
@@ -44939,7 +44939,7 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "23/06/2022 15:45:20";
+Handsontable.buildDate = "28/06/2022 12:07:35";
 Handsontable.version = "12.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -56450,8 +56450,8 @@ var IndexMapper = /*#__PURE__*/function () {
     /**
      * Search for the first visible, not hidden index (represented by a visual index).
      *
-     * The method is deprecated and will be removed in the nearest stable major version.
-     * Please use {@link IndexMapper#getNearestNotHiddenIndex} instead.
+     * This method is deprecated and will be removed in a next major version of Handsontable.
+     * Use the {@link IndexMapper#getNearestNotHiddenIndex} method instead.
      *
      * @deprecated
      * @param {number} fromVisualIndex Visual start index. Starting point for finding destination index. Start point may be destination
@@ -56500,16 +56500,16 @@ var IndexMapper = /*#__PURE__*/function () {
       return this.getFirstNotHiddenIndex(fromVisualIndex + incrementBy, incrementBy, searchAlsoOtherWayAround, indexForNextSearch);
     }
     /**
-     * Search for the nearest visible, not hidden index (represented by a visual index).
+     * Search for the nearest not-hidden row or column.
      *
-     * @param {number} fromVisualIndex Visual start index. Starting point for finding destination index. Start point may be destination
-     * point when handled index is NOT hidden.
-     * @param {number} searchDirection The search direction. For value 1, it means searching from the starting
-     * point to the end of the dataset, and for -1, to the beginning of the dataset (row or column at index 0).
-     * @param {boolean} searchAlsoOtherWayAround The argument determine if an additional other way around search should be
-     * performed, when the search in the first direction had no effect in finding visual index.
+     * @param {number} fromVisualIndex The visual index of the row or column from which the search starts.<br><br>
+     * If the row or column from which the search starts is not hidden, the method simply returns the `fromVisualIndex` number.
+     * @param {number} searchDirection The search direction.<br><br>`1`: search from `fromVisualIndex` to the end of the dataset.<br><br>
+     * `-1`: search from `fromVisualIndex` to the beginning of the dataset (i.e., to the row or column at visual index `0`).
+     * @param {boolean} searchAlsoOtherWayAround `true`: if a search in a first direction failed, try the opposite direction.<br><br>
+     * `false`: search in one direction only.
      *
-     * @returns {number|null} Visual column index or `null`.
+     * @returns {number|null} A visual index of a row or column, or `null`.
      */
 
   }, {
@@ -89803,7 +89803,7 @@ var ManualColumnFreeze = /*#__PURE__*/function (_BasePlugin) {
     key: "freezeColumn",
     value: function freezeColumn(column) {
       var priv = privatePool.get(this);
-      var settings = this.hot.getSettings(); // Columns are already fixed.
+      var settings = this.hot.getSettings(); // columns are already fixed (frozen)
 
       var freezePerformed = settings.fixedColumnsStart < this.hot.countCols() && column > settings.fixedColumnsStart - 1;
 
@@ -89838,7 +89838,7 @@ var ManualColumnFreeze = /*#__PURE__*/function (_BasePlugin) {
     key: "unfreezeColumn",
     value: function unfreezeColumn(column) {
       var priv = privatePool.get(this);
-      var settings = this.hot.getSettings(); // columns are not fixed (frozen)
+      var settings = this.hot.getSettings(); // columns are not fixed (not frozen)
 
       var unfreezePerformed = settings.fixedColumnsStart > 0 && column <= settings.fixedColumnsStart - 1;
 
