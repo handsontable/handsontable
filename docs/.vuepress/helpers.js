@@ -1,37 +1,5 @@
 const path = require('path');
 const execa = require('execa');
-const docsData = require('./public/docs-data.json');
-
-/**
- * Gets all available docs versions.
- *
- * @param {string} buildMode The env name.
- * @returns {string[]}
- */
-function getVersions(buildMode = process.env.BUILD_MODE) {
-  const next = buildMode !== 'production' ? ['next'] : [];
-
-  return [...next, ...docsData.versions];
-}
-
-/**
- * Gets the latest version of docs.
- *
- * @returns {string}
- */
-function getLatestVersion() {
-  return docsData.latestVersion;
-}
-
-/**
- * Checks if this documentation build points to the latest available version of the documentation.
- *
- * @returns {boolean}
- */
-function isThisDocsTheLatestVersion() {
-  return getThisDocsVersion() === getLatestVersion();
-}
-
 const versionFromBranchRegExp = /^docs-snapshot\/(\d+\.\d+)$/;
 
 /**
@@ -77,9 +45,6 @@ function getDocsBaseUrl() {
 }
 
 module.exports = {
-  getVersions,
-  getLatestVersion,
-  isThisDocsTheLatestVersion,
   getThisDocsVersion,
   getSidebars,
   getDocsBaseUrl,

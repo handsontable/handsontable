@@ -1,17 +1,11 @@
 const {
   getSidebars,
-  getLatestVersion,
   getThisDocsVersion,
-  isThisDocsTheLatestVersion,
-  getVersions,
   getDocsBaseUrl,
 } = require('../../helpers');
-const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
 
 const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/extend-page-data';
-
-collectAllUrls();
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -35,13 +29,10 @@ module.exports = (options, context) => {
      * @param {object} $page The $page value of the page you’re currently reading.
      */
     extendPageData($page) {
-      $page.versions = getVersions();
-      $page.latestVersion = getLatestVersion();
-      $page.isThisTheLatestVersion = isThisDocsTheLatestVersion();
       $page.currentVersion = getThisDocsVersion();
+      $page.buildMode = buildMode;
       $page.baseUrl = getDocsBaseUrl();
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
-      $page.frontmatter.canonicalUrl = getCanonicalUrl($page.frontmatter.canonicalUrl);
     },
   };
 };

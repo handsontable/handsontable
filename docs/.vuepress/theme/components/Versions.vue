@@ -9,22 +9,29 @@
 
 <script>
 import DropdownLink from '@theme/components/DropdownLink.vue';
+import { fetchDocsData } from '../utils/remoteDocsData';
 
 export default {
   name: 'Versions',
   components: {
     DropdownLink
   },
+  data() {
+    return {
+      item: [],
+      latestVersion: null,
+    };
+  },
   methods: {
     addLatest(version) {
-      if (version === this.$page.latestVersion) {
+      if (version === this.latestVersion) {
         return `${version} (Current)`;
       }
 
       return version;
     },
     getLink(version) {
-      if (version === this.$page.latestVersion) {
+      if (version === this.latestVersion) {
         return '/docs/';
       }
 
@@ -53,22 +60,26 @@ export default {
       }));
     }
   },
-  computed: {
-    item() {
-      return {
-        text: this.addLatest(this.$page.currentVersion),
-        items:
-          [
-            ...this.$page.versions.map(v => ({
-              text: `${this.addLatest(v)}`,
-              link: this.getLink(v),
-              target: '_self',
-              isHtmlLink: true
-            })),
-            ...this.getLegacyVersions()
-          ]
-      };
-    }
+  async mounted() {
+    const docsData = await fetchDocsData({
+      buildMode: this.$page.buildMode,
+      currentVersion: this.$page.currentVersion,
+    });
+
+    this.latestVersion = docsData.latestVersion;
+    this.item = {
+      text: this.addLatest(this.$page.currentVersion),
+      items:
+        [
+          ...docsData.versions.map(v => ({
+            text: `${this.addLatest(v)}`,
+            link: this.getLink(v),
+            target: '_self',
+            isHtmlLink: true
+          })),
+          ...this.getLegacyVersions()
+        ]
+    };
   }
 };
 </script>

@@ -12,6 +12,7 @@
 <script>
 import { isExternal } from '@vuepress/theme-default/util';
 import NavLink from '@theme/components/NavLink.vue';
+import { fetchDocsData } from '../theme/utils/remoteDocsData';
 
 export default {
   name: 'Link',
@@ -35,11 +36,17 @@ export default {
     }
   },
 
+  data() {
+    return {
+      latestVersion: null,
+    };
+  },
+
   computed: {
     parsedHref() {
       let href = this.href;
 
-      if (!this.isExternal && this.hideLatestVersion && this.$page.currentVersion === this.$page.latestVersion) {
+      if (!this.isExternal && this.hideLatestVersion && this.$page.currentVersion === this.latestVersion) {
         href = href.replace(`${this.$page.currentVersion}/`, '');
       }
 
@@ -55,6 +62,15 @@ export default {
     focusoutAction() {
       this.$emit('focusout');
     }
+  },
+
+  async mounted() {
+    const docsData = await fetchDocsData({
+      buildMode: this.$page.buildMode,
+      currentVersion: this.$page.currentVersion,
+    });
+
+    this.latestVersion = docsData.latestVersion;
   }
 };
 </script>

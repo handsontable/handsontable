@@ -40,10 +40,6 @@ module.exports = (options, context) => {
      * @param {object} $page The $page value of the page you’re currently reading.
      */
     async extendPageData($page) {
-      if (!$page.currentVersion || !$page.latestVersion) {
-        logger.error('The "currentVersion" and/or "latestVersion" is not set.');
-      }
-
       if ($page.frontmatter.permalink) {
         const from = dedupeSlashes(`/docs/${getThisDocsVersion()}/${$page.frontmatter.permalink}/`);
         const to = dedupeSlashes(`/docs/${$page.frontmatter.permalink}/`);
