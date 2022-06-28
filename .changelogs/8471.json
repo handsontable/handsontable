@@ -1,0 +1,7 @@
+{
+  "title": "Fixed a typo in password cell type documentation.",
+  "type": "changed",
+  "issue": 8471,
+  "breaking": false,
+  "framework": "none"
+}
