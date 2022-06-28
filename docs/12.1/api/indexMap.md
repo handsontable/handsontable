@@ -20,7 +20,7 @@ Map for storing mappings from an index to a value.
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/translations/maps/indexMap.js#L92
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/translations/maps/indexMap.js#L92
 
 :::
 
@@ -32,7 +32,7 @@ Clear all values to the defaults.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/translations/maps/indexMap.js#L166
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/translations/maps/indexMap.js#L166
 
 :::
 
@@ -44,7 +44,7 @@ Destroys the Map instance.
 
 ### getLength
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/translations/maps/indexMap.js#L101
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/translations/maps/indexMap.js#L101
 
 :::
 
@@ -56,7 +56,7 @@ Get length of the index map.
 
 ### getValueAtIndex
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/translations/maps/indexMap.js#L44
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/translations/maps/indexMap.js#L44
 
 :::
 
@@ -73,7 +73,7 @@ Get value for the particular index.
 
 ### getValues
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/translations/maps/indexMap.js#L34
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/translations/maps/indexMap.js#L34
 
 :::
 
@@ -85,7 +85,7 @@ Get full list of values for particular indexes.
 
 ### setValueAtIndex
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/translations/maps/indexMap.js#L77
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/translations/maps/indexMap.js#L77
 
 :::
 
@@ -103,7 +103,7 @@ Set new value for the particular index.
 
 ### setValues
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/translations/maps/indexMap.js#L59
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/translations/maps/indexMap.js#L59
 
 :::
 

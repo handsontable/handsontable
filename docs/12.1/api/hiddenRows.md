@@ -70,7 +70,7 @@ hot.render();
 
 ### hiddenRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/dataMap/metaManager/metaSchema.js#L2329
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/dataMap/metaManager/metaSchema.js#L2329
 
 :::
 
@@ -119,7 +119,7 @@ hiddenRows: {
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/hiddenRows/hiddenRows.js#L474
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/hiddenRows/hiddenRows.js#L474
 
 :::
 
@@ -131,7 +131,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/hiddenRows/hiddenRows.js#L165
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/hiddenRows/hiddenRows.js#L165
 
 :::
 
@@ -143,7 +143,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/hiddenRows/hiddenRows.js#L121
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/hiddenRows/hiddenRows.js#L121
 
 :::
 
@@ -155,7 +155,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getHiddenRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/hiddenRows/hiddenRows.js#L273
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/hiddenRows/hiddenRows.js#L273
 
 :::
 
@@ -167,7 +167,7 @@ Returns an array of visual indexes of hidden rows.
 
 ### hideRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/hiddenRows/hiddenRows.js#L264
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/hiddenRows/hiddenRows.js#L264
 
 :::
 
@@ -184,7 +184,7 @@ Hides the row provided as row index (counting from 0).
 
 ### hideRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/hiddenRows/hiddenRows.js#L232
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/hiddenRows/hiddenRows.js#L232
 
 :::
 
@@ -201,7 +201,7 @@ Hides the rows provided in the array.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/hiddenRows/hiddenRows.js#L114
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/hiddenRows/hiddenRows.js#L114
 
 :::
 
@@ -214,7 +214,7 @@ hook and if it returns `true` than the [HiddenRows#enablePlugin](@/api/hiddenRow
 
 ### isHidden
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/hiddenRows/hiddenRows.js#L285
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/hiddenRows/hiddenRows.js#L285
 
 :::
 
@@ -231,7 +231,7 @@ Checks if the provided row is hidden.
 
 ### isValidConfig
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/hiddenRows/hiddenRows.js#L295
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/hiddenRows/hiddenRows.js#L295
 
 :::
 
@@ -248,7 +248,7 @@ Checks whether all of the provided row indexes are within the bounds of the tabl
 
 ### showRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/hiddenRows/hiddenRows.js#L223
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/hiddenRows/hiddenRows.js#L223
 
 :::
 
@@ -265,7 +265,7 @@ Shows the row provided as row index (counting from 0).
 
 ### showRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/hiddenRows/hiddenRows.js#L178
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/hiddenRows/hiddenRows.js#L178
 
 :::
 
@@ -282,7 +282,7 @@ Shows the rows provided in the array.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/98067625adbf7bcc9f8c9aef30af0997bee2e74e/handsontable/src/plugins/hiddenRows/hiddenRows.js#L155
+::: source-code-link https://github.com/handsontable/handsontable/blob/06d2c9b9d7d53dde2227350b0ab4d84a7ab93b97/handsontable/src/plugins/hiddenRows/hiddenRows.js#L155
 
 :::
 
