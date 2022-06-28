@@ -26,7 +26,7 @@ export default {
       return ensureExt(this.item.link);
     },
     versionedLink() {
-      if (this.$page.currentVersion === this.$page.latestVersion || this.$page.DOCS_VERSION) {
+      if (this.$page.isThisTheLatestVersion) {
         return ensureExt(this.item.link);
       } else {
         return ensureExt(`/${this.$page.currentVersion}${this.item.link}`);

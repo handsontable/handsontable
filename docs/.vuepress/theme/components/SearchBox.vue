@@ -118,7 +118,7 @@ const matchQuery = (query, page, additionalStr = null, fuzzySearchDomains = []) 
   return matchTest(query, domain, isFuzzySearch);
 };
 
-const apiRegex = /^(\/(next|(\d*\.\d*)))?\/api\//;
+const apiRegex = /^\/api\//;
 
 export default {
   name: 'SearchBox',
@@ -286,8 +286,8 @@ export default {
       return '/';
     },
 
-    isSearchable(page) {
-      return page.regularPath.startsWith(`/${this.$page.currentVersion}/`);
+    isSearchable() {
+      return true;
     },
 
     onHotkey(event) {
