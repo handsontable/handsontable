@@ -19,11 +19,6 @@ jobs:
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2
 
-      - name: View context attributes
-        uses: actions/github-script@7a5c598405937d486b0331594b5da2b14db670da # https://github.com/actions/github-script/releases/tag/v6.1.0
-        with:
-          script: console.log(context)
-
       - uses: actions/github-script@7a5c598405937d486b0331594b5da2b14db670da # https://github.com/actions/github-script/releases/tag/v6.1.0
         id: get-docs-version
         with:
@@ -47,13 +42,13 @@ jobs:
 
       - name: Docker tags
         run: |
-          docker tag docs-md:production $GHA_DOCKER_TAG":${{steps.get-docs-version.outputs.result}}"
-          docker tag docs-md:production $GHA_DOCKER_TAG":${{steps.get-docs-version.outputs.result}}-${{ github.sha }}"
+          docker tag docs-md:production $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}"
+          docker tag docs-md:production $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}-${{ github.sha }}"
 
       - name: Docker push production into GHCR
         run: |
-          docker push $GHA_DOCKER_TAG":${{steps.get-docs-version.outputs.result}}"
+          docker push $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}"
 
       - name: Docker push SHA tagged into GHCR
         run: |
-          docker push $GHA_DOCKER_TAG":${{steps.get-docs-version.outputs.result}}-${{ github.sha }}"
+          docker push $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}-${{ github.sha }}"
