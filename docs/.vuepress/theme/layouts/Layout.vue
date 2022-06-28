@@ -5,7 +5,7 @@
         <div v-if="show" class="page-top">
           <div class="version-alert">
             <p v-if="isNext">This is unreleased documentation for Handsontable next version.</p>
-            <p v-else-if="!isLatest">This is a documentation of an earlier version of Handsontable.</p>
+            <p v-else-if="!isThisTheLatestVersion">This is a documentation of an earlier version of Handsontable.</p>
           </div>
         </div>
       </template>
@@ -18,6 +18,7 @@ import ParentLayout from '@parent-theme/layouts/Layout.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import NavLink from '@theme/components/NavLink.vue';
 import Sidebar from '@theme/components/Sidebar.vue';
+import { fetchDocsData } from '../utils/remoteDocsData';
 
 export default {
   name: 'Layout',
@@ -27,18 +28,27 @@ export default {
     NavLink,
     Sidebar
   },
+  data() {
+    return {
+      isThisTheLatestVersion: true,
+    };
+  },
   computed: {
-    isLatest() {
-      return this.$page.isThisTheLatestVersion;
-    },
-
     isNext() {
       return this.$page.currentVersion === 'next';
     },
 
     show() {
-      return !this.isLatest || this.isNext;
+      return !this.isThisTheLatestVersion || this.isNext;
     }
+  },
+  async mounted() {
+    const docsData = await fetchDocsData({
+      buildMode: this.$page.buildMode,
+      currentVersion: this.$page.currentVersion,
+    });
+
+    this.isThisTheLatestVersion = this.$page.currentVersion === docsData.latestVersion;
   }
 };
 </script>
