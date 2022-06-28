@@ -1,5 +1,6 @@
 const path = require('path');
 const execa = require('execa');
+
 const versionFromBranchRegExp = /^docs-snapshot\/(\d+\.\d+)$/;
 
 /**
