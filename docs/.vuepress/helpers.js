@@ -1,39 +1,6 @@
 const path = require('path');
 const execa = require('execa');
 
-// TODO: fetch release versions list from GH API or so
-const availableVersions = ['12.1', '12.0', '11.1', '11.0', '10.0', '9.0'];
-
-/**
- * Gets all available docs versions.
- *
- * @param {string} buildMode The env name.
- * @returns {string[]}
- */
-function getVersions(buildMode) {
-  const next = buildMode !== 'production' ? ['next'] : [];
-
-  return [...next, ...availableVersions];
-}
-
-/**
- * Gets the latest version of docs.
- *
- * @returns {string}
- */
-function getLatestVersion() {
-  return availableVersions[0];
-}
-
-/**
- * Checks if this documentation build points to the latest available version of the documentation.
- *
- * @returns {boolean}
- */
-function isThisDocsTheLatestVersion() {
-  return false;
-}
-
 const versionFromBranchRegExp = /^docs-snapshot\/(\d+\.\d+)$/;
 
 /**
@@ -79,9 +46,6 @@ function getDocsBaseUrl() {
 }
 
 module.exports = {
-  getVersions,
-  getLatestVersion,
-  isThisDocsTheLatestVersion,
   getThisDocsVersion,
   getSidebars,
   getDocsBaseUrl,
