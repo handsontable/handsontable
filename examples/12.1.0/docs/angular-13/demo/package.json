@@ -30,7 +30,7 @@
     "handsontable": "12.1.0",
     "rxjs": "6.6.7",
     "tslib": "1.14.1",
-    "zone.js": "~0.11.4"
+    "zone.js": "0.11.5"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "v13-lts",

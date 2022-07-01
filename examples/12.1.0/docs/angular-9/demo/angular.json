@@ -28,10 +28,10 @@
             "aot": true,
             "styles": [
               "src/styles.scss",
-              "../../../../../handsontable/tmp/dist/handsontable.full.css"
+              "../node_modules/handsontable/dist/handsontable.full.css"
             ],
             "scripts": [],
-            "preserveSymlinks": false
+            "preserveSymlinks": true
           },
           "configurations": {
             "production": {
