@@ -102,7 +102,7 @@ module.exports = {
       const htmlPos = args.match(/--html (\d*)/)?.[1];
       const htmlIndex = htmlPos ? index + Number.parseInt(htmlPos, 10) : 0;
       const htmlToken = htmlPos ? tokens[htmlIndex] : undefined;
-      const htmlContent = htmlToken
+      let htmlContent = htmlToken
         ? htmlToken.content
         : `<div id="${id}" class="hot ${klass}"></div>`;
       let htmlContentRoot = `<div data-preset-type="${preset}">${htmlContent}</div>`;
@@ -131,10 +131,16 @@ module.exports = {
       ) {
         const frontMatterLength = getContainerFrontMatterLength(env.frontmatter);
         const lineNumber = tokens[jsIndex].map[0] + frontMatterLength;
-        const snippetTransformer = new SnippetTransformer(framework, jsContent, filePath, lineNumber);
+        const snippetTransformer = new SnippetTransformer(
+          framework,
+          jsContent,
+          htmlContent,
+          filePath,
+          lineNumber
+        );
         const transformedSnippetContent = snippetTransformer.makeSnippet(true, true, id);
 
-        // Don't log the the HTML log file while in the watch script.
+        // Don't log the HTML log file while in the watch script.
         if (!isEnvDev()) {
           // Log the transformation in the log file.
           logChange(
@@ -160,6 +166,9 @@ module.exports = {
           jsContent = transformedSnippetContent;
           jsToken.content = jsContent;
         }
+
+        // TODO, before merging: duplicated code
+        htmlContent = `<div id="${id}" class="hot ${klass}"></div>`;
       }
 
       const activeTab = args.match(/--tab (code|html|css|preview)/)?.[1] || 'code';

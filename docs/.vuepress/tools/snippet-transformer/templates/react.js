@@ -1,15 +1,37 @@
 const beautify = require('js-beautify').js;
 const { indentLines } = require('./helpers');
+const { nativeToReactEvent } = require('./helpers/react');
+
+/**
+ * TODO, before merging: docs
+ */
+function replaceOutputLogs(snippetInformation) {
+  snippetInformation.globalReplaceOutputLog(message => `setOutput(${message});`);
+
+  // TODO, before merging: probably can be removed
+//   const queryRegex = new RegExp(`/${outputVarName}\\.innerText = (.*);/gm`);
+//
+//   globalReplaceContent(queryRegex, message => `\
+// setOutput(${message});
+// `);
+}
 
 /**
  * Return a default set of imports for the React example.
  *
  * @param {boolean} includeImports `true` if the final snippet should include the imports section.
+ * @param {CategorizedData} snippetInformation A CategorizedData instance containing information about the snippet.
  * @returns {string}
  */
-function getImportsSection(includeImports) {
+function getImportsSection(includeImports, snippetInformation = '') {
+  const {
+    outputVarName
+  } = snippetInformation;
+  const additionalImports = snippetInformation.getAdditionalImports() || '';
+
   return includeImports ? `\
-import React, { useEffect } from 'react';
+import React, { Fragment, useEffect${outputVarName ? ', useState' : ''} } from 'react';\
+${additionalImports.length ? `${additionalImports}` : ''}
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -17,6 +39,19 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+` : '';
+}
+
+/**
+ * TODO, before merging: docs
+ */
+function getStateSection(snippetInformation) {
+  const {
+    outputVarName
+  } = snippetInformation;
+
+  return outputVarName ? `\
+const [output, setOutput] = useState('');
 ` : '';
 }
 
@@ -35,7 +70,11 @@ function getInitialExpressionsSection(snippetInformation) {
     }
   });
 
-  return `${refDeclarations}${snippetInformation.getInitialExpressions().join('\n')}`;
+  return `\
+${refDeclarations}\
+${getStateSection(snippetInformation)}
+${snippetInformation.getInitialExpressions().join('\n')}\
+`;
 }
 
 /**
@@ -45,33 +84,31 @@ function getInitialExpressionsSection(snippetInformation) {
  * @returns {string}
  */
 function getHotComponentSection(snippetInformation) {
-  const namedComponents = [];
-  const unNamedComponents = [];
-  const result = [];
+  const selectorToSnippetMap = new Map();
 
   snippetInformation.getNamedHotInstances().forEach((info, varName) => {
-    namedComponents.push(`\
+    selectorToSnippetMap.set(info.containerSelector, `\
 <HotTable ${info.hasRef ? `ref={${varName}Ref} ` : ''}settings={${info.config}}>
 </HotTable>\
 `);
   });
 
   snippetInformation.getUnnamedHotInstances().forEach((info) => {
-    unNamedComponents.push(`\
+    selectorToSnippetMap.set(info.containerSelector, `\
 <HotTable settings={${info.config}}>
 </HotTable>\
 `);
   });
 
-  if (namedComponents.length) {
-    result.push(namedComponents.join('\n'));
-  }
+  return snippetInformation.getHtmlSnippet(selectorToSnippetMap, (node, type, snippet) => {
+    node.setAttribute(`${nativeToReactEvent(type)}={${snippet}}`, '');
+    // node.setAttribute(`on${type[0].toUpperCase() + type.substring(1)}={${snippet}}`, '');
+  }, (node, outputVarName) => {
 
-  if (unNamedComponents.length) {
-    result.push(unNamedComponents.join('\n'));
-  }
-
-  return result.join('\n');
+    // TODO, before merging: get rid of outputVarName, seems to not be needed
+    // Non-standard method from `node-html-parser`.
+    node.set_content('{output}');
+  });
 }
 
 /**
@@ -104,20 +141,21 @@ ${`${refDeclarations}${snippetInformation.getRefExpressions().join('\n')}`}
  * @param {string} appContainerId The id of the element being used as the application DOM container.
  * @returns {string}
  */
-function getAppSection(snippetInformation, appContainerId = 'example') {
+function getComponentSection(snippetInformation, appContainerId = 'example') {
   // TODO: Keeping the `indentLines` method here, because of an issue with `js-beautify`
   //  (https://github.com/beautify-web/js-beautify/issues/667)
   return `\
-const App = () => {
+const ExampleComponent = () => {
+${`${getInitialExpressionsSection(snippetInformation)}\n\n`}\
 ${getUseEffectSection(snippetInformation)}\
 return (
-    <div>
+    <Fragment>
 ${indentLines(getHotComponentSection(snippetInformation), 3)}
-    </div>
+    </Fragment>
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('${appContainerId}'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('${appContainerId}'));
 `;
 }
 
@@ -126,18 +164,29 @@ ReactDOM.render(<App />, document.getElementById('${appContainerId}'));
  *
  * @param {CategorizedData} snippetInformation The snippet information object.
  * @param {boolean} [includeImports=false] `true` if the final snippet should include the imports section.
- * @param {boolean} [includeApp=false] `true` if the final snippet should wrap the component with application logic.
+ * @param {boolean} [includeComponentWrapper=false] `true` if the final snippet should wrap the component with
+ *   application logic.
  * @param {string} [appContainerId] The id of the element being used as the application DOM container.
  * @returns {string}
  */
-function render(snippetInformation, includeImports = false, includeApp = false, appContainerId) {
+function render(snippetInformation, includeImports = false, includeComponentWrapper = false, appContainerId) {
+  // If any event listeners are declared, it only makes sense to present it as a full component (the events are
+  // bound to the rendered DOM elements).
+  if (snippetInformation.getEventListeners().size) {
+    includeImports = true;
+  }
+
+  replaceOutputLogs(snippetInformation);
+
   return beautify(`\
-${getImportsSection(includeImports)}\
-${getInitialExpressionsSection(snippetInformation)}\
-
-
-${!includeApp ? `${getUseEffectSection(snippetInformation)}` : ''}\
-${includeApp ? getAppSection(snippetInformation, appContainerId) : `${getHotComponentSection(snippetInformation)}`}
+${getImportsSection(includeImports, snippetInformation)}\
+${!includeComponentWrapper ? `${getInitialExpressionsSection(snippetInformation)}\n\n` : ''}\
+${!includeComponentWrapper ? `${getUseEffectSection(snippetInformation)}` : ''}\
+${
+  includeComponentWrapper ?
+    getComponentSection(snippetInformation, appContainerId) :
+    `${getHotComponentSection(snippetInformation)}`
+}
 `, {
     brace_style: 'preserve-inline',
     indent_size: 2,

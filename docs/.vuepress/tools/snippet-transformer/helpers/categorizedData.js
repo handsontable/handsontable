@@ -3,18 +3,31 @@
  */
 class CategorizedData {
   constructor() {
+    this.additionalImports = [];
     this.hotInstances = {
       // Handsontable instances initialized to a variable.
       named: new Map(),
       // Handsontable instances initialized witout a variable.
       unnamed: []
     };
+    // Event listeners categorized by the element selector.
+    this.eventListeners = new Map();
     this.initialExpressions = [
       // Variable declarations + call expressions, with comments.
     ];
     this.refExpressions = [
       // Everything that references HOT and should be triggered after it's been initialized.
     ];
+    // Names of the variables declared in the ref section.
+    this.refDeclaredVarNames = [];
+    this.eventExpressions = [
+      // Expressions adding event listeners.
+    ];
+    // Output logs categorized by the actual logging snippet (e.g. `outputElement.innerText = 'something';`).
+    this.outputLogs = new Map();
+    // Variable name under which the output element is referenced.
+    this.outputVarName = null; // TODO: implement this
+    this.htmlTree = null;
   }
 
   /**
@@ -24,6 +37,7 @@ class CategorizedData {
   static HOT_UNNAMED = 'unnamed';
   static EXP_INITIAL = 'initial';
   static EXP_REF = 'ref';
+  static EXP_EVENTS = 'events';
 
   /**
    * Add an expression that need to be defined BEFORE the initialization of Handsontable.
@@ -48,6 +62,63 @@ class CategorizedData {
     this.refExpressions.push(expressionContent);
 
     return expressionContent;
+  }
+
+  /**
+   * TODO, before merging: docs
+   * @param expressionContent
+   */
+  addEventExpression(expressionContent) {
+    this.eventExpressions.push(expressionContent);
+
+    return expressionContent;
+  }
+
+  /**
+   * TODO, before merging: docs
+   */
+  addEventListener(selector, type, callbackReference) {
+    const callbackInfo = {
+      snippet: callbackReference,
+      type
+    };
+
+    this.eventListeners.set(selector, callbackInfo);
+
+    return {
+      selector,
+      callbackInfo
+    };
+  }
+
+  /**
+   * TODO, before merging: docs
+   * @param importLine
+   */
+  addAdditionalImport(importLine) {
+    this.additionalImports.push(importLine);
+
+    return importLine;
+  }
+
+  /**
+   * TODO, before merging: docs
+   * @param snippet
+   * @param message
+   */
+  addOutputLog(snippet, message) {
+    this.outputLogs.set(snippet, message);
+
+    return message;
+  }
+
+  /**
+   * TODO, before merging: docs
+   */
+  addRefDeclaredVarName(varName) {
+    if (varName && !this.refDeclaredVarNames.includes(varName)) {
+      this.refDeclaredVarNames.push(varName);
+    }
   }
 
   /**
@@ -78,7 +149,6 @@ class CategorizedData {
       );
 
       return removedExpressions;
-
     }
   }
 
@@ -88,10 +158,11 @@ class CategorizedData {
    * @param {string} config A variable name representing a reference to a Handsontable settings object.
    * @param {string} containerVarName A variable name used in the Handsontable init.
    * @param {string} [varName] Name of the variable Handsontable was initialized in.
+   * TODO, before merging: docs
    * @param {boolean} hasRef Boolean holding information about any expressions referencing the Handsontable instance.
    * @returns {object} Object containing information about the added Handsontable instance.
    */
-  addHotInstance(config, containerVarName, varName, hasRef = false) {
+  addHotInstance(config, containerVarName, containerSelector, varName, hasRef = false) {
     const hasReferencedConfig = /^[a-zA-Z0-9]+$/.test(config);
     let hotInstanceInformation = null;
 
@@ -99,7 +170,8 @@ class CategorizedData {
       hotInstanceInformation = {
         config: hasReferencedConfig ? config : `${varName}Settings`,
         hasRef,
-        containerVarName
+        containerVarName,
+        containerSelector
       };
 
       this.hotInstances.named.set(varName, hotInstanceInformation);
@@ -119,13 +191,30 @@ class CategorizedData {
 
       hotInstanceInformation = {
         config: configString,
-        containerVarName
+        containerVarName,
+        containerSelector
       };
 
       this.hotInstances.unnamed.push(hotInstanceInformation);
     }
 
     return hotInstanceInformation;
+  }
+
+  /**
+   * TODO, before merging: docs
+   */
+  setOutputVarName(outputVarName) {
+    this.outputVarName = outputVarName;
+
+    return outputVarName;
+  }
+
+  /**
+   * TODO, before merging: docs
+   */
+  getOutputVarName() {
+    return this.outputVarName;
   }
 
   /**
@@ -183,6 +272,92 @@ class CategorizedData {
    */
   getRefExpressions() {
     return this.refExpressions;
+  }
+
+  /**
+   * TODO, before merging: docs
+   */
+  getAdditionalImports() {
+    return [...new Set(this.additionalImports)].join('\n');
+  }
+
+  /**
+   * TODO, before merging: docs
+   */
+  getEventListeners() {
+    return this.eventListeners;
+  }
+
+  /**
+   * TODO, before merging: docs
+   * @returns {[]}
+   */
+  getEventExpressions() {
+    return this.eventExpressions;
+  }
+
+  /**
+   * TODO, before merging: docs
+   */
+  getRefDeclaredVarNames() {
+    return this.refDeclaredVarNames;
+  }
+
+  /**
+   * TODO, before merging: docs
+   * @param htmlTree
+   */
+  addHtmlTree(htmlTree) {
+    this.htmlTree = htmlTree;
+  }
+
+  /**
+   * TODO, before merging: docs
+   */
+  getHtmlTree() {
+    return this.htmlTree;
+  }
+
+  /**
+   * TODO, before merging: docs
+   * @param selectorToSnippetMap
+   */
+  getHtmlSnippet(selectorToSnippetMap, eventElementExtensionFn, outputElementExtensionFn) {
+    if (this.htmlTree.snippet) {
+      // TODO, before merging: will not work for forced-full version of the snippets (check if it's even needed)
+      return '';
+    }
+
+    selectorToSnippetMap.forEach((snippet, selector) => {
+      const node = this.htmlTree.querySelector(selector);
+
+      node.replaceWith(snippet);
+    });
+
+    this.getEventListeners().forEach((listenerInfo, selector) => {
+      const {
+        snippet,
+        type
+      } = listenerInfo;
+      const node = this.htmlTree.querySelector(selector);
+
+      eventElementExtensionFn(node, type, snippet);
+    });
+
+    const outputNode = this.htmlTree.querySelector('#output');
+
+    if (outputNode) {
+      outputElementExtensionFn(outputNode, this.outputVarName);
+    }
+
+    return this.htmlTree.toString();
+  }
+
+  /**
+   * TODO, before merging: docs
+   */
+  getOutputLogs() {
+    return this.outputLogs;
   }
 
   /**
@@ -251,6 +426,80 @@ class CategorizedData {
         entry.hasRef = true;
       }
     }
+  }
+
+
+
+  // TODO, before merging: VERY IMPORTANT: updating the state updates the Handsontable instances.
+  // TODO, before merging: possible fix: always keep the handsontable settings in the state
+
+
+
+
+  /**
+   * TODO, before merging: docs
+   */
+  globalReplaceOutputLog(substituteFn) {
+    const outputVarName = this.getOutputVarName();
+
+    // TODO, before merging: RECOGNIZE += and = (IMPORTANT)
+
+    const queryRegex = new RegExp(`${outputVarName}\\.innerText (\\+*)= (.+);`, 'g');
+
+    return this.globalReplaceContent(queryRegex, substituteFn);
+  }
+
+  /**
+   * TODO, before merging: docs, not sure if the right place for the function (probably not)
+   *
+   * regex in a form of /${outputVar}\.innerText = (.*);/gm
+   *
+   * @param queryRegex
+   * @param replaceFn
+   */
+  globalReplaceContent(queryRegex, substituteFn) {
+    const reassignExpression = (expression, reassignFn, getFreshExpressionFn) => {
+      let matchGroups;
+
+      while (matchGroups !== null) {
+        matchGroups = queryRegex.exec(expression);
+
+        if (!matchGroups) {
+          return;
+        }
+
+        const message = matchGroups[2];
+
+        reassignFn(getFreshExpressionFn().replace(
+          new RegExp(queryRegex, ''),
+          substituteFn(message))
+        );
+      }
+    };
+    const getArrayReassignArgs = (expression, index, array) => [
+      expression,
+      (newExpression) => { array[index] = newExpression; },
+      () => array[index]
+    ];
+
+    this.getInitialExpressions().forEach((expression, index, array) => {
+      reassignExpression(...getArrayReassignArgs(expression, index, array));
+    });
+
+    this.getRefExpressions().forEach((expression, index, array) => {
+      reassignExpression(...getArrayReassignArgs(expression, index, array));
+    });
+
+    this.getEventExpressions().forEach((expression, index, array) => {
+      reassignExpression(...getArrayReassignArgs(expression, index, array));
+    });
+
+    this.getEventListeners().forEach((callbackInfo, key, map) => {
+      reassignExpression(
+        callbackInfo.snippet,
+        (newExpression) => { map.set(key, newExpression); },
+        () => map.get(key));
+    });
   }
 }
 

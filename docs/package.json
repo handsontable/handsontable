@@ -52,6 +52,7 @@
     "inquirer": "^8.1.1",
     "js-beautify": "^1.14.2",
     "jsdoc-to-markdown": "^7.0.1",
+    "node-html-parser": "^5.3.3",
     "replace-in-files": "^3.0.0",
     "rimraf": "^3.0.2",
     "semver": "^5.7.1",

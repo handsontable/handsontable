@@ -36,6 +36,7 @@ module.exports = {
       const snippetTransformer = new SnippetTransformer(
         framework,
         snippetContent,
+        '<!-- snippet -->',
         filePath,
         lineNumber
       );
