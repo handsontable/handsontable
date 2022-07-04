@@ -462,6 +462,8 @@ jobs:
       # -------------------- END --------------------------------
       - name: Install dependencies for examples/${{ matrix.version }}/docs/${{ matrix.framework }}
         if: steps.path-check.outputs.n-a != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd ${{ env.FRAMEWORK_EXAMPLES_PATH }}
           npm install --no-audit
