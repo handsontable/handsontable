@@ -115,6 +115,7 @@ input2.addEventListener('keydown', logFnValue);
 :::
 
 <script>
+if (typeof window !== 'undefined') {
 window._exampleTests = [
   () => {
     const exampleContainer = document.querySelector('#preview-tab-main-example');
@@ -151,4 +152,5 @@ settings updated for hot2\n`]
     };
   }
 ];
+}
 </script>
