@@ -30,7 +30,7 @@ export interface HotTableProps extends Handsontable.GridSettings {
   wrapperRendererCacheSize?: number
 }
 
-export interface HotTableComponent<V extends Vue, D, M, C, P> extends ThisTypedComponentOptionsWithRecordProps<V, D, M, C, P> {
+export interface HotTableComponent<V extends Vue, D, M, C, P, S = {}> extends ThisTypedComponentOptionsWithRecordProps<V, D, M, C, P, S> {
   version: string
 }
 

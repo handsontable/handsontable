@@ -11,7 +11,7 @@
     HotColumnMethods,
   } from './types';
 
-  const HotColumn: ThisTypedComponentOptionsWithRecordProps<Vue, {}, HotColumnMethods, {}, HotTableProps> = {
+  const HotColumn: ThisTypedComponentOptionsWithRecordProps<Vue, {}, HotColumnMethods, {}, HotTableProps, {}> = {
     name: 'HotColumn',
     props: propFactory('HotColumn'),
     methods: {
