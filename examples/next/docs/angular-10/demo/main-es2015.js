@@ -1850,8 +1850,12 @@ const changeCheckboxCell = function changeCheckboxCell(event, coords) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "Ub9n");
 /* harmony import */ var _environments_environment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./environments/environment */ "AytR");
-/* harmony import */ var _app_app_module__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./app/app.module */ "ZAI4");
-/* harmony import */ var _angular_platform_browser__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @angular/platform-browser */ "vlQ6");
+/* harmony import */ var _handsontable_angular__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @handsontable/angular */ "lKqD");
+/* harmony import */ var handsontable__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! handsontable */ "5DfS");
+/* harmony import */ var _app_app_module__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./app/app.module */ "ZAI4");
+/* harmony import */ var _angular_platform_browser__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @angular/platform-browser */ "vlQ6");
+
+
 
 
 
@@ -1859,7 +1863,8 @@ __webpack_require__.r(__webpack_exports__);
 if (_environments_environment__WEBPACK_IMPORTED_MODULE_1__["environment"].production) {
     Object(_angular_core__WEBPACK_IMPORTED_MODULE_0__["enableProdMode"])();
 }
-_angular_platform_browser__WEBPACK_IMPORTED_MODULE_3__["platformBrowser"]().bootstrapModule(_app_app_module__WEBPACK_IMPORTED_MODULE_2__["AppModule"])
+console.log(`Handsontable: v${handsontable__WEBPACK_IMPORTED_MODULE_3__["default"].version} (${handsontable__WEBPACK_IMPORTED_MODULE_3__["default"].buildDate}) Wrapper: v${_handsontable_angular__WEBPACK_IMPORTED_MODULE_2__["HotTableModule"].version} Angular: v${_angular_core__WEBPACK_IMPORTED_MODULE_0__["VERSION"].full}`);
+_angular_platform_browser__WEBPACK_IMPORTED_MODULE_5__["platformBrowser"]().bootstrapModule(_app_app_module__WEBPACK_IMPORTED_MODULE_4__["AppModule"])
     .catch(err => console.error(err));
 
 

@@ -1,9 +1,9 @@
 (function () {
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
   function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
   function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   (window["webpackJsonp"] = window["webpackJsonp"] || []).push([["main"], {
     /***/
@@ -399,48 +399,19 @@
       var _handsontable_angular__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(
       /*! @handsontable/angular */
       "+P78");
-      /* harmony import */
 
+      var AppComponent = /*#__PURE__*/_createClass(function AppComponent() {
+        _classCallCheck(this, AppComponent);
 
-      var handsontable__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(
-      /*! handsontable */
-      "5DfS");
-
-      var AppComponent = /*#__PURE__*/function () {
-        function AppComponent() {
-          _classCallCheck(this, AppComponent);
-
-          this.hotSettings = {
-            data: [['', 'Tesla', 'Volvo', 'Toyota', 'Ford'], ['2019', 10, 11, 12, 13], ['2020', 20, 11, 14, 13], ['2021', 30, 15, 12, 13]],
-            colHeaders: true,
-            rowHeaders: true,
-            width: '100%',
-            height: '100%',
-            licenseKey: 'non-commercial-and-evaluation'
-          };
-        }
-
-        _createClass(AppComponent, [{
-          key: "ngOnInit",
-          value: function ngOnInit() {
-            console.log(this.getDebugInfo());
-          }
-        }, {
-          key: "getDebugInfo",
-          value: function getDebugInfo() {
-            var debug = 'Handsontable:';
-            debug += " v".concat(handsontable__WEBPACK_IMPORTED_MODULE_2__["default"].version);
-            debug += " (".concat(handsontable__WEBPACK_IMPORTED_MODULE_2__["default"].buildDate, ")");
-            debug += ' Wrapper:';
-            debug += " v".concat(_handsontable_angular__WEBPACK_IMPORTED_MODULE_1__["HotTableModule"].version);
-            debug += ' Angular:';
-            debug += " v".concat(_angular_core__WEBPACK_IMPORTED_MODULE_0__["VERSION"].full);
-            return debug;
-          }
-        }]);
-
-        return AppComponent;
-      }();
+        this.hotSettings = {
+          data: [['', 'Tesla', 'Volvo', 'Toyota', 'Ford'], ['2019', 10, 11, 12, 13], ['2020', 20, 11, 14, 13], ['2021', 30, 15, 12, 13]],
+          colHeaders: true,
+          rowHeaders: true,
+          width: '100%',
+          height: '100%',
+          licenseKey: 'non-commercial-and-evaluation'
+        };
+      });
 
       AppComponent.ɵfac = function AppComponent_Factory(t) {
         return new (t || AppComponent)();
@@ -581,10 +552,24 @@
       var _environments_environment__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(
       /*! ./environments/environment */
       "AytR");
+      /* harmony import */
+
+
+      var _handsontable_angular__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(
+      /*! @handsontable/angular */
+      "+P78");
+      /* harmony import */
+
+
+      var handsontable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(
+      /*! handsontable */
+      "5DfS");
 
       if (_environments_environment__WEBPACK_IMPORTED_MODULE_3__["environment"].production) {
         Object(_angular_core__WEBPACK_IMPORTED_MODULE_1__["enableProdMode"])();
       }
+
+      console.log("Handsontable: v".concat(handsontable__WEBPACK_IMPORTED_MODULE_5__["default"].version, " (").concat(handsontable__WEBPACK_IMPORTED_MODULE_5__["default"].buildDate, ") Wrapper: v").concat(_handsontable_angular__WEBPACK_IMPORTED_MODULE_4__["HotTableModule"].version, " Angular: v").concat(_angular_core__WEBPACK_IMPORTED_MODULE_1__["VERSION"].full));
 
       _angular_platform_browser__WEBPACK_IMPORTED_MODULE_0__["platformBrowser"]().bootstrapModule(_app_app_module__WEBPACK_IMPORTED_MODULE_2__["AppModule"])["catch"](function (err) {
         return console.error(err);

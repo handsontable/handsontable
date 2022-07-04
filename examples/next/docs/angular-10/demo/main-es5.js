@@ -886,13 +886,25 @@
       /* harmony import */
 
 
-      var _app_app_module__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(
+      var _handsontable_angular__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(
+      /*! @handsontable/angular */
+      "lKqD");
+      /* harmony import */
+
+
+      var handsontable__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(
+      /*! handsontable */
+      "5DfS");
+      /* harmony import */
+
+
+      var _app_app_module__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(
       /*! ./app/app.module */
       "ZAI4");
       /* harmony import */
 
 
-      var _angular_platform_browser__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(
+      var _angular_platform_browser__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(
       /*! @angular/platform-browser */
       "vlQ6");
 
@@ -900,7 +912,9 @@
         Object(_angular_core__WEBPACK_IMPORTED_MODULE_0__["enableProdMode"])();
       }
 
-      _angular_platform_browser__WEBPACK_IMPORTED_MODULE_3__["platformBrowser"]().bootstrapModule(_app_app_module__WEBPACK_IMPORTED_MODULE_2__["AppModule"])["catch"](function (err) {
+      console.log("Handsontable: v".concat(handsontable__WEBPACK_IMPORTED_MODULE_3__["default"].version, " (").concat(handsontable__WEBPACK_IMPORTED_MODULE_3__["default"].buildDate, ") Wrapper: v").concat(_handsontable_angular__WEBPACK_IMPORTED_MODULE_2__["HotTableModule"].version, " Angular: v").concat(_angular_core__WEBPACK_IMPORTED_MODULE_0__["VERSION"].full));
+
+      _angular_platform_browser__WEBPACK_IMPORTED_MODULE_5__["platformBrowser"]().bootstrapModule(_app_app_module__WEBPACK_IMPORTED_MODULE_4__["AppModule"])["catch"](function (err) {
         return console.error(err);
       });
       /***/

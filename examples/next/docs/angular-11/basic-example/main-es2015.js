@@ -354,10 +354,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AppComponent", function() { return AppComponent; });
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "Ub9n");
 /* harmony import */ var _handsontable_angular__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @handsontable/angular */ "+P78");
-/* harmony import */ var handsontable__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! handsontable */ "5DfS");
-
-
-
 
 
 class AppComponent {
@@ -375,19 +371,6 @@ class AppComponent {
             height: '100%',
             licenseKey: 'non-commercial-and-evaluation'
         };
-    }
-    ngOnInit() {
-        console.log(this.getDebugInfo());
-    }
-    getDebugInfo() {
-        let debug = 'Handsontable:';
-        debug += ` v${handsontable__WEBPACK_IMPORTED_MODULE_2__["default"].version}`;
-        debug += ` (${handsontable__WEBPACK_IMPORTED_MODULE_2__["default"].buildDate})`;
-        debug += ' Wrapper:';
-        debug += ` v${_handsontable_angular__WEBPACK_IMPORTED_MODULE_1__["HotTableModule"].version}`;
-        debug += ' Angular:';
-        debug += ` v${_angular_core__WEBPACK_IMPORTED_MODULE_0__["VERSION"].full}`;
-        return debug;
     }
 }
 AppComponent.ɵfac = function AppComponent_Factory(t) { return new (t || AppComponent)(); };
@@ -448,6 +431,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "Ub9n");
 /* harmony import */ var _app_app_module__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./app/app.module */ "ZAI4");
 /* harmony import */ var _environments_environment__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./environments/environment */ "AytR");
+/* harmony import */ var _handsontable_angular__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @handsontable/angular */ "+P78");
+/* harmony import */ var handsontable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! handsontable */ "5DfS");
+
+
 
 
 
@@ -455,6 +442,7 @@ __webpack_require__.r(__webpack_exports__);
 if (_environments_environment__WEBPACK_IMPORTED_MODULE_3__["environment"].production) {
     Object(_angular_core__WEBPACK_IMPORTED_MODULE_1__["enableProdMode"])();
 }
+console.log(`Handsontable: v${handsontable__WEBPACK_IMPORTED_MODULE_5__["default"].version} (${handsontable__WEBPACK_IMPORTED_MODULE_5__["default"].buildDate}) Wrapper: v${_handsontable_angular__WEBPACK_IMPORTED_MODULE_4__["HotTableModule"].version} Angular: v${_angular_core__WEBPACK_IMPORTED_MODULE_1__["VERSION"].full}`);
 _angular_platform_browser__WEBPACK_IMPORTED_MODULE_0__["platformBrowser"]().bootstrapModule(_app_app_module__WEBPACK_IMPORTED_MODULE_2__["AppModule"])
     .catch(err => console.error(err));
 
