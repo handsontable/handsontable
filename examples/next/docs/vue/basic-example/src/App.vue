@@ -5,24 +5,9 @@
 </template>
 
 <script>
-import Handsontable from 'handsontable';
 import { HotTable } from '@handsontable/vue';
-import Vue from 'vue';
 import 'handsontable/dist/handsontable.full.css';
 import './assets/styles.css';
-
-function getDebugInfo() {
-  let debug = "Handsontable:";
-  debug += ` v${Handsontable.version}`;
-  debug += ` (${Handsontable.buildDate})`;
-  debug += " Wrapper:";
-  debug += ` v${HotTable.version}`;
-  debug += " Vue:";
-  debug += ` v${Vue.version}`;
-  return debug;
-}
-
-console.log(getDebugInfo());
 
 export default {
   name: 'App',
