@@ -1,6 +1,27 @@
 const chalk = require('chalk');
 const { getEnvDocsFramework, parseFramework, getDefaultFramework, getNormalizedPath } = require('../../helpers');
 
+/* eslint-disable */
+/**
+ * Container used to display/hide blocks of content relevant to specific frameworks.
+ * It relies on providing the framework name(s) as arguments to the container (see 'Usage' below) and setting a
+ * `DOCS_FRAMEWORK` environmental variable as the framework name, for example:
+ *
+ * ```
+ * DOCS_FRAMEWORK=react
+ * ```
+ *
+ * Usage:
+ * ```
+ * ::: only-for react
+ * Content to be displayed only for React documentation.
+ * :::
+ *
+ * ::: only-for javascript react vue
+ * Content to be displayed only for JS, React and Vue documentation.
+ * :::
+ * ```
+ */
 module.exports = function conditionalContainer(markdown) {
   const openAndCloseTagOneliner = /::: only-for (((react|javascript) ?)+)(.*?):::$/ms;
   const foundOpenTokenContent = /(?:\n?)::: only-for (((react|javascript) ?)+)\n?/;
@@ -35,7 +56,7 @@ module.exports = function conditionalContainer(markdown) {
     } else {
       // eslint-disable-next-line no-console
       console.error(`${chalk.red('\nUnexpected error thrown while removing conditional container' +
-        ` Please check how "${env.frontmatter.permalink}" site parsed from ` +
+        ` Please check how "${env.frontmatter.permalink}" site, parsed from ` +
         `"${getNormalizedPath(env.relativePath)}" file looks like.`
       )}`);
     }
