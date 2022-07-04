@@ -3,23 +3,34 @@ const { getEnvDocsFramework, parseFramework, getDefaultFramework, getNormalizedP
 
 module.exports = function conditionalContainer(markdown) {
   const openAndCloseTagOneliner = /::: only-for (((react|javascript) ?)+)(.*?):::$/ms;
-  const foundOpenTokenContent = /(?:\n?)::: only-for (((react|javascript) ?)+)(.*?)$/;
+  const foundOpenTokenContent = /(?:\n?)::: only-for (((react|javascript) ?)+)\n?/;
   const foundCloseTokenContent = /(?:\n?):::$/;
   const markupForCustomContainer = ':::';
   const capturedGroupIndex = 1;
   let endIndex;
 
-  const removeValue = ({ token, regexp, env }) => {
+  const removeValueAndNewLine = ({ token, regexp, env }) => {
     // Removing value from token's content.
     token.content = token.content.replace(regexp, '');
 
-    const childrenIndex = token.children.findIndex(
-      childrenToken => regexp.test(childrenToken.content));
+    let childrenIndex = token.children.findIndex(childrenToken => regexp.test(childrenToken.content));
 
     // Removing token's children also representing removed value.
     if (childrenIndex !== -1) {
-      token.children.splice(childrenIndex, 1);
+      const nextElement = token.children[childrenIndex + 1];
+      const previousElement = token.children[childrenIndex - 1];
+      let howMany = 1;
 
+      if (childrenIndex > 0 && previousElement.type === 'softbreak') {
+        childrenIndex -= 1;
+        howMany += 1;
+      }
+
+      if (nextElement?.type === 'softbreak') {
+        howMany += 1;
+      }
+
+      token.children.splice(childrenIndex, howMany);
     } else {
       // eslint-disable-next-line no-console
       console.error(`${chalk.red('\nUnexpected error thrown while removing conditional container' +
@@ -51,8 +62,8 @@ module.exports = function conditionalContainer(markdown) {
           state.tokens.splice(index, 1);
 
         } else {
-          removeValue({ token, regexp: foundOpenTokenContent, env });
-          removeValue({ token, regexp: foundCloseTokenContent, env });
+          removeValueAndNewLine({ token, regexp: foundOpenTokenContent, env });
+          removeValueAndNewLine({ token, regexp: foundCloseTokenContent, env });
         }
 
       } else if (isNotNativeContainer && foundCloseTokenContent.test(token.content)) {
@@ -61,15 +72,16 @@ module.exports = function conditionalContainer(markdown) {
       } else if (isNotNativeContainer && foundOpenTokenContent.test(token.content)) {
         const onlyForFrameworks = foundOpenTokenContent.exec(token.content)[capturedGroupIndex].split(' ');
 
+        removeValueAndNewLine({ token, regexp: foundOpenTokenContent, env });
+
         if (onlyForFrameworks.includes(frameworkId) === false) {
           const indexAfterCurrentToken = index + 1;
 
           state.tokens.splice(indexAfterCurrentToken, endIndex - indexAfterCurrentToken + 1);
         } else {
-          removeValue({ token, regexp: foundCloseTokenContent, env });
-        }
 
-        removeValue({ token, regexp: foundOpenTokenContent, env });
+          removeValueAndNewLine({ token: state.tokens[endIndex], regexp: foundCloseTokenContent, env });
+        }
       }
     }
   };
