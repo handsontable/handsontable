@@ -26,7 +26,7 @@
     "@angular/platform-browser": "v9-lts",
     "@angular/platform-browser-dynamic": "v9-lts",
     "@angular/router": "v9-lts",
-    "@budnix/angular": "12.1.0",
+    "@handsontable/angular": "12.1.0",
     "handsontable": "12.1.0",
     "rxjs": "6.6.7",
     "tslib": "1.14.1",

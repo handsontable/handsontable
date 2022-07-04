@@ -1,5 +1,5 @@
 import { Component, VERSION as AngularVersion } from '@angular/core';
-import { HotTableModule } from '@budnix/angular';
+import { HotTableModule } from '@handsontable/angular';
 import Handsontable from 'handsontable';
 
 @Component({
