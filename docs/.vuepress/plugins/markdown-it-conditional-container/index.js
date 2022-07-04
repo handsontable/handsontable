@@ -6,6 +6,7 @@ module.exports = function conditionalContainer(markdown) {
   const foundOpenTokenContent = /(?:\n?)::: only-for (((react|javascript) ?)+)\n?/;
   const foundCloseTokenContent = /(?:\n?):::$/;
   const markupForCustomContainer = ':::';
+  const newLineTokenType = 'softbreak';
   const capturedGroupIndex = 1;
   let endIndex;
 
@@ -21,12 +22,12 @@ module.exports = function conditionalContainer(markdown) {
       const previousElement = token.children[childrenIndex - 1];
       let howMany = 1;
 
-      if (childrenIndex > 0 && previousElement.type === 'softbreak') {
+      if (childrenIndex > 0 && previousElement.type === newLineTokenType) {
         childrenIndex -= 1;
         howMany += 1;
       }
 
-      if (nextElement?.type === 'softbreak') {
+      if (nextElement?.type === newLineTokenType) {
         howMany += 1;
       }
 
