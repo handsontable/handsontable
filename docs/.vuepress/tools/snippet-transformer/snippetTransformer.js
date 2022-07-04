@@ -250,7 +250,7 @@ ${node.mock ? node.content : content.slice(...node.range)}\
         this.categorizedData.addEventExpression(expressionContent);
 
         break;
-      case 'auto':
+      case CategorizedData.EXP_AUTO:
       default:
         ({
           varName,
@@ -289,11 +289,13 @@ ${node.mock ? node.content : content.slice(...node.range)}\
 
         // TODO, before merging: move to a helper function (IMPORTANT)
         for (const [hotVarName] of this.categorizedData.getNamedHotInstances()) {
+          const nodeContent = node.mock ? node.content : this.snippet.content.slice(...node.range);
+
+          // TODO, before merging: redundant code (IMPORTANT)
           if (
-            // TODO, before merging: redundant code (IMPORTANT)
-            this.snippet.content.slice(...node.range).includes(`${hotVarName}.`) ||
-            this.snippet.content.slice(...node.range).includes(`, ${hotVarName}`) ||
-            this.snippet.content.slice(...node.range).includes(`{${hotVarName}`)
+            nodeContent.includes(`${hotVarName}.`) ||
+            nodeContent.includes(`, ${hotVarName}`) ||
+            nodeContent.includes(`{${hotVarName}`)
           ) {
             hasRefsInCallback = true;
 
@@ -304,9 +306,9 @@ ${node.mock ? node.content : content.slice(...node.range)}\
             this.categorizedData.getRefDeclaredVarNames().some((refVarName) => {
               if (
                 // TODO, before merging: redundant code (IMPORTANT)
-                this.snippet.content.slice(...node.range).includes(`${refVarName}.`) ||
-                this.snippet.content.slice(...node.range).includes(`, ${refVarName}`) ||
-                this.snippet.content.slice(...node.range).includes(`{${refVarName}`)
+                nodeContent.includes(`${refVarName}.`) ||
+                nodeContent.includes(`, ${refVarName}`) ||
+                nodeContent.includes(`{${refVarName}`)
               ) {
                 hasRefsInCallback = true;
 
@@ -314,12 +316,6 @@ ${node.mock ? node.content : content.slice(...node.range)}\
               }
             });
           }
-
-
-          // TODO, before merging: IMPORTANT, when the callbacks are moved to useEffect, they stop being available in the global
-          //  scope - we need to leave them as let and then move them without const to useEffect
-
-
         }
 
         if (
@@ -327,6 +323,23 @@ ${node.mock ? node.content : content.slice(...node.range)}\
           refArgumentVarNames.length ||
           hasRefVarNames
         ) {
+
+          // TODO, before merging: cleanup \/
+
+          // If the callback is being placed in the section responsible for referenced expressions, first declare
+          // it as a `let` in the "global" scope, then reassign the variable in the referenced section, so it's
+          // available from the get-go.
+          // TODO: might be react-specific, possibly the logic has to be moved somewhere else.
+          if (node.mock && node.isEventListener) {
+            this.addExpression(CategorizedData.EXP_INITIAL, {
+              mock: true,
+              line: node.line,
+              content: `let ${node.callbackVarName};`
+            });
+
+            node.content = node.content.replace('const ', '');
+          }
+
           this.addExpression(CategorizedData.EXP_REF, node);
 
           // TODO, before merging: duplicated code
@@ -439,7 +452,10 @@ ${node.mock ? node.content : content.slice(...node.range)}\
     if (callbackType.includes('Function')) {
       callbackVarName = `${elementVarName}${type[0].toUpperCase() + type.substring(1)}Callback`;
 
-      this.addExpression(CategorizedData.EXP_INITIAL, {
+      this.addExpression(CategorizedData.EXP_AUTO, {
+        // TODO, before merging: document this props \/
+        callbackVarName,
+        isEventListener: true,
         mock: true,
         line: node.loc.start.line,
         content: `const ${callbackVarName} = ${callback};`
@@ -549,7 +565,7 @@ ${node.mock ? node.content : content.slice(...node.range)}\
             this.addHotInstance(node);
 
           } else {
-            this.addExpression('auto', node);
+            this.addExpression(CategorizedData.EXP_AUTO, node);
           }
 
           break;
@@ -566,7 +582,7 @@ ${node.mock ? node.content : content.slice(...node.range)}\
               this.addEventListener(node);
 
             } else {
-              this.addExpression('auto', node);
+              this.addExpression(CategorizedData.EXP_AUTO, node);
             }
 
             // TODO, before merging: probably can be removed

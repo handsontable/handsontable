@@ -37,6 +37,7 @@ class CategorizedData {
   static HOT_UNNAMED = 'unnamed';
   static EXP_INITIAL = 'initial';
   static EXP_REF = 'ref';
+  static EXP_AUTO = 'auto';
   static EXP_EVENTS = 'events';
 
   /**

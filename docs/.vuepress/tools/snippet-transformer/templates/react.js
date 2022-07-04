@@ -101,7 +101,7 @@ function getHotComponentSection(snippetInformation) {
   });
 
   return snippetInformation.getHtmlSnippet(selectorToSnippetMap, (node, type, snippet) => {
-    node.setAttribute(`${nativeToReactEvent(type)}={${snippet}}`, '');
+    node.setAttribute(`${nativeToReactEvent(type)}={(...args) => ${snippet}(...args)}`, '');
     // node.setAttribute(`on${type[0].toUpperCase() + type.substring(1)}={${snippet}}`, '');
   }, (node, outputVarName) => {
 

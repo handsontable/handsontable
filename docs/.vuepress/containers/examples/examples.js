@@ -165,10 +165,16 @@ module.exports = {
 
           jsContent = transformedSnippetContent;
           jsToken.content = jsContent;
-        }
 
-        // TODO, before merging: duplicated code
-        htmlContent = `<div id="${id}" class="hot ${klass}"></div>`;
+          if (htmlToken) {
+            // TODO, before merging: duplicated code
+            htmlContent = `<div id="${id}" class="hot ${klass}"></div>`;
+
+            // TODO, before merging: duplicated code
+            htmlContentRoot = `<div data-preset-type="${preset}">${htmlContent}</div>`;
+            htmlToken.content = htmlContent;
+          }
+        }
       }
 
       const activeTab = args.match(/--tab (code|html|css|preview)/)?.[1] || 'code';
