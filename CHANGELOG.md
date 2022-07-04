@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [12.1.1] - 2022-07-05
+
+### Fixed
+- *Angular:* Changed the `@angular/*` peer dependencies version range. [#9622](https://github.com/handsontable/handsontable/issues/9622)
+
 ## [12.1.0] - 2022-06-28
 
 For more information on this release, see:
