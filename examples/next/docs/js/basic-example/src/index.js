@@ -2,13 +2,6 @@ import Handsontable from "handsontable";
 import 'handsontable/dist/handsontable.full.css';
 import "./styles.css";
 
-const getDebugInfo = () => {
-    let debug = 'Handsontable:';
-    debug += ` v${Handsontable.version}`;
-    debug += ` (${Handsontable.buildDate})`;
-    return debug;
-}
-
 const data = [
     ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
     ['2019', 10, 11, 12, 13],
@@ -27,4 +20,4 @@ const hot = new Handsontable(container, {
     licenseKey: 'non-commercial-and-evaluation'
 });
 
-console.log(getDebugInfo());
+console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`);

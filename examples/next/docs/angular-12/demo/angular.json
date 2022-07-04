@@ -28,7 +28,7 @@
             "aot": true,
             "styles": [
               "src/styles.scss",
-              "node_modules/handsontable/dist/handsontable.full.css"
+              "../node_modules/handsontable/dist/handsontable.full.css"
             ],
             "scripts": [],
             "preserveSymlinks": true,

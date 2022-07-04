@@ -1,5 +1,4 @@
-import { Component, VERSION as AngularVersion } from '@angular/core';
-import { HotTableModule } from '@handsontable/angular';
+import { Component } from '@angular/core';
 import Handsontable from 'handsontable';
 
 @Component({
@@ -8,7 +7,6 @@ import Handsontable from 'handsontable';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-
   hotSettings: Handsontable.GridSettings = {
     data: [
         ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
@@ -22,19 +20,4 @@ export class AppComponent {
     height: '100%',
     licenseKey: 'non-commercial-and-evaluation'
   };
-
-  ngOnInit() {
-    console.log(this.getDebugInfo());
-  }
-
-  private getDebugInfo() {
-    let debug = 'Handsontable:';
-    debug += ` v${Handsontable.version}`;
-    debug += ` (${Handsontable.buildDate})`;
-    debug += ' Wrapper:';
-    debug += ` v${HotTableModule.version}`;
-    debug += ' Angular:';
-    debug += ` v${AngularVersion.full}`;
-    return debug;
-  }
 }

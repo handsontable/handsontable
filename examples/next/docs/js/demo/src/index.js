@@ -122,3 +122,5 @@ new Handsontable(example, {
   beforeRenderer: addClassesToRows,
   licenseKey: "non-commercial-and-evaluation"
 });
+
+console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`);
