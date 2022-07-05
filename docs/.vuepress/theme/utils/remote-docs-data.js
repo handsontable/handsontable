@@ -9,8 +9,7 @@ let docsVersionsCache = null;
  */
 export async function fetchDocsData(buildMode) {
   if (docsVersionsCache === null) {
-    const pathVersion = buildMode === 'production' ? '' : 'next/';
-    const response = await fetch(`${window.location.origin}/docs/${pathVersion}docs-data.json`);
+    const response = await fetch(`${window.location.origin}/docs/docs-data.json`);
 
     docsVersionsCache = await response.json();
 

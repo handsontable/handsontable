@@ -12,7 +12,7 @@
 <script>
 import { isExternal } from '@vuepress/theme-default/util';
 import NavLink from '@theme/components/NavLink.vue';
-import { fetchDocsData } from '../theme/utils/remoteDocsData';
+import { fetchDocsData } from '../theme/utils/remote-docs-data';
 
 export default {
   name: 'Link',

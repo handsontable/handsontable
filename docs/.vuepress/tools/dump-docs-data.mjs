@@ -7,7 +7,6 @@ import utils from './utils.js';
 
 const { logger } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const buildMode = process.env.BUILD_MODE;
 
 /**
  * Min Docs version that is listed in the Docs version dropdown menu.
@@ -86,10 +85,6 @@ if (process.env.DOCS_BASE && process.env.DOCS_BASE !== 'latest') {
 
 if (docsData !== null) {
   const dataPath = path.resolve(__dirname, '../../.vuepress/public/docs-data.json');
-
-  if (buildMode !== 'production') {
-    docsData.versions = ['next', ...docsData.versions];
-  }
 
   await fsp.writeFile(dataPath, JSON.stringify(docsData));
 

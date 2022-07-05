@@ -9,7 +9,7 @@
 
 <script>
 import DropdownLink from '@theme/components/DropdownLink.vue';
-import { fetchDocsData } from '../utils/remoteDocsData';
+import { fetchDocsData } from '../utils/remote-docs-data';
 
 export default {
   name: 'Versions',

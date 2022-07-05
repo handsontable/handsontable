@@ -18,7 +18,7 @@ import ParentLayout from '@parent-theme/layouts/Layout.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import NavLink from '@theme/components/NavLink.vue';
 import Sidebar from '@theme/components/Sidebar.vue';
-import { fetchDocsData } from '../utils/remoteDocsData';
+import { fetchDocsData } from '../utils/remote-docs-data';
 
 export default {
   name: 'Layout',
