@@ -8,8 +8,7 @@ let docsVersionsCache = null;
  */
 export async function fetchDocsData() {
   if (docsVersionsCache === null) {
-    const pathVersion = window.location.host === 'handsontable.com' ? '' : 'next/';
-    const response = await fetch(`${window.location.origin}/docs/${pathVersion}docs-data.json`);
+    const response = await fetch(`${window.location.origin}/docs/docs-data.json`);
 
     docsVersionsCache = await response.json();
   }
