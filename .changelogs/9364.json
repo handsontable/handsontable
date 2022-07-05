@@ -1,7 +1,0 @@
-{
-  "title": "Changed behavior of the Home/End and Ctrl/Cmd + Home/End keyboard shortcuts.",
-  "type": "changed",
-  "issue": 9364,
-  "breaking": true,
-  "framework": "none"
-}

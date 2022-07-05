@@ -26,7 +26,7 @@
     "@angular/platform-browser": "v11-lts",
     "@angular/platform-browser-dynamic": "v11-lts",
     "@angular/router": "v11-lts",
-    "@handsontable/angular": "latest",
+    "@handsontable/angular": "12.0.1",
     "handsontable": "latest",
     "rxjs": "6.6.7",
     "tslib": "1.14.1",

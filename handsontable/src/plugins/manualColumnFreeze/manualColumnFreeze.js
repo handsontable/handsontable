@@ -106,7 +106,7 @@ export class ManualColumnFreeze extends BasePlugin {
   freezeColumn(column) {
     const priv = privatePool.get(this);
     const settings = this.hot.getSettings();
-    // Columns are already fixed.
+    // columns are already fixed (frozen)
     const freezePerformed = settings.fixedColumnsStart < this.hot.countCols()
       && column > settings.fixedColumnsStart - 1;
 
@@ -141,7 +141,7 @@ export class ManualColumnFreeze extends BasePlugin {
   unfreezeColumn(column) {
     const priv = privatePool.get(this);
     const settings = this.hot.getSettings();
-    // columns are not fixed (frozen)
+    // columns are not fixed (not frozen)
     const unfreezePerformed = settings.fixedColumnsStart > 0 && (column <= settings.fixedColumnsStart - 1);
 
     if (!priv.afterFirstUse) {
