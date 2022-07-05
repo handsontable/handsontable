@@ -20,7 +20,7 @@ module.exports = (options, context) => {
     name: pluginName,
 
     ready() {
-      context.themeConfig.sidebar = getSidebars(buildMode);
+      context.themeConfig.sidebar = getSidebars();
     },
 
     /**
