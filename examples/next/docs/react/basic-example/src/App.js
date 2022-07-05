@@ -2,17 +2,6 @@ import React from 'react';
 import Handsontable from 'handsontable';
 import { HotTable } from '@handsontable/react';
 
-function getDebugInfo() {
-  let debug = 'Handsontable:';
-  debug += ` v${Handsontable.version}`;
-  debug += ` (${Handsontable.buildDate})`;
-  debug += ' Wrapper:';
-  debug += ` v${HotTable.version}`;
-  debug += ' React:';
-  debug += ` v${React.version}`;
-  return debug;
-}
-
 function App() {
   const data = [
     ["", "Ford", "Volvo", "Toyota", "Honda"],
@@ -35,6 +24,6 @@ function App() {
   );
 }
 
-console.log(getDebugInfo());
+console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`);
 
 export default App;

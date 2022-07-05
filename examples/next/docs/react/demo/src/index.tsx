@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "pikaday/css/pikaday.css";
 import "./styles.css";
+import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from "@handsontable/react";
 import { data } from "./constants";
 import { ProgressBarRenderer } from "./renderers/ProgressBar";
@@ -69,3 +70,6 @@ const App = () => {
 
 const rootElement = document.getElementById("root");
 ReactDOM.render(<App />, rootElement);
+
+console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`);
+
