@@ -15,6 +15,13 @@ tags:
 
 [[toc]]
 
+## 12.1.1
+
+Released on 5th of July, 2022
+
+**Fixed**
+- *Angular:* Fixed an issue where the installation of `@handsontable/angular` package failed for versions of Angular other than 9 [#9622](https://github.com/handsontable/handsontable/issues/9622)
+
 ## 12.1.0
 
 Released on 28th of June, 2022
