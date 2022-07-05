@@ -19,5 +19,5 @@ jobs:
           cut-off: One month ago UTC
           account-type: personal
           org-name: budnix
-          skip-tags: latest, v*
+          skip-tags: latest, next, v*
           token: ${{ secrets.PAT_DELETE_PACKAGES }}
