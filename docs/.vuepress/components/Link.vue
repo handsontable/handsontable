@@ -65,10 +65,7 @@ export default {
   },
 
   async mounted() {
-    const docsData = await fetchDocsData({
-      buildMode: this.$page.buildMode,
-      currentVersion: this.$page.currentVersion,
-    });
+    const docsData = await fetchDocsData();
 
     this.latestVersion = docsData.latestVersion;
   }
