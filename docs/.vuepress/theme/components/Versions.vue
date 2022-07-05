@@ -9,7 +9,7 @@
 
 <script>
 import DropdownLink from '@theme/components/DropdownLink.vue';
-import { fetchDocsData } from '../utils/remoteDocsData';
+import { fetchDocsData } from '../utils/remote-docs-data';
 
 export default {
   name: 'Versions',
@@ -61,10 +61,7 @@ export default {
     }
   },
   async mounted() {
-    const docsData = await fetchDocsData({
-      buildMode: this.$page.buildMode,
-      currentVersion: this.$page.currentVersion,
-    });
+    const docsData = await fetchDocsData();
 
     this.latestVersion = docsData.latestVersion;
     this.item = {
