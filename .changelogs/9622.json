@@ -1,7 +1,0 @@
-{
-  "title": "Changed the `@angular/*` peer dependencies version range.",
-  "type": "fixed",
-  "issue": 9622,
-  "breaking": false,
-  "framework": "angular"
-}

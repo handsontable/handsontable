@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [12.1.1] - 2022-07-05
+
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-1-1)
+
+### Fixed
+- *Angular:* Fixed an issue where the installation of `@handsontable/angular` package failed for versions of Angular other than 9 [#9622](https://github.com/handsontable/handsontable/issues/9622)
+
 ## [12.1.0] - 2022-06-28
 
 For more information on this release, see:
