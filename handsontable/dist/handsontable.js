@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 12.1.0
- * Release date: 28/06/2022 (built at 28/06/2022 12:07:35)
+ * Version: 12.1.1
+ * Release date: 05/07/2022 (built at 04/07/2022 15:47:59)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3094,7 +3094,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "12.1.0";
+  var hotVersion = "12.1.1";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -3104,7 +3104,7 @@ function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("28/06/2022", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("05/07/2022", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
 
       var keyValidityDays = _extractTime(key);
@@ -44939,8 +44939,8 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "28/06/2022 12:07:35";
-Handsontable.version = "12.1.0";
+Handsontable.buildDate = "04/07/2022 15:47:59";
+Handsontable.version = "12.1.1";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
   getLanguageDictionary: _registry.getLanguageDictionary,

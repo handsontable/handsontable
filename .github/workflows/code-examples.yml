@@ -465,7 +465,10 @@ jobs:
         run: |
           cd ${{ env.FRAMEWORK_EXAMPLES_PATH }}
           npm install --no-audit
-          cd ../../..
+      - name: Link packages in ${{ env.FRAMEWORK_EXAMPLES_PATH }} (only for "next" version)
+        if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
+        run: |
+          cd ./examples
           npm run link-packages -- --f ${{ matrix.framework }} --examples-version ${{ matrix.version }}
       - name: Build all examples in ${{ env.FRAMEWORK_EXAMPLES_PATH }}
         if: steps.path-check.outputs.n-a != 'true'
