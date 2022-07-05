@@ -12,7 +12,7 @@
 <script>
 import { isExternal } from '@vuepress/theme-default/util';
 import NavLink from '@theme/components/NavLink.vue';
-import { fetchDocsData } from '../theme/utils/remoteDocsData';
+import { fetchDocsData } from '../theme/utils/remote-docs-data';
 
 export default {
   name: 'Link',
@@ -65,10 +65,7 @@ export default {
   },
 
   async mounted() {
-    const docsData = await fetchDocsData({
-      buildMode: this.$page.buildMode,
-      currentVersion: this.$page.currentVersion,
-    });
+    const docsData = await fetchDocsData();
 
     this.latestVersion = docsData.latestVersion;
   }
