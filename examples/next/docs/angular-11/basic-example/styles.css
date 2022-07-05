@@ -44,8 +44,8 @@ body {
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 12.1.0
- * Release date: 28/06/2022 (built at 04/07/2022 11:56:01)
+ * Version: 12.1.1
+ * Release date: 05/07/2022 (built at 05/07/2022 13:14:34)
  */
 /**
  * Fix for bootstrap styles
@@ -719,7 +719,6 @@ TextRenderer placeholder value
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   -webkit-overflow-scrolling: touch;
