@@ -5,6 +5,7 @@
  * It merges the release branch to the `develop` and `master` branches and pushes them, along with the created tags.
  */
 import inquirer from 'inquirer';
+import execa from 'execa';
 import {
   displayErrorMessage,
   displaySeparator,
@@ -83,6 +84,12 @@ displaySeparator();
       await spawnProcess(`git checkout -b ${docsProdBranch}`);
       // Regenerate docs API md files.
       await spawnProcess('npm run docs:api', { cwd: 'docs' });
+      // Remove "/content/api/" entry from the ./docs/.gitignore file so generated API
+      // docs may be committed to the branch.
+      await execa.command('cat ./.gitignore | grep -v "^/content/api/$" | tee .gitignore', {
+        cwd: 'docs',
+        shell: true,
+      });
     }
 
     // Commit the Docs changes to the Docs Production branch.
