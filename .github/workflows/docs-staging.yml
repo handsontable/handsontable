@@ -6,8 +6,8 @@ env:
 
 on:
   push:
-    branches:
-      - '!prod-docs/**'
+    branches-ignore:
+      - 'prod-docs/**'
     paths:
       - 'docs/**'
   workflow_dispatch:
