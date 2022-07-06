@@ -84,7 +84,7 @@ displaySeparator();
       // Regenerate docs API md files.
       await spawnProcess('npm run docs:api', { cwd: 'docs' });
       // Remove "/content/api/" entry from the ./docs/.gitignore file so generated API
-      // docs may be committed to the branch.
+      // docs can be committed to the branch.
       await execa.command('cat ./.gitignore | grep -v "^/content/api/$" | tee .gitignore', {
         cwd: 'docs',
         shell: true,
@@ -95,5 +95,7 @@ displaySeparator();
     await spawnProcess('git add .');
     await spawnProcess(`git commit -m "${releaseVersion}"`);
     await spawnProcess(`git push origin ${docsVersion}`);
+    // Back to `develop` branch.
+    await spawnProcess('git checkout develop');
   }
 })();
