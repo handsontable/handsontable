@@ -24,7 +24,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * @class AutoColumnSize
  *
  * @description
- * TEST TEST This plugin allows to set column widths based on their widest cells.
+ * This plugin allows to set column widths based on their widest cells.
  *
  * By default, the plugin is declared as `undefined`, which makes it enabled (same as if it was declared as `true`).
  * Enabling this plugin may decrease the overall table performance, as it needs to calculate the widths of all cells to
