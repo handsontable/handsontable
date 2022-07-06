@@ -4,20 +4,12 @@
  *
  * It merges the release branch to the `develop` and `master` branches and pushes them, along with the created tags.
  */
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
 import inquirer from 'inquirer';
 import {
   displayErrorMessage,
   displaySeparator,
   spawnProcess,
 } from './utils/index.mjs';
-
-const argv = yargs(hideBin(process.argv))
-  .boolean('push')
-  .default('push', false)
-  .describe('push', '`true` if the release should be pushed to `develop` and `master` along with the tags.')
-  .argv;
 
 displaySeparator();
 
@@ -36,6 +28,8 @@ displaySeparator();
   if (!answers.continueRelease) {
     process.exit(0);
   }
+
+  const releaseVersion = branchName.replace('release/', '');
 
   // Check if all the files are committed.
   {
@@ -67,14 +61,33 @@ displaySeparator();
     await spawnProcess(`git checkout ${branchName}`);
 
     // Merge the changes to the `develop` and `master` branches.
-    await spawnProcess(`git flow release finish -s ${branchName.replace('release/', '')}`);
+    await spawnProcess(`git flow release finish -s ${releaseVersion}`);
 
-    if (argv.push === true) {
-      await spawnProcess('git checkout develop');
-      await spawnProcess('git push origin develop');
-      await spawnProcess('git checkout master');
-      await spawnProcess('git push origin master');
-      await spawnProcess('git push --tags');
+    await spawnProcess('git checkout develop');
+    await spawnProcess('git push origin develop');
+    await spawnProcess('git checkout master');
+    await spawnProcess('git push origin master');
+    await spawnProcess('git push --tags');
+
+    const docsProdBranch = `prod-docs/${releaseVersion.substr(0, 4)}`; // e.g. "prod-docs/12.1" (without patch)
+    const remoteDocsBranchExists = await spawnProcess(
+      `git ls-remote --heads origin --list ${docsProdBranch}`, { silent: true });
+
+    await spawnProcess('git checkout develop');
+
+    if (remoteDocsBranchExists.stdout) {
+      await spawnProcess(`git checkout ${docsProdBranch}`);
+      await spawnProcess(`git pull origin ${docsProdBranch}`);
+      await spawnProcess('git merge develop');
+    } else {
+      await spawnProcess(`git checkout -b ${docsProdBranch}`);
+      // Regenerate docs API md files.
+      await spawnProcess('npm run docs:api', { cwd: 'docs' });
     }
+
+    // Commit the Docs changes to the Docs Production branch.
+    await spawnProcess('git add .');
+    await spawnProcess(`git commit -m "${releaseVersion}"`);
+    await spawnProcess(`git push origin ${docsProdBranch}`);
   }
 })();
