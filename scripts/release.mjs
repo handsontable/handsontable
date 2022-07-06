@@ -30,8 +30,6 @@ displaySeparator();
     process.exit(0);
   }
 
-  const releaseVersion = branchName.replace('release/', '');
-
   // Check if all the files are committed.
   {
     const processInfo = await spawnProcess('git status -s', { silent: true });
@@ -48,6 +46,7 @@ displaySeparator();
     // Check if we're on a release branch.
     const processInfo = await spawnProcess('git rev-parse --abbrev-ref HEAD', { silent: true });
     const branchName = processInfo.stdout.toString();
+    const releaseVersion = branchName.replace('release/', '');
 
     if (!branchName.startsWith('release/')) {
       displayErrorMessage('You are not on a release branch.');
@@ -70,18 +69,18 @@ displaySeparator();
     await spawnProcess('git push origin master');
     await spawnProcess('git push --tags');
 
-    const docsProdBranch = `prod-docs/${releaseVersion.substr(0, 4)}`; // e.g. "prod-docs/12.1" (without patch)
+    const docsVersion = `prod-docs/${releaseVersion.substring(0, 4)}`; // e.g. "prod-docs/12.1" (without patch)
     const remoteDocsBranchExists = await spawnProcess(
-      `git ls-remote --heads origin --list ${docsProdBranch}`, { silent: true });
+      `git ls-remote --heads origin --list ${docsVersion}`, { silent: true });
 
     await spawnProcess('git checkout develop');
 
     if (remoteDocsBranchExists.stdout) {
-      await spawnProcess(`git checkout ${docsProdBranch}`);
-      await spawnProcess(`git pull origin ${docsProdBranch}`);
+      await spawnProcess(`git checkout ${docsVersion}`);
+      await spawnProcess(`git pull origin ${docsVersion}`);
       await spawnProcess('git merge develop');
     } else {
-      await spawnProcess(`git checkout -b ${docsProdBranch}`);
+      await spawnProcess(`git checkout -b ${docsVersion}`);
       // Regenerate docs API md files.
       await spawnProcess('npm run docs:api', { cwd: 'docs' });
       // Remove "/content/api/" entry from the ./docs/.gitignore file so generated API
@@ -95,6 +94,6 @@ displaySeparator();
     // Commit the Docs changes to the Docs Production branch.
     await spawnProcess('git add .');
     await spawnProcess(`git commit -m "${releaseVersion}"`);
-    await spawnProcess(`git push origin ${docsProdBranch}`);
+    await spawnProcess(`git push origin ${docsVersion}`);
   }
 })();
