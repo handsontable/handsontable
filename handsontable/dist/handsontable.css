@@ -19,14 +19,14 @@
  * In any case, you must not make any such use of this software as to develop software which may be
  * considered competitive with this software.
  * 
- * UNLESS EXPRESSLY AGREED OTHERWISE, HANDSONCODE PROVIDES THIS SOFTWARE ON AN &quot;AS IS&quot;
+ * UNLESS EXPRESSLY AGREED OTHERWISE, HANDSONCODE PROVIDES THIS SOFTWARE ON AN "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, AND IN NO EVENT AND UNDER NO
  * LEGAL THEORY, SHALL HANDSONCODE BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY DIRECT,
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 12.0.1
- * Release date: 16/05/2022 (built at 13/05/2022 13:50:27)
+ * Version: 13.0.0
+ * Release date: 20/07/2022 (built at 06/07/2022 11:45:37)
  */
 /**
  * Fix for bootstrap styles
@@ -482,9 +482,7 @@ innerBorderBottom - Property controlled by bottom overlay
 .handsontable .columnSorting.sortAction:hover {
   text-decoration: underline;
   cursor: pointer;
-}
-
-/* Arrow position */
+} /* Arrow position */
 .handsontable span.colHeader.columnSorting::before {
   /* Centering start */
   top: 50%;
@@ -840,12 +838,18 @@ TextRenderer placeholder value
 }
 
 /* Initial left/top coordinates - overwritten when actual position is set */
-.topSelectionHandle,
-.topSelectionHandle-HitArea,
-.bottomSelectionHandle,
-.bottomSelectionHandle-HitArea {
+.handsontable .topSelectionHandle,
+.handsontable .topSelectionHandle-HitArea,
+.handsontable .bottomSelectionHandle,
+.handsontable .bottomSelectionHandle-HitArea {
   left: -10000px;
+  right: unset;
   top: -10000px;
+}
+
+[dir=rtl].handsontable .topSelectionHandle, [dir=rtl].handsontable .topSelectionHandle-HitArea, [dir=rtl].handsontable .bottomSelectionHandle, [dir=rtl].handsontable .bottomSelectionHandle-HitArea {
+  right: -10000px;
+  left: unset;
 }
 
 .handsontable.hide-tween {
@@ -1571,28 +1575,24 @@ textarea.HandsontableCopyPaste {
 
 .handsontable th.beforeHiddenColumn::after {
   right: 1px;
-  content: "◀";
-  /* left arrow */
+  content: "◀"; /* left arrow */
 }
 
 [dir=rtl].handsontable th.beforeHiddenColumn::after {
   right: initial;
   left: 1px;
-  content: "▶";
-  /* right arrow */
+  content: "▶"; /* right arrow */
 }
 
 .handsontable th.afterHiddenColumn::before {
   left: 1px;
-  content: "▶";
-  /* right arrow */
+  content: "▶"; /* right arrow */
 }
 
 [dir=rtl].handsontable th.afterHiddenColumn::before {
   right: 1px;
   left: initial;
-  content: "◀";
-  /* left arrow */
+  content: "◀"; /* left arrow */
 }
 @charset "UTF-8";
 /*!
