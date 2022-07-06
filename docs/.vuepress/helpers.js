@@ -1,7 +1,7 @@
 const path = require('path');
 const execa = require('execa');
 
-const versionFromBranchRegExp = /^docs-snapshot\/(\d+\.\d+)$/;
+const versionFromBranchRegExp = /^prod-docs\/(\d+\.\d+)$/;
 
 /**
  * Gets the current (this) version of docs.
