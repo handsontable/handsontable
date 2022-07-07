@@ -9,6 +9,10 @@ canonicalUrl: /react-custom-editor-example
 
 [[toc]]
 
+::: tip Using React components
+This page shows how to integrate a plain JavaScript custom editor with the React component. Information how to [declare a custom editor using React components](@/guides/integrate-with-react/react-hot-column.md#declaring-a-custom-editor-as-a-component) is presented on another page.
+:::
+
 ## Overview
 
 You can declare a custom editor for the `HotTable` component by declaring it as a class and passing it to the Handsontable options or creating an editor component.
