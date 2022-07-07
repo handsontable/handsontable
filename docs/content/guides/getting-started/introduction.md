@@ -27,24 +27,24 @@ Explore Handsontable's features and source code:
 ## Guides for your framework
 
 <div class="row-items-container">
-  <Link href="/docs/12.1/binding-to-data/" hide-latest-version class="row-item">
-    <img class="integration-framework-logo" src="/docs/12.1/img/pages/introduction/javascript.svg" alt="JavaScript logo" />
+  <Link href="/docs/{docsVersion}/binding-to-data/" hide-latest-version class="row-item">
+    <img class="integration-framework-logo" src="/img/pages/introduction/javascript.svg" alt="JavaScript logo" />
       <h3>JavaScript</h3>
   </Link>
-  <Link href="/docs/12.1/react-simple-example/" hide-latest-version class="row-item">
-    <img class="integration-framework-logo" src="/docs/12.1/img/pages/introduction/react.svg" alt="React logo" />
+  <Link href="/docs/{docsVersion}/react-simple-example/" hide-latest-version class="row-item">
+    <img class="integration-framework-logo" src="/img/pages/introduction/react.svg" alt="React logo" />
       <h3>React</h3>
   </Link>
-  <Link href="/docs/12.1/angular-simple-example/" hide-latest-version class="row-item">
-    <img class="integration-framework-logo" src="/docs/12.1/img/pages/introduction/angular.svg" alt="Angular logo" />
+  <Link href="/docs/{docsVersion}/angular-simple-example/" hide-latest-version class="row-item">
+    <img class="integration-framework-logo" src="/img/pages/introduction/angular.svg" alt="Angular logo" />
       <h3>Angular</h3>
   </Link>
-  <Link href="/docs/12.1/vue-simple-example/" hide-latest-version class="row-item">
-    <img class="integration-framework-logo" src="/docs/12.1/img/pages/introduction/vue.svg" alt="Vue logo" />
+  <Link href="/docs/{docsVersion}/vue-simple-example/" hide-latest-version class="row-item">
+    <img class="integration-framework-logo" src="/img/pages/introduction/vue.svg" alt="Vue logo" />
       <h3>Vue</h3>
   </Link>
-  <Link href="/docs/12.1/vue3-simple-example/" hide-latest-version class="row-item">
-    <img class="integration-framework-logo" src="/docs/12.1/img/pages/introduction/vue.svg" alt="Vue 3 logo" />
+  <Link href="/docs/{docsVersion}/vue3-simple-example/" hide-latest-version class="row-item">
+    <img class="integration-framework-logo" src="/img/pages/introduction/vue.svg" alt="Vue 3 logo" />
       <h3>Vue 3</h3>
   </Link>
 </div>
