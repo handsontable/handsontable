@@ -46,8 +46,12 @@ export default {
     parsedHref() {
       let href = this.href;
 
-      if (!this.isExternal && this.hideLatestVersion && this.$page.currentVersion === this.latestVersion) {
-        href = href.replace(`${this.$page.currentVersion}/`, '');
+      if (!this.isExternal) {
+        if (this.hideLatestVersion && this.$page.currentVersion === this.latestVersion) {
+          href = href.replace('/{docsVersion}/', '/');
+        } else {
+          href = href.replace('/{docsVersion}/', `/${this.$page.currentVersion}/`);
+        }
       }
 
       return href;
