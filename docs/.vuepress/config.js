@@ -56,7 +56,8 @@ module.exports = {
     preferPathResolver: 'webpack',
     define: {
       versionedUrl: (expression) => {
-        return new stylusNodes.Literal(`url("${expression.string.replace('{docsVersion}', 'next')}")`);
+        return new stylusNodes
+          .Literal(`url("${expression.string.replace('{docsVersion}', getThisDocsVersion())}")`);
       },
     }
   },
