@@ -1,4 +1,5 @@
 const path = require('path');
+const stylusNodes = require('stylus/lib/nodes');
 const highlight = require('./highlight');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
@@ -50,6 +51,14 @@ module.exports = {
       target: '_blank',
       rel: 'nofollow noopener noreferrer'
     },
+  },
+  stylus: {
+    preferPathResolver: 'webpack',
+    define: {
+      versionedUrl: (expression) => {
+        return new stylusNodes.Literal(`url("${expression.string.replace('{docsVersion}', 'next')}")`);
+      },
+    }
   },
   plugins: [
     extendPageDataPlugin,
