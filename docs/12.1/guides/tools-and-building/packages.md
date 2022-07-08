@@ -30,7 +30,7 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 ```html
 <!-- Required dependencies (as external scripts) -->
 <link href="https://cdn.jsdelivr.net/npm/pikaday@1.8.2/css/pikaday.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/moment@2.29.3/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pikaday@1.8.2/pikaday.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/numbro@2.1.2/dist/numbro.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@2.3.8/dist/purify.js"></script>
