@@ -52,9 +52,6 @@ export function validateReleaseDate(date) {
     returnObj.valid = false;
     returnObj.error = 'The provided date is invalid.';
 
-  } else if (!dateObj.isSameOrAfter(now)) {
-    returnObj.valid = false;
-    returnObj.error = 'The release date has to be a future date.';
   }
 
   return returnObj;
