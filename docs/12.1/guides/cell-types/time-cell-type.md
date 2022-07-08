@@ -17,7 +17,7 @@ To use the time cell type, set the `type: 'time'` option in the [`columns`](@/ap
 The time cell uses [Moment.js](https://github.com/moment/moment) as the time formatter, therefore you **must** add the following required dependency:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
 ```
 
 All data entered into the time-typed cells is eventually validated against the default time format - `h:mm:ss a`, which translates to, for example, `9:30:00 am` unless another format is provided as the `timeFormat`.

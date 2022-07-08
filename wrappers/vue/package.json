@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/vue",
-  "version": "12.1.1",
+  "version": "12.1.2",
   "description": "Best Data Grid for Vue with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
@@ -81,11 +81,11 @@
     "rollup-plugin-typescript2": "^0.21.1",
     "rollup-plugin-vue": "^5.0.0",
     "typescript": "3.8.2",
-    "vue": "^2.6.10",
+    "vue": "~2.6.10",
     "vue-class-component": "^7.1.0",
     "vue-jest": "^3.0.4",
     "vue-router": "^3.0.6",
-    "vue-template-compiler": "^2.6.10",
+    "vue-template-compiler": "~2.6.10",
     "vuex": "^3.1.1"
   },
   "scripts": {
