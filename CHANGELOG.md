@@ -10,11 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [12.1.2] - 2022-07-08
 
-### Changed
-- *Vue:* Freezed the Vue framework in `devDependencies` to ~2.6. [#9624](https://github.com/handsontable/handsontable/issues/9624)
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-1-2)
 
-### Fixed
-- Security upgrade moment from 2.29.3 to 2.29.4. [#9637](https://github.com/handsontable/handsontable/issues/9637)
+### Changed
+- Changed the version of the Moment.js dependency from 2.29.3 to 2.29.4, in reaction to a recently-found Moment.js security vulnerability. The vulnerability did not affect a correct configuration of Handsontable. [#9638](https://github.com/handsontable/handsontable/issues/9638)
+- *Vue:* Freezed the version of the Vue framework that is used in our build chain to ~2.6. This shouldn't affect apps that use Vue 2.7+. [#9624](https://github.com/handsontable/handsontable/issues/9624)
 
 ## [12.1.1] - 2022-07-05
 
