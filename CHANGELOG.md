@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [12.1.2] - 2022-07-08
+
+### Changed
+- *Vue:* Freezed the Vue framework in `devDependencies` to ~2.6. [#9624](https://github.com/handsontable/handsontable/issues/9624)
+
+### Fixed
+- Security upgrade moment from 2.29.3 to 2.29.4. [#9637](https://github.com/handsontable/handsontable/issues/9637)
+
 ## [12.1.1] - 2022-07-05
 
 For more information on this release, see:

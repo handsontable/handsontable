@@ -1,7 +1,0 @@
-{
-  "title": "Security upgrade moment from 2.29.3 to 2.29.4.",
-  "type": "fixed",
-  "issue": 9637,
-  "breaking": false,
-  "framework": "none"
-}
