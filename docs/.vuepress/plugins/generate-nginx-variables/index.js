@@ -23,6 +23,7 @@ set $docs_version "${getThisDocsVersion()}";
         await fsp.writeFile(outputFile, content);
       } catch (ex) {
         logger.error(`Something bad happens while writing to the file (${outputFile}): ${ex}`);
+        process.exit(1);
       }
     },
   };
