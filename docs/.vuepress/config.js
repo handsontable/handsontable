@@ -117,7 +117,7 @@ module.exports = {
       },
     },
     [dumpCanonicalsPlugin, {
-      outputFile: path.resolve(__dirname, './public/canonicals.json')
+      outputDir: path.resolve(__dirname, './public/canonicals/')
     }],
     [nginxVariablesPlugin, {
       outputFile: path.resolve(__dirname, '../docker/variables.conf')
