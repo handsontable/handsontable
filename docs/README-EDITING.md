@@ -29,7 +29,7 @@ Frontmatter example:
 ```
 ---
 title: Introduction
-permalink: /next/api/
+permalink: /api/
 canonicalUrl: /api/
 ---
 ```
@@ -52,7 +52,7 @@ When editing the documentation content, follow the guidelines below.
 
 ### Editing the `next` documentation version
 
-Draft files to be included in the documentation's next version are kept in the `next` directory.
+Draft files to be included in the documentation's next version are kept in the `content` directory.
 
 The `next` version of the documentation is available only locally and on the staging server.
 
@@ -62,17 +62,17 @@ To display the `next` version in a browser:
 
 ### Editing a published documentation version
 
-To edit an already-published documentation version, go to the required [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure) (e.g. `9.0`).
+To edit an already-published documentation version, go to the [`prod-docs/<MAJOR.MINOR>` branch](./README.md#handsontable-docs-branches-structure) (e.g. `prod-docs/9.0`).
 
 To display a published documentation version in a browser:
 1. Start a [local Handsontable documentation server](./README.md#getting-started-with-handsontable-docs).
-2. In your browser, go to http://localhost:8080/docs/{semver.version}/.
+2. In your browser, go to http://localhost:8080/docs/{MAJOR.MINOR}/.
 
-If you're editing the `latest` version (a version with the largest `<semver.version>` number), remember to make the same edits to the `next` version as well.
+If you're editing the `latest` version (a version with the largest `<MAJOR.MINOR>` number), remember to make the same edits to the `next` version as well.
 
 ### Editing the API reference
 
-The `next` version's API reference is generated automatically from the source code, into the `/next/api/` directory.
+The `next` version's API reference is generated automatically from the source code, into the `/content/api/` directory.
 
 To edit the `next` version's API reference:
 1. Go into the source code and change the required JSDoc comments.
@@ -80,9 +80,9 @@ To edit the `next` version's API reference:
     ```bash
     npm run docs:api
     ```
-    
+
 To edit a published version's API reference:
-1. Go to the required version's API reference output: `/docs/<semver.version>/api` (e.g. `/docs/9.0/api`).
+1. Go to the required version's API reference output: `/docs/<MAJOR.MINOR>/api` (e.g. `/docs/9.0/api`).
 2. Edit the required Markdown files.
 
 ## Reviewing the documentation
@@ -100,26 +100,12 @@ To deploy the documentation locally at a `[COMMIT_HASH]` commit:
    ```bash
    npm run docs:review [COMMIT_HASH]
    ```
-3. In your browser, go to: http://localhost:8000/docs/.
+3. In your browser, go to: http://localhost:8000/docs/next/.
 
 ## Documentation versioning
 
-To create a new version of the Handsontable documentation:
-
-1. From the `docs` directory, run:
-    ```bash
-    npm run docs:api
-    npm run docs:version
-    ```
-2. Confirm that you want to generate a new documentation version.
-3. Enter the version number that you want to create.
-
-To remove an existing version of the Handsontable documentation:
-
-* Remove the required version's [directory](./README.md#handsontable-docs-directory-structure):
-  ```bash
-  rm -rf ./<semver.version>
-  ```
+New documentation is created automatically after the Handsontable is released. The `./scripts/release.mjs`
+takes care to create a Documentation production branch, which is automatically deployed to the production.
 
 ## Markdown links
 
