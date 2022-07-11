@@ -4,7 +4,7 @@ This page covers guidelines for deploying the [Handsontable documentation](https
 
 ## About documentation deployment
 
-A [`prod-docs/<MAJOR.MINOR>` branch](./README.md#handsontable-docs-branches-structure) with the largest version number gets automatically tagged as the documentation's latest version.
+A [`prod-docs/<MAJOR.MINOR>` branch](./README.md#handsontable-documentation-branches-structure) with the largest version number gets automatically tagged as the documentation's latest version.
 
 Our server configuration watches for images tagged with `:v12.1`, `:v13.0` and so on, and automatically refreshes after detecting a newer version.
 

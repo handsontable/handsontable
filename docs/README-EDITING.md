@@ -4,7 +4,7 @@ This page covers guidelines for editing the [Handsontable documentation](https:/
 
 ## Maintenance rules
 
-When adding new documentation files, check the documentation [directory structure](./README.md#handsontable-docs-directory-structure), and follow the guidelines below.
+When adding new documentation files, check the documentation [directory structure](./README.md#handsontable-documentation-directory-structure), and follow the guidelines below.
 
 ### Filenames
 
@@ -57,7 +57,7 @@ Draft files to be included in the documentation's next version are kept in the `
 The `next` version of the documentation is available only locally and on the staging server.
 
 To display the `next` version in a browser:
-1. Start a [local Handsontable documentation server](./README.md#getting-started-with-handsontable-docs).
+1. Start a [local Handsontable documentation server](./README.md#getting-started-with-handsontable-documentation).
 2. In your browser, go to http://localhost:8080/docs/next/.
 
 ### Editing a published documentation version
@@ -65,7 +65,7 @@ To display the `next` version in a browser:
 To edit an already-published documentation version, go to the [`prod-docs/<MAJOR.MINOR>` branch](./README.md#handsontable-docs-branches-structure) (e.g. `prod-docs/9.0`).
 
 To display a published documentation version in a browser:
-1. Start a [local Handsontable documentation server](./README.md#getting-started-with-handsontable-docs).
+1. Start a [local Handsontable documentation server](./README.md#getting-started-with-handsontable-documentation).
 2. In your browser, go to http://localhost:8080/docs/{MAJOR.MINOR}/.
 
 If you're editing the `latest` version (a version with the largest `<MAJOR.MINOR>` number), remember to make the same edits to the `next` version as well.

@@ -92,3 +92,34 @@ docs                            # All documentation files
 ├── README-EDITING.md           # Documentation editing guidelines
 └── README.md                   # The file you're looking at right now!
 ```
+
+## Handsontable documentation branches structure
+
+Each documentation version has its own production branch from which the deployment is happening. The documentation branches are created using the following pattern `prod-docs/<MAJOR.MINOR>`.
+
+The documentation branches are created automatically once the Handsontable release script finishes its job. Depending on the library release version, two scenarios may happen:
+1. Patch release:
+    * Regenerate Docs content for the API by executing `npm run docs:api`;
+2. Major or Minor release:
+    * Create a new Docs branch, e.g. `prod-docs/13.0`;
+    * Generate Docs content for the API by executing `npm run docs:api`;
+
+Committing directly to the Documentation production branch triggers GitHub workflow that deploys the changes to the server. The exception is the `develop` branch that holds the changes for the "next" version. The staging version can be deployed only [manually](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment).
+
+```bash
+[branch] `prod-docs/12.0`       # All documentation files related to documentation 12.0
+  docs
+  ├── .vuepress                 # All VuePress files
+  ├── content                   # The documentation content files
+  └── docker                    # Docker configuration
+[branch] `prod-docs/12.1`       # All documentation files related to documentation 12.1
+  docs
+  ├── .vuepress                 # All VuePress files
+  ├── content                   # The documentation content files
+  └── docker                    # Docker configuration
+[branch] `develop`              # All documentation files related to the "next" documentation version
+  docs
+  ├── .vuepress                 # All VuePress files
+  ├── content                   # The documentation content files
+  └── docker                    # Docker configuration
+```
