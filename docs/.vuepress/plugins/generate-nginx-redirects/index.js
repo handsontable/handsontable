@@ -31,6 +31,7 @@ module.exports = (options, context) => {
         await fsp.writeFile(outputFile, fileHead);
       } catch (ex) {
         logger.error(`Something bad happens while writing to the file (${outputFile}): ${ex}`);
+        process.exit(1);
       }
     },
 
@@ -51,6 +52,7 @@ module.exports = (options, context) => {
           await fsp.appendFile(outputFile, `\n${redirectRule}`);
         } catch (ex) {
           logger.error(`Something bad happens while writing to the file (${outputFile}): ${ex}`);
+          process.exit(1);
         }
       }
     }
