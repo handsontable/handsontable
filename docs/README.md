@@ -97,7 +97,7 @@ docs                            # All documentation files
 
 Each documentation version has its own production branch from which the deployment is happening. The documentation branches are created using the following pattern `prod-docs/<MAJOR.MINOR>`.
 
-The documentation branches are created automatically once the Handsontable release script finishes its job. Depending on the library release version, two scenarios may happen:
+The documentation branches are created automatically once the Handsontable release script finishes its job. Depending on the Handsontable release version, two scenarios may happen:
 1. Patch release:
     * Regenerate Docs content for the API by executing `npm run docs:api`;
     * Commit and push the changes to the origin;
