@@ -24,8 +24,10 @@ const { getEnvDocsFramework, parseFramework, getDefaultFramework, getNormalizedP
  */
 module.exports = function conditionalContainer(markdown) {
   const openAndCloseTagOneliner = /::: only-for (((react|javascript) ?)+)(.*?):::$/ms;
-  const foundOpenTokenContent = /(?:\n?)::: only-for (((react|javascript) ?)+)\n?/;
-  const foundCloseTokenContent = /(?:\n?):::$/;
+  const openTokenContent = /(?:\n?)::: only-for (((react|javascript) ?)+)\n?/;
+  const fullMatchOpenToken = /^(?:\n?)::: only-for (((react|javascript) ?)+)\n?$/;
+  const closeTokenContent = /(?:\n?):::$/;
+  const fullMatchCloseToken = /^(?:\n?):::$/;
   const markupForCustomContainer = ':::';
   const newLineTokenType = 'softbreak';
   const capturedGroupIndex = 1;
@@ -61,6 +63,15 @@ module.exports = function conditionalContainer(markdown) {
       )}`);
     }
   };
+  
+  const cleanTokens = ({ tokens, token, tokenIndex, preciseRegexp, lessPreciseRegexp, env }) => {
+    if (preciseRegexp.test(token.content)) {
+      tokens.splice(tokenIndex, 1);
+
+    } else {
+      removeValueAndNewLine({ token, regexp: lessPreciseRegexp, env });
+    }
+  };
 
   const findAndRemove = (state) => {
     const relativePath = state.env?.relativePath; // Sometimes the `env` key is an empty object.
@@ -84,25 +95,30 @@ module.exports = function conditionalContainer(markdown) {
           state.tokens.splice(index, 1);
 
         } else {
-          removeValueAndNewLine({ token, regexp: foundOpenTokenContent, env });
-          removeValueAndNewLine({ token, regexp: foundCloseTokenContent, env });
+          cleanTokens({ tokens: state.tokens, token, tokenIndex: index, lessPreciseRegexp: openTokenContent, preciseRegexp: fullMatchOpenToken, env });
+          cleanTokens({ tokens: state.tokens, token, tokenIndex: index, lessPreciseRegexp: closeTokenContent, preciseRegexp: fullMatchCloseToken, env });
         }
 
-      } else if (isNotNativeContainer && foundCloseTokenContent.test(token.content)) {
+      } else if (isNotNativeContainer && closeTokenContent.test(token.content)) {
 
         endIndex = index;
-      } else if (isNotNativeContainer && foundOpenTokenContent.test(token.content)) {
-        const onlyForFrameworks = foundOpenTokenContent.exec(token.content)[capturedGroupIndex].split(' ');
-
-        removeValueAndNewLine({ token, regexp: foundOpenTokenContent, env });
+      } else if (isNotNativeContainer && openTokenContent.test(token.content)) {
+        const onlyForFrameworks = openTokenContent.exec(token.content)[capturedGroupIndex].split(' ');
 
         if (onlyForFrameworks.includes(frameworkId) === false) {
-          const indexAfterCurrentToken = index + 1;
+          let indexForRemoval = index;
 
-          state.tokens.splice(indexAfterCurrentToken, endIndex - indexAfterCurrentToken + 1);
+          if (/^::: only-for/.test(token.content) === false) {
+            indexForRemoval += 1;
+
+          } else {
+            cleanTokens({ tokens: state.tokens, token, tokenIndex: index, lessPreciseRegexp: openTokenContent, preciseRegexp: fullMatchOpenToken, env });
+          }
+
+          state.tokens.splice(indexForRemoval, endIndex - indexForRemoval + 2);
         } else {
-
-          removeValueAndNewLine({ token: state.tokens[endIndex], regexp: foundCloseTokenContent, env });
+          cleanTokens({ tokens: state.tokens, token, tokenIndex: index, lessPreciseRegexp: openTokenContent, preciseRegexp: fullMatchOpenToken, env });
+          cleanTokens({ tokens: state.tokens, token: state.tokens[endIndex], tokenIndex: endIndex, lessPreciseRegexp: closeTokenContent, preciseRegexp: fullMatchCloseToken, env  });
         }
       }
     }
