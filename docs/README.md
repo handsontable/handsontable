@@ -100,9 +100,11 @@ Each documentation version has its own production branch from which the deployme
 The documentation branches are created automatically once the Handsontable release script finishes its job. Depending on the library release version, two scenarios may happen:
 1. Patch release:
     * Regenerate Docs content for the API by executing `npm run docs:api`;
+    * Commit and push the changes to the origin;
 2. Major or Minor release:
-    * Create a new Docs branch, e.g. `prod-docs/13.0`;
+    * Create a new Docs branch, e.g. `prod-docs/13.0` from the `develop` branch (after the release branch is merged to the `develop` branch);
     * Generate Docs content for the API by executing `npm run docs:api`;
+    * Commit and push the changes to the origin;
 
 Committing directly to the Documentation production branch triggers GitHub workflow that deploys the changes to the server. The exception is the `develop` branch that holds the changes for the "next" version. The staging version can be deployed only [manually](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment).
 
