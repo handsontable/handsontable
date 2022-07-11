@@ -12,7 +12,7 @@ const canonicals = {
 };
 
 module.exports = (options, context) => {
-  const outputFile = options.outputDir || path.resolve(context.publicDir);
+  const outputDir = options.outputDir || path.resolve(context.publicDir);
 
   return {
     name: pluginName,
@@ -34,9 +34,11 @@ module.exports = (options, context) => {
      */
     async ready() {
       try {
-        await fsp.writeFile(`${outputFile}/raw.json`, JSON.stringify(canonicals));
+        await fsp.mkdir(outputDir, { recursive: true });
+        await fsp.writeFile(`${outputDir}/raw.json`, JSON.stringify(canonicals));
       } catch (ex) {
-        logger.error(`Something bad happens while writing to the file (${outputFile}): ${ex}`);
+        logger.error(`Something bad happens while writing to the file (${outputDir}): ${ex}`);
+        process.exit(1);
       }
     }
   };
