@@ -1,9 +1,4 @@
-// const {
-//   getDocsBaseUrl,
-// } = require('../../helpers');
-
-// const BASE_URL = getDocsBaseUrl();
-const BASE_URL = `https://dev-pseudo-${process.env.BUILD_MODE === 'staging' ? 'staging' : 'prod'}.handsontable.com`; // tmp for testing
+const BASE_URL = 'https://dev-pseudo-prod.handsontable.com'; // tmp for testing
 
 /**
  * Generates a Map with canonical URLs using the following structure [/path url/, /latest docs version that has the url/].
