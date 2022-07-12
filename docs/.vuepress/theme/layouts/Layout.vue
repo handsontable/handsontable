@@ -18,7 +18,6 @@ import ParentLayout from '@parent-theme/layouts/Layout.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import NavLink from '@theme/components/NavLink.vue';
 import Sidebar from '@theme/components/Sidebar.vue';
-import { fetchDocsData } from '../utils/remote-docs-data';
 
 export default {
   name: 'Layout',
@@ -42,10 +41,8 @@ export default {
       return !this.isThisTheLatestVersion || this.isNext;
     }
   },
-  async mounted() {
-    const docsData = await fetchDocsData();
-
-    this.isThisTheLatestVersion = this.$page.currentVersion === docsData.latestVersion;
+  mounted() {
+    this.isThisTheLatestVersion = this.$page.currentVersion === this.$page.latestVersion;
   }
 };
 </script>

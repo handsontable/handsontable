@@ -42,14 +42,16 @@ const buildActiveHeaderLinkHandler = () => {
  */
 let isFirstPageLoaded = true;
 
-export default async ({ router, siteData, isServer }) => {
+export default async({ router, siteData, isServer }) => {
   if (!isServer) {
     const pathVersion = ['dev-pseudo-prod.handsontable.com', 'handsontable.com']
       .includes(window.location.host) ? '' : 'next/';
-    const response = await fetch(`${window.location.origin}/docs/${pathVersion}canonicals/processed.json`);
-    const canonicalURLs = new Map((await response.json()).urls);
+    const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
+    const docsData = await response.json();
+    const canonicalURLs = new Map(docsData.urls);
 
-    siteData.pages.forEach(({ path, frontmatter }) => {
+    siteData.pages.forEach((page) => {
+      const { path, frontmatter } = page;
       const pathNorm = path.replace(/^\//, '').replace(/\/$/, '');
 
       if (canonicalURLs.has(pathNorm)) {
@@ -57,6 +59,9 @@ export default async ({ router, siteData, isServer }) => {
 
         frontmatter.canonicalUrl = docsVersion + path;
       }
+
+      page.versions = docsData.versions;
+      page.latestVersion = docsData.latestVersion;
     });
 
     themeLoader();
