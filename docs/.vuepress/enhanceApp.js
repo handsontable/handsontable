@@ -57,7 +57,7 @@ export default async({ router, siteData, isServer }) => {
       if (canonicalURLs.has(pathNorm)) {
         const docsVersion = canonicalURLs.get(pathNorm) === '' ? '' : `/${canonicalURLs.get(pathNorm)}`;
 
-        frontmatter.canonicalUrl = docsVersion + path;
+        frontmatter.canonicalUrl = '/docs' + docsVersion + path;
       }
 
       page.versions = docsData.versions;
