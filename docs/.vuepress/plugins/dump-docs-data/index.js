@@ -2,13 +2,19 @@ const fsp = require('fs').promises;
 const path = require('path');
 const { logger } = require('@vuepress/shared-utils');
 const { generateCommonCanonicalURLs } = require('./canonicals');
+const { fetchDocsVersions } = require('./docs-versions');
 const {
   getThisDocsVersion,
 } = require('../../helpers');
 
 const pluginName = 'hot/dump-canonicals';
-const canonicals = {
+const rawCanonicalURLs = {
   v: getThisDocsVersion(),
+  urls: [],
+}
+const docsDataCommon = {
+  versions: [],
+  latestVersion: '',
   urls: [],
 };
 
@@ -26,7 +32,7 @@ module.exports = (options, context) => {
     async extendPageData($page) {
       if ($page.frontmatter.permalink) {
         // Remove the slash ('/') from the beginning of the URL path to reduce the resulting file size
-        canonicals.urls.push($page.frontmatter.permalink.replace(/^\//, ''));
+        rawCanonicalURLs.urls.push($page.frontmatter.permalink.replace(/^\//, ''));
       }
     },
 
@@ -36,19 +42,21 @@ module.exports = (options, context) => {
     async ready() {
       try {
         await fsp.mkdir(outputDir, { recursive: true });
-        await fsp.writeFile(`${outputDir}/raw.json`, JSON.stringify(canonicals));
+        await fsp.writeFile(`${outputDir}/canonicals-raw.json`, JSON.stringify(rawCanonicalURLs));
       } catch (ex) {
         logger.error(`Something bad happens while writing to the file (${outputDir}): ${ex}`);
         process.exit(1);
       }
 
-      const canonicalURLs = await generateCommonCanonicalURLs(canonicals);
-      const processedURLs = {
-        urls: Array.from(canonicalURLs)
-      };
+      const docsVersions = await fetchDocsVersions();
+      // const canonicalURLs = await generateCommonCanonicalURLs(rawCanonicalURLs);
+
+      // docsDataCommon.urls = Array.from(canonicalURLs);
+      docsDataCommon.versions = docsVersions.versions;
+      docsDataCommon.latestVersion = docsVersions.latestVersion;
 
       try {
-        await fsp.writeFile(`${outputDir}/processed.json`, JSON.stringify(processedURLs));
+        await fsp.writeFile(`${outputDir}/common.json`, JSON.stringify(docsDataCommon));
       } catch (ex) {
         logger.error(`Something bad happens while writing to the file (${outputDir}): ${ex}`);
         process.exit(1);
