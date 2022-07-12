@@ -5,7 +5,7 @@ const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
-const dumpCanonicalsPlugin = require('./plugins/dump-canonicals');
+const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 const { getThisDocsVersion, getDocsBaseUrl } = require('./helpers');
 
 const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
@@ -116,8 +116,8 @@ module.exports = {
           .end();
       },
     },
-    [dumpCanonicalsPlugin, {
-      outputDir: path.resolve(__dirname, './public/canonicals/')
+    [dumpDocsDataPlugin, {
+      outputDir: path.resolve(__dirname, './public/data/')
     }],
     [nginxVariablesPlugin, {
       outputFile: path.resolve(__dirname, '../docker/variables.conf')
