@@ -35,8 +35,16 @@ module.exports = {
   description: 'Handsontable',
   base: `/docs/${docsBase === 'latest' ? '' : `${docsBase}/`}`,
   head: [
-    ['link', { rel: 'icon', href: `${getDocsBaseUrl()}/static/images/template/ModCommon/favicon-32x32.png` }],
-    ['link', { rel: 'preload', href: '/data/common.json', as: 'fetch', crossorigin: '' }],
+    ['link', {
+      rel: 'icon',
+      href: `${getDocsBaseUrl()}/static/images/template/ModCommon/favicon-32x32.png`
+    }],
+    ['link', {
+      rel: 'preload',
+      href: isProduction ? `${getDocsBaseUrl()}/docs/data/common.json` : '/data/common.json',
+      as: 'fetch',
+      crossorigin: ''
+    }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     // Cookiebot - cookie consent popup
     ['script', {
