@@ -13,7 +13,7 @@ const BASE_URL = `https://dev-pseudo-${process.env.BUILD_MODE === 'staging' ? 's
  */
 async function generateCommonCanonicalURLs(currentCanonicals) {
   const commonURLs = new Map();
-  const response = await fetch(`${BASE_URL}/docs/docs-data.json`);
+  const response = await fetch(`${BASE_URL}/docs/data/common.json`);
   const docsData = await response.json();
   const allDocsVersions = [...docsData.versions];
   const latestDocsVersion = docsData.latestVersion;
@@ -31,7 +31,7 @@ async function generateCommonCanonicalURLs(currentCanonicals) {
       canonicalsURLs = currentCanonicals.urls;
     } else {
       /* eslint-disable no-await-in-loop */
-      const canonicalsResponse = await fetch(`${BASE_URL}/docs/${docsVersion}/canonicals/raw.json`);
+      const canonicalsResponse = await fetch(`${BASE_URL}/docs/${docsVersion}/data/canonicals-raw.json`);
 
       canonicalsURLs = (await canonicalsResponse.json()).urls;
     }
