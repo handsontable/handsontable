@@ -42,8 +42,23 @@ const buildActiveHeaderLinkHandler = () => {
  */
 let isFirstPageLoaded = true;
 
-export default ({ router, isServer }) => {
+export default async ({ router, siteData, isServer }) => {
   if (!isServer) {
+    const pathVersion = ['dev-pseudo-prod.handsontable.com', 'handsontable.com']
+      .includes(window.location.host) ? '' : 'next/';
+    const response = await fetch(`${window.location.origin}/docs/${pathVersion}canonicals/processed.json`);
+    const canonicalURLs = new Map((await response.json()).urls);
+
+    siteData.pages.forEach(({ path, frontmatter }) => {
+      const pathNorm = path.replace(/^\//, '').replace(/\/$/, '');
+
+      if (canonicalURLs.has(pathNorm)) {
+        const docsVersion = canonicalURLs.get(pathNorm) === '' ? '' : `/${canonicalURLs.get(pathNorm)}`;
+
+        frontmatter.canonicalUrl = docsVersion + path;
+      }
+    });
+
     themeLoader();
 
     if (typeof window.ga === 'function') {
@@ -52,7 +67,7 @@ export default ({ router, isServer }) => {
           ga.getAll().forEach((tracker) => {
             if (tracker.get('trackingId') === GA_ID) {
               // Collect the page view in the next browser event loop cycle to make sure
-              // that the VuePress finished render new page completly (change the URL address
+              // that the VuePress finished render new page completely (change the URL address
               // and document title).
               setTimeout(() => {
                 tracker.set('page', router.app.$withBase(to.fullPath));
