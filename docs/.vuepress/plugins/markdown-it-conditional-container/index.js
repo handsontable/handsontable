@@ -23,7 +23,7 @@ const { getEnvDocsFramework, parseFramework, getDefaultFramework, getNormalizedP
  * ```
  */
 module.exports = function conditionalContainer(markdown) {
-  const openAndCloseTagOneliner = /::: only-for (((react|javascript) ?)+)(.*?):::$/ms;
+  const openAndCloseTagOneliner = /::: only-for (((react|javascript) ?)+)(.*?):::$/ms; // It is multi line text.
   const openTokenContent = /(?:\n?)::: only-for (((react|javascript) ?)+)\n?/;
   const fullMatchOpenToken = /^(?:\n?)::: only-for (((react|javascript) ?)+)\n?$/;
   const closeTokenContent = /(?:\n?):::$/;
@@ -87,38 +87,40 @@ module.exports = function conditionalContainer(markdown) {
       const token = state.tokens[index];
       // We don't create custom container intentionally. It can create paragraphs or break listed elements.
       const isNotNativeContainer = token.markup !== markupForCustomContainer;
+      
+      if (isNotNativeContainer) {
+        if (openAndCloseTagOneliner.test(token.content)) {
+          const onlyForFrameworks = openAndCloseTagOneliner.exec(token.content)[capturedGroupIndex].split(' ');
 
-      if (isNotNativeContainer && openAndCloseTagOneliner.test(token.content)) {
-        const onlyForFrameworks = openAndCloseTagOneliner.exec(token.content)[capturedGroupIndex].split(' ');
+          if (onlyForFrameworks.includes(frameworkId) === false) {
+            state.tokens.splice(index, 1); // We remove full token containing oneliner.
 
-        if (onlyForFrameworks.includes(frameworkId) === false) {
-          state.tokens.splice(index, 1); // We remove full token containing oneliner.
+          } else {
+            removeValueAndNewLine({ token, regexp: openTokenContent, env });
+            removeValueAndNewLine({ token, regexp: closeTokenContent, env });
+          }
 
-        } else {
-          removeValueAndNewLine({ token, regexp: openTokenContent, env });
-          removeValueAndNewLine({ token, regexp: closeTokenContent, env });
-        }
+        } else if (closeTokenContent.test(token.content)) {
 
-      } else if (isNotNativeContainer && closeTokenContent.test(token.content)) {
+          endIndex = index;
+        } else if (openTokenContent.test(token.content)) {
+          const onlyForFrameworks = openTokenContent.exec(token.content)[capturedGroupIndex].split(' ');
 
-        endIndex = index;
-      } else if (isNotNativeContainer && openTokenContent.test(token.content)) {
-        const onlyForFrameworks = openTokenContent.exec(token.content)[capturedGroupIndex].split(' ');
+          if (onlyForFrameworks.includes(frameworkId) === false) {
+            const startIndexForRemoval = index + 1; // We remove elements, starting from the token right after the found one.
+            const elementsForRemoval = endIndex - startIndexForRemoval + 1;
 
-        if (onlyForFrameworks.includes(frameworkId) === false) {
-          const startIndexForRemoval = index + 1; // We remove elements, starting from the token right after found one.
-          const elementsForRemoval = endIndex - startIndexForRemoval + 1;
+            state.tokens.splice(startIndexForRemoval, elementsForRemoval);
 
-          state.tokens.splice(startIndexForRemoval, elementsForRemoval);
+            // Token's content may starts with `::: only-for` (should be removed). Alternatively, it can end with the markup.
+            // Then, just string's tail should be removed.
+            cleanTokens({ tokens: state.tokens, token, tokenIndex: index, lessPreciseRegexp: openTokenContent, preciseRegexp: /^::: only-for/, env });
 
-          // Token's content may starts with `::: only-for` (should be removed). Alternatively, it can end with the markup.
-          // Then, just string's tail should be removed.
-          cleanTokens({ tokens: state.tokens, token, tokenIndex: index, lessPreciseRegexp: openTokenContent, preciseRegexp: /^::: only-for/, env });
-
-        } else {
-          // Removing / replacing elements from the end (:::) to the start (:::: only-for).
-          cleanTokens({ tokens: state.tokens, token: state.tokens[endIndex], tokenIndex: endIndex, lessPreciseRegexp: closeTokenContent, preciseRegexp: fullMatchCloseToken, env  });
-          cleanTokens({ tokens: state.tokens, token, tokenIndex: index, lessPreciseRegexp: openTokenContent, preciseRegexp: fullMatchOpenToken, env });
+          } else {
+            // Removing / replacing elements from the end (:::) to the start (:::: only-for).
+            cleanTokens({ tokens: state.tokens, token: state.tokens[endIndex], tokenIndex: endIndex, lessPreciseRegexp: closeTokenContent, preciseRegexp: fullMatchCloseToken, env  });
+            cleanTokens({ tokens: state.tokens, token, tokenIndex: index, lessPreciseRegexp: openTokenContent, preciseRegexp: fullMatchOpenToken, env });
+          }
         }
       }
     }
