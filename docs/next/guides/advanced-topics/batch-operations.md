@@ -228,7 +228,7 @@ const alterTable = () => {
   hot.render(); // Render is needed here to populate the new "className"s
 }
 
-let logText = '';
+let loggedText = '';
 let counter = 0;
 
 const logOutput = msg => {
