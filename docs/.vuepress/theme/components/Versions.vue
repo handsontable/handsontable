@@ -9,7 +9,6 @@
 
 <script>
 import DropdownLink from '@theme/components/DropdownLink.vue';
-import { fetchDocsData } from '../utils/remote-docs-data';
 
 export default {
   name: 'Versions',
@@ -19,19 +18,18 @@ export default {
   data() {
     return {
       item: [],
-      latestVersion: null,
     };
   },
   methods: {
     addLatest(version) {
-      if (version === this.latestVersion) {
+      if (version === this.$page.latestVersion) {
         return `${version} (Current)`;
       }
 
       return version;
     },
     getLink(version) {
-      if (version === this.latestVersion) {
+      if (version === this.$page.latestVersion) {
         return '/docs/';
       }
 
@@ -60,15 +58,12 @@ export default {
       }));
     }
   },
-  async mounted() {
-    const docsData = await fetchDocsData();
-
-    this.latestVersion = docsData.latestVersion;
+  mounted() {
     this.item = {
       text: this.addLatest(this.$page.currentVersion),
       items:
         [
-          ...docsData.versions.map(v => ({
+          ...this.$page.versions.map(v => ({
             text: `${this.addLatest(v)}`,
             link: this.getLink(v),
             target: '_self',
