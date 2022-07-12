@@ -42,7 +42,8 @@ function getSidebars() {
  * @returns {string}
  */
 function getDocsBaseUrl() {
-  return `https://${process.env.BUILD_MODE === 'staging' ? 'dev.' : ''}handsontable.com`;
+  // return `https://dev-pseudo-${process.env.BUILD_MODE === 'staging' ? 'dev.' : ''}handsontable.com`;
+  return `https://dev-pseudo-${process.env.BUILD_MODE === 'staging' ? 'staging.' : 'prod.'}handsontable.com`;
 }
 
 module.exports = {
