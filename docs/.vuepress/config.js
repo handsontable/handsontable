@@ -11,7 +11,8 @@ const { getThisDocsVersion, getDocsBaseUrl } = require('./helpers');
 
 const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
 const buildMode = process.env.BUILD_MODE;
-const environmentHead = buildMode === 'production' ?
+const isProduction = buildMode === 'production';
+const environmentHead = isProduction?
   [
     // Google Tag Manager, an extra element within the `ssr.html` file.
     ['script', {}, `
@@ -35,6 +36,7 @@ module.exports = {
   base: `/docs/${docsBase === 'latest' ? '' : `${docsBase}/`}`,
   head: [
     ['link', { rel: 'icon', href: `${getDocsBaseUrl()}/static/images/template/ModCommon/favicon-32x32.png` }],
+    ['link', { rel: 'preload', href: '/data/common.json', as: 'fetch', crossorigin: '' }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     // Cookiebot - cookie consent popup
     ['script', {
