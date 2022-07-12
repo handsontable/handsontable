@@ -13,6 +13,7 @@
     "docs:lint": "eslint --ext .js,.vue,.mjs .vuepress content",
     "docs:lint:fix": "eslint --ext .js,.vue,.mjs .vuepress content --fix",
     "docs:scripts:link-assets": "node .vuepress/tools/link-assets.mjs",
+    "docs:scripts:dump-docs-data": "node --experimental-fetch .vuepress/tools/dump-docs-data.mjs",
     "docs:scripts:generate-legacy-docs-versions": "node .vuepress/tools/generate-legacy-docs-versions.mjs",
     "docs:start": "npm run docs:scripts:dump-docs-data && npm run docs:scripts:link-assets && node --experimental-fetch ./node_modules/.bin/vuepress dev ./",
     "docs:start:no-cache": "npm run docs:scripts:dump-docs-data && npm run docs:scripts:link-assets && node --experimental-fetch ./node_modules/.bin/vuepress dev --no-cache ./",
