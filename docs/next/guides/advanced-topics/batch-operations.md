@@ -233,8 +233,8 @@ let counter = 0;
 
 const logOutput = msg => {
   counter++;
-  logText = `[${counter}] ${msg}\n${logText}`;
-  console.innerText = logText;
+  loggedText = `[${counter}] ${msg}\n${loggedText}`;
+  console.innerText = loggedText;
 }
 
 buttonWithout.addEventListener('click', () => {
