@@ -11,7 +11,7 @@ tags:
 
 [[toc]]
 
-Install Handsontable in your preferred way.
+Install Handsontable in your preferred way. TEST1
 
 ::: tip
 To install Handsontable using a framework, see:
