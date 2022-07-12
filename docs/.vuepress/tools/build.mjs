@@ -49,14 +49,18 @@ async function buildVersion(version) {
  * @param {version} version The docs version to concatenate.
  */
 async function concatenate(version) {
-  const prebuildLatest = path.resolve(__dirname, '../../', `.vuepress/dist/pre-latest-${version.replace('.', '-')}`);
+  if (version !== 'next') {
+    const prebuildLatest = path.resolve(__dirname, '../../', `.vuepress/dist/pre-latest-${version.replace('.', '-')}`);
+    const distLatest = path.resolve(__dirname, '../../', '.vuepress/dist/docs');
+
+    await fse.move(prebuildLatest, distLatest);
+  }
+
   const prebuildVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/pre-${version.replace('.', '-')}`);
-  const distLatest = path.resolve(__dirname, '../../', '.vuepress/dist/docs');
   const distVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/docs/${version}`);
 
   logger.info('Apply built version to the `docs/`', version);
 
-  await fse.move(prebuildLatest, distLatest);
   await fse.move(prebuildVersioned, distVersioned);
 }
 
