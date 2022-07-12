@@ -12,7 +12,7 @@ const { getThisDocsVersion, getDocsBaseUrl } = require('./helpers');
 const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
-const environmentHead = isProduction?
+const environmentHead = isProduction ?
   [
     // Google Tag Manager, an extra element within the `ssr.html` file.
     ['script', {}, `
