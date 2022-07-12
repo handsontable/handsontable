@@ -69,12 +69,32 @@ displaySeparator();
     // Merge the changes to the `develop` and `master` branches.
     await spawnProcess(`git flow release finish -s ${branchName.replace('release/', '')}`);
 
-    if (argv.push === true) {
+    await spawnProcess('git checkout develop');
+    await spawnProcess('git push origin develop');
+    await spawnProcess('git checkout master');
+    await spawnProcess('git push origin master');
+    await spawnProcess('git push --tags');
+
+    const docsVersion = `prod-docs/${releaseVersion.substring(0, 4)}`; // e.g. "prod-docs/12.1" (without patch)
+    const remoteDocsBranchExists = await spawnProcess(
+      `git ls-remote --heads origin --list ${docsVersion}`, { silent: true });
+
+    await spawnProcess('git checkout develop');
+
+    if (remoteDocsBranchExists.stdout) {
+      await spawnProcess(`git checkout ${docsVersion}`);
+      await spawnProcess(`git pull origin ${docsVersion}`);
       await spawnProcess('git checkout develop');
-      await spawnProcess('git push origin develop');
-      await spawnProcess('git checkout master');
-      await spawnProcess('git push origin master');
-      await spawnProcess('git push --tags');
+      // Sync the latest docs version with `develop` branch.
+      await spawnProcess(`git merge ${docsVersion}`);
+    } else {
+      await spawnProcess(`git checkout -b ${docsVersion}`);
+      // Remove "/content/api/" entry from the ./docs/.gitignore file so generated API
+      // docs can be committed to the branch.
+      await execa.command('cat ./.gitignore | grep -v "^/content/api/$" | tee .gitignore', {
+        cwd: 'docs',
+        shell: true,
+      });
     }
   }
 })();
