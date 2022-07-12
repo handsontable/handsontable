@@ -76,8 +76,8 @@ displaySeparator();
     await spawnProcess('git checkout develop');
 
     if (remoteDocsBranchExists.stdout) {
-      await spawnProcess(`git checkout ${docsProdBranch}`);
-      await spawnProcess(`git pull origin ${docsProdBranch}`);
+      await spawnProcess(`git checkout ${docsVersion}`);
+      await spawnProcess(`git pull origin ${docsVersion}`);
 
     } else {
       await spawnProcess(`git checkout -b ${docsVersion}`);
