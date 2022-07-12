@@ -4,20 +4,13 @@
  *
  * It merges the release branch to the `develop` and `master` branches and pushes them, along with the created tags.
  */
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
 import inquirer from 'inquirer';
+import execa from 'execa';
 import {
   displayErrorMessage,
   displaySeparator,
   spawnProcess,
 } from './utils/index.mjs';
-
-const argv = yargs(hideBin(process.argv))
-  .boolean('push')
-  .default('push', false)
-  .describe('push', '`true` if the release should be pushed to `develop` and `master` along with the tags.')
-  .argv;
 
 displaySeparator();
 
@@ -53,6 +46,7 @@ displaySeparator();
     // Check if we're on a release branch.
     const processInfo = await spawnProcess('git rev-parse --abbrev-ref HEAD', { silent: true });
     const branchName = processInfo.stdout.toString();
+    const releaseVersion = branchName.replace('release/', '');
 
     if (!branchName.startsWith('release/')) {
       displayErrorMessage('You are not on a release branch.');
@@ -67,7 +61,7 @@ displaySeparator();
     await spawnProcess(`git checkout ${branchName}`);
 
     // Merge the changes to the `develop` and `master` branches.
-    await spawnProcess(`git flow release finish -s ${branchName.replace('release/', '')}`);
+    await spawnProcess(`git flow release finish -s ${releaseVersion}`);
 
     await spawnProcess('git checkout develop');
     await spawnProcess('git push origin develop');
@@ -96,5 +90,15 @@ displaySeparator();
         shell: true,
       });
     }
+
+    // Regenerate docs API md files.
+    await spawnProcess('npm run docs:api', { cwd: 'docs' });
+
+    // Commit the Docs changes to the Docs Production branch.
+    await spawnProcess('git add .');
+    await spawnProcess(`git commit -m "${releaseVersion}"`);
+    await spawnProcess(`git push origin ${docsVersion}`);
+    // Back to `develop` branch.
+    await spawnProcess('git checkout develop');
   }
 })();
