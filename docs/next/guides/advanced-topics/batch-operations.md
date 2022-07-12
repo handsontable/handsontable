@@ -176,7 +176,7 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 const container = document.querySelector('#example1');
 const buttonWithout = document.querySelector('#buttonWithout');
 const buttonWith = document.querySelector('#buttonWith');
-const console = document.querySelector('#output');
+const output = document.querySelector('#output');
 
 const data1 = [
   [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
@@ -234,7 +234,7 @@ let counter = 0;
 const logOutput = msg => {
   counter++;
   loggedText = `[${counter}] ${msg}\n${loggedText}`;
-  console.innerText = loggedText;
+  output.innerText = loggedText;
 }
 
 buttonWithout.addEventListener('click', () => {
