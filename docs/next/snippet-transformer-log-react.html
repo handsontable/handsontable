@@ -36,46 +36,7 @@
 <body>
   <div class="container">
     <header><h2>Code snippet transformation preview</h2></header>
-      <header>Source: <code>next/guides/rows/row-trimming.md:26</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-
-const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(10, 4),
-  colHeaders: true,
-  rowHeaders: true,
-  trimRows: [1, 2, 5],
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(10, 4),
-  colHeaders: true,
-  rowHeaders: true,
-  trimRows: [1, 2, 5],
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
-        <header>Source: <code>next/guides/rows/row-virtualization.md:46</code></header>
+      <header>Source: <code>next/guides/rows/row-virtualization.md:46</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
@@ -110,192 +71,6 @@ const App = () =&gt; {
   return (
     &lt;div&gt;
       &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
-        <header>Source: <code>next/guides/rows/row-prepopulating.md:24</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-const templateValues = ['one', 'two', 'three'];
-const data = [
-  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
-  ['2017', 10, 11, 12, 13],
-  ['2018', 20, 11, 14, 13],
-  ['2019', 30, 15, 12, 13]
-];
-
-function isEmptyRow(instance, row) {
-  var rowData = instance.countRows();
-
-  for (var i = 0, ilen = rowData.length; i &lt; ilen; i++) {
-    if (rowData[i] !== null) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function defaultValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-  const args = arguments;
-
-  if (args[5] === null && isEmptyRow(instance, row)) {
-    args[5] = templateValues[col];
-    td.style.color = '#999';
-
-  } else {
-    td.style.color = '';
-  }
-
-  Handsontable.renderers.TextRenderer.apply(this, args);
-}
-
-const hot = new Handsontable(container, {
-  startRows: 8,
-  startCols: 5,
-  minSpareRows: 1,
-  contextMenu: true,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
-  cells(row, col, prop) {
-    const cellProperties = {};
-
-    cellProperties.renderer = defaultValueRenderer;
-
-    return cellProperties;
-  },
-  beforeChange(changes) {
-    const instance = hot;
-    const columns = instance.countCols();
-    const rowColumnSeen = {};
-    const rowsToFill = {};
-
-    for (let i = 0; i &lt; changes.length; i++) {
-      // if oldVal is empty
-      if (changes[i][2] === null && changes[i][3] !== null) {
-        if (isEmptyRow(instance, changes[i][0])) {
-          // add this row/col combination to the cache so it will not be overwritten by the template
-          rowColumnSeen[changes[i][0] + '/' + changes[i][1]] = true;
-          rowsToFill[changes[i][0]] = true;
-        }
-      }
-    }
-
-    for (var r in rowsToFill) {
-      if (rowsToFill.hasOwnProperty(r)) {
-        for (let c = 0; c &lt; columns; c++) {
-          // if it is not provided by user in this change set, take the value from the template
-          if (!rowColumnSeen[r + '/' + c]) {
-            changes.push([r, c, null, templateValues[c]]);
-          }
-        }
-      }
-    }
-  }
-});
-
-// or, use `updateData()` to replace `data` without resetting states
-hot.loadData(data);
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotRef = React.createRef();
-const templateValues = ['one', 'two', 'three'];
-const data = [
-  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
-  ['2017', 10, 11, 12, 13],
-  ['2018', 20, 11, 14, 13],
-  ['2019', 30, 15, 12, 13]
-];
-
-function isEmptyRow(instance, row) {
-  var rowData = instance.countRows();
-
-  for (var i = 0, ilen = rowData.length; i &lt; ilen; i++) {
-    if (rowData[i] !== null) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function defaultValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-  const args = arguments;
-
-  if (args[5] === null && isEmptyRow(instance, row)) {
-    args[5] = templateValues[col];
-    td.style.color = '#999';
-
-  } else {
-    td.style.color = '';
-  }
-
-  Handsontable.renderers.TextRenderer.apply(this, args);
-}
-const hotSettings = {
-  startRows: 8,
-  startCols: 5,
-  minSpareRows: 1,
-  contextMenu: true,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
-  cells(row, col, prop) {
-    const cellProperties = {};
-
-    cellProperties.renderer = defaultValueRenderer;
-
-    return cellProperties;
-  },
-  beforeChange(changes) {
-    const instance = hot;
-    const columns = instance.countCols();
-    const rowColumnSeen = {};
-    const rowsToFill = {};
-
-    for (let i = 0; i &lt; changes.length; i++) {
-      // if oldVal is empty
-      if (changes[i][2] === null && changes[i][3] !== null) {
-        if (isEmptyRow(instance, changes[i][0])) {
-          // add this row/col combination to the cache so it will not be overwritten by the template
-          rowColumnSeen[changes[i][0] + '/' + changes[i][1]] = true;
-          rowsToFill[changes[i][0]] = true;
-        }
-      }
-    }
-
-    for (var r in rowsToFill) {
-      if (rowsToFill.hasOwnProperty(r)) {
-        for (let c = 0; c &lt; columns; c++) {
-          // if it is not provided by user in this change set, take the value from the template
-          if (!rowColumnSeen[r + '/' + c]) {
-            changes.push([r, c, null, templateValues[c]]);
-          }
-        }
-      }
-    }
-  }
-};
-
-const App = () =&gt; {
-  useEffect(() =&gt; {
-    const hot = hotRef.current.hotInstance;
-
-    //  or, use `updateData()` to replace `data` without resetting states
-    hot.loadData(data);
-  });
-
-  return (
-    &lt;div&gt;
-      &lt;HotTable ref={hotRef} settings={hotSettings}&gt;
       &lt;/HotTable&gt;
     &lt;/div&gt;
   );
@@ -690,6 +465,231 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example4'));</code></pre></section>
+        <header>Source: <code>next/guides/rows/row-trimming.md:26</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(10, 4),
+  colHeaders: true,
+  rowHeaders: true,
+  trimRows: [1, 2, 5],
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(10, 4),
+  colHeaders: true,
+  rowHeaders: true,
+  trimRows: [1, 2, 5],
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
+        <header>Source: <code>next/guides/rows/row-prepopulating.md:24</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+const templateValues = ['one', 'two', 'three'];
+const data = [
+  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+  ['2017', 10, 11, 12, 13],
+  ['2018', 20, 11, 14, 13],
+  ['2019', 30, 15, 12, 13]
+];
+
+function isEmptyRow(instance, row) {
+  var rowData = instance.countRows();
+
+  for (var i = 0, ilen = rowData.length; i &lt; ilen; i++) {
+    if (rowData[i] !== null) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function defaultValueRenderer(instance, td, row, col, prop, value, cellProperties) {
+  const args = arguments;
+
+  if (args[5] === null && isEmptyRow(instance, row)) {
+    args[5] = templateValues[col];
+    td.style.color = '#999';
+
+  } else {
+    td.style.color = '';
+  }
+
+  Handsontable.renderers.TextRenderer.apply(this, args);
+}
+
+const hot = new Handsontable(container, {
+  startRows: 8,
+  startCols: 5,
+  minSpareRows: 1,
+  contextMenu: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
+  cells(row, col, prop) {
+    const cellProperties = {};
+
+    cellProperties.renderer = defaultValueRenderer;
+
+    return cellProperties;
+  },
+  beforeChange(changes) {
+    const instance = hot;
+    const columns = instance.countCols();
+    const rowColumnSeen = {};
+    const rowsToFill = {};
+
+    for (let i = 0; i &lt; changes.length; i++) {
+      // if oldVal is empty
+      if (changes[i][2] === null && changes[i][3] !== null) {
+        if (isEmptyRow(instance, changes[i][0])) {
+          // add this row/col combination to the cache so it will not be overwritten by the template
+          rowColumnSeen[changes[i][0] + '/' + changes[i][1]] = true;
+          rowsToFill[changes[i][0]] = true;
+        }
+      }
+    }
+
+    for (var r in rowsToFill) {
+      if (rowsToFill.hasOwnProperty(r)) {
+        for (let c = 0; c &lt; columns; c++) {
+          // if it is not provided by user in this change set, take the value from the template
+          if (!rowColumnSeen[r + '/' + c]) {
+            changes.push([r, c, null, templateValues[c]]);
+          }
+        }
+      }
+    }
+  }
+});
+
+// or, use `updateData()` to replace `data` without resetting states
+hot.loadData(data);
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotRef = React.createRef();
+const templateValues = ['one', 'two', 'three'];
+const data = [
+  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+  ['2017', 10, 11, 12, 13],
+  ['2018', 20, 11, 14, 13],
+  ['2019', 30, 15, 12, 13]
+];
+
+function isEmptyRow(instance, row) {
+  var rowData = instance.countRows();
+
+  for (var i = 0, ilen = rowData.length; i &lt; ilen; i++) {
+    if (rowData[i] !== null) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function defaultValueRenderer(instance, td, row, col, prop, value, cellProperties) {
+  const args = arguments;
+
+  if (args[5] === null && isEmptyRow(instance, row)) {
+    args[5] = templateValues[col];
+    td.style.color = '#999';
+
+  } else {
+    td.style.color = '';
+  }
+
+  Handsontable.renderers.TextRenderer.apply(this, args);
+}
+const hotSettings = {
+  startRows: 8,
+  startCols: 5,
+  minSpareRows: 1,
+  contextMenu: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
+  cells(row, col, prop) {
+    const cellProperties = {};
+
+    cellProperties.renderer = defaultValueRenderer;
+
+    return cellProperties;
+  },
+  beforeChange(changes) {
+    const instance = hot;
+    const columns = instance.countCols();
+    const rowColumnSeen = {};
+    const rowsToFill = {};
+
+    for (let i = 0; i &lt; changes.length; i++) {
+      // if oldVal is empty
+      if (changes[i][2] === null && changes[i][3] !== null) {
+        if (isEmptyRow(instance, changes[i][0])) {
+          // add this row/col combination to the cache so it will not be overwritten by the template
+          rowColumnSeen[changes[i][0] + '/' + changes[i][1]] = true;
+          rowsToFill[changes[i][0]] = true;
+        }
+      }
+    }
+
+    for (var r in rowsToFill) {
+      if (rowsToFill.hasOwnProperty(r)) {
+        for (let c = 0; c &lt; columns; c++) {
+          // if it is not provided by user in this change set, take the value from the template
+          if (!rowColumnSeen[r + '/' + c]) {
+            changes.push([r, c, null, templateValues[c]]);
+          }
+        }
+      }
+    }
+  }
+};
+
+const App = () =&gt; {
+  useEffect(() =&gt; {
+    const hot = hotRef.current.hotInstance;
+
+    //  or, use `updateData()` to replace `data` without resetting states
+    hot.loadData(data);
+  });
+
+  return (
+    &lt;div&gt;
+      &lt;HotTable ref={hotRef} settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
         <header>Source: <code>next/guides/rows/row-parent-child.md:48</code></header>
   <section><pre><code class="language-javascript">const sourceDataObject = [
   {
@@ -1244,49 +1244,6 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example6'));</code></pre></section>
-        <header>Source: <code>next/guides/rows/row-moving.md:23</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-
-const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(200, 20),
-  width: '100%',
-  height: 320,
-  rowHeaders: true,
-  colHeaders: true,
-  colWidths: 100,
-  manualRowMove: true,
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(200, 20),
-  width: '100%',
-  height: 320,
-  rowHeaders: true,
-  colHeaders: true,
-  colWidths: 100,
-  manualRowMove: true,
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
         <header>Source: <code>next/guides/rows/row-height.md:34</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
@@ -1459,49 +1416,6 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example4'));</code></pre></section>
-        <header>Source: <code>next/guides/rows/row-freezing.md:23</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-
-const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(100, 50),
-  colWidths: 100,
-  width: '100%',
-  height: 320,
-  rowHeaders: true,
-  colHeaders: true,
-  fixedRowsTop: 2,
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(100, 50),
-  colWidths: 100,
-  width: '100%',
-  height: 320,
-  rowHeaders: true,
-  colHeaders: true,
-  fixedRowsTop: 2,
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
         <header>Source: <code>next/guides/rows/row-header.md:35</code></header>
   <section><pre><code class="language-javascript">// Generate an array of arrays with a dummy data
 const generateData = (rows = 3, columns = 7, additionalRows = true) =&gt; {
@@ -1575,22 +1489,17 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
-        <header>Source: <code>next/guides/internationalization/language.md:74</code></header>
+        <header>Source: <code>next/guides/rows/row-freezing.md:23</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
-const data = [
-  ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
-  ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
-  ['Pellentesque', 'vulputate', 'leo', 'semper', '10/23/2015', 26],
-  ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
-  ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
-];
-
 const hot = new Handsontable(container, {
-  data,
-  contextMenu: true,
-  height: 'auto',
-  language: 'de-DE',
+  data: Handsontable.helper.createSpreadsheetData(100, 50),
+  colWidths: 100,
+  width: '100%',
+  height: 320,
+  rowHeaders: true,
+  colHeaders: true,
+  fixedRowsTop: 2,
   licenseKey: 'non-commercial-and-evaluation'
 });
 </code></pre></section>
@@ -1602,18 +1511,57 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const data = [
-  ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
-  ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
-  ['Pellentesque', 'vulputate', 'leo', 'semper', '10/23/2015', 26],
-  ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
-  ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
-];
 const hotSettings = {
-  data,
-  contextMenu: true,
-  height: 'auto',
-  language: 'de-DE',
+  data: Handsontable.helper.createSpreadsheetData(100, 50),
+  colWidths: 100,
+  width: '100%',
+  height: 320,
+  rowHeaders: true,
+  colHeaders: true,
+  fixedRowsTop: 2,
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
+        <header>Source: <code>next/guides/rows/row-moving.md:23</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(200, 20),
+  width: '100%',
+  height: 320,
+  rowHeaders: true,
+  colHeaders: true,
+  colWidths: 100,
+  manualRowMove: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(200, 20),
+  width: '100%',
+  height: 320,
+  rowHeaders: true,
+  colHeaders: true,
+  colWidths: 100,
+  manualRowMove: true,
   licenseKey: 'non-commercial-and-evaluation'
 };
 
@@ -1967,6 +1915,58 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example5'));</code></pre></section>
+        <header>Source: <code>next/guides/internationalization/language.md:74</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+
+const data = [
+  ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
+  ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
+  ['Pellentesque', 'vulputate', 'leo', 'semper', '10/23/2015', 26],
+  ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
+  ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
+];
+
+const hot = new Handsontable(container, {
+  data,
+  contextMenu: true,
+  height: 'auto',
+  language: 'de-DE',
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const data = [
+  ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
+  ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
+  ['Pellentesque', 'vulputate', 'leo', 'semper', '10/23/2015', 26],
+  ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
+  ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
+];
+const hotSettings = {
+  data,
+  contextMenu: true,
+  height: 'auto',
+  language: 'de-DE',
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
         <header>Source: <code>next/guides/getting-started/saving-data.md:39</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 const exampleConsole = document.querySelector('#output');
@@ -2651,6 +2651,55 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example6'));</code></pre></section>
+        <header>Source: <code>next/guides/getting-started/installation.md:100</code></header>
+  <section><pre><code class="language-javascript">const data = [
+  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+  ['2019', 10, 11, 12, 13],
+  ['2020', 20, 11, 14, 13],
+  ['2021', 30, 15, 12, 13]
+];
+
+const container = document.getElementById('example');
+const hot = new Handsontable(container, {
+  data: data,
+  rowHeaders: true,
+  colHeaders: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const data = [
+  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+  ['2019', 10, 11, 12, 13],
+  ['2020', 20, 11, 14, 13],
+  ['2021', 30, 15, 12, 13]
+];
+const hotSettings = {
+  data: data,
+  rowHeaders: true,
+  colHeaders: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example'));</code></pre></section>
         <header>Source: <code>next/guides/getting-started/grid-size.md:96</code></header>
   <section><pre><code class="language-javascript">const triggerBtn = document.querySelector('#expander');
 const example = document.querySelector('#example');
@@ -3070,511 +3119,6 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
-        <header>Source: <code>next/guides/getting-started/installation.md:100</code></header>
-  <section><pre><code class="language-javascript">const data = [
-  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-  ['2019', 10, 11, 12, 13],
-  ['2020', 20, 11, 14, 13],
-  ['2021', 30, 15, 12, 13]
-];
-
-const container = document.getElementById('example');
-const hot = new Handsontable(container, {
-  data: data,
-  rowHeaders: true,
-  colHeaders: true,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const data = [
-  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-  ['2019', 10, 11, 12, 13],
-  ['2020', 20, 11, 14, 13],
-  ['2021', 30, 15, 12, 13]
-];
-const hotSettings = {
-  data: data,
-  rowHeaders: true,
-  colHeaders: true,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example'));</code></pre></section>
-        <header>Source: <code>next/guides/formulas/formula-calculation.md:102</code></header>
-  <section><pre><code class="language-javascript">const data1 = [
-  ['10.26', null, 'Sum', '=SUM(A:A)'],
-  ['20.12', null, 'Average', '=AVERAGE(A:A)'],
-  ['30.01', null, 'Median', '=MEDIAN(A:A)'],
-  ['40.29', null, 'MAX', '=MAX(A:A)'],
-  ['50.18', null, 'MIN', '=MIN(A1:A5)'],
-];
-
-const data2 = [
-  ['Is A1 in Sheet1 &gt; 10?', '=IF(Sheet1!A1&gt;10,"TRUE","FALSE")'],
-  ['Is A:A in Sheet &gt; 150?', '=IF(SUM(Sheet1!A:A)&gt;150,"TRUE","FALSE")'],
-  ['How many blank cells are in the Sheet1?', '=COUNTBLANK(Sheet1!A1:D5)'],
-  ['Generate a random number', '=RAND()'],
-  ['Number of sheets in this workbook', '=SHEETS()'],
-];
-
-// create an external HyperFormula instance
-const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
-});
-
-const container1 = document.getElementById('example-basic-multi-sheet-1');
-new Handsontable(container1, {
-  data: data1,
-  colHeaders: true,
-  rowHeaders: true,
-  height: 'auto',
-  formulas: {
-    engine: hyperformulaInstance,
-    sheetName: 'Sheet1'
-  },
-  licenseKey: 'non-commercial-and-evaluation'
-});
-
-const container2 = document.getElementById('example-basic-multi-sheet-2');
-new Handsontable(container2, {
-  data: data2,
-  colHeaders: true,
-  rowHeaders: true,
-  height: 'auto',
-  formulas: {
-    engine: hyperformulaInstance,
-    sheetName: 'Sheet2'
-  },
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const data1 = [
-  ['10.26', null, 'Sum', '=SUM(A:A)'],
-  ['20.12', null, 'Average', '=AVERAGE(A:A)'],
-  ['30.01', null, 'Median', '=MEDIAN(A:A)'],
-  ['40.29', null, 'MAX', '=MAX(A:A)'],
-  ['50.18', null, 'MIN', '=MIN(A1:A5)'],
-];
-const data2 = [
-  ['Is A1 in Sheet1 &gt; 10?', '=IF(Sheet1!A1&gt;10,"TRUE","FALSE")'],
-  ['Is A:A in Sheet &gt; 150?', '=IF(SUM(Sheet1!A:A)&gt;150,"TRUE","FALSE")'],
-  ['How many blank cells are in the Sheet1?', '=COUNTBLANK(Sheet1!A1:D5)'],
-  ['Generate a random number', '=RAND()'],
-  ['Number of sheets in this workbook', '=SHEETS()'],
-];
-//  create an external HyperFormula instance
-const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
-});
-const hotSettings = {
-  data: data1,
-  colHeaders: true,
-  rowHeaders: true,
-  height: 'auto',
-  formulas: {
-    engine: hyperformulaInstance,
-    sheetName: 'Sheet1'
-  },
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const hot2Settings = {
-  data: data2,
-  colHeaders: true,
-  rowHeaders: true,
-  height: 'auto',
-  formulas: {
-    engine: hyperformulaInstance,
-    sheetName: 'Sheet2'
-  },
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-      &lt;HotTable settings={hot2Settings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
-        <header>Source: <code>next/guides/formulas/formula-calculation.md:159</code></header>
-  <section><pre><code class="language-javascript">const data = [
-  ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
-  ['172', '474', '0.51', '11', '=A2*(B2*C2)+D2'],
-  ['188', '371', '0.59', '11', '=A3*(B3*C3)+D3'],
-  ['162', '731', '0.21', '10', '=A4*(B4*C4)+D4'],
-  ['133', '682', '0.81', '9', '=A5*(B5*C5)+D5'],
-  ['87', '553', '0.66', '10', '=A6*(B6*C6)+D6'],
-  ['26', '592', '0.62', '11', '=A7*(B7*C7)+D7'],
-  ['110', '461', '0.73', '9', '=A8*(B8*C8)+D8'],
-  ['50', '346', '0.52', '15', '=A9*(B9*C9)+D9'],
-  ['160', '423', '0.82', '11', '=A10*(B10*C10)+D10'],
-  ['30', '216', '0.26', '9', '=A11*(B11*C11)+D11'],
-  ['39', '473', '0.44', '5', '=A12*(B12*C12)+D12'],
-  ['96', '490', '0.43', '5', '=A13*(B13*C13)+D13'],
-  ['108', '176', '0.71', '7', '=A14*(B14*C14)+D14'],
-  ['46', '586', '0.01', '14', '=A15*(B15*C15)+D15'],
-  ['97', '514', '0.7', '14', '=A16*(B16*C16)+D16'],
-  ['161', '717', '0.01', '13', '=A17*(B17*C17)+D17'],
-  ['58', '123', '0.4', '8', '=A18*(B18*C18)+D18'],
-  ['92', '739', '0.76', '14', '=A19*(B19*C19)+D19'],
-  ['5', '320', '0.52', '13', '=A20*(B20*C20)+D20'],
-  ['158', '480', '0.65', '5', '=A21*(B21*C21)+D21'],
-  ['121', '373', '0.66', '8', '=A22*(B22*C22)+D22'],
-  ['61', '704', '0.95', '7', '=A23*(B23*C23)+D23'],
-  ['155', '452', '0.71', '10', '=A24*(B24*C24)+D24'],
-  ['162', '693', '0.73', '11', '=A25*(B25*C25)+D25'],
-  ['46', '75', '0.14', '15', '=A26*(B26*C26)+D26'],
-  ['47', '691', '0.58', '15', '=A27*(B27*C27)+D27'],
-  ['104', '346', '0.04', '7', '=A28*(B28*C28)+D28'],
-  ['101', '717', '0.87', '5', '=A29*(B29*C29)+D29'],
-  ['150', '487', '0.26', '15', '=A30*(B30*C30)+D30'],
-  ['42', '465', '0.09', '14', '=A31*(B31*C31)+D31'],
-  ['144', '337', '0.72', '7', '=A32*(B32*C32)+D32'],
-  ['195', '138', '0.3', '6', '=A33*(B33*C33)+D33'],
-  ['199', '717', '0.16', '6', '=A34*(B34*C34)+D34'],
-  ['110', '236', '0.91', '9', '=A35*(B35*C35)+D35'],
-  ['51', '351', '0.81', '13', '=A36*(B36*C36)+D36'],
-  ['69', '221', '0.64', '9', '=A37*(B37*C37)+D37'],
-  ['53', '125', '0.28', '12', '=A38*(B38*C38)+D38'],
-  ['168', '428', '0.68', '9', '=A39*(B39*C39)+D39'],
-  ['58', '361', '0.36', '5', '=A40*(B40*C40)+D40'],
-  ['152', '213', '0.13', '13', '=A41*(B41*C41)+D41'],
-  ['66', '431', '0.93', '10', '=A42*(B42*C42)+D42'],
-  ['112', '108', '0.5', '14', '=A43*(B43*C43)+D43'],
-  ['50', '127', '0.7', '7', '=A44*(B44*C44)+D44'],
-  ['31', '200', '0.15', '14', '=A45*(B45*C45)+D45'],
-  ['132', '654', '0.81', '8', '=A46*(B46*C46)+D46'],
-  ['45', '438', '0.79', '6', '=A47*(B47*C47)+D47'],
-  ['197', '615', '0.63', '7', '=A48*(B48*C48)+D48'],
-  ['190', '592', '0.37', '8', '=A49*(B49*C49)+D49'],
-  ['184', '419', '0.78', '8', '=A50*(B50*C50)+D50'],
-  ['169', '58', '0.13', '7', '=A51*(B51*C51)+D51'],
-  ['152', '324', '0.58', '5', '=A52*(B52*C52)+D52'],
-  ['182', '713', '0.53', '5', '=A53*(B53*C53)+D53'],
-  ['141', '576', '0.63', '12', '=A54*(B54*C54)+D54'],
-  ['169', '429', '0.14', '13', '=A55*(B55*C55)+D55'],
-  ['39', '694', '0.98', '13', '=A56*(B56*C56)+D56'],
-  ['71', '361', '0.3', '13', '=A57*(B57*C57)+D57'],
-  ['148', '540', '0.89', '6', '=A58*(B58*C58)+D58'],
-  ['116', '52', '0.3', '7', '=A59*(B59*C59)+D59'],
-  ['96', '395', '0.28', '7', '=A60*(B60*C60)+D60'],
-  ['35', '222', '0.86', '13', '=A61*(B61*C61)+D61'],
-  ['16', '430', '0.8', '8', '=A62*(B62*C62)+D62'],
-  ['194', '357', '0.72', '9', '=A63*(B63*C63)+D63'],
-  ['24', '498', '0.7', '7', '=A64*(B64*C64)+D64'],
-  ['170', '142', '0.52', '5', '=A65*(B65*C65)+D65'],
-  ['184', '614', '0.68', '9', '=A66*(B66*C66)+D66'],
-  ['153', '524', '0.15', '9', '=A67*(B67*C67)+D67'],
-  ['88', '620', '0.39', '15', '=A68*(B68*C68)+D68'],
-  ['57', '452', '0.11', '6', '=A69*(B69*C69)+D69'],
-  ['62', '493', '0.03', '11', '=A70*(B70*C70)+D70'],
-  ['123', '431', '0.75', '15', '=A71*(B71*C71)+D71'],
-  ['77', '113', '0.63', '12', '=A72*(B72*C72)+D72'],
-  ['199', '208', '0.07', '6', '=A73*(B73*C73)+D73'],
-  ['149', '514', '0.42', '12', '=A74*(B74*C74)+D74'],
-  ['191', '334', '0.78', '13', '=A75*(B75*C75)+D75'],
-  ['150', '643', '0.32', '11', '=A76*(B76*C76)+D76'],
-  ['130', '721', '0.62', '5', '=A77*(B77*C77)+D77'],
-  ['179', '517', '0.1', '8', '=A78*(B78*C78)+D78'],
-  ['98', '31', '0.01', '10', '=A79*(B79*C79)+D79'],
-  ['175', '509', '0.7', '11', '=A80*(B80*C80)+D80'],
-  ['11', '569', '0.37', '7', '=A81*(B81*C81)+D81'],
-  ['184', '630', '0.19', '6', '=A82*(B82*C82)+D82'],
-  ['27', '165', '0.51', '13', '=A83*(B83*C83)+D83'],
-  ['186', '417', '0.85', '15', '=A84*(B84*C84)+D84'],
-  ['20', '741', '0.76', '11', '=A85*(B85*C85)+D85'],
-  ['153', '640', '0.28', '6', '=A86*(B86*C86)+D86'],
-  ['161', '542', '0.43', '14', '=A87*(B87*C87)+D87'],
-  ['98', '344', '0.77', '6', '=A88*(B88*C88)+D88'],
-  ['30', '400', '0.71', '13', '=A89*(B89*C89)+D89'],
-  ['73', '91', '0.78', '8', '=A90*(B90*C90)+D90'],
-  ['158', '72', '0.66', '12', '=A91*(B91*C91)+D91'],
-  ['122', '35', '0.32', '15', '=A92*(B92*C92)+D92'],
-  ['33', '99', '0.92', '9', '=A93*(B93*C93)+D93'],
-  ['107', '538', '0.75', '10', '=A94*(B94*C94)+D94'],
-  ['15', '563', '0.32', '6', '=A95*(B95*C95)+D95'],
-  ['168', '572', '0.71', '6', '=A96*(B96*C96)+D96'],
-  ['135', '217', '0.49', '12', '=A97*(B97*C97)+D97'],
-  ['11', '595', '0.03', '13', '=A98*(B98*C98)+D98'],
-  ['41', '739', '0.88', '11', '=A99*(B99*C99)+D99'],
-  ['144', '289', '0.87', '13', '=A100*(B100*C100)+D100'],
-  ['Sum', 'Average', 'Average', 'Sum', 'Sum'],
-  ['=SUM(A1:A100)', '=AVERAGE(B1:B100)', '=AVERAGE(C1:C100)', '=SUM(D1:D100)', '=SUM(E1:E100)']
-];
-
-const container = document.getElementById('example-data-grid');
-new Handsontable(container, {
-  data: data,
-  formulas: {
-    engine: HyperFormula,
-  },
-  colHeaders: ['Qty', 'Unit price', 'Discount', 'Freight', 'Total due (fx)'],
-  fixedRowsBottom: 2,
-  stretchH: 'all',
-  height: 500,
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const data = [
-  ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
-  ['172', '474', '0.51', '11', '=A2*(B2*C2)+D2'],
-  ['188', '371', '0.59', '11', '=A3*(B3*C3)+D3'],
-  ['162', '731', '0.21', '10', '=A4*(B4*C4)+D4'],
-  ['133', '682', '0.81', '9', '=A5*(B5*C5)+D5'],
-  ['87', '553', '0.66', '10', '=A6*(B6*C6)+D6'],
-  ['26', '592', '0.62', '11', '=A7*(B7*C7)+D7'],
-  ['110', '461', '0.73', '9', '=A8*(B8*C8)+D8'],
-  ['50', '346', '0.52', '15', '=A9*(B9*C9)+D9'],
-  ['160', '423', '0.82', '11', '=A10*(B10*C10)+D10'],
-  ['30', '216', '0.26', '9', '=A11*(B11*C11)+D11'],
-  ['39', '473', '0.44', '5', '=A12*(B12*C12)+D12'],
-  ['96', '490', '0.43', '5', '=A13*(B13*C13)+D13'],
-  ['108', '176', '0.71', '7', '=A14*(B14*C14)+D14'],
-  ['46', '586', '0.01', '14', '=A15*(B15*C15)+D15'],
-  ['97', '514', '0.7', '14', '=A16*(B16*C16)+D16'],
-  ['161', '717', '0.01', '13', '=A17*(B17*C17)+D17'],
-  ['58', '123', '0.4', '8', '=A18*(B18*C18)+D18'],
-  ['92', '739', '0.76', '14', '=A19*(B19*C19)+D19'],
-  ['5', '320', '0.52', '13', '=A20*(B20*C20)+D20'],
-  ['158', '480', '0.65', '5', '=A21*(B21*C21)+D21'],
-  ['121', '373', '0.66', '8', '=A22*(B22*C22)+D22'],
-  ['61', '704', '0.95', '7', '=A23*(B23*C23)+D23'],
-  ['155', '452', '0.71', '10', '=A24*(B24*C24)+D24'],
-  ['162', '693', '0.73', '11', '=A25*(B25*C25)+D25'],
-  ['46', '75', '0.14', '15', '=A26*(B26*C26)+D26'],
-  ['47', '691', '0.58', '15', '=A27*(B27*C27)+D27'],
-  ['104', '346', '0.04', '7', '=A28*(B28*C28)+D28'],
-  ['101', '717', '0.87', '5', '=A29*(B29*C29)+D29'],
-  ['150', '487', '0.26', '15', '=A30*(B30*C30)+D30'],
-  ['42', '465', '0.09', '14', '=A31*(B31*C31)+D31'],
-  ['144', '337', '0.72', '7', '=A32*(B32*C32)+D32'],
-  ['195', '138', '0.3', '6', '=A33*(B33*C33)+D33'],
-  ['199', '717', '0.16', '6', '=A34*(B34*C34)+D34'],
-  ['110', '236', '0.91', '9', '=A35*(B35*C35)+D35'],
-  ['51', '351', '0.81', '13', '=A36*(B36*C36)+D36'],
-  ['69', '221', '0.64', '9', '=A37*(B37*C37)+D37'],
-  ['53', '125', '0.28', '12', '=A38*(B38*C38)+D38'],
-  ['168', '428', '0.68', '9', '=A39*(B39*C39)+D39'],
-  ['58', '361', '0.36', '5', '=A40*(B40*C40)+D40'],
-  ['152', '213', '0.13', '13', '=A41*(B41*C41)+D41'],
-  ['66', '431', '0.93', '10', '=A42*(B42*C42)+D42'],
-  ['112', '108', '0.5', '14', '=A43*(B43*C43)+D43'],
-  ['50', '127', '0.7', '7', '=A44*(B44*C44)+D44'],
-  ['31', '200', '0.15', '14', '=A45*(B45*C45)+D45'],
-  ['132', '654', '0.81', '8', '=A46*(B46*C46)+D46'],
-  ['45', '438', '0.79', '6', '=A47*(B47*C47)+D47'],
-  ['197', '615', '0.63', '7', '=A48*(B48*C48)+D48'],
-  ['190', '592', '0.37', '8', '=A49*(B49*C49)+D49'],
-  ['184', '419', '0.78', '8', '=A50*(B50*C50)+D50'],
-  ['169', '58', '0.13', '7', '=A51*(B51*C51)+D51'],
-  ['152', '324', '0.58', '5', '=A52*(B52*C52)+D52'],
-  ['182', '713', '0.53', '5', '=A53*(B53*C53)+D53'],
-  ['141', '576', '0.63', '12', '=A54*(B54*C54)+D54'],
-  ['169', '429', '0.14', '13', '=A55*(B55*C55)+D55'],
-  ['39', '694', '0.98', '13', '=A56*(B56*C56)+D56'],
-  ['71', '361', '0.3', '13', '=A57*(B57*C57)+D57'],
-  ['148', '540', '0.89', '6', '=A58*(B58*C58)+D58'],
-  ['116', '52', '0.3', '7', '=A59*(B59*C59)+D59'],
-  ['96', '395', '0.28', '7', '=A60*(B60*C60)+D60'],
-  ['35', '222', '0.86', '13', '=A61*(B61*C61)+D61'],
-  ['16', '430', '0.8', '8', '=A62*(B62*C62)+D62'],
-  ['194', '357', '0.72', '9', '=A63*(B63*C63)+D63'],
-  ['24', '498', '0.7', '7', '=A64*(B64*C64)+D64'],
-  ['170', '142', '0.52', '5', '=A65*(B65*C65)+D65'],
-  ['184', '614', '0.68', '9', '=A66*(B66*C66)+D66'],
-  ['153', '524', '0.15', '9', '=A67*(B67*C67)+D67'],
-  ['88', '620', '0.39', '15', '=A68*(B68*C68)+D68'],
-  ['57', '452', '0.11', '6', '=A69*(B69*C69)+D69'],
-  ['62', '493', '0.03', '11', '=A70*(B70*C70)+D70'],
-  ['123', '431', '0.75', '15', '=A71*(B71*C71)+D71'],
-  ['77', '113', '0.63', '12', '=A72*(B72*C72)+D72'],
-  ['199', '208', '0.07', '6', '=A73*(B73*C73)+D73'],
-  ['149', '514', '0.42', '12', '=A74*(B74*C74)+D74'],
-  ['191', '334', '0.78', '13', '=A75*(B75*C75)+D75'],
-  ['150', '643', '0.32', '11', '=A76*(B76*C76)+D76'],
-  ['130', '721', '0.62', '5', '=A77*(B77*C77)+D77'],
-  ['179', '517', '0.1', '8', '=A78*(B78*C78)+D78'],
-  ['98', '31', '0.01', '10', '=A79*(B79*C79)+D79'],
-  ['175', '509', '0.7', '11', '=A80*(B80*C80)+D80'],
-  ['11', '569', '0.37', '7', '=A81*(B81*C81)+D81'],
-  ['184', '630', '0.19', '6', '=A82*(B82*C82)+D82'],
-  ['27', '165', '0.51', '13', '=A83*(B83*C83)+D83'],
-  ['186', '417', '0.85', '15', '=A84*(B84*C84)+D84'],
-  ['20', '741', '0.76', '11', '=A85*(B85*C85)+D85'],
-  ['153', '640', '0.28', '6', '=A86*(B86*C86)+D86'],
-  ['161', '542', '0.43', '14', '=A87*(B87*C87)+D87'],
-  ['98', '344', '0.77', '6', '=A88*(B88*C88)+D88'],
-  ['30', '400', '0.71', '13', '=A89*(B89*C89)+D89'],
-  ['73', '91', '0.78', '8', '=A90*(B90*C90)+D90'],
-  ['158', '72', '0.66', '12', '=A91*(B91*C91)+D91'],
-  ['122', '35', '0.32', '15', '=A92*(B92*C92)+D92'],
-  ['33', '99', '0.92', '9', '=A93*(B93*C93)+D93'],
-  ['107', '538', '0.75', '10', '=A94*(B94*C94)+D94'],
-  ['15', '563', '0.32', '6', '=A95*(B95*C95)+D95'],
-  ['168', '572', '0.71', '6', '=A96*(B96*C96)+D96'],
-  ['135', '217', '0.49', '12', '=A97*(B97*C97)+D97'],
-  ['11', '595', '0.03', '13', '=A98*(B98*C98)+D98'],
-  ['41', '739', '0.88', '11', '=A99*(B99*C99)+D99'],
-  ['144', '289', '0.87', '13', '=A100*(B100*C100)+D100'],
-  ['Sum', 'Average', 'Average', 'Sum', 'Sum'],
-  ['=SUM(A1:A100)', '=AVERAGE(B1:B100)', '=AVERAGE(C1:C100)', '=SUM(D1:D100)', '=SUM(E1:E100)']
-];
-const hotSettings = {
-  data: data,
-  formulas: {
-    engine: HyperFormula,
-  },
-  colHeaders: ['Qty', 'Unit price', 'Discount', 'Freight', 'Total due (fx)'],
-  fixedRowsBottom: 2,
-  stretchH: 'all',
-  height: 500,
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example-data-grid'));</code></pre></section>
-        <header>Source: <code>next/guides/formulas/formula-calculation.md:449</code></header>
-  <section><pre><code class="language-javascript">const data = [
-  ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
-  ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
-  ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
-  ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)']
-];
-
-const container = document.getElementById('example-named-expressions1');
-const hotNamedExpressions = new Handsontable(container, {
-  data: data,
-  colHeaders: true,
-  rowHeaders: true,
-  height: 'auto',
-  formulas: {
-    engine: HyperFormula,
-    namedExpressions: [
-      {
-        name: 'ADDITIONAL_COST',
-        expression: 100
-      }
-    ]
-  },
-  licenseKey: 'non-commercial-and-evaluation'
-});
-
-const input = document.getElementById('named-expressions-input');
-const formulasPlugin = hotNamedExpressions.getPlugin('formulas');
-const button = document.getElementById('named-expressions-button');
-
-button.addEventListener('click', (event) =&gt; {
-  formulasPlugin.engine.changeNamedExpression('ADDITIONAL_COST', input.value);
-  hotNamedExpressions.render();
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotNamedExpressionsRef = React.createRef();
-const data = [
-  ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
-  ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
-  ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
-  ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)']
-];
-const hotNamedExpressionsSettings = {
-  data: data,
-  colHeaders: true,
-  rowHeaders: true,
-  height: 'auto',
-  formulas: {
-    engine: HyperFormula,
-    namedExpressions: [{
-      name: 'ADDITIONAL_COST',
-      expression: 100
-    }]
-  },
-  licenseKey: 'non-commercial-and-evaluation'
-};
-const input = document.getElementById('named-expressions-input');
-const button = document.getElementById('named-expressions-button');
-button.addEventListener('click', (event) =&gt; {
-  formulasPlugin.engine.changeNamedExpression('ADDITIONAL_COST', input.value);
-  hotNamedExpressions.render();
-});
-
-const App = () =&gt; {
-  useEffect(() =&gt; {
-    const hotNamedExpressions = hotNamedExpressionsRef.current.hotInstance;
-
-    const formulasPlugin = hotNamedExpressions.getPlugin('formulas');
-  });
-
-  return (
-    &lt;div&gt;
-      &lt;HotTable ref={hotNamedExpressionsRef} settings={hotNamedExpressionsSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example-named-expressions1'));</code></pre></section>
         <header>Source: <code>next/guides/getting-started/binding-to-data.md:26</code></header>
   <section><pre><code class="language-javascript">const container = document.getElementById('example1');
 
@@ -4211,270 +3755,6 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example10'));</code></pre></section>
-        <header>Source: <code>next/guides/columns/column-width.md:32</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-
-const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 50),
-  width: '100%',
-  height: 'auto',
-  colHeaders: true,
-  rowHeaders: true,
-  colWidths: 100,
-  manualColumnResize: true,
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(5, 50),
-  width: '100%',
-  height: 'auto',
-  colHeaders: true,
-  rowHeaders: true,
-  colWidths: 100,
-  manualColumnResize: true,
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
-        <header>Source: <code>next/guides/columns/column-width.md:53</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example2');
-
-const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 5),
-  width: '100%',
-  height: 'auto',
-  colHeaders: true,
-  rowHeaders: true,
-  colWidths: [50, 100, 200, 400],
-  manualColumnResize: true,
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(5, 5),
-  width: '100%',
-  height: 'auto',
-  colHeaders: true,
-  rowHeaders: true,
-  colWidths: [50, 100, 200, 400],
-  manualColumnResize: true,
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
-        <header>Source: <code>next/guides/columns/column-width.md:74</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example3');
-
-const hot3 = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 5),
-  width: '100%',
-  height: 'auto',
-  colHeaders: true,
-  rowHeaders: true,
-  colWidths(index) {
-    return (index + 1) * 40;
-  },
-  manualColumnResize: true,
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hot3Settings = {
-  data: Handsontable.helper.createSpreadsheetData(5, 5),
-  width: '100%',
-  height: 'auto',
-  colHeaders: true,
-  rowHeaders: true,
-  colWidths(index) {
-    return (index + 1) * 40;
-  },
-  manualColumnResize: true,
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hot3Settings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example3'));</code></pre></section>
-        <header>Source: <code>next/guides/columns/column-width.md:99</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example4');
-
-const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 6),
-  width: '100%',
-  height: 'auto',
-  colHeaders: true,
-  rowHeaders: true,
-  colWidths: [200, 100, 100], // initial width of the first 3 columns
-  manualColumnResize: true,
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(5, 6),
-  width: '100%',
-  height: 'auto',
-  colHeaders: true,
-  rowHeaders: true,
-  colWidths: [200, 100, 100], // initial width of the first 3 columns
-  manualColumnResize: true,
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example4'));</code></pre></section>
-        <header>Source: <code>next/guides/columns/column-width.md:128</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example5');
-
-const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 3),
-  width: '100%',
-  height: 'auto',
-  colHeaders: true,
-  rowHeaders: true,
-  stretchH: 'all', // 'none' is default
-  contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(5, 3),
-  width: '100%',
-  height: 'auto',
-  colHeaders: true,
-  rowHeaders: true,
-  stretchH: 'all', // 'none' is default
-  contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example5'));</code></pre></section>
-        <header>Source: <code>next/guides/columns/column-width.md:149</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example6');
-
-const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 4),
-  width: '100%',
-  height: 'auto',
-  colWidths: 80,
-  colHeaders: true,
-  rowHeaders: true,
-  stretchH: 'last',
-  contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(5, 4),
-  width: '100%',
-  height: 'auto',
-  colWidths: 80,
-  colHeaders: true,
-  rowHeaders: true,
-  stretchH: 'last',
-  contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example6'));</code></pre></section>
         <header>Source: <code>next/guides/columns/column-summary.md:35</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
@@ -5240,6 +4520,270 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example11'));</code></pre></section>
+        <header>Source: <code>next/guides/columns/column-width.md:32</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(5, 50),
+  width: '100%',
+  height: 'auto',
+  colHeaders: true,
+  rowHeaders: true,
+  colWidths: 100,
+  manualColumnResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(5, 50),
+  width: '100%',
+  height: 'auto',
+  colHeaders: true,
+  rowHeaders: true,
+  colWidths: 100,
+  manualColumnResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
+        <header>Source: <code>next/guides/columns/column-width.md:53</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example2');
+
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  width: '100%',
+  height: 'auto',
+  colHeaders: true,
+  rowHeaders: true,
+  colWidths: [50, 100, 200, 400],
+  manualColumnResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  width: '100%',
+  height: 'auto',
+  colHeaders: true,
+  rowHeaders: true,
+  colWidths: [50, 100, 200, 400],
+  manualColumnResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
+        <header>Source: <code>next/guides/columns/column-width.md:74</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example3');
+
+const hot3 = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  width: '100%',
+  height: 'auto',
+  colHeaders: true,
+  rowHeaders: true,
+  colWidths(index) {
+    return (index + 1) * 40;
+  },
+  manualColumnResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hot3Settings = {
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  width: '100%',
+  height: 'auto',
+  colHeaders: true,
+  rowHeaders: true,
+  colWidths(index) {
+    return (index + 1) * 40;
+  },
+  manualColumnResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hot3Settings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example3'));</code></pre></section>
+        <header>Source: <code>next/guides/columns/column-width.md:99</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example4');
+
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(5, 6),
+  width: '100%',
+  height: 'auto',
+  colHeaders: true,
+  rowHeaders: true,
+  colWidths: [200, 100, 100], // initial width of the first 3 columns
+  manualColumnResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(5, 6),
+  width: '100%',
+  height: 'auto',
+  colHeaders: true,
+  rowHeaders: true,
+  colWidths: [200, 100, 100], // initial width of the first 3 columns
+  manualColumnResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example4'));</code></pre></section>
+        <header>Source: <code>next/guides/columns/column-width.md:128</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example5');
+
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(5, 3),
+  width: '100%',
+  height: 'auto',
+  colHeaders: true,
+  rowHeaders: true,
+  stretchH: 'all', // 'none' is default
+  contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(5, 3),
+  width: '100%',
+  height: 'auto',
+  colHeaders: true,
+  rowHeaders: true,
+  stretchH: 'all', // 'none' is default
+  contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example5'));</code></pre></section>
+        <header>Source: <code>next/guides/columns/column-width.md:149</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example6');
+
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(5, 4),
+  width: '100%',
+  height: 'auto',
+  colWidths: 80,
+  colHeaders: true,
+  rowHeaders: true,
+  stretchH: 'last',
+  contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(5, 4),
+  width: '100%',
+  height: 'auto',
+  colWidths: 80,
+  colHeaders: true,
+  rowHeaders: true,
+  stretchH: 'last',
+  contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example6'));</code></pre></section>
         <header>Source: <code>next/guides/columns/column-virtualization.md:39</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
@@ -5913,6 +5457,462 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
+        <header>Source: <code>next/guides/formulas/formula-calculation.md:102</code></header>
+  <section><pre><code class="language-javascript">const data1 = [
+  ['10.26', null, 'Sum', '=SUM(A:A)'],
+  ['20.12', null, 'Average', '=AVERAGE(A:A)'],
+  ['30.01', null, 'Median', '=MEDIAN(A:A)'],
+  ['40.29', null, 'MAX', '=MAX(A:A)'],
+  ['50.18', null, 'MIN', '=MIN(A1:A5)'],
+];
+
+const data2 = [
+  ['Is A1 in Sheet1 &gt; 10?', '=IF(Sheet1!A1&gt;10,"TRUE","FALSE")'],
+  ['Is A:A in Sheet &gt; 150?', '=IF(SUM(Sheet1!A:A)&gt;150,"TRUE","FALSE")'],
+  ['How many blank cells are in the Sheet1?', '=COUNTBLANK(Sheet1!A1:D5)'],
+  ['Generate a random number', '=RAND()'],
+  ['Number of sheets in this workbook', '=SHEETS()'],
+];
+
+// create an external HyperFormula instance
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
+
+const container1 = document.getElementById('example-basic-multi-sheet-1');
+new Handsontable(container1, {
+  data: data1,
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet1'
+  },
+  licenseKey: 'non-commercial-and-evaluation'
+});
+
+const container2 = document.getElementById('example-basic-multi-sheet-2');
+new Handsontable(container2, {
+  data: data2,
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet2'
+  },
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const data1 = [
+  ['10.26', null, 'Sum', '=SUM(A:A)'],
+  ['20.12', null, 'Average', '=AVERAGE(A:A)'],
+  ['30.01', null, 'Median', '=MEDIAN(A:A)'],
+  ['40.29', null, 'MAX', '=MAX(A:A)'],
+  ['50.18', null, 'MIN', '=MIN(A1:A5)'],
+];
+const data2 = [
+  ['Is A1 in Sheet1 &gt; 10?', '=IF(Sheet1!A1&gt;10,"TRUE","FALSE")'],
+  ['Is A:A in Sheet &gt; 150?', '=IF(SUM(Sheet1!A:A)&gt;150,"TRUE","FALSE")'],
+  ['How many blank cells are in the Sheet1?', '=COUNTBLANK(Sheet1!A1:D5)'],
+  ['Generate a random number', '=RAND()'],
+  ['Number of sheets in this workbook', '=SHEETS()'],
+];
+//  create an external HyperFormula instance
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
+const hotSettings = {
+  data: data1,
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet1'
+  },
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const hot2Settings = {
+  data: data2,
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet2'
+  },
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+      &lt;HotTable settings={hot2Settings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
+        <header>Source: <code>next/guides/formulas/formula-calculation.md:159</code></header>
+  <section><pre><code class="language-javascript">const data = [
+  ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
+  ['172', '474', '0.51', '11', '=A2*(B2*C2)+D2'],
+  ['188', '371', '0.59', '11', '=A3*(B3*C3)+D3'],
+  ['162', '731', '0.21', '10', '=A4*(B4*C4)+D4'],
+  ['133', '682', '0.81', '9', '=A5*(B5*C5)+D5'],
+  ['87', '553', '0.66', '10', '=A6*(B6*C6)+D6'],
+  ['26', '592', '0.62', '11', '=A7*(B7*C7)+D7'],
+  ['110', '461', '0.73', '9', '=A8*(B8*C8)+D8'],
+  ['50', '346', '0.52', '15', '=A9*(B9*C9)+D9'],
+  ['160', '423', '0.82', '11', '=A10*(B10*C10)+D10'],
+  ['30', '216', '0.26', '9', '=A11*(B11*C11)+D11'],
+  ['39', '473', '0.44', '5', '=A12*(B12*C12)+D12'],
+  ['96', '490', '0.43', '5', '=A13*(B13*C13)+D13'],
+  ['108', '176', '0.71', '7', '=A14*(B14*C14)+D14'],
+  ['46', '586', '0.01', '14', '=A15*(B15*C15)+D15'],
+  ['97', '514', '0.7', '14', '=A16*(B16*C16)+D16'],
+  ['161', '717', '0.01', '13', '=A17*(B17*C17)+D17'],
+  ['58', '123', '0.4', '8', '=A18*(B18*C18)+D18'],
+  ['92', '739', '0.76', '14', '=A19*(B19*C19)+D19'],
+  ['5', '320', '0.52', '13', '=A20*(B20*C20)+D20'],
+  ['158', '480', '0.65', '5', '=A21*(B21*C21)+D21'],
+  ['121', '373', '0.66', '8', '=A22*(B22*C22)+D22'],
+  ['61', '704', '0.95', '7', '=A23*(B23*C23)+D23'],
+  ['155', '452', '0.71', '10', '=A24*(B24*C24)+D24'],
+  ['162', '693', '0.73', '11', '=A25*(B25*C25)+D25'],
+  ['46', '75', '0.14', '15', '=A26*(B26*C26)+D26'],
+  ['47', '691', '0.58', '15', '=A27*(B27*C27)+D27'],
+  ['104', '346', '0.04', '7', '=A28*(B28*C28)+D28'],
+  ['101', '717', '0.87', '5', '=A29*(B29*C29)+D29'],
+  ['150', '487', '0.26', '15', '=A30*(B30*C30)+D30'],
+  ['42', '465', '0.09', '14', '=A31*(B31*C31)+D31'],
+  ['144', '337', '0.72', '7', '=A32*(B32*C32)+D32'],
+  ['195', '138', '0.3', '6', '=A33*(B33*C33)+D33'],
+  ['199', '717', '0.16', '6', '=A34*(B34*C34)+D34'],
+  ['110', '236', '0.91', '9', '=A35*(B35*C35)+D35'],
+  ['51', '351', '0.81', '13', '=A36*(B36*C36)+D36'],
+  ['69', '221', '0.64', '9', '=A37*(B37*C37)+D37'],
+  ['53', '125', '0.28', '12', '=A38*(B38*C38)+D38'],
+  ['168', '428', '0.68', '9', '=A39*(B39*C39)+D39'],
+  ['58', '361', '0.36', '5', '=A40*(B40*C40)+D40'],
+  ['152', '213', '0.13', '13', '=A41*(B41*C41)+D41'],
+  ['66', '431', '0.93', '10', '=A42*(B42*C42)+D42'],
+  ['112', '108', '0.5', '14', '=A43*(B43*C43)+D43'],
+  ['50', '127', '0.7', '7', '=A44*(B44*C44)+D44'],
+  ['31', '200', '0.15', '14', '=A45*(B45*C45)+D45'],
+  ['132', '654', '0.81', '8', '=A46*(B46*C46)+D46'],
+  ['45', '438', '0.79', '6', '=A47*(B47*C47)+D47'],
+  ['197', '615', '0.63', '7', '=A48*(B48*C48)+D48'],
+  ['190', '592', '0.37', '8', '=A49*(B49*C49)+D49'],
+  ['184', '419', '0.78', '8', '=A50*(B50*C50)+D50'],
+  ['169', '58', '0.13', '7', '=A51*(B51*C51)+D51'],
+  ['152', '324', '0.58', '5', '=A52*(B52*C52)+D52'],
+  ['182', '713', '0.53', '5', '=A53*(B53*C53)+D53'],
+  ['141', '576', '0.63', '12', '=A54*(B54*C54)+D54'],
+  ['169', '429', '0.14', '13', '=A55*(B55*C55)+D55'],
+  ['39', '694', '0.98', '13', '=A56*(B56*C56)+D56'],
+  ['71', '361', '0.3', '13', '=A57*(B57*C57)+D57'],
+  ['148', '540', '0.89', '6', '=A58*(B58*C58)+D58'],
+  ['116', '52', '0.3', '7', '=A59*(B59*C59)+D59'],
+  ['96', '395', '0.28', '7', '=A60*(B60*C60)+D60'],
+  ['35', '222', '0.86', '13', '=A61*(B61*C61)+D61'],
+  ['16', '430', '0.8', '8', '=A62*(B62*C62)+D62'],
+  ['194', '357', '0.72', '9', '=A63*(B63*C63)+D63'],
+  ['24', '498', '0.7', '7', '=A64*(B64*C64)+D64'],
+  ['170', '142', '0.52', '5', '=A65*(B65*C65)+D65'],
+  ['184', '614', '0.68', '9', '=A66*(B66*C66)+D66'],
+  ['153', '524', '0.15', '9', '=A67*(B67*C67)+D67'],
+  ['88', '620', '0.39', '15', '=A68*(B68*C68)+D68'],
+  ['57', '452', '0.11', '6', '=A69*(B69*C69)+D69'],
+  ['62', '493', '0.03', '11', '=A70*(B70*C70)+D70'],
+  ['123', '431', '0.75', '15', '=A71*(B71*C71)+D71'],
+  ['77', '113', '0.63', '12', '=A72*(B72*C72)+D72'],
+  ['199', '208', '0.07', '6', '=A73*(B73*C73)+D73'],
+  ['149', '514', '0.42', '12', '=A74*(B74*C74)+D74'],
+  ['191', '334', '0.78', '13', '=A75*(B75*C75)+D75'],
+  ['150', '643', '0.32', '11', '=A76*(B76*C76)+D76'],
+  ['130', '721', '0.62', '5', '=A77*(B77*C77)+D77'],
+  ['179', '517', '0.1', '8', '=A78*(B78*C78)+D78'],
+  ['98', '31', '0.01', '10', '=A79*(B79*C79)+D79'],
+  ['175', '509', '0.7', '11', '=A80*(B80*C80)+D80'],
+  ['11', '569', '0.37', '7', '=A81*(B81*C81)+D81'],
+  ['184', '630', '0.19', '6', '=A82*(B82*C82)+D82'],
+  ['27', '165', '0.51', '13', '=A83*(B83*C83)+D83'],
+  ['186', '417', '0.85', '15', '=A84*(B84*C84)+D84'],
+  ['20', '741', '0.76', '11', '=A85*(B85*C85)+D85'],
+  ['153', '640', '0.28', '6', '=A86*(B86*C86)+D86'],
+  ['161', '542', '0.43', '14', '=A87*(B87*C87)+D87'],
+  ['98', '344', '0.77', '6', '=A88*(B88*C88)+D88'],
+  ['30', '400', '0.71', '13', '=A89*(B89*C89)+D89'],
+  ['73', '91', '0.78', '8', '=A90*(B90*C90)+D90'],
+  ['158', '72', '0.66', '12', '=A91*(B91*C91)+D91'],
+  ['122', '35', '0.32', '15', '=A92*(B92*C92)+D92'],
+  ['33', '99', '0.92', '9', '=A93*(B93*C93)+D93'],
+  ['107', '538', '0.75', '10', '=A94*(B94*C94)+D94'],
+  ['15', '563', '0.32', '6', '=A95*(B95*C95)+D95'],
+  ['168', '572', '0.71', '6', '=A96*(B96*C96)+D96'],
+  ['135', '217', '0.49', '12', '=A97*(B97*C97)+D97'],
+  ['11', '595', '0.03', '13', '=A98*(B98*C98)+D98'],
+  ['41', '739', '0.88', '11', '=A99*(B99*C99)+D99'],
+  ['144', '289', '0.87', '13', '=A100*(B100*C100)+D100'],
+  ['Sum', 'Average', 'Average', 'Sum', 'Sum'],
+  ['=SUM(A1:A100)', '=AVERAGE(B1:B100)', '=AVERAGE(C1:C100)', '=SUM(D1:D100)', '=SUM(E1:E100)']
+];
+
+const container = document.getElementById('example-data-grid');
+new Handsontable(container, {
+  data: data,
+  formulas: {
+    engine: HyperFormula,
+  },
+  colHeaders: ['Qty', 'Unit price', 'Discount', 'Freight', 'Total due (fx)'],
+  fixedRowsBottom: 2,
+  stretchH: 'all',
+  height: 500,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const data = [
+  ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
+  ['172', '474', '0.51', '11', '=A2*(B2*C2)+D2'],
+  ['188', '371', '0.59', '11', '=A3*(B3*C3)+D3'],
+  ['162', '731', '0.21', '10', '=A4*(B4*C4)+D4'],
+  ['133', '682', '0.81', '9', '=A5*(B5*C5)+D5'],
+  ['87', '553', '0.66', '10', '=A6*(B6*C6)+D6'],
+  ['26', '592', '0.62', '11', '=A7*(B7*C7)+D7'],
+  ['110', '461', '0.73', '9', '=A8*(B8*C8)+D8'],
+  ['50', '346', '0.52', '15', '=A9*(B9*C9)+D9'],
+  ['160', '423', '0.82', '11', '=A10*(B10*C10)+D10'],
+  ['30', '216', '0.26', '9', '=A11*(B11*C11)+D11'],
+  ['39', '473', '0.44', '5', '=A12*(B12*C12)+D12'],
+  ['96', '490', '0.43', '5', '=A13*(B13*C13)+D13'],
+  ['108', '176', '0.71', '7', '=A14*(B14*C14)+D14'],
+  ['46', '586', '0.01', '14', '=A15*(B15*C15)+D15'],
+  ['97', '514', '0.7', '14', '=A16*(B16*C16)+D16'],
+  ['161', '717', '0.01', '13', '=A17*(B17*C17)+D17'],
+  ['58', '123', '0.4', '8', '=A18*(B18*C18)+D18'],
+  ['92', '739', '0.76', '14', '=A19*(B19*C19)+D19'],
+  ['5', '320', '0.52', '13', '=A20*(B20*C20)+D20'],
+  ['158', '480', '0.65', '5', '=A21*(B21*C21)+D21'],
+  ['121', '373', '0.66', '8', '=A22*(B22*C22)+D22'],
+  ['61', '704', '0.95', '7', '=A23*(B23*C23)+D23'],
+  ['155', '452', '0.71', '10', '=A24*(B24*C24)+D24'],
+  ['162', '693', '0.73', '11', '=A25*(B25*C25)+D25'],
+  ['46', '75', '0.14', '15', '=A26*(B26*C26)+D26'],
+  ['47', '691', '0.58', '15', '=A27*(B27*C27)+D27'],
+  ['104', '346', '0.04', '7', '=A28*(B28*C28)+D28'],
+  ['101', '717', '0.87', '5', '=A29*(B29*C29)+D29'],
+  ['150', '487', '0.26', '15', '=A30*(B30*C30)+D30'],
+  ['42', '465', '0.09', '14', '=A31*(B31*C31)+D31'],
+  ['144', '337', '0.72', '7', '=A32*(B32*C32)+D32'],
+  ['195', '138', '0.3', '6', '=A33*(B33*C33)+D33'],
+  ['199', '717', '0.16', '6', '=A34*(B34*C34)+D34'],
+  ['110', '236', '0.91', '9', '=A35*(B35*C35)+D35'],
+  ['51', '351', '0.81', '13', '=A36*(B36*C36)+D36'],
+  ['69', '221', '0.64', '9', '=A37*(B37*C37)+D37'],
+  ['53', '125', '0.28', '12', '=A38*(B38*C38)+D38'],
+  ['168', '428', '0.68', '9', '=A39*(B39*C39)+D39'],
+  ['58', '361', '0.36', '5', '=A40*(B40*C40)+D40'],
+  ['152', '213', '0.13', '13', '=A41*(B41*C41)+D41'],
+  ['66', '431', '0.93', '10', '=A42*(B42*C42)+D42'],
+  ['112', '108', '0.5', '14', '=A43*(B43*C43)+D43'],
+  ['50', '127', '0.7', '7', '=A44*(B44*C44)+D44'],
+  ['31', '200', '0.15', '14', '=A45*(B45*C45)+D45'],
+  ['132', '654', '0.81', '8', '=A46*(B46*C46)+D46'],
+  ['45', '438', '0.79', '6', '=A47*(B47*C47)+D47'],
+  ['197', '615', '0.63', '7', '=A48*(B48*C48)+D48'],
+  ['190', '592', '0.37', '8', '=A49*(B49*C49)+D49'],
+  ['184', '419', '0.78', '8', '=A50*(B50*C50)+D50'],
+  ['169', '58', '0.13', '7', '=A51*(B51*C51)+D51'],
+  ['152', '324', '0.58', '5', '=A52*(B52*C52)+D52'],
+  ['182', '713', '0.53', '5', '=A53*(B53*C53)+D53'],
+  ['141', '576', '0.63', '12', '=A54*(B54*C54)+D54'],
+  ['169', '429', '0.14', '13', '=A55*(B55*C55)+D55'],
+  ['39', '694', '0.98', '13', '=A56*(B56*C56)+D56'],
+  ['71', '361', '0.3', '13', '=A57*(B57*C57)+D57'],
+  ['148', '540', '0.89', '6', '=A58*(B58*C58)+D58'],
+  ['116', '52', '0.3', '7', '=A59*(B59*C59)+D59'],
+  ['96', '395', '0.28', '7', '=A60*(B60*C60)+D60'],
+  ['35', '222', '0.86', '13', '=A61*(B61*C61)+D61'],
+  ['16', '430', '0.8', '8', '=A62*(B62*C62)+D62'],
+  ['194', '357', '0.72', '9', '=A63*(B63*C63)+D63'],
+  ['24', '498', '0.7', '7', '=A64*(B64*C64)+D64'],
+  ['170', '142', '0.52', '5', '=A65*(B65*C65)+D65'],
+  ['184', '614', '0.68', '9', '=A66*(B66*C66)+D66'],
+  ['153', '524', '0.15', '9', '=A67*(B67*C67)+D67'],
+  ['88', '620', '0.39', '15', '=A68*(B68*C68)+D68'],
+  ['57', '452', '0.11', '6', '=A69*(B69*C69)+D69'],
+  ['62', '493', '0.03', '11', '=A70*(B70*C70)+D70'],
+  ['123', '431', '0.75', '15', '=A71*(B71*C71)+D71'],
+  ['77', '113', '0.63', '12', '=A72*(B72*C72)+D72'],
+  ['199', '208', '0.07', '6', '=A73*(B73*C73)+D73'],
+  ['149', '514', '0.42', '12', '=A74*(B74*C74)+D74'],
+  ['191', '334', '0.78', '13', '=A75*(B75*C75)+D75'],
+  ['150', '643', '0.32', '11', '=A76*(B76*C76)+D76'],
+  ['130', '721', '0.62', '5', '=A77*(B77*C77)+D77'],
+  ['179', '517', '0.1', '8', '=A78*(B78*C78)+D78'],
+  ['98', '31', '0.01', '10', '=A79*(B79*C79)+D79'],
+  ['175', '509', '0.7', '11', '=A80*(B80*C80)+D80'],
+  ['11', '569', '0.37', '7', '=A81*(B81*C81)+D81'],
+  ['184', '630', '0.19', '6', '=A82*(B82*C82)+D82'],
+  ['27', '165', '0.51', '13', '=A83*(B83*C83)+D83'],
+  ['186', '417', '0.85', '15', '=A84*(B84*C84)+D84'],
+  ['20', '741', '0.76', '11', '=A85*(B85*C85)+D85'],
+  ['153', '640', '0.28', '6', '=A86*(B86*C86)+D86'],
+  ['161', '542', '0.43', '14', '=A87*(B87*C87)+D87'],
+  ['98', '344', '0.77', '6', '=A88*(B88*C88)+D88'],
+  ['30', '400', '0.71', '13', '=A89*(B89*C89)+D89'],
+  ['73', '91', '0.78', '8', '=A90*(B90*C90)+D90'],
+  ['158', '72', '0.66', '12', '=A91*(B91*C91)+D91'],
+  ['122', '35', '0.32', '15', '=A92*(B92*C92)+D92'],
+  ['33', '99', '0.92', '9', '=A93*(B93*C93)+D93'],
+  ['107', '538', '0.75', '10', '=A94*(B94*C94)+D94'],
+  ['15', '563', '0.32', '6', '=A95*(B95*C95)+D95'],
+  ['168', '572', '0.71', '6', '=A96*(B96*C96)+D96'],
+  ['135', '217', '0.49', '12', '=A97*(B97*C97)+D97'],
+  ['11', '595', '0.03', '13', '=A98*(B98*C98)+D98'],
+  ['41', '739', '0.88', '11', '=A99*(B99*C99)+D99'],
+  ['144', '289', '0.87', '13', '=A100*(B100*C100)+D100'],
+  ['Sum', 'Average', 'Average', 'Sum', 'Sum'],
+  ['=SUM(A1:A100)', '=AVERAGE(B1:B100)', '=AVERAGE(C1:C100)', '=SUM(D1:D100)', '=SUM(E1:E100)']
+];
+const hotSettings = {
+  data: data,
+  formulas: {
+    engine: HyperFormula,
+  },
+  colHeaders: ['Qty', 'Unit price', 'Discount', 'Freight', 'Total due (fx)'],
+  fixedRowsBottom: 2,
+  stretchH: 'all',
+  height: 500,
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example-data-grid'));</code></pre></section>
+        <header>Source: <code>next/guides/formulas/formula-calculation.md:449</code></header>
+  <section><pre><code class="language-javascript">const data = [
+  ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
+  ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
+  ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
+  ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)']
+];
+
+const container = document.getElementById('example-named-expressions1');
+const hotNamedExpressions = new Handsontable(container, {
+  data: data,
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  formulas: {
+    engine: HyperFormula,
+    namedExpressions: [
+      {
+        name: 'ADDITIONAL_COST',
+        expression: 100
+      }
+    ]
+  },
+  licenseKey: 'non-commercial-and-evaluation'
+});
+
+const input = document.getElementById('named-expressions-input');
+const formulasPlugin = hotNamedExpressions.getPlugin('formulas');
+const button = document.getElementById('named-expressions-button');
+
+button.addEventListener('click', (event) =&gt; {
+  formulasPlugin.engine.changeNamedExpression('ADDITIONAL_COST', input.value);
+  hotNamedExpressions.render();
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotNamedExpressionsRef = React.createRef();
+const data = [
+  ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
+  ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
+  ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
+  ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)']
+];
+const hotNamedExpressionsSettings = {
+  data: data,
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  formulas: {
+    engine: HyperFormula,
+    namedExpressions: [{
+      name: 'ADDITIONAL_COST',
+      expression: 100
+    }]
+  },
+  licenseKey: 'non-commercial-and-evaluation'
+};
+const input = document.getElementById('named-expressions-input');
+const button = document.getElementById('named-expressions-button');
+button.addEventListener('click', (event) =&gt; {
+  formulasPlugin.engine.changeNamedExpression('ADDITIONAL_COST', input.value);
+  hotNamedExpressions.render();
+});
+
+const App = () =&gt; {
+  useEffect(() =&gt; {
+    const hotNamedExpressions = hotNamedExpressionsRef.current.hotInstance;
+
+    const formulasPlugin = hotNamedExpressions.getPlugin('formulas');
+  });
+
+  return (
+    &lt;div&gt;
+      &lt;HotTable ref={hotNamedExpressionsRef} settings={hotNamedExpressionsSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example-named-expressions1'));</code></pre></section>
         <header>Source: <code>next/guides/columns/column-freezing.md:29</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
@@ -6831,271 +6831,6 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example4'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-types/select-cell-type.md:19</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-
-const hot = new Handsontable(container, {
-  data: [
-    ['2017', 'Honda', 10],
-    ['2018', 'Toyota', 20],
-    ['2019', 'Nissan', 30]
-  ],
-  colWidths: [50, 70, 50],
-  colHeaders: true,
-  columns: [
-    {},
-    {
-      editor: 'select',
-      selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda']
-    },
-    {}
-  ],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: [
-    ['2017', 'Honda', 10],
-    ['2018', 'Toyota', 20],
-    ['2019', 'Nissan', 30]
-  ],
-  colWidths: [50, 70, 50],
-  colHeaders: true,
-  columns: [
-    {},
-    {
-      editor: 'select',
-      selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda']
-    },
-    {}
-  ],
-  licenseKey: 'non-commercial-and-evaluation',
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-types/time-cell-type.md:33</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-
-const hot = new Handsontable(container, {
-  data: [
-    ['Mercedes', 'A 160', 1332284400000, 6999.95],
-    ['Citroen', 'C4 Coupe', '10 30', 8330],
-    ['Audi', 'A4 Avant', '8:00 PM', 33900],
-    ['Opel', 'Astra', 1332284400000, 7000],
-    ['BMW', '320i Coupe', 1332284400000, 30500]
-  ],
-  colHeaders: ['Car', 'Model', 'Registration time', 'Price'],
-  columnSorting: true,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
-  columns: [
-    {
-      type: 'text',
-    },
-    {
-      // 2nd cell is simple text, no special options here
-    },
-    {
-      type: 'time',
-      timeFormat: 'h:mm:ss a',
-      correctFormat: true
-    },
-    {
-      type: 'numeric',
-      numericFormat: {
-        pattern: '&#36; 0,0.00'
-      }
-    }
-  ]
-});
-
-hot.validateCells();
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotRef = React.createRef();
-const hotSettings = {
-  data: [
-    ['Mercedes', 'A 160', 1332284400000, 6999.95],
-    ['Citroen', 'C4 Coupe', '10 30', 8330],
-    ['Audi', 'A4 Avant', '8:00 PM', 33900],
-    ['Opel', 'Astra', 1332284400000, 7000],
-    ['BMW', '320i Coupe', 1332284400000, 30500]
-  ],
-  colHeaders: ['Car', 'Model', 'Registration time', 'Price'],
-  columnSorting: true,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
-  columns: [{
-      type: 'text',
-    },
-    {
-      // 2nd cell is simple text, no special options here
-    },
-    {
-      type: 'time',
-      timeFormat: 'h:mm:ss a',
-      correctFormat: true
-    },
-    {
-      type: 'numeric',
-      numericFormat: {
-        pattern: '&#36; 0,0.00'
-      }
-    }
-  ]
-};
-
-const App = () =&gt; {
-  useEffect(() =&gt; {
-    const hot = hotRef.current.hotInstance;
-
-    hot.validateCells();
-  });
-
-  return (
-    &lt;div&gt;
-      &lt;HotTable ref={hotRef} settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-types/date-cell-type.md:63</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-const hot = new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
-  data: [
-    ['Mercedes', 'A 160', '01/14/2021', 6999.95],
-    ['Citroen', 'C4 Coupe', '12/01/2022', 8330],
-    ['Audi', 'A4 Avant', '11/19/2023', 33900],
-    ['Opel', 'Astra', '02/02/2021', 7000],
-    ['BMW', '320i Coupe', '07/24/2022', 30500]
-  ],
-  colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
-  height: 'auto',
-  columns: [
-    {
-      type: 'text',
-    },
-    {
-      // 2nd cell is simple text, no special options here
-    },
-    {
-      type: 'date',
-      dateFormat: 'MM/DD/YYYY',
-      correctFormat: true,
-      defaultDate: '01/01/1900',
-      // datePicker additional options
-      // (see https://github.com/dbushell/Pikaday#configuration)
-      datePickerConfig: {
-        // First day of the week (0: Sunday, 1: Monday, etc)
-        firstDay: 0,
-        showWeekNumber: true,
-        numberOfMonths: 3,
-        licenseKey: 'non-commercial-and-evaluation',
-        disableDayFn(date) {
-          // Disable Sunday and Saturday
-          return date.getDay() === 0 || date.getDay() === 6;
-        }
-      }
-    },
-    {
-      type: 'numeric',
-      numericFormat: {
-        pattern: '&#36; 0,0.00'
-      }
-    }
-  ]
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  licenseKey: 'non-commercial-and-evaluation',
-  data: [
-    ['Mercedes', 'A 160', '01/14/2021', 6999.95],
-    ['Citroen', 'C4 Coupe', '12/01/2022', 8330],
-    ['Audi', 'A4 Avant', '11/19/2023', 33900],
-    ['Opel', 'Astra', '02/02/2021', 7000],
-    ['BMW', '320i Coupe', '07/24/2022', 30500]
-  ],
-  colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
-  height: 'auto',
-  columns: [{
-      type: 'text',
-    },
-    {
-      // 2nd cell is simple text, no special options here
-    },
-    {
-      type: 'date',
-      dateFormat: 'MM/DD/YYYY',
-      correctFormat: true,
-      defaultDate: '01/01/1900',
-      // datePicker additional options
-      // (see https://github.com/dbushell/Pikaday#configuration)
-      datePickerConfig: {
-        // First day of the week (0: Sunday, 1: Monday, etc)
-        firstDay: 0,
-        showWeekNumber: true,
-        numberOfMonths: 3,
-        licenseKey: 'non-commercial-and-evaluation',
-        disableDayFn(date) {
-          // Disable Sunday and Saturday
-          return date.getDay() === 0 || date.getDay() === 6;
-        }
-      }
-    },
-    {
-      type: 'numeric',
-      numericFormat: {
-        pattern: '&#36; 0,0.00'
-      }
-    }
-  ]
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
         <header>Source: <code>next/guides/cell-types/password-cell-type.md:17</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
@@ -7261,6 +6996,160 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example3'));</code></pre></section>
+        <header>Source: <code>next/guides/cell-types/time-cell-type.md:33</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+
+const hot = new Handsontable(container, {
+  data: [
+    ['Mercedes', 'A 160', 1332284400000, 6999.95],
+    ['Citroen', 'C4 Coupe', '10 30', 8330],
+    ['Audi', 'A4 Avant', '8:00 PM', 33900],
+    ['Opel', 'Astra', 1332284400000, 7000],
+    ['BMW', '320i Coupe', 1332284400000, 30500]
+  ],
+  colHeaders: ['Car', 'Model', 'Registration time', 'Price'],
+  columnSorting: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
+  columns: [
+    {
+      type: 'text',
+    },
+    {
+      // 2nd cell is simple text, no special options here
+    },
+    {
+      type: 'time',
+      timeFormat: 'h:mm:ss a',
+      correctFormat: true
+    },
+    {
+      type: 'numeric',
+      numericFormat: {
+        pattern: '&#36; 0,0.00'
+      }
+    }
+  ]
+});
+
+hot.validateCells();
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotRef = React.createRef();
+const hotSettings = {
+  data: [
+    ['Mercedes', 'A 160', 1332284400000, 6999.95],
+    ['Citroen', 'C4 Coupe', '10 30', 8330],
+    ['Audi', 'A4 Avant', '8:00 PM', 33900],
+    ['Opel', 'Astra', 1332284400000, 7000],
+    ['BMW', '320i Coupe', 1332284400000, 30500]
+  ],
+  colHeaders: ['Car', 'Model', 'Registration time', 'Price'],
+  columnSorting: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
+  columns: [{
+      type: 'text',
+    },
+    {
+      // 2nd cell is simple text, no special options here
+    },
+    {
+      type: 'time',
+      timeFormat: 'h:mm:ss a',
+      correctFormat: true
+    },
+    {
+      type: 'numeric',
+      numericFormat: {
+        pattern: '&#36; 0,0.00'
+      }
+    }
+  ]
+};
+
+const App = () =&gt; {
+  useEffect(() =&gt; {
+    const hot = hotRef.current.hotInstance;
+
+    hot.validateCells();
+  });
+
+  return (
+    &lt;div&gt;
+      &lt;HotTable ref={hotRef} settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
+        <header>Source: <code>next/guides/cell-types/select-cell-type.md:19</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+
+const hot = new Handsontable(container, {
+  data: [
+    ['2017', 'Honda', 10],
+    ['2018', 'Toyota', 20],
+    ['2019', 'Nissan', 30]
+  ],
+  colWidths: [50, 70, 50],
+  colHeaders: true,
+  columns: [
+    {},
+    {
+      editor: 'select',
+      selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda']
+    },
+    {}
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: [
+    ['2017', 'Honda', 10],
+    ['2018', 'Toyota', 20],
+    ['2019', 'Nissan', 30]
+  ],
+  colWidths: [50, 70, 50],
+  colHeaders: true,
+  columns: [
+    {},
+    {
+      editor: 'select',
+      selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda']
+    },
+    {}
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
         <header>Source: <code>next/guides/cell-types/numeric-cell-type.md:35</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
@@ -7498,30 +7387,52 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-types/dropdown-cell-type.md:21</code></header>
+        <header>Source: <code>next/guides/cell-types/date-cell-type.md:63</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-
 const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
   data: [
-    ['Tesla', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'white', 'gray']
+    ['Mercedes', 'A 160', '01/14/2021', 6999.95],
+    ['Citroen', 'C4 Coupe', '12/01/2022', 8330],
+    ['Audi', 'A4 Avant', '11/19/2023', 33900],
+    ['Opel', 'Astra', '02/02/2021', 7000],
+    ['BMW', '320i Coupe', '07/24/2022', 30500]
   ],
-  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+  colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
+  height: 'auto',
   columns: [
-    {},
-    { type: 'numeric' },
     {
-      type: 'dropdown',
-      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
+      type: 'text',
     },
     {
-      type: 'dropdown',
-      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
+      // 2nd cell is simple text, no special options here
+    },
+    {
+      type: 'date',
+      dateFormat: 'MM/DD/YYYY',
+      correctFormat: true,
+      defaultDate: '01/01/1900',
+      // datePicker additional options
+      // (see https://github.com/dbushell/Pikaday#configuration)
+      datePickerConfig: {
+        // First day of the week (0: Sunday, 1: Monday, etc)
+        firstDay: 0,
+        showWeekNumber: true,
+        numberOfMonths: 3,
+        licenseKey: 'non-commercial-and-evaluation',
+        disableDayFn(date) {
+          // Disable Sunday and Saturday
+          return date.getDay() === 0 || date.getDay() === 6;
+        }
+      }
+    },
+    {
+      type: 'numeric',
+      numericFormat: {
+        pattern: '&#36; 0,0.00'
+      }
     }
-  ],
-  licenseKey: 'non-commercial-and-evaluation'
+  ]
 });
 </code></pre></section>
   <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
@@ -7533,26 +7444,48 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const hotSettings = {
+  licenseKey: 'non-commercial-and-evaluation',
   data: [
-    ['Tesla', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'white', 'gray']
+    ['Mercedes', 'A 160', '01/14/2021', 6999.95],
+    ['Citroen', 'C4 Coupe', '12/01/2022', 8330],
+    ['Audi', 'A4 Avant', '11/19/2023', 33900],
+    ['Opel', 'Astra', '02/02/2021', 7000],
+    ['BMW', '320i Coupe', '07/24/2022', 30500]
   ],
-  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
-  columns: [
-    {},
-    { type: 'numeric' },
-    {
-      type: 'dropdown',
-      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
+  colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
+  height: 'auto',
+  columns: [{
+      type: 'text',
     },
     {
-      type: 'dropdown',
-      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
+      // 2nd cell is simple text, no special options here
+    },
+    {
+      type: 'date',
+      dateFormat: 'MM/DD/YYYY',
+      correctFormat: true,
+      defaultDate: '01/01/1900',
+      // datePicker additional options
+      // (see https://github.com/dbushell/Pikaday#configuration)
+      datePickerConfig: {
+        // First day of the week (0: Sunday, 1: Monday, etc)
+        firstDay: 0,
+        showWeekNumber: true,
+        numberOfMonths: 3,
+        licenseKey: 'non-commercial-and-evaluation',
+        disableDayFn(date) {
+          // Disable Sunday and Saturday
+          return date.getDay() === 0 || date.getDay() === 6;
+        }
+      }
+    },
+    {
+      type: 'numeric',
+      numericFormat: {
+        pattern: '&#36; 0,0.00'
+      }
     }
-  ],
-  licenseKey: 'non-commercial-and-evaluation'
+  ]
 };
 
 const App = () =&gt; {
@@ -7565,246 +7498,6 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-types/checkbox-cell-type.md:26</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-
-const hot = new Handsontable(container, {
-  data: [
-    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
-    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
-    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
-    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
-    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
-  ],
-  colHeaders: ['Car model', 'Year of manufacture', 'Available'],
-  height: 'auto',
-  columns: [
-    {
-      data: 'car'
-    },
-    {
-      data: 'year',
-      type: 'numeric'
-    },
-    {
-      data: 'available',
-      type: 'checkbox'
-    }
-  ],
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: [
-    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
-    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
-    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
-    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
-    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
-  ],
-  colHeaders: ['Car model', 'Year of manufacture', 'Available'],
-  height: 'auto',
-  columns: [{
-      data: 'car'
-    },
-    {
-      data: 'year',
-      type: 'numeric'
-    },
-    {
-      data: 'available',
-      type: 'checkbox'
-    }
-  ],
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-types/checkbox-cell-type.md:62</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example2');
-
-const hot = new Handsontable(container, {
-  data: [
-    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
-    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
-    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
-    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
-    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
-  ],
-  colHeaders: ['Car model', 'Year of manufacture', 'Comes in black'],
-  height: 'auto',
-  columns: [
-    {
-      data: 'car'
-    },
-    {
-      data: 'year',
-      type: 'numeric'
-    },
-    {
-      data: 'comesInBlack',
-      type: 'checkbox',
-      checkedTemplate: 'yes',
-      uncheckedTemplate: 'no'
-    }
-  ],
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: [
-    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
-    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
-    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
-    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
-    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
-  ],
-  colHeaders: ['Car model', 'Year of manufacture', 'Comes in black'],
-  height: 'auto',
-  columns: [{
-      data: 'car'
-    },
-    {
-      data: 'year',
-      type: 'numeric'
-    },
-    {
-      data: 'comesInBlack',
-      type: 'checkbox',
-      checkedTemplate: 'yes',
-      uncheckedTemplate: 'no'
-    }
-  ],
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-types/checkbox-cell-type.md:100</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example3');
-
-const hot = new Handsontable(container, {
-  data: [
-    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
-    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
-    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
-    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
-    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
-  ],
-  colHeaders: ['Car model', 'Accepted', 'Comes in black'],
-  height: 'auto',
-  columns: [
-    {
-      data: 'car'
-    },
-    {
-      data: 'available',
-      type: 'checkbox',
-      label: {
-        position: 'after',
-        property: 'car' // Read value from row object
-      },
-    },
-    {
-      data: 'comesInBlack',
-      type: 'checkbox',
-      checkedTemplate: 'yes',
-      uncheckedTemplate: 'no',
-      label: {
-        position: 'before',
-        value: 'In black? '
-      },
-    },
-  ],
-  licenseKey: 'non-commercial-and-evaluation'
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: [
-    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
-    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
-    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
-    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
-    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
-  ],
-  colHeaders: ['Car model', 'Accepted', 'Comes in black'],
-  height: 'auto',
-  columns: [{
-      data: 'car'
-    },
-    {
-      data: 'available',
-      type: 'checkbox',
-      label: {
-        position: 'after',
-        property: 'car' // Read value from row object
-      },
-    },
-    {
-      data: 'comesInBlack',
-      type: 'checkbox',
-      checkedTemplate: 'yes',
-      uncheckedTemplate: 'no',
-      label: {
-        position: 'before',
-        value: 'In black? '
-      },
-    },
-  ],
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example3'));</code></pre></section>
         <header>Source: <code>next/guides/cell-types/cell-type.md:261</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
@@ -8001,40 +7694,30 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-types/autocomplete-cell-type.md:20</code></header>
+        <header>Source: <code>next/guides/cell-types/dropdown-cell-type.md:21</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-const colors = ['yellow', 'red', 'orange and another color', 'green',
-  'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
 
 const hot = new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
   data: [
-    ['BMW', 2017, 'black', 'black'],
+    ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
     ['Chrysler', 2019, 'yellow', 'black'],
     ['Volvo', 2020, 'white', 'gray']
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   columns: [
-    {
-      type: 'autocomplete',
-      source: ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'],
-      strict: false
-    },
+    {},
     { type: 'numeric' },
     {
-      type: 'autocomplete',
-      source: colors,
-      strict: false,
-      visibleRows: 4
+      type: 'dropdown',
+      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
     },
     {
-      type: 'autocomplete',
-      source: colors,
-      strict: false,
-      trimDropdown: false
+      type: 'dropdown',
+      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
     }
-  ]
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
 });
 </code></pre></section>
   <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
@@ -8045,348 +7728,27 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const colors = ['yellow', 'red', 'orange and another color', 'green',
-  'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'
-];
 const hotSettings = {
-  licenseKey: 'non-commercial-and-evaluation',
   data: [
-    ['BMW', 2017, 'black', 'black'],
+    ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
     ['Chrysler', 2019, 'yellow', 'black'],
     ['Volvo', 2020, 'white', 'gray']
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
-  columns: [{
-      type: 'autocomplete',
-      source: ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'],
-      strict: false
-    },
+  columns: [
+    {},
     { type: 'numeric' },
     {
-      type: 'autocomplete',
-      source: colors,
-      strict: false,
-      visibleRows: 4
+      type: 'dropdown',
+      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
     },
     {
-      type: 'autocomplete',
-      source: colors,
-      strict: false,
-      trimDropdown: false
+      type: 'dropdown',
+      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
     }
-  ]
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-types/autocomplete-cell-type.md:71</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example2');
-const colors = ['yellow', 'red', 'orange', 'green', 'blue',
-  'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
-const cars = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
-
-const hot = new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
-  data: [
-    ['BMW', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'white', 'gray']
   ],
-  colHeaders: ['Car&lt;br&gt;(allowInvalid true)', 'Year',
-    'Chassis color&lt;br&gt;(allowInvalid false)', 'Bumper color&lt;br&gt;(allowInvalid true)'],
-  columns: [
-    {
-      type: 'autocomplete',
-      source: cars,
-      strict: true
-      // allowInvalid: true // true is default
-    },
-    {},
-    {
-      type: 'autocomplete',
-      source: colors,
-      strict: true,
-      allowInvalid: false
-    },
-    {
-      type: 'autocomplete',
-      source: colors,
-      strict: true,
-      allowInvalid: true //true is default
-    }
-  ]
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const colors = ['yellow', 'red', 'orange', 'green', 'blue',
-  'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'
-];
-const cars = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
-const hotSettings = {
-  licenseKey: 'non-commercial-and-evaluation',
-  data: [
-    ['BMW', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'white', 'gray']
-  ],
-  colHeaders: ['Car&lt;br&gt;(allowInvalid true)', 'Year',
-    'Chassis color&lt;br&gt;(allowInvalid false)', 'Bumper color&lt;br&gt;(allowInvalid true)'
-  ],
-  columns: [{
-      type: 'autocomplete',
-      source: cars,
-      strict: true
-      // allowInvalid: true // true is default
-    },
-    {},
-    {
-      type: 'autocomplete',
-      source: colors,
-      strict: true,
-      allowInvalid: false
-    },
-    {
-      type: 'autocomplete',
-      source: colors,
-      strict: true,
-      allowInvalid: true //true is default
-    }
-  ]
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-types/autocomplete-cell-type.md:117</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example3');
-
-const hot = new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
-  data: [
-    ['BMW', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'white', 'gray']
-  ],
-  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
-  licenseKey: 'non-commercial-and-evaluation',
-  columns: [
-    {
-      type: 'autocomplete',
-      source(query, process) {
-        fetch('/docs/next/scripts/json/autocomplete.json')
-          .then(response =&gt; response.json())
-          .then(response =&gt; process(response.data));
-      },
-      strict: true
-    },
-    {}, // Year is a default text column
-    {}, // Chassis color is a default text column
-    {} // Bumper color is a default text column
-  ]
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  licenseKey: 'non-commercial-and-evaluation',
-  data: [
-    ['BMW', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'white', 'gray']
-  ],
-  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
-  licenseKey: 'non-commercial-and-evaluation',
-  columns: [{
-      type: 'autocomplete',
-      source(query, process) {
-        fetch('/docs/next/scripts/json/autocomplete.json')
-          .then(response =&gt; response.json())
-          .then(response =&gt; process(response.data));
-      },
-      strict: true
-    },
-    {}, // Year is a default text column
-    {}, // Chassis color is a default text column
-    {} // Bumper color is a default text column
-  ]
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example3'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-functions/cell-validator.md:117</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-const console = document.querySelector('#output');
-
-const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)&#36;/;
-
-const emailValidator = (value, callback) =&gt; {
-  setTimeout(() =&gt; {
-    if (/.+@.+/.test(value)) {
-      callback(true);
-
-    } else {
-      callback(false);
-    }
-  }, 1000);
-};
-
-const hot = new Handsontable(container, {
-  data: [
-    { id: 1, name: { first: 'Joe', last: 'Fabiano' }, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com' },
-    { id: 2, name: { first: 'Fred', last: 'Wecler' }, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com' },
-    { id: 3, name: { first: 'Steve', last: 'Wilson' }, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com' },
-    { id: 4, name: { first: 'Maria', last: 'Fernandez' }, ip: '0.0.0.1', email: 'M.Fernandez@ex.com' },
-    { id: 5, name: { first: 'Pierre', last: 'Barbault' }, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com' },
-    { id: 6, name: { first: 'Nancy', last: 'Moore' }, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com' },
-    { id: 7, name: { first: 'Barbara', last: 'MacDonald' }, ip: '0.0.0.1', email: 'B.MacDonald@ex.com' },
-    { id: 8, name: { first: 'Wilma', last: 'Williams' }, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com' },
-    { id: 9, name: { first: 'Sasha', last: 'Silver' }, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com' },
-    { id: 10, name: { first: 'Don', last: 'Pérignon' }, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com' },
-    { id: 11, name: { first: 'Aaron', last: 'Kinley' }, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com' }
-  ],
-  beforeChange(changes, source) {
-    for (let i = changes.length - 1; i &gt;= 0; i--) {
-      // gently don't accept the word "foo" (remove the change at index i)
-      if (changes[i][3] === 'foo') {
-        changes.splice(i, 1);
-      }
-      // if any of pasted cells contains the word "nuke", reject the whole paste
-      else if (changes[i][3] === 'nuke') {
-        return false;
-      }
-      // capitalise first letter in column 1 and 2
-      else if ((changes[i][1] === 'name.first' || changes[i][1] === 'name.last')) {
-        if(changes[i][3] !== null){
-          changes[i][3] = changes[i][3].charAt(0).toUpperCase() + changes[i][3].slice(1);
-        }
-      }
-    }
-  },
-  afterChange(changes, source) {
-    if (source !== 'loadData') {
-      console.innerText = JSON.stringify(changes);
-    }
-  },
-  colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
-  columns: [
-    { data: 'id', type: 'numeric' },
-    { data: 'name.first' },
-    { data: 'name.last' },
-    { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
-    { data: 'email', validator: emailValidator, allowInvalid: false }
-  ]
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const console = document.querySelector('#output');
-const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)&#36;/;
-const emailValidator = (value, callback) =&gt; {
-  setTimeout(() =&gt; {
-    if (/.+@.+/.test(value)) {
-      callback(true);
-
-    } else {
-      callback(false);
-    }
-  }, 1000);
-};
-const hotSettings = {
-  data: [
-    { id: 1, name: { first: 'Joe', last: 'Fabiano' }, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com' },
-    { id: 2, name: { first: 'Fred', last: 'Wecler' }, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com' },
-    { id: 3, name: { first: 'Steve', last: 'Wilson' }, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com' },
-    { id: 4, name: { first: 'Maria', last: 'Fernandez' }, ip: '0.0.0.1', email: 'M.Fernandez@ex.com' },
-    { id: 5, name: { first: 'Pierre', last: 'Barbault' }, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com' },
-    { id: 6, name: { first: 'Nancy', last: 'Moore' }, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com' },
-    { id: 7, name: { first: 'Barbara', last: 'MacDonald' }, ip: '0.0.0.1', email: 'B.MacDonald@ex.com' },
-    { id: 8, name: { first: 'Wilma', last: 'Williams' }, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com' },
-    { id: 9, name: { first: 'Sasha', last: 'Silver' }, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com' },
-    { id: 10, name: { first: 'Don', last: 'Pérignon' }, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com' },
-    { id: 11, name: { first: 'Aaron', last: 'Kinley' }, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com' }
-  ],
-  beforeChange(changes, source) {
-    for (let i = changes.length - 1; i &gt;= 0; i--) {
-      // gently don't accept the word "foo" (remove the change at index i)
-      if (changes[i][3] === 'foo') {
-        changes.splice(i, 1);
-      }
-      // if any of pasted cells contains the word "nuke", reject the whole paste
-      else if (changes[i][3] === 'nuke') {
-        return false;
-      }
-      // capitalise first letter in column 1 and 2
-      else if ((changes[i][1] === 'name.first' || changes[i][1] === 'name.last')) {
-        if (changes[i][3] !== null) {
-          changes[i][3] = changes[i][3].charAt(0).toUpperCase() + changes[i][3].slice(1);
-        }
-      }
-    }
-  },
-  afterChange(changes, source) {
-    if (source !== 'loadData') {
-      console.innerText = JSON.stringify(changes);
-    }
-  },
-  colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
-  columns: [
-    { data: 'id', type: 'numeric' },
-    { data: 'name.first' },
-    { data: 'name.last' },
-    { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
-    { data: 'email', validator: emailValidator, allowInvalid: false }
-  ]
+  licenseKey: 'non-commercial-and-evaluation'
 };
 
 const App = () =&gt; {
@@ -8643,6 +8005,762 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
+        <header>Source: <code>next/guides/cell-types/checkbox-cell-type.md:26</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+
+const hot = new Handsontable(container, {
+  data: [
+    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+  ],
+  colHeaders: ['Car model', 'Year of manufacture', 'Available'],
+  height: 'auto',
+  columns: [
+    {
+      data: 'car'
+    },
+    {
+      data: 'year',
+      type: 'numeric'
+    },
+    {
+      data: 'available',
+      type: 'checkbox'
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: [
+    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+  ],
+  colHeaders: ['Car model', 'Year of manufacture', 'Available'],
+  height: 'auto',
+  columns: [{
+      data: 'car'
+    },
+    {
+      data: 'year',
+      type: 'numeric'
+    },
+    {
+      data: 'available',
+      type: 'checkbox'
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
+        <header>Source: <code>next/guides/cell-types/checkbox-cell-type.md:62</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example2');
+
+const hot = new Handsontable(container, {
+  data: [
+    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+  ],
+  colHeaders: ['Car model', 'Year of manufacture', 'Comes in black'],
+  height: 'auto',
+  columns: [
+    {
+      data: 'car'
+    },
+    {
+      data: 'year',
+      type: 'numeric'
+    },
+    {
+      data: 'comesInBlack',
+      type: 'checkbox',
+      checkedTemplate: 'yes',
+      uncheckedTemplate: 'no'
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: [
+    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+  ],
+  colHeaders: ['Car model', 'Year of manufacture', 'Comes in black'],
+  height: 'auto',
+  columns: [{
+      data: 'car'
+    },
+    {
+      data: 'year',
+      type: 'numeric'
+    },
+    {
+      data: 'comesInBlack',
+      type: 'checkbox',
+      checkedTemplate: 'yes',
+      uncheckedTemplate: 'no'
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
+        <header>Source: <code>next/guides/cell-types/checkbox-cell-type.md:100</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example3');
+
+const hot = new Handsontable(container, {
+  data: [
+    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+  ],
+  colHeaders: ['Car model', 'Accepted', 'Comes in black'],
+  height: 'auto',
+  columns: [
+    {
+      data: 'car'
+    },
+    {
+      data: 'available',
+      type: 'checkbox',
+      label: {
+        position: 'after',
+        property: 'car' // Read value from row object
+      },
+    },
+    {
+      data: 'comesInBlack',
+      type: 'checkbox',
+      checkedTemplate: 'yes',
+      uncheckedTemplate: 'no',
+      label: {
+        position: 'before',
+        value: 'In black? '
+      },
+    },
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: [
+    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+  ],
+  colHeaders: ['Car model', 'Accepted', 'Comes in black'],
+  height: 'auto',
+  columns: [{
+      data: 'car'
+    },
+    {
+      data: 'available',
+      type: 'checkbox',
+      label: {
+        position: 'after',
+        property: 'car' // Read value from row object
+      },
+    },
+    {
+      data: 'comesInBlack',
+      type: 'checkbox',
+      checkedTemplate: 'yes',
+      uncheckedTemplate: 'no',
+      label: {
+        position: 'before',
+        value: 'In black? '
+      },
+    },
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example3'));</code></pre></section>
+        <header>Source: <code>next/guides/cell-types/autocomplete-cell-type.md:20</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+const colors = ['yellow', 'red', 'orange and another color', 'green',
+  'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
+
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    ['BMW', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray']
+  ],
+  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+  columns: [
+    {
+      type: 'autocomplete',
+      source: ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'],
+      strict: false
+    },
+    { type: 'numeric' },
+    {
+      type: 'autocomplete',
+      source: colors,
+      strict: false,
+      visibleRows: 4
+    },
+    {
+      type: 'autocomplete',
+      source: colors,
+      strict: false,
+      trimDropdown: false
+    }
+  ]
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const colors = ['yellow', 'red', 'orange and another color', 'green',
+  'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'
+];
+const hotSettings = {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    ['BMW', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray']
+  ],
+  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+  columns: [{
+      type: 'autocomplete',
+      source: ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'],
+      strict: false
+    },
+    { type: 'numeric' },
+    {
+      type: 'autocomplete',
+      source: colors,
+      strict: false,
+      visibleRows: 4
+    },
+    {
+      type: 'autocomplete',
+      source: colors,
+      strict: false,
+      trimDropdown: false
+    }
+  ]
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
+        <header>Source: <code>next/guides/cell-types/autocomplete-cell-type.md:71</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example2');
+const colors = ['yellow', 'red', 'orange', 'green', 'blue',
+  'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
+const cars = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
+
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    ['BMW', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray']
+  ],
+  colHeaders: ['Car&lt;br&gt;(allowInvalid true)', 'Year',
+    'Chassis color&lt;br&gt;(allowInvalid false)', 'Bumper color&lt;br&gt;(allowInvalid true)'],
+  columns: [
+    {
+      type: 'autocomplete',
+      source: cars,
+      strict: true
+      // allowInvalid: true // true is default
+    },
+    {},
+    {
+      type: 'autocomplete',
+      source: colors,
+      strict: true,
+      allowInvalid: false
+    },
+    {
+      type: 'autocomplete',
+      source: colors,
+      strict: true,
+      allowInvalid: true //true is default
+    }
+  ]
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const colors = ['yellow', 'red', 'orange', 'green', 'blue',
+  'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'
+];
+const cars = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
+const hotSettings = {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    ['BMW', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray']
+  ],
+  colHeaders: ['Car&lt;br&gt;(allowInvalid true)', 'Year',
+    'Chassis color&lt;br&gt;(allowInvalid false)', 'Bumper color&lt;br&gt;(allowInvalid true)'
+  ],
+  columns: [{
+      type: 'autocomplete',
+      source: cars,
+      strict: true
+      // allowInvalid: true // true is default
+    },
+    {},
+    {
+      type: 'autocomplete',
+      source: colors,
+      strict: true,
+      allowInvalid: false
+    },
+    {
+      type: 'autocomplete',
+      source: colors,
+      strict: true,
+      allowInvalid: true //true is default
+    }
+  ]
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
+        <header>Source: <code>next/guides/cell-types/autocomplete-cell-type.md:117</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example3');
+
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    ['BMW', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray']
+  ],
+  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+  licenseKey: 'non-commercial-and-evaluation',
+  columns: [
+    {
+      type: 'autocomplete',
+      source(query, process) {
+        fetch('/docs/next/scripts/json/autocomplete.json')
+          .then(response =&gt; response.json())
+          .then(response =&gt; process(response.data));
+      },
+      strict: true
+    },
+    {}, // Year is a default text column
+    {}, // Chassis color is a default text column
+    {} // Bumper color is a default text column
+  ]
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    ['BMW', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray']
+  ],
+  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+  licenseKey: 'non-commercial-and-evaluation',
+  columns: [{
+      type: 'autocomplete',
+      source(query, process) {
+        fetch('/docs/next/scripts/json/autocomplete.json')
+          .then(response =&gt; response.json())
+          .then(response =&gt; process(response.data));
+      },
+      strict: true
+    },
+    {}, // Year is a default text column
+    {}, // Chassis color is a default text column
+    {} // Bumper color is a default text column
+  ]
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example3'));</code></pre></section>
+        <header>Source: <code>next/guides/cell-functions/cell-validator.md:117</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+const output = document.querySelector('#output');
+
+const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)&#36;/;
+
+const emailValidator = (value, callback) =&gt; {
+  setTimeout(() =&gt; {
+    if (/.+@.+/.test(value)) {
+      callback(true);
+
+    } else {
+      callback(false);
+    }
+  }, 1000);
+};
+
+const hot = new Handsontable(container, {
+  data: [
+    { id: 1, name: { first: 'Joe', last: 'Fabiano' }, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com' },
+    { id: 2, name: { first: 'Fred', last: 'Wecler' }, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com' },
+    { id: 3, name: { first: 'Steve', last: 'Wilson' }, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com' },
+    { id: 4, name: { first: 'Maria', last: 'Fernandez' }, ip: '0.0.0.1', email: 'M.Fernandez@ex.com' },
+    { id: 5, name: { first: 'Pierre', last: 'Barbault' }, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com' },
+    { id: 6, name: { first: 'Nancy', last: 'Moore' }, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com' },
+    { id: 7, name: { first: 'Barbara', last: 'MacDonald' }, ip: '0.0.0.1', email: 'B.MacDonald@ex.com' },
+    { id: 8, name: { first: 'Wilma', last: 'Williams' }, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com' },
+    { id: 9, name: { first: 'Sasha', last: 'Silver' }, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com' },
+    { id: 10, name: { first: 'Don', last: 'Pérignon' }, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com' },
+    { id: 11, name: { first: 'Aaron', last: 'Kinley' }, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com' }
+  ],
+  beforeChange(changes, source) {
+    for (let i = changes.length - 1; i &gt;= 0; i--) {
+      // gently don't accept the word "foo" (remove the change at index i)
+      if (changes[i][3] === 'foo') {
+        changes.splice(i, 1);
+      }
+      // if any of pasted cells contains the word "nuke", reject the whole paste
+      else if (changes[i][3] === 'nuke') {
+        return false;
+      }
+      // capitalise first letter in column 1 and 2
+      else if ((changes[i][1] === 'name.first' || changes[i][1] === 'name.last')) {
+        if(changes[i][3] !== null){
+          changes[i][3] = changes[i][3].charAt(0).toUpperCase() + changes[i][3].slice(1);
+        }
+      }
+    }
+  },
+  afterChange(changes, source) {
+    if (source !== 'loadData') {
+      output.innerText = JSON.stringify(changes);
+    }
+  },
+  colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
+  columns: [
+    { data: 'id', type: 'numeric' },
+    { data: 'name.first' },
+    { data: 'name.last' },
+    { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
+    { data: 'email', validator: emailValidator, allowInvalid: false }
+  ]
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const output = document.querySelector('#output');
+const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)&#36;/;
+const emailValidator = (value, callback) =&gt; {
+  setTimeout(() =&gt; {
+    if (/.+@.+/.test(value)) {
+      callback(true);
+
+    } else {
+      callback(false);
+    }
+  }, 1000);
+};
+const hotSettings = {
+  data: [
+    { id: 1, name: { first: 'Joe', last: 'Fabiano' }, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com' },
+    { id: 2, name: { first: 'Fred', last: 'Wecler' }, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com' },
+    { id: 3, name: { first: 'Steve', last: 'Wilson' }, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com' },
+    { id: 4, name: { first: 'Maria', last: 'Fernandez' }, ip: '0.0.0.1', email: 'M.Fernandez@ex.com' },
+    { id: 5, name: { first: 'Pierre', last: 'Barbault' }, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com' },
+    { id: 6, name: { first: 'Nancy', last: 'Moore' }, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com' },
+    { id: 7, name: { first: 'Barbara', last: 'MacDonald' }, ip: '0.0.0.1', email: 'B.MacDonald@ex.com' },
+    { id: 8, name: { first: 'Wilma', last: 'Williams' }, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com' },
+    { id: 9, name: { first: 'Sasha', last: 'Silver' }, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com' },
+    { id: 10, name: { first: 'Don', last: 'Pérignon' }, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com' },
+    { id: 11, name: { first: 'Aaron', last: 'Kinley' }, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com' }
+  ],
+  beforeChange(changes, source) {
+    for (let i = changes.length - 1; i &gt;= 0; i--) {
+      // gently don't accept the word "foo" (remove the change at index i)
+      if (changes[i][3] === 'foo') {
+        changes.splice(i, 1);
+      }
+      // if any of pasted cells contains the word "nuke", reject the whole paste
+      else if (changes[i][3] === 'nuke') {
+        return false;
+      }
+      // capitalise first letter in column 1 and 2
+      else if ((changes[i][1] === 'name.first' || changes[i][1] === 'name.last')) {
+        if (changes[i][3] !== null) {
+          changes[i][3] = changes[i][3].charAt(0).toUpperCase() + changes[i][3].slice(1);
+        }
+      }
+    }
+  },
+  afterChange(changes, source) {
+    if (source !== 'loadData') {
+      output.innerText = JSON.stringify(changes);
+    }
+  },
+  colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
+  columns: [
+    { data: 'id', type: 'numeric' },
+    { data: 'name.first' },
+    { data: 'name.last' },
+    { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
+    { data: 'email', validator: emailValidator, allowInvalid: false }
+  ]
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
+        <header>Source: <code>next/guides/cell-features/merge-cells.md:23</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(100, 50),
+  height: 320,
+  colWidths: 47,
+  rowHeaders: true,
+  colHeaders: true,
+  contextMenu: true,
+  mergeCells: [
+    { row: 1, col: 1, rowspan: 3, colspan: 3 },
+    { row: 3, col: 4, rowspan: 2, colspan: 2 },
+    { row: 5, col: 6, rowspan: 3, colspan: 3 }
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(100, 50),
+  height: 320,
+  colWidths: 47,
+  rowHeaders: true,
+  colHeaders: true,
+  contextMenu: true,
+  mergeCells: [
+    { row: 1, col: 1, rowspan: 3, colspan: 3 },
+    { row: 3, col: 4, rowspan: 2, colspan: 2 },
+    { row: 5, col: 6, rowspan: 3, colspan: 3 }
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
+        <header>Source: <code>next/guides/cell-features/text-alignment.md:32</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(100, 18),
+  colWidths: 100,
+  height: 320,
+  rowHeaders: true,
+  colHeaders: true,
+  contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation',
+  mergeCells: [
+    { row: 1, col: 1, rowspan: 3, colspan: 3 },
+    { row: 3, col: 4, rowspan: 2, colspan: 2 }
+  ],
+  className: 'htCenter',
+  cell: [
+    { row: 0, col: 0, className: 'htRight' },
+    { row: 1, col: 1, className: 'htLeft htMiddle' },
+    { row: 3, col: 4, className: 'htLeft htBottom' }
+  ],
+  afterSetCellMeta(row, col, key, val) {
+    console.log('cell meta changed', row, col, key, val);
+  }
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(100, 18),
+  colWidths: 100,
+  height: 320,
+  rowHeaders: true,
+  colHeaders: true,
+  contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation',
+  mergeCells: [
+    { row: 1, col: 1, rowspan: 3, colspan: 3 },
+    { row: 3, col: 4, rowspan: 2, colspan: 2 }
+  ],
+  className: 'htCenter',
+  cell: [
+    { row: 0, col: 0, className: 'htRight' },
+    { row: 1, col: 1, className: 'htLeft htMiddle' },
+    { row: 3, col: 4, className: 'htLeft htBottom' }
+  ],
+  afterSetCellMeta(row, col, key, val) {
+    console.log('cell meta changed', row, col, key, val);
+  }
+};
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
         <header>Source: <code>next/guides/cell-features/selection.md:45</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 const selectOption = document.querySelector('#selectOption');
@@ -8881,73 +8999,6 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example3'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-features/text-alignment.md:32</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-
-const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(100, 18),
-  colWidths: 100,
-  height: 320,
-  rowHeaders: true,
-  colHeaders: true,
-  contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation',
-  mergeCells: [
-    { row: 1, col: 1, rowspan: 3, colspan: 3 },
-    { row: 3, col: 4, rowspan: 2, colspan: 2 }
-  ],
-  className: 'htCenter',
-  cell: [
-    { row: 0, col: 0, className: 'htRight' },
-    { row: 1, col: 1, className: 'htLeft htMiddle' },
-    { row: 3, col: 4, className: 'htLeft htBottom' }
-  ],
-  afterSetCellMeta(row, col, key, val) {
-    console.log('cell meta changed', row, col, key, val);
-  }
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(100, 18),
-  colWidths: 100,
-  height: 320,
-  rowHeaders: true,
-  colHeaders: true,
-  contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation',
-  mergeCells: [
-    { row: 1, col: 1, rowspan: 3, colspan: 3 },
-    { row: 3, col: 4, rowspan: 2, colspan: 2 }
-  ],
-  className: 'htCenter',
-  cell: [
-    { row: 0, col: 0, className: 'htRight' },
-    { row: 1, col: 1, className: 'htLeft htMiddle' },
-    { row: 3, col: 4, className: 'htLeft htBottom' }
-  ],
-  afterSetCellMeta(row, col, key, val) {
-    console.log('cell meta changed', row, col, key, val);
-  }
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
         <header>Source: <code>next/guides/cell-features/formatting-cells.md:33</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
@@ -9193,21 +9244,15 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example3'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-features/merge-cells.md:23</code></header>
+        <header>Source: <code>next/guides/cell-features/clipboard.md:47</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(100, 50),
-  height: 320,
-  colWidths: 47,
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
   rowHeaders: true,
   colHeaders: true,
-  contextMenu: true,
-  mergeCells: [
-    { row: 1, col: 1, rowspan: 3, colspan: 3 },
-    { row: 3, col: 4, rowspan: 2, colspan: 2 },
-    { row: 5, col: 6, rowspan: 3, colspan: 3 }
-  ],
+  contextMenu: ['copy', 'cut'],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 </code></pre></section>
@@ -9220,17 +9265,11 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(100, 50),
-  height: 320,
-  colWidths: 47,
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
   rowHeaders: true,
   colHeaders: true,
-  contextMenu: true,
-  mergeCells: [
-    { row: 1, col: 1, rowspan: 3, colspan: 3 },
-    { row: 3, col: 4, rowspan: 2, colspan: 2 },
-    { row: 5, col: 6, rowspan: 3, colspan: 3 }
-  ],
+  contextMenu: ['copy', 'cut'],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 };
 
@@ -9244,6 +9283,77 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
+        <header>Source: <code>next/guides/cell-features/clipboard.md:86</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example2');
+const copyBtn = document.querySelector('#copy');
+const cutBtn = document.querySelector('#cut');
+
+const hot = new Handsontable(container, {
+  rowHeaders: true,
+  colHeaders: true,
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  outsideClickDeselects: false,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+});
+
+copyBtn.addEventListener('mousedown', function() {
+  hot.selectCell(1, 1);
+});
+
+copyBtn.addEventListener('click', function() {
+  document.execCommand('copy');
+});
+
+cutBtn.addEventListener('mousedown', function() {
+  hot.selectCell(1, 1);
+});
+
+cutBtn.addEventListener('click', function() {
+  document.execCommand('cut');
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const copyBtn = document.querySelector('#copy');
+const cutBtn = document.querySelector('#cut');
+const hotSettings = {
+  rowHeaders: true,
+  colHeaders: true,
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  outsideClickDeselects: false,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+};
+copyBtn.addEventListener('mousedown', function() {
+  hot.selectCell(1, 1);
+});
+copyBtn.addEventListener('click', function() {
+  document.execCommand('copy');
+});
+cutBtn.addEventListener('mousedown', function() {
+  hot.selectCell(1, 1);
+});
+cutBtn.addEventListener('click', function() {
+  document.execCommand('cut');
+});
+
+const App = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
         <header>Source: <code>next/guides/cell-features/disabled-cells.md:26</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
@@ -9548,166 +9658,6 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example4'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-features/conditional-formatting.md:33</code></header>
-  <section><pre><code class="language-javascript">const container = document.getElementById('example1');
-
-const data = [
-  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
-  ['2017', -5, '', 12, 13],
-  ['2018', '', -11, 14, 13],
-  ['2019', '', 15, -12, 'readOnly']
-];
-
-function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
-  td.style.fontWeight = 'bold';
-  td.style.color = 'green';
-  td.style.background = '#CEC';
-}
-
-function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
-
-  // if row contains negative number
-  if (parseInt(value, 10) &lt; 0) {
-    // add class "negative"
-    td.className = 'make-me-red';
-  }
-
-  if (!value || value === '') {
-    td.style.background = '#EEE';
-
-  } else {
-    if (value === 'Nissan') {
-      td.style.fontStyle = 'italic';
-    }
-
-    td.style.background = '';
-  }
-}
-// maps function to a lookup string
-Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
-
-const hot = new Handsontable(container, {
-  data: data,
-  licenseKey: 'non-commercial-and-evaluation',
-  height: 'auto',
-  afterSelection(row, col, row2, col2) {
-    const meta = this.getCellMeta(row2, col2);
-
-    if (meta.readOnly) {
-      this.updateSettings({fillHandle: false});
-
-    } else {
-      this.updateSettings({fillHandle: true});
-    }
-  },
-  cells(row, col) {
-    const cellProperties = {};
-    const data = this.instance.getData();
-
-    if (row === 0 || data[row] && data[row][col] === 'readOnly') {
-      cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
-    }
-
-    if (row === 0) {
-      cellProperties.renderer = firstRowRenderer; // uses function directly
-
-    } else {
-      cellProperties.renderer = 'negativeValueRenderer'; // uses lookup map
-    }
-
-    return cellProperties;
-  }
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const data = [
-  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
-  ['2017', -5, '', 12, 13],
-  ['2018', '', -11, 14, 13],
-  ['2019', '', 15, -12, 'readOnly']
-];
-
-function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
-  td.style.fontWeight = 'bold';
-  td.style.color = 'green';
-  td.style.background = '#CEC';
-}
-
-function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
-
-  // if row contains negative number
-  if (parseInt(value, 10) &lt; 0) {
-    // add class "negative"
-    td.className = 'make-me-red';
-  }
-
-  if (!value || value === '') {
-    td.style.background = '#EEE';
-
-  } else {
-    if (value === 'Nissan') {
-      td.style.fontStyle = 'italic';
-    }
-
-    td.style.background = '';
-  }
-}
-//  maps function to a lookup string
-Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
-const hotSettings = {
-  data: data,
-  licenseKey: 'non-commercial-and-evaluation',
-  height: 'auto',
-  afterSelection(row, col, row2, col2) {
-    const meta = this.getCellMeta(row2, col2);
-
-    if (meta.readOnly) {
-      this.updateSettings({ fillHandle: false });
-
-    } else {
-      this.updateSettings({ fillHandle: true });
-    }
-  },
-  cells(row, col) {
-    const cellProperties = {};
-    const data = this.instance.getData();
-
-    if (row === 0 || data[row] && data[row][col] === 'readOnly') {
-      cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
-    }
-
-    if (row === 0) {
-      cellProperties.renderer = firstRowRenderer; // uses function directly
-
-    } else {
-      cellProperties.renderer = 'negativeValueRenderer'; // uses lookup map
-    }
-
-    return cellProperties;
-  }
-};
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
         <header>Source: <code>next/guides/cell-features/comments.md:52</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
@@ -9954,16 +9904,77 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example4'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-features/clipboard.md:47</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+        <header>Source: <code>next/guides/cell-features/conditional-formatting.md:33</code></header>
+  <section><pre><code class="language-javascript">const container = document.getElementById('example1');
+
+const data = [
+  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+  ['2017', -5, '', 12, 13],
+  ['2018', '', -11, 14, 13],
+  ['2019', '', 15, -12, 'readOnly']
+];
+
+function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  td.style.fontWeight = 'bold';
+  td.style.color = 'green';
+  td.style.background = '#CEC';
+}
+
+function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+  // if row contains negative number
+  if (parseInt(value, 10) &lt; 0) {
+    // add class "negative"
+    td.className = 'make-me-red';
+  }
+
+  if (!value || value === '') {
+    td.style.background = '#EEE';
+
+  } else {
+    if (value === 'Nissan') {
+      td.style.fontStyle = 'italic';
+    }
+
+    td.style.background = '';
+  }
+}
+// maps function to a lookup string
+Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 5),
-  rowHeaders: true,
-  colHeaders: true,
-  contextMenu: ['copy', 'cut'],
+  data: data,
+  licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
+  afterSelection(row, col, row2, col2) {
+    const meta = this.getCellMeta(row2, col2);
+
+    if (meta.readOnly) {
+      this.updateSettings({fillHandle: false});
+
+    } else {
+      this.updateSettings({fillHandle: true});
+    }
+  },
+  cells(row, col) {
+    const cellProperties = {};
+    const data = this.instance.getData();
+
+    if (row === 0 || data[row] && data[row][col] === 'readOnly') {
+      cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
+    }
+
+    if (row === 0) {
+      cellProperties.renderer = firstRowRenderer; // uses function directly
+
+    } else {
+      cellProperties.renderer = 'negativeValueRenderer'; // uses lookup map
+    }
+
+    return cellProperties;
+  }
 });
 </code></pre></section>
   <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
@@ -9974,13 +9985,73 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+  ['2017', -5, '', 12, 13],
+  ['2018', '', -11, 14, 13],
+  ['2019', '', 15, -12, 'readOnly']
+];
+
+function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  td.style.fontWeight = 'bold';
+  td.style.color = 'green';
+  td.style.background = '#CEC';
+}
+
+function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+  // if row contains negative number
+  if (parseInt(value, 10) &lt; 0) {
+    // add class "negative"
+    td.className = 'make-me-red';
+  }
+
+  if (!value || value === '') {
+    td.style.background = '#EEE';
+
+  } else {
+    if (value === 'Nissan') {
+      td.style.fontStyle = 'italic';
+    }
+
+    td.style.background = '';
+  }
+}
+//  maps function to a lookup string
+Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
 const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(5, 5),
-  rowHeaders: true,
-  colHeaders: true,
-  contextMenu: ['copy', 'cut'],
+  data: data,
+  licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
+  afterSelection(row, col, row2, col2) {
+    const meta = this.getCellMeta(row2, col2);
+
+    if (meta.readOnly) {
+      this.updateSettings({ fillHandle: false });
+
+    } else {
+      this.updateSettings({ fillHandle: true });
+    }
+  },
+  cells(row, col) {
+    const cellProperties = {};
+    const data = this.instance.getData();
+
+    if (row === 0 || data[row] && data[row][col] === 'readOnly') {
+      cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
+    }
+
+    if (row === 0) {
+      cellProperties.renderer = firstRowRenderer; // uses function directly
+
+    } else {
+      cellProperties.renderer = 'negativeValueRenderer'; // uses lookup map
+    }
+
+    return cellProperties;
+  }
 };
 
 const App = () =&gt; {
@@ -9993,77 +10064,6 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
-        <header>Source: <code>next/guides/cell-features/clipboard.md:86</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example2');
-const copyBtn = document.querySelector('#copy');
-const cutBtn = document.querySelector('#cut');
-
-const hot = new Handsontable(container, {
-  rowHeaders: true,
-  colHeaders: true,
-  data: Handsontable.helper.createSpreadsheetData(5, 5),
-  outsideClickDeselects: false,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
-});
-
-copyBtn.addEventListener('mousedown', function() {
-  hot.selectCell(1, 1);
-});
-
-copyBtn.addEventListener('click', function() {
-  document.execCommand('copy');
-});
-
-cutBtn.addEventListener('mousedown', function() {
-  hot.selectCell(1, 1);
-});
-
-cutBtn.addEventListener('click', function() {
-  document.execCommand('cut');
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const copyBtn = document.querySelector('#copy');
-const cutBtn = document.querySelector('#cut');
-const hotSettings = {
-  rowHeaders: true,
-  colHeaders: true,
-  data: Handsontable.helper.createSpreadsheetData(5, 5),
-  outsideClickDeselects: false,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
-};
-copyBtn.addEventListener('mousedown', function() {
-  hot.selectCell(1, 1);
-});
-copyBtn.addEventListener('click', function() {
-  document.execCommand('copy');
-});
-cutBtn.addEventListener('mousedown', function() {
-  hot.selectCell(1, 1);
-});
-cutBtn.addEventListener('click', function() {
-  document.execCommand('cut');
-});
-
-const App = () =&gt; {
-  return (
-    &lt;div&gt;
-      &lt;HotTable settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
         <header>Source: <code>next/guides/cell-features/autofill-values.md:27</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
@@ -10191,85 +10191,16 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
-        <header>Source: <code>next/guides/advanced-topics/batch-operations.md:175</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-const buttonWithout = document.querySelector('#buttonWithout');
-const buttonWith = document.querySelector('#buttonWith');
-const console = document.querySelector('#output');
-
-const data1 = [
-  [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
-  [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
-  [3, 'Ronald Carver', 'Sunny T-shirt', 'S', 1, 'no'],
-  [4, 'Samuel Watkins', 'Floppy socks', 'S', 3, 'no'],
-  [5, 'Stephanie Huddart', 'Bushy-bush cap', 'XXL', 1, 'no'],
-  [6, 'Madeline McGillivray', 'Long skirt', 'L', 1, 'no'],
-  [7, 'Jai Moor', 'Happy dress', 'XS', 1, 'no'],
-  [8, 'Ben Lower', 'Speckled trousers', 'M', 1, 'no'],
-  [9, 'Ali Tunbridge', 'Speckled trousers', 'M', 2, 'no'],
-  [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no']
-];
-
-const data2 = [
-  [11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes'],
-];
-
-const data3 = [
-  [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],
-  [13, 'Anna Moon', 'Unicorn shades', 'uni', 200, 'no'],
-  [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
-];
+        <header>Source: <code>next/guides/accessories-and-menus/undo-redo.md:42</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example');
 
 const hot = new Handsontable(container, {
-  data: data1,
-  width: 'auto',
-  height: 'auto',
-  colHeaders: ['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return'],
-  licenseKey: 'non-commercial-and-evaluation'
-});
-
-const alterTable = () =&gt; {
-  hot.alter('insert_row', 10, 10);
-  hot.alter('insert_col', 6, 1);
-  hot.populateFromArray(10, 0, data2);
-  hot.populateFromArray(11, 0, data3);
-  hot.setCellMeta(2, 2, 'className', 'green-bg');
-  hot.setCellMeta(4, 2, 'className', 'green-bg');
-  hot.setCellMeta(5, 2, 'className', 'green-bg');
-  hot.setCellMeta(6, 2, 'className', 'green-bg');
-  hot.setCellMeta(8, 2, 'className', 'green-bg');
-  hot.setCellMeta(9, 2, 'className', 'green-bg');
-  hot.setCellMeta(10, 2, 'className', 'green-bg');
-  hot.alter('remove_col', 6, 1);
-  hot.alter('remove_row', 10, 10);
-  hot.setCellMeta(0, 5, 'className', 'red-bg');
-  hot.setCellMeta(10, 5, 'className', 'red-bg');
-  hot.render(); // Render is needed here to populate the new "className"s
-}
-
-let logText = '';
-let counter = 0;
-
-const logOutput = msg =&gt; {
-  counter++;
-  logText = `[&#36;{counter}] &#36;{msg}\n&#36;{logText}`;
-  console.innerText = logText;
-}
-
-buttonWithout.addEventListener('click', () =&gt; {
-  const t1 = performance.now();
-  alterTable();
-  const t2 = performance.now();
-
-  logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
-});
-
-buttonWith.addEventListener('click', () =&gt; {
-  const t1 = performance.now();
-  hot.batch(alterTable);
-  const t2 = performance.now();
-
-  logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
+ data: Handsontable.helper.createSpreadsheetData(10, 5),
+ rowHeaders: true,
+ colHeaders: true,
+ stretchH: 'all',
+ height: 'auto',
+ licenseKey: 'non-commercial-and-evaluation'
 });
 </code></pre></section>
   <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
@@ -10280,75 +10211,14 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const buttonWithout = document.querySelector('#buttonWithout');
-const buttonWith = document.querySelector('#buttonWith');
-const console = document.querySelector('#output');
-const data1 = [
-  [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
-  [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
-  [3, 'Ronald Carver', 'Sunny T-shirt', 'S', 1, 'no'],
-  [4, 'Samuel Watkins', 'Floppy socks', 'S', 3, 'no'],
-  [5, 'Stephanie Huddart', 'Bushy-bush cap', 'XXL', 1, 'no'],
-  [6, 'Madeline McGillivray', 'Long skirt', 'L', 1, 'no'],
-  [7, 'Jai Moor', 'Happy dress', 'XS', 1, 'no'],
-  [8, 'Ben Lower', 'Speckled trousers', 'M', 1, 'no'],
-  [9, 'Ali Tunbridge', 'Speckled trousers', 'M', 2, 'no'],
-  [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no']
-];
-const data2 = [
-  [11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes'],
-];
-const data3 = [
-  [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],
-  [13, 'Anna Moon', 'Unicorn shades', 'uni', 200, 'no'],
-  [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
-];
 const hotSettings = {
-  data: data1,
-  width: 'auto',
+  data: Handsontable.helper.createSpreadsheetData(10, 5),
+  rowHeaders: true,
+  colHeaders: true,
+  stretchH: 'all',
   height: 'auto',
-  colHeaders: ['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return'],
   licenseKey: 'non-commercial-and-evaluation'
 };
-const alterTable = () =&gt; {
-  hot.alter('insert_row', 10, 10);
-  hot.alter('insert_col', 6, 1);
-  hot.populateFromArray(10, 0, data2);
-  hot.populateFromArray(11, 0, data3);
-  hot.setCellMeta(2, 2, 'className', 'green-bg');
-  hot.setCellMeta(4, 2, 'className', 'green-bg');
-  hot.setCellMeta(5, 2, 'className', 'green-bg');
-  hot.setCellMeta(6, 2, 'className', 'green-bg');
-  hot.setCellMeta(8, 2, 'className', 'green-bg');
-  hot.setCellMeta(9, 2, 'className', 'green-bg');
-  hot.setCellMeta(10, 2, 'className', 'green-bg');
-  hot.alter('remove_col', 6, 1);
-  hot.alter('remove_row', 10, 10);
-  hot.setCellMeta(0, 5, 'className', 'red-bg');
-  hot.setCellMeta(10, 5, 'className', 'red-bg');
-  hot.render(); // Render is needed here to populate the new "className"s
-}
-let logText = '';
-let counter = 0;
-const logOutput = msg =&gt; {
-  counter++;
-  logText = `[&#36;{counter}] &#36;{msg}\n&#36;{logText}`;
-  console.innerText = logText;
-}
-buttonWithout.addEventListener('click', () =&gt; {
-  const t1 = performance.now();
-  alterTable();
-  const t2 = performance.now();
-
-  logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
-});
-buttonWith.addEventListener('click', () =&gt; {
-  const t1 = performance.now();
-  hot.batch(alterTable);
-  const t2 = performance.now();
-
-  logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
-});
 
 const App = () =&gt; {
   return (
@@ -10359,7 +10229,7 @@ const App = () =&gt; {
   );
 };
 
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example'));</code></pre></section>
         <header>Source: <code>next/guides/accessories-and-menus/searching-values.md:85</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 const searchField = document.querySelector('#search_field');
@@ -10711,16 +10581,85 @@ const App = () =&gt; {
 };
 
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example4'));</code></pre></section>
-        <header>Source: <code>next/guides/accessories-and-menus/undo-redo.md:42</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example');
+        <header>Source: <code>next/guides/advanced-topics/batch-operations.md:175</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+const buttonWithout = document.querySelector('#buttonWithout');
+const buttonWith = document.querySelector('#buttonWith');
+const output = document.querySelector('#output');
+
+const data1 = [
+  [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
+  [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
+  [3, 'Ronald Carver', 'Sunny T-shirt', 'S', 1, 'no'],
+  [4, 'Samuel Watkins', 'Floppy socks', 'S', 3, 'no'],
+  [5, 'Stephanie Huddart', 'Bushy-bush cap', 'XXL', 1, 'no'],
+  [6, 'Madeline McGillivray', 'Long skirt', 'L', 1, 'no'],
+  [7, 'Jai Moor', 'Happy dress', 'XS', 1, 'no'],
+  [8, 'Ben Lower', 'Speckled trousers', 'M', 1, 'no'],
+  [9, 'Ali Tunbridge', 'Speckled trousers', 'M', 2, 'no'],
+  [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no']
+];
+
+const data2 = [
+  [11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes'],
+];
+
+const data3 = [
+  [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],
+  [13, 'Anna Moon', 'Unicorn shades', 'uni', 200, 'no'],
+  [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
+];
 
 const hot = new Handsontable(container, {
- data: Handsontable.helper.createSpreadsheetData(10, 5),
- rowHeaders: true,
- colHeaders: true,
- stretchH: 'all',
- height: 'auto',
- licenseKey: 'non-commercial-and-evaluation'
+  data: data1,
+  width: 'auto',
+  height: 'auto',
+  colHeaders: ['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return'],
+  licenseKey: 'non-commercial-and-evaluation'
+});
+
+const alterTable = () =&gt; {
+  hot.alter('insert_row', 10, 10);
+  hot.alter('insert_col', 6, 1);
+  hot.populateFromArray(10, 0, data2);
+  hot.populateFromArray(11, 0, data3);
+  hot.setCellMeta(2, 2, 'className', 'green-bg');
+  hot.setCellMeta(4, 2, 'className', 'green-bg');
+  hot.setCellMeta(5, 2, 'className', 'green-bg');
+  hot.setCellMeta(6, 2, 'className', 'green-bg');
+  hot.setCellMeta(8, 2, 'className', 'green-bg');
+  hot.setCellMeta(9, 2, 'className', 'green-bg');
+  hot.setCellMeta(10, 2, 'className', 'green-bg');
+  hot.alter('remove_col', 6, 1);
+  hot.alter('remove_row', 10, 10);
+  hot.setCellMeta(0, 5, 'className', 'red-bg');
+  hot.setCellMeta(10, 5, 'className', 'red-bg');
+  hot.render(); // Render is needed here to populate the new "className"s
+}
+
+let loggedText = '';
+let counter = 0;
+
+const logOutput = msg =&gt; {
+  counter++;
+  loggedText = `[&#36;{counter}] &#36;{msg}\n&#36;{loggedText}`;
+  output.innerText = loggedText;
+}
+
+buttonWithout.addEventListener('click', () =&gt; {
+  const t1 = performance.now();
+  alterTable();
+  const t2 = performance.now();
+
+  logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
+});
+
+buttonWith.addEventListener('click', () =&gt; {
+  const t1 = performance.now();
+  hot.batch(alterTable);
+  const t2 = performance.now();
+
+  logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
 });
 </code></pre></section>
   <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
@@ -10731,14 +10670,75 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const buttonWithout = document.querySelector('#buttonWithout');
+const buttonWith = document.querySelector('#buttonWith');
+const output = document.querySelector('#output');
+const data1 = [
+  [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
+  [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
+  [3, 'Ronald Carver', 'Sunny T-shirt', 'S', 1, 'no'],
+  [4, 'Samuel Watkins', 'Floppy socks', 'S', 3, 'no'],
+  [5, 'Stephanie Huddart', 'Bushy-bush cap', 'XXL', 1, 'no'],
+  [6, 'Madeline McGillivray', 'Long skirt', 'L', 1, 'no'],
+  [7, 'Jai Moor', 'Happy dress', 'XS', 1, 'no'],
+  [8, 'Ben Lower', 'Speckled trousers', 'M', 1, 'no'],
+  [9, 'Ali Tunbridge', 'Speckled trousers', 'M', 2, 'no'],
+  [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no']
+];
+const data2 = [
+  [11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes'],
+];
+const data3 = [
+  [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],
+  [13, 'Anna Moon', 'Unicorn shades', 'uni', 200, 'no'],
+  [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
+];
 const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(10, 5),
-  rowHeaders: true,
-  colHeaders: true,
-  stretchH: 'all',
+  data: data1,
+  width: 'auto',
   height: 'auto',
+  colHeaders: ['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return'],
   licenseKey: 'non-commercial-and-evaluation'
 };
+const alterTable = () =&gt; {
+  hot.alter('insert_row', 10, 10);
+  hot.alter('insert_col', 6, 1);
+  hot.populateFromArray(10, 0, data2);
+  hot.populateFromArray(11, 0, data3);
+  hot.setCellMeta(2, 2, 'className', 'green-bg');
+  hot.setCellMeta(4, 2, 'className', 'green-bg');
+  hot.setCellMeta(5, 2, 'className', 'green-bg');
+  hot.setCellMeta(6, 2, 'className', 'green-bg');
+  hot.setCellMeta(8, 2, 'className', 'green-bg');
+  hot.setCellMeta(9, 2, 'className', 'green-bg');
+  hot.setCellMeta(10, 2, 'className', 'green-bg');
+  hot.alter('remove_col', 6, 1);
+  hot.alter('remove_row', 10, 10);
+  hot.setCellMeta(0, 5, 'className', 'red-bg');
+  hot.setCellMeta(10, 5, 'className', 'red-bg');
+  hot.render(); // Render is needed here to populate the new "className"s
+}
+let loggedText = '';
+let counter = 0;
+const logOutput = msg =&gt; {
+  counter++;
+  loggedText = `[&#36;{counter}] &#36;{msg}\n&#36;{loggedText}`;
+  output.innerText = loggedText;
+}
+buttonWithout.addEventListener('click', () =&gt; {
+  const t1 = performance.now();
+  alterTable();
+  const t2 = performance.now();
+
+  logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
+});
+buttonWith.addEventListener('click', () =&gt; {
+  const t1 = performance.now();
+  hot.batch(alterTable);
+  const t2 = performance.now();
+
+  logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
+});
 
 const App = () =&gt; {
   return (
@@ -10749,248 +10749,7 @@ const App = () =&gt; {
   );
 };
 
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example'));</code></pre></section>
-        <header>Source: <code>next/guides/accessories-and-menus/export-to-csv.md:31</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
-const button = document.querySelector('#export-file');
-
-const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(7, 7),
-  colHeaders: true,
-  rowHeaders: true,
-  hiddenRows: { rows: [1, 3, 5], indicators: true },
-  hiddenColumns: { columns: [1, 3, 5], indicators: true },
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
-});
-
-const exportPlugin = hot.getPlugin('exportFile');
-
-button.addEventListener('click', () =&gt; {
-  exportPlugin.downloadFile('csv', {
-    bom: false,
-    columnDelimiter: ',',
-    columnHeaders: false,
-    exportHiddenColumns: true,
-    exportHiddenRows: true,
-    fileExtension: 'csv',
-    filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
-    mimeType: 'text/csv',
-    rowDelimiter: '\r\n',
-    rowHeaders: true
-  });
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotRef = React.createRef();
-const button = document.querySelector('#export-file');
-const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(7, 7),
-  colHeaders: true,
-  rowHeaders: true,
-  hiddenRows: { rows: [1, 3, 5], indicators: true },
-  hiddenColumns: { columns: [1, 3, 5], indicators: true },
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
-};
-button.addEventListener('click', () =&gt; {
-  exportPlugin.downloadFile('csv', {
-    bom: false,
-    columnDelimiter: ',',
-    columnHeaders: false,
-    exportHiddenColumns: true,
-    exportHiddenRows: true,
-    fileExtension: 'csv',
-    filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
-    mimeType: 'text/csv',
-    rowDelimiter: '\r\n',
-    rowHeaders: true
-  });
-});
-
-const App = () =&gt; {
-  useEffect(() =&gt; {
-    const hot = hotRef.current.hotInstance;
-
-    const exportPlugin = hot.getPlugin('exportFile');
-  });
-
-  return (
-    &lt;div&gt;
-      &lt;HotTable ref={hotRef} settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
 ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
-        <header>Source: <code>next/guides/accessories-and-menus/export-to-csv.md:76</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example2');
-const button = document.querySelector('#export-blob');
-
-const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(7, 7),
-  colHeaders: true,
-  rowHeaders: true,
-  hiddenRows: { rows: [1, 3, 5], indicators: true },
-  hiddenColumns: { columns: [1, 3, 5], indicators: true },
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
-});
-
-const exportPlugin = hot.getPlugin('exportFile');
-
-button.addEventListener('click', () =&gt; {
-  const exportedBlob = exportPlugin.exportAsBlob('csv', {
-    bom: false,
-    columnDelimiter: ',',
-    columnHeaders: false,
-    exportHiddenColumns: true,
-    exportHiddenRows: true,
-    mimeType: 'text/csv',
-    rowDelimiter: '\r\n',
-    rowHeaders: true
-  });
-
-  console.log(exportedBlob);
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotRef = React.createRef();
-const button = document.querySelector('#export-blob');
-const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(7, 7),
-  colHeaders: true,
-  rowHeaders: true,
-  hiddenRows: { rows: [1, 3, 5], indicators: true },
-  hiddenColumns: { columns: [1, 3, 5], indicators: true },
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
-};
-button.addEventListener('click', () =&gt; {
-  const exportedBlob = exportPlugin.exportAsBlob('csv', {
-    bom: false,
-    columnDelimiter: ',',
-    columnHeaders: false,
-    exportHiddenColumns: true,
-    exportHiddenRows: true,
-    mimeType: 'text/csv',
-    rowDelimiter: '\r\n',
-    rowHeaders: true
-  });
-
-  console.log(exportedBlob);
-});
-
-const App = () =&gt; {
-  useEffect(() =&gt; {
-    const hot = hotRef.current.hotInstance;
-
-    const exportPlugin = hot.getPlugin('exportFile');
-  });
-
-  return (
-    &lt;div&gt;
-      &lt;HotTable ref={hotRef} settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
-        <header>Source: <code>next/guides/accessories-and-menus/export-to-csv.md:121</code></header>
-  <section><pre><code class="language-javascript">const container = document.querySelector('#example3');
-const button = document.querySelector('#export-string');
-
-const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(7, 7),
-  colHeaders: true,
-  rowHeaders: true,
-  hiddenRows: { rows: [1, 3, 5], indicators: true },
-  hiddenColumns: { columns: [1, 3, 5], indicators: true },
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
-});
-
-const exportPlugin = hot.getPlugin('exportFile');
-
-button.addEventListener('click', () =&gt; {
-  const exportedString = exportPlugin.exportAsString('csv', {
-    bom: false,
-    columnDelimiter: ',',
-    columnHeaders: false,
-    exportHiddenColumns: true,
-    exportHiddenRows: true,
-    rowDelimiter: '\r\n',
-    rowHeaders: true
-  });
-
-  console.log(exportedString);
-});
-</code></pre></section>
-  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotRef = React.createRef();
-const button = document.querySelector('#export-string');
-const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(7, 7),
-  colHeaders: true,
-  rowHeaders: true,
-  hiddenRows: { rows: [1, 3, 5], indicators: true },
-  hiddenColumns: { columns: [1, 3, 5], indicators: true },
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
-};
-button.addEventListener('click', () =&gt; {
-  const exportedString = exportPlugin.exportAsString('csv', {
-    bom: false,
-    columnDelimiter: ',',
-    columnHeaders: false,
-    exportHiddenColumns: true,
-    exportHiddenRows: true,
-    rowDelimiter: '\r\n',
-    rowHeaders: true
-  });
-
-  console.log(exportedString);
-});
-
-const App = () =&gt; {
-  useEffect(() =&gt; {
-    const hot = hotRef.current.hotInstance;
-
-    const exportPlugin = hot.getPlugin('exportFile');
-  });
-
-  return (
-    &lt;div&gt;
-      &lt;HotTable ref={hotRef} settings={hotSettings}&gt;
-      &lt;/HotTable&gt;
-    &lt;/div&gt;
-  );
-};
-
-ReactDOM.render(&lt;App /&gt;, document.getElementById('example3'));</code></pre></section>
         <header>Source: <code>next/guides/accessories-and-menus/context-menu.md:22</code></header>
   <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
 
@@ -11277,6 +11036,247 @@ const App = () =&gt; {
   return (
     &lt;div&gt;
       &lt;HotTable settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example3'));</code></pre></section>
+        <header>Source: <code>next/guides/accessories-and-menus/export-to-csv.md:31</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example1');
+const button = document.querySelector('#export-file');
+
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(7, 7),
+  colHeaders: true,
+  rowHeaders: true,
+  hiddenRows: { rows: [1, 3, 5], indicators: true },
+  hiddenColumns: { columns: [1, 3, 5], indicators: true },
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+});
+
+const exportPlugin = hot.getPlugin('exportFile');
+
+button.addEventListener('click', () =&gt; {
+  exportPlugin.downloadFile('csv', {
+    bom: false,
+    columnDelimiter: ',',
+    columnHeaders: false,
+    exportHiddenColumns: true,
+    exportHiddenRows: true,
+    fileExtension: 'csv',
+    filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+    mimeType: 'text/csv',
+    rowDelimiter: '\r\n',
+    rowHeaders: true
+  });
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotRef = React.createRef();
+const button = document.querySelector('#export-file');
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(7, 7),
+  colHeaders: true,
+  rowHeaders: true,
+  hiddenRows: { rows: [1, 3, 5], indicators: true },
+  hiddenColumns: { columns: [1, 3, 5], indicators: true },
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+};
+button.addEventListener('click', () =&gt; {
+  exportPlugin.downloadFile('csv', {
+    bom: false,
+    columnDelimiter: ',',
+    columnHeaders: false,
+    exportHiddenColumns: true,
+    exportHiddenRows: true,
+    fileExtension: 'csv',
+    filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+    mimeType: 'text/csv',
+    rowDelimiter: '\r\n',
+    rowHeaders: true
+  });
+});
+
+const App = () =&gt; {
+  useEffect(() =&gt; {
+    const hot = hotRef.current.hotInstance;
+
+    const exportPlugin = hot.getPlugin('exportFile');
+  });
+
+  return (
+    &lt;div&gt;
+      &lt;HotTable ref={hotRef} settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example1'));</code></pre></section>
+        <header>Source: <code>next/guides/accessories-and-menus/export-to-csv.md:76</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example2');
+const button = document.querySelector('#export-blob');
+
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(7, 7),
+  colHeaders: true,
+  rowHeaders: true,
+  hiddenRows: { rows: [1, 3, 5], indicators: true },
+  hiddenColumns: { columns: [1, 3, 5], indicators: true },
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+});
+
+const exportPlugin = hot.getPlugin('exportFile');
+
+button.addEventListener('click', () =&gt; {
+  const exportedBlob = exportPlugin.exportAsBlob('csv', {
+    bom: false,
+    columnDelimiter: ',',
+    columnHeaders: false,
+    exportHiddenColumns: true,
+    exportHiddenRows: true,
+    mimeType: 'text/csv',
+    rowDelimiter: '\r\n',
+    rowHeaders: true
+  });
+
+  console.log(exportedBlob);
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotRef = React.createRef();
+const button = document.querySelector('#export-blob');
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(7, 7),
+  colHeaders: true,
+  rowHeaders: true,
+  hiddenRows: { rows: [1, 3, 5], indicators: true },
+  hiddenColumns: { columns: [1, 3, 5], indicators: true },
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+};
+button.addEventListener('click', () =&gt; {
+  const exportedBlob = exportPlugin.exportAsBlob('csv', {
+    bom: false,
+    columnDelimiter: ',',
+    columnHeaders: false,
+    exportHiddenColumns: true,
+    exportHiddenRows: true,
+    mimeType: 'text/csv',
+    rowDelimiter: '\r\n',
+    rowHeaders: true
+  });
+
+  console.log(exportedBlob);
+});
+
+const App = () =&gt; {
+  useEffect(() =&gt; {
+    const hot = hotRef.current.hotInstance;
+
+    const exportPlugin = hot.getPlugin('exportFile');
+  });
+
+  return (
+    &lt;div&gt;
+      &lt;HotTable ref={hotRef} settings={hotSettings}&gt;
+      &lt;/HotTable&gt;
+    &lt;/div&gt;
+  );
+};
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById('example2'));</code></pre></section>
+        <header>Source: <code>next/guides/accessories-and-menus/export-to-csv.md:121</code></header>
+  <section><pre><code class="language-javascript">const container = document.querySelector('#example3');
+const button = document.querySelector('#export-string');
+
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(7, 7),
+  colHeaders: true,
+  rowHeaders: true,
+  hiddenRows: { rows: [1, 3, 5], indicators: true },
+  hiddenColumns: { columns: [1, 3, 5], indicators: true },
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+});
+
+const exportPlugin = hot.getPlugin('exportFile');
+
+button.addEventListener('click', () =&gt; {
+  const exportedString = exportPlugin.exportAsString('csv', {
+    bom: false,
+    columnDelimiter: ',',
+    columnHeaders: false,
+    exportHiddenColumns: true,
+    exportHiddenRows: true,
+    rowDelimiter: '\r\n',
+    rowHeaders: true
+  });
+
+  console.log(exportedString);
+});
+</code></pre></section>
+  <section><pre><code class="language-javascript">import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotRef = React.createRef();
+const button = document.querySelector('#export-string');
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(7, 7),
+  colHeaders: true,
+  rowHeaders: true,
+  hiddenRows: { rows: [1, 3, 5], indicators: true },
+  hiddenColumns: { columns: [1, 3, 5], indicators: true },
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+};
+button.addEventListener('click', () =&gt; {
+  const exportedString = exportPlugin.exportAsString('csv', {
+    bom: false,
+    columnDelimiter: ',',
+    columnHeaders: false,
+    exportHiddenColumns: true,
+    exportHiddenRows: true,
+    rowDelimiter: '\r\n',
+    rowHeaders: true
+  });
+
+  console.log(exportedString);
+});
+
+const App = () =&gt; {
+  useEffect(() =&gt; {
+    const hot = hotRef.current.hotInstance;
+
+    const exportPlugin = hot.getPlugin('exportFile');
+  });
+
+  return (
+    &lt;div&gt;
+      &lt;HotTable ref={hotRef} settings={hotSettings}&gt;
       &lt;/HotTable&gt;
     &lt;/div&gt;
   );
