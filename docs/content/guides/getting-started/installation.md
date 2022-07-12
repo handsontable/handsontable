@@ -24,6 +24,7 @@ To install Handsontable using a framework, see:
 
 ## Overview
 
+TEST 2
 You can get started with Handsontable in a few different ways. The most common is:
 
 <code-group>
