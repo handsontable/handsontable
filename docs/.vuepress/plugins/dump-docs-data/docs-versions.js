@@ -63,6 +63,11 @@ async function readFromGitHub() {
   };
 }
 
+/**
+ * Fetches Docs all available versions and latest Docs version from the GitHub API or latest Docs.
+ *
+ * @returns {object}
+ */
 async function fetchDocsVersions() {
   let docsData = null;
 

@@ -5,8 +5,6 @@
 </template>
 
 <script>
-import { fetchDocsData } from '../theme/utils/remote-docs-data';
-
 export default {
   name: 'Img',
 
@@ -16,17 +14,11 @@ export default {
     },
   },
 
-  data() {
-    return {
-      latestVersion: null,
-    };
-  },
-
   computed: {
     parsedSrc() {
       let src = this.src;
 
-      if (this.$page.currentVersion === this.latestVersion) {
+      if (this.$page.currentVersion === this.$page.latestVersion) {
         src = src.replace('/{docsVersion}/', '/');
       } else {
         src = src.replace('/{docsVersion}/', `/${this.$page.currentVersion}/`);
@@ -41,11 +33,5 @@ export default {
       this.$emit('focusout');
     }
   },
-
-  async mounted() {
-    const docsData = await fetchDocsData();
-
-    this.latestVersion = docsData.latestVersion;
-  }
 };
 </script>
