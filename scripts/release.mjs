@@ -76,11 +76,9 @@ displaySeparator();
     await spawnProcess('git checkout develop');
 
     if (remoteDocsBranchExists.stdout) {
-      await spawnProcess(`git checkout ${docsVersion}`);
-      await spawnProcess(`git pull origin ${docsVersion}`);
-      await spawnProcess('git checkout develop');
-      // Sync the latest docs version with `develop` branch.
-      await spawnProcess(`git merge ${docsVersion}`);
+      await spawnProcess(`git checkout ${docsProdBranch}`);
+      await spawnProcess(`git pull origin ${docsProdBranch}`);
+
     } else {
       await spawnProcess(`git checkout -b ${docsVersion}`);
       // Remove "/content/api/" entry from the ./docs/.gitignore file so generated API
