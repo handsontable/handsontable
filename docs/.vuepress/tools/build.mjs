@@ -26,15 +26,16 @@ async function buildVersion(version) {
   logger.info(`Version ${version} build started at`, new Date().toString());
 
   const cwd = path.resolve(__dirname, '../../');
+  const versionEscaped = version.replace('.', '-');
 
   await spawnProcess(
-    `node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-${version.replace('.', '-')}`,
+    `node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-${versionEscaped}`,
     { cwd, env: { DOCS_BASE: version }, }
   );
 
   if (version !== 'next') {
     await spawnProcess(
-      `node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-${version.replace('.', '-')}`,
+      `node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-${versionEscaped}`,
       { cwd, env: { DOCS_BASE: 'latest' }, }
     );
   }
