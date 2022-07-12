@@ -11,7 +11,7 @@ const pluginName = 'hot/dump-canonicals';
 const rawCanonicalURLs = {
   v: getThisDocsVersion(),
   urls: [],
-}
+};
 const docsDataCommon = {
   versions: [],
   latestVersion: '',
@@ -49,9 +49,9 @@ module.exports = (options, context) => {
       }
 
       const docsVersions = await fetchDocsVersions();
-      // const canonicalURLs = await generateCommonCanonicalURLs(rawCanonicalURLs);
+      const canonicalURLs = await generateCommonCanonicalURLs(rawCanonicalURLs);
 
-      // docsDataCommon.urls = Array.from(canonicalURLs);
+      docsDataCommon.urls = Array.from(canonicalURLs);
       docsDataCommon.versions = docsVersions.versions;
       docsDataCommon.latestVersion = docsVersions.latestVersion;
 
