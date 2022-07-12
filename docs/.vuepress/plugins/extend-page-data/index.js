@@ -7,6 +7,16 @@ const {
 const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/extend-page-data';
 
+/**
+ * Dedupes the slashes in the string.
+ *
+ * @param {string} string String to process.
+ * @returns {string}
+ */
+function dedupeSlashes(string) {
+  return string.replace(/(\/)+/g, '$1');
+}
+
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const twoDigitDay = date.getDate();
@@ -33,6 +43,7 @@ module.exports = (options, context) => {
       $page.buildMode = buildMode;
       $page.baseUrl = getDocsBaseUrl();
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
+      $page.frontmatter.canonicalUrl = dedupeSlashes(`/docs${$page.frontmatter.canonicalUrl}/`);
     },
   };
 };

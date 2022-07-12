@@ -32,7 +32,7 @@ module.exports = (options, context) => {
     async extendPageData($page) {
       if ($page.frontmatter.permalink) {
         // Remove the slash ('/') from the beginning of the URL path to reduce the resulting file size
-        rawCanonicalURLs.urls.push($page.frontmatter.permalink.replace(/^\//, ''));
+        rawCanonicalURLs.urls.push($page.frontmatter.canonicalUrl.replace(/^\/docs\//, ''));
       }
     },
 
