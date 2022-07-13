@@ -37,7 +37,7 @@ module.exports = function conditionalContainer(markdown) {
     // Removing value from token's content.
     token.content = token.content.replace(regexp, '');
 
-    // Some tags may don't have children.
+    // Some tags may not have children.
     if (token.children === null) {
       return;
     }
