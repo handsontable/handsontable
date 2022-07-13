@@ -4,6 +4,7 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/installation' },
   { path: 'guides/getting-started/react-simple-example', onlyFor: ['react'] },
   { path: 'guides/getting-started/binding-to-data' },
+  { path: 'guides/getting-started/react-redux', onlyFor: ['react'] },
   { path: 'guides/getting-started/saving-data' },
   { path: 'guides/getting-started/setting-options' },
   { path: 'guides/getting-started/grid-size' },
@@ -55,6 +56,7 @@ const integrateWithVue3Items = [
 ];
 
 const columnsItems = [
+  { path: 'guides/columns/react-hot-column', onlyFor: ['react'] },
   { path: 'guides/columns/column-header' },
   { path: 'guides/columns/column-groups' },
   { path: 'guides/columns/column-hiding' },

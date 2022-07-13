@@ -1,8 +1,8 @@
 ---
 title: 'Simple examples'
 metaTitle: 'Simple examples - Guide - Handsontable Documentation'
-permalink: /next/react-simple-example
-canonicalUrl: /react-simple-example
+permalink: /next/simple-examples
+canonicalUrl: /simple-examples
 ---
 
 # Simple examples
