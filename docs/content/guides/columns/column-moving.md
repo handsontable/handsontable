@@ -51,3 +51,5 @@ The [dragColumns](@/api/manualColumnMove.md#dragcolumns) method has a `dropIndex
 The [moveColumns](@/api/manualColumnMove.md#movecolumns) method has a `finalIndex` parameter, which points to where the elements will be placed after the _moving_ action - `finalIndex` being the index of the first moved element.
 
 ![moveColumns method](/docs/{{$page.currentVersion}}/img/move_action.svg)
+
+The `moveColumns` function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [isMovePossible](@/api/manualColumnMove.md#ismovepossible) API method and the `movePossible` parameters `beforeColumnMove` and `afterColumnMove` hooks help in determine such situations.
