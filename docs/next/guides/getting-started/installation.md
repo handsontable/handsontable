@@ -26,6 +26,8 @@ This section is dedicated to the pure JavaScript version of Handsontable. If you
 
 Run the following command in your terminal
 
+::: only-for javascript
+
 <code-group>
   <code-block title="npm">
 
@@ -60,6 +62,27 @@ Run the following command in your terminal
 
   </code-block>
 </code-group>
+:::
+
+::: only-for react
+
+<code-group>
+  <code-block title="npm">
+
+  ```bash
+  npm install handsontable
+  ```
+
+  </code-block>
+  <code-block title="Yarn">
+
+  ```bash
+  yarn add handsontable
+  ```
+
+  </code-block>
+</code-group>
+:::
 
 ## Create a placeholder
 
@@ -67,15 +90,30 @@ Run the following command in your terminal
 <div id="example"></div>
 ```
 
+::: only-for javascript
 Import JavaScript and CSS into your application. You don't have to do that if you use CDN files.
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.css';
 ```
+:::
+
+::: only-for react
+Import JavaScript into your application.
+
+```js
+import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+```
+:::
 
 ## Initialize the grid
 
 Now turn your placeholder into a data grid with sample data.
+:::snippet
 ```js
 const data = [
   ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
@@ -93,6 +131,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
 });
 ```
+:::
 
 ## Preview the result
 
