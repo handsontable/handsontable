@@ -18,7 +18,7 @@ export default {
     parsedSrc() {
       let src = this.src;
 
-      if (this.$page.currentVersion === this.$page.latestVersion) {
+      if (this.$page.currentVersion === this.$page.latestVersion && this.$page.buildMode === 'production') {
         src = src.replace('/{docsVersion}/', '/');
       } else {
         src = src.replace('/{docsVersion}/', `/${this.$page.currentVersion}/`);
