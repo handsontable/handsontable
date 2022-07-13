@@ -29,7 +29,11 @@ To test the IME support, you will need to change your language preferences for y
 
 ## Watch IME in action
 
+<<<<<<< HEAD
 <video controls loop src="/docs/12.0/img/pages/ime-support/ime-support-in-handsontable.mp4" width="100%"></video>
+=======
+<video controls loop v-bind:src="'/docs/'+ $page.currentVersion + '/img/pages/ime-support/ime-support-in-handsontable.mp4'" width="100%"></video>
+>>>>>>> fe5356882 (Inject dynamic docs version variable)
 
 ## Related API reference
 
