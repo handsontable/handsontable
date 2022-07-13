@@ -18,7 +18,7 @@ The dropdown menu acts like the **Context Menu** but is triggered by clicking th
 
 ## Quick setup
 
-To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) configuration option to `true` when initializing Handsontable.
+To enable the plugin, set the `dropdownMenu` property to `true` when initializing Handsontable.
 
 ::: example #example1
 ```js
@@ -57,22 +57,3 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Context menu](@/guides/accessories-and-menus/context-menu.md)
-
-### Related API reference
-
-- Configuration options:
-  - [`dropdownMenu`](@/api/options.md#dropdownmenu)
-- Hooks:
-  - [`afterDropdownMenuDefaultOptions`](@/api/hooks.md#afterdropdownmenudefaultoptions)
-  - [`afterDropdownMenuHide`](@/api/hooks.md#afterdropdownmenuhide)
-  - [`afterDropdownMenuShow`](@/api/hooks.md#afterdropdownmenushow)
-  - [`beforeDropdownMenuSetItems`](@/api/hooks.md#beforedropdownmenusetitems)
-  - [`beforeDropdownMenuShow`](@/api/hooks.md#beforedropdownmenushow)
-- Plugins:
-  - [`DropdownMenu`](@/api/dropdownMenu.md)

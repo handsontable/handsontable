@@ -1,3 +1,10 @@
+// import fs from 'fs';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+
+// const contentPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../content');
+// const contentDir = fs.existsSync(contentPath) ? 'content' : 'next';
+
 export default {
   pathToSource: '../../../../handsontable/src',
   pathToDist: '../../../content/api',
