@@ -102,7 +102,7 @@ ReactDOM.render(<App />, document.getElementById('example2'));
 
 ## Object data source
 
-When you use object data binding for `HotColumn`, you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in properties as `data`, for example, `<HotColumn data="id" />`:
+When you use object data binding for `HotColumn`, you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in properties as `data`, for example, `<HotColumn data="id" />`.
 
 ::: example #example3 :react --tab preview
 ```jsx
@@ -208,11 +208,9 @@ This will give you a solid base to build on. Note that the editor component need
 
 It's also worth noting that editors in Handsontable will close after clicking on them if the `outsideClickDeselects` option is enabled - *default setting*.
 
-To prevent that, the `mousedown` event on the editor container must call `event.stopPropagation()`.
+To prevent that, the `mousedown` event on the editor container must call `event.stopPropagation()`. In React's case, however, it doesn't work out of the box because of the way React handles events. [This article by Eric Clemmons](https://medium.com/@ericclemmons/react-event-preventdefault-78c28c950e46) sums it up pretty well.
 
-If you are using React 17 and newer, `event.stopPropagation()` should work for you as expected. See the [React 17 release notes](https://reactjs.org/blog/2020/08/10/react-v17-rc.html#changes-to-event-delegation) for details about event delegation.
-
-Note that in case of React 16 and older, it wouldn't work out of the box because of the way how React used to handle events. [This article by Eric Clemmons](https://medium.com/@ericclemmons/react-event-preventdefault-78c28c950e46) sums it up pretty well and presents a solution ([react-native-listener](https://www.npmjs.com/package/react-native-listener)).
+The example below uses the [react-native-listener](https://www.npmjs.com/package/react-native-listener) library to utilize the native `mousedown` event.
 
 ::: example #example4 :react --tab preview
 ```jsx
@@ -350,7 +348,7 @@ ReactDOM.render(<App />, document.getElementById('example4'));
 ```
 :::
 
-## Using the renderer/editor components within React's Context
+## Using the renderer/editor components in React's Context
 
 In this example, React's Context is used to pass the information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with editors just as well.
 

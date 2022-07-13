@@ -9,10 +9,6 @@ canonicalUrl: /react-custom-editor-example
 
 [[toc]]
 
-::: tip Using React components
-This page shows how to integrate a plain JavaScript custom editor with the React component. Information how to [declare a custom editor using React components](@/guides/integrate-with-react/react-hot-column.md#declaring-a-custom-editor-as-a-component) is presented on another page.
-:::
-
 ## Overview
 
 You can declare a custom editor for the `HotTable` component by declaring it as a class and passing it to the Handsontable options or creating an editor component.
@@ -26,13 +22,9 @@ The following example implements the `@handsontable/react` component with a cust
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
-import { TextEditor } from 'handsontable/editors/textEditor';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 
-// register Handsontable's modules
-registerAllModules();
-
-class CustomEditor extends TextEditor {
+class CustomEditor extends Handsontable.editors.TextEditor {
   constructor(props) {
     super(props);
   }
@@ -44,7 +36,7 @@ class CustomEditor extends TextEditor {
     this.TEXTAREA.setAttribute('placeholder', 'Custom placeholder');
     this.TEXTAREA.setAttribute('data-hot-input', true);
     this.textareaStyle = this.TEXTAREA.style;
-    this.TEXTAREA_PARENT.innerText = '';
+    Handsontable.dom.empty(this.TEXTAREA_PARENT);
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }
@@ -75,31 +67,3 @@ const App = () => {
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Cell editor](@/guides/cell-functions/cell-editor.md)
-
-### Related API reference
-
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`editor`](@/api/options.md#editor)
-  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
-- Core methods:
-  - [`destroyEditor()`](@/api/core.md#destroyeditor)
-  - [`getActiveEditor()`](@/api/core.md#getactiveeditor)
-  - [`getCellEditor()`](@/api/core.md#getcelleditor)
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)

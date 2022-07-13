@@ -10,11 +10,13 @@ canonicalUrl: /autocomplete-cell-type
 [[toc]]
 
 ## Overview
-The `autocomplete` cell type enables the user to choose a suggested option while typing. Autocomplete can be configured in three different ways, flexible mode, strict mode, and strict mode using Ajax.
+The `autocomplete` cell type enables the user to choose a suggested option while typing. Autocomplete can be configured in three different ways, lazy mode, strict mode, and strict mode using Ajax.
 
-## Autocomplete flexible mode
+## Autocomplete lazy mode
 
-This example uses the `autocomplete` feature in the default **flexible mode**. In this mode, the user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
+This example uses the `autocomplete` feature in the default **lazy mode**. In this mode, the user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
+
+In this mode, the mouse and keyboard bindings are identical to the [Handsontable cell type](@/guides/cell-types/handsontable-cell-type.md). The options are rendered from the `source` property, either an array or a function that returns an array.
 
 ::: example #example1
 ```js
@@ -57,15 +59,15 @@ const hot = new Handsontable(container, {
 
 ## Autocomplete strict mode
 
-This is the same example as above, the difference being that `autocomplete` now runs in **strict mode**. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical to the `Handsontable` cell type but with the differences below:
+This is the same example as above, the difference being that `autocomplete` now runs in **strict mode**. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical to the [Handsontable cell type](@/guides/cell-types/handsontable-cell-type.md) but with the differences below:
 
 * If there is at least one option visible, there always is a selection in HOT-in-HOT
-* When the first row is selected, pressing <kbd>**Arrow Up**</kbd> does not deselect HOT-in-HOT. Instead, it behaves as the <kbd>**Enter**</kbd> key but moves the selection in the main HOT upwards
+* When the first row is selected, pressing <kbd>ARROW UP</kbd> does not deselect HOT-in-HOT. Instead, it behaves as the <kbd>ENTER</kbd> key but moves the selection in the main HOT upwards
 
 In strict mode, the **allowInvalid** option determines the behaviour in the case of manual user input:
 
-* [`allowInvalid: true`](@/api/options.md#allowinvalid) optional - allows manual input of a value that does not exist in the `source`, the field background is highlighted in red, and the selection advances to the next cell
-* [`allowInvalid: false`](@/api/options.md#allowinvalid) - does not allow manual input of a value that does not exist in the `source`, the <kbd>**Enter**</kbd> key is ignored, and the editor field remains open
+* `allowInvalid: true` optional - allows manual input of a value that does not exist in the `source`, the field background is highlighted in red, and the selection advances to the next cell
+* `allowInvalid: false` - does not allow manual input of a value that does not exist in the `source`, the <kbd>ENTER</kbd> key is ignored, and the editor field remains open
 
 ::: example #example2
 ```js
@@ -131,7 +133,7 @@ const hot = new Handsontable(container, {
     {
       type: 'autocomplete',
       source(query, process) {
-        fetch('/docs/{{$page.currentVersion}}/scripts/json/autocomplete.json')
+        fetch('/docs/10.0/scripts/json/autocomplete.json')
           .then(response => response.json())
           .then(response => process(response.data));
       },
@@ -144,36 +146,3 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Cell type](@/guides/cell-types/cell-type.md)
-- [Dropdown cell type](@/guides/cell-types/dropdown-cell-type.md)
-- [Select cell type](@/guides/cell-types/select-cell-type.md)
-
-### Related API reference
-
-- Configuration options:
-  - [`allowHtml`](@/api/options.md#allowhtml)
-  - [`filteringCaseSensitive`](@/api/options.md#filteringcasesensitive)
-  - [`sortByRelevance`](@/api/options.md#sortbyrelevance)
-  - [`source`](@/api/options.md#source)
-  - [`strict`](@/api/options.md#strict)
-  - [`trimDropdown`](@/api/options.md#trimdropdown)
-  - [`type`](@/api/options.md#type)
-  - [`visibleRows`](@/api/options.md#visiblerows)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

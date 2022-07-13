@@ -32,18 +32,14 @@ To declare column-specific settings, pass the settings as `hot-column` propertie
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
-import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
-
-// register Handsontable's modules
-registerAllModules();
+import Handsontable from 'handsontable';
 
 new Vue({
   el: '#example1',
   data: function() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(10, 10),
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation',
       },
@@ -82,6 +78,7 @@ To work with an array of objects for the `hot-column` component, you need to pro
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
+import Handsontable from 'handsontable';
 
 new Vue({
   el: '#example2',
@@ -111,14 +108,14 @@ new Vue({
 
 ## Declaring a custom renderer as a component
 
-The wrapper allows creating custom renderers using Vue 2 components. The data you would normally get as arguments of the rendering function will be injected into the rendering component's `$data` object.
+The wrapper allows creating custom renderers using Vue components. The data you would normally get as arguments of the rendering function will be injected into the rendering component's `$data` object.
 
 To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
 
 ::: tip
-Handsontable's [`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) options require calculating the widths/heights of some of the cells before rendering them into the table. For this reason, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
+Handsontable's `autoRowSize` and `autoColumnSize` options require calculating the widths/heights of some of the cells before rendering them into the table. For this reason, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
 
-Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that [`autoColumnSize`](@/api/options.md#autocolumnsize) is enabled by default.
+Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that `autoColumnSize` is enabled by default.
 :::
 
 ::: example #custom-renderer-example :vue --html 1 --js 2
@@ -134,7 +131,7 @@ Be sure to turn those options off in your Handsontable config, as keeping them e
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable';
 
 const CustomRenderer = {
   template: '<div><i style="color: #a9a9a9">Row: {{row}}, column: {{col}},</i> value: {{value}}</div>',
@@ -165,7 +162,7 @@ const App = new Vue({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(10, 10),
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
         autoRowSize: false,
         autoColumnSize: false,
         height: 'auto',
@@ -190,9 +187,9 @@ To prevent this problem, it is possible to pass the `wrapperRendererCacheSize` o
 
 ## Declaring a custom editor as a component
 
-You can also utilize the Vue 2 components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/vue`.
+You can also utilize the Vue components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/vue`.
 
-This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the [`getValue`](@/api/baseEditor.md#getvalue), [`setValue`](@/api/baseEditor.md#setvalue), [`open`](@/api/baseEditor.md#open), [`close`](@/api/baseEditor.md#close), and [`focus`](@/api/baseEditor.md#focus) methods. These are abstract in the `BaseEditor`. For more info, check the documentation on [creating custom editors from scratch](@/guides/cell-functions/cell-editor.md#selecteditor-creating-editor-from-scratch).
+This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close`, and `focus` methods. These are abstract in the `BaseEditor`. For more info, check the documentation on [creating custom editors from scratch](@/guides/cell-functions/cell-editor.md#selecteditor-creating-editor-from-scratch).
 
 ::: example #custom-editor-example :vue --html 1 --js 2
 ```html
@@ -208,7 +205,7 @@ This will give you a solid base to build on. Note that the editor component need
   // We're binding the `style` attribute to the style object in our component's data
   // as well as the `mousedown` event to a function, which stops the event propagation
   // in order to prevent closing the editor on click.
-  <div v-if="isVisible" id="editorElement" :style="style" v-on:mousedown="stopMousedownPropagation" >
+  <div v-if="isVisible" id="editorElement" :style="style" @mousedown="stopMousedownPropagation" >
     <button v-on:click="setLowerCase">{{ value.toLowerCase() }}</button>
     <button v-on:click="setUpperCase">{{ value.toUpperCase() }}</button>
   </div>
@@ -217,6 +214,7 @@ This will give you a solid base to build on. Note that the editor component need
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/vue';
+import Handsontable from 'handsontable';
 
 const CustomEditor = {
   name: 'CustomEditor',
@@ -323,7 +321,7 @@ const App = new Vue({
 
 ## Using the renderer/editor components with `v-model`
 
-You can also use Vue 2's `v-model` with the renderer and editor components.
+You can also use Vue's `v-model` with the renderer and editor components.
 
 In the example below, we're utilizing an input with `v-model` assigned and reading the bound property from the renderer component to highlight the rows entered into the input.
 
@@ -347,7 +345,7 @@ List of row indexes (starting from 0):
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable';
 
 const CustomRenderer = {
   template: `<div v-bind:style="{ backgroundColor: bgColor }">{{value}}</div>`,
@@ -364,6 +362,7 @@ const CustomRenderer = {
   },
   computed: {
     bgColor() {
+      console.log(this.$root.highlightedRows);
       return this.$root.highlightedRows.includes(this.row) ? '#40b882' : '#fff';
     }
   }
@@ -374,7 +373,7 @@ const App = new Vue({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(10, 1)  ,
+        data: Handsontable.helper.createSpreadsheetData(10, 1)  ,
         licenseKey: 'non-commercial-and-evaluation',
         autoRowSize: false,
         autoColumnSize: false,
@@ -397,7 +396,7 @@ const App = new Vue({
 In this example, several capabilities of the wrapper are combined:
 
 1. Create a custom editor component with an external dependency that will act as both renderer and editor
-2. Declare settings for several columns using Vue 2's `v-for`
+2. Declare settings for several columns using Vue's `v-for`
 3. Create a component where the state will be bound by the data retrieved from the first component
 
 ::: example #advanced-editor-example :vue-advanced --html 1 --css 2 --js 3

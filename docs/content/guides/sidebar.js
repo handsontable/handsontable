@@ -1,6 +1,5 @@
 const gettingStartedItems = [
   'guides/getting-started/introduction',
-  // 'guides/getting-started/demo', (temporarily hidden, till the demo is fixed)
   'guides/getting-started/installation',
   'guides/getting-started/binding-to-data',
   'guides/getting-started/saving-data',
@@ -13,9 +12,8 @@ const gettingStartedItems = [
 const integrateWithReactItems = [
   'guides/integrate-with-react/react-installation',
   'guides/integrate-with-react/react-simple-example',
-  'guides/integrate-with-react/react-modules',
   'guides/integrate-with-react/react-hot-column',
-  'guides/integrate-with-react/react-setting-up-a-language',
+  'guides/integrate-with-react/react-setting-up-a-locale',
   'guides/integrate-with-react/react-custom-context-menu-example',
   'guides/integrate-with-react/react-custom-editor-example',
   'guides/integrate-with-react/react-custom-renderer-example',
@@ -27,9 +25,8 @@ const integrateWithReactItems = [
 const integrateWithAngularItems = [
   'guides/integrate-with-angular/angular-installation',
   'guides/integrate-with-angular/angular-simple-example',
-  'guides/integrate-with-angular/angular-modules',
   'guides/integrate-with-angular/angular-custom-id',
-  'guides/integrate-with-angular/angular-setting-up-a-language',
+  'guides/integrate-with-angular/angular-setting-up-a-locale',
   'guides/integrate-with-angular/angular-custom-context-menu-example',
   'guides/integrate-with-angular/angular-custom-editor-example',
   'guides/integrate-with-angular/angular-custom-renderer-example',
@@ -40,9 +37,8 @@ const integrateWithAngularItems = [
 const integrateWithVueItems = [
   'guides/integrate-with-vue/vue-installation',
   'guides/integrate-with-vue/vue-simple-example',
-  'guides/integrate-with-vue/vue-modules',
   'guides/integrate-with-vue/vue-hot-column',
-  'guides/integrate-with-vue/vue-setting-up-a-language',
+  'guides/integrate-with-vue/vue-setting-up-a-locale',
   'guides/integrate-with-vue/vue-custom-id-class-style',
   'guides/integrate-with-vue/vue-custom-context-menu-example',
   'guides/integrate-with-vue/vue-custom-editor-example',
@@ -50,21 +46,6 @@ const integrateWithVueItems = [
   'guides/integrate-with-vue/vue-language-change-example',
   'guides/integrate-with-vue/vue-vuex-example',
   'guides/integrate-with-vue/vue-hot-reference',
-];
-
-const integrateWithVue3Items = [
-  'guides/integrate-with-vue3/vue3-installation',
-  'guides/integrate-with-vue3/vue3-simple-example',
-  'guides/integrate-with-vue3/vue3-modules',
-  'guides/integrate-with-vue3/vue3-hot-column',
-  'guides/integrate-with-vue3/vue3-setting-up-a-language',
-  'guides/integrate-with-vue3/vue3-custom-id-class-style',
-  'guides/integrate-with-vue3/vue3-custom-context-menu-example',
-  'guides/integrate-with-vue3/vue3-custom-editor-example',
-  'guides/integrate-with-vue3/vue3-custom-renderer-example',
-  'guides/integrate-with-vue3/vue3-language-change-example',
-  'guides/integrate-with-vue3/vue3-vuex-example',
-  'guides/integrate-with-vue3/vue3-hot-reference',
 ];
 
 const columnsItems = [
@@ -133,7 +114,7 @@ const formulasItems = [
 const accessoriesAndMenusItems = [
   'guides/accessories-and-menus/context-menu',
   'guides/accessories-and-menus/undo-redo',
-  'guides/accessories-and-menus/keyboard-shortcuts',
+  'guides/accessories-and-menus/keyboard-navigation',
   'guides/accessories-and-menus/searching-values',
   'guides/accessories-and-menus/icon-pack',
   'guides/accessories-and-menus/export-to-csv',
@@ -141,27 +122,26 @@ const accessoriesAndMenusItems = [
 ];
 
 const internationalizationItems = [
-  'guides/internationalization/language',
-  'guides/internationalization/locale',
-  'guides/internationalization/layout-direction',
+  'guides/internationalization/internationalization-i18n',
+  // TODO 'guides/internationalization/rtl',
   'guides/internationalization/ime-support',
 ];
 
-const buildingAndToolingItems = [
-  'guides/tools-and-building/packages',
-  'guides/tools-and-building/modules',
-  'guides/tools-and-building/custom-plugins',
-  'guides/tools-and-building/custom-builds',
-  'guides/tools-and-building/testing',
-  'guides/tools-and-building/folder-structure',
+const buildingAndTestingItems = [
+  'guides/building-and-testing/building',
+  'guides/building-and-testing/testing',
+  'guides/building-and-testing/packages',
+  'guides/building-and-testing/modules',
+  'guides/building-and-testing/plugins',
+  'guides/building-and-testing/file-structure',
 ];
 
-const optimizationItems = [
-  'guides/optimization/batch-operations',
-  // TODO 'guides/optimization/touch-events',
-  'guides/optimization/performance',
-  // TODO 'guides/optimization/key-concepts',
-  'guides/optimization/bundle-size',
+const advancedTopicsItems = [
+  // TODO 'guides/advanced-topics/accessibility',
+  'guides/advanced-topics/batch-operations',
+  // TODO 'guides/advanced-topics/touch-events',
+  'guides/advanced-topics/performance',
+  // TODO 'guides/advanced-topics/key-concepts',
 ];
 
 const securityItems = [
@@ -183,29 +163,26 @@ const upgradeAndMigrationItems = [
   'guides/upgrade-and-migration/migrating-from-7.4-to-8.0',
   'guides/upgrade-and-migration/migrating-from-8.4-to-9.0',
   'guides/upgrade-and-migration/migrating-from-9.0-to-10.0',
-  'guides/upgrade-and-migration/migrating-from-10.0-to-11.0',
-  'guides/upgrade-and-migration/migrating-from-11.1-to-12.0',
 ];
 
 module.exports = {
   sidebar: [
-    { title: 'Getting started', children: gettingStartedItems },
+    { title: 'Getting Started', children: gettingStartedItems },
     { title: 'Integrate with React', children: integrateWithReactItems },
     { title: 'Integrate with Angular', children: integrateWithAngularItems },
     { title: 'Integrate with Vue 2', children: integrateWithVueItems },
-    { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
-    { title: 'Cell features', children: cellFeaturesItems },
-    { title: 'Cell functions', children: cellFunctionsItems },
-    { title: 'Cell types', children: cellTypesItems },
+    { title: 'Cell Features', children: cellFeaturesItems },
+    { title: 'Cell Functions', children: cellFunctionsItems },
+    { title: 'Cell Types', children: cellTypesItems },
     { title: 'Formulas', children: formulasItems },
-    { title: 'Accessories and menus', children: accessoriesAndMenusItems },
+    { title: 'Accessories and Menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
-    { title: 'Tools and building', children: buildingAndToolingItems },
-    { title: 'Optimization', children: optimizationItems },
+    { title: 'Building and Testing', children: buildingAndTestingItems },
+    { title: 'Advanced Topics', children: advancedTopicsItems },
     { title: 'Security', children: securityItems },
-    { title: 'Technical specification', children: technicalSpecificationItems },
-    { title: 'Upgrade and migration', children: upgradeAndMigrationItems }
+    { title: 'Technical Specification', children: technicalSpecificationItems },
+    { title: 'Upgrade and Migration', children: upgradeAndMigrationItems }
   ],
 };

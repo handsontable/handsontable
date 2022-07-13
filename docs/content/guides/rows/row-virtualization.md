@@ -15,9 +15,9 @@ tags:
 
 ## Overview
 
-Virtualization allows Handsontable to process hundreds of thousands of records without causing the browser to hang. This technique draws only the visible part of the grid, displaying the minimum items physically rendered in the DOM. The elements outside the viewport are rendered when you scroll across the grid. Depending on your configuration, there might be a small offset of columns or rows rendered outside the viewport to make the scrolling performance smoother.
+Virtualization allows Handsontable to process hundreds of thousands of records without causing the browser to hang. This technique draws only the visible part of the grid, displaying the minimum items physically rendered in the `DOM`. The elements outside the viewport are rendered when you scroll across the grid. Depending on your configuration, there might be a small offset of columns or rows rendered outside the viewport to make the scrolling performance smoother.
 
-This feature is enabled by default and can be turned off by setting the [`renderAllRows`](@/api/options.md#renderallrows) option to `true`.
+This feature is enabled by default and can be turned off by setting the `renderAllRows` to `true`.
 
 ::: tip
 Note that the data grid without virtualization enabled will only work with relatively small data sets.
@@ -25,7 +25,7 @@ Note that the data grid without virtualization enabled will only work with relat
 
 ## Configuring row virtualization
 
-You can experiment with the [`viewportRowsRenderingOffset`](@/api/options.md#viewportrowsrenderingoffset) configuration option, which determines the number of rows displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, then the virtualization will be practically turned off.
+You can experiment with the `viewportRowsRenderingOffset` config option, which determines the number of rows displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, then the virtualization will be practically turned off.
 
 ::: warning
 Proceed with caution, as it will affect the overall performance of the grid.
@@ -57,16 +57,3 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Column virtualization](@/guides/rows/row-virtualization.md)
-- [Performance](@/guides/optimization/performance.md)
-
-### Related API reference
-
-- Configuration options:
-  - [`renderAllRows`](@/api/options.md#renderallrows)
-  - [`viewportRowsRenderingOffset`](@/api/options.md#viewportrowsrenderingoffset)
