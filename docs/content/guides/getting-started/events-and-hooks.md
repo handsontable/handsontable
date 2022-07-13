@@ -227,48 +227,48 @@ It's worth mentioning that some hooks are triggered from the Handsontable core a
 | `timeValidate` | Action triggered by Handsontable after the time validator has been called, e.g., after an edit.|
 | `dateValidate` | Action triggered by Handsontable after the date validator has been called, e.g., after an edit.|
 | `validateCells` | Action triggered by Handsontable after the validation process has been triggered.|
-| [`Autofill.fill`](@/api/autofill.md) | Action triggered by the AutoFill plugin.|
-| [`ContextMenu.clearColumns`](@/api/contextMenu.md) | Action triggered by the ContextMenu plugin after the "Clear column" has been clicked.|
-| [`ContextMenu.columnLeft`](@/api/contextMenu.md) | Action triggered by the ContextMenu plugin after the "Insert column left" has been clicked.|
-| [`ContextMenu.columnRight`](@/api/contextMenu.md) | Action triggered by the ContextMenu plugin after the "Insert column right" has been clicked.|
-| [`ContextMenu.removeColumn`](@/api/contextMenu.md) | Action triggered by the ContextMenu plugin after the "Remove column" has been clicked.|
-| [`ContextMenu.removeRow`](@/api/contextMenu.md) | Action triggered by the ContextMenu plugin after the "Remove Row" has been clicked.|
-| [`ContextMenu.rowAbove`](@/api/contextMenu.md) | Action triggered by the ContextMenu plugin after the "Insert row above" has been clicked.|
-| [`ContextMenu.rowBelow`](@/api/contextMenu.md) | Action triggered by the ContextMenu plugin after the "Insert row below" has been clicked.|
-| [`CopyPaste.paste`](@/api/copyPaste.md) | Action triggered by the CopyPaste plugin after the value has been pasted.|
+| `Autofill.fill` | Action triggered by the AutoFill plugin.|
+| `ContextMenu.clearColumns` | Action triggered by the ContextMenu plugin after the "Clear column" has been clicked.|
+| `ContextMenu.columnLeft` | Action triggered by the ContextMenu plugin after the "Insert column on the left" has been clicked.|
+| `ContextMenu.columnRight` | Action triggered by the ContextMenu plugin after the "Insert column on the right" has been clicked.|
+| `ContextMenu.removeColumn` | Action triggered by the ContextMenu plugin after the "Remove column" has been clicked.|
+| `ContextMenu.removeRow` | Action triggered by the ContextMenu plugin after the "Remove Row" has been clicked.|
+| `ContextMenu.rowAbove` | Action triggered by the ContextMenu plugin after the "Insert row above" has been clicked.|
+| `ContextMenu.rowBelow` | Action triggered by the ContextMenu plugin after the "Insert row below" has been clicked.|
+| `CopyPaste.paste` | Action triggered by the CopyPaste plugin after the value has been pasted.|
 | `ObserveChanges.change` | Action triggered by the ObserveChanges plugin after the changes have been detected.|
-| [`UndoRedo.redo`](@/api/undoRedo.md) | Action triggered by the UndoRedo plugin after the change has been redone.|
-| [`UndoRedo.undo`](@/api/undoRedo.md) | Action triggered by the UndoRedo plugin after the change has been undone.|
-| [`ColumnSummary.set`](@/api/columnSummary.md)| Action triggered by the ColumnSummary plugin after the calculation has been done.|
-| [`ColumnSummary.reset`](@/api/columnSummary.md) | Action triggered by the ColumnSummary plugin after the calculation has been reset.|
+| `UndoRedo.redo` | Action triggered by the UndoRedo plugin after the change has been redone.|
+| `UndoRedo.undo` | Action triggered by the UndoRedo plugin after the change has been undone.|
+| `ColumnSummary.set` | Action triggered by the ColumnSummary plugin after the calculation has been done.|
+| `ColumnSummary.reset` | Action triggered by the ColumnSummary plugin after the calculation has been reset.|
 
 List of callbacks that operate on the `source` parameter:
 
-* [`afterChange`](@/api/hooks.md#afterchange)
-* [`afterCreateCol`](@/api/hooks.md#aftercreatecol)
-* [`afterCreateRow`](@/api/hooks.md#aftercreaterow)
-* [`afterLoadData`](@/api/hooks.md#afterloaddata)
-* [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell)
-* [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
-* [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell)
-* [`afterRemoveCol`](@/api/hooks.md#afterremovecol)
-* [`afterRemoveRow`](@/api/hooks.md#aftermoverow)
-* [`afterValidate`](@/api/hooks.md#aftervalidate)
-* [`beforeChange`](@/api/hooks.md#beforechange)
-* [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
-* [`beforeCreateCol`](@/api/hooks.md#beforecreatecol)
-* [`beforeCreateRow`](@/api/hooks.md#beforecreaterow)
-* [`beforeLoadData`](@/api/hooks.md#beforeloaddata)
-* [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol)
-* [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow)
-* [`beforeValidate`](@/api/hooks.md#beforevalidate)
+* [`afterChange` &#8594;](@/api/hooks.md#afterchange)
+* [`afterCreateCol` &#8594;](@/api/hooks.md#aftercreatecol)
+* [`afterCreateRow` &#8594;](@/api/hooks.md#aftercreaterow)
+* [`afterLoadData` &#8594;](@/api/hooks.md#afterloaddata)
+* [`afterSetDataAtCell` &#8594;](@/api/hooks.md#aftersetdataatcell)
+* [`afterSetDataAtRowProp` &#8594;](@/api/hooks.md#aftersetdataatrowprop)
+* [`afterSetSourceDataAtCell` &#8594;](@/api/hooks.md#aftersetsourcedataatcell)
+* [`afterRemoveCol` &#8594;](@/api/hooks.md#afterremovecol)
+* [`afterRemoveRow` &#8594;](@/api/hooks.md#aftermoverow)
+* [`afterValidate` &#8594;](@/api/hooks.md#aftervalidate)
+* [`beforeChange` &#8594;](@/api/hooks.md#beforechange)
+* [`beforeChangeRender` &#8594;](@/api/hooks.md#beforechangerender)
+* [`beforeCreateCol` &#8594;](@/api/hooks.md#beforecreatecol)
+* [`beforeCreateRow` &#8594;](@/api/hooks.md#beforecreaterow)
+* [`beforeLoadData` &#8594;](@/api/hooks.md#beforeloaddata)
+* [`beforeRemoveCol` &#8594;](@/api/hooks.md#beforeremovecol)
+* [`beforeRemoveRow` &#8594;](@/api/hooks.md#beforeremoverow)
+* [`beforeValidate` &#8594;](@/api/hooks.md#beforevalidate)
 
-## The [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
+## The `beforeKeyDown` callback
 
-The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback to modify some key bindings:
+The following demo uses `beforeKeyDown` callback to modify some key bindings:
 
-* Pressing <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd> on a cell deletes the cell and shifts all cells beneath it in the column up resulting in the cursor, which doesn't move, having the value previously beneath it, now in the current cell.
-* Pressing <kbd>**Enter**</kbd> in a cell where the value remains unchanged pushes all the cells in the column beneath and including the current cell down one row. This results in a blank cell under the cursor which hasn't moved.
+* Pressing <kbd>DELETE</kbd> or <kbd>BACKSPACE</kbd> on a cell deletes the cell and shifts all cells beneath it in the column up resulting in the cursor, which doesn't move, having the value previously beneath it, now in the current cell.
+* Pressing <kbd>ENTER</kbd> in a cell where the value remains unchanged pushes all the cells in the column beneath and including the current cell down one row. This results in a blank cell under the cursor which hasn't moved.
 
 ::: example #example2
 ```js
@@ -320,17 +320,3 @@ hot.updateSettings({
 });
 ```
 :::
-
-## Related API reference
-
-- Core methods:
-  - [`addHook()`](@/api/core.md#addhook)
-  - [`addHookOnce()`](@/api/core.md#addhookonce)
-  - [`hasHook()`](@/api/core.md#hashook)
-  - [`removeHook()`](@/api/core.md#removehook)
-  - [`hasHook()`](@/api/core.md#hashook)
-  - [`runHooks()`](@/api/core.md#runhooks)
-- Hooks:
-  - [List of all hooks](@/api/hooks.md)
-  - [`afterListen`](@/api/hooks.md#afterlisten)
-  - [`afterUnlisten`](@/api/hooks.md#afterunlisten)

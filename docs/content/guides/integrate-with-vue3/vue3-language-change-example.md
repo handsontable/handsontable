@@ -7,17 +7,13 @@ canonicalUrl: /vue3-language-change-example
 
 # Language change in Vue 3
 
-[[toc]]
-
-## Overview
-
 The following example implements the `@handsontable/vue3` component with the option to change the Context Menu language configured. Select a language from the selector above the table and open the Context Menu to see the result.
 
 :::tip
 Note that the `language` property is bound to the component separately using `language={this.language}"`, but it could be included in the `settings` property just as well.
 :::
 
-[Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
+[Find out which Vue 3 versions are supported &#8594;](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
 ## Example - Select language
 
@@ -79,26 +75,3 @@ const app = createApp({
 app.mount('#example1');
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Language](@/guides/internationalization/language.md)
-- [Layout direction](@/guides/internationalization/layout-direction.md)
-- [Locale](@/guides/internationalization/locale.md)
-
-### Related API reference
-
-- Configuration options:
-  - [`language`](@/api/options.md#language)
-  - [`layoutDirection`](@/api/options.md#layoutdirection)
-  - [`locale`](@/api/options.md#locale)
-- Core methods:
-  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
-  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
-  - [`isLtr()`](@/api/core.md#isltr)
-  - [`isRtl()`](@/api/core.md#isrtl)
-- Hooks:
-  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
-  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)

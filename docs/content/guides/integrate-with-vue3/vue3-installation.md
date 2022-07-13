@@ -19,16 +19,16 @@ To find out which Vue 3 versions are supported by Handsontable, see the table be
 
 ::: details Vue 3 version support
 
-| Handsontable version | Vue 3 version      |
-| -------------------- | ------------------ |
-| `11.0.0` and lower   | No Vue 3 support   |
-| `11.1.0` and higher  | `3.2.0` and higher |
+| Handsontable version                                                                    | Vue 3 version      |
+| --------------------------------------------------------------------------------------- | ------------------ |
+| [`11.0.0`](https://github.com/handsontable/handsontable/releases/tag/11.0.0) and lower  | No Vue 3 support   |
+| [`11.1.0`](https://github.com/handsontable/handsontable/releases/tag/11.1.0) and higher | `3.2.0` and higher |
 
 :::
 
 ## Install with npm
 
-This component needs the Handsontable library to work. Use npm to install the packages.
+This component needs the Handsontable library to work. Use [npm](https://www.npmjs.com/package/@handsontable/vue3) to install the packages.
 
 ```bash
 npm install handsontable @handsontable/vue3
@@ -68,20 +68,3 @@ npm install handsontable @handsontable/vue3
 
 <style src="handsontable/dist/handsontable.full.css"></style>
 ```
-
-## Related API reference
-
-- Configuration options:
-  - [`maxCols`](@/api/options.md#maxcols)
-  - [`maxRows`](@/api/options.md#maxrows)
-  - [`minCols`](@/api/options.md#mincols)
-  - [`minRows`](@/api/options.md#minrows)
-  - [`minSpareCols`](@/api/options.md#minsparecols)
-  - [`minSpareRows`](@/api/options.md#minsparerows)
-  - [`startCols`](@/api/options.md#startcols)
-  - [`startRows`](@/api/options.md#startrows)
-- Hooks:
-  - [`afterInit`](@/api/hooks.md#afterinit)
-  - [`beforeInit`](@/api/hooks.md#beforeinit)
-  - [`beforeInitWalkontable`](@/api/hooks.md#beforeinitwalkontable)
-  - [`construct`](@/api/hooks.md#construct)

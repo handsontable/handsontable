@@ -7,8 +7,6 @@ canonicalUrl: /vue-simple-example
 
 # Basic example in Vue 2
 
-[[toc]]
-
 ## Overview
 
 The following example is a simple implementation of the `@handsontable/vue` component.

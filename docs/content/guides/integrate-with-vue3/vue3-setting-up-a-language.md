@@ -7,13 +7,11 @@ canonicalUrl: /vue3-setting-up-a-language
 
 # Setting up a translation in Vue 3
 
-[[toc]]
-
 ## Overview
 
 The following example shows a Handsontable instance with translations set up in Vue 3.
 
-[Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
+[Find out which Vue 3 versions are supported &#8594;](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
 ## Example
 
@@ -104,26 +102,3 @@ const app = createApp({
 app.mount('#example1');
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Language](@/guides/internationalization/language.md)
-- [Layout direction](@/guides/internationalization/layout-direction.md)
-- [Locale](@/guides/internationalization/locale.md)
-
-### Related API reference
-
-- Configuration options:
-  - [`language`](@/api/options.md#language)
-  - [`layoutDirection`](@/api/options.md#layoutdirection)
-  - [`locale`](@/api/options.md#locale)
-- Core methods:
-  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
-  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
-  - [`isLtr()`](@/api/core.md#isltr)
-  - [`isRtl()`](@/api/core.md#isrtl)
-- Hooks:
-  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
-  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)

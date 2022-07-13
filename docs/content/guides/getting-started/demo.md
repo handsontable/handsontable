@@ -15,7 +15,7 @@ tags:
 Play around with a demo of Handsontable, in your favorite framework.
 
 <div class="example-container"><iframe
-    v-bind:src="'https://handsontable.github.io/handsontable/examples/'+ $page.currentVersion + '/docs/js/demo/'"
+    src="https://handsontable.github.io/handsontable/examples/11.1.0/docs/js/demo/"
     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone;
       midi; payment; usb; vr; xr-spatial-tracking"
     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
@@ -23,23 +23,23 @@ Play around with a demo of Handsontable, in your favorite framework.
 
 ## Find the code on GitHub
 
-- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/{{$page.currentVersion}}/docs/js/demo/)
-- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/{{$page.currentVersion}}/docs/ts/demo/)
-- [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/{{$page.currentVersion}}/docs/angular/demo/)
-- [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/{{$page.currentVersion}}/docs/react/demo/)
-- [Vue demo app](https://github.com/handsontable/handsontable/tree/develop/examples/{{$page.currentVersion}}/docs/vue/demo/)
+- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/11.1.0/docs/js/demo/)
+- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/11.1.0/docs/ts/demo/)
+- [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/11.1.0/docs/angular/demo/)
+- [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/11.1.0/docs/react/demo/)
+- [Vue demo app](https://github.com/handsontable/handsontable/tree/develop/examples/11.1.0/docs/vue/demo/)
 
 ## Try out the demo's features
 
-Explore the demo and discover Handsontable's most popular features:
+Explore the demo, to discover Handsontable's most popular features:
 
-- [Context menu](@/guides/accessories-and-menus/context-menu.md)
-- [Dropdown cell type](@/guides/cell-types/dropdown-cell-type.md)
-- [Column groups](@/guides/columns/column-groups.md)
-- [Column menu](@/guides/columns/column-menu.md)
-- [Column filter](@/guides/columns/column-filter.md)-
-- [Column hiding](@/guides/columns/column-hiding.md)
-- [Row sorting](@/guides/rows/row-sorting.md)
+- [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+- [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
+- [Column groups &#8594;](@/guides/columns/column-groups.md)
+- [Column menu &#8594;](@/guides/columns/column-menu.md)
+- [Column filter &#8594;](@/guides/columns/column-filter.md)-
+- [Column hiding &#8594;](@/guides/columns/column-hiding.md)
+- [Row sorting &#8594;](@/guides/rows/row-sorting.md)
 - And more!
 
 ## Edit the demo's source code

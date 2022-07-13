@@ -13,9 +13,11 @@ canonicalUrl: /license-key
 
 Handsontable is available under Commercial and Free licenses, depending on your usage.
 
-We require you to specify which terms apply to your usage, by passing a license key in Handsontable's [`licenseKey`](@/api/options.md#licensekey) configuration option.
+## Settings
 
-## Commercial license
+We require you to specify which terms apply to your usage by passing in a license key in the `Settings` object along with all other settings to be applied.
+
+### Commercial license
 
 If you use the paid version of Handsontable, pass the string of numbers delivered to you after the purchase. Note that the license key is a string, so you need to wrap it in quotes `''`.
 
@@ -26,7 +28,7 @@ const settings = {
 }
 ```
 
-To use it with a framework, pass the string to a [`licenseKey`](@/api/options.md#licensekey) prop:
+To use it with a framework, pass the string to a `licenseKey` prop:
 
 <code-group>
 <code-block title="React" active>
@@ -93,14 +95,3 @@ _The license key for Handsontable expired on `[expiration_date]`, and is not val
 ## Get a license key
 
 To get a commercial license key for your Handsontable copy, contact our [Sales Team](https://handsontable.com/get-a-quote).
-
-## Related articles
-
-### Related guides
-
-- [Software license](@/guides/technical-specification/software-license.md)
-
-### Related API reference
-
-- Configuration options:
-  - [`licenseKey`](@/api/options.md#licensekey)

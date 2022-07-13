@@ -54,7 +54,7 @@ const hot = new Handsontable(container, {
 
 ## Apply inline styles
 
-You can apply inline styles directly to the DOM element using its `style` attribute. You can use the [`renderer`](@/api/options.md#renderer) option to do that.
+You can apply inline styles directly to the DOM element using its `style` attribute. You can use the `renderer` option to do that.
 
 ::: example #example2
 ```javascript
@@ -90,13 +90,12 @@ const hot = new Handsontable(container, {
 
 ## Custom cell borders
 
-To enable the custom borders feature, set the [`customBorders`](@/api/options.md#customborders) option. This can either be set as `true` or initialized as an array with a pre-defined setup. For the list of available settings and methods, visit the [API reference](@/api/customBorders.md).
+To enable the custom borders feature, set the `customBorders` option. This can either be set as `true` or initialized as an array with a pre-defined setup.
 
-In the names of the API properties, the words `start` and `end` refer to the starting and ending edges of the [layout direction](@/guides/internationalization/layout-direction.md).
+To initialize Handsontable with predefined custom borders, provide the cell coordinates and border styles in form of an array:
 
-::: warning
-The `start` and `end` properties used to be called `left` and `right` before Handsontable 12.0.0. The old names `left` and `right` work in the LTR layout direction but throw an error when the layout direction is set to RTL.
-:::
+- with row/col pairs: `{ row: 2, col: 2, left: { /*...*/ } }`
+- or with range details: `{ range: { from: { row: 1, col: 1 }, to: { row: 3, col: 4 } }, left: { /*...*/ } }`
 
 ::: example #example3
 ```js
@@ -125,15 +124,15 @@ const hot = Handsontable(container, {
         width: 2,
         color: '#5292F7'
       },
+      left: {
+        width: 2,
+        color: 'orange'
+      },
       bottom: {
         width: 2,
         color: 'red'
       },
-      start: {
-        width: 2,
-        color: 'orange'
-      },
-      end: {
+      right: {
         width: 2,
         color: 'magenta'
       }
@@ -141,11 +140,11 @@ const hot = Handsontable(container, {
     {
       row: 2,
       col: 2,
-      start: {
+      left: {
         width: 2,
         color: 'red'
       },
-      end: {
+      right: {
         width: 1,
         color: 'green'
       }
@@ -154,28 +153,3 @@ const hot = Handsontable(container, {
 });
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Conditional formatting](@/guides/cell-features/conditional-formatting.md)
-
-### Related API reference
-
-- Configuration options:
-  - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
-  - [`className`](@/api/options.md#classname)
-  - [`commentedCellClassName`](@/api/options.md#commentedcellclassname)
-  - [`currentColClassName`](@/api/options.md#currentcolclassname)
-  - [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
-  - [`currentRowClassName`](@/api/options.md#currentrowclassname)
-  - [`customBorders`](@/api/options.md#customborders)
-  - [`invalidCellClassName`](@/api/options.md#invalidcellclassname)
-  - [`noWordWrapClassName`](@/api/options.md#nowordwrapclassname)
-  - [`placeholder`](@/api/options.md#placeholder)
-  - [`placeholderCellClassName`](@/api/options.md#placeholdercellclassname)
-  - [`readOnlyCellClassName`](@/api/options.md#readonlycellclassname)
-  - [`tableClassName`](@/api/options.md#tableclassname)
-- Plugins:
-  - [`CustomBorders`](@/api/customBorders.md)
