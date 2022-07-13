@@ -18,6 +18,6 @@ jobs:
           image-names: handsontable/handsontable-documentation
           cut-off: One month ago UTC
           account-type: org
-          org-name: budnix
-          skip-tags: latest, v*
-          token: ${{ secrets.PAT_DELETE_PACKAGES }}
+          org-name: handsontable
+          skip-tags: latest, production, next, v*
+          token: ${{ secrets.WARPECH_PAT_DELETE_PACKAGES }}
