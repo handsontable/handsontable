@@ -67,7 +67,7 @@
   },
   "dependencies": {
     "core-js": "^2.5.4",
-    "handsontable": "^13.0.0",
+    "handsontable": "^12.0.0",
     "rxjs": "~6.5.2",
     "zone.js": "~0.10.3"
   },
