@@ -37,14 +37,14 @@ module.exports = function conditionalContainer(markdown) {
     // Removing value from token's content.
     token.content = token.content.replace(regexp, '');
 
-    // Some tags may not have children.
+    // Some tokens may not have children. Children are component parts of the displayed text in most cases.
     if (token.children === null) {
       return;
     }
 
     let childrenIndex = token.children.findIndex(childrenToken => regexp.test(childrenToken.content));
 
-    // Removing token's children also representing removed value.
+    // Some tokens contains children which also represents the removed value (and they are displayed in the output file).
     if (childrenIndex !== -1) {
       const nextElement = token.children[childrenIndex + 1];
       const previousElement = token.children[childrenIndex - 1];
@@ -70,13 +70,6 @@ module.exports = function conditionalContainer(markdown) {
   };
   
   const cleanTokens = ({ tokens, token, tokenIndex, preciseRegexp, lessPreciseRegexp, env }) => {
-    if (token === void 0) {
-      // eslint-disable-next-line no-console
-      console.error(`${chalk.red('\nUnexpected error thrown while removing conditional container.' +
-        ` It is possible that \`::: only-for\' value has been fount, but ending \':::\' value has not.`
-      )}`);
-    }
-
     if (preciseRegexp.test(token.content)) {
       tokens.splice(tokenIndex, 1);
 
@@ -118,14 +111,24 @@ module.exports = function conditionalContainer(markdown) {
         } else if (openTokenContent.test(token.content)) {
           const onlyForFrameworks = openTokenContent.exec(token.content)[capturedGroupIndex].split(' ');
 
+          if (endIndex === void 0) {
+            console.error(`${chalk.red('\nUnexpected error while processing a conditional container (::: only-if)' +
+              ` in the file "${getNormalizedPath(env.relativePath)}". It seems that the opening token (::: only-for)` +
+              ' exists, but the ending token (:::) does not.'
+            )}`);
+          }
+
           if (onlyForFrameworks.includes(frameworkId) === false) {
             const startIndexForRemoval = index + 1; // We remove elements, starting from the token right after the found one.
             const elementsForRemoval = endIndex - startIndexForRemoval + 1;
 
             state.tokens.splice(startIndexForRemoval, elementsForRemoval);
 
-            // Token's content may starts with `::: only-for` (should be removed). Alternatively, it can end with the markup.
-            // Then, just string's tail should be removed.
+            // Token's content may starts with the opening token (::: only-for). It should be removed completely then.
+            // Starting from the opening token (::: only-for) no value should be shown. Alternatively,
+            // the opening token can be placed at the end of the string (that's how the MD file is tokenized when there
+            // is a newline adjacent to ::: markup). Then, characters until the opening token occurs,
+            // should be preserved. Just string's tail should be removed.
             cleanTokens({ tokens: state.tokens, token, tokenIndex: index, lessPreciseRegexp: openTokenContent, preciseRegexp: /^::: only-for/, env });
 
           } else {
