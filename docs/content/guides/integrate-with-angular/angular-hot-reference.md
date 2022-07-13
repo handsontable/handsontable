@@ -7,14 +7,10 @@ canonicalUrl: /angular-hot-reference
 
 # Referencing the Handsontable instance in Angular
 
-[[toc]]
-
 ## Overview
-
 The following example is an implementation of `@handsontable/angular`, which shows you how to reference the Handsontable instance from the wrapper component.
 
 ## Example
-
 ::: example :angular --html 1 --js 2
 ```html
 <app-root></app-root>
@@ -22,9 +18,8 @@ The following example is an implementation of `@handsontable/angular`, which sho
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
-import Handsontable from 'handsontable/base';
+import * as Handsontable from 'handsontable';
 import { HotTableRegisterer } from '@handsontable/angular';
-import { createSpreadsheetData } from './helpers';
 
 @Component({
   selector: 'app-root',
@@ -40,7 +35,7 @@ class AppComponent {
   private hotRegisterer = new HotTableRegisterer();
   id = 'hotInstance';
   hotSettings: Handsontable.GridSettings = {
-    data: createSpreadsheetData(4, 4),
+    data: Handsontable.helper.createSpreadsheetData(4, 4),
     colHeaders: true,
     height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
@@ -55,10 +50,6 @@ class AppComponent {
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
 
 @NgModule({
   imports:      [ BrowserModule, HotTableModule.forRoot() ],

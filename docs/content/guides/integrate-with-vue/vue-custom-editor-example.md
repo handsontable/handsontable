@@ -26,13 +26,9 @@ The following example implements the `@handsontable/vue` component with a custom
 ```js
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
-import { TextEditor } from 'handsontable/editors/textEditor';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 
-// register Handsontable's modules
-registerAllModules();
-
-class CustomEditor extends TextEditor {
+class CustomEditor extends Handsontable.editors.TextEditor {
   constructor(props) {
     super(props);
   }
@@ -44,7 +40,7 @@ class CustomEditor extends TextEditor {
     this.TEXTAREA.setAttribute('placeholder', 'Custom placeholder');
     this.TEXTAREA.setAttribute('data-hot-input', true);
     this.textareaStyle = this.TEXTAREA.style;
-    this.TEXTAREA_PARENT.innerText = '';
+    Handsontable.dom.empty(this.TEXTAREA_PARENT);
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }
@@ -72,31 +68,3 @@ new Vue({
 });
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Cell editor](@/guides/cell-functions/cell-editor.md)
-
-### Related API reference
-
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`editor`](@/api/options.md#editor)
-  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
-- Core methods:
-  - [`destroyEditor()`](@/api/core.md#destroyeditor)
-  - [`getActiveEditor()`](@/api/core.md#getactiveeditor)
-  - [`getCellEditor()`](@/api/core.md#getcelleditor)
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)

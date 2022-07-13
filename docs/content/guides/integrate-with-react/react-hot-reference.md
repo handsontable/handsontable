@@ -7,8 +7,6 @@ canonicalUrl: /react-hot-reference
 
 # Referencing the Handsontable instance in React
 
-[[toc]]
-
 ## Overview
 
 The following example implements the `@handsontable/react`component showing how to reference the Handsontable instance from the wrapper component.
@@ -20,14 +18,10 @@ The following example implements the `@handsontable/react`component showing how 
 import React, { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
-
-// register Handsontable's modules
-registerAllModules();
+import Handsontable from 'handsontable';
 
 const hotSettings = {
-  data: createSpreadsheetData(4, 4),
+  data: Handsontable.helper.createSpreadsheetData(4, 4),
   colHeaders: true,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'

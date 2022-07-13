@@ -7,10 +7,6 @@ canonicalUrl: /vue-language-change-example
 
 # Language change in Vue 2
 
-[[toc]]
-
-## Overview
-
 The following example implements the `@handsontable/vue` component with the option to change the Context Menu language configured. Select a language from the selector above the table and open the Context Menu to see the result.
 
 :::tip
@@ -31,19 +27,14 @@ Note that the `language` property is bound to the component separately using `la
 ```js
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
-import { getLanguagesDictionaries } from 'handsontable/i18n';
-import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
-
-// register Handsontable's modules
-registerAllModules();
+import Handsontable from 'handsontable';
 
 new Vue({
   el: '#example1',
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(5, 10),
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         rowHeaders: true,
         contextMenu: true,
@@ -58,7 +49,7 @@ new Vue({
   },
   methods: {
     getAllLanguageOptions() {
-      const allDictionaries = getLanguagesDictionaries();
+      const allDictionaries = Handsontable.languages.getLanguagesDictionaries();
       const langSelect = document.querySelector('#languages');
       langSelect.innerHTML = '';
 
@@ -76,26 +67,3 @@ new Vue({
 });
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Language](@/guides/internationalization/language.md)
-- [Layout direction](@/guides/internationalization/layout-direction.md)
-- [Locale](@/guides/internationalization/locale.md)
-
-### Related API reference
-
-- Configuration options:
-  - [`language`](@/api/options.md#language)
-  - [`layoutDirection`](@/api/options.md#layoutdirection)
-  - [`locale`](@/api/options.md#locale)
-- Core methods:
-  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
-  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
-  - [`isLtr()`](@/api/core.md#isltr)
-  - [`isRtl()`](@/api/core.md#isrtl)
-- Hooks:
-  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
-  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)

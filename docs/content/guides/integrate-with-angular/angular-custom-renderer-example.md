@@ -7,10 +7,7 @@ canonicalUrl: /angular-custom-renderer-example
 
 # Custom renderer in Angular
 
-[[toc]]
-
 ## Overview
-
 The following example is an implementation of `@handsontable/angular` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
 
 ## Example
@@ -22,8 +19,7 @@ The following example is an implementation of `@handsontable/angular` with a cus
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
-import Handsontable from 'handsontable/base';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
+import * as Handsontable from 'handsontable';
 
 @Component({
   selector: 'app-root',
@@ -37,29 +33,29 @@ class AppComponent {
   hotSettings: Handsontable.GridSettings = {
     data:
       [
-        ['A1', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-        ['A2', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/javascript-the-good-parts.jpg']
+        ['A1', 'https://handsontable.com/docs/9.0/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+        ['A2', 'https://handsontable.com/docs/9.0/img/examples/javascript-the-good-parts.jpg']
       ],
     columns: [
       {},
       {
         renderer(instance, td, row, col, prop, value, cellProperties) {
-          const escaped = `${value}`;
+          const escaped = Handsontable.helper.stringify(value);
           let img = null;
 
           if (escaped.indexOf('http') === 0) {
             img = document.createElement('IMG');
             img.src = value;
 
-            img.addEventListener('mousedown', event => {
+            Handsontable.dom.addEvent(img, 'mousedown', event => {
               event.preventDefault();
             });
 
-            td.innerText = '';
+            Handsontable.dom.empty(td);
             td.appendChild(img);
 
           } else {
-            textRenderer.apply(this, arguments);
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
           }
 
           return td;
@@ -77,10 +73,6 @@ class AppComponent {
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
 
 @NgModule({
   imports:      [ BrowserModule, HotTableModule ],
@@ -95,31 +87,3 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Cell renderer](@/guides/cell-functions/cell-renderer.md)
-
-### Related API reference
-
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`renderer`](@/api/options.md#renderer)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
-  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
-  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)

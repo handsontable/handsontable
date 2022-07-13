@@ -18,7 +18,7 @@ You are required to specify the license under which you use the software. This c
 | Name | Type |
 | :--- | :--- |
 | [Non-Commercial License](https://handsontable.com/static/licenses/non-commercial/v2/handsontable-non-commercial-license.pdf) | Proprietary |
-| Commercial License Agreement | Proprietary |
+| [Commercial License Agreement](https://handsontable.com/static/licenses/v4.1/handsontable-general-terms.pdf) | Proprietary |
 
 ## Non-commercial use
 
@@ -41,14 +41,3 @@ You can find the details about adding the license key on [this page](@/guides/ge
 ## Open-source license
 
 For many years Handsontable was available as an open-source software, and released under the MIT license. The last version available under permissive terms was [6.2.2](https://github.com/handsontable/handsontable/tree/6.2.2) released on December 19, 2018.
-
-## Related articles
-
-### Related guides
-
-- [License key](@/guides/getting-started/license-key.md)
-
-### Related API reference
-
-- Options:
-  - [`licenseKey`](@/api/options.md#licensekey)

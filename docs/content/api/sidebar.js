@@ -4,8 +4,8 @@ const path = require('path');
 const apiHighLevelPages = [
   'introduction',
   'core',
-  'hooks',
-  'options'
+  'pluginHooks',
+  'metaSchema'
 ];
 
 const plugins = fs.readdirSync(path.join(__dirname, './'))
