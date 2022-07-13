@@ -63,11 +63,7 @@ const hot = new Handsontable(container, {
 
     clearTimeout(autosaveNotification);
 
-<<<<<<< HEAD
-    ajax('/docs/9.0/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
-=======
     ajax('/docs/{{$page.currentVersion}}/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
->>>>>>> fe5356882 (Inject dynamic docs version variable)
       exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
       autosaveNotification = setTimeout(() => {
         exampleConsole.innerText ='Changes will be autosaved';
@@ -77,11 +73,7 @@ const hot = new Handsontable(container, {
 });
 
 Handsontable.dom.addEvent(load, 'click', () => {
-<<<<<<< HEAD
-  ajax('/docs/9.0/scripts/json/load.json', 'GET', '', res => {
-=======
   ajax('/docs/{{$page.currentVersion}}/scripts/json/load.json', 'GET', '', res => {
->>>>>>> fe5356882 (Inject dynamic docs version variable)
     const data = JSON.parse(res.response);
 
     hot.loadData(data.data);
@@ -91,11 +83,7 @@ Handsontable.dom.addEvent(load, 'click', () => {
 });
 Handsontable.dom.addEvent(save, 'click', () => {
   // save all cell's data
-<<<<<<< HEAD
-  ajax('/docs/9.0/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
-=======
   ajax('/docs/{{$page.currentVersion}}/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
->>>>>>> fe5356882 (Inject dynamic docs version variable)
     const response = JSON.parse(res.response);
 
     if (response.result === 'ok') {
