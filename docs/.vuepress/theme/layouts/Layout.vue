@@ -2,10 +2,10 @@
   <div class="layout-container">
     <ParentLayout>
       <template #page-top>
-        <div v-if="show" class="page-top">
+        <div v-show="show" class="page-top">
           <div class="version-alert">
-            <p v-if="isNext">This page covers a next version of Handsontable, and is not published yet.</p>
-            <p v-else-if="!isLatest">This page covers a non-latest version of Handsontable.</p>
+            <p v-show="isNext">This page covers a next version of Handsontable, and is not published yet.</p>
+            <p v-else-show="!isLatest">This page covers a non-latest version of Handsontable.</p>
           </div>
         </div>
       </template>
