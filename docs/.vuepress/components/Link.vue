@@ -35,12 +35,22 @@ export default {
     }
   },
 
+  data() {
+    return {
+      latestVersion: null,
+    };
+  },
+
   computed: {
     parsedHref() {
       let href = this.href;
 
-      if (!this.isExternal && this.hideLatestVersion && this.$page.currentVersion === this.$page.latestVersion) {
-        href = href.replace(`${this.$page.currentVersion}/`, '');
+      if (!this.isExternal) {
+        if (this.hideLatestVersion && this.$page.currentVersion === this.$page.latestVersion) {
+          href = href.replace('/{docsVersion}/', '/');
+        } else {
+          href = href.replace('/{docsVersion}/', `/${this.$page.currentVersion}/`);
+        }
       }
 
       return href;
@@ -55,6 +65,6 @@ export default {
     focusoutAction() {
       this.$emit('focusout');
     }
-  }
+  },
 };
 </script>

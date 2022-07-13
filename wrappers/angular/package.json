@@ -55,6 +55,7 @@
     "release": "npm run test && npm run publish"
   },
   "peerDependencies": {
+<<<<<<< HEAD
     "@angular/core": ">=9.0.0",
     "@angular/animations": ">=9.0.0",
     "@angular/common": ">=9.0.0",
@@ -64,10 +65,13 @@
     "@angular/platform-browser-dynamic": ">=9.0.0",
     "@angular/router": ">=9.0.0",
     "handsontable": "^12.0.0"
+=======
+    "handsontable": "^13.0.0"
+>>>>>>> 5339b6e2e1b24a598d801411c23ee5e3d5617069
   },
   "dependencies": {
     "core-js": "^2.5.4",
-    "handsontable": "^12.0.0",
+    "handsontable": "^13.0.0",
     "rxjs": "~6.5.2",
     "zone.js": "~0.10.3"
   },

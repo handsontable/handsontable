@@ -65,7 +65,7 @@
     "cpy-cli": "^3.1.1",
     "cross-env": "^5.2.0",
     "del-cli": "^3.0.1",
-    "handsontable": "^12.0.0",
+    "handsontable": "^13.0.0",
     "jest": "^25.1.0",
     "prop-types": "^15.7.2",
     "react": "^16.10.2",
@@ -85,7 +85,7 @@
     "uglify-js": "^3.4.9"
   },
   "peerDependencies": {
-    "handsontable": ">=12.0.0"
+    "handsontable": ">=13.0.0"
   },
   "scripts": {
     "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min",
