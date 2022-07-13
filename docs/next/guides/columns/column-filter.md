@@ -184,7 +184,7 @@ Note that selecting a column in the Filter component resets the state of the tab
   <div id="filterSelect">
     <div class="controllers">
       <div>
-        <label><input type='checkbox' id='filtersSelectAll' checked="checked"> (Select all)</label>
+        <label><input type='checkbox' id='filtersSelectAll' checked="checked"/> (Select all)</label>
       </div>
     </div>
     <div class="items"></div>

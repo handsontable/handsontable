@@ -102,7 +102,7 @@ Note that some callbacks are checked on this page by default.
 <strong> Choose events to be logged:</strong>
 
 <ul id="hooksList">
-  <li><label><input type="checkbox" id="check_select_all">Select all</label></li>
+  <li><label><input type="checkbox" id="check_select_all"/>Select all</label></li>
 </ul>
 ```
 ```js
@@ -136,7 +136,7 @@ hooks.forEach(function(hook) {
     checked = 'checked';
   }
 
-  hooksList.innerHTML += '<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"> ' + hook + '</label></li>';
+  hooksList.innerHTML += '<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"/> ' + hook + '</label></li>';
   config[hook] = function() {
     log_events(hook, arguments);
   }
