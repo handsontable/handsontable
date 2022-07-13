@@ -92,7 +92,7 @@ displaySeparator();
     // Regenerate docs API md files.
     await spawnProcess('npm run docs:api', { cwd: 'docs' });
     // Update all available Docs versions for legacy docs.
-    await spawnProcess('docs:scripts:generate-legacy-docs-versions', { cwd: 'docs' });
+    await spawnProcess('npm run docs:scripts:generate-legacy-docs-versions', { cwd: 'docs' });
 
     // Commit the Docs changes to the Docs Production branch.
     await spawnProcess('git add .');
