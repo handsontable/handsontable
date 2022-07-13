@@ -39,13 +39,8 @@ new Vue({
       hotSettings: {
         data:
           [
-<<<<<<< HEAD
-            ['A1', 'https://handsontable.com/docs/11.1/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-            ['A2', 'https://handsontable.com/docs/11.1/img/examples/javascript-the-good-parts.jpg']],
-=======
             ['A1', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
             ['A2', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/javascript-the-good-parts.jpg']],
->>>>>>> fe5356882 (Inject dynamic docs version variable)
         columns: [
           {},
           {
