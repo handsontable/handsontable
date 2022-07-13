@@ -77,7 +77,9 @@ The example below:
 
 ::: example #example1 --html 1 --js 2
 ```html
-<input id="search_field" type="search" placeholder="Search"/>
+<div class="controls">
+  <input id="search_field" type="search" placeholder="Search">
+</div>
 <div id="example1"></div>
 ```
 ```js
@@ -101,7 +103,7 @@ const hot = new Handsontable(container, {
 });
 
 // add a search input listener
-Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+searchField.addEventListener('keyup', function(event) {
   // get the `Search` plugin's instance
   const search = hot.getPlugin('search');
   // use the `Search` plugin's `query()` method
@@ -131,7 +133,9 @@ The example below highlights its search results in bold red. To do this, it:
 }
 ````
 ```html
-<input id="search_field2" type="search" placeholder="Search"/>
+<div class="controls">
+  <input id="search_field2" type="search" placeholder="Search">
+</div>
 <div id="example2"></div>
 ```
 ```js
@@ -157,7 +161,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+searchField.addEventListener('keyup', function(event) {
   const search = hot.getPlugin('search');
   const queryResult = search.query(this.value);
 
@@ -178,7 +182,9 @@ The example below searches only for exact search query matches. To do this, it:
 
 ::: example #example3 --html 1 --js 2
 ```html
-<input id="search_field3" type="search" placeholder="Search"/>
+<div class="controls">
+  <input id="search_field3" type="search" placeholder="Search">
+</div>
 <div id="example3"></div>
 ```
 ```js
@@ -209,7 +215,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+searchField.addEventListener('keyup', function(event) {
   const search = hot.getPlugin('search');
   // use the `Search`'s `query()` method
   const queryResult = search.query(this.value);
@@ -232,14 +238,16 @@ The example below displays the number of matching search results. To do this, it
 
 ::: example #example4 --html 1 --js 2
 ```html
-<input id="search_field4" type="search" placeholder="Search"/>
-<p><span id="resultCount">0</span> results</p>
+<div class="controls">
+  <input id="search_field4" type="search" placeholder="Search">
+</div>
+<output class="console" id="output">0 results</output>
 <div id="example4"></div>
 ```
 ```js
 const container = document.querySelector('#example4');
 const searchField = document.querySelector('#search_field4');
-const resultCount = document.querySelector('#resultCount');
+const output = document.querySelector('#output');
 
 let searchResultCount = 0;
 
@@ -275,14 +283,14 @@ const hot4 = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+searchField.addEventListener('keyup', function(event) {
   searchResultCount = 0;
 
   const search = hot4.getPlugin('search');
   const queryResult = search.query(this.value);
 
   console.log(queryResult);
-  resultCount.innerText = searchResultCount.toString();
+  output.innerText = `${searchResultCount} results`;
   hot4.render();
 });
 ```

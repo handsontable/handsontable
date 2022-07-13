@@ -22,7 +22,7 @@ Use the [`afterChange`](@/api/hooks.md#afterchange) callback to track changes ma
 
 ::: example #example1 --html 1 --js 2
 ```html
-<div id="example1" class="hot"></div>
+<div id="example1"></div>
 
 <div class="controls">
   <button id="load" class="button button--primary button--blue">Load data</button>&nbsp;
@@ -33,12 +33,12 @@ Use the [`afterChange`](@/api/hooks.md#afterchange) callback to track changes ma
   </label>
 </div>
 
-<pre id="example1console" class="console">Click "Load" to load data from server</pre>
+<output class="console" id="output">Click "Load" to load data from server</output>
 
 ```
 ```js
 const container = document.querySelector('#example1');
-const exampleConsole = document.querySelector('#example1console');
+const exampleConsole = document.querySelector('#output');
 const autosave = document.querySelector('#autosave');
 const load = document.querySelector('#load');
 const save = document.querySelector('#save');
@@ -72,7 +72,7 @@ const hot = new Handsontable(container, {
   }
 });
 
-Handsontable.dom.addEvent(load, 'click', () => {
+load.addEventListener('click', () => {
   ajax('/docs/next/scripts/json/load.json', 'GET', '', res => {
     const data = JSON.parse(res.response);
 
@@ -82,7 +82,7 @@ Handsontable.dom.addEvent(load, 'click', () => {
     exampleConsole.innerText = 'Data loaded';
   });
 });
-Handsontable.dom.addEvent(save, 'click', () => {
+save.addEventListener('click', () => {
   // save all cell's data
   ajax('/docs/next/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
     const response = JSON.parse(res.response);
@@ -95,7 +95,7 @@ Handsontable.dom.addEvent(save, 'click', () => {
   });
 });
 
-Handsontable.dom.addEvent(autosave, 'click', () => {
+autosave.addEventListener('click', () => {
   if (autosave.checked) {
     exampleConsole.innerText = 'Changes will be autosaved';
   } else {

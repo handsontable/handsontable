@@ -96,7 +96,7 @@ Note that some callbacks are checked on this page by default.
 }
 ```
 ```html
-<div id="example1" class="hot"></div>
+<div id="example1"></div>
 <div id="example1_events"></div>
 
 <strong> Choose events to be logged:</strong>

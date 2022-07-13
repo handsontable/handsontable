@@ -402,7 +402,7 @@ In this example, several capabilities of the wrapper are combined:
 
 ::: example #advanced-editor-example :vue-advanced --html 1 --css 2 --js 3
 ```html
-<div id="advanced-editor-example" class="hot">
+<div id="advanced-editor-example">
   <hot-table :settings="hotSettings">
     <hot-column :width="100">
       <stars-renderer hot-renderer></stars-renderer>

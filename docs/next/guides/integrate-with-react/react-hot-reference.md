@@ -42,11 +42,12 @@ const App = () => {
   };
 
   return (
-    <div className="controls">
+    <>
       <HotTable ref={hotTableComponent} settings={hotSettings}/>
-      <br/>
-      <button onClick={swapHotData}>Load new data!</button>
-    </div>
+      <div className="controls">
+        <button onClick={swapHotData}>Load new data!</button>
+      </div>
+    </>
   );
 }
 
