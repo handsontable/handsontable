@@ -11,7 +11,7 @@ tags:
     - support
 ---
 
-# Handsontable examples
+# Examples
 
 [[toc]]
 

@@ -11,7 +11,11 @@ canonicalUrl: /security
 
 ## Overview
 
-We take security very seriously at Handsontable. We integrate with Security Tools and Policies to provide a secure js grid. This document provides information on our Security Certification, Audits, and Policies.
+At Handsontable, security is our utmost priority. To provide a secure and trustworthy JavaScript component, we integrate with various security tools and implement industry-standard security policies.
+
+### SonarCloud results
+
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=handsontable_handsontable)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
 
 ## Secure data transportation
 
@@ -48,22 +52,13 @@ We pledge to deliver high-quality code. You can see our high-quality code score 
 
 Our policy is to fix issues when they arise as quickly as possible, and keep the library up to date. This requires from you, a user of this software, to keep your copy of the software up to date.
 
-## Security certificates
+## Security certification
 
-We regularly order security audits of the entire Handsontable codebase, carried out by independent cybersecurity experts.
+We hold a Security Certificate for a Security Audit carried out on November 30, 2020, of V8.2.0; by the [Securitum](https://securitum.pl/) company.
 
-The latest security audits:
+The security tests were carried out in accordance with industry-standard methodologies, including OWASP TOP10 and OWASP ASVS.
 
-| Handsontable version | Company   | Concluded on | Certificate                                 |
-| -------------------- | --------- | ------------ | ------------------------------------------- |
-| 8.2.0                | Securitum | Nov 30, 2020 | [Download](/docs/securitum-certificate.pdf) |
-| 11.1.0               | Seqred    | Feb 21, 2022 | [Download](/docs/seqred-certificate.pdf)    |
-
-The security audits were carried out in accordance with industry-standard methodologies, including:
-- OWASP Top 10
-- OWASP Application Security Verification Standard (ASVS)
-
-For detailed security reports, contact our [support team](https://handsontable.com/contact).
+Download the Security Certificate [here](https://github.com/handsontable/handsontable/files/6967577/Security_certificate.pdf).
 
 ## Code auditing
 
@@ -75,17 +70,17 @@ Snyk provides security status notifications via email or Slack to:
 
 ## Insurance
 
-We are insured by Lloyds of London. Our policy protects Handsontable and our customers:
+Our insurance protects our customers in the following areas:
 
-| Our Customers                           | Handsoncode (Us)                                   |
-| --------------------------------------- | -------------------------------------------------- |
-| Cyber media liability                   | Loss or damage to the insured's data or networks   |
-| Privacy liability and loss of documents | Business interuption                               |
-| Breach of confidentiality liability     | Cyber theft                                        |
-| Cyber security liability                | Cyber extortion                                    |
-| Mitigation costs                        | Telephone hacking of the insured's telephone lines |
-| Regulatory actions and fines            | Notification expenses                              |
-| Damage to insured's reputation          | Damage of the insured's reputation                 |
+| Our Customers | Handsoncode (Us)  |
+|--|--|
+| Cyber media liability | Loss or damage to the insured's data or networks  |
+| Privacy liability and loss of documents | Business interuption |
+| Breach of confidentiality liability | Cyber theft|
+| Cyber security liability | Cyber extortion |
+| Mitigation costs | Telephone hacking of the insured's telephone lines |
+| Regulatory actions and fines | Notification expenses |
+| Damage to insured's reputation | Damage of the insured's reputation |
 
 ## Code escrow
 

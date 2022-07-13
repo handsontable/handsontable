@@ -14,7 +14,7 @@ tags:
 
 [[toc]]
 
-Summarize your columns' data, using the [`ColumnSummary`](@/api/columnSummary.md) plugin.
+You can easily summarize your columns, using the [`ColumnSummary`](@/api/columnSummary.md) plugin.
 
 ## About column summary
 
@@ -86,14 +86,14 @@ const hot = new Handsontable(container, {
 
 To decide how a column summary is calculated, you can use one of the following summary functions:
 
-| Function  | Description                                                                                            |
-| --------- | ------------------------------------------------------------------------------------------------------ |
-| `sum`     | Returns the sum of all values in a column.                                                             |
-| `min`     | Returns the lowest value in a column.                                                                  |
-| `max`     | Returns the highest value in a column.                                                                 |
-| `count`   | Returns the number of all non-empty cells in a column.                                                 |
-| `average` | Returns the sum of all values in a column,<br>divided by the number of non-empty cells in that column. |
-| `custom`  | Lets you implement a [custom summary function](#implementing-a-custom-summary-function).               |
+| Function                                                                                                                   | Description                                                                                            |
+| -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| [`sum`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L146-L161)     | Returns the sum of all values in a column.                                                             |
+| [`min`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L193-L226)     | Returns the lowest value in a column.                                                                  |
+| [`max`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L193-L226)     | Returns the highest value in a column.                                                                 |
+| [`count`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L293-L313)   | Returns the number of all non-empty cells in a column.                                                 |
+| [`average`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L315-L327) | Returns the sum of all values in a column,<br>divided by the number of non-empty cells in that column. |
+| [`custom`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L138-L139)  | Lets you implement a [custom summary function](#implementing-a-custom-summary-function).                                                  |
 
 ### Column summary options
 
@@ -105,9 +105,9 @@ For the full list of available options, see the [API reference](@/api/columnSumm
 
 To set up a column summary, follow the steps below.
 
-### Step 1: Enable the [`ColumnSummary`](@/api/columnSummary.md) plugin
+### Step 1: Enable the `ColumnSummary` plugin
 
-To enable the [`ColumnSummary`](@/api/columnSummary.md) plugin, set the [`columnSummary`](@/api/options.md#columnsummary) configuration option to an array of objects.
+To enable the [`ColumnSummary`](@/api/columnSummary.md) plugin, set the [`columnSummary`](@/api/options.md#columnsummary) [configuration option](@/guides/getting-started/setting-options.md) to an array of objects.
 
 Each object represents a single column summary.
 
@@ -130,7 +130,7 @@ const hot = new Handsontable(container, {
 ```
 
 ::: tip
-You can also set the [`columnSummary`](@/api/options.md#columnsummary) option to a function.
+You can also set the [`columnSummary`](@/api/options.md#columnsummary) option [to a function](#providing-column-summary-configuration-as-a-function).
 :::
 
 ### Step 2: Select cells that you want to summarize
@@ -323,7 +323,7 @@ Instead of [setting up the column summary options manually](#setting-up-a-column
 
 The example below sets up five different column summaries. To do this, it:
 - Defines a function named `generateData` which generates an array of arrays with dummy numeric data, and which lets you add an empty row at the bottom of the grid (to make room for displaying column summaries)
-- Sets Handsontable's [`columnSummary`](@/api/options.md#columnsummary) configuration option to a function that:
+- Sets Handsontable's [`columnSummary`](@/api/options.md#columnsummary) [configuration option](@/guides/getting-started/setting-options.md) to a function that:
     - Iterates over visible columns
     - For each visible column, adds a column summary with a configuration
     - To display the column summaries in the empty row added by `generateData`, sets the [`reversedRowCoords`](@/api/columnSummary.md#options) option to `true`, and the [`destinationRow`](@/api/columnSummary.md#options) option to `0`
@@ -461,7 +461,7 @@ Apart from using the [built-in summary functions](#built-in-summary-functions), 
 To implement a custom summary function:
 
 1. [Set up your column summary](#setting-up-a-column-summary).
-2. In your [column summary object](#step-1-enable-the-columnsummary-plugin), set the [`type`](@/api/options.md#type) option to `'custom'`:
+2. In your [column summary object](#step-1-enable-the-columnsummary-plugin), set the `type` option to `'custom'`:
     ```js
     columnSummary: [
         {
@@ -473,7 +473,7 @@ To implement a custom summary function:
           reversedRowCoords: true
         },
     ```
-3. In your column summary object, add your custom summary function:
+3. In your [column summary object](#step-1-enable-the-columnsummary-plugin), add your custom summary function:
     ```js
     columnSummary: [
         {
@@ -567,7 +567,7 @@ const hot = new Handsontable(container, {
 
 You can round a column summary result to a specific number of digits after the decimal point.
 
-To enable this feature, set the [`roundFloat`](@/api/columnSummary.md) option to your preferred number of digits. For example:
+To enable this feature, set the `roundFloat` option to your preferred number of digits. For example:
 
 ::: example #example12
 ```js
@@ -607,8 +607,8 @@ const hot = new Handsontable(container, {
 
 To summarize a column that contains non-numeric data, you can:
 
-- Either force your column summary to treat non-numeric values as numeric values
-- Or throw an error whenever a non-numeric value is passed to your column summary
+- Either [force your column summary to treat non-numeric values as numeric values](#forcing-numeric-values)
+- Or [throw an error whenever a non-numeric value is passed to your column summary](#throwing-data-type-errors)
 - Or make your column summary skip any non-numeric values
 
 ### Forcing numeric values
@@ -616,12 +616,12 @@ To summarize a column that contains non-numeric data, you can:
 You can force your column summary to treat non-numeric values as numeric values.
 
 :::tip
-The [`forceNumeric`](@/api/columnSummary.md) option uses JavaScript's `parseFloat()` function.
+The `forceNumeric` option uses JavaScript's [parseFloat()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat) function.
 
-This means that e.g., `3c` is treated as `3`, but `c3` is still treated as `c3`.
+This means that e.g. `3c` is treated as `3`, but `c3` is still treated as `c3`.
 :::
 
-To enable this feature, set the [`forceNumeric`](@/api/columnSummary.md) option to `true` (by default, [`forceNumeric`](@/api/columnSummary.md) is set to `false`). For example:
+To enable this feature, set the `forceNumeric` option to `true` (by default, `forceNumeric` is set to `false`). For example:
 
 ::: example #example10
 ```js
@@ -662,7 +662,7 @@ const hot = new Handsontable(container, {
 
 You can throw a data type error whenever a non-numeric value is passed to your column summary.
 
-To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummary.md) option to `false` (by default, [`suppressDataTypeErrors`](@/api/columnSummary.md) is set to `true`). For example:
+To throw data type errors, set the `suppressDataTypeErrors` option to `false` (by default, `suppressDataTypeErrors` is set to `true`). For example:
 
 ::: example #example11
 ```js
@@ -698,10 +698,3 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
-
-## Related API reference
-
-- Configuration options:
-  - [`columnSummary`](@/api/options.md#columnsummary)
-- Plugins:
-  - [`ColumnSummary`](@/api/columnSummary.md)

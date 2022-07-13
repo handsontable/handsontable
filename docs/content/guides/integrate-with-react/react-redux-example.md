@@ -7,11 +7,9 @@ canonicalUrl: /react-redux-example
 
 # Redux example
 
-[[toc]]
-
 ## Overview
 
-The following example implements the `@handsontable/react` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Redux state manager.
+The following example implements the `@handsontable/react` component with a `readOnly` toggle switch and the Redux state manager.
 
 ## Example
 
@@ -22,11 +20,7 @@ import ReactDOM from 'react-dom';
 import { createStore } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
-
-// register Handsontable's modules
-registerAllModules();
+import Handsontable from 'handsontable';
 
 const App = () => {
   const hotSettings = useSelector(state => state);
@@ -109,7 +103,7 @@ const App = () => {
 };
 
 const initialReduxStoreState = {
-  data: createSpreadsheetData(5, 3),
+  data: Handsontable.helper.createSpreadsheetData(5, 3),
   colHeaders: true,
   rowHeaders: true,
   readOnly: false,

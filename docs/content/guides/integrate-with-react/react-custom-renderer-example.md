@@ -7,12 +7,6 @@ canonicalUrl: /react-custom-renderer-example
 
 # Custom renderer in React
 
-[[toc]]
-
-::: tip Using React components
-This page shows how to integrate a plain JavaScript custom renderer with the React component. Information how to [declare a custom renderer using React components](@/guides/integrate-with-react/react-hot-column.md#declaring-a-custom-renderer-as-a-component) is presented on another page.
-:::
-
 ## Overview
 
 You can declare a custom renderer for the `HotTable` component by declaring it as a function in the Handsontable options or creating a rendering component.
@@ -26,11 +20,7 @@ The following example implements `@handsontable/react` with a custom renderer ad
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
+import Handsontable from 'handsontable';
 
 const hotSettings = {
   data:
@@ -42,21 +32,21 @@ const hotSettings = {
     {},
     {
       renderer(instance, td, row, col, prop, value, cellProperties) {
-        const escaped = `${value}`;
+        const escaped = Handsontable.helper.stringify(value);
 
         if (escaped.indexOf('http') === 0) {
           const img = document.createElement('IMG');
           img.src = value;
 
-          img.addEventListener('mousedown', event => {
+          Handsontable.dom.addEvent(img, 'mousedown', event => {
             event.preventDefault();
           });
 
-          td.innerText = '';
+          Handsontable.dom.empty(td);
           td.appendChild(img);
 
         } else {
-          textRenderer.apply(this, arguments);
+          Handsontable.renderers.TextRenderer.apply(this, arguments);
         }
 
         return td;
@@ -83,31 +73,3 @@ const App = () => {
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Cell renderer](@/guides/cell-functions/cell-renderer.md)
-
-### Related API reference
-
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`renderer`](@/api/options.md#renderer)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
-  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
-  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)
