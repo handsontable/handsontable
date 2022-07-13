@@ -32,9 +32,7 @@ It gives users a convenient way for defining which renderer should be used when 
 You can declare a custom renderer for the `HotTable` component by declaring it as a function in the Handsontable options or creating a rendering component.
 
 The following example implements `@handsontable/react` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
-:::
 
-::: only-for react
 ::: example #example1 :react
 ```jsx
 import React from 'react';

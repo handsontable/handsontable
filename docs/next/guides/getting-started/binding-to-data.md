@@ -17,13 +17,11 @@ tags:
 
 The following guide provides information on using a data source and manipulating how the data is displayed in the data grid.
 
-:::only-for react
+::: only-for react
 ### Referencing the Handsontable instance
 
 The following example implements the `@handsontable/react`component showing how to reference the Handsontable instance from the wrapper component.
-:::
 
-::: only-for react
 ::: example #example1 :react
 ```jsx
 import React, { useRef } from 'react';

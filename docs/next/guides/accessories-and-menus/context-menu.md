@@ -203,9 +203,7 @@ const hot = new Handsontable(container, {
 ## Context menu example
 
 The following example is an implementation of the `@handsontable/react` component, with a custom context menu added using React:
-:::
 
-::: only-for react
 ::: example #example4 :react
 ```jsx
 import React from 'react';

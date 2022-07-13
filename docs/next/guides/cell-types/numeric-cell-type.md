@@ -81,9 +81,7 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 ## Formatting numbers
-:::
 
-::: only-for react
 ::: example #example3 :react-numbro
 ```jsx
 import React from 'react';

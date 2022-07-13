@@ -98,9 +98,7 @@ const hot = new Handsontable(container, {
 ::: tip
 Note that the `language` property is bound to the component separately using `language={this.language}"`, but it could be included in the `settings` property just as well.
 :::
-:::
 
-::: only-for react
 ::: example #example2 :react-languages
 ```jsx
 import React, { useState, useEffect } from 'react';
