@@ -174,7 +174,7 @@ Note that selecting a column in the Filter component resets the state of the tab
 
 ::: example #example4 --html 1 --js 2
 ```html
-<div id="example4" class="hot"></div>
+<div id="example4"></div>
 <div id="externalFilter">
   <div class="columnChoose">
     <label>Choose Column: </label>
@@ -184,8 +184,7 @@ Note that selecting a column in the Filter component resets the state of the tab
   <div id="filterSelect">
     <div class="controllers">
       <div>
-        <input type='checkbox' id='filtersSelectAll' checked="checked" />
-        <label for='filtersSelectAll'>(Select all)</label>
+        <label><input type='checkbox' id='filtersSelectAll' checked="checked"> (Select all)</label>
       </div>
     </div>
     <div class="items"></div>
@@ -253,9 +252,7 @@ class DOMHelper {
       item.className = 'item';
 
       const input = document.createElement('input');
-      const id = 'cellData' + '(' + this.state.getSelectedColumn()+ ',' + rowIndex + ')';
 
-      input.id = id;
       input.type = 'checkbox';
       input.name = 'cellData';
       input.value = cellData;
@@ -265,10 +262,9 @@ class DOMHelper {
 
       const label = document.createElement('label');
 
-      label.htmlFor = id;
-      label.innerText = cellData;
+      label.innerText = ` ${cellData}`;
 
-      item.appendChild(input);
+      label.prepend(input);
       item.appendChild(label);
       this.inputs.push(input);
       this.itemsContainerUI.appendChild(item);

@@ -112,13 +112,11 @@ Callback console log:
 ::: example #example1 --js 2 --html 1
 ```html
 <div id="example1"></div>
-<pre class="language-js">
-  <code id="example1console">Here you will see the log</code>
-</pre>
+<output class="console" id="output">Here you will see the log</output>
 ```
 ```js
 const container = document.querySelector('#example1');
-const console = document.querySelector('#example1console');
+const output = document.querySelector('#output');
 
 const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
 
@@ -167,7 +165,7 @@ const hot = new Handsontable(container, {
   },
   afterChange(changes, source) {
     if (source !== 'loadData') {
-      console.innerText = JSON.stringify(changes);
+      output.innerText = JSON.stringify(changes);
     }
   },
   colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
