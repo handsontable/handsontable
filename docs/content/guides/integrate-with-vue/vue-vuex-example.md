@@ -1,21 +1,21 @@
 ---
-title: 'Vuex example in Vue 2'
+title: 'Vuex example'
 metaTitle: 'Vuex example - Guide - Handsontable Documentation'
 permalink: /vue-vuex-example
 canonicalUrl: /vue-vuex-example
 ---
 
-# Vuex example in Vue 2
+# Vuex example
 
 [[toc]]
 
 ## Overview
 
-The following example implements the `@handsontable/vue` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Vuex state manager.
+The following example implements the `@handsontable/vue` component with a `readOnly` toggle switch and the Vuex state manager.
 
 ## Example - Vuex store dump:
 
-Toggle [`readOnly`](@/api/options.md#readonly) for the entire table.
+Toggle `readOnly` for the entire table.
 
 ::: example #example1 :vue-vuex --html 1 --js 2
 ```html

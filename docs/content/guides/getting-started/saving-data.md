@@ -17,7 +17,7 @@ Persistent state storage is particularly useful when running multiple instances 
 
 ## Saving changes using a callback
 
-Use the [`afterChange`](@/api/hooks.md#afterchange) callback to track changes made in the data grid. In the example below, Ajax is used to load and save the data. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
+Use the **afterChange** callback to track changes made in the data grid. In the example below, Ajax is used to load and save the data. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
 
 
 ::: example #example1 --html 1 --js 2
@@ -77,7 +77,6 @@ Handsontable.dom.addEvent(load, 'click', () => {
     const data = JSON.parse(res.response);
 
     hot.loadData(data.data);
-    // or, use `updateData()` to replace `data` without resetting states
 
     exampleConsole.innerText = 'Data loaded';
   });
@@ -137,31 +136,16 @@ function ajax(url, method, params, callback) {
 
 ## Saving data locally
 
-You can save any type of data in local storage to preserve the table state after page reloads. The [`persistentState`](@/api/options.md#persistentstate) option must be set to `true` to enable the data storage mechanism. You can set it either during the Handsontable initialization or using the [`updateSettings()`](@/api/core.md#updatesettings) method.
+You can save any type of data in local storage to preserve the table state after page reloads. The `persistentState` option must be set to `true` to enable the data storage mechanism. You can set it either during the Handsontable initialization or using the `updateSettings` method.
 
-When the [`persistentState`](@/api/options.md#persistentstate) option is enabled, the [`PersistentState`](@/api/persistentState.md) plugin exposes hooks listed below:
+When `persistentState` is enabled it exposes hooks listed below:
 
-* [`persistentStateSave`](@/api/hooks.md#persistentstatesave)
-* [`persistentStateLoad`](@/api/hooks.md#persistentstateload)
-* [`persistentStateReset`](@/api/hooks.md#persistentstatereset)
+* [`persistentStateSave` &#8594;](@/api/hooks.md#persistentstatesave)
+* [`persistentStateLoad` &#8594;](@/api/hooks.md#persistentstateload)
+* [`persistentStateReset` &#8594;](@/api/hooks.md#persistentstatereset)
 
-## [`PersistentState`](@/api/persistentState.md) vs `localStorage`
+## `persistentState` vs `LocalStorage API`
 
-The main benefit of using the [`PersistentState`](@/api/persistentState.md) plugin hooks rather than the regular `localStorage` API is that it ensures separation of data stored by multiple Handsontable instances. For example, if you have two or more instances of Handsontable on one page, data saved by one instance will be inaccessible to the second instance. Those two instances can store data under the same key, and no data would be overwritten.
+The main benefit of using `persistentState` hooks rather than a regular `LocalStorage API` is that it ensures separation of data stored by multiple Handsontable instances. For example, if you have two or more instances of Handsontable on one page, data saved by one instance will be inaccessible to the second instance. Those two instances can store data under the same key, and no data would be overwritten.
 
 For the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
-
-## Related API reference
-
-- Configuration options:
-  - [`persistentState`](@/api/options.md#persistentstate)
-- Core methods:
-  - [`updateSettings()`](@/api/core.md#updatesettings)
-- Hooks:
-  - [`afterCellMetaReset`](@/api/hooks.md#aftercellmetareset)
-  - [`afterChange`](@/api/hooks.md#afterchange)
-  - [`persistentStateLoad`](@/api/hooks.md#persistentstateload)
-  - [`persistentStateReset`](@/api/hooks.md#persistentstatereset)
-  - [`persistentStateSave`](@/api/hooks.md#persistentstatesave)
-- Plugins:
-  - [`PersistentState`](@/api/persistentState.md)

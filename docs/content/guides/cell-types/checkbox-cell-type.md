@@ -10,13 +10,7 @@ canonicalUrl: /checkbox-cell-type
 [[toc]]
 
 ## Overview
-Data in these cells will be rendered as a checkbox and can be easily changed by checking/unchecking the checkbox.
-
-Checking the box can be performed using a mouse, or by pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd>.
-
-Unchecking the box can be performed using a mouse, or by pressing <kbd>**Space**</kbd>, <kbd>**Enter**</kbd>, <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd>.
-
-You can change the state of multiple cells at once by selecting the cells you want to change and pressing <kbd>**Space**</kbd>.
+Data in these cells will be rendered as a checkbox and can be easily changed by checking/unchecking the checkbox. Checking and unchecking can be performed using a mouse or by pressing <kbd>SPACE</kbd>. You can change the state of multiple cells at once by selecting the cells you want to change and pressing <kbd>SPACE</kbd>.
 
 ## Checkbox true/false values
 
@@ -56,7 +50,7 @@ const hot = new Handsontable(container, {
 
 ## Checkbox template
 
-If you want to use values other than `true` and `false`, you have to provide this information using [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Handsontable will then update your data using the appropriate template.
+If you want to use values other than `true` and `false`, you have to provide this information using `checkedTemplate` and `uncheckedTemplate`. Handsontable will then update your data using the appropriate template.
 
 ::: example #example2
 ```js
@@ -94,7 +88,7 @@ const hot = new Handsontable(container, {
 
 ## Checkbox labels
 
-To add a label to the checkbox, use the [`label`](@/api/options.md#label) option. You can declare where the label will be injected with this option - either before or after the checkbox element. You can also declare from which data source the label text will be updated.
+To add a label to the checkbox, use the `label` option. You can declare where the label will be injected with this option - either before or after the checkbox element. You can also declare from which data source the label text will be updated.
 
 ::: example #example3
 ```js
@@ -137,39 +131,3 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
-
-## Related keyboard shortcuts
-
-| Windows                  | macOS                    | Action                        |  Excel  | Sheets  |
-| ------------------------ | ------------------------ | ----------------------------- | :-----: | :-----: |
-| <kbd>**Space**</kbd>     | <kbd>**Space**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
-| <kbd>**Enter**</kbd>     | <kbd>**Enter**</kbd>     | Check or uncheck the checkbox | &cross; | &check; |
-| <kbd>**Delete**</kbd>    | <kbd>**Delete**</kbd>    | Uncheck the checkbox          | &cross; | &check; |
-| <kbd>**Backspace**</kbd> | <kbd>**Backspace**</kbd> | Uncheck the checkbox          | &cross; | &check; |
-
-## Related articles
-
-### Related guides
-
-- [Cell type](@/guides/cell-types/cell-type.md)
-
-### Related API reference
-
-- Configuration options:
-  - [`checkedTemplate`](@/api/options.md#checkedtemplate)
-  - [`label`](@/api/options.md#label)
-  - [`type`](@/api/options.md#type)
-  - [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

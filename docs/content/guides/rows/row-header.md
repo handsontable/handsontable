@@ -17,7 +17,7 @@ tags:
 
 Row headers are gray-colored columns that are used to label each row. By default, these headers are filled with numbers displayed in ascending order.
 
-To turn the headers on, set the option [`rowHeaders`](@/api/options.md#rowheaders) to `true`.
+To turn the headers on, set the option `rowHeaders` to `true`.
 
 ## Bind rows with headers
 
@@ -29,7 +29,7 @@ There is a plugin **Bind rows with headers** which allows the binding of row num
 
 ### Basic example
 
-To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders) property to `true`. Move the rows in the example below to see what this plugin does.
+To enable the plugin, set the `bindRowsWithHeaders` property to `true`. Move the rows in the example below to see what this plugin does.
 
 ::: example #example1
 ```js
@@ -65,29 +65,4 @@ const hot = new Handsontable(container, {
 
 ## Tree grid
 
-A tree grid enables you to represent the nested data structures within the data grid. To learn more about this feature, see the [Row parent-child](@/guides/rows/row-parent-child.md) page.
-
-## Related articles
-
-### Related guides
-
-- [Row parent-child](@/guides/rows/row-parent-child.md)
-
-### Related API reference
-
-- Configuration options:
-  - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
-  - [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
-  - [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders)
-  - [`rowHeaders`](@/api/options.md#rowheaders)
-- Core methods:
-  - [`getRowHeader()`](@/api/core.md#getrowheader)
-  - [`hasRowHeaders()`](@/api/core.md#hasrowheaders)
-- Hooks:
-  - [`afterGetRowHeader`](@/api/hooks.md#aftergetrowheader)
-  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
-  - [`beforeHighlightingRowHeader`](@/api/hooks.md#beforehighlightingrowheader)
-  - [`modifyRowHeader`](@/api/hooks.md#modifyrowheader)
-  - [`modifyRowHeaderWidth`](@/api/hooks.md#modifyrowheaderwidth)
-- Plugins:
-  - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
+A tree grid enables you to represent the nested data structures within the data grid. To learn more about this feature, see the  [Row parent-child](@/guides/rows/row-parent-child.md) page.

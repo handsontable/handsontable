@@ -17,7 +17,7 @@ This feature makes it possible to add, edit and remove comments in Handsontable 
 
 ## Enabling the plugin
 
-Set the [`comments`](@/api/options.md#comments) configuration option to `true` to enable the feature and add all the needed context menu items. For example:
+Set the `comments` property to `true` to enable the feature and add all the needed context menu items. For example:
 
 ```js
 const hot = new Handsontable(container, {
@@ -26,7 +26,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-## Adding comments via the context menu
+## Adding the comments via the Context Menu
 
 After you've enabled the plugin, the [Context Menu](@/guides/accessories-and-menus/context-menu.md) gains a few new items:
 
@@ -77,7 +77,7 @@ const hot = new Handsontable(container, {
 
 ## Make a comment read-only
 
-By default, all comments are editable. To change this, set the [`readOnly`](@/api/options.md#comments) configuration option to `true` when adding a comment. This example makes the "Tesla" comment attached to a cell read-only, whereas the "Honda" comment attached to another cell is editable.
+By default, all comments are editable. To change this, set the `readOnly` parameter to `true` when adding a comment. This example makes the "Tesla" comment attached to a cell read-only, whereas the "Honda" comment attached to another cell is editable.
 
 ::: example #example2
 ```js
@@ -106,7 +106,7 @@ const hot = new Handsontable(container, {
 
 ## Set a comment box's size
 
-To set the width and height of a comment box, use the [`style`](@/api/options.md#comments) parameter.
+To set the width and height of a comment box, use the `style` parameter.
 
 ::: example #example3
 ```js
@@ -136,7 +136,7 @@ const hot = new Handsontable(container, {
 
 ## Set a delay for displaying comments
 
-To display comments after a pre-configured time delay, use the [`displayDelay`](@/api/options.md#comments) parameter.
+To display comments after a pre-configured time delay, use the `displayDelay` parameter.
 
 ::: example #example4
 ```js
@@ -164,9 +164,3 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
-
-## Related API reference
-
-- Configuration options:
-  - [`commentedCellClassName`](@/api/options.md#commentedcellclassname)
-  - [`comments`](@/api/options.md#comments)
