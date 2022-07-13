@@ -1,0 +1,30 @@
+name: Code Quality
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'develop'
+      - 'release/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+        with:
+          fetch-depth: 0
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@5392662532e48780d7e796d79e55351fcb7ee3c9 # Commits on Sep 16, 2021
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: SonarQube Quality Gate check
+        uses: sonarsource/sonarqube-quality-gate-action@6a7dcc22310cef7cb83b0dfcf37c225113fb37cf # Commits on Jun 25, 2021
+        # Force to fail step after specific time
+        timeout-minutes: 1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
