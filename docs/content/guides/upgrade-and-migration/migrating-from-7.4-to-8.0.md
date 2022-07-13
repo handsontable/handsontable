@@ -323,19 +323,11 @@ Methods `moveColumn`, `moveColumns`, `moveRow`, and `moveRows` have their argume
 
 The "drag" methods comes with the `dropIndex` parameter. It directs where to **place** the dragged elements. The place you intend to drag the element is managed by **drop indexes**. You can imagine some sort of a drop zone between actual indexes of elements:
 
-<<<<<<< HEAD
-![drag_action](/docs/11.0/img/drag_action.svg)
-
-The "move" methods comes with the `finalIndex` parameter. It tells where to **overlap** the first element from the moved ones. The place you intend to move the element is managed by **visual indexes**.
-
-![move_action](/docs/11.0/img/move_action.svg)
-=======
 ![drag_action](/docs/{{$page.currentVersion}}/img/drag_action.svg)
 
 The "move" methods comes with the `finalIndex` parameter. It tells where to **overlap** the first element from the moved ones. The place you intend to move the element is managed by **visual indexes**.
 
 ![move_action](/docs/{{$page.currentVersion}}/img/move_action.svg)
->>>>>>> fe5356882 (Inject dynamic docs version variable)
 
 Please note that in case of "move" methods some move actions are limited. For example, if you initiate a move of **more than one element** to the **last position** (visual index = the number of items - 1) the operation will be canceled. The first element in the collection you would like to move will try to reach the last position (`finalIndex`) which is feasible. However, the next ones will attempt to reach the position exceeding the number of all items.
 
@@ -361,19 +353,11 @@ const hotInstance = new Handsontable(container, {
 
 The results before:
 
-<<<<<<< HEAD
-![before_8](/docs/11.0/img/spare_before_8.svg)
-
-The results after:
-
-![after_8](/docs/11.0/img/spare_after_8.svg)
-=======
 ![before_8](/docs/{{$page.currentVersion}}/img/spare_before_8.svg)
 
 The results after:
 
 ![after_8](/docs/{{$page.currentVersion}}/img/spare_after_8.svg)
->>>>>>> fe5356882 (Inject dynamic docs version variable)
 
 To ensure your application works as expected you should review it and search the use cases of `minSpareRows` or `minRows`, if the application relied on this mechanism you may need to adapt it. For example, in prior versions the following code:
 
@@ -477,19 +461,11 @@ const physicalColumn = this.hot.toPhysicalColumn(column);
 
 It used to select just one cell:
 
-<<<<<<< HEAD
-![LMB_was](/docs/11.0/img/LMB_was.gif)
-
-Now the expected behavior is to select all cells:
-
-![LMB_is](/docs/11.0/img/LMB_is.gif)
-=======
 ![LMB_was](/docs/{{$page.currentVersion}}/img/LMB_was.gif)
 
 Now the expected behavior is to select all cells:
 
 ![LMB_is](/docs/{{$page.currentVersion}}/img/LMB_is.gif)
->>>>>>> fe5356882 (Inject dynamic docs version variable)
 
 To keep the previous behavior you need to use the following workaround:
 
