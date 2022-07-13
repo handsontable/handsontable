@@ -7,11 +7,9 @@ canonicalUrl: /vue-setting-up-a-language
 
 # Setting up a translation in Vue 2
 
-[[toc]]
-
 ## Overview
 
-The following example shows a Handsontable instance with translations set up in Vue 2.
+The following example shows a Handsontable instance with translations set up in Vue.
 
 ## Example
 
@@ -101,26 +99,3 @@ new Vue({
 });
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Language](@/guides/internationalization/language.md)
-- [Layout direction](@/guides/internationalization/layout-direction.md)
-- [Locale](@/guides/internationalization/locale.md)
-
-### Related API reference
-
-- Configuration options:
-  - [`language`](@/api/options.md#language)
-  - [`layoutDirection`](@/api/options.md#layoutdirection)
-  - [`locale`](@/api/options.md#locale)
-- Core methods:
-  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
-  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
-  - [`isLtr()`](@/api/core.md#isltr)
-  - [`isRtl()`](@/api/core.md#isrtl)
-- Hooks:
-  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
-  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)

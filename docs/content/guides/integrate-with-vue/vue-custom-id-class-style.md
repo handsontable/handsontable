@@ -7,8 +7,6 @@ canonicalUrl: /vue-custom-id-class-style
 
 # Custom ID, Class, Style, and other attributes in Vue 2
 
-[[toc]]
-
 ## Overview
 
 Custom `id`, `class`, `style`, and other attributes can be passed into the `hot-table` wrapper element.

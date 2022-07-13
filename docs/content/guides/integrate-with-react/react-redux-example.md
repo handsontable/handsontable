@@ -7,11 +7,9 @@ canonicalUrl: /react-redux-example
 
 # Redux example
 
-[[toc]]
-
 ## Overview
 
-The following example implements the `@handsontable/react` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Redux state manager.
+The following example implements the `@handsontable/react` component with a `readOnly` toggle switch and the Redux state manager.
 
 ## Example
 

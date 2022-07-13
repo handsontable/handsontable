@@ -65,7 +65,7 @@ const hot = new Handsontable(container, {
 
 ## Custom hash symbol
 
-By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to set a custom hash symbol. You can use any character, entity, or event HTML. Note that you can't change the symbol used by the input field due to browser limitations.
+By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to set a custom hash symbol. You can use any character, entity, or even HTML. Note that you can't change the symbol used by the input field due to browser limitations.
 
 ::: example #example3
 ```js
@@ -89,27 +89,3 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Cell type](@/guides/cell-types/cell-type.md)
-
-### Related API reference
-
-- Configuration options:
-  - [`type`](@/api/options.md#type)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

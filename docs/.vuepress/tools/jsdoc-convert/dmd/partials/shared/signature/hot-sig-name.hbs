@@ -1,0 +1,12 @@
+
+::: signame {{#if virtual}}*{{/if}}{{#with (parentObject)}}{{#if virtual}}*{{/if~}}{{/with~}}
+{{#if name}}{{#sig~}}
+{{#if @prefix}}{{@prefix}} {{/if~}}
+{{@parent~}}
+{{@accessSymbol}}{{#if (isEvent)}}{{{name}}}{{else}}{{{escape name}}}{{/if~}}
+{{#if @methodSign}}{{#if (isEvent)}}{{@methodSign}}{{else}}{{@methodSign}}{{/if}}{{/if~}}
+{{#if @returnSymbol}} {{@returnSymbol}}{{/if~}}
+{{#if @returnTypes}} {{#each @returnTypes~}}{{{escape this}}}{{#unless @last}} | {{/unless~}}{{/each}}{{/if~}}
+{{#if @suffix}} {{@suffix}}{{/if~}}
+{{~/sig}}{{/if~}}
+{{#if virtual}}*{{/if}}{{#with (parentObject)}}{{#if virtual}}*{{/if~}}{{/with~}}
