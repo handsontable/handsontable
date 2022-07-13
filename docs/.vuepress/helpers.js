@@ -186,6 +186,10 @@ function getNormalizedPath(normalizedPath) {
     return normalizedPath.replace(new RegExp(`^/?${TMP_DIR_FOR_WATCH}`), '');
   }
 
+  if (normalizedPath[0] !== '/') {
+    normalizedPath = `/${normalizedPath}`;
+  }
+
   return normalizedPath;
 }
 
