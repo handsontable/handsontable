@@ -45,20 +45,12 @@ Both of these methods trigger the [beforeColumnMove](@/api/hooks.md#beforecolumn
 
 The [dragColumns](@/api/manualColumnMove.md#dragcolumns) method has a [`dropIndex`](@/api/manualColumnMove.md#dragcolumns) parameter, which points to where the elements are being dropped.
 
-<<<<<<< HEAD
-![dragColumns method](/docs/12.0/img/drag_action.svg)
-=======
 ![dragColumns method](/docs/{{$page.currentVersion}}/img/drag_action.svg)
->>>>>>> fe5356882 (Inject dynamic docs version variable)
 
 
 The [moveColumns](@/api/manualColumnMove.md#movecolumns) method has a `finalIndex` parameter, which points to where the elements will be placed after the _moving_ action - `finalIndex` being the index of the first moved element.
 
-<<<<<<< HEAD
-![moveColumns method](/docs/12.0/img/move_action.svg)
-=======
 ![moveColumns method](/docs/{{$page.currentVersion}}/img/move_action.svg)
->>>>>>> fe5356882 (Inject dynamic docs version variable)
 
 The [`moveColumns`](@/api/manualColumnMove.md#movecolumns) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [isMovePossible](@/api/manualColumnMove.md#ismovepossible) API method and the `movePossible` parameters [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) hooks help in determine such situations.
 

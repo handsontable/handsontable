@@ -131,11 +131,7 @@ const hot = new Handsontable(container, {
     {
       type: 'autocomplete',
       source(query, process) {
-<<<<<<< HEAD
-        fetch('/docs/12.0/scripts/json/autocomplete.json')
-=======
         fetch('/docs/{{$page.currentVersion}}/scripts/json/autocomplete.json')
->>>>>>> fe5356882 (Inject dynamic docs version variable)
           .then(response => response.json())
           .then(response => process(response.data));
       },
