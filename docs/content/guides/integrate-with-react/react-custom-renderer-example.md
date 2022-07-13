@@ -35,8 +35,8 @@ registerAllModules();
 const hotSettings = {
   data:
     [
-      ['A1', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-      ['A2', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/javascript-the-good-parts.jpg']
+      ['A1', 'https://handsontable.com/docs/12.1/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+      ['A2', 'https://handsontable.com/docs/12.1/img/examples/javascript-the-good-parts.jpg']
     ],
   columns: [
     {},
