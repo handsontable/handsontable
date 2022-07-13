@@ -26,8 +26,8 @@ module.exports = function conditionalContainer(markdown) {
   const openAndCloseTagOneliner = /::: only-for (((react|javascript) ?)+)(.*?):::$/ms; // It is multi line text.
   const openTokenContent = /(?:\n?)::: only-for (((react|javascript) ?)+)\n?/;
   const fullMatchOpenToken = /^(?:\n?)::: only-for (((react|javascript) ?)+)\n?$/;
-  const closeTokenContent = /(?:\n?):::$/;
-  const fullMatchCloseToken = /^(?:\n?):::$/;
+  const closeTokenContent = /(?:\n?):::(?:\n?)$/;
+  const fullMatchCloseToken = /^(?:\n?):::(?:\n?)$/;
   const markupForCustomContainer = ':::';
   const newLineTokenType = 'softbreak';
   const capturedGroupIndex = 1;
@@ -36,6 +36,11 @@ module.exports = function conditionalContainer(markdown) {
   const removeValueAndNewLine = ({ token, regexp, env }) => {
     // Removing value from token's content.
     token.content = token.content.replace(regexp, '');
+
+    // Some tags may don't have children.
+    if (token.children === null) {
+      return;
+    }
 
     let childrenIndex = token.children.findIndex(childrenToken => regexp.test(childrenToken.content));
 
@@ -57,7 +62,7 @@ module.exports = function conditionalContainer(markdown) {
       token.children.splice(childrenIndex, howMany);
     } else {
       // eslint-disable-next-line no-console
-      console.error(`${chalk.red('\nUnexpected error thrown while removing conditional container' +
+      console.error(`${chalk.red('\nUnexpected error thrown while removing conditional container.' +
         ` Please check how "${env.frontmatter.permalink}" site, parsed from ` +
         `"${getNormalizedPath(env.relativePath)}" file looks like.`
       )}`);
@@ -65,6 +70,13 @@ module.exports = function conditionalContainer(markdown) {
   };
   
   const cleanTokens = ({ tokens, token, tokenIndex, preciseRegexp, lessPreciseRegexp, env }) => {
+    if (token === void 0) {
+      // eslint-disable-next-line no-console
+      console.error(`${chalk.red('\nUnexpected error thrown while removing conditional container.' +
+        ` It is possible that \`::: only-for\' value has been fount, but ending \':::\' value has not.`
+      )}`);
+    }
+
     if (preciseRegexp.test(token.content)) {
       tokens.splice(tokenIndex, 1);
 
