@@ -15,11 +15,6 @@ export default {
   components: {
     DropdownLink
   },
-  data() {
-    return {
-      item: [],
-    };
-  },
   methods: {
     addLatest(version) {
       if (version === this.$page.latestVersion) {
@@ -58,20 +53,22 @@ export default {
       }));
     }
   },
-  mounted() {
-    this.item = {
-      text: this.addLatest(this.$page.currentVersion),
-      items:
-        [
-          ...this.$page.versions.map(v => ({
-            text: `${this.addLatest(v)}`,
-            link: this.getLink(v),
-            target: '_self',
-            isHtmlLink: true
-          })),
-          ...this.getLegacyVersions()
-        ]
-    };
+  computed: {
+    item() {
+      return {
+        text: this.addLatest(this.$page.currentVersion),
+        items:
+          [
+            ...this.$page.versions.map(v => ({
+              text: `${this.addLatest(v)}`,
+              link: this.getLink(v),
+              target: '_self',
+              isHtmlLink: true
+            })),
+            ...this.getLegacyVersions()
+          ]
+      };
+    }
   }
 };
 </script>
