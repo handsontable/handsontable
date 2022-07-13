@@ -348,8 +348,12 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
 
-::: only-for javascript
-::: example #example3
+::: example #example3 --js 2 --html 1
+```html
+<div id="exampleContainer3">
+  <div id="example3"></div>
+</div>
+```
 ```js
 let isChecked = false;
 const exampleContainer3 = document.querySelector('#exampleContainer3');
