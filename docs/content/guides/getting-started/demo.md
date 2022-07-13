@@ -15,7 +15,7 @@ tags:
 Play around with a demo of Handsontable, in your favorite framework.
 
 <div class="example-container"><iframe
-    v-bind:src="'https://handsontable.github.io/handsontable/examples/'+ $page.currentVersion + '/docs/js/demo/'"
+    src="https://handsontable.github.io/handsontable/examples/12.1.2/docs/js/demo/"
     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone;
       midi; payment; usb; vr; xr-spatial-tracking"
     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
@@ -23,11 +23,11 @@ Play around with a demo of Handsontable, in your favorite framework.
 
 ## Find the code on GitHub
 
-- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/{{$page.currentVersion}}/docs/js/demo/)
-- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/{{$page.currentVersion}}/docs/ts/demo/)
-- [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/{{$page.currentVersion}}/docs/angular/demo/)
-- [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/{{$page.currentVersion}}/docs/react/demo/)
-- [Vue demo app](https://github.com/handsontable/handsontable/tree/develop/examples/{{$page.currentVersion}}/docs/vue/demo/)
+- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.1.2/docs/js/demo/)
+- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.1.2/docs/ts/demo/)
+- [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.1.2/docs/angular/demo/)
+- [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.1.2/docs/react/demo/)
+- [Vue demo app](https://github.com/handsontable/handsontable/tree/develop/examples/12.1.2/docs/vue/demo/)
 
 ## Try out the demo's features
 
