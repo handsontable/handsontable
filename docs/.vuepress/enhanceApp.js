@@ -44,8 +44,14 @@ let isFirstPageLoaded = true;
 
 export default async({ router, siteData, isServer }) => {
   if (!isServer) {
-    const pathVersion = ['dev-pseudo-prod.handsontable.com', 'handsontable.com']
-      .includes(window.location.host) ? '' : 'next/';
+    const currentVersion = siteData.pages[0].currentVersion;
+    const buildMode = siteData.pages[0].buildMode;
+    let pathVersion = '';
+
+    if (buildMode !== 'production') {
+      pathVersion = `${currentVersion}/`;
+    }
+
     const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
     const docsData = await response.json();
     const canonicalURLs = new Map(docsData.urls);
