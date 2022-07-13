@@ -3,7 +3,7 @@ const { getEnvDocsFramework, parseFramework, getDefaultFramework, getNormalizedP
 
 /* eslint-disable */
 /**
- * Container used to display/hide blocks of content relevant to specific frameworks.
+ * Container used to display blocks of content only for to specific frameworks.
  * It relies on providing the framework name(s) as arguments to the container (see 'Usage' below) and setting a
  * `DOCS_FRAMEWORK` environmental variable as the framework name, for example:
  *
