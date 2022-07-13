@@ -117,6 +117,8 @@ module.exports = {
       const jsToken = tokens[jsIndex];
       let jsContent = jsToken.content;
 
+      const skipTransform = args.match(/--skipTransform/) !== null;
+
       const filePath = env.relativePath;
       const framework = getContainerFramework(filePath);
 
@@ -124,6 +126,7 @@ module.exports = {
       // environmental variable or retrieved from the `.md` url (depending on the build script being run).
       if (
         !['angular', 'react', 'vue'].some(value => preset.includes(value)) &&
+        !skipTransform &&
         (framework &&
           framework !== getDefaultFramework() &&
           SUPPORTED_FRAMEWORKS.includes(framework)
