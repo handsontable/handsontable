@@ -7,14 +7,10 @@ canonicalUrl: /angular-simple-example
 
 # Basic example in Angular
 
-[[toc]]
-
 ## Overview
-
 The following example is a basic implementation of the `@handsontable/angular` wrapper.
 
 ## Example
-
 ::: example :angular --html 1 --js 2
 ```html
 <app-root></app-root>
@@ -23,6 +19,7 @@ The following example is a basic implementation of the `@handsontable/angular` w
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
+import * as Handsontable from 'handsontable';
 
 @Component({
   selector: 'app-root',
@@ -58,10 +55,6 @@ class AppComponent {
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
 
 @NgModule({
   imports:      [ BrowserModule, HotTableModule ],

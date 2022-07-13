@@ -7,8 +7,6 @@ canonicalUrl: /angular-custom-editor-example
 
 # Custom editor example in Angular
 
-[[toc]]
-
 ## Overview
 
 The following is an implementation of the `@handsontable/angular` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
@@ -23,7 +21,7 @@ The following is an implementation of the `@handsontable/angular` component with
 ```js
 /// file: app.component.ts
 import { Component } from '@angular/core';
-import Handsontable from 'handsontable/base';
+import * as Handsontable from 'handsontable';
 //import { CustomEditor } from './CustomEditor.js';
 
 @Component({
@@ -52,11 +50,6 @@ class AppComponent {
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
-import { TextEditor } from 'handsontable/editors/textEditor';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
 
 @NgModule({
   imports:      [ BrowserModule, HotTableModule ],
@@ -66,7 +59,7 @@ registerAllModules();
 class AppModule { }
 
 /// file: CustomEditor.js
-export class CustomEditor extends TextEditor {
+export class CustomEditor extends Handsontable.editors.TextEditor {
   constructor(props) {
     super(props);
   }
@@ -78,7 +71,7 @@ export class CustomEditor extends TextEditor {
     this.TEXTAREA.setAttribute('placeholder', 'Custom placeholder');
     this.TEXTAREA.setAttribute('data-hot-input', true);
     this.textareaStyle = this.TEXTAREA.style;
-    this.TEXTAREA_PARENT.innerText = '';
+    Handsontable.dom.empty(this.TEXTAREA_PARENT);
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }
@@ -89,31 +82,3 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Cell editor](@/guides/cell-functions/cell-editor.md)
-
-### Related API reference
-
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`editor`](@/api/options.md#editor)
-  - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
-- Core methods:
-  - [`destroyEditor()`](@/api/core.md#destroyeditor)
-  - [`getActiveEditor()`](@/api/core.md#getactiveeditor)
-  - [`getCellEditor()`](@/api/core.md#getcelleditor)
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)

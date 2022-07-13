@@ -11,11 +11,11 @@ canonicalUrl: /vue-installation
 
 ## Overview
 
-Vue 2 installation and basic usage guide.
+Vue installation and basic usage guide.
 
 ## Install with npm
 
-This component needs the Handsontable library to work. Use npm to install the packages.
+This component needs the Handsontable library to work. Use [npm](https://www.npmjs.com/package/@handsontable/vue) to install the packages.
 
 ```bash
 npm install handsontable @handsontable/vue
@@ -30,10 +30,6 @@ npm install handsontable @handsontable/vue
 
 <script>
   import { HotTable } from '@handsontable/vue';
-  import { registerAllModules } from 'handsontable/registry';
-
-  // register Handsontable's modules
-  registerAllModules();
 
   export default {
     data: function() {
@@ -54,20 +50,3 @@ npm install handsontable @handsontable/vue
 
 <style src="../node_modules/handsontable/dist/handsontable.full.css"></style>
 ```
-
-## Related API reference
-
-- Configuration options:
-  - [`maxCols`](@/api/options.md#maxcols)
-  - [`maxRows`](@/api/options.md#maxrows)
-  - [`minCols`](@/api/options.md#mincols)
-  - [`minRows`](@/api/options.md#minrows)
-  - [`minSpareCols`](@/api/options.md#minsparecols)
-  - [`minSpareRows`](@/api/options.md#minsparerows)
-  - [`startCols`](@/api/options.md#startcols)
-  - [`startRows`](@/api/options.md#startrows)
-- Hooks:
-  - [`afterInit`](@/api/hooks.md#afterinit)
-  - [`beforeInit`](@/api/hooks.md#beforeinit)
-  - [`beforeInitWalkontable`](@/api/hooks.md#beforeinitwalkontable)
-  - [`construct`](@/api/hooks.md#construct)

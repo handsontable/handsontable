@@ -11,13 +11,13 @@ canonicalUrl: /column-header
 
 ## Overview
 
-Column headers are gray-colored rows used to label each column or group of columns. By default, these headers are populated with letters in alphabetical order.
+Column headers are gray-colored rows used to label each column or [group of columns](@/guides/columns/column-groups.md). By default, these headers are populated with letters in alphabetical order.
 
 To reflect the type or category of data in a particular column, give it a custom name and then display it in a column header. For example, instead of letters as labels such as `A, B, C, ...` name them `ID, Full name, Country, ...`.
 
 ## Default headers
 
-Setting the [colHeaders](@/api/options.md#colheaders) option to `true` enables the default column headers as shown in the example below:
+Setting the [colHeaders](@/api/metaSchema.md#colheaders) option to `true` enables the default column headers as shown in the example below:
 
 ::: example #example1
 ```js
@@ -34,7 +34,7 @@ const hot = new Handsontable(container, {
 :::
 
 ## Header labels as an array
-An array of labels can be used to set the [`colHeaders`](@/api/options.md#colheaders) as shown in the example below:
+An array of labels can be used to set the `colHeaders` as shown in the example below:
 
 ::: example #example2
 ```js
@@ -51,7 +51,7 @@ const hot = new Handsontable(container, {
 :::
 
 ## Header labels as a function
-The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a function as shown in the example below:
+The `colHeaders` can also be populated using a function as shown in the example below:
 
 ::: example #example3
 ```js
@@ -72,30 +72,3 @@ const hot = new Handsontable(container, {
 ## Nested headers
 
 More complex data structures can be displayed with multiple headers, each representing a different category of data. To learn more about nested headers, see the [column groups](@/guides/columns/column-groups.md) page.
-
-## Related articles
-
-### Related guides
-
-- [Column groups](@/guides/columns/column-groups.md)
-
-### Related API reference
-
-- Configuration options:
-  - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
-  - [`colHeaders`](@/api/options.md#colheaders)
-  - [`columnHeaderHeight`](@/api/options.md#columnheaderheight)
-  - [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
-  - [`nestedHeaders`](@/api/options.md#nestedheaders)
-  - [`title`](@/api/options.md#title)
-- Core methods:
-  - [`getColHeader()`](@/api/core.md#getcolheader)
-  - [`hasColHeaders()`](@/api/core.md#hascolheaders)
-- Hooks:
-  - [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader)
-  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
-  - [`beforeHighlightingColumnHeader`](@/api/hooks.md#beforehighlightingcolumnheader)
-  - [`modifyColHeader`](@/api/hooks.md#modifycolheader)
-  - [`modifyColumnHeaderHeight`](@/api/hooks.md#modifycolumnheaderheight)
-- Plugins:
-  - [`NestedHeaders`](@/api/nestedHeaders.md)

@@ -26,11 +26,7 @@ The following example is an implementation of `@handsontable/vue` with a custom 
 ```js
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
+import Handsontable from 'handsontable';
 
 new Vue({
   el: '#example1',
@@ -45,21 +41,21 @@ new Vue({
           {},
           {
             renderer(instance, td, row, col, prop, value, cellProperties) {
-              const escaped = `${value}`;
+              const escaped = Handsontable.helper.stringify(value);
 
               if (escaped.indexOf('http') === 0) {
                 const img = document.createElement('IMG');
                 img.src = value;
 
-                img.addEventListener('mousedown', event => {
+                Handsontable.dom.addEvent(img, 'mousedown', event => {
                   event.preventDefault();
                 });
 
-                td.innerText = '';
+                Handsontable.dom.empty(td);
                 td.appendChild(img);
 
               } else {
-                textRenderer.apply(this, arguments);
+                Handsontable.renderers.TextRenderer.apply(this, arguments);
               }
 
               return td;
@@ -79,31 +75,3 @@ new Vue({
 });
 ```
 :::
-
-## Related articles
-
-### Related guides
-
-- [Cell renderer](@/guides/cell-functions/cell-renderer.md)
-
-### Related API reference
-
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`renderer`](@/api/options.md#renderer)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
-  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
-  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)

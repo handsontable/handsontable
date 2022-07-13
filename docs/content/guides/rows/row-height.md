@@ -92,7 +92,7 @@ const hot = new Handsontable(container, {
 
 ## Adjust the row height manually
 
-Set the option [`manualRowResize`](@/api/options.md#manualrowresize) to `true` to allow users to manually resize the row height by dragging the handle between the adjacent row headers. Don't forget to enable row headers by setting [`rowHeaders`](@/api/options.md#rowheaders) to `true`.
+Set the option `manualRowResize` to `true` to allow users to manually resize the row height by dragging the handle between the adjacent row headers. Don't forget to enable row headers by setting `rowHeaders` to `true`.
 
 You can adjust the size of one or multiple rows simultaneously, even if the selected rows are not placed next to each other.
 
@@ -111,18 +111,3 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
-
-## Related API reference
-
-- Configuration options:
-  - [`autoRowSize`](@/api/options.md#autorowsize)
-  - [`rowHeights`](@/api/options.md#rowheights)
-- Core methods:
-  - [`getRowHeight()`](@/api/core.md#getrowheight)
-- Hooks:
-  - [`afterRowResize`](@/api/hooks.md#afterrowresize)
-  - [`beforeRowResize`](@/api/hooks.md#beforerowresize)
-  - [`modifyRowHeight`](@/api/hooks.md#modifyrowheight)
-- Plugins:
-  - [`AutoRowSize`](@/api/autoRowSize.md)
-  - [`ManualRowResize`](@/api/manualRowResize.md)
