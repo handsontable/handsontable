@@ -5,7 +5,7 @@
         <div v-if="show" class="page-top">
           <div class="version-alert">
             <p v-if="isNext">This is unreleased documentation for Handsontable next version.</p>
-            <p v-else-if="!isThisTheLatestVersion">This is a documentation of an earlier version of Handsontable.</p>
+            <p v-else-if="!isLatest">This is a documentation of an earlier version of Handsontable.</p>
           </div>
         </div>
       </template>
@@ -27,22 +27,18 @@ export default {
     NavLink,
     Sidebar
   },
-  data() {
-    return {
-      isThisTheLatestVersion: true,
-    };
-  },
   computed: {
+    isLatest() {
+      return this.$page.currentVersion === this.$page.latestVersion;
+    },
+
     isNext() {
       return this.$page.currentVersion === 'next';
     },
 
     show() {
-      return !this.isThisTheLatestVersion || this.isNext;
+      return !this.isLatest || this.isNext;
     }
-  },
-  mounted() {
-    this.isThisTheLatestVersion = this.$page.currentVersion === this.$page.latestVersion;
   }
 };
 </script>
