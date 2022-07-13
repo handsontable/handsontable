@@ -34,14 +34,14 @@ To test the IME support, you will need to change your language preferences for y
 ## Related API reference
 
 - Configuration options:
-  - [`language`](@/api/options.md#language)
-  - [`layoutDirection`](@/api/options.md#layoutdirection)
-  - [`locale`](@/api/options.md#locale)
+  - [`language`](@/api/metaSchema.md#language)
+  - [`layoutDirection`](@/api/metaSchema.md#layoutdirection)
+  - [`locale`](@/api/metaSchema.md#locale)
 - Core methods:
   - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
   - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
   - [`isLtr()`](@/api/core.md#isltr)
   - [`isRtl()`](@/api/core.md#isrtl)
 - Hooks:
-  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
-  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)
+  - [`afterLanguageChange`](@/api/pluginHooks.md#afterlanguagechange)
+  - [`beforeLanguageChange`](@/api/pluginHooks.md#beforelanguagechange)
