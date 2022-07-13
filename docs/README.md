@@ -46,7 +46,7 @@ From the `docs` directory, you can run the following npm scripts:
 
 * `DOCS_VERSION=<semver.version> npm run docs:start:no-cache` – Starts a local documentation server, just for the <semver.version> documentation version.
 * `DOCS_VERSION=next npm run docs:start:no-cache` – Starts a local documentation server, just for the `next` documentation version.
-* `DOCS_FRAMEWORK=<javascript|react> npm run docs:start:no-cache` – Starts a local documentation server, just for the selected framework documentation version.
+* `DOCS_FRAMEWORK=<javascript|react> npm run docs:start:no-cache` – Starts a local documentation server, just for the selected framework documentation.
 * `npm run docs:api` – Generates the Handsontable API reference into `/next/api`.
 * `npm run docs:build` – Builds the documentation output into `/.vuepress/dist`.
 * `npm run docs:docker:build` – Builds a Docker image for the staging environment (includes the docs for the `next` version).
