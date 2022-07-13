@@ -30,7 +30,7 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 ```html
 <!-- Required dependencies (as external scripts) -->
 <link href="https://cdn.jsdelivr.net/npm/pikaday@1.8.2/css/pikaday.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/moment@2.29.3/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pikaday@1.8.2/pikaday.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/numbro@2.1.2/dist/numbro.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@2.3.8/dist/purify.js"></script>
@@ -62,8 +62,4 @@ If you want to build your own custom Handsontable package distribution check out
 ## Related guides
 
 - [Building](@/guides/tools-and-building/custom-builds.md)
-<<<<<<<< HEAD:docs/12.0/guides/tools-and-building/packages.md
 - [Testing](@/guides/tools-and-building/testing.md)
-========
-- [Testing](@/guides/tools-and-building/testing.md)
->>>>>>>> 5339b6e2e1b24a598d801411c23ee5e3d5617069:docs/content/guides/tools-and-building/packages.md

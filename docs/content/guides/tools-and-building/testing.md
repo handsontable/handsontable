@@ -58,8 +58,4 @@ Keep in mind that running wrapper tests require building the Handsontable (`npm 
 ## Related guides
 
 - [Building](@/guides/tools-and-building/custom-builds.md)
-<<<<<<<< HEAD:docs/next/guides/tools-and-building/testing.md
 - [Packages](@/guides/tools-and-building/packages.md)
-========
-- [Packages](@/guides/tools-and-building/packages.md)
->>>>>>>> 5339b6e2e1b24a598d801411c23ee5e3d5617069:docs/content/guides/tools-and-building/testing.md

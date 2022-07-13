@@ -1,11 +1,7 @@
 ---
 title: Custom plugins
 metaTitle: Custom plugins - Guide - Handsontable Documentation
-<<<<<<<< HEAD:docs/next/guides/tools-and-building/custom-plugins.md
-permalink: /next/custom-plugins
-========
 permalink: /custom-plugins
->>>>>>>> 5339b6e2e1b24a598d801411c23ee5e3d5617069:docs/content/guides/tools-and-building/custom-plugins.md
 canonicalUrl: /custom-plugins
 tags:
   - plugin development

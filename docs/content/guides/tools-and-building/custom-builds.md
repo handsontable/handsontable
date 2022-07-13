@@ -1,11 +1,7 @@
 ---
 title: Custom builds
 metaTitle: Custom builds - Guide - Handsontable Documentation
-<<<<<<<< HEAD:docs/12.0/guides/tools-and-building/custom-builds.md
-permalink: /12.0/custom-builds
-========
 permalink: /custom-builds
->>>>>>>> 5339b6e2e1b24a598d801411c23ee5e3d5617069:docs/content/guides/tools-and-building/custom-builds.md
 canonicalUrl: /custom-builds
 tags:
   - building
@@ -290,8 +286,4 @@ From the `/wrappers/vue3` directory, you can also run individual Vue 3 `build` t
 ## Related guides
 
 - [Packages](@/guides/tools-and-building/packages.md)
-<<<<<<<< HEAD:docs/12.0/guides/tools-and-building/custom-builds.md
 - [Testing](@/guides/tools-and-building/testing.md)
-========
-- [Testing](@/guides/tools-and-building/testing.md)
->>>>>>>> 5339b6e2e1b24a598d801411c23ee5e3d5617069:docs/content/guides/tools-and-building/custom-builds.md

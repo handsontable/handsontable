@@ -5,9 +5,9 @@ const formatVersion = version => (/^\d+\.\d+$/.test(version) ? version : 'latest
 const getHotUrls = (version) => {
   if (version === 'next' && isBrowser) {
     return {
-      handsontableJs: '/docs/handsontable/handsontable.full.js',
-      handsontableCss: '/docs/handsontable/handsontable.full.css',
-      languagesJs: '/docs/handsontable/languages/all.js'
+      handsontableJs: '/docs/next/handsontable/handsontable.full.js',
+      handsontableCss: '/docs/next/handsontable/handsontable.full.css',
+      languagesJs: '/docs/next/handsontable/languages/all.js'
     };
   }
 
@@ -19,13 +19,16 @@ const getHotUrls = (version) => {
     languagesJs: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/languages/all.js`
   };
 };
-const getCommonScript = (scriptName) => {
+const getCommonScript = (scriptName, version) => {
   if (isBrowser) {
     // eslint-disable-next-line no-restricted-globals
-    return [`${window.location.origin}/docs/scripts/${scriptName}.js`, ['require', 'exports']];
+    return [
+      `${window.location.origin}/docs/${version}/scripts/${scriptName}.js`,
+      ['require', 'exports']
+    ];
   }
 
-  return [`https://handsontable.com/docs/scripts/${scriptName}.js`, ['require', 'exports']];
+  return [`https://handsontable.com/docs/${version}/scripts/${scriptName}.js`, ['require', 'exports']];
 };
 
 /**
@@ -39,8 +42,8 @@ const getCommonScript = (scriptName) => {
 const buildDependencyGetter = (version) => {
   const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version);
   const mappedVersion = formatVersion(version);
-  const fixer = getCommonScript('fixer');
-  const helpers = getCommonScript('helpers');
+  const fixer = getCommonScript('fixer', version);
+  const helpers = getCommonScript('helpers', version);
 
   return (dependency) => {
     /* eslint-disable max-len */

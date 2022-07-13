@@ -242,8 +242,4 @@ If you use a private implementation of Handsontable, and you can't avoid referri
 
 If your custom editor needs to know the size and position of the edited cell,
 now you can get them without referring to `_wt`. Instead, use the new [`getEditedCellRect()`](@/api/baseEditor.md#geteditedcellrect) method.
-<<<<<<< HEAD:docs/next/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md
 :::
-=======
-:::
->>>>>>> 5339b6e2e1b24a598d801411c23ee5e3d5617069:docs/content/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md

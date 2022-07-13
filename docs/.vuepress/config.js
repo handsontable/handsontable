@@ -84,10 +84,48 @@ module.exports = {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
     }],
-    ['container', examples],
+    ['container', examples(getThisDocsVersion())],
     ['container', sourceCodeLink],
     {
       extendMarkdown(md) {
+        const imageOrig = md.renderer.rules.image;
+
+        // Add support for markdown images and links to have ability to substitute the
+        // docs latest version variable to the "src" or "href" attributes.
+        md.renderer.rules.image = function(tokens, ...rest) {
+          tokens.forEach((token) => {
+            token.attrs.forEach(([name, value], index) => {
+              if (name === 'src') {
+                token.attrs[index][1] = (
+                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                );
+              }
+            });
+          });
+
+          return imageOrig.apply(this, [tokens, ...rest]);
+        };
+
+        const linkOrig = md.renderer.rules.link_open;
+
+        md.renderer.rules.link_open = function(tokens, ...rest) {
+          tokens.forEach((token) => {
+            if (token.type !== 'link_open') {
+              return;
+            }
+
+            token.attrs.forEach(([name, value], index) => {
+              if (name === 'href') {
+                token.attrs[index][1] = (
+                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                );
+              }
+            });
+          });
+
+          return linkOrig.apply(this, [tokens, ...rest]);
+        };
+
         const render = function(tokens, options, env) {
           let i; let type;
           let result = '';

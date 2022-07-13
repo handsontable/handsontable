@@ -1,11 +1,7 @@
 ---
 title: Folder structure
 metaTitle: Folder structure - Guide - Handsontable Documentation
-<<<<<<<< HEAD:docs/next/guides/tools-and-building/folder-structure.md
-permalink: /next/folder-structure
-========
 permalink: /folder-structure
->>>>>>>> 5339b6e2e1b24a598d801411c23ee5e3d5617069:docs/content/guides/tools-and-building/folder-structure.md
 canonicalUrl: /folder-structure
 tags:
   - directory

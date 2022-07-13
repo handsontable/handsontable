@@ -15,6 +15,21 @@ tags:
 
 [[toc]]
 
+## 12.1.2
+
+Released on 8th of July, 2022
+
+**Changed**
+- Changed the version of the Moment.js dependency from 2.29.3 to 2.29.4, in reaction to a recently-found Moment.js security vulnerability. The vulnerability did not affect a correct configuration of Handsontable. [#9638](https://github.com/handsontable/handsontable/issues/9638)
+- *Vue:* Freezed the version of the Vue framework that is used in our build chain to ~2.6. This shouldn't affect apps that use Vue 2.7+. [#9624](https://github.com/handsontable/handsontable/issues/9624)
+
+## 12.1.1
+
+Released on 5th of July, 2022
+
+**Fixed**
+- *Angular:* Fixed an issue where the installation of `@handsontable/angular` package failed for versions of Angular other than 9 [#9622](https://github.com/handsontable/handsontable/issues/9622)
+
 ## 12.1.0
 
 Released on 28th of June, 2022
