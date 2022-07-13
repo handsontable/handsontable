@@ -1,0 +1,4 @@
+{{string-repeat "    " (add level baseLevel)}}* {{#unless (equal _title undefined)}}_{{_title}}_{{else}}{{>sig-link}}{{/unless}}
+{{#groupBy (option "group-by")~}}
+{{>member-index-grouped baseLevel=(add ../level ../baseLevel 1)~}}
+{{/groupBy~}}

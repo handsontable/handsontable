@@ -9,10 +9,6 @@ canonicalUrl: /react-custom-renderer-example
 
 [[toc]]
 
-::: tip Using React components
-This page shows how to integrate a plain JavaScript custom renderer with the React component. Information how to [declare a custom renderer using React components](@/guides/integrate-with-react/react-hot-column.md#declaring-a-custom-renderer-as-a-component) is presented on another page.
-:::
-
 ## Overview
 
 You can declare a custom renderer for the `HotTable` component by declaring it as a function in the Handsontable options or creating a rendering component.
@@ -35,8 +31,8 @@ registerAllModules();
 const hotSettings = {
   data:
     [
-      ['A1', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-      ['A2', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/javascript-the-good-parts.jpg']
+      ['A1', 'https://handsontable.com/docs/12.0/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+      ['A2', 'https://handsontable.com/docs/12.0/img/examples/javascript-the-good-parts.jpg']
     ],
   columns: [
     {},

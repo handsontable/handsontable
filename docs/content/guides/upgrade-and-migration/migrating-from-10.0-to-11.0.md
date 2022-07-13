@@ -48,7 +48,7 @@ For more details, see [this pull request](https://github.com/handsontable/handso
 
 #### Before
 
-Before, all of Handsontable's TypeScript definitions were kept in one file, placed in the root directory: `/handsontable.d.ts`.
+Before, all of Handsontable's TypeScript definitions were kept in one file, placed in the root directory: `./handsontable.d.ts`.
 
 The only way to import types was to get all of them by importing the `Handsontable` package:
 
@@ -58,7 +58,7 @@ import Handsontable from 'handsontable';
 
 #### Now
 
-Now, each module has its own TypeScript definitions file. They're all kept in a new directory called `types`: `/handsontable/types`.
+Now, each module has its own TypeScript definitions file. They're all kept in a new directory called `types`: `./handsontable/types`.
 
 You can still import all of Handsontable's type definitions in the same as way as before. Additionally, you can also import individual modules from within the Handsontable package, with correct types:
 

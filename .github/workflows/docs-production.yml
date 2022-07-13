@@ -42,9 +42,11 @@ jobs:
         run: |
           docker tag docs-md:production $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}"
           docker tag docs-md:production $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}-${{ github.sha }}"
+
       - name: Docker push production into GHCR
         run: |
           docker push $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}"
+
       - name: Docker push SHA tagged into GHCR
         run: |
           docker push $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}-${{ github.sha }}"
