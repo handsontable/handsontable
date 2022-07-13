@@ -103,7 +103,7 @@ module.exports = {
             });
           });
 
-          return imageOrig.apply(this, [tokens, ...rest]);
+          return imageOrig(tokens, ...rest);
         };
 
         const linkOrig = md.renderer.rules.link_open;
@@ -123,7 +123,7 @@ module.exports = {
             });
           });
 
-          return linkOrig.apply(this, [tokens, ...rest]);
+          return linkOrig(tokens, ...rest);
         };
 
         const render = function(tokens, options, env) {
