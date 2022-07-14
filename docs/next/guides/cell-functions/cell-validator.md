@@ -190,9 +190,7 @@ Edit the above grid to see callback
 
 ::: only-for javascript
 ### Related guides
-:::
 
-::: only-for javascript
 - [Custom renderer in Angular](@/guides/integrate-with-angular/angular-custom-renderer-example.md)
 - [Custom renderer in Vue 2](@/guides/integrate-with-vue/vue-custom-renderer-example.md)
 - [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example.md)

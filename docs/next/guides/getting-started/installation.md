@@ -95,9 +95,7 @@ const hot = new Handsontable(container, {
 ```
 
 ## Preview the result
-:::
 
-::: only-for javascript
 ::: example #example
 ```js
 const data = [
