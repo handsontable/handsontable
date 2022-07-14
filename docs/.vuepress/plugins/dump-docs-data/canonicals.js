@@ -1,4 +1,4 @@
-const BASE_URL = 'https://dev-pseudo-prod.handsontable.com'; // tmp for testing
+const BASE_URL = 'https://handsontable.com';
 
 /**
  * Generates a Map with canonical URLs using the following structure [/path url/, /latest docs version that has the url/].
