@@ -66,7 +66,7 @@ logger.log('\n-----------------------------------------------------\n');
     from: /permalink: \/next\//g,
     to: `permalink: /${version}/`,
   });
-  // replace all BigExample and BigExampleSource links to the new version
+  // replace all iframe links to `/examples/next/` with the new version
   // we must add .0 at the end, because the folder in the examples has schema [major].[minor].[patch]
   //
   // For example, if "version" is 11.1, we change from:

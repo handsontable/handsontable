@@ -374,8 +374,8 @@ export class IndexMapper {
   /**
    * Search for the first visible, not hidden index (represented by a visual index).
    *
-   * The method is deprecated and will be removed in the nearest stable major version.
-   * Please use {@link IndexMapper#getNearestNotHiddenIndex} instead.
+   * This method is deprecated and will be removed in a next major version of Handsontable.
+   * Use the {@link IndexMapper#getNearestNotHiddenIndex} method instead.
    *
    * @deprecated
    * @param {number} fromVisualIndex Visual start index. Starting point for finding destination index. Start point may be destination
@@ -427,16 +427,16 @@ export class IndexMapper {
   }
 
   /**
-   * Search for the nearest visible, not hidden index (represented by a visual index).
+   * Search for the nearest not-hidden row or column.
    *
-   * @param {number} fromVisualIndex Visual start index. Starting point for finding destination index. Start point may be destination
-   * point when handled index is NOT hidden.
-   * @param {number} searchDirection The search direction. For value 1, it means searching from the starting
-   * point to the end of the dataset, and for -1, to the beginning of the dataset (row or column at index 0).
-   * @param {boolean} searchAlsoOtherWayAround The argument determine if an additional other way around search should be
-   * performed, when the search in the first direction had no effect in finding visual index.
+   * @param {number} fromVisualIndex The visual index of the row or column from which the search starts.<br><br>
+   * If the row or column from which the search starts is not hidden, the method simply returns the `fromVisualIndex` number.
+   * @param {number} searchDirection The search direction.<br><br>`1`: search from `fromVisualIndex` to the end of the dataset.<br><br>
+   * `-1`: search from `fromVisualIndex` to the beginning of the dataset (i.e., to the row or column at visual index `0`).
+   * @param {boolean} searchAlsoOtherWayAround `true`: if a search in a first direction failed, try the opposite direction.<br><br>
+   * `false`: search in one direction only.
    *
-   * @returns {number|null} Visual column index or `null`.
+   * @returns {number|null} A visual index of a row or column, or `null`.
    */
   getNearestNotHiddenIndex(fromVisualIndex, searchDirection, searchAlsoOtherWayAround = false) {
     const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);

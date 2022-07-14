@@ -16,13 +16,13 @@ editLink: false
 [Configuration options](@/guides/getting-started/setting-options.md) let you heavily customize your Handsontable instance. For example, you can:
 
 - Enable and disable built-in features
-- Enable and configure additional [plugins](@/guides/building-and-testing/plugins.md)
+- Enable and configure additional [plugins](@/guides/tools-and-building/custom-plugins.md)
 - Personalize Handsontable's look
 - Adjust Handsontable's behavior
 - Implement your own custom features
 
 To apply [configuration options](@/guides/getting-started/setting-options.md), pass them as
-a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid),
+a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-handsontable),
 using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
 
 ```js
@@ -2615,7 +2615,7 @@ _options.layoutDirection : string_
 
 The `layoutDirection` option configures whether Handsontable renders from the left to the right, or from the right to the left.
 
-You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
+You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-handsontable). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
 
 You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/setting-options.md#setting-grid-options).
 You can't set it for individual columns, rows, or cells.
@@ -2629,8 +2629,8 @@ You can set the `layoutDirection` option to one of the following strings:
 | `ltr`               | Render Handsontable from the left to the right,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `rtl` |
 
 Read more:
-- [Layout direction &#8594;](@/guides/internationalization/layout-direction.md)
-- [Language &#8594;](@/guides/internationalization/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction.md)
+- [Language](@/guides/internationalization/language.md)
 - [`language`](#language)
 - [`locale`](#locale)
 - [`fixedColumnsStart`](#fixedcolumnsstart)
@@ -4637,7 +4637,7 @@ You can set the `viewportColumnRenderingOffset` option to one of the following:
 | A number           | Set the offset manually                                 |
 
 Read more:
-- [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+- [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
 
 **Default**: <code>&#x27;auto&#x27;</code>  
 **Category**: [Core](@/api/core.md)  
@@ -4667,7 +4667,7 @@ You can set the `viewportRowRenderingOffset` option to one of the following:
 | A number           | Set the offset manually                                 |
 
 Read more:
-- [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+- [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
 - [Column virtualization &#8594;](@/guides/columns/column-virtualization.md)
 
 **Default**: <code>&#x27;auto&#x27;</code>  

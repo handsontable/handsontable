@@ -9,7 +9,13 @@ import {
   displayWarningMessage
 } from './utils/console.mjs';
 
-const [pkgName] = process.argv.slice(2);
+let [pkgName] = process.argv.slice(2);
+
+if (pkgName) {
+  // remove version from package name (e.g. @handsontable/angular-13 -> @handsontable/angular)
+  pkgName = pkgName.replace(/-\d+/, '');
+}
+
 const PACKAGE_LOCATIONS = new Map([
   ['handsontable', './handsontable/tmp'],
   ['@handsontable/angular', './wrappers/angular/dist/hot-table']
