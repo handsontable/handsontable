@@ -322,7 +322,7 @@ Let's begin with `PasswordEditor` as it is a bit easier.
 
 ### `PasswordEditor` - extending an existing editor
 
-`TextEditor` is the most complex editor available in Handsontable by default. It displays a `<textarea>` which automatically changes its size to accommodate its content. We would like to create a `PasswordEditor` which preserves all those capabilities but displays `<input type="password" />` field instead of `<textarea>`.
+`TextEditor` is the most complex editor available in Handsontable by default. It displays a `<textarea>` which automatically changes its size to accommodate its content. We would like to create a `PasswordEditor` which preserves all those capabilities but displays `<input type="password">` field instead of `<textarea>`.
 
 As you may have guessed, we need to create a new editor class, that inherits from `TextEditor` and then override some of its methods to replace `<textarea>` with `input:password`. Luckily, textarea and password input have the same API, so all we have to do is replace the code responsible for creating HTML elements. If you take a look at `TextEditor` [`init()`](@/api/baseEditor.md#init) method, you'll notice that it calls internal `createElements()` method, which creates `<textarea>` node and append it to DOM during editor initialization - BINGO!
 

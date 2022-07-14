@@ -166,14 +166,17 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 ::: example #example1 --html 1 --js 2
 ```html
 <div id="example1"></div>
-<p>
-  <button id="buttonWithout" class="button button--primary">Run without batch method</button>&nbsp;
+<div class="controls">
+  <button id="buttonWithout" class="button button--primary">Run without batch method</button>
   <button id="buttonWith" class="button button--primary">Run with batch method</button>
-</p>
-<div id="logOutput"></div>
+</div>
+<output class="console" id="output">Here you will see the log</output>
 ```
 ```js
 const container = document.querySelector('#example1');
+const buttonWithout = document.querySelector('#buttonWithout');
+const buttonWith = document.querySelector('#buttonWith');
+const output = document.querySelector('#output');
 
 const data1 = [
   [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
@@ -225,16 +228,16 @@ const alterTable = () => {
   hot.render(); // Render is needed here to populate the new "className"s
 }
 
-const logOutput = msg => {
-  const logDiv = document.querySelector('#logOutput');
-  const div = document.createElement('div');
-  const now = new Date();
+let loggedText = '';
+let counter = 0;
 
-  div.innerText = '[' + now.toTimeString().slice(0, 8) + '] ' + msg;
-  logDiv.insertBefore(div, logDiv.firstChild);
+const logOutput = msg => {
+  counter++;
+  loggedText = `[${counter}] ${msg}\n${loggedText}`;
+  output.innerText = loggedText;
 }
 
-Handsontable.dom.addEvent(buttonWithout, 'click', () => {
+buttonWithout.addEventListener('click', () => {
   const t1 = performance.now();
   alterTable();
   const t2 = performance.now();
@@ -242,7 +245,7 @@ Handsontable.dom.addEvent(buttonWithout, 'click', () => {
   logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
 });
 
-Handsontable.dom.addEvent(buttonWith, 'click', () => {
+buttonWith.addEventListener('click', () => {
   const t1 = performance.now();
   hot.batch(alterTable);
   const t2 = performance.now();

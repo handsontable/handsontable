@@ -134,26 +134,23 @@ const App = () => {
 
   return (
     <div>
-      <label htmlFor="languages">Select language:
+      <div className="controls"><label>Select language:
         {' '}
-        <select value={language} onChange={updateHotLanguage} id="languages">
+        <select value={language} onChange={updateHotLanguage}>
           {languageList.map(({ languageCode }) => (
             <option key={languageCode} value={languageCode}>
               {languageCode}
             </option>
           ))}
         </select>
-      </label>
-
-      <br/>
-      <br/>
+      </label></div>
 
       <HotTable language={language} settings={hotSettings}/>
     </div>
   );
 }
 
-ReactDOM.render(<App/>, document.getElementById('example2'));
+ReactDOM.render(<App/>, document.getElementById('example1'));
 ```
 :::
 :::

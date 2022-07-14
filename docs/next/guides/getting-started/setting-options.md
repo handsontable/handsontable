@@ -114,7 +114,7 @@ As a result, each cell in the grid is read-only:
 
 ::: example #example1 --html 1 --js 2
 ```html
-<div id="example1" class="hot"></div>
+<div id="example1"></div>
 ```
 ```js
 const container = document.querySelector('#example1');
@@ -196,7 +196,7 @@ As a result, each cell in the third and ninth columns is read-only:
 
 ::: example #example2 --html 1 --js 2
 ```html
-<div id="example2" class="hot"></div>
+<div id="example2"></div>
 ```
 ```js
 const container = document.querySelector('#example2');
@@ -292,7 +292,7 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 
 ::: example #example3 --html 1 --js 2
 ```html
-<div id="example3" class="hot"></div>
+<div id="example3"></div>
 ```
 ```js
 const container = document.querySelector('#example3');
@@ -385,7 +385,7 @@ The modified [`cell`](@/api/options.md#cell) options:
 
 ::: example #example4 --html 1 --js 2
 ```html
-<div id="example4" class="hot"></div>
+<div id="example4"></div>
 ```
 ```js
 const container = document.querySelector('#example4');
@@ -569,7 +569,7 @@ In the example below, the modified [`cells`](@/api/options.md#cells) options ove
 
 ::: example #example5 --html 1 --js 2
 ```html
-<div id="example5" class="hot"></div>
+<div id="example5"></div>
 ```
 ```js
 const container = document.querySelector('#example5');
@@ -608,7 +608,7 @@ In the example below, some cells are read-only, and some cells are editable:
 
 ::: example #example6 --html 1 --js 2
 ```html
-<div id="example6" class="hot"></div>
+<div id="example6"></div>
 ```
 ```js
 const container = document.querySelector('#example6');
