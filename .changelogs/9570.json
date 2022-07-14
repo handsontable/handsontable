@@ -1,0 +1,7 @@
+{
+  "title": "Split the Documentation versions into separate branches and Docker images.",
+  "type": "changed",
+  "issue": 9570,
+  "breaking": false,
+  "framework": "none"
+}

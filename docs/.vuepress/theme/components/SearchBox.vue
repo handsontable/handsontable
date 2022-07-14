@@ -118,7 +118,7 @@ const matchQuery = (query, page, additionalStr = null, fuzzySearchDomains = []) 
   return matchTest(query, domain, isFuzzySearch);
 };
 
-const apiRegex = /^(\/(next|(\d*\.\d*)))?\/api\//;
+const apiRegex = /^\/api\//;
 
 export default {
   name: 'SearchBox',
@@ -286,8 +286,8 @@ export default {
       return '/';
     },
 
-    isSearchable(page) {
-      return page.regularPath.startsWith(`/${this.$page.currentVersion}/`);
+    isSearchable() {
+      return true;
     },
 
     onHotkey(event) {
@@ -364,7 +364,7 @@ export default {
     line-height 2rem
     padding 0 0.5rem 0 2rem
     outline none
-    background #fff url('/docs/img/search.svg') 0.6rem 0.5rem no-repeat
+    background #fff versionedUrl('/docs/{docsVersion}/img/search.svg') 0.6rem 0.5rem no-repeat
     background-size 1rem
     &:focus
       color #104bcd
