@@ -1,4 +1,5 @@
-const BASE_URL = 'https://dev-pseudo-prod.handsontable.com'; // tmp for testing
+// TODO: CHANGE ME BEFORE MERGING!
+const BASE_URL = 'https://dev-pseudo-prod.handsontable.com';
 
 /**
  * Generates a Map with canonical URLs using the following structure [/path url/, /latest docs version that has the url/].
