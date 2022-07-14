@@ -77,8 +77,8 @@ async function readFromGitHub() {
 async function fetchDocsVersions() {
   let docsData = null;
 
-  // for building use always the GH API
-  if (process.env.DOCS_BASE && process.env.DOCS_BASE !== 'latest') {
+  // for building use always the GH API (the fresh data)
+  if (process.env.DOCS_BASE) {
     docsData = await readFromGitHub();
   } else {
     // for local development use the latest Docs image...
