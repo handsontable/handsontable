@@ -105,7 +105,7 @@ To deploy the documentation locally at a `[COMMIT_HASH]` commit:
 ## Documentation versioning
 
 New documentation is created automatically after the Handsontable is released. The `./scripts/release.mjs`
-takes care to create a Documentation production branch, which is automatically deployed to the production.
+takes care to create a Documentation production branch, generate API content from source code, commit, and deploy the Docs image to the production.
 
 ## Markdown links
 

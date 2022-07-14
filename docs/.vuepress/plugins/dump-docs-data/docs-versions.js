@@ -1,3 +1,9 @@
+/**
+ * The script reads from the remote API list of the available Docs versions. Depending on
+ * which environment the Docs is built, the list is fetched from the pre-generated JSON
+ * file from the https://handsontable.com/docs/docs-data.json (for local builds, watch)
+ * or from the GitHub API when the production Docs image is created.
+ */
 const semver = require('semver');
 const { Octokit } = require('@octokit/rest');
 const { logger } = require('@vuepress/shared-utils');
