@@ -2,7 +2,7 @@ const path = require('path');
 const execa = require('execa');
 
 const versionFromBranchRegExp = /^prod-docs\/(\d+\.\d+)$/;
-let thisDocsVersion = null;
+let docsVersion = null;
 
 /**
  * Gets the current (this) version of docs.
@@ -10,17 +10,17 @@ let thisDocsVersion = null;
  * @returns {string}
  */
 function getThisDocsVersion() {
-  if (thisDocsVersion === null) {
+  if (docsVersion === null) {
     const branchName = execa.sync('git rev-parse --abbrev-ref HEAD', { shell: true }).stdout;
 
     if (versionFromBranchRegExp.test(branchName)) {
-      thisDocsVersion = branchName.match(versionFromBranchRegExp)[1];
+      docsVersion = branchName.match(versionFromBranchRegExp)[1];
     } else {
-      thisDocsVersion = 'next';
+      docsVersion = 'next';
     }
   }
 
-  return thisDocsVersion;
+  return docsVersion;
 }
 
 /**
