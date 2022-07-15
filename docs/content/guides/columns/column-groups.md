@@ -14,7 +14,7 @@ tags:
 
 ## Overview
 
-Columns in Handsontable may be grouped using multiple levels of headers. We refer to them as "nested headers" as they utilize a tree structure.
+Columns in Handsontable may be grouped using multiple levels of headers. We refer to them as **nested headers** as they utilize a tree structure.
 
 ## Nested headers
 
