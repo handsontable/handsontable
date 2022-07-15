@@ -52,7 +52,7 @@ jobs:
           docker push ${GHA_DOCKER_TAG_SHA}
 
       - name: Find PR
-        uses: jwalton/gh-find-current-pr@b6f8d7342efe4913388d5d1ac7f4b956caa5db52 # https://github.com/jwalton/gh-find-current-pr/tree/v1
+        uses: jwalton/gh-find-current-pr@65d225dc3075efac1d37658e44c10edcc9999e87 # https://github.com/jwalton/gh-find-current-pr/pull/21/, solves https://github.com/handsontable/handsontable/issues/9678
         id: pr-finder
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
