@@ -76,7 +76,7 @@ The **CopyPaste** plugin listens to the browser's `copy` and `cut` events. If tr
 
 ::: example #example2 --html 1 --js 2
 ```html
-<div id="example2" class="hot"></div>
+<div id="example2"></div>
 <div class="controls">
   <button id="copy">Select and copy cell B2</button>
   <button id="cut">Select and cut cell B2</button>
@@ -97,19 +97,19 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-Handsontable.dom.addEvent(copyBtn, 'mousedown', function () {
+copyBtn.addEventListener('mousedown', function() {
   hot.selectCell(1, 1);
 });
 
-Handsontable.dom.addEvent(copyBtn, 'click', function () {
+copyBtn.addEventListener('click', function() {
   document.execCommand('copy');
 });
 
-Handsontable.dom.addEvent(cutBtn, 'mousedown', function () {
+cutBtn.addEventListener('mousedown', function() {
   hot.selectCell(1, 1);
 });
 
-Handsontable.dom.addEvent(cutBtn, 'click', function () {
+cutBtn.addEventListener('click', function() {
   document.execCommand('cut');
 });
 ```

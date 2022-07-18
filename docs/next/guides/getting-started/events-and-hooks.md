@@ -68,7 +68,7 @@ The first argument may be modified and passed on through the hooks that are next
 
 Note that some callbacks are checked on this page by default.
 
-::: example #example1 --css 1 --html 2 --js 3
+::: example #example1 --css 1 --html 2 --js 3 --skipTransform
 ```css
 #example1_events {
   height: 166px;
@@ -96,13 +96,13 @@ Note that some callbacks are checked on this page by default.
 }
 ```
 ```html
-<div id="example1" class="hot"></div>
+<div id="example1"></div>
 <div id="example1_events"></div>
 
 <strong> Choose events to be logged:</strong>
 
 <ul id="hooksList">
-  <li><label><input type="checkbox" id="check_select_all">Select all</label></li>
+  <li><label><input type="checkbox" id="check_select_all"/>Select all</label></li>
 </ul>
 ```
 ```js
@@ -136,7 +136,7 @@ hooks.forEach(function(hook) {
     checked = 'checked';
   }
 
-  hooksList.innerHTML += '<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"> ' + hook + '</label></li>';
+  hooksList.innerHTML += '<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"/> ' + hook + '</label></li>';
   config[hook] = function() {
     log_events(hook, arguments);
   }

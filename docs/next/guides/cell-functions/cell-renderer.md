@@ -167,7 +167,7 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
 
     img.src = value;
 
-    Handsontable.dom.addEvent(img, 'mousedown', event =>{
+    img.addEventListener('mousedown', event =>{
       event.preventDefault(); // prevent selection quirk
     });
 
@@ -185,11 +185,25 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
 
-::: example #example2
+::: example #example2 --js 2 --html 1
+```html
+<div id="exampleContainer2">
+  <div id="example2"></div>
+</div>
+```
 ```js
 let isChecked = false;
+const exampleContainer2 = document.querySelector('#exampleContainer2');
 const container = document.querySelector('#example2');
 
+function customRenderer(instance, td) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  if (isChecked) {
+    td.style.backgroundColor = 'yellow';
+  } else {
+    td.style.backgroundColor = 'white';
+  }
+}
 
 const hot = new Handsontable(container, {
   height: 'auto',
@@ -208,22 +222,13 @@ const hot = new Handsontable(container, {
   }
 });
 
-function customRenderer(instance, td) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
-  if (isChecked) {
-    td.style.backgroundColor = 'yellow';
-  } else {
-    td.style.backgroundColor = 'white';
-  }
-}
-
-Handsontable.dom.addEvent(container, 'mousedown', event => {
+exampleContainer2.addEventListener('mousedown', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     event.stopPropagation();
   }
 });
 
-Handsontable.dom.addEvent(container, 'mouseup', event => {
+exampleContainer2.addEventListener('mouseup', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     isChecked = !event.target.checked;
     hot.render();
