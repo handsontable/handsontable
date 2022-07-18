@@ -31,7 +31,7 @@ Explore Handsontable's features and source code:
     <ImageVersioned className="integration-framework-logo" src="/docs/next/img/pages/introduction/javascript.svg" alt="JavaScript logo" />
       <h3>JavaScript</h3>
   </Link>
-  <Link href="/docs/next/react-simple-example/" hide-latest-version class="row-item">
+  <Link href="../react-data-grid/" hide-latest-version class="row-item">
     <ImageVersioned className="integration-framework-logo" src="/docs/next/img/pages/introduction/react.svg" alt="React logo" />
       <h3>React</h3>
   </Link>

@@ -15,6 +15,69 @@ Handsontable separates the process of displaying the cell value from the process
 
 This tutorial will give you a comprehensive understanding of how the whole process of cell editing works, how Handsontable Core manages editors, how editor life cycle looks like and finally - how to create your own editors.
 
+::: only-for react
+## Example - Declaring an editor as a class
+
+You can declare a custom editor for the `HotTable` component by declaring it as a class and passing it to the Handsontable options, or by creating an editor component.
+
+The following example implements the `@handsontable/react` component with a custom editor added, utilizing the `placeholder` attribute in the editor's `input` element.
+
+::: example #example1 :react  --no-edit
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { TextEditor } from 'handsontable/editors/textEditor';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+class CustomEditor extends TextEditor {
+  constructor(props) {
+    super(props);
+  }
+
+  createElements() {
+    super.createElements();
+
+    this.TEXTAREA = document.createElement('input');
+    this.TEXTAREA.setAttribute('placeholder', 'Custom placeholder');
+    this.TEXTAREA.setAttribute('data-hot-input', true);
+    this.textareaStyle = this.TEXTAREA.style;
+    this.TEXTAREA_PARENT.innerText = '';
+    this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
+  }
+}
+
+const hotSettings = {
+  startRows: 5,
+  columns: [
+    {
+      editor: CustomEditor
+    }
+  ],
+  colHeaders: true,
+  colWidths: 200,
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () => {
+  return (
+    <div>
+      <HotTable
+        id="hot"
+        settings={hotSettings}
+      />
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('example1'));
+```
+:::
+:::
+
 ## EditorManager
 
 [`EditorManager`](@/api/baseEditor.md) is a class responsible for handling all editors available in Handsontable. If `Handsontable` needs to interact with editors it uses [`EditorManager`](@/api/baseEditor.md) object. [`EditorManager`](@/api/baseEditor.md) object is instantiated in [`init()`](@/api/baseEditor.md#init) method which is run, after you invoke `Handsontable()` constructor for the first time. The reference for [`EditorManager`](@/api/baseEditor.md) object is kept private in Handsontable instance and you cannot access it. However, there are ways to alter the default behaviour of [`EditorManager`](@/api/baseEditor.md), more on that later.
@@ -736,7 +799,6 @@ const hot = new Handsontable(container, {
 
 ### Related guides
 
-- [Custom editor in React](@/guides/integrate-with-react/react-custom-editor-example.md)
 - [Custom editor in Angular](@/guides/integrate-with-angular/angular-custom-editor-example.md)
 - [Custom editor in Vue 2](@/guides/integrate-with-vue/vue-custom-editor-example.md)
 - [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example.md)

@@ -1,11 +1,11 @@
 ---
-title: 'Using the `HotColumn` component in React'
-metaTitle: 'Using the HotColumn component in React - Guide - Handsontable Documentation'
-permalink: /next/react-hot-column
-canonicalUrl: /react-hot-column
+title: '`HotColumn` component'
+metaTitle: 'HotColumn component - Guide - Handsontable Documentation'
+permalink: /next/hot-column
+canonicalUrl: /hot-column
 ---
 
-# Using the `HotColumn` component in React
+# `HotColumn` component
 
 [[toc]]
 

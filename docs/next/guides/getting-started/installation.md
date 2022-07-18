@@ -11,20 +11,23 @@ tags:
 
 [[toc]]
 
-## Overview
 This guide details how to install Handsontable.
 
+::: only-for javascript
 ::: tip
 This section is dedicated to the pure JavaScript version of Handsontable. If you use a framework in your project, follow one of the available guides to install and use the library:
- - [Integrate with React](@/guides/integrate-with-react/react-installation.md)
- - [Integrate with Angular](@/guides/integrate-with-angular/angular-installation.md)
- - [Integrate with Vue 2](@/guides/integrate-with-vue/vue-installation.md)
- - [Integrate with Vue 3](@/guides/integrate-with-vue3/vue3-installation.md)
+ - [Installation in React](../../react-data-grid/installation)
+ - [Installation in Angular](@/guides/integrate-with-angular/angular-installation.md)
+ - [Installation in Vue 2](@/guides/integrate-with-vue/vue-installation.md)
+ - [Installation in Vue 3](@/guides/integrate-with-vue3/vue3-installation.md)
+:::
 :::
 
 ## Download and install the library
 
-Run the following command in your terminal
+Run the following command in your terminal:
+
+::: only-for javascript
 
 <code-group>
   <code-block title="npm">
@@ -60,7 +63,16 @@ Run the following command in your terminal
 
   </code-block>
 </code-group>
+:::
 
+
+::: only-for react
+```bash
+npm install handsontable @handsontable/react
+```
+:::
+
+::: only-for javascript
 ## Create a placeholder
 
 ```html
@@ -113,6 +125,48 @@ const hot = new Handsontable(container, {
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
 });
+```
+:::
+:::
+
+::: only-for react
+## Basic usage
+
+Import the Handsontable styles to your project.
+
+```scss
+@import 'handsontable/dist/handsontable.full.css';
+```
+
+Use the Handsontable for React component in your app.
+
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotData = [
+  ["", "Tesla", "Volvo", "Toyota", "Honda"],
+  ["2020", 10, 11, 12, 13],
+  ["2021", 20, 11, 14, 13],
+  ["2022", 30, 15, 12, 13]
+];
+
+const App = () => {
+  return (
+    <div id="hot-app">
+      <HotTable
+        data={hotData}
+        colHeaders={true}
+        rowHeaders={true}
+        width="600"
+        height="300"
+      />
+    </div>
+  );
+}
 ```
 :::
 
