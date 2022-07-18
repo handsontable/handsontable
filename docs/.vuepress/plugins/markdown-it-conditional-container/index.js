@@ -62,7 +62,7 @@ module.exports = function conditionalContainer(markdown) {
       token.children.splice(childrenIndex, howMany);
     } else {
       // eslint-disable-next-line no-console
-      console.error(`${chalk.red('\nUnexpected error while processing a conditional container (::: only-if) in the file ' 
+      console.error(`${chalk.red('\nUnexpected error while processing a conditional container (::: only-for) in the file ' 
         `"${getNormalizedPath(env.relativePath)}".` +
         ` Please check the file or the resulting page "${env.frontmatter.permalink}".`
       )}`);
