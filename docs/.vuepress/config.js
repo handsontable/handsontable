@@ -4,11 +4,11 @@ const highlight = require('./highlight');
 const snippets = require('./containers/snippets');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
-const conditionalBlock = require('./containers/conditionalBlock');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
+const conditionalContainer = require('./plugins/markdown-it-conditional-container');
 const {
   getDocsBaseUrl,
   getEnvDocsVersion,
@@ -114,7 +114,7 @@ module.exports = {
       rel: 'nofollow noopener noreferrer'
     },
     extendMarkdown(md) {
-      md.use(firstHeaderInjection);
+      md.use(conditionalContainer).use(firstHeaderInjection);
     }
   },
   configureWebpack: {
@@ -133,7 +133,6 @@ module.exports = {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
     }],
-    ['container', conditionalBlock],
     ['container', snippets],
     ['container', examples],
     ['container', sourceCodeLink],
