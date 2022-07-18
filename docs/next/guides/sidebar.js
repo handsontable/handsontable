@@ -8,6 +8,7 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/saving-data' },
   { path: 'guides/getting-started/setting-options' },
   { path: 'guides/getting-started/grid-size' },
+  { path: 'guides/getting-started/methods', onlyFor: ['react'] },
   { path: 'guides/getting-started/events-and-hooks' },
   { path: 'guides/getting-started/license-key' },
 ];

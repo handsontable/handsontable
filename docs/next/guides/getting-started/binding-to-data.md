@@ -17,61 +17,15 @@ tags:
 
 The following guide provides information on using a data source and manipulating how the data is displayed in the data grid.
 
-::: only-for react
-### Referencing the Handsontable instance
-
-The following example implements the `@handsontable/react`component showing how to reference the Handsontable instance from the wrapper component.
-
-::: example #example1 :react
-```jsx
-import React, { useRef } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: createSpreadsheetData(4, 4),
-  colHeaders: true,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const App = () => {
-  const hotTableComponent = useRef(null);
-
-  const swapHotData = () => {
-    // The Handsontable instance is stored under the `hotInstance` property of the wrapper component.
-    hotTableComponent.current.hotInstance.loadData([['new', 'data']]);
-  };
-
-  return (
-    <>
-      <HotTable ref={hotTableComponent} settings={hotSettings}/>
-      <div className="controls">
-        <button onClick={swapHotData}>Load new data!</button>
-      </div>
-    </>
-  );
-}
-
-ReactDOM.render(<App/>, document.getElementById('example1'));
-```
-:::
-:::
-
 ## Compatible data types
 
 ### Array of arrays
 
 Array of arrays is the most popular choice for the more grid-like scenarios where you need to provide the end-user with permission to manipulate the grid, e.g., insert columns, delete rows, decorate cells, etc.
 
-::: example #example2
+::: example #example1
 ```js
-const container = document.getElementById('example2');
+const container = document.getElementById('example1');
 
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
@@ -99,9 +53,9 @@ const hot = new Handsontable(container, {
 
 The following example shows how you would use the array of arrays with a selective display of columns. This scenario uses the same data source as in the previous example, this time omitting the `Tesla` column from the grid.
 
-::: example #example3
+::: example #example2
 ```js
-const container = document.getElementById('example3');
+const container = document.getElementById('example2');
 
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
@@ -136,9 +90,9 @@ const hot = new Handsontable(container, {
 
 An array of objects can be used as a data source as follows:
 
-::: example #example4
+::: example #example3
 ```js
-const container = document.getElementById('example4');
+const container = document.getElementById('example3');
 
 const data = [
   { id: 1, name: 'Ted Right', address: '' },
@@ -163,9 +117,9 @@ const hot = new Handsontable(container, {
 
 You can set the [`columns`](@/api/options.md#columns) configuration option to a function. This is good practice when you want to bind data more dynamically.
 
-::: example #example5 .custom-class
+::: example #example4 .custom-class
 ```js
-const container = document.getElementById('example5');
+const container = document.getElementById('example4');
 
 const data = [
   { id: 1, name: {first: 'Ted', last: 'Right'}, address: '' },
@@ -205,9 +159,9 @@ const hot = new Handsontable(container, {
 
 In a scenario where you have nested objects, you can use them as the data source by mapping the columns using the [`columns`](@/api/options.md#columns) option.
 
-::: example #example6
+::: example #example5
 ```js
-const container = document.getElementById('example6');
+const container = document.getElementById('example5');
 
 const data = [
   { id: 1, name: {first: 'Ted', last: 'Right'}, address: '' },
@@ -238,9 +192,9 @@ When using object data binding, Handsontable needs to know what data structure t
 
 In a scenario where you start with an empty data source, you will need to provide the [`dataSchema`](@/api/options.md#dataschema) option containing the data structure for any new row added to the grid. The example below shows a custom data schema with an empty data source:
 
-::: example #example7
+::: example #example6
 ```js
-const container = document.getElementById('example7');
+const container = document.getElementById('example6');
 
 const hot = new Handsontable(container, {
   data: [],
@@ -268,9 +222,9 @@ If your [`dataSchema`](@/api/options.md#dataschema) is a constructor of an objec
 
 The example below shows how to use such objects:
 
-::: example #example8
+::: example #example7
 ```js
-const container = document.getElementById('example8');
+const container = document.getElementById('example7');
 
 const hot = new Handsontable(container, {
   data: [
@@ -439,9 +393,9 @@ Handsontable binds to your data source by reference, not by values. We don't cop
 
 To avoid this scenario, copy the data before you pass it to the grid. To change the data from outside Handsontable, you can use our API methods. For example, a change being made will be displayed immediately on the screen after calling the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
-::: example #example9
+::: example #example8
 ```js
-const container = document.getElementById('example9');
+const container = document.getElementById('example8');
 
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
@@ -467,9 +421,9 @@ hot.setDataAtCell(0, 1, 'Ford');
 
 When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
 
-::: example #example10
+::: example #example9
 ```js
-const container = document.getElementById('example10');
+const container = document.getElementById('example9');
 
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
