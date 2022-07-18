@@ -13,11 +13,22 @@ tags:
 
 This guide details how to install Handsontable.
 
+::: only-for javascript
+::: tip
+This section is dedicated to the pure JavaScript version of Handsontable. If you use a framework in your project, follow one of the available guides to install and use the library:
+ - [Integrate with React](../../react-data-grid)
+ - [Integrate with Angular](@/guides/integrate-with-angular/angular-installation.md)
+ - [Integrate with Vue 2](@/guides/integrate-with-vue/vue-installation.md)
+ - [Integrate with Vue 3](@/guides/integrate-with-vue3/vue3-installation.md)
+:::
+:::
+
 ## Download and install the library
 
 Run the following command in your terminal:
 
 ::: only-for javascript
+
 <code-group>
   <code-block title="npm">
 
@@ -53,6 +64,7 @@ Run the following command in your terminal:
   </code-block>
 </code-group>
 :::
+
 
 ::: only-for react
 ```bash
