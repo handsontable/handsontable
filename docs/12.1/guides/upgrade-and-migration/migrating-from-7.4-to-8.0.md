@@ -323,11 +323,11 @@ Methods [`moveColumn`](@/api/manualColumnMove.md#movecolumn), [`moveColumns`](@/
 
 The "drag" methods comes with the `dropIndex` parameter. It directs where to **place** the dragged elements. The place you intend to drag the element is managed by **drop indexes**. You can imagine some sort of a drop zone between actual indexes of elements:
 
-![drag_action](/docs/12.1/img/drag_action.svg)
+<ImageVersioned src="/docs/12.1/img/drag_action.svg" alt="drag_action">
 
 The "move" methods comes with the `finalIndex` parameter. It tells where to **overlap** the first element from the moved ones. The place you intend to move the element is managed by **visual indexes**.
 
-![move_action](/docs/12.1/img/move_action.svg)
+<ImageVersioned src="/docs/12.1/img/move_action.svg" alt="move_action">
 
 Please note that in case of "move" methods some move actions are limited. For example, if you initiate a move of **more than one element** to the **last position** (visual index = the number of items - 1) the operation will be canceled. The first element in the collection you would like to move will try to reach the last position (`finalIndex`) which is feasible. However, the next ones will attempt to reach the position exceeding the number of all items.
 
@@ -353,11 +353,11 @@ const hotInstance = new Handsontable(container, {
 
 The results before:
 
-![before_8](/docs/12.1/img/spare_before_8.svg)
+<ImageVersioned src="/docs/12.1/img/spare_before_8.svg" alt="before_8">
 
 The results after:
 
-![after_8](/docs/12.1/img/spare_after_8.svg)
+<ImageVersioned src="/docs/12.1/img/spare_after_8.svg" alt="after_8">
 
 To ensure your application works as expected you should review it and search the use cases of [`minSpareRows`](@/api/options.md#minsparerows) or [`minRows`](@/api/options.md#minrows), if the application relied on this mechanism you may need to adapt it. For example, in prior versions the following code:
 
@@ -461,11 +461,11 @@ const physicalColumn = this.hot.toPhysicalColumn(column);
 
 It used to select just one cell:
 
-![LMB_was](/docs/12.1/img/LMB_was.gif)
+<ImageVersioned src="/docs/12.1/img/LMB_was.gif" alt="LMB_was">
 
 Now the expected behavior is to select all cells:
 
-![LMB_is](/docs/12.1/img/LMB_is.gif)
+<ImageVersioned src="/docs/12.1/img/LMB_is.gif" alt="LMB_is">
 
 To keep the previous behavior you need to use the following workaround:
 
