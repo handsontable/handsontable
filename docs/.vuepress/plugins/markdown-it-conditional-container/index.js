@@ -112,7 +112,7 @@ module.exports = function conditionalContainer(markdown) {
           const onlyForFrameworks = openTokenContent.exec(token.content)[capturedGroupIndex].split(' ');
 
           if (endIndex === void 0) {
-            console.error(`${chalk.red('\nUnexpected error while processing a conditional container (::: only-if)' +
+            console.error(`${chalk.red('\nUnexpected error while processing a conditional container (::: only-for)' +
               ` in the file "${getNormalizedPath(env.relativePath)}". It seems that the opening token (::: only-for)` +
               ' exists, but the ending token (:::) does not.'
             )}`);
