@@ -33,8 +33,8 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 ::: example #example1 --html 1 --js 2
 ```html
-<div id="example1"></div>
-<div class="controls">
+<div id="example1" class="hot"></div>
+<div>
   <select id="selectOption" style="width: auto; margin-top: 16px">
     <option>Single selection</option>
     <option>Range selection</option>
@@ -73,13 +73,25 @@ selectOption.addEventListener('change', event => {
 
 To retrieve the selected cells as an array of arrays, you use the [`getSelected()`](@/api/core.md#getselected) or [`getSelectedRange()`](@/api/core.md#getselectedrange) methods.
 
-::: example #example2 --html 1 --js 2
+::: example #example2 --css 2 --html 1 --js 3
 ```html
-<div id="example2"></div>
-<output class="console" id="output">Here you will see the log</output>
+<div id="example2" class="hot"></div>
+<pre id="output"></pre>
 <div class="controls">
   <button id="getButton">Get data</button>
 </div>
+```
+```css
+#output {
+  margin: 16px 0 7px;
+  width: 100%;
+  height: 160px;
+  overflow:scroll;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #2c3e50;
+  box-sizing: border-box;
+}
 ```
 ```js
 const container = document.querySelector('#example2');
@@ -109,7 +121,7 @@ getButton.addEventListener('click', event => {
     data.push(hot.getData(...item));
   }
 
-  output.innerText = JSON.stringify(data);
+  output.innerText = JSON.stringify(data, null, 2);
 });
 ```
 :::
@@ -120,10 +132,11 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 
 ::: example #example3 --html 1 --css 2 --js 3
 ```html
-<div id="example3"></div>
+<div id="example3" class="hot"></div>
 
-<div class="controls">
-  <button id="set-data-action">Change selected data and change the CSS class of the cell</button>
+<div id="buttons" class="controls" style="margin-top: 10px">
+  <button id="set-data-action">Change selected data</button>
+  <button id="add-css-class-action">Make selected cells red</button>
 </div>
 ```
 ```css
@@ -133,7 +146,7 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 ```
 ```js
 const container = document.querySelector('#example3');
-const button = document.querySelector('#set-data-action');
+const buttons = document.querySelector('#buttons');
 
 const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -148,7 +161,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-button.addEventListener('click', event => {
+buttons.addEventListener('click', event => {
   const selected = hot.getSelected() || [];
   const target = event.target.id;
 
@@ -163,8 +176,13 @@ button.addEventListener('click', event => {
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
       for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
-        hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
-        hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
+        if (target === 'set-data-action') {
+          hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
+        }
+
+        if (target === 'add-css-class-action') {
+          hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
+        }
       }
     }
   }
@@ -194,7 +212,7 @@ To enable jumping across the left and right edges:
 
 To jump across a vertical edge:
 - When cell selection is on a row's first cell, press the left arrow key.
-- When cell selection is on a row's last cell, press the right arrow key, or press <kbd>**TAB**</kbd>.
+- When cell selection is on a row's last cell, press the right arrow key, or press <kbd>**Tab**</kbd>.
 
 #### Jumping across horizontal edges
 
@@ -203,7 +221,7 @@ To enable jumping across the top and bottom edges:
 
 To jump across a horizontal edge:
 - When cell selection is on a column's first cell, press the up arrow key.
-- When cell selection is on a column's last cell, press the down arrow key, or press <kbd>**ENTER**</kbd>.
+- When cell selection is on a column's last cell, press the down arrow key, or press <kbd>**Enter**</kbd>.
 
 ## Related keyboard shortcuts
 

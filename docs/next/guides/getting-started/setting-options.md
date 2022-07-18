@@ -67,7 +67,7 @@ When you modify the bottom-level cell options (using the [`cell`](@/api/options.
 
 When you modify any options with the [`cells`](@/api/options.md#cells) function, the changes overwrite all other options.
 ::: tip
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
+The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
 :::
 
 For more details on Handsontable's cascading configuration, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/index.js).
@@ -79,7 +79,7 @@ Configuration options can come from:
 * Handsontable's [plugins](@/api/plugins.md)
 * Handsontable's [hooks](@/api/hooks.md)
 
-If you use Handsontable through [modules](@/guides/building-and-testing/modules.md): to use an option that comes from a Handsontable plugin, you need to import and register that plugin when initializing your Handsontable instance.
+If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, you need to import and register that plugin when initializing your Handsontable instance.
 
 To find out if an option comes from a plugin, check the `Category` label in the [configuration options' API reference](@/api/options.md).
 
@@ -99,7 +99,7 @@ const hot = new Handsontable(container, {
 ```
 
 ::: tip
-If you use Handsontable through [modules](@/guides/building-and-testing/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
+If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 :::
 
 #### Example
@@ -114,7 +114,7 @@ As a result, each cell in the grid is read-only:
 
 ::: example #example1 --html 1 --js 2
 ```html
-<div id="example1"></div>
+<div id="example1" class="hot"></div>
 ```
 ```js
 const container = document.querySelector('#example1');
@@ -179,7 +179,7 @@ To apply configuration options to an individual column (or a range of columns), 
     ```
 
 ::: tip
-If you use Handsontable through [modules](@/guides/building-and-testing/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
+If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 :::
 
 #### Example
@@ -196,7 +196,7 @@ As a result, each cell in the third and ninth columns is read-only:
 
 ::: example #example2 --html 1 --js 2
 ```html
-<div id="example2"></div>
+<div id="example2" class="hot"></div>
 ```
 ```js
 const container = document.querySelector('#example2');
@@ -235,7 +235,7 @@ To apply configuration options to an individual row (or a range of rows), use th
 Any options modified through [`cells`](@/api/options.md#cells) overwrite all other options.
 
 ::: tip
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
+The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
 :::
 
 1. Within Handsontable constructor's second argument, add an option called [`cells`](@/api/options.md#cells), and set it to a function.
@@ -281,7 +281,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
     ```
 
 ::: tip
-If you use Handsontable through [modules](@/guides/building-and-testing/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
+If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 :::
 
 #### Example
@@ -292,7 +292,7 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 
 ::: example #example3 --html 1 --js 2
 ```html
-<div id="example3"></div>
+<div id="example3" class="hot"></div>
 ```
 ```js
 const container = document.querySelector('#example3');
@@ -372,7 +372,7 @@ To apply configuration options to individual cells, use the [`cell`](@/api/optio
     ```
 
 ::: tip
-If you use Handsontable through [modules](@/guides/building-and-testing/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
+If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
 :::
 
 #### Example
@@ -385,7 +385,7 @@ The modified [`cell`](@/api/options.md#cell) options:
 
 ::: example #example4 --html 1 --js 2
 ```html
-<div id="example4"></div>
+<div id="example4" class="hot"></div>
 ```
 ```js
 const container = document.querySelector('#example4');
@@ -521,7 +521,7 @@ You can apply configuration options to individual grid elements (columns, rows, 
 The [`cells`](@/api/options.md#cells) option overwrites all other options.
 
 ::: tip
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
+The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
 :::
 
 1. Within Handsontable constructor's second argument, add an option called [`cells`](@/api/options.md#cells), and set it to a function.
@@ -569,7 +569,7 @@ In the example below, the modified [`cells`](@/api/options.md#cells) options ove
 
 ::: example #example5 --html 1 --js 2
 ```html
-<div id="example5"></div>
+<div id="example5" class="hot"></div>
 ```
 ```js
 const container = document.querySelector('#example5');
@@ -608,7 +608,7 @@ In the example below, some cells are read-only, and some cells are editable:
 
 ::: example #example6 --html 1 --js 2
 ```html
-<div id="example6"></div>
+<div id="example6" class="hot"></div>
 ```
 ```js
 const container = document.querySelector('#example6');

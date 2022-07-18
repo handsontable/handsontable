@@ -112,11 +112,13 @@ Callback console log:
 ::: example #example1 --js 2 --html 1
 ```html
 <div id="example1"></div>
-<output class="console" id="output">Here you will see the log</output>
+<pre class="language-js">
+  <code id="example1console">Here you will see the log</code>
+</pre>
 ```
 ```js
 const container = document.querySelector('#example1');
-const output = document.querySelector('#output');
+const console = document.querySelector('#example1console');
 
 const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
 
@@ -165,7 +167,7 @@ const hot = new Handsontable(container, {
   },
   afterChange(changes, source) {
     if (source !== 'loadData') {
-      output.innerText = JSON.stringify(changes);
+      console.innerText = JSON.stringify(changes);
     }
   },
   colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
@@ -186,7 +188,16 @@ Edit the above grid to see callback
 
 **Note:** Please keep in mind that changes in table are applied after running **all validators** (both synchronous and and asynchronous) from **every** changed cells.
 
-## Related API reference
+## Related articles
+
+### Related guides
+
+- [Custom renderer in React](@/guides/integrate-with-react/react-custom-renderer-example.md)
+- [Custom renderer in Angular](@/guides/integrate-with-angular/angular-custom-renderer-example.md)
+- [Custom renderer in Vue 2](@/guides/integrate-with-vue/vue-custom-renderer-example.md)
+- [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example.md)
+
+### Related API reference
 
 - APIs:
   - [`BasePlugin`](@/api/basePlugin.md)

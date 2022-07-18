@@ -441,10 +441,10 @@ You can use custom-named expressions in your formula expressions. A named expres
 ::: example #example-named-expressions1 --html 1 --js 2
 ```html
 <div id="example-named-expressions1"></div>
-<div class="controls">
-  <input id="named-expressions-input" type="text" value="=10 * Sheet1!$A$2">
-  <button id="named-expressions-button">Calculate price</button>
-</div>
+<form id="named-expressions-form" class="controls" style="margin-top: 10px">
+  <input id="named-expressions-calculate-input" type="text" value="=10 * Sheet1!$A$2"/>
+  <button type="submit">Calculate price</button>
+</form>
 ```
 ```js
 const data = [
@@ -472,11 +472,12 @@ const hotNamedExpressions = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-const input = document.getElementById('named-expressions-input');
+const input = document.getElementById('named-expressions-calculate-input');
 const formulasPlugin = hotNamedExpressions.getPlugin('formulas');
-const button = document.getElementById('named-expressions-button');
+const form = document.getElementById('named-expressions-form');
 
-button.addEventListener('click', (event) => {
+form.addEventListener('submit', (event) => {
+  event.preventDefault();
   formulasPlugin.engine.changeNamedExpression('ADDITIONAL_COST', input.value);
   hotNamedExpressions.render();
 });

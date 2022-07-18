@@ -1,7 +1,0 @@
-{
-  "title": "Update the HyperFormula optional dependency for Handsontable.",
-  "type": "changed",
-  "issue": 9411,
-  "breaking": false,
-  "framework": "none"
-}

@@ -43,7 +43,7 @@ in the objects (see the example below). More information on [the demo page](@/gu
 **Example**  
 ```js
 // enables the mergeCells plugin
-margeCells: true,
+mergeCells: true,
 
 // declares a list of merged sections
 mergeCells: [

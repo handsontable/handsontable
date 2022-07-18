@@ -11,23 +11,78 @@ tags:
 
 [[toc]]
 
-This guide details how to install Handsontable.
+Install Handsontable in your preferred way.
 
-::: only-for javascript
 ::: tip
-This section is dedicated to the pure JavaScript version of Handsontable. If you use a framework in your project, follow one of the available guides to install and use the library:
- - [Installation in React](../../react-data-grid/installation)
+To install Handsontable using a framework, see:
+
+ - [Installation in React](@/guides/integrate-with-react/react-installation.md)
  - [Installation in Angular](@/guides/integrate-with-angular/angular-installation.md)
  - [Installation in Vue 2](@/guides/integrate-with-vue/vue-installation.md)
  - [Installation in Vue 3](@/guides/integrate-with-vue3/vue3-installation.md)
 :::
-:::
 
-## Download and install the library
+## Overview
 
-Run the following command in your terminal:
+You can get started with Handsontable in a few different ways. The most common is:
 
-::: only-for javascript
+<code-group>
+  <code-block title="npm">
+
+  ```bash
+  npm install handsontable
+  ```
+
+  </code-block>
+  <code-block title="Your HTML">
+
+  ```html
+  <div id="example"></div>
+  ```
+
+  </code-block>
+  <code-block title="Your application">
+
+  ```js
+  import Handsontable from "handsontable";
+  import "handsontable/dist/handsontable.full.css";
+
+  const data = [
+    ["", "Tesla", "Volvo", "Toyota", "Ford"],
+    ["2019", 10, 11, 12, 13],
+    ["2020", 20, 11, 14, 13],
+    ["2021", 30, 15, 12, 13],
+  ];
+
+  const container = document.getElementById("example");
+
+  const hot = new Handsontable(container, {
+    data: data,
+    rowHeaders: true,
+    colHeaders: true,
+    height: "auto",
+    licenseKey: "non-commercial-and-evaluation", // for non-commercial use only
+  });
+  ```
+
+  </code-block>
+</code-group>
+
+For more details and other installation methods, follow these steps:
+
+1. [Install Handsontable](#install-handsontable).
+2. [Import Handsontable's JavaScript into your application](#import-handsontable-s-javascript).
+3. [Import Handsontable's CSS into your application](#import-handsontable-s-css).
+4. [Create an HTML container](#create-a-container).
+5. [Initialize Handsontable](#initialize-handsontable).
+
+## Install Handsontable
+
+Get Handsontable's files in your preferred way.
+
+### Using a package manager
+
+To install Handsontable locally using a package manager, run one of these commands:
 
 <code-group>
   <code-block title="npm">
@@ -44,50 +99,81 @@ Run the following command in your terminal:
   ```
 
   </code-block>
-  <code-block title="Nuget">
+  <code-block title="NuGet">
 
   ```bash
   PM> Install-Package Handsontable
   ```
 
   </code-block>
-  <code-block title="CDN">
-
-  ```html
-  // minified JS
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
-
-  // minified CSS
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
-  ```
-
-  </code-block>
 </code-group>
+
+### Using a CDN
+
+To get Handsontable's files from a CDN, use the following locations:
+
+- [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js)
+- [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css)
+
+## Import Handsontable's JavaScript
+
+Import Handsontable's JavaScript into your application.
+
+::: tip
+For a more optimized build, import individual parts of Handsontable's JavaScript, using [modules](@/guides/tools-and-building/modules.md).
 :::
 
+### Using CommonJS or a package manager
 
-::: only-for react
-```bash
-npm install handsontable @handsontable/react
+If you're using Handsontable as a CommonJS package, or as an ECMAScript module (using a package manager), import the full distribution of Handsontable as a JavaScript file.
+
+Use your bundler's preferred method of importing files. For example:
+
+```js
+import Handsontable from 'handsontable';
 ```
-:::
 
-::: only-for javascript
-## Create a placeholder
+### Using the `script` tag
+
+If you're using Handsontable as a traditional UMD package, import the full distribution of Handsontable as a minified JavaScript file.
+
+Use the `script` tag. For example, if you're loading Handsontable's JavaScript from a CDN:
+
+```html
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+```
+
+## Import Handsontable's CSS
+
+Import Handsontable's CSS into your application.
+
+### Using `import`
+
+If your bundler allows it, you can import Handsontable's full distribution CSS file, using an `import` statement.
+
+```js
+import 'handsontable/dist/handsontable.full.css';
+```
+
+### Using the `link` tag
+
+You can also import Handsontable's CSS using a link tag:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
+```
+
+## Create a container
+
+In your HTML, add an empty `div`, which serves as a container for your Handsontable instance.
 
 ```html
 <div id="example"></div>
 ```
 
-Import JavaScript and CSS into your application. You don't have to do that if you use CDN files.
-```js
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.css';
-```
+## Initialize Handsontable
 
-## Initialize the grid
-
-Now turn your placeholder into a data grid with sample data.
+Now turn your container into a data grid with sample data.
 ```js
 const data = [
   ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
@@ -127,50 +213,14 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
-:::
 
-::: only-for react
-## Basic usage
+## Related articles
 
-Import the Handsontable styles to your project.
+### Related guides
 
-```scss
-@import 'handsontable/dist/handsontable.full.css';
-```
+- [Modules](@/guides/tools-and-building/modules.md)
 
-Use the Handsontable for React component in your app.
-
-```jsx
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotData = [
-  ["", "Tesla", "Volvo", "Toyota", "Honda"],
-  ["2020", 10, 11, 12, 13],
-  ["2021", 20, 11, 14, 13],
-  ["2022", 30, 15, 12, 13]
-];
-
-const App = () => {
-  return (
-    <div id="hot-app">
-      <HotTable
-        data={hotData}
-        colHeaders={true}
-        rowHeaders={true}
-        width="600"
-        height="300"
-      />
-    </div>
-  );
-}
-```
-:::
-
-## Related API reference
+### Related API reference
 
 - Configuration options:
   - [`maxCols`](@/api/options.md#maxcols)

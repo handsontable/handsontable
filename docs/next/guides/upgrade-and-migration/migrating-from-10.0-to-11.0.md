@@ -14,7 +14,7 @@ To upgrade your Handsontable version from 10.x.x to 11.x.x, follow this guide.
 
 ## Step 1: React, Angular, Vue – register your modules
 
-Starting with Handsontable 11.0.0, the [React wrapper](../../react-data-grid), the [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md), and the [Vue wrapper](@/guides/integrate-with-vue/vue-installation.md) support [modularization](@/guides/building-and-testing/modules.md).
+Starting with Handsontable 11.0.0, the [React wrapper](@/guides/integrate-with-react/react-installation.md), the [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md), and the [Vue wrapper](@/guides/integrate-with-vue/vue-installation.md) support [modularization](@/guides/tools-and-building/modules.md).
 
 If you don't use any of the wrappers, you don't need to change anything.
 
@@ -31,6 +31,13 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 ```
 
+### Using individual modules
+
+To start using individual Handsontable modules with your wrapper, see the following guides:
+- [Using modules with React](@/guides/integrate-with-react/react-modules.md)
+- [Using modules with Angular](@/guides/integrate-with-angular/angular-modules.md)
+- [Using modules with Vue](@/guides/integrate-with-vue/vue-modules.md)
+
 ## Step 2: Adapt to the type definition changes
 
 In Handsontable 11.0.0, we reorganized the TypeScript definitions files, and improved the overall consistency of Handsontable's types.
@@ -41,7 +48,7 @@ For more details, see [this pull request](https://github.com/handsontable/handso
 
 #### Before
 
-Before, all of Handsontable's TypeScript definitions were kept in one file, placed in the root directory: `./handsontable.d.ts`.
+Before, all of Handsontable's TypeScript definitions were kept in one file, placed in the root directory: `/handsontable.d.ts`.
 
 The only way to import types was to get all of them by importing the `Handsontable` package:
 
@@ -51,7 +58,7 @@ import Handsontable from 'handsontable';
 
 #### Now
 
-Now, each module has its own TypeScript definitions file. They're all kept in a new directory called `types`: `./handsontable/types`.
+Now, each module has its own TypeScript definitions file. They're all kept in a new directory called `types`: `/handsontable/types`.
 
 You can still import all of Handsontable's type definitions in the same as way as before. Additionally, you can also import individual modules from within the Handsontable package, with correct types:
 
