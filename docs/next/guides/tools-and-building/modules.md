@@ -29,7 +29,7 @@ To get the most out of using Handsontable's modules:
 #### Use modules in frameworks
 
 To find out how to use modules with Handsontable's framework wrappers, see the following guides:
-- [Modules in React](@/guides/integrate-with-react/react-modules.md)
+- [Modules in React](../../react-data-grid/modules)
 - [Modules in Angular](@/guides/integrate-with-angular/angular-modules.md)
 - [Modules in Vue 2](@/guides/integrate-with-vue/vue-modules.md)
 - [Modules in Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)
@@ -887,13 +887,23 @@ import { registerLanguageDictionary } from 'handsontable/i18n/registry';
 ```
 :::
 
+::: only-for javascript
+## Using modules with frameworks
+
+You can also use modules with Handsontable's framework wrappers:
+- [Using modules with React](../../react-data-grid/modules)
+- [Using modules with Angular](@/guides/integrate-with-angular/angular-modules.md)
+- [Using modules with Vue 2](@/guides/integrate-with-vue/vue-modules.md)
+- [Using modules with Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)
+:::
+
 ## Related articles
 
 ### Related guides
 
 - [Bundle size](@/guides/optimization/bundle-size.md)
 - [Installation](@/guides/getting-started/installation.md)
-- [Modules in React](@/guides/integrate-with-react/react-modules.md)
+- [Modules in React](../../react-data-grid/modules)
 - [Modules in Angular](@/guides/integrate-with-angular/angular-modules.md)
 - [Modules in Vue 2](@/guides/integrate-with-vue/vue-modules.md)
 - [Modules in Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)

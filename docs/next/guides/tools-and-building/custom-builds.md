@@ -23,13 +23,13 @@ Get an overview of Handsontable's building processes.
 
 The Handsontable repository is a monorepo that contains the following projects:
 
-| Project                 | Location             | Description                                                                |
-| ----------------------- | -------------------- | -------------------------------------------------------------------------- |
+| Project                 | Location            | Description                                                                |
+| ----------------------- | ------------------- | -------------------------------------------------------------------------- |
 | `handsontable`          | `/handsontable`     | Main Handsontable project                                                  |
 | `@handsontable/angular` | `/wrappers/angular` | [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md) |
-| `@handsontable/react`   | `/wrappers/react`   | [React wrapper](@/guides/integrate-with-react/react-installation.md)       |
+| `@handsontable/react`   | `/wrappers/react`   | [React wrapper](../../react-data-grid)                                     |
 | `@handsontable/vue`     | `/wrappers/vue`     | [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation.md)           |
-| `@handsontable/vue3`    | `/wrappers/vue3`    | [Vue 3 wrapper](@/guides/integrate-with-vue3/vue3-installation.md)          |
+| `@handsontable/vue3`    | `/wrappers/vue3`    | [Vue 3 wrapper](@/guides/integrate-with-vue3/vue3-installation.md)         |
 
 All the projects are released together, under the same version number.
 But each project has its own [building](#building-processes) and [testing](@/guides/tools-and-building/testing.md) processes.
@@ -63,8 +63,8 @@ Handsontable building processes require:
 
 Each Handsontable [project](#about-building) has its own building processes defined in its own `package.json` file. Apart from that, the root directory has its own `package.json` file as well:
 
-| File                              | Holds tasks for building:                           |
-| --------------------------------- | --------------------------------------------------- |
+| File                             | Holds tasks for building:                           |
+| -------------------------------- | --------------------------------------------------- |
 | `/package.json`                  | - All the packages at once<br>- Individual packages |
 | `/handsontable/package.json`     | The JavaScript package                              |
 | `/wrappers/angular/package.json` | The Angular package                                 |
