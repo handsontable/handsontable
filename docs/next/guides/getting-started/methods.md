@@ -1,19 +1,21 @@
 ---
-title: 'Referencing the Handsontable instance in React'
-metaTitle: 'Referencing the Handsontable instance in React - Guide - Handsontable Documentation'
-permalink: /next/react-hot-reference
-canonicalUrl: /react-hot-reference
+title: Instance methods
+metaTitle: Instance methods - Guide - Handsontable Documentation
+permalink: /next/methods
+canonicalUrl: /methods
+tags:
+  - referring
+  - referencing
+  - ref
+  - instance
+  - methods
 ---
 
-# Referencing the Handsontable instance in React
+# Instance methods
 
-[[toc]]
+You can programmatically change the internal state of Handsontable beyond what's possibile with props. To do that, you will need to call API methods of the relevant Handsontable instance associated with your instance of the `<HotTable/>` component.
 
-## Overview
-
-The following example implements the `@handsontable/react`component showing how to reference the Handsontable instance from the wrapper component.
-
-## Example
+The following example implements the `<HotTable/>` component showing how to reference the Handsontable instance from the wrapper component. 
 
 ::: example #example1 :react
 ```jsx
@@ -42,14 +44,16 @@ const App = () => {
   };
 
   return (
-    <div className="controls">
+    <>
       <HotTable ref={hotTableComponent} settings={hotSettings}/>
-      <br/>
-      <button onClick={swapHotData}>Load new data!</button>
-    </div>
+      <div className="controls">
+        <button onClick={swapHotData}>Load new data!</button>
+      </div>
+    </>
   );
 }
 
 ReactDOM.render(<App/>, document.getElementById('example1'));
 ```
+:::
 :::

@@ -1,11 +1,11 @@
 ---
-title: 'Redux example'
-metaTitle: 'Redux example - Guide - Handsontable Documentation'
-permalink: /next/react-redux-example
-canonicalUrl: /react-redux-example
+title: 'Redux'
+metaTitle: 'Redux - Guide - Handsontable Documentation'
+permalink: /next/redux
+canonicalUrl: /redux
 ---
 
-# Redux example
+# Redux
 
 [[toc]]
 
@@ -57,14 +57,12 @@ const App = () => {
       <div id="example-container">
 
         <div id="example-preview">
-          <div id="toggle-boxes">
-            <br/>
-            <input onClick={toggleReadOnly} id="readOnlyCheck" type="checkbox"/>
-            <label htmlFor="readOnlyCheck">
+          <div class="controls">
+            <label>
+              <input onClick={toggleReadOnly} type="checkbox"/>
               Toggle <code>readOnly</code> for the entire table
             </label>
           </div>
-          <br/>
 
           <HotTable
             ref={hotTableComponent}

@@ -12,22 +12,30 @@ tags:
 
 [[toc]]
 
-Play around with a demo of Handsontable, in your favorite framework.
+Play around with Handsontable's source code, in your favorite framework.
 
-<div class="example-container"><iframe
-    src="https://handsontable.github.io/handsontable/examples/next.2/docs/js/demo/"
-    allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone;
-      midi; payment; usb; vr; xr-spatial-tracking"
-    sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-  ></iframe></div>
-
-## Find the code on GitHub
-
-- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next.2/docs/js/demo/)
-- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next.2/docs/ts/demo/)
-- [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next.2/docs/angular/demo/)
-- [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next.2/docs/react/demo/)
-- [Vue demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next.2/docs/vue/demo/)
+<BigExample preview="/examples/next/docs/js/demo/">
+  <BigExampleSource 
+  label="JavaScript"
+  icon="js"
+  target="/examples/next/docs/js/demo/"></BigExampleSource>
+  <BigExampleSource 
+  label="TypeScript"
+  icon="ts"
+  target="/examples/next/docs/ts/demo/"></BigExampleSource>
+  <BigExampleSource 
+  label="Angular"    
+  icon="angular"
+  target="/examples/next/docs/angular/demo/"></BigExampleSource>
+  <BigExampleSource 
+  label="React"
+  icon="react"
+  target="/examples/next/docs/react/demo/"></BigExampleSource>
+  <BigExampleSource 
+  label="Vue"
+  icon="vue"
+  target="/examples/next/docs/vue/demo/"></BigExampleSource>
+</BigExample>
 
 ## Try out the demo's features
 

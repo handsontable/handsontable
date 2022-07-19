@@ -148,7 +148,7 @@ const hot = new Handsontable(container, {
 
 By default, hidden rows are included in copying and pasting.
 
-To exclude hidden rows from copying and pasting, in the `hiddenRows` object, set the `copyPasteEnabled` property to `false`:
+To exclude hidden rows from copying and pasting, in the `hiddenRows` object, set the `copyPasteEnable` property to `false`:
 
 ::: example #example6
 ```js

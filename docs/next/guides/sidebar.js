@@ -3,25 +3,13 @@ const gettingStartedItems = [
   // { path: 'guides/getting-started/demo' }, (temporarily hidden, till the demo is fixed)
   { path: 'guides/getting-started/installation' },
   { path: 'guides/getting-started/binding-to-data' },
+  { path: 'guides/getting-started/react-redux', onlyFor: ['react'] },
   { path: 'guides/getting-started/saving-data' },
   { path: 'guides/getting-started/setting-options' },
   { path: 'guides/getting-started/grid-size' },
+  { path: 'guides/getting-started/methods', onlyFor: ['react'] },
   { path: 'guides/getting-started/events-and-hooks' },
   { path: 'guides/getting-started/license-key' },
-];
-
-const integrateWithReactItems = [
-  { path: 'guides/integrate-with-react/react-installation' },
-  { path: 'guides/integrate-with-react/react-simple-example' },
-  { path: 'guides/integrate-with-react/react-modules' },
-  { path: 'guides/integrate-with-react/react-hot-column' },
-  { path: 'guides/integrate-with-react/react-setting-up-a-language' },
-  { path: 'guides/integrate-with-react/react-custom-context-menu-example' },
-  { path: 'guides/integrate-with-react/react-custom-editor-example' },
-  { path: 'guides/integrate-with-react/react-custom-renderer-example' },
-  { path: 'guides/integrate-with-react/react-language-change-example' },
-  { path: 'guides/integrate-with-react/react-redux-example' },
-  { path: 'guides/integrate-with-react/react-hot-reference' },
 ];
 
 const integrateWithAngularItems = [
@@ -68,6 +56,7 @@ const integrateWithVue3Items = [
 ];
 
 const columnsItems = [
+  { path: 'guides/columns/react-hot-column', onlyFor: ['react'] },
   { path: 'guides/columns/column-header' },
   { path: 'guides/columns/column-groups' },
   { path: 'guides/columns/column-hiding' },
@@ -189,23 +178,22 @@ const upgradeAndMigrationItems = [
 
 module.exports = {
   sidebar: [
-    { title: 'Getting started', children: gettingStartedItems },
-    { title: 'Integrate with React', children: integrateWithReactItems },
-    { title: 'Integrate with Angular', children: integrateWithAngularItems },
-    { title: 'Integrate with Vue 2', children: integrateWithVueItems },
-    { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
+    { title: 'Getting Started', children: gettingStartedItems },
+    { title: 'Integrate with Angular', children: integrateWithAngularItems, onlyFor: ['javascript'] },
+    { title: 'Integrate with Vue 2', children: integrateWithVueItems, onlyFor: ['javascript'] },
+    { title: 'Integrate with Vue 3', children: integrateWithVue3Items, onlyFor: ['javascript'], },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
-    { title: 'Cell features', children: cellFeaturesItems },
-    { title: 'Cell functions', children: cellFunctionsItems },
-    { title: 'Cell types', children: cellTypesItems },
+    { title: 'Cell Features', children: cellFeaturesItems },
+    { title: 'Cell Functions', children: cellFunctionsItems },
+    { title: 'Cell Types', children: cellTypesItems },
     { title: 'Formulas', children: formulasItems },
-    { title: 'Accessories and menus', children: accessoriesAndMenusItems },
+    { title: 'Accessories and Menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
     { title: 'Tools and building', children: buildingAndToolingItems },
     { title: 'Optimization', children: optimizationItems },
     { title: 'Security', children: securityItems },
-    { title: 'Technical specification', children: technicalSpecificationItems },
-    { title: 'Upgrade and migration', children: upgradeAndMigrationItems }
-  ],
+    { title: 'Technical Specification', children: technicalSpecificationItems },
+    { title: 'Upgrade and Migration', children: upgradeAndMigrationItems }
+  ]
 };

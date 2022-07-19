@@ -1,11 +1,11 @@
 ---
-title: 'Using the `HotColumn` component in React'
-metaTitle: 'Using the HotColumn component in React - Guide - Handsontable Documentation'
-permalink: /next/react-hot-column
-canonicalUrl: /react-hot-column
+title: '`HotColumn` component'
+metaTitle: 'HotColumn component - Guide - Handsontable Documentation'
+permalink: /next/hot-column
+canonicalUrl: /hot-column
 ---
 
-# Using the `HotColumn` component in React
+# `HotColumn` component
 
 [[toc]]
 
@@ -399,10 +399,9 @@ const App = () => {
 
   return (
     <HighlightContext.Provider value={darkMode}>
-      <h3>
-        <input id="dark-mode" type="checkbox" onClick={toggleDarkMode} />{" "}
-        <label htmlFor="dark-mode">Dark mode</label>
-      </h3>
+      <div className="controls">
+        <label><input type="checkbox" onClick={toggleDarkMode}/> Dark mode</label>
+      </div>
       <HotTable settings={hotSettings}>
         <HotColumn>
           {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}

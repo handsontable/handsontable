@@ -15,50 +15,6 @@ tags:
 
 [[toc]]
 
-## next.2
-
-Released on 8th of July, 2022
-
-**Changed**
-- Changed the version of the Moment.js dependency from 2.29.3 to 2.29.4, in reaction to a recently-found Moment.js security vulnerability. The vulnerability did not affect a correct configuration of Handsontable. [#9638](https://github.com/handsontable/handsontable/issues/9638)
-- *Vue:* Freezed the version of the Vue framework that is used in our build chain to ~2.6. This shouldn't affect apps that use Vue 2.7+. [#9624](https://github.com/handsontable/handsontable/issues/9624)
-
-## next.1
-
-Released on 5th of July, 2022
-
-**Fixed**
-- *Angular:* Fixed an issue where the installation of `@handsontable/angular` package failed for versions of Angular other than 9 [#9622](https://github.com/handsontable/handsontable/issues/9622)
-
-## next.0
-
-Released on 28th of June, 2022
-
-**Added**
-- Added smoother row and column moving when some row or columns are hidden. [#7613](https://github.com/handsontable/handsontable/issues/7613)
-- Added [`getNearestNotHiddenIndex()`](@/api/indexMapper.md#getnearestnothiddenindex), a new method that finds the visual index of the nearest not-hidden row or column and works even with large numbers of hidden rows or columns. The previous method, [`getFirstNotHiddenIndex()`](@/api/indexMapper.md#getfirstnothiddenindex), still works, but is marked as deprecated. [#9064](https://github.com/handsontable/handsontable/issues/9064)
-- Added a Czech translation. [#9343](https://github.com/handsontable/handsontable/issues/9343)
-- Added a Serbian translation. [#9469](https://github.com/handsontable/handsontable/issues/9469)
-- Added new hooks: [`beforeColumnFreeze`](@/api/hooks.md#beforecolumnfreeze), [`afterColumnFreeze`](@/api/hooks.md#aftercolumnfreeze), [`beforeColumnUnfreeze`](@/api/hooks.md#beforecolumnunfreeze), and [`afterColumnUnfreeze`](@/api/hooks.md#aftercolumnunfreeze). [#9248](https://github.com/handsontable/handsontable/issues/9248)
-
-**Changed**
-- Replaced HTML entities appearing in Handsontable's license texts with canonical counterparts. [#9487](https://github.com/handsontable/handsontable/issues/9487)
-- Updated the Pikaday optional dependency to 1.8.2, to let Handsontable work with Parcel 2 without errors. [#9410](https://github.com/handsontable/handsontable/issues/9410)
-- *React:* Changed the wrapper's lifecycle methods, to let Handsontable work with React 17+ without warnings. [#8748](https://github.com/handsontable/handsontable/issues/8748)
-- *Angular:* Moved the `@angular/core` dependency to peer dependencies. [#9574](https://github.com/handsontable/handsontable/issues/9574)
-
-**Fixed**
-- Fixed an issue where dropdown and autocomplete cell editors rendered incorrectly if the [`preventOverflow`](@/api/options.md#preventoverflow) option was set to `'horizontal'`. [#3828](https://github.com/handsontable/handsontable/issues/3828)
-- Fixed an issue where frozen rows were getting duplicated. [#4454](https://github.com/handsontable/handsontable/issues/4454)
-- Fixed an issue where comments rendered outside the viewport. [#4785](https://github.com/handsontable/handsontable/issues/4785)
-- Fixed an issue where comments got positioned incorrectly when Handsontable ran within a scrollable element. [#6744](https://github.com/handsontable/handsontable/issues/6744)
-- Fixed an issue that occurred when Handsontable ran within an HTML `<form>`: pressing <kbd>Enter</kbd> inside another form's `<input>` could open Handsontable's dropdown menu. [#9295](https://github.com/handsontable/handsontable/issues/9295)
-- Fixed an issue where it was impossible to unmerge cells in the RTL layout direction. [#9362](https://github.com/handsontable/handsontable/issues/9362)
-- Fixed an issue where columns wider than the viewport's width and rows higher than the viewport's height didn't render correctly. [#9473](https://github.com/handsontable/handsontable/issues/9473)
-- Fixed an issue where dragging-to-scroll on mobile didn't work properly in the RTL layout direction. [#9475](https://github.com/handsontable/handsontable/issues/9475)
-- Fixed an issue where hiding columns with nested headers caused incorrect column width calculation (for the [`stretchH: 'all'`](@/api/options.md#stretchh) option). [#9496](https://github.com/handsontable/handsontable/issues/9496)
-- Fixed an issue where [`ShortcutManager`](@/api/shortcutManager.md) unnecessarily handled `keyup` events with no `key` defined. [#9562](https://github.com/handsontable/handsontable/issues/9562)
-
 ## 12.0.1
 
 Released on 16th of May, 2022
@@ -90,10 +46,9 @@ Released on 28th of April, 2022
 - **Breaking change**: Changed how default keyboard shortcuts are defined, to improve keyboard navigation consistency. Most of the shortcuts did not change and are now properly documented in the [keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#default-keyboard-shorcuts) guide. However, some shortcuts that were not defined explicitly, and were not listed in the documentation, don't work anymore (e.g., <kbd>**Enter**</kbd> opens a cell's editor, but <kbd>**Ctrl**</kbd> + <kbd>**Enter**</kbd> doesn't). This change doesn't affect custom keyboard shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#step-4-adjust-to-the-default-keyboard-shortcuts-changes)
 - **Breaking change**: Split a cross-platform modifier key (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>) into two separate keys, to improve keyboard navigation consistency. Now, the <kbd>**Cmd**</kbd> key triggers actions on macOS where the <kbd>**Ctrl**</kbd> key triggers actions on Windows. For example, on macOS, <kbd>**Ctrl**</kbd> + <kbd>**A**</kbd> doesn't work anymore: <kbd>**Cmd**</kbd> + <kbd>**A**</kbd> is used instead. [#9369](https://github.com/handsontable/handsontable/issues/9369) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#ctrl-vs-cmd)
 - **Breaking change**: Changed the actions of the following [keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#default-keyboard-shorcuts), to match the usual spreadsheet software behavior, and provide a more intuitive user experience: <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**↑**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**↑**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**↓**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**↓**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**←**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**←**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**→**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**→**</kbd>, <kbd>**Home**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Home**</kbd>, <kbd>**End**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**End**</kbd>, <kbd>**Shift**</kbd> + <kbd>**Page Up**</kbd>, and <kbd>**Shift**</kbd> + <kbd>**Page Down**</kbd>. [#9363](https://github.com/handsontable/handsontable/issues/9363) [#9364](https://github.com/handsontable/handsontable/issues/9364) [#9365](https://github.com/handsontable/handsontable/issues/9365) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#keyboard-shortcuts-changes-navigation)
-- Changed two scripts of the main Handsontable workspace (`/`), to speed up the build process: now, the `npm run build` and `npm run test` scripts don't build or test the Handsontable examples (`/examples`). [#9412](https://github.com/handsontable/handsontable/issues/9412)
+- Changed two scripts of the main Handsontable workspace (`./`), to speed up the build process: now, the `npm run build` and `npm run test` scripts don't build or test the Handsontable examples (`./examples`). [#9412](https://github.com/handsontable/handsontable/issues/9412)
 - Changed the version of the Moment.js dependency from 2.24.0 to 2.29.3, in reaction to a recently-found Moment.js security vulnerability that did not directly affect Handsontable. [#9381](https://github.com/handsontable/handsontable/issues/9381)
 - Changed the version of the HyperFormula optional dependency from ^1.2.0 to ^2.0.0. [#9411](https://github.com/handsontable/handsontable/issues/9411)
-- Changed an internal property name, from `handsontableInstance.view.wt` to `handsontableInstance.view._wt`, to make it clear that Walkontable (Handsontable's rendering engine) is not a part of Handsontable's public API. [#8760](https://github.com/handsontable/handsontable/issues/8760)
 
 **Fixed**
 - *React, Angular, Vue 2, Vue 3:* Fixed an issue where using [`updateSettings()`](@/api/core.md#updatesettings) caused problems for state managers. [#8372](https://github.com/handsontable/handsontable/issues/8372)
@@ -166,7 +121,7 @@ Released on 17th of November, 2021
 
 **Changed**
 - **Breaking change**: Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888)
-- Moved the entire Handsontable package to its own, new subdirectory: `/handsontable`. [#8759](https://github.com/handsontable/handsontable/issues/8759)
+- Moved the entire Handsontable package to its own, new subdirectory: `./handsontable`. [#8759](https://github.com/handsontable/handsontable/issues/8759)
 - Replaced the license files with updated versions. [#8877](https://github.com/handsontable/handsontable/issues/8877)
 
 **Fixed**

@@ -148,7 +148,7 @@ const hot = new Handsontable(container, {
 
 By default, hidden columns are included in copying and pasting.
 
-To exclude hidden columns from copying and pasting, in the [`hiddenColumns`](@/api/hiddenColumns.md) object, set the [`copyPasteEnabled`](@/api/hiddenColumns.md) property to `false`:
+To exclude hidden columns from copying and pasting, in the [`hiddenColumns`](@/api/hiddenColumns.md) object, set the [`copyPasteEnable`](@/api/hiddenColumns.md) property to `false`:
 
 ::: example #example6
 ```js
