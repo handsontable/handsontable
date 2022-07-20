@@ -178,22 +178,22 @@ const upgradeAndMigrationItems = [
 
 module.exports = {
   sidebar: [
-    { title: 'Getting Started', children: gettingStartedItems },
+    { title: 'Getting started', children: gettingStartedItems },
     { title: 'Integrate with Angular', children: integrateWithAngularItems, onlyFor: ['javascript'] },
     { title: 'Integrate with Vue 2', children: integrateWithVueItems, onlyFor: ['javascript'] },
     { title: 'Integrate with Vue 3', children: integrateWithVue3Items, onlyFor: ['javascript'], },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
-    { title: 'Cell Features', children: cellFeaturesItems },
-    { title: 'Cell Functions', children: cellFunctionsItems },
-    { title: 'Cell Types', children: cellTypesItems },
+    { title: 'Cell features', children: cellFeaturesItems },
+    { title: 'Cell functions', children: cellFunctionsItems },
+    { title: 'Cell types', children: cellTypesItems },
     { title: 'Formulas', children: formulasItems },
-    { title: 'Accessories and Menus', children: accessoriesAndMenusItems },
+    { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
     { title: 'Tools and building', children: buildingAndToolingItems },
     { title: 'Optimization', children: optimizationItems },
     { title: 'Security', children: securityItems },
-    { title: 'Technical Specification', children: technicalSpecificationItems },
-    { title: 'Upgrade and Migration', children: upgradeAndMigrationItems }
+    { title: 'Technical specification', children: technicalSpecificationItems },
+    { title: 'Upgrade and migration', children: upgradeAndMigrationItems }
   ]
 };

@@ -202,7 +202,7 @@ You can create custom language sets for your implementations, or share them, as 
 
 It's really important for us, that the community is a important part of the growth of our library. We encourage you to create and share your translations!
 
-Additional languages files should be placed in the `src/i18n/languages` folder of the Handsontable repository with name corresponding to the chosen language code (described below, for example: `es-VE.js`). You can incorporate your translations to the Handsontable library by sending us a [pull request](@/guides/building-and-testing/building.md). It's important, that your changes are not made to the `/languages` and `/dist/languages` directories! Our release master will generate files which will be placed there in the building process. After that, you will be able to use the languages in `Handsontable`.
+Additional languages files should be placed in the `src/i18n/languages` folder of the Handsontable repository with name corresponding to the chosen language code (described below, for example: `es-VE.js`). You can incorporate your translations to the Handsontable library by sending us a [pull request](@/guides/tools-and-building/custom-builds.md). It's important, that your changes are not made to the `/languages` and `/dist/languages` directories! Our release master will generate files which will be placed there in the building process. After that, you will be able to use the languages in `Handsontable`.
 
 You can see a full template of a sample language at the bottom of this paragraph. We're basing it on our [default language pack](https://github.com/handsontable/handsontable/tree/master/src/i18n/languages/en-US.js). Parts of the file creation process are described below.
 
@@ -278,7 +278,7 @@ You can see a full template of a sample language at the bottom of this paragraph
     };
     ```
 
-7.  Voilà! You've created a language which can be used just by you or shared with others. We wait for at least 5 positive feedback from users to accept a created [pull request](@/guides/building-and-testing/building.md).
+7.  Voilà! You've created a language which can be used just by you or shared with others. We wait for at least 5 positive feedback from users to accept a created [pull request](@/guides/tools-and-building/custom-builds.md).
 
 ### Local language
 

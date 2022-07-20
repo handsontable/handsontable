@@ -26,14 +26,6 @@ To get the most out of using Handsontable's modules:
 2. Import [optional modules](#optional-modules) of your choice.
 3. Remove redundant code (so-called tree shaking).
 
-#### Use modules in frameworks
-
-To find out how to use modules with Handsontable's framework wrappers, see the following guides:
-- [Modules in React](../../react-data-grid/modules)
-- [Modules in Angular](@/guides/integrate-with-angular/angular-modules.md)
-- [Modules in Vue 2](@/guides/integrate-with-vue/vue-modules.md)
-- [Modules in Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)
-
 #### Bundler support
 
 To use Handsontable's modules, your environment needs to support the `import` syntax, which is typically provided by a bundler.
@@ -903,10 +895,12 @@ You can also use modules with Handsontable's framework wrappers:
 
 - [Bundle size](@/guides/optimization/bundle-size.md)
 - [Installation](@/guides/getting-started/installation.md)
+::: only-for javascript
 - [Modules in React](../../react-data-grid/modules)
 - [Modules in Angular](@/guides/integrate-with-angular/angular-modules.md)
 - [Modules in Vue 2](@/guides/integrate-with-vue/vue-modules.md)
 - [Modules in Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)
+:::
 
 ### Related blog articles
 

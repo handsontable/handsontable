@@ -19,7 +19,7 @@ Plugins are a great way of extending Handsontable's capabilities. In fact, most 
 
 This guide shows you how to create a custom plugin.
 
-### 1. Prerequisitese
+### 1. Prerequisites
 
 Import the following:
 - [`BasePlugin`](@/api/basePlugin.md) - a built-in interface that lets you work within Handsontable's lifecycle,

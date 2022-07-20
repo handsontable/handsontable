@@ -70,4 +70,3 @@ new Handsontable(container, {
 ## Related guides
 
 - [Modules](@/guides/tools-and-building/modules.md)
-- [Bundle size](@/guides/optimization/bundle-size.md)
