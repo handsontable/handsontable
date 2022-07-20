@@ -415,7 +415,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 }
 ```
 
-## [`afterFormulasValuesUpdate](@/api/hooks.md#afterformulasvaluesupdate)` hook
+## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
 This hook listens for any changes to cells in the calculation engine, including dependent cells containing formulas.
 
