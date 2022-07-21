@@ -7,20 +7,8 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const { buildCode } = require('./code-builder');
 const { jsfiddle } = require('./jsfiddle');
-const {
-  getDefaultFramework,
-  isEnvDev,
-  parseVersion
-} = require('../../helpers');
-const {
-  getContainerFrontMatterLength,
-  getContainerFramework
-} = require('../helpers');
-const {
-  SnippetTransformer,
-  logChange,
-  SUPPORTED_FRAMEWORKS
-} = require('../../tools/snippet-transformer/snippetTransformer');
+const { getContainerFramework } = require('../helpers');
+const { parseVersion } = require('../../helpers');
 
 const tab = (tabName, token) => {
   if (!token) return [];
@@ -105,7 +93,7 @@ module.exports = {
       const htmlContent = htmlToken
         ? htmlToken.content
         : `<div id="${id}" class="hot ${klass}"></div>`;
-      let htmlContentRoot = `<div data-preset-type="${preset}">${htmlContent}</div>`;
+      const htmlContentRoot = `<div data-preset-type="${preset}">${htmlContent}</div>`;
 
       const cssPos = args.match(/--css (\d*)/)?.[1];
       const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;
@@ -115,52 +103,10 @@ module.exports = {
       const jsPos = args.match(/--js (\d*)/)?.[1] || 1;
       const jsIndex = index + Number.parseInt(jsPos, 10);
       const jsToken = tokens[jsIndex];
-      let jsContent = jsToken.content;
+      const jsContent = jsToken.content;
 
       const filePath = env.relativePath;
       const framework = getContainerFramework(filePath);
-
-      // Transform the JS snippet to the framework-based one, where the framework is defined in the `DOCS_FRAMEWORK`
-      // environmental variable or retrieved from the `.md` url (depending on the build script being run).
-      if (
-        !['angular', 'react', 'vue'].some(value => preset.includes(value)) &&
-        (framework &&
-          framework !== getDefaultFramework() &&
-          SUPPORTED_FRAMEWORKS.includes(framework)
-        )
-      ) {
-        const frontMatterLength = getContainerFrontMatterLength(env.frontmatter);
-        const lineNumber = tokens[jsIndex].map[0] + frontMatterLength;
-        const snippetTransformer = new SnippetTransformer(framework, jsContent, filePath, lineNumber);
-        const transformedSnippetContent = snippetTransformer.makeSnippet(true, true, id);
-
-        // Don't log the the HTML log file while in the watch script.
-        if (!isEnvDev()) {
-          // Log the transformation in the log file.
-          logChange(
-            jsContent,
-            transformedSnippetContent.error || transformedSnippetContent,
-            filePath,
-            lineNumber
-          );
-        }
-
-        if (!transformedSnippetContent.error) {
-          const basePreset = preset;
-
-          // Inject a correct preset for the framework.
-          preset = preset.replace('hot', framework.replace(/\d/, ''));
-
-          // Workaround for `hot` presets having the `lang` postfix, while other frameworks -> `languages`.
-          preset = preset.replace('lang', 'languages');
-
-          // Replace the `data-preset-type` attribute value with the updates preset name.
-          htmlContentRoot = htmlContentRoot.replace(`data-preset-type="${basePreset}"`, `data-preset-type="${preset}"`);
-
-          jsContent = transformedSnippetContent;
-          jsToken.content = jsContent;
-        }
-      }
 
       const activeTab = args.match(/--tab (code|html|css|preview)/)?.[1] || 'code';
       const noEdit = !!args.match(/--no-edit/)?.[0];
