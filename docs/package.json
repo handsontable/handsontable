@@ -10,8 +10,8 @@
     "directory": "docs"
   },
   "scripts": {
-    "docs:lint": "eslint --ext .js,.vue,.mjs .vuepress next",
-    "docs:lint:fix": "eslint --ext .js,.vue,.mjs .vuepress next --fix",
+    "docs:lint": "eslint --ext .js,.vue,.mjs .vuepress content",
+    "docs:lint:fix": "eslint --ext .js,.vue,.mjs .vuepress content --fix",
     "docs:scripts:link-assets": "node .vuepress/tools/link-assets.mjs",
     "docs:scripts:generate-legacy-docs-versions": "node .vuepress/tools/generate-legacy-docs-versions.mjs",
     "docs:start": "npm run docs:scripts:link-assets && vuepress dev ./",
