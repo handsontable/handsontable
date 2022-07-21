@@ -1,6 +1,10 @@
 // setup Jasmine
+const path = require('path');
+const { createServer } = require('http-server');
 const Jasmine = require('jasmine');
+
 const jasmine = new Jasmine();
+
 jasmine.loadConfig({
     spec_dir: 'spec',
     spec_files: ['**/*[sS]pec.js'],
@@ -27,4 +31,22 @@ const reporter = new JasmineReporter({
 // initialize and execute
 jasmine.env.clearReporters();
 jasmine.addReporter(reporter);
-jasmine.execute(); 
+jasmine.execute();
+
+let server;
+
+beforeAll(() => {
+  if (!process.env.TEST_URL) {
+    server = createServer({
+      root: path.resolve(`${__dirname}`, '../../dist'),
+      showDir: true,
+      autoIndex: true,
+    });
+
+    server.listen('8080');
+  }
+});
+
+afterAll(() => {
+  server?.close();
+});

@@ -63,7 +63,7 @@ Read more:
 **Example**  
 ```js
 // enable the `MergeCells` plugin
-margeCells: true,
+mergeCells: true,
 
 // enable the `MergeCells` plugin
 // and merge specific cells at initialization

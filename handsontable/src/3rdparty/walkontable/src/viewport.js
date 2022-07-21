@@ -446,6 +446,12 @@ class Viewport {
     }
 
     const { startRow, endRow } = proposedRowsVisibleCalculator;
+
+    // if there are no fully visible rows at all, return false
+    if (startRow === null && endRow === null) {
+      return false;
+    }
+
     const { startRow: renderedStartRow, endRow: renderedEndRow } = this.rowsRenderCalculator;
 
     if (startRow < renderedStartRow || (startRow === renderedStartRow && startRow > 0)) {
@@ -473,6 +479,12 @@ class Viewport {
     }
 
     const { startColumn, endColumn } = proposedColumnsVisibleCalculator;
+
+    // if there are no fully visible columns at all, return false
+    if (startColumn === null && endColumn === null) {
+      return false;
+    }
+
     const { startColumn: renderedStartColumn, endColumn: renderedEndColumn } = this.columnsRenderCalculator;
 
     if (startColumn < renderedStartColumn || (startColumn === renderedStartColumn && startColumn > 0)) {

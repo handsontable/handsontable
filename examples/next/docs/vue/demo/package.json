@@ -20,24 +20,22 @@
     "@handsontable/vue": "latest",
     "core-js": "3.9.1",
     "handsontable": "latest",
-    "vue": "2.6.12"
+    "vue": "2.6.14"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.18.0",
     "@vue/cli-plugin-eslint": "4.5.13",
-    "@vue/cli-plugin-typescript": "~4.5.0",
-    "@vue/cli-service": "4.5.13",
-    "@vue/eslint-config-typescript": "^7.0.0",
+    "@vue/cli-plugin-typescript": "^4.5.0",
+    "@vue/cli-service": "4.4.6",
+    "babel-eslint": "10.1.0",
     "eslint": "6.8.0",
-    "eslint-plugin-vue": "^7.13.0",
+    "eslint-plugin-vue": "6.2.2",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
-    "node-sass": "^6.0.1",
-    "puppeteer": "7.1.0",
-    "sass-loader": "^10.2.0",
-    "typescript": "^4.4.0",
-    "vue-template-compiler": "2.6.12"
+    "puppeteer": "14.3.0",
+    "vue-template-compiler": "2.6.14",
+    "typescript": "3.8.3"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "eslintConfig": {
