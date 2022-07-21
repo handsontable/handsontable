@@ -1,11 +1,16 @@
 const path = require('path');
+<<<<<<< HEAD
 const chalk = require('chalk');
+=======
+const stylusNodes = require('stylus/lib/nodes');
+>>>>>>> develop
 const highlight = require('./highlight');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
-const assetsVersioningPlugin = require('./plugins/assets-versioning');
+const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
+<<<<<<< HEAD
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
 const {
@@ -20,8 +25,14 @@ const {
   getIgnoredFilesPatterns,
   FRAMEWORK_SUFFIX,
 } = require('./helpers');
+=======
+const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
+const { getThisDocsVersion, getDocsBaseUrl } = require('./helpers');
+>>>>>>> develop
 
+const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
 const buildMode = process.env.BUILD_MODE;
+<<<<<<< HEAD
 let versionPartialPath = '';
 let frameworkPartialPath = '';
 
@@ -64,6 +75,10 @@ const redirectsPlugin = isLatest ?
   }] : {};
 
 const environmentHead = buildMode === 'production' ?
+=======
+const isProduction = buildMode === 'production';
+const environmentHead = isProduction ?
+>>>>>>> develop
   [
     // Google Tag Manager, an extra element within the `ssr.html` file.
     ['script', {}, `
@@ -85,15 +100,28 @@ module.exports = {
     GA_ID: 'UA-33932793-7',
   },
   patterns: [
+<<<<<<< HEAD
     `${isEnvDev() ? `${TMP_DIR_FOR_WATCH}/` : ''}${versionPartialPath}${isEnvDev() && getEnvDocsFramework() ?
       `${frameworkPartialPath}` : ''}**/*.md`,
     '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md',
     ...getIgnoredFilesPatterns(buildMode),
+=======
+    'content/**/*.md'
+>>>>>>> develop
   ],
   description: 'Handsontable',
-  base,
+  base: `/docs/${docsBase === 'latest' ? '' : `${docsBase}/`}`,
   head: [
-    ['link', { rel: 'icon', href: `${getDocsBaseUrl()}/static/images/template/ModCommon/favicon-32x32.png` }],
+    ['link', {
+      rel: 'icon',
+      href: `${getDocsBaseUrl()}/static/images/template/ModCommon/favicon-32x32.png`
+    }],
+    ['link', {
+      rel: 'preload',
+      href: isProduction ? `${getDocsBaseUrl()}/docs/data/common.json` : '/data/common.json',
+      as: 'fetch',
+      crossorigin: ''
+    }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     // Cookiebot - cookie consent popup
     ['script', {
@@ -121,6 +149,15 @@ module.exports = {
       symlinks: false,
     }
   },
+  stylus: {
+    preferPathResolver: 'webpack',
+    define: {
+      versionedUrl: (expression) => {
+        return new stylusNodes
+          .Literal(`url("${expression.string.replace('{docsVersion}', getThisDocsVersion())}")`);
+      },
+    }
+  },
   plugins: [
     extendPageDataPlugin,
     'tabs',
@@ -132,10 +169,48 @@ module.exports = {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
     }],
-    ['container', examples],
+    ['container', examples(getThisDocsVersion())],
     ['container', sourceCodeLink],
     {
       extendMarkdown(md) {
+        const imageOrig = md.renderer.rules.image;
+
+        // Add support for markdown images and links to have ability to substitute the
+        // docs latest version variable to the "src" or "href" attributes.
+        md.renderer.rules.image = function(tokens, ...rest) {
+          tokens.forEach((token) => {
+            token.attrs.forEach(([name, value], index) => {
+              if (name === 'src') {
+                token.attrs[index][1] = (
+                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                );
+              }
+            });
+          });
+
+          return imageOrig(tokens, ...rest);
+        };
+
+        const linkOrig = md.renderer.rules.link_open;
+
+        md.renderer.rules.link_open = function(tokens, ...rest) {
+          tokens.forEach((token) => {
+            if (token.type !== 'link_open') {
+              return;
+            }
+
+            token.attrs.forEach(([name, value], index) => {
+              if (name === 'href') {
+                token.attrs[index][1] = (
+                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                );
+              }
+            });
+          });
+
+          return linkOrig(tokens, ...rest);
+        };
+
         const render = function(tokens, options, env) {
           let i; let type;
           let result = '';
@@ -147,7 +222,7 @@ module.exports = {
             if (type === 'inline') {
               result += this.renderInline(tokens[i].children, options, env);
             } else if (typeof rules[type] !== 'undefined') {
-              result += rules[tokens[i].type](tokens, i, options, env, this);
+              result += rules[tokens[i].type](tokens, i, options, env, this, getThisDocsVersion());
             } else {
               result += this.renderToken(tokens, i, options, env);
             }
@@ -175,8 +250,15 @@ module.exports = {
           .end();
       },
     },
-    assetsVersioningPlugin,
-    redirectsPlugin
+    [dumpDocsDataPlugin, {
+      outputDir: path.resolve(__dirname, './public/data/')
+    }],
+    [nginxRedirectsPlugin, {
+      outputFile: path.resolve(__dirname, '../docker/redirects-autogenerated.conf')
+    }],
+    [nginxVariablesPlugin, {
+      outputFile: path.resolve(__dirname, '../docker/variables.conf')
+    }]
   ],
   themeConfig: {
     nextLinks: true,

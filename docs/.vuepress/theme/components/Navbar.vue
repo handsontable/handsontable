@@ -3,7 +3,7 @@
     <SidebarButton @toggle-sidebar="$emit('toggle-sidebar')" />
 
     <RouterLink
-        :to="versionedUrl($localePath)"
+        :to="'/'"
         class="home-link"
     >
 
@@ -39,8 +39,11 @@ import SidebarButton from '@theme/components/SidebarButton.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
+<<<<<<< HEAD
 import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
 import { ensureExt } from '@vuepress/theme-default/util';
+=======
+>>>>>>> develop
 import Logo from './Logo.vue';
 
 export default {
@@ -55,6 +58,7 @@ export default {
     ThemeSwitcher,
     Logo
   },
+<<<<<<< HEAD
   methods: {
     versionedUrl(url) {
       const framework = this.$page.currentFramework ?
@@ -72,6 +76,8 @@ export default {
       }
     },
   },
+=======
+>>>>>>> develop
   data() {
     return {
       linksWrapMaxWidth: null

@@ -1,5 +1,5 @@
-const fs = require('fs');
 const path = require('path');
+<<<<<<< HEAD
 const semver = require('semver');
 const fsExtra = require('fs-extra');
 
@@ -94,21 +94,40 @@ function getPrettyFrameworkName(framework) {
 
 /**
  * Gets the latest version of docs.
+=======
+const execa = require('execa');
+
+const versionFromBranchRegExp = /^prod-docs\/(\d+\.\d+)$/;
+let docsVersion = null;
+
+/**
+ * Gets the current (this) version of docs.
+>>>>>>> develop
  *
  * @returns {string}
  */
-function getLatestVersion() {
-  return availableVersions[0];
+function getThisDocsVersion() {
+  if (docsVersion === null) {
+    const branchName = execa.sync('git rev-parse --abbrev-ref HEAD', { shell: true }).stdout;
+
+    if (versionFromBranchRegExp.test(branchName)) {
+      docsVersion = branchName.match(versionFromBranchRegExp)[1];
+    } else {
+      docsVersion = 'next';
+    }
+  }
+
+  return docsVersion;
 }
 
 /**
  * Gets the sidebar object for docs.
  *
- * @param {string} buildMode The env name.
  * @returns {object}
  */
-function getSidebars(buildMode) {
+function getSidebars() {
   const sidebars = { };
+<<<<<<< HEAD
   const frameworks = getFrameworks();
   const getTransformedGuides = (guides, currentFramework) => {
     const filterElementsForFramework = element =>
@@ -171,11 +190,21 @@ function getSidebars(buildMode) {
       sidebars[`/${version}/`] = getTransformedGuides(sidebarConfig.guides, getEnvDocsFramework());
     });
   }
+=======
+
+  // eslint-disable-next-line
+  const s = require(path.join(__dirname, '../content/sidebars.js'));
+
+  sidebars['/content/examples/'] = s.examples;
+  sidebars['/content/api/'] = s.api;
+  sidebars['/content/'] = s.guides;
+>>>>>>> develop
 
   return sidebars;
 }
 
 /**
+<<<<<<< HEAD
  * Removes temporary directory from the path when needed.
  *
  * @param {string} normalizedPath Path for unification.
@@ -357,6 +386,8 @@ function createSymlinks(buildMode) {
 }
 
 /**
+=======
+>>>>>>> develop
  * Gets docs base url (eq: https://handsontable.com).
  *
  * @returns {string}
@@ -366,6 +397,7 @@ function getDocsBaseUrl() {
 }
 
 module.exports = {
+<<<<<<< HEAD
   TMP_DIR_FOR_WATCH,
   FRAMEWORK_SUFFIX,
   getNormalizedPath,
@@ -384,6 +416,10 @@ module.exports = {
   getDefaultFramework,
   isEnvDev,
   createSymlinks,
+=======
+  getThisDocsVersion,
+  getSidebars,
+>>>>>>> develop
   getDocsBaseUrl,
   getIgnoredFilesPatterns,
 };

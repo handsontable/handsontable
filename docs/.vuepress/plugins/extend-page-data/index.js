@@ -1,9 +1,13 @@
 const {
   getSidebars,
+<<<<<<< HEAD
   getLatestVersion,
   getNormalizedPath,
   parseVersion,
   parseFramework,
+=======
+  getThisDocsVersion,
+>>>>>>> develop
   getDocsBaseUrl,
   getPrettyFrameworkName,
   getEnvDocsFramework,
@@ -15,15 +19,26 @@ const {
   FRAMEWORK_SUFFIX,
   getNotSearchableLinks,
 } = require('../../helpers');
-const { collectAllUrls, getCanonicalUrl } = require('./canonicals');
 
 const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/extend-page-data';
 
+<<<<<<< HEAD
 const DOCS_VERSION = getEnvDocsVersion();
 const DOCS_FRAMEWORK = getEnvDocsFramework();
 
 collectAllUrls();
+=======
+/**
+ * Dedupes the slashes in the string.
+ *
+ * @param {string} string String to process.
+ * @returns {string}
+ */
+function dedupeSlashes(string) {
+  return string.replace(/(\/)+/g, '$1');
+}
+>>>>>>> develop
 
 const notSearchableLinks = getNotSearchableLinks(buildMode);
 const formatDate = (dateString) => {
@@ -39,7 +54,7 @@ module.exports = (options, context) => {
     name: pluginName,
 
     ready() {
-      context.themeConfig.sidebar = getSidebars(buildMode);
+      context.themeConfig.sidebar = getSidebars();
     },
 
     /**
@@ -48,6 +63,7 @@ module.exports = (options, context) => {
      * @param {object} $page The $page value of the page you’re currently reading.
      */
     extendPageData($page) {
+<<<<<<< HEAD
       $page.DOCS_VERSION = DOCS_VERSION;
       $page.DOCS_FRAMEWORK = DOCS_FRAMEWORK;
       $page.normalizedPath = getNormalizedPath($page.path);
@@ -98,6 +114,13 @@ module.exports = (options, context) => {
             ...permalinkPartsWithoutVersion].join('');
         }
       }
+=======
+      $page.currentVersion = getThisDocsVersion();
+      $page.buildMode = buildMode;
+      $page.baseUrl = getDocsBaseUrl();
+      $page.lastUpdatedFormat = formatDate($page.lastUpdated);
+      $page.frontmatter.canonicalUrl = dedupeSlashes(`/docs${$page.frontmatter.canonicalUrl}/`);
+>>>>>>> develop
     },
   };
 };

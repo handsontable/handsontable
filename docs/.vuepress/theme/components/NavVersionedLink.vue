@@ -26,6 +26,7 @@ export default {
       return ensureExt(this.item.link);
     },
     versionedLink() {
+<<<<<<< HEAD
       const link = this.item.link;
 
       const framework = this.$page.currentFramework ?
@@ -38,6 +39,10 @@ export default {
       } else if (this.$page.currentVersion === this.$page.latestVersion) {
         return ensureExt(`${framework}${link}`);
 
+=======
+      if (this.$page.currentVersion === this.$page.latestVersion) {
+        return ensureExt(this.item.link);
+>>>>>>> develop
       } else {
         return ensureExt(`/${this.$page.currentVersion}${framework}${link}`);
       }
