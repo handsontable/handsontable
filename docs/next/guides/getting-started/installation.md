@@ -48,13 +48,16 @@ You can get started with Handsontable in a few different ways. The most common i
   ```js
   import Handsontable from "handsontable";
   import "handsontable/dist/handsontable.full.css";
+
   const data = [
     ["", "Tesla", "Volvo", "Toyota", "Ford"],
     ["2019", 10, 11, 12, 13],
     ["2020", 20, 11, 14, 13],
     ["2021", 30, 15, 12, 13],
   ];
+
   const container = document.getElementById("example");
+
   const hot = new Handsontable(container, {
     data: data,
     rowHeaders: true,
@@ -85,7 +88,16 @@ To install Handsontable locally using a package manager, run one of these comman
 
 <code-group>
   <code-block title="npm">
-	@@ -99,81 +44,50 @@ To install Handsontable locally using a package manager, run one of these comman
+
+  ```bash
+  npm install handsontable
+  ```
+
+  </code-block>
+  <code-block title="Yarn">
+
+  ```bash
+  yarn add handsontable
   ```
 
   </code-block>
@@ -167,7 +179,39 @@ Now turn your container into a data grid with sample data.
 ```js
 const data = [
   ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-	@@ -213,14 +127,50 @@ const hot = new Handsontable(container, {
+  ['2019', 10, 11, 12, 13],
+  ['2020', 20, 11, 14, 13],
+  ['2021', 30, 15, 12, 13]
+];
+
+const container = document.getElementById('example');
+const hot = new Handsontable(container, {
+  data: data,
+  rowHeaders: true,
+  colHeaders: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+});
+```
+
+## Preview the result
+
+::: example #example
+```js
+const data = [
+  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+  ['2019', 10, 11, 12, 13],
+  ['2020', 20, 11, 14, 13],
+  ['2021', 30, 15, 12, 13]
+];
+
+const container = document.getElementById('example');
+const hot = new Handsontable(container, {
+  data: data,
+  rowHeaders: true,
+  colHeaders: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
 });
 ```
 :::

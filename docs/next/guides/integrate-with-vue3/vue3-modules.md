@@ -39,12 +39,13 @@ For example, to import the [`numeric`](@/guides/cell-types/numeric-cell-type.md)
 
 ```js
 import {
-registerCellType, // cell types' registering function
-NumericCellType,
+  registerCellType, // cell types' registering function
+  NumericCellType,
 } from 'handsontable/cellTypes';
+
 import {
-registerPlugin, // plugins' registering function
-UndoRedo,
+  registerPlugin, // plugins' registering function
+  UndoRedo,
 } from 'handsontable/plugins';
 ```
 
@@ -64,11 +65,23 @@ registerPlugin(UndoRedo);
 ```js
 import { createApp } from 'vue';
 import App from './App.vue';
-	@@ -79,13 +77,16 @@ import {
+import router from './router';
+
+import Handsontable from 'handsontable/base';
+
+import {
+  registerCellType,
+  NumericCellType,
+} from 'handsontable/cellTypes';
+
+import {
+  registerPlugin,
   UndoRedo,
 } from 'handsontable/plugins';
+
 registerCellType(NumericCellType);
 registerPlugin(UndoRedo);
+
 createApp(App).use(router).mount('#app');
 ```
 
