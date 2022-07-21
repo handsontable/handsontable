@@ -1,21 +1,21 @@
 ---
-title: '\<HotColumn/> component'
-metaTitle: '<HotColumn/> component - Guide - Handsontable Documentation'
+title: '\<HotColumn /> component'
+metaTitle: '<HotColumn /> component - Guide - Handsontable Documentation'
 permalink: /next/hot-column
 canonicalUrl: /hot-column
 ---
 
-# `<HotColumn/>` component
+# `<HotColumn />` component
 
 [[toc]]
 
 ## Overview
 
-You can configure the column-related settings using the `<HotColumn/>` component's attributes. You can also create custom renderers and editors using React components.
+You can configure the column-related settings using the `<HotColumn />` component's attributes. You can also create custom renderers and editors using React components.
 
 ## Declaring column settings
 
-To declare column-specific settings, pass the settings as `<HotColumn/>` properties, either separately or wrapped as a `settings` property, exactly as you would with `HotTable`.
+To declare column-specific settings, pass the settings as `<HotColumn />` properties, either separately or wrapped as a `settings` property, exactly as you would with `HotTable`.
 
 ::: example #example1 :react --tab preview
 ```jsx
@@ -102,7 +102,7 @@ ReactDOM.render(<App />, document.getElementById('example2'));
  
 ## Object data source
 
-When you use object data binding for `<HotColumn/>`, you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in properties as `data`, for example, `<HotColumn data="id" />`:
+When you use object data binding for `<HotColumn />`, you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in properties as `data`, for example, `<HotColumn data="id" />`:
 
 ::: example #example3 :react --tab preview
 ```jsx
