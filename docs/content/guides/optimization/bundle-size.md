@@ -1,7 +1,7 @@
 ---
 title: Bundle size
 metaTitle: Bundle size - Guide - Handsontable Documentation
-permalink: /next/bundle-size
+permalink: /bundle-size
 canonicalUrl: /bundle-size
 tags:
   - size

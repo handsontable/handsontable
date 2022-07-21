@@ -1,7 +1,7 @@
 ---
 title: Custom builds
 metaTitle: Custom builds - Guide - Handsontable Documentation
-permalink: /next/custom-builds
+permalink: /custom-builds
 canonicalUrl: /custom-builds
 tags:
   - building

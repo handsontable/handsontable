@@ -1,7 +1,7 @@
 ---
 title: 'Vuex in Vue 3'
 metaTitle: 'Vuex in Vue 3 - Guide - Handsontable Documentation'
-permalink: /next/vue3-vuex-example
+permalink: /vue3-vuex-example
 canonicalUrl: /vue3-vuex-example
 ---
 

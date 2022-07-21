@@ -1,7 +1,7 @@
 ---
 title: 'Custom editor in Angular'
 metaTitle: 'Custom editor in Angular - Guide - Handsontable Documentation'
-permalink: /next/angular-custom-editor-example
+permalink: /angular-custom-editor-example
 canonicalUrl: /angular-custom-editor-example
 ---
 

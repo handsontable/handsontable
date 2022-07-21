@@ -1,7 +1,7 @@
 ---
 title: 'Custom renderer in Vue 2'
 metaTitle: 'Custom renderer in Vue 2 - Guide - Handsontable Documentation'
-permalink: /next/vue-custom-renderer-example
+permalink: /vue-custom-renderer-example
 canonicalUrl: /vue-custom-renderer-example
 ---
 
@@ -39,8 +39,8 @@ new Vue({
       hotSettings: {
         data:
           [
-            ['A1', 'https://handsontable.com/docs/next/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-            ['A2', 'https://handsontable.com/docs/next/img/examples/javascript-the-good-parts.jpg']],
+            ['A1', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+            ['A2', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/javascript-the-good-parts.jpg']],
         columns: [
           {},
           {

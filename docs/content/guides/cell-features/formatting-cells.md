@@ -1,7 +1,7 @@
 ---
 title: Formatting cells
 metaTitle: Formatting cells - Guide - Handsontable Documentation
-permalink: /next/formatting-cells
+permalink: /formatting-cells
 canonicalUrl: /formatting-cells
 ---
 

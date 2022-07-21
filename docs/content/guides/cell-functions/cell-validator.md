@@ -1,7 +1,7 @@
 ---
 title: Cell validator
 metaTitle: Cell validator - Guide - Handsontable Documentation
-permalink: /next/cell-validator
+permalink: /cell-validator
 canonicalUrl: /cell-validator
 ---
 

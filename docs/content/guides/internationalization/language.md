@@ -1,7 +1,7 @@
 ---
 title: Language
 metaTitle: Language - Guide - Handsontable Documentation
-permalink: /next/language
+permalink: /language
 canonicalUrl: /language
 tags:
   - internationalization

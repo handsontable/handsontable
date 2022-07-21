@@ -1,7 +1,7 @@
 ---
 title: Saving data
 metaTitle: Saving data - Guide - Handsontable Documentation
-permalink: /next/saving-data
+permalink: /saving-data
 canonicalUrl: /saving-data
 tags:
   - load and save
@@ -63,7 +63,7 @@ const hot = new Handsontable(container, {
 
     clearTimeout(autosaveNotification);
 
-    ajax('/docs/next/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
+    ajax('/docs/{{$page.currentVersion}}/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
       exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
       autosaveNotification = setTimeout(() => {
         exampleConsole.innerText ='Changes will be autosaved';

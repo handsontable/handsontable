@@ -1,6 +1,6 @@
 ---
 title: Plugins
-permalink: /next/api/plugins
+permalink: /api/plugins
 canonicalUrl: /api/plugins
 ---
 

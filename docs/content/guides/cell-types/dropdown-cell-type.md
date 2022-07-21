@@ -1,7 +1,7 @@
 ---
 title: Dropdown cell type
 metaTitle: Dropdown cell type - Guide - Handsontable Documentation
-permalink: /next/dropdown-cell-type
+permalink: /dropdown-cell-type
 canonicalUrl: /dropdown-cell-type
 ---
 

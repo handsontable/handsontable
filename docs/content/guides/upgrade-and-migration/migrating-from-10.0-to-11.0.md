@@ -1,7 +1,7 @@
 ---
 title: Migrating from 10.0 to 11.0
 metaTitle: Migrating from 10.0 to 11.0 - Guide - Handsontable Documentation
-permalink: /next/migration-from-10.0-to-11.0
+permalink: /migration-from-10.0-to-11.0
 canonicalUrl: /migration-from-10.0-to-11.0
 pageClass: migration-guide
 ---

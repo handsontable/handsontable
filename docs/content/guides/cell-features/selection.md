@@ -1,7 +1,7 @@
 ---
 title: Selection
 metaTitle: Selection - Guide - Handsontable Documentation
-permalink: /next/selection
+permalink: /selection
 canonicalUrl: /selection
 tags:
   - selecting ranges
@@ -183,7 +183,7 @@ For non-adjacent selection, multiple classes are making each level a bit darker.
 
 Unfortunately, there is no easy way to change the border color of the selection.
 
-## Jumping across the grid's edges 
+## Jumping across the grid's edges
 
 When you use keyboard navigation, and you cross an edge of the grid, you can set cell selection to jump to the opposite edge.
 

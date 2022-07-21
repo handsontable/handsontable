@@ -1,7 +1,7 @@
 ---
 title: Migrating from 9.0 to 10.0
 metaTitle: Migrating from 9.0 to 10.0 - Guide - Handsontable Documentation
-permalink: /next/migration-from-9.0-to-10.0
+permalink: /migration-from-9.0-to-10.0
 canonicalUrl: /migration-from-9.0-to-10.0
 pageClass: migration-guide
 ---

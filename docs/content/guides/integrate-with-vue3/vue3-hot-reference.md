@@ -1,7 +1,7 @@
 ---
 title: 'Referencing the Handsontable instance in Vue 3'
 metaTitle: 'Referencing the Handsontable instance in Vue 3 - Guide - Handsontable Documentation'
-permalink: /next/vue3-hot-reference
+permalink: /vue3-hot-reference
 canonicalUrl: /vue3-hot-reference
 ---
 

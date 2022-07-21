@@ -1,7 +1,7 @@
 ---
 title: 'Basic example in Vue 2'
 metaTitle: 'Basic example in Vue 2 - Guide - Handsontable Documentation'
-permalink: /next/vue-simple-example
+permalink: /vue-simple-example
 canonicalUrl: /vue-simple-example
 ---
 

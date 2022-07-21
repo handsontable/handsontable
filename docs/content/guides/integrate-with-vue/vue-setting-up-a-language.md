@@ -1,7 +1,7 @@
 ---
 title: 'Setting up a translation in Vue 2'
 metaTitle: 'Setting up a translation in Vue 2 - Guide - Handsontable Documentation'
-permalink: /next/vue-setting-up-a-language
+permalink: /vue-setting-up-a-language
 canonicalUrl: /vue-setting-up-a-language
 ---
 

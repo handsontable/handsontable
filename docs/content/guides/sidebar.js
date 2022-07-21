@@ -195,5 +195,5 @@ module.exports = {
     { title: 'Security', children: securityItems },
     { title: 'Technical specification', children: technicalSpecificationItems },
     { title: 'Upgrade and migration', children: upgradeAndMigrationItems }
-  ]
+  ],
 };

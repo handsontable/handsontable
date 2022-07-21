@@ -1,7 +1,7 @@
 ---
 title: Demo
 metaTitle: Demo - Guide - Handsontable Documentation
-permalink: /next/demo
+permalink: /demo
 canonicalUrl: /demo
 tags:
   - demo

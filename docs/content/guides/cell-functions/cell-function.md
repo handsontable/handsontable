@@ -1,7 +1,7 @@
 ---
 title: Cell function
 metaTitle: Cell function - Guide - Handsontable Documentation
-permalink: /next/cell-function
+permalink: /cell-function
 canonicalUrl: /cell-function
 ---
 

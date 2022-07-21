@@ -1,7 +1,7 @@
 ---
 title: Column virtualization
 metaTitle: Column virtualization - Guide - Handsontable Documentation
-permalink: /next/column-virtualization
+permalink: /column-virtualization
 canonicalUrl: /column-virtualization
 tags:
   - dom

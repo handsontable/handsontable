@@ -1,7 +1,7 @@
 ---
 title: 'Referencing the Handsontable instance in Angular'
 metaTitle: 'Referencing the Handsontable instance in Angular - Guide - Handsontable Documentation'
-permalink: /next/angular-hot-reference
+permalink: /angular-hot-reference
 canonicalUrl: /angular-hot-reference
 ---
 

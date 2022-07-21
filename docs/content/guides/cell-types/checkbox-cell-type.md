@@ -1,7 +1,7 @@
 ---
 title: Checkbox cell type
 metaTitle: Checkbox cell type - Guide - Handsontable Documentation
-permalink: /next/checkbox-cell-type
+permalink: /checkbox-cell-type
 canonicalUrl: /checkbox-cell-type
 ---
 
@@ -10,7 +10,7 @@ canonicalUrl: /checkbox-cell-type
 [[toc]]
 
 ## Overview
-Data in these cells will be rendered as a checkbox and can be easily changed by checking/unchecking the checkbox. 
+Data in these cells will be rendered as a checkbox and can be easily changed by checking/unchecking the checkbox.
 
 Checking the box can be performed using a mouse, or by pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd>.
 

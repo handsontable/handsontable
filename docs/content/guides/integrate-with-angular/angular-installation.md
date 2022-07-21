@@ -1,7 +1,7 @@
 ---
 title: 'Installation in Angular'
 metaTitle: 'Installation in Angular - Guide - Handsontable Documentation'
-permalink: /next/angular-installation
+permalink: /angular-installation
 canonicalUrl: /angular-installation
 ---
 

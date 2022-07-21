@@ -1,7 +1,7 @@
 ---
 title: License key
 metaTitle: License key - Guide - Handsontable Documentation
-permalink: /next/license-key
+permalink: /license-key
 canonicalUrl: /license-key
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: Modules
 metaTitle: Modules - Guide - Handsontable Documentation
-permalink: /next/modules
+permalink: /modules
 canonicalUrl: /modules
 tags:
   - tree shaking
@@ -180,7 +180,7 @@ import {
   NumericEditor,
 } from 'handsontable/editors';
 import {
-  registerValidator, 
+  registerValidator,
   numericValidator,
 } from 'handsontable/validators';
 

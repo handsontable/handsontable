@@ -1,7 +1,7 @@
 ---
 title: Security
 metaTitle: Security - Guide - Handsontable Documentation
-permalink: /next/security
+permalink: /security
 canonicalUrl: /security
 ---
 
@@ -19,7 +19,7 @@ You will need to ensure that the data transportation method used both in the bac
 Handsontable is a browser-based javascript software that does not communicate with a server. We do not offer or provide recommendations for application-specific back-end solutions.
 
 ## Content Security Policy (CSP)
-    
+
 CSP is an added layer of security used to detect and diminish certain types of attacks, including Cross-Site Scripting ([XSS](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting)) and data theft.
 
 Handsontable doesn't use external fonts, images, or scripts. Depending on whether you are hosting locally or by our recommended CDN (jsdelivr.net), you will need to use one of the following CSP rules:
@@ -30,9 +30,9 @@ default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'
 ```
 
 The CSP Rule for Handsontable hosted by CDN  - jsdelivr.net:
-```js 
+```js
 default-src 'none'; script-src 'self' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net
-``` 
+```
 
 ## Third-party software
 
@@ -44,13 +44,13 @@ We use [dompurify](https://www.npmjs.com/package/dompurify) to sanitize the cont
 
 ## High-quality code pledge
 
-We pledge to deliver high-quality code. You can see our high-quality code score [here](https://lgtm.com/projects/g/handsontable/handsontable/context:javascript). 
+We pledge to deliver high-quality code. You can see our high-quality code score [here](https://lgtm.com/projects/g/handsontable/handsontable/context:javascript).
 
 Our policy is to fix issues when they arise as quickly as possible, and keep the library up to date. This requires from you, a user of this software, to keep your copy of the software up to date.
 
 ## Security certificates
 
-We regularly order security audits of the entire Handsontable codebase, carried out by independent cybersecurity experts. 
+We regularly order security audits of the entire Handsontable codebase, carried out by independent cybersecurity experts.
 
 The latest security audits:
 
@@ -67,10 +67,10 @@ For detailed security reports, contact our [support team](https://handsontable.c
 
 ## Code auditing
 
-We use [Snyk](https://snyk.io/test/github/handsontable/handsontable?targetFile=package.json) to audit our code. Snyk integrates seamlessly into development workflows, checking for vulnerabilities in our source code and any dependencies, including open source.  
+We use [Snyk](https://snyk.io/test/github/handsontable/handsontable?targetFile=package.json) to audit our code. Snyk integrates seamlessly into development workflows, checking for vulnerabilities in our source code and any dependencies, including open source.
 
 Snyk provides security status notifications via email or Slack to:
- -  Monitor handsontable/handsontable:package.json in less than a minute 
+ -  Monitor handsontable/handsontable:package.json in less than a minute
  -  Find vulnerabilities using Snyk’s market-leading database
 
 ## Insurance
@@ -89,7 +89,7 @@ We are insured by Lloyds of London. Our policy protects Handsontable and our cus
 
 ## Code escrow
 
-**This service is available for an additional fee. [Ask our Sales](https://handsontable.com/contact?category=request_for_quotation) about the pricing.** 
+**This service is available for an additional fee. [Ask our Sales](https://handsontable.com/contact?category=request_for_quotation) about the pricing.**
 
 Code Escrow ensures that software is maintained, protected, and not abandoned.
 
@@ -100,7 +100,7 @@ We deposit all of our code releases automatically into CodeKeeper. In the case o
 ## Report a security breach
 
 Security of our software and its application in our customers' system is our top priority. Please report any suspicious activity or evidence to [security@handsontable.com](mailto:security@handsontable.com), and we will respond promptly.
- 
+
 ## Bug bounty
 
 We don't offer a bug bounty program, but we sincerely appreciate the work done by security researchers and independent developers.

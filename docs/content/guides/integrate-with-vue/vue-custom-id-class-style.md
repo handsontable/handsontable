@@ -1,7 +1,7 @@
 ---
 title: 'Custom ID, Class, Style and other attributes in Vue 2'
 metaTitle: 'Custom ID, Class, Style and other attributes in Vue 2 - Guide - Handsontable Documentation'
-permalink: /next/vue-custom-id-class-style
+permalink: /vue-custom-id-class-style
 canonicalUrl: /vue-custom-id-class-style
 ---
 

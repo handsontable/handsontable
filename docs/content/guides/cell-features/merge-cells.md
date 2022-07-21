@@ -1,7 +1,7 @@
 ---
 title: Merge cells
 metaTitle: Merge cells - Guide - Handsontable Documentation
-permalink: /next/merge-cells
+permalink: /merge-cells
 canonicalUrl: /merge-cells
 ---
 

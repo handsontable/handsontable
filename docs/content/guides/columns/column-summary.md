@@ -1,7 +1,7 @@
 ---
 title: Column summary
 metaTitle: Column summary - Guide - Handsontable Documentation
-permalink: /next/column-summary
+permalink: /column-summary
 canonicalUrl: /column-summary
 tags:
   - column summaries
@@ -337,7 +337,7 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   const array2d = [...new Array(rows)]
     .map(_ => [...new Array(columns)]
     .map(_ => counter++));
-  
+
   // add an empty row at the bottom, to display column summaries
   if (additionalRows) {
     array2d.push([]);
@@ -663,7 +663,7 @@ const hot = new Handsontable(container, {
 You can throw a data type error whenever a non-numeric value is passed to your column summary.
 
 To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummary.md) option to `false` (by default, [`suppressDataTypeErrors`](@/api/columnSummary.md) is set to `true`). For example:
- 
+
 ::: example #example11
 ```js
 const container = document.querySelector('#example11');

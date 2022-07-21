@@ -1,7 +1,7 @@
 ---
 title: Formula calculation
 metaTitle: Formula calculation - Guide - Handsontable Documentation
-permalink: /next/formula-calculation
+permalink: /formula-calculation
 canonicalUrl: /formula-calculation
 tags:
   - formula

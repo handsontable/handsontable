@@ -1,7 +1,7 @@
 ---
 title: 'Custom context menu in Vue 3'
 metaTitle: 'Custom context menu in Vue 3 - Guide - Handsontable Documentation'
-permalink: /next/vue3-custom-context-menu-example
+permalink: /vue3-custom-context-menu-example
 canonicalUrl: /vue3-custom-context-menu-example
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: Column menu
 metaTitle: Column menu - Guide - Handsontable Documentation
-permalink: /next/column-menu
+permalink: /column-menu
 canonicalUrl: /column-menu
 tags:
   - dropdown menu

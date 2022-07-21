@@ -1,7 +1,7 @@
 ---
 title: 'Modules in Vue 2'
 metaTitle: 'Modules in Vue 2 - Guide - Handsontable Documentation'
-permalink: /next/vue-modules
+permalink: /vue-modules
 canonicalUrl: /vue-modules
 ---
 
@@ -20,6 +20,7 @@ To use modules with Handsontable's [Vue 2 wrapper](@/guides/integrate-with-vue/v
 No matter which [optional modules](@/guides/tools-and-building/modules.md#optional-modules) you use, you need to import the [base module](@/guides/tools-and-building/modules.md#base-module).
 
 In the entry point file of your application, import the `handsontable/base` module:
+
 ```js
 import Handsontable from 'handsontable/base';
 ```
@@ -47,8 +48,11 @@ UndoRedo,
 ```
 
 ### Step 3: Register your modules
+
 Register your modules, to let Handsontable recognize them.
+
 For example, to register the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type module and the [`UndoRedo`](@/api/undoRedo.md) plugin module:
+
 ```jsx
 registerCellType(NumericCellType);
 registerPlugin(UndoRedo);
@@ -59,18 +63,24 @@ registerPlugin(UndoRedo);
 ```js
 import Vue from 'vue';
 import App from './App.vue';
+
 import Handsontable from 'handsontable/base';
+
 import {
   registerCellType,
   NumericCellType,
 } from 'handsontable/cellTypes';
+
 import {
   registerPlugin,
   UndoRedo,
 } from 'handsontable/plugins';
+
 registerCellType(NumericCellType);
 registerPlugin(UndoRedo);
+
 Vue.config.productionTip = false;
+
 new Vue({
   render: h => h(App),
 }).$mount('#app');

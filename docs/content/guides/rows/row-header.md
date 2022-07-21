@@ -1,7 +1,7 @@
 ---
 title: Row header
 metaTitle: Row header - Guide - Handsontable Documentation
-permalink: /next/row-header
+permalink: /row-header
 canonicalUrl: /row-header
 tags:
   - custom headers

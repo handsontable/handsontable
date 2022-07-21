@@ -1,7 +1,7 @@
 ---
 title: Migrating from 11.1 to 12.0
 metaTitle: Migrating from 11.1 to 12.0 - Guide - Handsontable Documentation
-permalink: /next/migration-from-11.1-to-12.0
+permalink: /migration-from-11.1-to-12.0
 canonicalUrl: /migration-from-11.1-to-12.0
 pageClass: migration-guide
 ---
@@ -23,7 +23,7 @@ Each [`updateSettings()`](@/api/core.md#updatesettings) call with the [`data`](@
 | Replaces [`data`](@/api/options.md#data)                          | Replaces [`data`](@/api/options.md#data)                              |
 | Triggers the same hooks as [`loadData()`](@/api/core.md#loaddata) | Triggers the same hooks as [`updateData()`](@/api/core.md#updatedata) |
 | Resets configuration options to the initial state                 | Doesn't reset configuration options to the initial state              |
-| Resets index mapper information                                             | Doesn't reset index mapper information                                          |
+| Resets index mapper information                                   | Doesn't reset index mapper information                                |
 
 #### Migrating to Handsontable 12.0
 
@@ -48,7 +48,7 @@ To replace [`data`](@/api/options.md#data) and reset the states, call the [`load
 
 Read more on referencing the Handsontable instance:
 - [Referencing the Handsontable instance in Angular](@/guides/integrate-with-angular/angular-hot-reference.md)
-- [Referencing the Handsontable instance in React](../../react-data-grid)
+- [Referencing the Handsontable instance in React](@/guides/integrate-with-react/react-hot-reference.md)
 - [Referencing the Handsontable instance in Vue 2](@/guides/integrate-with-vue/vue-hot-reference.md)
 - [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference.md)
 
@@ -60,7 +60,7 @@ This change might affect your custom plugins.
 
 #### Before
 
-Every [`updateSettings()`](@/api/core.md#updatesettings) call (even with an empty object passed as new settings) triggered 
+Every [`updateSettings()`](@/api/core.md#updatesettings) call (even with an empty object passed as new settings) triggered
 the [`updatePlugin()`](@/api/autoColumnSize.md#updateplugin) method for each enabled plugin.
 
 As a result, whenever you called [`updateSettings()`](@/api/core.md#updatesettings), all enabled plugins got updated.
@@ -145,8 +145,8 @@ Now, the <kbd>**Cmd**</kbd> key triggers actions on macOS where the <kbd>**Ctrl*
 
 For example, the table below shows how this change affects the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**A**</kbd> shortcut:
 
-|         | Before                                                                      | After                                     |
-| ------- | --------------------------------------------------------------------------- | ----------------------------------------- |
+|         | Before                                                                                      | After                                             |
+| ------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | Windows | <kbd>**Ctrl**</kbd> + <kbd>**A**</kbd> works<br><kbd>**Cmd**</kbd> + <kbd>**A**</kbd> works | Only <kbd>**Ctrl**</kbd> + <kbd>**A**</kbd> works |
 | macOS   | <kbd>**Ctrl**</kbd> + <kbd>**A**</kbd> works<br><kbd>**Cmd**</kbd> + <kbd>**A**</kbd> works | Only <kbd>**Cmd**</kbd> + <kbd>**A**</kbd> works  |
 
@@ -208,9 +208,9 @@ The table below summarizes default keyboard shortcuts changes related to edition
 
 The table below summarizes default keyboard shortcuts changes related to cell merging:
 
-|         | Before                                                                   | After                                                                                                                               |
-| ------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Windows | <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> works <kbd>**Cmd**</kbd> + <kbd>**M**</kbd> works | Only <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> works                                                                                           |
+|         | Before                                                                                   | After                                                                                                                                               |
+| ------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Windows | <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> works <kbd>**Cmd**</kbd> + <kbd>**M**</kbd> works | Only <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> works                                                                                                   |
 | macOS   | <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> works <kbd>**Cmd**</kbd> + <kbd>**M**</kbd> works | Only <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> works<br>(<kbd>**Cmd**</kbd> + <kbd>**M**</kbd> conflicted with macOS's shortcut for window minimizing) |
 
 #### Migrating to Handsontable 12.0

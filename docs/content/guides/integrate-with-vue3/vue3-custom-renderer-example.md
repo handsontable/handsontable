@@ -1,7 +1,7 @@
 ---
 title: 'Custom renderer in Vue 3'
 metaTitle: 'Custom renderer in Vue 3 - Guide - Handsontable Documentation'
-permalink: /next/vue3-custom-renderer-example
+permalink: /vue3-custom-renderer-example
 canonicalUrl: /vue3-custom-renderer-example
 ---
 
@@ -40,8 +40,8 @@ const app = createApp({
       hotSettings: {
         data:
           [
-            ['A1', 'https://handsontable.com/docs/next/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-            ['A2', 'https://handsontable.com/docs/next/img/examples/javascript-the-good-parts.jpg']],
+            ['A1', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+            ['A2', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/javascript-the-good-parts.jpg']],
         columns: [
           {},
           {

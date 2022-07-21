@@ -1,7 +1,7 @@
 ---
 title: Supported browsers
 metaTitle: Supported browsers - Guide - Handsontable Documentation
-permalink: /next/supported-browsers
+permalink: /supported-browsers
 canonicalUrl: /supported-browsers
 tags:
   - compatibility

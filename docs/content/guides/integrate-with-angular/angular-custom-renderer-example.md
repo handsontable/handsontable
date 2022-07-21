@@ -1,7 +1,7 @@
 ---
 title: 'Custom renderer in Angular'
 metaTitle: 'Custom renderer in Angular - Guide - Handsontable Documentation'
-permalink: /next/angular-custom-renderer-example
+permalink: /angular-custom-renderer-example
 canonicalUrl: /angular-custom-renderer-example
 ---
 
@@ -37,8 +37,8 @@ class AppComponent {
   hotSettings: Handsontable.GridSettings = {
     data:
       [
-        ['A1', 'https://handsontable.com/docs/next/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-        ['A2', 'https://handsontable.com/docs/next/img/examples/javascript-the-good-parts.jpg']
+        ['A1', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+        ['A2', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/javascript-the-good-parts.jpg']
       ],
     columns: [
       {},

@@ -1,7 +1,7 @@
 ---
 title: 'Custom ID in Angular'
 metaTitle: 'Custom ID in Angular - Guide - Handsontable Documentation'
-permalink: /next/angular-custom-id
+permalink: /angular-custom-id
 canonicalUrl: /angular-custom-id
 ---
 

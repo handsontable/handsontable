@@ -1,7 +1,7 @@
 ---
 title: Select cell type
 metaTitle: Select cell type - Guide - Handsontable Documentation
-permalink: /next/select-cell-type
+permalink: /select-cell-type
 canonicalUrl: /select-cell-type
 ---
 

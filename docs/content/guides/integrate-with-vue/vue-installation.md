@@ -1,7 +1,7 @@
 ---
 title: 'Installation in Vue 2'
 metaTitle: 'Installation in Vue 2 - Guide - Handsontable Documentation'
-permalink: /next/vue-installation
+permalink: /vue-installation
 canonicalUrl: /vue-installation
 ---
 

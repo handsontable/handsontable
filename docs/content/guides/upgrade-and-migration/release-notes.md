@@ -1,7 +1,7 @@
 ---
 title: Release notes
 metaTitle: Release notes - Guide - Handsontable Documentation
-permalink: /next/release-notes
+permalink: /release-notes
 canonicalUrl: /release-notes
 tags:
   - change log
@@ -90,9 +90,10 @@ Released on 28th of April, 2022
 - **Breaking change**: Changed how default keyboard shortcuts are defined, to improve keyboard navigation consistency. Most of the shortcuts did not change and are now properly documented in the [keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#default-keyboard-shorcuts) guide. However, some shortcuts that were not defined explicitly, and were not listed in the documentation, don't work anymore (e.g., <kbd>**Enter**</kbd> opens a cell's editor, but <kbd>**Ctrl**</kbd> + <kbd>**Enter**</kbd> doesn't). This change doesn't affect custom keyboard shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#step-4-adjust-to-the-default-keyboard-shortcuts-changes)
 - **Breaking change**: Split a cross-platform modifier key (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>) into two separate keys, to improve keyboard navigation consistency. Now, the <kbd>**Cmd**</kbd> key triggers actions on macOS where the <kbd>**Ctrl**</kbd> key triggers actions on Windows. For example, on macOS, <kbd>**Ctrl**</kbd> + <kbd>**A**</kbd> doesn't work anymore: <kbd>**Cmd**</kbd> + <kbd>**A**</kbd> is used instead. [#9369](https://github.com/handsontable/handsontable/issues/9369) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#ctrl-vs-cmd)
 - **Breaking change**: Changed the actions of the following [keyboard shortcuts](@/guides/accessories-and-menus/keyboard-shortcuts.md#default-keyboard-shorcuts), to match the usual spreadsheet software behavior, and provide a more intuitive user experience: <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**↑**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**↑**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**↓**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**↓**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**←**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**←**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**→**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**→**</kbd>, <kbd>**Home**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Home**</kbd>, <kbd>**End**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**End**</kbd>, <kbd>**Shift**</kbd> + <kbd>**Page Up**</kbd>, and <kbd>**Shift**</kbd> + <kbd>**Page Down**</kbd>. [#9363](https://github.com/handsontable/handsontable/issues/9363) [#9364](https://github.com/handsontable/handsontable/issues/9364) [#9365](https://github.com/handsontable/handsontable/issues/9365) [[migration guide]](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0.md#keyboard-shortcuts-changes-navigation)
-- Changed two scripts of the main Handsontable workspace (`./`), to speed up the build process: now, the `npm run build` and `npm run test` scripts don't build or test the Handsontable examples (`./examples`). [#9412](https://github.com/handsontable/handsontable/issues/9412)
+- Changed two scripts of the main Handsontable workspace (`/`), to speed up the build process: now, the `npm run build` and `npm run test` scripts don't build or test the Handsontable examples (`/examples`). [#9412](https://github.com/handsontable/handsontable/issues/9412)
 - Changed the version of the Moment.js dependency from 2.24.0 to 2.29.3, in reaction to a recently-found Moment.js security vulnerability that did not directly affect Handsontable. [#9381](https://github.com/handsontable/handsontable/issues/9381)
 - Changed the version of the HyperFormula optional dependency from ^1.2.0 to ^2.0.0. [#9411](https://github.com/handsontable/handsontable/issues/9411)
+- Changed an internal property name, from `handsontableInstance.view.wt` to `handsontableInstance.view._wt`, to make it clear that Walkontable (Handsontable's rendering engine) is not a part of Handsontable's public API. [#8760](https://github.com/handsontable/handsontable/issues/8760)
 
 **Fixed**
 - *React, Angular, Vue 2, Vue 3:* Fixed an issue where using [`updateSettings()`](@/api/core.md#updatesettings) caused problems for state managers. [#8372](https://github.com/handsontable/handsontable/issues/8372)
@@ -165,7 +166,7 @@ Released on 17th of November, 2021
 
 **Changed**
 - **Breaking change**: Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888)
-- Moved the entire Handsontable package to its own, new subdirectory: `./handsontable`. [#8759](https://github.com/handsontable/handsontable/issues/8759)
+- Moved the entire Handsontable package to its own, new subdirectory: `/handsontable`. [#8759](https://github.com/handsontable/handsontable/issues/8759)
 - Replaced the license files with updated versions. [#8877](https://github.com/handsontable/handsontable/issues/8877)
 
 **Fixed**

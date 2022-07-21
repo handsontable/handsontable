@@ -1,7 +1,7 @@
 ---
 title: Comments
 metaTitle: Comments - Guide - Handsontable Documentation
-permalink: /next/comments
+permalink: /comments
 canonicalUrl: /comments
 tags:
   - notes
@@ -152,7 +152,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   contextMenu: true,
-  comments: { 
+  comments: {
     // on mouseover, wait 2 seconds before the comment box displays
     displayDelay: 2000,
   },

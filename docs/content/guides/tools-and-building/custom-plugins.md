@@ -1,7 +1,7 @@
 ---
 title: Custom plugins
 metaTitle: Custom plugins - Guide - Handsontable Documentation
-permalink: /next/custom-plugins
+permalink: /custom-plugins
 canonicalUrl: /custom-plugins
 tags:
   - plugin development
@@ -175,8 +175,8 @@ export class CustomPlugin extends BasePlugin {
    * The `updatePlugin` method is called on the `afterUpdateSettings` hook
    * (unless the `updateSettings` method turned the plugin off),
    * but only if the config object passed to the `updateSettings` method
-   * contains entries relevant to that particular plugin. 
-   * 
+   * contains entries relevant to that particular plugin.
+   *
    * The `updatePlugin` method should contain anything that your plugin needs to do to work correctly
    * after updating the Handsontable instance settings.
    */
@@ -282,6 +282,6 @@ pluginInstance.externalMethodExample();
 - APIs:
   - [`BasePlugin`](@/api/basePlugin.md)
 - Core methods:
-  - [`getPlugin()`](@/api/core.md#getplugin) 
+  - [`getPlugin()`](@/api/core.md#getplugin)
 - Hooks:
   - [`afterPluginsInitialized`](@/api/hooks.md#afterpluginsinitialized)

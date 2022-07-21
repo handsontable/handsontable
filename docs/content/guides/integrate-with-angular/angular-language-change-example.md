@@ -1,7 +1,7 @@
 ---
 title: 'Language change in Angular'
 metaTitle: 'Language change in Angular - Guide - Handsontable Documentation'
-permalink: /next/angular-language-change-example
+permalink: /angular-language-change-example
 canonicalUrl: /angular-language-change-example
 ---
 

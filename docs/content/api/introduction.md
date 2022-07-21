@@ -1,7 +1,7 @@
 ---
 title: Introduction
 metaTitle: API Reference - Handsontable Documentation
-permalink: /next/api/
+permalink: /api/
 canonicalUrl: /api/
 ---
 

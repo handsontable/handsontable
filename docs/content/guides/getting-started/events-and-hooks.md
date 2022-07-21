@@ -1,7 +1,7 @@
 ---
 title: Events and hooks
 metaTitle: Events and hooks - Guide - Handsontable Documentation
-permalink: /next/events-and-hooks
+permalink: /events-and-hooks
 canonicalUrl: /events-and-hooks
 tags:
 - callback

@@ -1,7 +1,7 @@
 ---
 title: Text alignment
 metaTitle: Text alignment - Guide - Handsontable Documentation
-permalink: /next/text-alignment
+permalink: /text-alignment
 canonicalUrl: /text-alignment
 ---
 

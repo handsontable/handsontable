@@ -1,7 +1,7 @@
 ---
 title: Performance
 metaTitle: Performance - Guide - Handsontable Documentation
-permalink: /next/performance
+permalink: /performance
 canonicalUrl: /performance
 tags:
   - speed

@@ -1,7 +1,7 @@
 ---
 title: Password cell type
 metaTitle: Password cell type - Guide - Handsontable Documentation
-permalink: /next/password-cell-type
+permalink: /password-cell-type
 canonicalUrl: /password-cell-type
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: 'Modules in Vue 3'
 metaTitle: 'Modules in Vue 3 - Guide - Handsontable Documentation'
-permalink: /next/vue3-modules
+permalink: /vue3-modules
 canonicalUrl: /vue3-modules
 ---
 

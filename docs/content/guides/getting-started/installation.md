@@ -1,7 +1,7 @@
 ---
 title: Installation
 metaTitle: Installation - Guide - Handsontable Documentation
-permalink: /next/installation
+permalink: /installation
 canonicalUrl: /installation
 tags:
   - quick start

@@ -1,7 +1,7 @@
 ---
 title: Configuration options
 metaTitle: Configuration options - Guide - Handsontable documentation
-permalink: /next/setting-options
+permalink: /setting-options
 canonicalUrl: /setting-options
 tags:
   - properties

@@ -1,7 +1,7 @@
 ---
 title: Clipboard
 metaTitle: Clipboard - Guide - Handsontable Documentation
-permalink: /next/basic-clipboard
+permalink: /basic-clipboard
 canonicalUrl: /basic-clipboard
 tags:
   - copy

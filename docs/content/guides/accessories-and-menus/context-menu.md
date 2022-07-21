@@ -1,7 +1,7 @@
 ---
 title: Context menu
 metaTitle: Context menu - Guide - Handsontable Documentation
-permalink: /next/context-menu
+permalink: /context-menu
 canonicalUrl: /context-menu
 tags:
   - contextual menu

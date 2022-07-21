@@ -1,7 +1,7 @@
 ---
 title: Date cell type
 metaTitle: Date cell type - Guide - Handsontable Documentation
-permalink: /next/date-cell-type
+permalink: /date-cell-type
 canonicalUrl: /date-cell-type
 ---
 

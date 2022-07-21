@@ -1,7 +1,7 @@
 ---
 title: Undo and redo
 metaTitle: Undo and redo - Guide - Handsontable Documentation
-permalink: /next/undo-redo
+permalink: /undo-redo
 canonicalUrl: /undo-redo
 tags:
   - history of changes

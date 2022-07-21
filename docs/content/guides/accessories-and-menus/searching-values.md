@@ -1,7 +1,7 @@
 ---
 title: Searching values
 metaTitle: Searching values - Guide - Handsontable Documentation
-permalink: /next/searching-values
+permalink: /searching-values
 canonicalUrl: /searching-values
 tags:
   - find values

@@ -1,7 +1,7 @@
 ---
 title: Handsontable cell type
 metaTitle: Handsontable cell type - Guide - Handsontable Documentation
-permalink: /next/handsontable-cell-type
+permalink: /handsontable-cell-type
 canonicalUrl: /handsontable-cell-type
 ---
 

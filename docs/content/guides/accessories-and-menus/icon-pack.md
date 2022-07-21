@@ -1,7 +1,7 @@
 ---
 title: Icon pack
 metaTitle: Icon pack - Guide - Handsontable Documentation
-permalink: /next/icon-pack
+permalink: /icon-pack
 canonicalUrl: /icon-pack
 tags:
   - spreadsheet icons

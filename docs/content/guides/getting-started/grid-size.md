@@ -1,7 +1,7 @@
 ---
 title: Grid size
 metaTitle: Grid size - Guide - Handsontable Documentation
-permalink: /next/grid-size
+permalink: /grid-size
 canonicalUrl: /grid-size
 tags:
   - grid sizing
@@ -55,7 +55,7 @@ Changes called in [`updateSettings()`](@/api/core.md#updatesettings) will re-ren
 
 ## What if the size is not set
 
-If you don't define any dimensions, Handsontable generates as many rows and columns as needed to fill the available space. 
+If you don't define any dimensions, Handsontable generates as many rows and columns as needed to fill the available space.
 
 If the grid's content doesn't fit inside the viewport, the browser's native scrollbars are used for scrolling. For this to work properly, Handsontable's [layout direction](@/guides/internationalization/layout-direction.md) (e.g., [`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)) must be the same as your HTML document's layout direction (`<html dir='rtl'>`). Otherwise, horizontal scrolling doesn't work.
 

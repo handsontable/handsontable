@@ -1,7 +1,7 @@
 ---
 title: 'Language change in Vue 2'
 metaTitle: 'Language change in Vue 2 - Guide - Handsontable Documentation'
-permalink: /next/vue-language-change-example
+permalink: /vue-language-change-example
 canonicalUrl: /vue-language-change-example
 ---
 

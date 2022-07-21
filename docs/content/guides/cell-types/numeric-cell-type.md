@@ -1,7 +1,7 @@
 ---
 title: Numeric cell type
 metaTitle: Numeric cell type - Guide - Handsontable Documentation
-permalink: /next/numeric-cell-type
+permalink: /numeric-cell-type
 canonicalUrl: /numeric-cell-type
 ---
 

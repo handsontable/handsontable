@@ -1,7 +1,7 @@
 ---
 title: Software license
 metaTitle: Software license - Guide - Handsontable Documentation
-permalink: /next/software-license
+permalink: /software-license
 canonicalUrl: /software-license
 ---
 
@@ -50,5 +50,5 @@ For many years Handsontable was available as an open-source software, and releas
 
 ### Related API reference
 
-- Options: 
+- Options:
   - [`licenseKey`](@/api/options.md#licensekey)

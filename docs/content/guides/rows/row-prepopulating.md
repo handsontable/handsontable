@@ -1,7 +1,7 @@
 ---
 title: Row pre-populating
 metaTitle: Row pre-populating - Guide - Handsontable Documentation
-permalink: /next/row-prepopulating
+permalink: /row-prepopulating
 canonicalUrl: /row-prepopulating
 tags:
   - spare rows

@@ -1,7 +1,7 @@
 ---
 title: Disabled cells
 metaTitle: Disabled cells - Guide - Handsontable Documentation
-permalink: /next/disabled-cells
+permalink: /disabled-cells
 canonicalUrl: /disabled-cells
 tags:
   - read-only

@@ -1,7 +1,7 @@
 ---
 title: Locale
 metaTitle: Locale - Guide - Handsontable Documentation
-permalink: /next/locale
+permalink: /locale
 canonicalUrl: /locale
 tags:
   - internationalization

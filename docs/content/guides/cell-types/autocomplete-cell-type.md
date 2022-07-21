@@ -1,7 +1,7 @@
 ---
 title: Autocomplete cell type
 metaTitle: Autocomplete cell type - Guide - Handsontable Documentation
-permalink: /next/autocomplete-cell-type
+permalink: /autocomplete-cell-type
 canonicalUrl: /autocomplete-cell-type
 ---
 
@@ -131,7 +131,7 @@ const hot = new Handsontable(container, {
     {
       type: 'autocomplete',
       source(query, process) {
-        fetch('/docs/next/scripts/json/autocomplete.json')
+        fetch('/docs/{{$page.currentVersion}}/scripts/json/autocomplete.json')
           .then(response => response.json())
           .then(response => process(response.data));
       },
@@ -154,7 +154,7 @@ const hot = new Handsontable(container, {
 - [Select cell type](@/guides/cell-types/select-cell-type.md)
 
 ### Related API reference
- 
+
 - Configuration options:
   - [`allowHtml`](@/api/options.md#allowhtml)
   - [`filteringCaseSensitive`](@/api/options.md#filteringcasesensitive)

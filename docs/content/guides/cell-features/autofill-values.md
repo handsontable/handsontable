@@ -1,7 +1,7 @@
 ---
 title: Autofill values
 metaTitle: Autofill - Guide - Handsontable Documentation
-permalink: /next/autofill-values
+permalink: /autofill-values
 canonicalUrl: /autofill-values
 tags:
   - fill handle
@@ -82,7 +82,7 @@ const hot = new Handsontable(container, {
 
 ## Related API reference
 
-- Configuration options: 
+- Configuration options:
   - [`fillHandle`](@/api/options.md#fillhandle)
 - Hooks:
   - [`afterAutofill`](@/api/hooks.md#afterautofill)

@@ -1,7 +1,7 @@
 ---
 title: 'Setting up a translation in Angular'
 metaTitle: 'Setting up a translation in Angular - Guide - Handsontable Documentation'
-permalink: /next/angular-setting-up-a-language
+permalink: /angular-setting-up-a-language
 canonicalUrl: /angular-setting-up-a-language
 ---
 

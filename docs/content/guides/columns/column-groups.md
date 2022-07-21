@@ -1,7 +1,7 @@
 ---
 title: Column groups
 metaTitle: Column groups - Guide - Handsontable Documentation
-permalink: /next/column-groups
+permalink: /column-groups
 canonicalUrl: /column-groups
 tags:
   - nested headers

@@ -1,7 +1,7 @@
 ---
 title: Migrating from 8.4 to 9.0
 metaTitle: Migrating from 8.4 to 9.0 - Guide - Handsontable Documentation
-permalink: /next/migration-from-8.4-to-9.0
+permalink: /migration-from-8.4-to-9.0
 canonicalUrl: /migration-from-8.4-to-9.0
 pageClass: migration-guide
 ---
@@ -85,7 +85,7 @@ In Handsontable `9.0.0` we removed the following, previously-deprecated plugins:
 
 ### Header Tooltips
 
-To implement functionality similar to that of the Header Tooltips plugin, you can utilize the [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader) and [`afterGetRowHeader`](@/api/hooks.md#aftergetrowheader) hooks to add a `title` attribute to the headers.  
+To implement functionality similar to that of the Header Tooltips plugin, you can utilize the [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader) and [`afterGetRowHeader`](@/api/hooks.md#aftergetrowheader) hooks to add a `title` attribute to the headers.
 See the snippet below for example implementation.
 
 ```js

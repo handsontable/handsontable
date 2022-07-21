@@ -1,7 +1,7 @@
 ---
 title: Row hiding
 metaTitle: Row hiding - Guide - Handsontable Documentation
-permalink: /next/row-hiding
+permalink: /row-hiding
 canonicalUrl: /row-hiding
 ---
 

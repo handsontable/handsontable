@@ -1,7 +1,7 @@
 ---
 title: Column filter
 metaTitle: Column filter - Guide - Handsontable Documentation
-permalink: /next/column-filter
+permalink: /column-filter
 canonicalUrl: /column-filter
 tags:
   - filtering data

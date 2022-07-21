@@ -1,7 +1,7 @@
 ---
 title: Column freezing
 metaTitle: Column freezing - Guide - Handsontable Documentation
-permalink: /next/column-freezing
+permalink: /column-freezing
 canonicalUrl: /column-freezing
 tags:
   - fixing columns

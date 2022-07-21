@@ -1,7 +1,7 @@
 ---
 title: Packages
 metaTitle: Packages - Guide - Handsontable Documentation
-permalink: /next/packages
+permalink: /packages
 canonicalUrl: /packages
 ---
 
@@ -16,7 +16,7 @@ The full distribution allows you to use Handsontable by including just 2 files:
 <script src="dist/handsontable.full.js"></script>
 <link href="dist/handsontable.full.css" rel="stylesheet">
 ```
-You can also use minified files:  
+You can also use minified files:
 ```html
 <script src="dist/handsontable.full.min.js"></script>
 <link href="dist/handsontable.full.min.css" rel="stylesheet">

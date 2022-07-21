@@ -1,7 +1,7 @@
 ---
 title: Row parent-child
 metaTitle: Row parent-child - Guide - Handsontable Documentation
-permalink: /next/row-parent-child
+permalink: /row-parent-child
 canonicalUrl: /row-parent-child
 tags:
   - nested rows

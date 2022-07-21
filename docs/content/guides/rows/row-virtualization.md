@@ -1,7 +1,7 @@
 ---
 title: Row virtualization
 metaTitle: Row virtualization - Guide - Handsontable Documentation
-permalink: /next/row-virtualization
+permalink: /row-virtualization
 canonicalUrl: /row-virtualization
 tags:
   - dom

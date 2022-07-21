@@ -1,7 +1,7 @@
 ---
 title: Row height
 metaTitle: Row height - Guide - Handsontable Documentation
-permalink: /next/row-height
+permalink: /row-height
 canonicalUrl: /row-height
 tags:
   - resizing rows

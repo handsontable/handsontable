@@ -1,7 +1,7 @@
 ---
 title: 'Modules in Angular'
 metaTitle: 'Modules in Angular - Guide - Handsontable Documentation'
-permalink: /next/angular-modules
+permalink: /angular-modules
 canonicalUrl: /angular-modules
 ---
 
@@ -42,6 +42,7 @@ import {
 registerCellType, // cell types' registering function
 NumericCellType,
 } from 'handsontable/cellTypes';
+
 import {
 registerPlugin, // plugins' registering function
 UndoRedo,
@@ -66,17 +67,22 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { HotTableModule } from '@handsontable/angular';
+
 import Handsontable from 'handsontable/base';
+
 import {
   registerCellType,
   NumericCellType,
 } from 'handsontable/cellTypes';
+
 import {
   registerPlugin,
   UndoRedo,
 } from 'handsontable/plugins';
+
 registerCellType(NumericCellType);
 registerPlugin(UndoRedo);
+
 @NgModule({
   declarations: [
     AppComponent

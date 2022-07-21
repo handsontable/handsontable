@@ -1,7 +1,7 @@
 ---
 title: Layout direction
 metaTitle: Layout direction - Guide - Handsontable Documentation
-permalink: /next/layout-direction
+permalink: /layout-direction
 canonicalUrl: /layout-direction
 tags:
   - rtl
@@ -120,7 +120,7 @@ You can set the layout direction only at Handsontable's initialization. Any chan
 
 ### Setting the layout direction automatically
 
-You can set Handsontable's layout direction automatically, 
+You can set Handsontable's layout direction automatically,
 based on on the value of your HTML document's `dir` attribute.
 This is the default setting.
 

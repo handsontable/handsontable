@@ -1,7 +1,7 @@
 ---
 title: Testing
 metaTitle: Testing - Guide - Handsontable Documentation
-permalink: /next/testing
+permalink: /testing
 canonicalUrl: /testing
 tags:
   - Jasmine
@@ -10,7 +10,7 @@ tags:
   - end to end test
   - puppeteer
   - spec
-  - 
+  -
 ---
 
 # Testing

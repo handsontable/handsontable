@@ -1,7 +1,7 @@
 ---
 title: Folder structure
 metaTitle: Folder structure - Guide - Handsontable Documentation
-permalink: /next/folder-structure
+permalink: /folder-structure
 canonicalUrl: /folder-structure
 tags:
   - directory
