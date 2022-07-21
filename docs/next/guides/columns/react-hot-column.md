@@ -1,5 +1,5 @@
 ---
-title: '<HotColumn/> component'
+title: '\<HotColumn/> component'
 metaTitle: '<HotColumn/> component - Guide - Handsontable Documentation'
 permalink: /next/hot-column
 canonicalUrl: /hot-column
