@@ -1,15 +1,11 @@
 const path = require('path');
-<<<<<<< HEAD
-const semver = require('semver');
 const fsExtra = require('fs-extra');
+const execa = require('execa');
 
-const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
-  .filter(f => semver.valid(semver.coerce(f)));
-
-const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
 const TMP_DIR_FOR_WATCH = '.watch-tmp';
-const MIN_FRAMEWORKED_DOCS_VERSION = '12.1.1';
 const FRAMEWORK_SUFFIX = '-data-grid';
+const versionFromBranchRegExp = /^prod-docs\/(\d+\.\d+)$/;
+let docsVersion = null;
 
 // Please keep in mind that the first element is default framework.
 const frameworkToPrettyName = new Map([
@@ -24,44 +20,6 @@ const frameworkToPrettyName = new Map([
  */
 function isEnvDev() {
   return process.env.NODE_ENV === 'development';
-}
-
-/**
- * Gets version of documentation which should be build for particular framework.
- *
- * @param {string} buildMode The env name.
- * @returns {Array}
- */
-function getDocsFrameworkedVersions(buildMode) {
-  const versions = getVersions(buildMode);
-
-  return versions.filter(version => version === 'next' ||
-    semver.gte(semver.coerce(version), semver.coerce(MIN_FRAMEWORKED_DOCS_VERSION)));
-}
-
-/**
- * Gets version of documentation which should be build only in one version (no separate builds for particular framework).
- *
- * @param {string} buildMode The env name.
- * @returns {Array}
- */
-function getDocsNonFrameworkedVersions(buildMode) {
-  const versions = getVersions(buildMode);
-
-  return versions.filter(version => version !== 'next' &&
-    semver.lt(semver.coerce(version), semver.coerce(MIN_FRAMEWORKED_DOCS_VERSION)));
-}
-
-/**
- * Gets all available docs versions.
- *
- * @param {string} buildMode The env name.
- * @returns {string[]}
- */
-function getVersions(buildMode) {
-  const next = buildMode !== 'production' ? ['next'] : [];
-
-  return [...next, ...availableVersions];
 }
 
 /**
@@ -93,16 +51,7 @@ function getPrettyFrameworkName(framework) {
 }
 
 /**
- * Gets the latest version of docs.
-=======
-const execa = require('execa');
-
-const versionFromBranchRegExp = /^prod-docs\/(\d+\.\d+)$/;
-let docsVersion = null;
-
-/**
  * Gets the current (this) version of docs.
->>>>>>> develop
  *
  * @returns {string}
  */
@@ -127,7 +76,6 @@ function getThisDocsVersion() {
  */
 function getSidebars() {
   const sidebars = { };
-<<<<<<< HEAD
   const frameworks = getFrameworks();
   const getTransformedGuides = (guides, currentFramework) => {
     const filterElementsForFramework = element =>
@@ -150,61 +98,35 @@ function getSidebars() {
     return filteredGuidesSections;
   };
 
+  // eslint-disable-next-line
+  const sidebarConfig = require(path.join(__dirname, '../content/sidebars.js'));
+
   if (isEnvDev()) {
-    getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
-      // eslint-disable-next-line
-      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
+    frameworks.forEach((framework) => {
+      const apiTransformed = JSON.parse(JSON.stringify(sidebarConfig.api)); // Copy sidebar definition
+      const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
 
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/examples/`] = sidebarConfig.examples;
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/api/`] = sidebarConfig.api;
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/`] = getTransformedGuides(sidebarConfig.guides);
-    });
+      // We store path in sidebars.js files in form <VERSION>/api/plugins.
+      plugins.path = `/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/api/plugins`;
 
-    getDocsFrameworkedVersions(buildMode).forEach((version) => {
-      // eslint-disable-next-line
-      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
-
-      frameworks.forEach((framework) => {
-        const apiTransformed = JSON.parse(JSON.stringify(sidebarConfig.api)); // Copy sidebar definition
-        const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
-        const pathPartsWithoutVersion = plugins.path.split(`/${version}`);
-
-        // We store path in sidebars.js files in form <VERSION>/api/plugins.
-        plugins.path = [`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/`,
-          version, ...pathPartsWithoutVersion].join('');
-
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/examples/`] = sidebarConfig.examples;
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/api/`] = apiTransformed;
-        sidebars[`/${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}/`] =
-          getTransformedGuides(sidebarConfig.guides, framework);
-      });
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/examples/`] = sidebarConfig.examples;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/api/`] = apiTransformed;
+      sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/`] =
+        getTransformedGuides(sidebarConfig.guides, framework);
     });
 
   } else {
-    getVersions(buildMode).forEach((version) => {
-      // eslint-disable-next-line
-      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
+    const framework = getEnvDocsFramework();
 
-      sidebars[`/${version}/examples/`] = sidebarConfig.examples;
-      sidebars[`/${version}/api/`] = sidebarConfig.api;
-      sidebars[`/${version}/`] = getTransformedGuides(sidebarConfig.guides, getEnvDocsFramework());
-    });
+    sidebars[`/${framework}/examples/`] = sidebarConfig.examples;
+    sidebars[`/${framework}/api/`] = sidebarConfig.api;
+    sidebars[`/${framework}/`] = getTransformedGuides(sidebarConfig.guides, framework);
   }
-=======
-
-  // eslint-disable-next-line
-  const s = require(path.join(__dirname, '../content/sidebars.js'));
-
-  sidebars['/content/examples/'] = s.examples;
-  sidebars['/content/api/'] = s.api;
-  sidebars['/content/'] = s.guides;
->>>>>>> develop
 
   return sidebars;
 }
 
 /**
-<<<<<<< HEAD
  * Removes temporary directory from the path when needed.
  *
  * @param {string} normalizedPath Path for unification.
@@ -225,10 +147,9 @@ function getNormalizedPath(normalizedPath) {
 /**
  * Get object containing list of not searchable links from the guides section for specific version of documentation.
  *
- * @param {string} buildMode The env name.
  * @returns {object}
  */
-function getNotSearchableLinks(buildMode) {
+function getNotSearchableLinks() {
   const frameworks = getFrameworks();
   const notSearchableLinks = {};
 
@@ -254,42 +175,12 @@ function getNotSearchableLinks(buildMode) {
     return links;
   };
 
-  if (isEnvDev()) {
-    getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
-      // eslint-disable-next-line
-      const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
+  // eslint-disable-next-line
+  const sidebarConfig = require(path.join(__dirname, `../content/sidebars.js`));
 
-      notSearchableLinks[version] = filterLinks(sidebarConfig.guides);
-    });
-
-    getDocsFrameworkedVersions(buildMode).forEach((version) => {
-      frameworks.forEach((framework) => {
-        if (typeof notSearchableLinks[framework] !== 'object') {
-          notSearchableLinks[framework] = {};
-        }
-
-        // eslint-disable-next-line
-        const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
-
-        notSearchableLinks[framework][version] = filterLinks(sidebarConfig.guides, framework);
-      });
-    });
-
-  } else {
-    const version = getEnvDocsVersion();
-    const framework = getEnvDocsFramework();
-    // eslint-disable-next-line
-    const sidebarConfig = require(path.join(__dirname, `../${version}/sidebars.js`));
-
-    if (framework !== void 0) {
-      notSearchableLinks[framework] = {
-        [version]: filterLinks(sidebarConfig.guides, framework),
-      };
-
-    } else {
-      notSearchableLinks[version] = filterLinks(sidebarConfig.guides);
-    }
-  }
+  frameworks.forEach((framework) => {
+    notSearchableLinks[framework] = filterLinks(sidebarConfig.guides, framework);
+  });
 
   return notSearchableLinks;
 }
@@ -305,31 +196,12 @@ function getNotSearchableLinks(buildMode) {
 function getIgnoredFilesPatterns(buildMode) {
   if (isEnvDev() === false) {
     const notSearchableLinks = getNotSearchableLinks(buildMode);
-    const version = getEnvDocsVersion();
     const framework = getEnvDocsFramework();
-    let ignoredFiles;
 
-    if (framework !== void 0) {
-      ignoredFiles = notSearchableLinks[framework][version];
-
-    } else {
-      ignoredFiles = notSearchableLinks[version];
-    }
-
-    return ignoredFiles.map(excludedPath => `!${version}/${excludedPath}.md`);
+    return notSearchableLinks[framework].map(excludedPath => `!content/${excludedPath}.md`);
   }
 
   return [];
-}
-
-/**
- * Parses the docs version from the URL.
- *
- * @param {string} url The URL to parse.
- * @returns {string}
- */
-function parseVersion(url) {
-  return getNormalizedPath(url).split('/')[1] || getLatestVersion();
 }
 
 /**
@@ -366,28 +238,18 @@ function getEnvDocsFramework() {
 
 /**
  * Create symlinks needed for vuepress dev script.
- *
- * @param {string} buildMode The env name.
  */
-function createSymlinks(buildMode) {
+function createSymlinks() {
   if (isEnvDev()) {
     fsExtra.removeSync(TMP_DIR_FOR_WATCH);
 
-    getDocsNonFrameworkedVersions(buildMode).forEach((version) => {
-      fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${version}`);
-    });
-
-    getDocsFrameworkedVersions(buildMode).forEach((version) => {
-      getFrameworks().forEach((framework) => {
-        fsExtra.ensureSymlinkSync(version, `./${TMP_DIR_FOR_WATCH}/${version}/${framework}${FRAMEWORK_SUFFIX}`);
-      });
+    getFrameworks().forEach((framework) => {
+      fsExtra.ensureSymlinkSync('content', `./${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}`);
     });
   }
 }
 
 /**
-=======
->>>>>>> develop
  * Gets docs base url (eq: https://handsontable.com).
  *
  * @returns {string}
@@ -397,29 +259,20 @@ function getDocsBaseUrl() {
 }
 
 module.exports = {
-<<<<<<< HEAD
   TMP_DIR_FOR_WATCH,
   FRAMEWORK_SUFFIX,
   getNormalizedPath,
-  getVersions,
   getFrameworks,
   getPrettyFrameworkName,
-  getDocsFrameworkedVersions,
-  getDocsNonFrameworkedVersions,
-  getLatestVersion,
   getSidebars,
   getNotSearchableLinks,
-  parseVersion,
   parseFramework,
   getEnvDocsFramework,
   getEnvDocsVersion,
   getDefaultFramework,
   isEnvDev,
   createSymlinks,
-=======
   getThisDocsVersion,
-  getSidebars,
->>>>>>> develop
   getDocsBaseUrl,
   getIgnoredFilesPatterns,
 };
