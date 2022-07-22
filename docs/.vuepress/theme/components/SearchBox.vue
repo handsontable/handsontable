@@ -380,13 +380,9 @@ export default {
     line-height 2rem
     padding 0 0.5rem 0 2rem
     outline none
-<<<<<<< HEAD
     /* Fallback for IE, should work in production */
     background #fff url('/docs/javascript-data-grid/img/search.svg') 0.6rem 0.5rem no-repeat
     background #fff var(--search-icon-url) 0.6rem 0.5rem no-repeat
-=======
-    background #fff versionedUrl('/docs/{docsVersion}/img/search.svg') 0.6rem 0.5rem no-repeat
->>>>>>> develop
     background-size 1rem
     &:focus
       color #104bcd
