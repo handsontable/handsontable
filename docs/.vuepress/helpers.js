@@ -190,12 +190,11 @@ function getNotSearchableLinks() {
  *
  * Note: Please keep in mind that this method is useful only for full build.
  *
- * @param {string} buildMode The env name.
  * @returns {Array<string>}
  */
-function getIgnoredFilesPatterns(buildMode) {
+function getIgnoredFilesPatterns() {
   if (isEnvDev() === false) {
-    const notSearchableLinks = getNotSearchableLinks(buildMode);
+    const notSearchableLinks = getNotSearchableLinks();
     const framework = getEnvDocsFramework();
 
     return notSearchableLinks[framework].map(excludedPath => `!content/${excludedPath}.md`);
