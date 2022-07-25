@@ -43,7 +43,6 @@ export default {
 
   computed: {
     parsedHref() {
-      const currentVersion = this.$page.currentVersion;
       const frameworkDir = `${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
       let href = this.href;
 
