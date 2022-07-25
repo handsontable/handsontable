@@ -12,7 +12,6 @@
 <script>
 import { isExternal } from '@vuepress/theme-default/util';
 import NavLink from '@theme/components/NavLink.vue';
-import { getLinkTransformed } from './utils';
 
 export default {
   name: 'Link',
@@ -48,21 +47,12 @@ export default {
       const frameworkDir = `${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
       let href = this.href;
 
-<<<<<<< HEAD
-      if (this.$page.currentFramework !== void 0) {
-        href = href.replace(currentVersion, `${currentVersion}/${frameworkDir}`);
-      }
-
-      if (!this.isExternal && this.hideLatestVersion) {
-        return getLinkTransformed(href, this.$page.currentVersion, this.$page.latestVersion);
-=======
       if (!this.isExternal) {
         if (this.hideLatestVersion && this.$page.currentVersion === this.$page.latestVersion) {
-          href = href.replace('/{docsVersion}/', '/');
+          href = href.replace('/{docsVersion}/', `${frameworkDir}`);
         } else {
-          href = href.replace('/{docsVersion}/', `/${this.$page.currentVersion}/`);
+          href = href.replace('/{docsVersion}/', `/${this.$page.currentVersion}/${frameworkDir}`);
         }
->>>>>>> develop
       }
 
       return href;
