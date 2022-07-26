@@ -20,7 +20,7 @@
     "@handsontable/vue": "latest",
     "core-js": "3.9.1",
     "handsontable": "latest",
-    "vue": "2.6.12"
+    "vue": "2.6.14"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "4.4.6",
@@ -31,8 +31,9 @@
     "eslint-plugin-vue": "6.2.2",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
-    "puppeteer": "7.1.0",
-    "vue-template-compiler": "2.6.12"
+    "puppeteer": "14.3.0",
+    "vue-template-compiler": "2.6.14",
+    "typescript": "3.8.3"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "eslintConfig": {

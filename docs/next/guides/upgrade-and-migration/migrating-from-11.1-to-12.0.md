@@ -48,7 +48,7 @@ To replace [`data`](@/api/options.md#data) and reset the states, call the [`load
 
 Read more on referencing the Handsontable instance:
 - [Referencing the Handsontable instance in Angular](@/guides/integrate-with-angular/angular-hot-reference.md)
-- [Referencing the Handsontable instance in React](@/guides/integrate-with-react/react-hot-reference.md)
+- [Referencing the Handsontable instance in React](../../react-data-grid)
 - [Referencing the Handsontable instance in Vue 2](@/guides/integrate-with-vue/vue-hot-reference.md)
 - [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference.md)
 
@@ -68,14 +68,14 @@ As a result, whenever you called [`updateSettings()`](@/api/core.md#updatesettin
 #### After
 
 A plugin's [`updatePlugin()`](@/api/autoColumnSize.md#updateplugin) method gets triggered only when the object passed to [`updateSettings()`](@/api/core.md#updatesettings) contains at least one of the following:
-- The plugin's [`PLUGIN_KEY`](@/guides/building-and-testing/plugins.md#_2-extend-the-baseplugin) (the plugin's main alias)
+- The plugin's [`PLUGIN_KEY`](@/guides/tools-and-building/custom-plugins.md#_2-extend-the-baseplugin) (the plugin's main alias)
 - An entry from the plugin's [`SETTING_KEYS`](@/api/basePlugin.md#setting-keys) (a property that stores all additional settings relevant to the plugin)
 
 As a result, a plugin gets updated only if you update settings related to that particular plugin.
 
 #### Migrating to Handsontable 12.0
 
-If you want your [custom plugin](@/guides/building-and-testing/plugins.md) to still get updated on every [`updateSettings()`](@/api/core.md#updatesettings) call, set your plugin's [`SETTING_KEYS`](@/api/basePlugin.md#setting-keys) to `true`:
+If you want your [custom plugin](@/guides/tools-and-building/custom-plugins.md) to still get updated on every [`updateSettings()`](@/api/core.md#updatesettings) call, set your plugin's [`SETTING_KEYS`](@/api/basePlugin.md#setting-keys) to `true`:
 
 ```js
 static get SETTING_KEYS() {
@@ -83,7 +83,7 @@ static get SETTING_KEYS() {
 }
 ```
 
-However, in most cases, it's better to provide an explicit list of configuration options that your custom plugin observes. For details, see the [Plugins](@/guides/building-and-testing/plugins.md) guide.
+However, in most cases, it's better to provide an explicit list of configuration options that your custom plugin observes. For details, see the [Plugins](@/guides/tools-and-building/custom-plugins.md) guide.
 
 ## Step 3: Adjust to the `afterDocumentKeyDown` changes
 
@@ -220,3 +220,26 @@ To keep the previous (pre-12.0) behavior of a default keyboard shortcut, use the
 - [Remove a default keyboard shortcut](@/guides/accessories-and-menus/keyboard-shortcuts.md#removing-a-keyboard-shortcut)
 - [Replace a default keyboard shortcut](@/guides/accessories-and-menus/keyboard-shortcuts.md#replacing-a-keyboard-shortcut)
 - [Block a default keyboard shortcut's action](@/guides/accessories-and-menus/keyboard-shortcuts.md#blocking-a-keyboard-shortcut-s-actions)
+
+## Step 5: Avoid referring to `_wt`
+
+Handsontable 12.0.0 makes it clear that Handsontable's rendering engine (`_wt`, internally referred to as "Walkontable") is not a part of Handsontable's public API.
+
+To emphasize this, we changed the following property name:
+
+| Before                    | After                      |
+| ------------------------- | -------------------------- |
+| `handsontableInstance.view.wt` | `handsontableInstance.view._wt` |
+
+#### Migrating to Handsontable 12.0
+
+`_wt` has no public documentation and offers no guarantee against breaking changes.
+
+If you use a private implementation of Handsontable, and you can't avoid referring to Walkontable (for example, in your custom editor or plugin), update your Walkontable references from `handsontableInstance.view.wt` to `handsontableInstance.view._wt`.
+
+::: tip
+**New method: [`getEditedCellRect()`](@/api/baseEditor.md#geteditedcellrect)**
+
+If your custom editor needs to know the size and position of the edited cell,
+now you can get them without referring to `_wt`. Instead, use the new [`getEditedCellRect()`](@/api/baseEditor.md#geteditedcellrect) method.
+:::

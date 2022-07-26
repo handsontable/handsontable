@@ -429,4 +429,20 @@ describe('shortcutManager', () => {
 
     expect(text).toBe('13456');
   });
+
+  it('should handle event without key property in a proper way', () => {
+    const externalInputElement = document.createElement('input');
+
+    handsontable({});
+
+    document.body.appendChild(externalInputElement);
+    externalInputElement.select();
+
+    expect(() => {
+      $(externalInputElement).simulate('keydown', {});
+      $(externalInputElement).simulate('keyup', {});
+    }).not.toThrow();
+
+    document.body.removeChild(externalInputElement);
+  });
 });

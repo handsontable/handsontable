@@ -19,14 +19,14 @@
  * In any case, you must not make any such use of this software as to develop software which may be
  * considered competitive with this software.
  * 
- * UNLESS EXPRESSLY AGREED OTHERWISE, HANDSONCODE PROVIDES THIS SOFTWARE ON AN &quot;AS IS&quot;
+ * UNLESS EXPRESSLY AGREED OTHERWISE, HANDSONCODE PROVIDES THIS SOFTWARE ON AN "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, AND IN NO EVENT AND UNDER NO
  * LEGAL THEORY, SHALL HANDSONCODE BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY DIRECT,
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 12.0.1
- * Release date: 16/05/2022 (built at 13/05/2022 13:50:27)
+ * Version: 12.1.2
+ * Release date: 08/07/2022 (built at 08/07/2022 09:25:40)
  */
 /**
  * Fix for bootstrap styles
@@ -482,9 +482,7 @@ innerBorderBottom - Property controlled by bottom overlay
 .handsontable .columnSorting.sortAction:hover {
   text-decoration: underline;
   cursor: pointer;
-}
-
-/* Arrow position */
+} /* Arrow position */
 .handsontable span.colHeader.columnSorting::before {
   /* Centering start */
   top: 50%;
@@ -840,12 +838,18 @@ TextRenderer placeholder value
 }
 
 /* Initial left/top coordinates - overwritten when actual position is set */
-.topSelectionHandle,
-.topSelectionHandle-HitArea,
-.bottomSelectionHandle,
-.bottomSelectionHandle-HitArea {
+.handsontable .topSelectionHandle,
+.handsontable .topSelectionHandle-HitArea,
+.handsontable .bottomSelectionHandle,
+.handsontable .bottomSelectionHandle-HitArea {
   left: -10000px;
+  right: unset;
   top: -10000px;
+}
+
+[dir=rtl].handsontable .topSelectionHandle, [dir=rtl].handsontable .topSelectionHandle-HitArea, [dir=rtl].handsontable .bottomSelectionHandle, [dir=rtl].handsontable .bottomSelectionHandle-HitArea {
+  right: -10000px;
+  left: unset;
 }
 
 .handsontable.hide-tween {
@@ -891,10 +895,6 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   clear: both;
 }
 
-.pika-single {
-  *zoom: 1;
-}
-
 .pika-single.is-hidden {
   display: none;
 }
@@ -917,7 +917,6 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 
 .pika-label {
   display: inline-block;
-  *display: inline;
   position: relative;
   z-index: 9999;
   overflow: hidden;
@@ -936,7 +935,6 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   margin: 0;
   left: 0;
   top: 5px;
-  filter: alpha(opacity=0);
   opacity: 0;
 }
 
@@ -959,8 +957,6 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   background-repeat: no-repeat;
   background-size: 75% 75%;
   opacity: 0.5;
-  *position: absolute;
-  *top: 0;
 }
 
 .pika-prev:hover,
@@ -972,14 +968,12 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 .is-rtl .pika-next {
   float: left;
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAAUklEQVR42u3VMQoAIBADQf8Pgj+OD9hG2CtONJB2ymQkKe0HbwAP0xucDiQWARITIDEBEnMgMQ8S8+AqBIl6kKgHiXqQqAeJepBo/z38J/U0uAHlaBkBl9I4GwAAAABJRU5ErkJggg==");
-  *left: 0;
 }
 
 .pika-next,
 .is-rtl .pika-prev {
   float: right;
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAAU0lEQVR42u3VOwoAMAgE0dwfAnNjU26bYkBCFGwfiL9VVWoO+BJ4Gf3gtsEKKoFBNTCoCAYVwaAiGNQGMUHMkjGbgjk2mIONuXo0nC8XnCf1JXgArVIZAQh5TKYAAAAASUVORK5CYII=");
-  *right: 0;
 }
 
 .pika-prev.is-disabled,
@@ -990,7 +984,6 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 
 .pika-select {
   display: inline-block;
-  *display: inline;
 }
 
 .pika-table {
@@ -1029,6 +1022,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   line-height: 15px;
   text-align: right;
   background: #f5f5f5;
+  height: initial;
 }
 
 .pika-week {
@@ -1814,28 +1808,24 @@ textarea.HandsontableCopyPaste {
 
 .handsontable th.beforeHiddenColumn::after {
   right: 1px;
-  content: "◀";
-  /* left arrow */
+  content: "◀"; /* left arrow */
 }
 
 [dir=rtl].handsontable th.beforeHiddenColumn::after {
   right: initial;
   left: 1px;
-  content: "▶";
-  /* right arrow */
+  content: "▶"; /* right arrow */
 }
 
 .handsontable th.afterHiddenColumn::before {
   left: 1px;
-  content: "▶";
-  /* right arrow */
+  content: "▶"; /* right arrow */
 }
 
 [dir=rtl].handsontable th.afterHiddenColumn::before {
   right: 1px;
   left: initial;
-  content: "◀";
-  /* left arrow */
+  content: "◀"; /* left arrow */
 }
 @charset "UTF-8";
 /*!

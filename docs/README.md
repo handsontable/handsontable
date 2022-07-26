@@ -44,8 +44,9 @@ To start a local Handsontable documentation server:
 
 From the `docs` directory, you can run the following npm scripts:
 
-* `npm run docs:start` – Starts a local documentation server at `localhost:8080/docs/`.
-* `npm run docs:start:no-cache` – Starts a local documentation server without cache.
+* `DOCS_VERSION=<semver.version> npm run docs:start:no-cache` – Starts a local documentation server, just for the <semver.version> documentation version.
+* `DOCS_VERSION=next npm run docs:start:no-cache` – Starts a local documentation server, just for the `next` documentation version.
+* `DOCS_FRAMEWORK=<javascript|react> npm run docs:start:no-cache` – Starts a local documentation server, just for the selected framework documentation.
 * `npm run docs:api` – Generates the Handsontable API reference into `/next/api`.
 * `npm run docs:build` – Builds the documentation output into `/.vuepress/dist`.
 * `npm run docs:docker:build` – Builds a Docker image for the staging environment (includes the docs for the `next` version).
@@ -57,9 +58,6 @@ From the `docs` directory, you can run the following npm scripts:
 * `npm run docs:lint:fix` – Runs ESLint on the `/next/` directory's content and auto-fixes problems.
 * `npm run docs:assets:next` – Prepares the `next` documentation version's CSS and JavaScript.
 * `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a `[COMMIT_HASH]` commit.
-* `DOCS_VERSION=<semver.version> npm run docs:start:no-cache` – Starts a local documentation server, just for the <semver.version> documentation version.
-* `DOCS_VERSION=next npm run docs:start:no-cache` – Starts a local documentation server, just for the `next` documentation version.
-* `DOCS_FRAMEWORK=<javascript|react> npm run docs:start:no-cache` – Starts a local documentation server, just for the selected framework documentation version.
 
 ## Handsontable documentation directory structure
 
@@ -70,8 +68,13 @@ docs                            # All documentation files
 │   ├── containers              # Markdown containers
 │   │   ├── examples            # Code examples container
 │   │   └── sourceCodeLink.js   # `source-code-link` container.
-│   ├── handsontable-manager    # A module that runs Handsontable examples in different Handsontable versions
+│   ├── handsontable-manager    # A module that runs Handsontable examples in different Handsontable versions and frameworks
 │   ├── plugins                 # VuePress plugins
+|   |   ├── assets-versioning                  # Plugin responsible for copying from `docs/<semver.version>/public` to `dist/docs/<semver.version>/public` directory
+|   |   ├── extend-page-data                   # Plugin responsible for extending `$page` object and rewriting some properties to add framework ID/name
+|   |   ├── generate-nginx-redirects           # Plugin responsible for generating nginx redirects
+|   |   ├── markdown-it-header-injection       # Plugin responsible for injecting `<FRAMEWORK NAME> Data Grid` string before the first header
+|   |   ├── markdown-it-conditional-container  # Plugin responsible for creating conditional containers used for displaying/hiding blocks of content relevant to specific frameworks
 │   ├── public                  # The documentation's public (static) assets
 │   ├── theme                   # Theme overwrites and customizations
 │   ├── tools                   # Our custom documentation tools
@@ -80,9 +83,9 @@ docs                            # All documentation files
 │   │   ├── utils.js            # Tools utilities
 │   │   └── version             # A tool that creates new documentation versions
 │   ├── config.js               # VuePress configuration
-│   ├── docs-links.js           # Lets us link within the currently-selected docs version with `@` (e.g. [link](@/guides/path/file.md).)
+│   ├── docs-links.js           # Lets us link within the currently-selected docs version and framework with `@` (e.g. [link](@/guides/path/file.md).)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
-│   ├── helpers.js              # Common helpers that set up sidebars and the documentation version picker
+│   ├── helpers.js              # Common helpers that set up sidebars and the documentation version and framework picker
 │   └── highlight.js            # Code highlight configuration
 ├── docker                      # Docker configuration
 │   ├── ...                     # Docker configuration files
@@ -93,8 +96,12 @@ docs                            # All documentation files
 │   ├── guides                  # The guides' source files: Markdown content
 │   └── sidebars.js             # Sidebars configuration
 ├── <semver.version>            # Multiple <semver.version> versions of the documentation (for example, 8.4 or 9.0).
-├── README-DEPLOYMENT.md        # Documentation deployment guidelines
-├── README-EDITING.md           # Documentation editing guidelines
-└── README.md                   # The file you're looking at right now!
+├── .watch-tmp                  # Temporary directory created for storing linked <semver.version> directories, containing .MD files. It's done for purpose of using `vuepress dev` script on it. 
+│   └── <semver.version>
+│       ├── javascript-data-grid  # Symbolic link to <semver.version> directory from docs/. Do not edit! Make changes in the source <semver.version> directory.
+│       └── react-data-grid       # As above
+├── README-DEPLOYMENT.md          # Documentation deployment guidelines
+├── README-EDITING.md             # Documentation editing guidelines
+└── README.md                     # The file you're looking at right now!
 ```
 

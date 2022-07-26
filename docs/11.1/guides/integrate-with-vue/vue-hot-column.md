@@ -333,7 +333,7 @@ List of row indexes (starting from 0):
 ```html
 <div id="v-model-example">
   <label for="mainInput">List of row indexes (starting from 0):</label><br>
-    <input id="mainInput" v-model="highlightedRows"/>
+    <input id="mainInput" maxlength="1" v-model="highlightedRows"/>
 
     <br><br>
 

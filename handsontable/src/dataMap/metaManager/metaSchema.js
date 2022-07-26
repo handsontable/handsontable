@@ -10,13 +10,13 @@ import { isObjectEqual } from '../../helpers/object';
  * [Configuration options](@/guides/getting-started/setting-options.md) let you heavily customize your Handsontable instance. For example, you can:
  *
  * - Enable and disable built-in features
- * - Enable and configure additional [plugins](@/guides/building-and-testing/plugins.md)
+ * - Enable and configure additional [plugins](@/guides/tools-and-building/custom-plugins.md)
  * - Personalize Handsontable's look
  * - Adjust Handsontable's behavior
  * - Implement your own custom features
  *
  * To apply [configuration options](@/guides/getting-started/setting-options.md), pass them as
- * a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid),
+ * a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-handsontable),
  * using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
  *
  * ```js
@@ -2519,7 +2519,7 @@ export default () => {
     /**
      * The `layoutDirection` option configures whether Handsontable renders from the left to the right, or from the right to the left.
      *
-     * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
+     * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-handsontable). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
      *
      * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/setting-options.md#setting-grid-options).
      * You can't set it for individual columns, rows, or cells.
@@ -2864,7 +2864,7 @@ export default () => {
      * @example
      * ```js
      * // enable the `MergeCells` plugin
-     * margeCells: true,
+     * mergeCells: true,
      *
      * // enable the `MergeCells` plugin
      * // and merge specific cells at initialization
@@ -4460,7 +4460,7 @@ export default () => {
      * | A number           | Set the offset manually                                 |
      *
      * Read more:
-     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
      * @memberof Options#
      * @type {number|string}
@@ -4488,7 +4488,7 @@ export default () => {
      * | A number           | Set the offset manually                                 |
      *
      * Read more:
-     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      * - [Column virtualization](@/guides/columns/column-virtualization.md)
      *
      * @memberof Options#
