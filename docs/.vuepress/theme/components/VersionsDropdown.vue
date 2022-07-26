@@ -15,6 +15,11 @@ export default {
   components: {
     DropdownLink
   },
+  data() {
+    return {
+      item: [],
+    };
+  },
   methods: {
     addLatest(version) {
       if (version === this.$page.latestVersion) {
@@ -23,33 +28,9 @@ export default {
 
       return version;
     },
-    getLink(version, isFrameworked) {
-      const isUserViewingNonFrameworkedDocs = typeof this.$page.currentFramework === 'undefined';
-      const defaultFramework = `${this.$page.defaultFramework}${this.$page.frameworkSuffix}/`;
-      const currentFramework = `${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
-
+    getLink(version) {
       if (version === this.$page.latestVersion) {
-        if (isFrameworked) {
-          if (isUserViewingNonFrameworkedDocs) {
-            return `/docs/${defaultFramework}`;
-          }
-
-          return `/docs/${currentFramework}`;
-        }
-
         return '/docs/';
-      }
-
-      if (isUserViewingNonFrameworkedDocs) {
-        if (isFrameworked) {
-          return `/docs/${version}/${defaultFramework}`;
-        }
-
-        return `/docs/${version}/`;
-      }
-
-      if (isFrameworked) {
-        return `/docs/${version}/${currentFramework}`;
       }
 
       return `/docs/${version}/`;
@@ -77,28 +58,20 @@ export default {
       }));
     }
   },
-  computed: {
-    item() {
-      return {
-        text: this.addLatest(this.$page.currentVersion),
-        items:
-          [
-            ...this.$page.frameworkedVersions.map(v => ({
-              text: `${this.addLatest(v)}`,
-              link: this.getLink(v, true),
-              target: '_self',
-              isHtmlLink: true
-            })),
-            ...this.$page.nonFrameworkedVersions.map(v => ({
-              text: `${this.addLatest(v)}`,
-              link: this.getLink(v, false),
-              target: '_self',
-              isHtmlLink: true
-            })),
-            ...this.getLegacyVersions()
-          ]
-      };
-    }
+  mounted() {
+    this.item = {
+      text: this.addLatest(this.$page.currentVersion),
+      items:
+        [
+          ...this.$page.versions.map(v => ({
+            text: `${this.addLatest(v)}`,
+            link: this.getLink(v),
+            target: '_self',
+            isHtmlLink: true
+          })),
+          ...this.getLegacyVersions()
+        ]
+    };
   }
 };
 </script>
