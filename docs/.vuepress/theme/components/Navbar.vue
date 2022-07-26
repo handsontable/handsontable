@@ -10,8 +10,8 @@
     <Logo />
 
     </RouterLink>
-    <VersionsDropdown></VersionsDropdown>
-    <FrameworksDropdown></FrameworksDropdown>
+<!--    <VersionsDropdown></VersionsDropdown>-->
+<!--    <FrameworksDropdown></FrameworksDropdown>-->
     <ThemeSwitcher />
 
     <div
