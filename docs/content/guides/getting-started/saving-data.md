@@ -20,6 +20,7 @@ Persistent state storage is particularly useful when running multiple instances 
 Use the [`afterChange`](@/api/hooks.md#afterchange) callback to track changes made in the data grid. In the example below, Ajax is used to load and save the data. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
 
 
+::: only-for javascript
 ::: example #example1 --html 1 --js 2
 ```html
 <div id="example1"></div>
@@ -134,6 +135,139 @@ function ajax(url, method, params, callback) {
 }
 ```
 :::
+:::
+::: only-for react
+::: example #example1 --html 1 --js 2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+
+  let autosaveNotification;
+  const hotSettings = {
+    startRows: 8,
+    startCols: 6,
+    rowHeaders: true,
+    colHeaders: true,
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation',
+    afterChange: function(change, source) {
+      if (source === 'loadData') {
+        return; //don't save this change
+      }
+
+      if (!autosave.checked) {
+        return;
+      }
+
+      clearTimeout(autosaveNotification);
+
+      ajax('/docs/next/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
+        exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
+        autosaveNotification = setTimeout(() => {
+          exampleConsole.innerText = 'Changes will be autosaved';
+        }, 1000);
+      });
+    }
+  };
+  Handsontable.dom.addEvent(autosave, 'click', () => {
+    if (autosave.checked) {
+      exampleConsole.innerText = 'Changes will be autosaved';
+    } else {
+      exampleConsole.innerText = 'Changes will not be autosaved';
+    }
+  });
+
+  function ajax(url, method, params, callback) {
+    let obj;
+
+    try {
+      obj = new XMLHttpRequest();
+    } catch (e) {
+      try {
+        obj = new ActiveXObject('Msxml2.XMLHTTP');
+      } catch (e) {
+        try {
+          obj = new ActiveXObject('Microsoft.XMLHTTP');
+        } catch (e) {
+          alert('Your browser does not support Ajax.');
+          return false;
+        }
+      }
+    }
+    obj.onreadystatechange = () => {
+      if (obj.readyState == 4) {
+        callback(obj);
+      }
+    };
+    obj.open(method, url, true);
+    obj.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    obj.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    obj.send(params);
+
+    return obj;
+  }
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    Handsontable.dom.addEvent(load, 'click', () => {
+      ajax('/docs/next/scripts/json/load.json', 'GET', '', res => {
+        const data = JSON.parse(res.response);
+
+        hot.loadData(data.data);
+        // or, use `updateData()` to replace `data` without resetting states
+
+        exampleConsole.innerText = 'Data loaded';
+      });
+    });
+    Handsontable.dom.addEvent(save, 'click', () => {
+      // save all cell's data
+      ajax('/docs/next/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
+        const response = JSON.parse(res.response);
+
+        if (response.result === 'ok') {
+          exampleConsole.innerText = 'Data saved';
+        } else {
+          exampleConsole.innerText = 'Save error';
+        }
+      });
+    });
+  });
+
+  return (
+          <Fragment>
+            <HotTable ref={hotRef} settings={hotSettings}>
+            </HotTable>
+
+            <div class="controls">
+              <button id="load" class="button button--primary button--blue">Load data</button>
+              <button id="save" class="button button--primary button--blue">Save data</button>
+              <label>
+                <input type="checkbox" name="autosave" id="autosave"/>
+                Autosave
+              </label>
+            </div>
+
+            <pre id="example1console" class="console">Click "Load" to load data from server</pre>
+
+
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Saving data locally
 

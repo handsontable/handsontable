@@ -35,6 +35,7 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 
 ## Basic example
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -92,6 +93,93 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+
+  const colorData = [
+    ['yellow'],
+    ['red'],
+    ['orange'],
+    ['green'],
+    ['blue'],
+    ['gray'],
+    ['black'],
+    ['white']
+  ];
+  const manufacturerData = [
+    { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
+    { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
+    { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
+    { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
+    { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
+    { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' }
+  ];
+  const hotSettings = {
+    licenseKey: 'non-commercial-and-evaluation',
+    data: [
+      ['Tesla', 2017, 'black', 'black'],
+      ['Nissan', 2018, 'blue', 'blue'],
+      ['Chrysler', 2019, 'yellow', 'black'],
+      ['Volvo', 2020, 'white', 'gray']
+    ],
+    colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+    columns: [{
+      type: 'handsontable',
+      handsontable: {
+        colHeaders: ['Marque', 'Country', 'Parent company'],
+        autoColumnSize: true,
+        data: manufacturerData,
+        getValue() {
+          const selection = this.getSelectedLast();
+
+          // Get the manufacturer name of the clicked row and ignore header
+          // coordinates (negative values)
+          return this.getSourceDataAtRow(Math.max(selection[0], 0)).name;
+        },
+      }
+    },
+      { type: 'numeric' },
+      {
+        type: 'handsontable',
+        handsontable: {
+          colHeaders: false,
+          data: colorData
+        }
+      },
+      {
+        type: 'handsontable',
+        handsontable: {
+          colHeaders: false,
+          data: colorData
+        }
+      }
+    ]
+  };
+
+  return (
+          <Fragment>
+            <HotTable settings={hotSettings}>
+            </HotTable>
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Related articles
 

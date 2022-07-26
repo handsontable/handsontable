@@ -19,6 +19,7 @@ To enable the merge cells feature, set the [`mergeCells`](@/api/options.md#merge
 
 To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array: `mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }]`.
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -39,6 +40,49 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(100, 50),
+    height: 320,
+    colWidths: 47,
+    rowHeaders: true,
+    colHeaders: true,
+    contextMenu: true,
+    mergeCells: [
+      { row: 1, col: 1, rowspan: 3, colspan: 3 },
+      { row: 3, col: 4, rowspan: 2, colspan: 2 },
+      { row: 5, col: 6, rowspan: 3, colspan: 3 }
+    ],
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+          <Fragment>
+            <HotTable settings={hotSettings}>
+            </HotTable>
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Related keyboard shortcuts
 

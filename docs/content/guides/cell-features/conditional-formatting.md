@@ -29,6 +29,7 @@ This demo shows how to use the cell type renderer feature to make some condition
 4. Negative numbers are formatted as red text.
 
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.getElementById('example1');
@@ -104,6 +105,102 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+
+  const data = [
+    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+    ['2017', -5, '', 12, 13],
+    ['2018', '', -11, 14, 13],
+    ['2019', '', 15, -12, 'readOnly']
+  ];
+
+  function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    td.style.fontWeight = 'bold';
+    td.style.color = 'green';
+    td.style.background = '#CEC';
+  }
+
+  function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+    // if row contains negative number
+    if (parseInt(value, 10) < 0) {
+      // add class "negative"
+      td.className = 'make-me-red';
+    }
+
+    if (!value || value === '') {
+      td.style.background = '#EEE';
+
+    } else {
+      if (value === 'Nissan') {
+        td.style.fontStyle = 'italic';
+      }
+
+      td.style.background = '';
+    }
+  }
+  //  maps function to a lookup string
+  Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
+  const hotSettings = {
+    data: data,
+    licenseKey: 'non-commercial-and-evaluation',
+    height: 'auto',
+    afterSelection(row, col, row2, col2) {
+      const meta = this.getCellMeta(row2, col2);
+
+      if (meta.readOnly) {
+        this.updateSettings({ fillHandle: false });
+
+      } else {
+        this.updateSettings({ fillHandle: true });
+      }
+    },
+    cells(row, col) {
+      const cellProperties = {};
+      const data = this.instance.getData();
+
+      if (row === 0 || data[row] && data[row][col] === 'readOnly') {
+        cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
+      }
+
+      if (row === 0) {
+        cellProperties.renderer = firstRowRenderer; // uses function directly
+
+      } else {
+        cellProperties.renderer = 'negativeValueRenderer'; // uses lookup map
+      }
+
+      return cellProperties;
+    }
+  };
+
+  return (
+          <Fragment>
+            <HotTable settings={hotSettings}>
+            </HotTable>
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Related articles
 

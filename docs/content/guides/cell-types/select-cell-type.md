@@ -15,6 +15,7 @@ The select cell type is a simpler form of the dropdown cell type.
 ## Usage
 The select editor should be considered an example of how to write editors rather than used as a fully-featured editor. It is a much simpler form of the [Dropdown editor](@/guides/cell-types/dropdown-cell-type.md). We recommend that you use the latter in your projects.
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -39,6 +40,52 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+
+  const hotSettings = {
+    data: [
+      ['2017', 'Honda', 10],
+      ['2018', 'Toyota', 20],
+      ['2019', 'Nissan', 30]
+    ],
+    colWidths: [50, 70, 50],
+    colHeaders: true,
+    columns: [
+      {},
+      {
+        editor: 'select',
+        selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda']
+      },
+      {}
+    ],
+    licenseKey: 'non-commercial-and-evaluation',
+  };
+
+  return (
+          <Fragment>
+            <HotTable settings={hotSettings}>
+            </HotTable>
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Related articles
 

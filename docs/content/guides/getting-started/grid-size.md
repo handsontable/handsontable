@@ -83,6 +83,7 @@ hot.refreshDimensions();
 
 You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) and [`afterRefreshDimensions`](@/api/hooks.md#afterrefreshdimensions).
 
+::: only-for javascript
 ::: example #example --html 1 --js 2
 ```html
 <div><!-- slice element with dynamically added styles -->
@@ -129,6 +130,15 @@ sliceElem.addEventListener('transitionend', e => {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example --html 1 --js 2 :react
+```jsx
+// TODO: [react-content]
+```
+:::
+:::
+
 
 ## Related API reference
 

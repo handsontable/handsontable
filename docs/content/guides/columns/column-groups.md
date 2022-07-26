@@ -37,6 +37,7 @@ nestedHeaders: [
 
 ### Example
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -56,6 +57,48 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(5, 10),
+    colHeaders: true,
+    rowHeaders: true,
+    height: 'auto',
+    nestedHeaders: [
+      ['A', { label: 'B', colspan: 8 }, 'C'],
+      ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+      ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+      ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+    ],
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+          <Fragment>
+            <HotTable settings={hotSettings}>
+            </HotTable>
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Collapsible headers
 
@@ -81,6 +124,7 @@ collapsibleColumns: [
 
 ### Example
 
+::: only-for javascript
 ::: example #example2
 ```js
 const container = document.querySelector('#example2');
@@ -107,6 +151,55 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(5, 10),
+    colHeaders: true,
+    rowHeaders: true,
+    colWidths: 60,
+    height: 'auto',
+    nestedHeaders: [
+      ['A', { label: 'B', colspan: 8 }, 'C'],
+      ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+      ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+      ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+    ],
+    collapsibleColumns: [
+      { row: -4, col: 1, collapsible: true },
+      { row: -3, col: 1, collapsible: true },
+      { row: -2, col: 1, collapsible: true },
+      { row: -2, col: 3, collapsible: true }
+    ],
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+          <Fragment>
+            <HotTable settings={hotSettings}>
+            </HotTable>
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 ## Related API reference
 

@@ -93,6 +93,46 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+::: only-for react
+::: example #example1 :hot-lang :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+
+  const data = [
+    ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
+    ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
+    ['Pellentesque', 'vulputate', 'leo', 'semper', '10/23/2015', 26],
+    ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
+    ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
+  ];
+  const hotSettings = {
+    data,
+    contextMenu: true,
+    height: 'auto',
+    language: 'de-DE',
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
 
 ::: only-for react
 ::: tip

@@ -18,6 +18,7 @@ To enable column moving, set the [`manualColumnMove`](@/api/options.md#manualcol
 
 A draggable move handle appears above the selected column header. You can click and drag it to any location in the grid.
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -34,6 +35,45 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(200, 20),
+    width: '100%',
+    height: 320,
+    rowHeaders: true,
+    colHeaders: true,
+    colWidths: 100,
+    manualColumnMove: true,
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+          <Fragment>
+            <HotTable settings={hotSettings}>
+            </HotTable>
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Drag and move actions of the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin
 

@@ -163,6 +163,7 @@ hot.resumeExecution(); // It updates the cache internally
 
 The following examples show how much the [`batch()`](@/api/core.md#batch) method can decrease the render time. Both of the examples share the same dataset and operations. The first one shows how much time lapsed when the [`batch()`](@/api/core.md#batch) method was used. Run the second example to check how much time it takes to render without the [`batch()`](@/api/core.md#batch) method.
 
+::: only-for javascript
 ::: example #example1 --html 1 --js 2
 ```html
 <div id="example1"></div>
@@ -250,6 +251,111 @@ Handsontable.dom.addEvent(buttonWith, 'click', () => {
   logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
 });
 ```
+:::
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+
+  const data1 = [
+    [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
+    [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
+    [3, 'Ronald Carver', 'Sunny T-shirt', 'S', 1, 'no'],
+    [4, 'Samuel Watkins', 'Floppy socks', 'S', 3, 'no'],
+    [5, 'Stephanie Huddart', 'Bushy-bush cap', 'XXL', 1, 'no'],
+    [6, 'Madeline McGillivray', 'Long skirt', 'L', 1, 'no'],
+    [7, 'Jai Moor', 'Happy dress', 'XS', 1, 'no'],
+    [8, 'Ben Lower', 'Speckled trousers', 'M', 1, 'no'],
+    [9, 'Ali Tunbridge', 'Speckled trousers', 'M', 2, 'no'],
+    [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no']
+  ];
+  const data2 = [
+    [11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes'],
+  ];
+  const data3 = [
+    [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],
+    [13, 'Anna Moon', 'Unicorn shades', 'uni', 200, 'no'],
+    [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
+  ];
+  const hotSettings = {
+    data: data1,
+    width: 'auto',
+    height: 'auto',
+    colHeaders: ['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return'],
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+  const logOutput = msg => {
+    const logDiv = document.querySelector('#logOutput');
+    const div = document.createElement('div');
+    const now = new Date();
+
+    div.innerText = '[' + now.toTimeString().slice(0, 8) + '] ' + msg;
+    logDiv.insertBefore(div, logDiv.firstChild);
+  }
+  Handsontable.dom.addEvent(buttonWithout, 'click', () => {
+    const t1 = performance.now();
+    alterTable();
+    const t2 = performance.now();
+
+    logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
+  });
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    const alterTable = () => {
+      hot.alter('insert_row', 10, 10);
+      hot.alter('insert_col', 6, 1);
+      hot.populateFromArray(10, 0, data2);
+      hot.populateFromArray(11, 0, data3);
+      hot.setCellMeta(2, 2, 'className', 'green-bg');
+      hot.setCellMeta(4, 2, 'className', 'green-bg');
+      hot.setCellMeta(5, 2, 'className', 'green-bg');
+      hot.setCellMeta(6, 2, 'className', 'green-bg');
+      hot.setCellMeta(8, 2, 'className', 'green-bg');
+      hot.setCellMeta(9, 2, 'className', 'green-bg');
+      hot.setCellMeta(10, 2, 'className', 'green-bg');
+      hot.alter('remove_col', 6, 1);
+      hot.alter('remove_row', 10, 10);
+      hot.setCellMeta(0, 5, 'className', 'red-bg');
+      hot.setCellMeta(10, 5, 'className', 'red-bg');
+      hot.render(); // Render is needed here to populate the new "className"s
+    }
+    Handsontable.dom.addEvent(buttonWith, 'click', () => {
+      const t1 = performance.now();
+      hot.batch(alterTable);
+      const t2 = performance.now();
+
+      logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
+    });
+  });
+
+  return (
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+      <p>
+        <button id="buttonWithout" class="button button--primary">Run without batch method</button> 
+        <button id="buttonWith" class="button button--primary">Run with batch method</button>
+      </p>
+      <div id="logOutput"></div>
+
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
 :::
 
 ## Related articles

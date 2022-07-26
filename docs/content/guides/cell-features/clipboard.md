@@ -43,6 +43,7 @@ When the context menu is enabled, it includes default items, including copy & cu
 You can use them in the same way as the rest of the predefined items in the [context menu](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options). These operations are executed by `document.execCommand()`.
 
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -57,6 +58,43 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(5, 5),
+    rowHeaders: true,
+    colHeaders: true,
+    contextMenu: ['copy', 'cut'],
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+          <Fragment>
+            <HotTable settings={hotSettings}>
+            </HotTable>
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ### Trigger copy & cut programmatically
 
@@ -74,6 +112,7 @@ Then use one of the following commands:
 The **CopyPaste** plugin listens to the browser's `copy` and `cut` events. If triggered, our implementation will copy or cut the selected data to the system clipboard.
 
 
+::: only-for javascript
 ::: example #example2 --html 1 --js 2
 ```html
 <div id="example2"></div>
@@ -114,6 +153,66 @@ cutBtn.addEventListener('click', function() {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example2 --html 1 --js 2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+
+  const hotSettings = {
+    rowHeaders: true,
+    colHeaders: true,
+    data: Handsontable.helper.createSpreadsheetData(5, 5),
+    outsideClickDeselects: false,
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+  Handsontable.dom.addEvent(copyBtn, 'click', function() {
+    document.execCommand('copy');
+  });
+  Handsontable.dom.addEvent(cutBtn, 'click', function() {
+    document.execCommand('cut');
+  });
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    Handsontable.dom.addEvent(copyBtn, 'mousedown', function() {
+      hot.selectCell(1, 1);
+    });
+    Handsontable.dom.addEvent(cutBtn, 'mousedown', function() {
+      hot.selectCell(1, 1);
+    });
+  });
+
+  return (
+          <Fragment>
+            <HotTable ref={hotRef} settings={hotSettings}>
+            </HotTable>
+            <div class="controls">
+              <button id="copy">Select and copy cell B2</button>
+              <button id="cut">Select and cut cell B2</button>
+            </div>
+
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 **Note:** Not all selection-related Handsontable methods result in it gaining focus. Make sure your table instance is focused by calling [isListening()](@/api/core.md#islistening) before copying or pasting data.
 

@@ -16,6 +16,7 @@ The `autocomplete` cell type enables the user to choose a suggested option while
 
 This example uses the `autocomplete` feature in the default **flexible mode**. In this mode, the user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -54,6 +55,66 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+
+  const colors = ['yellow', 'red', 'orange and another color', 'green',
+    'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'
+  ];
+  const hotSettings = {
+    licenseKey: 'non-commercial-and-evaluation',
+    data: [
+      ['BMW', 2017, 'black', 'black'],
+      ['Nissan', 2018, 'blue', 'blue'],
+      ['Chrysler', 2019, 'yellow', 'black'],
+      ['Volvo', 2020, 'white', 'gray']
+    ],
+    colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+    columns: [{
+      type: 'autocomplete',
+      source: ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'],
+      strict: false
+    },
+      { type: 'numeric' },
+      {
+        type: 'autocomplete',
+        source: colors,
+        strict: false,
+        visibleRows: 4
+      },
+      {
+        type: 'autocomplete',
+        source: colors,
+        strict: false,
+        trimDropdown: false
+      }
+    ]
+  };
+
+  return (
+          <Fragment>
+            <HotTable settings={hotSettings}>
+            </HotTable>
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Autocomplete strict mode
 
@@ -67,6 +128,7 @@ In strict mode, the **allowInvalid** option determines the behaviour in the case
 * [`allowInvalid: true`](@/api/options.md#allowinvalid) optional - allows manual input of a value that does not exist in the `source`, the field background is highlighted in red, and the selection advances to the next cell
 * [`allowInvalid: false`](@/api/options.md#allowinvalid) - does not allow manual input of a value that does not exist in the `source`, the <kbd>**Enter**</kbd> key is ignored, and the editor field remains open
 
+::: only-for javascript
 ::: example #example2
 ```js
 const container = document.querySelector('#example2');
@@ -108,11 +170,76 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+
+  const colors = ['yellow', 'red', 'orange', 'green', 'blue',
+    'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'
+  ];
+  const cars = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
+  const hotSettings = {
+    licenseKey: 'non-commercial-and-evaluation',
+    data: [
+      ['BMW', 2017, 'black', 'black'],
+      ['Nissan', 2018, 'blue', 'blue'],
+      ['Chrysler', 2019, 'yellow', 'black'],
+      ['Volvo', 2020, 'white', 'gray']
+    ],
+    colHeaders: ['Car<br>(allowInvalid true)', 'Year',
+      'Chassis color<br>(allowInvalid false)', 'Bumper color<br>(allowInvalid true)'
+    ],
+    columns: [{
+      type: 'autocomplete',
+      source: cars,
+      strict: true
+      // allowInvalid: true // true is default
+    },
+      {},
+      {
+        type: 'autocomplete',
+        source: colors,
+        strict: true,
+        allowInvalid: false
+      },
+      {
+        type: 'autocomplete',
+        source: colors,
+        strict: true,
+        allowInvalid: true //true is default
+      }
+    ]
+  };
+
+  return (
+          <Fragment>
+            <HotTable settings={hotSettings}>
+            </HotTable>
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 ## Autocomplete strict mode (Ajax)
 
 Autocomplete can also be used with Ajax data sources. In the example below, suggestions for the "Car" column are loaded from the server. To load data from a remote *asynchronous* source, assign a function to the 'source' property. The function should perform the server-side request and call the callback function when the result is available.
 
+::: only-for javascript
 ::: example #example3
 ```js
 const container = document.querySelector('#example3');
@@ -144,6 +271,58 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example3 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+
+  const hotSettings = {
+    licenseKey: 'non-commercial-and-evaluation',
+    data: [
+      ['BMW', 2017, 'black', 'black'],
+      ['Nissan', 2018, 'blue', 'blue'],
+      ['Chrysler', 2019, 'yellow', 'black'],
+      ['Volvo', 2020, 'white', 'gray']
+    ],
+    colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+    licenseKey: 'non-commercial-and-evaluation',
+    columns: [{
+      type: 'autocomplete',
+      source(query, process) {
+        fetch('/docs/next/scripts/json/autocomplete.json')
+                .then(response => response.json())
+                .then(response => process(response.data));
+      },
+      strict: true
+    },
+      {}, // Year is a default text column
+      {}, // Chassis color is a default text column
+      {} // Bumper color is a default text column
+    ]
+  };
+
+  return (
+          <Fragment>
+            <HotTable settings={hotSettings}>
+            </HotTable>
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
 
 ## Related articles
 

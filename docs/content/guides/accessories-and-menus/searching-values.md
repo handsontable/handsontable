@@ -75,6 +75,7 @@ The example below:
 - Inside the search input listener, gets the [`Search`](@/api/search.md) plugin's instance
 - Uses the [`Search`](@/api/search.md) plugin's [`query()`](@/api/search.md#query) method
 
+::: only-for javascript
 ::: example #example1 --html 1 --js 2
 ```html
 <div class="controls">
@@ -115,6 +116,67 @@ searchField.addEventListener('keyup', function(event) {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example1 --html 1 --js 2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+
+  const data = [
+    ['Tesla', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'yellow', 'gray']
+  ];
+  const hotSettings = {
+    data,
+    colHeaders: true,
+    // enable the `Search` plugin
+    search: true,
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    //  add a search input listener
+    Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+      // get the `Search` plugin's instance
+      const search = hot.getPlugin('search');
+      // use the `Search` plugin's `query()` method
+      const queryResult = search.query(this.value);
+
+      console.log(queryResult);
+
+      hot.render();
+    });
+  });
+
+  return (
+          <Fragment>
+            <input id="search_field" type="search" placeholder="Search"/>
+            <HotTable ref={hotRef} settings={hotSettings}>
+            </HotTable>
+
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Custom search result class
 
@@ -125,6 +187,7 @@ The example below highlights its search results in bold red. To do this, it:
 - Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) configuration option to an object)
 - Sets the [`Search`](@/api/search.md) plugin's [`searchResultClass`](@/api/options.md#search) option to `'my-custom-search-result-class'`
 
+::: only-for javascript
 ::: example #example2 --css 1 --html 2 --js 3
 ````css
 .my-custom-search-result-class{
@@ -170,6 +233,66 @@ searchField.addEventListener('keyup', function(event) {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example2 --css 1 --html 2 --js 3 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+
+  const data = [
+    ['Tesla', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'yellow', 'gray']
+  ];
+  const hotSettings = {
+    data,
+    colHeaders: true,
+    // enable the `Search` plugin
+    search: {
+      // add your custom CSS class
+      searchResultClass: 'my-custom-search-result-class'
+    },
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+      const search = hot.getPlugin('search');
+      const queryResult = search.query(this.value);
+
+      console.log(queryResult);
+      hot.render();
+    });
+  });
+
+  return (
+          <Fragment>
+            <input id="search_field2" type="search" placeholder="Search"/>
+            <HotTable ref={hotRef} settings={hotSettings}>
+            </HotTable>
+
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 ## Custom query method
 
@@ -180,6 +303,7 @@ The example below searches only for exact search query matches. To do this, it:
 - Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) configuration option to an object)
 - Sets the [`Search`](@/api/search.md) plugin's [`queryMethod`](@/api/options.md#search) option to `onlyExactMatch`
 
+::: only-for javascript
 ::: example #example3 --html 1 --js 2
 ```html
 <div class="controls">
@@ -226,6 +350,72 @@ searchField.addEventListener('keyup', function(event) {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example3 --html 1 --js 2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+
+  const data = [
+    ['Tesla', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray']
+  ];
+  //  define your custom query method
+  function onlyExactMatch(queryStr, value) {
+    return queryStr.toString() === value.toString();
+  }
+  const hotSettings = {
+    data,
+    colHeaders: true,
+    // enable the `Search` plugin
+    search: {
+      // add your custom query method
+      queryMethod: onlyExactMatch
+    },
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+      const search = hot.getPlugin('search');
+      // use the `Search`'s `query()` method
+      const queryResult = search.query(this.value);
+
+      console.log(queryResult);
+
+      hot.render();
+    });
+  });
+
+  return (
+          <Fragment>
+            <input id="search_field3" type="search" placeholder="Search"/>
+            <HotTable ref={hotRef} settings={hotSettings}>
+            </HotTable>
+
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
 
 ## Custom callback
 
@@ -236,6 +426,7 @@ The example below displays the number of matching search results. To do this, it
 - Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) configuration option to an object)
 - Sets the [`Search`](@/api/search.md) plugin's [`callback`](@/api/search.md) option to `searchResultCounter`
 
+::: only-for javascript
 ::: example #example4 --html 1 --js 2
 ```html
 <div class="controls">
@@ -295,6 +486,83 @@ searchField.addEventListener('keyup', function(event) {
 });
 ```
 :::
+:::
+::: only-for react
+::: example #example4 --html 1 --js 2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hot4Ref = React.createRef();
+
+  let searchResultCount = 0;
+  const data = [
+    ['Tesla', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray']
+  ];
+  //  define your custom callback function
+  function searchResultCounter(instance, row, col, value, result) {
+    const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
+      instance.getCellMeta(row, col).isSearchResult = testResult;
+    };
+
+    DEFAULT_CALLBACK.apply(this, arguments);
+
+    if (result) {
+      searchResultCount++;
+    }
+  }
+  const hot4Settings = {
+    data,
+    colHeaders: true,
+    // enable the `Search` plugin
+    search: {
+      // add your custom callback function
+      callback: searchResultCounter
+    },
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  useEffect(() => {
+    const hot4 = hot4Ref.current.hotInstance;
+
+    Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+      searchResultCount = 0;
+
+      const search = hot4.getPlugin('search');
+      const queryResult = search.query(this.value);
+
+      console.log(queryResult);
+      resultCount.innerText = searchResultCount.toString();
+      hot4.render();
+    });
+  });
+
+  return (
+          <Fragment>
+            <input id="search_field4" type="search" placeholder="Search"/>
+            <p><span id="resultCount">0</span> results</p>
+            <HotTable ref={hot4Ref} settings={hot4Settings}>
+            </HotTable>
+
+          </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+```
+:::
+:::
+
 
 ## Related API reference
 
