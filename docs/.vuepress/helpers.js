@@ -118,9 +118,9 @@ function getSidebars() {
   } else {
     const framework = getEnvDocsFramework();
 
-    sidebars[`/${framework}/examples/`] = sidebarConfig.examples;
-    sidebars[`/${framework}/api/`] = sidebarConfig.api;
-    sidebars[`/${framework}/`] = getTransformedGuides(sidebarConfig.guides, framework);
+    sidebars[`/${getThisDocsVersion}/examples/`] = sidebarConfig.examples;
+    sidebars[`/${getThisDocsVersion}/api/`] = sidebarConfig.api;
+    sidebars[`/${getThisDocsVersion}/next/`] = getTransformedGuides(sidebarConfig.guides, framework);
   }
 
   return sidebars;
@@ -218,15 +218,6 @@ function parseFramework(url) {
 }
 
 /**
- * Gets docs version that is currently building (based on the environment variable).
- *
- * @returns {string}
- */
-function getEnvDocsVersion() {
-  return process.env.DOCS_VERSION;
-}
-
-/**
  * Gets docs framework that is currently building (based on the environment variable).
  *
  * @returns {string}
@@ -267,7 +258,6 @@ module.exports = {
   getNotSearchableLinks,
   parseFramework,
   getEnvDocsFramework,
-  getEnvDocsVersion,
   getDefaultFramework,
   isEnvDev,
   createSymlinks,
