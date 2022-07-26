@@ -55,7 +55,7 @@ const hot = new Handsontable(container, {
 :::
 
 ::: only-for react
-::: example #example1 --css 1 --js 2 :react
+::: example #example1 :react --css 1 --js 2
 ```css
 td.custom-cell {
   color: #fff;
