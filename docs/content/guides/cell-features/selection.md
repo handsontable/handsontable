@@ -117,7 +117,7 @@ const ExampleComponent = () => {
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
       <div>
-        <select id="selectOption" style="width: auto; margin-top: 16px" onChange={(...args) => selectOptionChangeCallback(...args)}>
+        <select id="selectOption" style={{width: 'auto', marginTop: 16}} onChange={(...args) => selectOptionChangeCallback(...args)}>
           <option>Single selection</option>
           <option>Range selection</option>
           <option selected="selected">Multiple ranges selection</option>
@@ -309,7 +309,7 @@ button.addEventListener('click', event => {
 :::
 
 ::: only-for react
-::: example #example3 --css 1 --js 2 :react
+::: example #example3 :react --css 1 --js 2
 ```css
 .c-red {
   color: red;
@@ -381,8 +381,7 @@ const ExampleComponent = () => {
     <Fragment>
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
-  
-      <div id="buttons" class="controls" style="margin-top: 10px" onClick={(...args) => buttonsClickCallback(...args)}>
+      <div id="buttons" className="controls" style={{marginTop: 10}} onClick={(...args) => buttonsClickCallback(...args)}>
         <button id="set-data-action">Change selected data</button>
         <button id="add-css-class-action">Make selected cells red</button>
       </div>
