@@ -34,14 +34,14 @@ async function buildVersion(version, framework) {
   await spawnProcess(
     'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-' + 
     `${versionEscaped}/${framework}-${FRAMEWORK_SUFFIX}${ NO_CACHE ? ' --no-cache' : '' }`,
-    { cwd, env: { DOCS_BASE: version }, }
+    { cwd, env: { DOCS_BASE: version, DOCS_FRAMEWORK: framework }, }
   );
 
   if (version !== 'next') {
     await spawnProcess(
       'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
       `${versionEscaped}/${framework}-${FRAMEWORK_SUFFIX}${ NO_CACHE ? ' --no-cache' : '' }`,
-      { cwd, env: { DOCS_BASE: 'latest' }, }
+      { cwd, env: { DOCS_BASE: 'latest', DOCS_FRAMEWORK: framework }, }
     );
   }
 
