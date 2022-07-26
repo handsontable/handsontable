@@ -82,7 +82,7 @@ const hot = new Handsontable(container, {
 :::
 
 ::: only-for react
-::: example #example1 :hot-numbro :react
+::: example #example1 :react-numbro
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
