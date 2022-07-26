@@ -138,8 +138,9 @@ hot.getCellMeta(0, 0).readOnly;
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example1 --html 1 --js 2 :react
+::: example #example1 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -151,7 +152,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     // configuration options, in the object literal notation
     licenseKey: 'non-commercial-and-evaluation',
@@ -271,8 +271,9 @@ hot.getCellMeta(0, 2).readOnly;
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example2 --html 1 --js 2 :react
+::: example #example2 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -284,7 +285,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     // top-level grid options
     licenseKey: 'non-commercial-and-evaluation',
@@ -416,8 +416,9 @@ hot.getCellMeta(0, 1).readOnly;
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example3 --html 1 --js 2 :react
+::: example #example3 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -429,7 +430,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     // top-level grid options that apply to the entire grid
     licenseKey: 'non-commercial-and-evaluation',
@@ -566,8 +566,9 @@ hot.getCellMeta(0, 1).readOnly;
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example4 --html 1 --js 2 :react
+::: example #example4 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -579,7 +580,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     // top-level grid options that apply to the entire grid
     data: Handsontable.helper.createSpreadsheetData(5, 10),
@@ -791,8 +791,9 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example5 --html 1 --js 2 :react
+::: example #example5 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -804,7 +805,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     // top-level grid options that apply to the entire grid
     licenseKey: 'non-commercial-and-evaluation',
@@ -909,8 +909,9 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example6 --html 1 --js 2 :react
+::: example #example6 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -922,7 +923,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     // top-level grid options that apply to the entire grid
     licenseKey: 'non-commercial-and-evaluation',

@@ -50,6 +50,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example1 :react
 ```jsx
@@ -62,7 +63,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -83,10 +83,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -134,6 +134,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example2 :react
 ```jsx
@@ -146,7 +147,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -174,10 +174,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -215,6 +215,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example3 :react
 ```jsx
@@ -227,7 +228,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const data = [
     { id: 1, name: 'Ted Right', address: '' },
     { id: 2, name: 'Frank Honest', address: '' },
@@ -245,10 +245,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -301,6 +301,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example4 .custom-class :react
 ```jsx
@@ -313,7 +314,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const data = [
     { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
     { id: 2, address: '' }, // HOT will create missing properties on demand
@@ -346,10 +346,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -391,6 +391,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example5 :react
 ```jsx
@@ -403,7 +404,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const data = [
     { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
     { id: 2, address: '' }, // HOT will create missing properties on demand
@@ -425,10 +425,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -469,6 +469,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example6 :react
 ```jsx
@@ -481,7 +482,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: [],
     dataSchema: { id: null, name: { first: null, last: null }, address: null },
@@ -501,10 +501,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -584,6 +584,7 @@ function property(attr) {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example7 :react
 ```jsx
@@ -596,7 +597,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: [
       model({ id: 1, name: 'Ted Right', address: '' }),
@@ -655,10 +655,10 @@ const ExampleComponent = () => {
   }
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -801,6 +801,7 @@ hot.setDataAtCell(0, 1, 'Ford');
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example8 :react
 ```jsx
@@ -836,10 +837,10 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <HotTable ref={hotRef} settings={settings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+      <HotTable ref={hotRef} settings={settings}>
+      </HotTable>
+    </Fragment>
   );
 };
 
@@ -876,6 +877,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example9 :react
 ```jsx
@@ -888,7 +890,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -904,10 +905,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 

@@ -255,6 +255,7 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example2 :react
 ```jsx
@@ -268,7 +269,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const data = [{
     title: '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
     description: 'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
@@ -331,10 +331,10 @@ const ExampleComponent = () => {
   }
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -396,6 +396,7 @@ container.addEventListener('mouseup', event => {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example3 :react
 ```jsx
@@ -454,10 +455,10 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <HotTable ref={hotRef} settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+    </Fragment>
   );
 };
 

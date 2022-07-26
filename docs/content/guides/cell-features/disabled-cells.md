@@ -55,6 +55,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example1 :react
 ```jsx
@@ -67,7 +68,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: [
       { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
@@ -94,10 +94,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -142,6 +142,7 @@ hot.updateSettings({
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example2 :react
 ```jsx
@@ -185,10 +186,10 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <HotTable ref={hotRef} settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+    </Fragment>
   );
 };
 
@@ -244,6 +245,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example3 :react
 ```jsx
@@ -256,7 +258,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: [
       { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
@@ -286,10 +287,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -337,6 +338,7 @@ hot.updateSettings({
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example4 :react
 ```jsx
@@ -383,10 +385,10 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <HotTable ref={hotRef} settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+    </Fragment>
   );
 };
 

@@ -252,6 +252,7 @@ Handsontable.dom.addEvent(buttonWith, 'click', () => {
 });
 ```
 :::
+
 ::: only-for react
 ::: example #example1 :react
 ```jsx

@@ -34,6 +34,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example1 :react
 ```jsx
@@ -47,7 +48,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(3, 11),
     colHeaders: true,
@@ -57,10 +57,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -88,6 +88,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example2 :react
 ```jsx
@@ -101,7 +102,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(3, 9),
     colHeaders: ['ID', 'Full name', 'Position', 'Country', 'City', 'Address', 'Zip code', 'Mobile', 'E-mail'],
@@ -111,10 +111,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -144,6 +144,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example3 :react
 ```jsx
@@ -157,7 +158,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(3, 11),
     colHeaders(index) {
@@ -169,10 +169,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 

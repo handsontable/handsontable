@@ -281,6 +281,7 @@ document.querySelector('#hooksList input[type=checkbox]').addEventListener('clic
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example1 --css 1 --html 2 --js 3 :react
 ```jsx
@@ -402,6 +403,7 @@ hot.updateSettings({
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example2 :react
 ```jsx
@@ -466,10 +468,10 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <HotTable ref={hotRef} settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+    </Fragment>
   );
 };
 

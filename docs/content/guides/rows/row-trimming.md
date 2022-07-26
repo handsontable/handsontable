@@ -38,6 +38,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example1 :react
 ```jsx

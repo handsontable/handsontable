@@ -46,6 +46,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example1 :react
 ```jsx
@@ -59,7 +60,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(5, 50),
     width: '100%',
@@ -72,10 +72,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -107,6 +107,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example2 :react
 ```jsx
@@ -120,7 +121,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(5, 5),
     width: '100%',
@@ -133,10 +133,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -170,6 +170,7 @@ const hot3 = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example3 :react
 ```jsx
@@ -183,7 +184,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hot3Settings = {
     data: Handsontable.helper.createSpreadsheetData(5, 5),
     width: '100%',
@@ -198,10 +198,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hot3Settings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+      <HotTable settings={hot3Settings}>
+      </HotTable>
+    </Fragment>
   );
 };
 
@@ -235,6 +235,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example4 :react
 ```jsx
@@ -248,7 +249,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(5, 6),
     width: '100%',
@@ -261,10 +261,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -304,6 +304,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example5 :react
 ```jsx
@@ -317,7 +318,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(5, 3),
     width: '100%',
@@ -330,10 +330,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -366,6 +366,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example6 :react
 ```jsx
@@ -379,7 +380,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(5, 4),
     width: '100%',
@@ -393,10 +393,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 

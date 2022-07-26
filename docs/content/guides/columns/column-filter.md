@@ -49,6 +49,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example1 :react
 ```jsx
@@ -61,7 +62,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: [
       ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
@@ -87,10 +87,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -135,6 +135,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example2 :react
 ```jsx
@@ -147,7 +148,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: [
       ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
@@ -173,10 +173,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -269,6 +269,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example3 :react
 ```jsx
@@ -282,7 +283,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   //  Event for `keydown` event. Add condition after delay of 200 ms which is counted from the time of last pressed key.
   const debounceFn = Handsontable.helper.debounce((colIndex, event) => {
     const filtersPlugin = hot.getPlugin('filters');
@@ -346,10 +346,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -659,8 +659,9 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example4 --html 1 --js 2 :react
+::: example #example4 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -672,7 +673,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const arrayEach = Handsontable.helper.arrayEach;
   const curry = Handsontable.helper.curry;
   class DOMHelper {
@@ -935,32 +935,31 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-            <div id="externalFilter">
-              <div class="columnChoose">
-                <label>Choose Column: </label>
-                <select></select>
-              </div>
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+      <div id="externalFilter">
+        <div class="columnChoose">
+          <label>Choose Column: </label>
+          <select></select>
+        </div>
 
-              <div id="filterSelect">
-                <div class="controllers">
-                  <div>
-                    <input type='checkbox' id='filtersSelectAll' checked="checked" />
-                    <label for='filtersSelectAll'>(Select all)</label>
-                  </div>
-                </div>
-                <div class="items"></div>
-              </div>
-
-              <div class="buttons controls">
-                <button class="apply">Apply filter</button>
-                <button class="clear">Clear filter</button>
-              </div>
+        <div id="filterSelect">
+          <div class="controllers">
+            <div>
+              <input type='checkbox' id='filtersSelectAll' checked="checked" />
+              <label for='filtersSelectAll'>(Select all)</label>
             </div>
+          </div>
+          <div class="items"></div>
+        </div>
 
-          </Fragment>
+        <div class="buttons controls">
+          <button class="apply">Apply filter</button>
+          <button class="clear">Clear filter</button>
+        </div>
+      </div>
+    </Fragment>
   );
 };
 

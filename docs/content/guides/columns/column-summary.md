@@ -83,6 +83,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example1 :react
 ```jsx
@@ -95,7 +96,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     licenseKey: 'non-commercial-and-evaluation',
     data: [
@@ -453,6 +453,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example7 :react
 ```jsx
@@ -465,7 +466,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   //  generate an array of arrays with dummy numeric data
   const generateData = (rows = 3, columns = 7, additionalRows = true) => {
     let counter = 0;
@@ -600,6 +600,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example8 :react
 ```jsx
@@ -612,7 +613,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     licenseKey: 'non-commercial-and-evaluation',
     data: [{
@@ -802,6 +802,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example9 :react
 ```jsx
@@ -814,7 +815,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   //  generate an array of arrays with dummy numeric data
   const generateData = (rows = 3, columns = 7, additionalRows = true) => {
     let counter = 0;
@@ -937,6 +937,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example12 :react
 ```jsx
@@ -949,7 +950,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     licenseKey: 'non-commercial-and-evaluation',
     data: [
@@ -1048,6 +1048,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example10 :react
 ```jsx
@@ -1060,7 +1061,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     licenseKey: 'non-commercial-and-evaluation',
     data: [
@@ -1146,6 +1146,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example11 :react
 ```jsx
@@ -1158,7 +1159,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     licenseKey: 'non-commercial-and-evaluation',
     data: [

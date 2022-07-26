@@ -117,8 +117,9 @@ searchField.addEventListener('keyup', function(event) {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example1 --html 1 --js 2 :react
+::: example #example1 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
@@ -163,12 +164,11 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <input id="search_field" type="search" placeholder="Search"/>
-            <HotTable ref={hotRef} settings={hotSettings}>
-            </HotTable>
-
-          </Fragment>
+    <Fragment>
+      <input id="search_field" type="search" placeholder="Search"/>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+    </Fragment>
   );
 };
 
@@ -234,8 +234,15 @@ searchField.addEventListener('keyup', function(event) {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example2 --css 1 --html 2 --js 3 :react
+::: example #example2 --css 1 --js 2 :react
+````css
+.my-custom-search-result-class{
+  color: #ff0000;
+  font-weight: 900;
+}
+````
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
@@ -279,12 +286,11 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <input id="search_field2" type="search" placeholder="Search"/>
-            <HotTable ref={hotRef} settings={hotSettings}>
-            </HotTable>
-
-          </Fragment>
+    <Fragment>
+      <input id="search_field2" type="search" placeholder="Search"/>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+    </Fragment>
   );
 };
 
@@ -351,8 +357,9 @@ searchField.addEventListener('keyup', function(event) {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example3 --html 1 --js 2 :react
+::: example #example3 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
@@ -402,12 +409,11 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <input id="search_field3" type="search" placeholder="Search"/>
-            <HotTable ref={hotRef} settings={hotSettings}>
-            </HotTable>
-
-          </Fragment>
+    <Fragment>
+      <input id="search_field3" type="search" placeholder="Search"/>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+    </Fragment>
   );
 };
 
@@ -487,8 +493,9 @@ searchField.addEventListener('keyup', function(event) {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example4 --html 1 --js 2 :react
+::: example #example4 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
@@ -548,13 +555,12 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <input id="search_field4" type="search" placeholder="Search"/>
-            <p><span id="resultCount">0</span> results</p>
-            <HotTable ref={hot4Ref} settings={hot4Settings}>
-            </HotTable>
-
-          </Fragment>
+    <Fragment>
+      <input id="search_field4" type="search" placeholder="Search"/>
+      <p><span id="resultCount">0</span> results</p>
+      <HotTable ref={hot4Ref} settings={hot4Settings}>
+      </HotTable>
+    </Fragment>
   );
 };
 

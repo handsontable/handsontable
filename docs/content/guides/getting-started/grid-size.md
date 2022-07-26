@@ -131,8 +131,9 @@ sliceElem.addEventListener('transitionend', e => {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example --html 1 --js 2 :react
+::: example #example :react
 ```jsx
 // TODO: [react-content]
 ```

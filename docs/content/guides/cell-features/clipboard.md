@@ -59,6 +59,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example1 :react
 ```jsx
@@ -72,7 +73,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(5, 5),
     rowHeaders: true,
@@ -83,10 +83,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -154,8 +154,9 @@ cutBtn.addEventListener('click', function() {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example2 --html 1 --js 2 :react
+::: example #example2 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -196,15 +197,14 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <HotTable ref={hotRef} settings={hotSettings}>
-            </HotTable>
-            <div class="controls">
-              <button id="copy">Select and copy cell B2</button>
-              <button id="cut">Select and cut cell B2</button>
-            </div>
-
-          </Fragment>
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+      <div class="controls">
+        <button id="copy">Select and copy cell B2</button>
+        <button id="cut">Select and cut cell B2</button>
+      </div>
+    </Fragment>
   );
 };
 

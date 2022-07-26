@@ -62,8 +62,9 @@ button.addEventListener('click', () => {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example1 --html 1 --js 2 :react
+::: example #example1 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -109,15 +110,14 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <HotTable ref={hotRef} settings={hotSettings}>
-            </HotTable>
-
-            <div class="controls">
-              <button id="export-file" onClick={(...args) => buttonClickCallback(...args)}>Download CSV</button>
-            </div>
-
-          </Fragment>
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+  
+      <div class="controls">
+        <button id="export-file" onClick={(...args) => buttonClickCallback(...args)}>Download CSV</button>
+      </div>
+    </Fragment>
   );
 };
 
@@ -173,8 +173,9 @@ button.addEventListener('click', () => {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example2 --html 1 --js 2 :react
+::: example #example2 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -220,15 +221,14 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <HotTable ref={hotRef} settings={hotSettings}>
-            </HotTable>
-
-            <div class="controls">
-              <button id="export-blob" onClick={(...args) => buttonClickCallback(...args)}>Export as a Blob</button>
-            </div>
-
-          </Fragment>
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+  
+      <div class="controls">
+        <button id="export-blob" onClick={(...args) => buttonClickCallback(...args)}>Export as a Blob</button>
+      </div>
+    </Fragment>
   );
 };
 
@@ -283,8 +283,9 @@ button.addEventListener('click', () => {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example3 --html 1 --js 2 :react
+::: example #example3 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -329,15 +330,14 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <HotTable ref={hotRef} settings={hotSettings}>
-            </HotTable>
-
-            <div class="controls">
-              <button id="export-string" onClick={(...args) => buttonClickCallback(...args)}>Export as a string</button>
-            </div>
-
-          </Fragment>
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+  
+      <div class="controls">
+        <button id="export-string" onClick={(...args) => buttonClickCallback(...args)}>Export as a string</button>
+      </div>
+    </Fragment>
   );
 };
 

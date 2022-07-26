@@ -53,8 +53,19 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example1 --css 1 --js 2 :react
+```css
+td.custom-cell {
+  color: #fff;
+  background-color: #37bc6c;
+}
+.custom-table thead th:nth-child(even),
+.custom-table tbody tr:nth-child(odd) th {
+  background-color: #d7f1e1;
+}
+```
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -66,7 +77,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(5, 5),
     rowHeaders: true,
@@ -83,10 +93,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -133,6 +143,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example2 :react
 ```jsx
@@ -146,7 +157,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   Handsontable
           .renderers
           .registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
@@ -171,10 +181,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -252,6 +262,7 @@ const hot = Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example3 :react
 ```jsx
@@ -265,7 +276,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(5, 6),
     rowHeaders: true,
@@ -317,10 +327,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 

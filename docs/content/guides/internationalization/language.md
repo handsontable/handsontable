@@ -93,6 +93,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example1 :hot-lang :react
 ```jsx
@@ -105,7 +106,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const data = [
     ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
     ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],

@@ -183,8 +183,9 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example1 --js 2 --html 1 :react
+::: example #example1 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
@@ -195,7 +196,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
   const emailValidator = (value, callback) => {
     setTimeout(() => {
@@ -257,14 +257,13 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-            <pre class="language-js">
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+      <pre class="language-js">
         <code id="example1console">Here you will see the log</code>
       </pre>
-
-          </Fragment>
+    </Fragment>
   );
 };
 

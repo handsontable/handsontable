@@ -152,6 +152,7 @@ new Handsontable(container2, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example1 --css 1 --js 2 :react
 ```css
@@ -172,7 +173,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const data1 = [
     ['10.26', null, 'Sum', '=SUM(A:A)'],
     ['20.12', null, 'Average', '=AVERAGE(A:A)'],
@@ -219,15 +219,14 @@ const ExampleComponent = () => {
 
 
   return (
-          <Fragment>
-            <h3 class="demo-preview">Sheet 1</h3>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-            <h3 class="demo-preview">Sheet 2</h3>
-            <HotTable settings={hot2Settings}>
-            </HotTable>
-
-          </Fragment>
+    <Fragment>
+      <h3 class="demo-preview">Sheet 1</h3>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+      <h3 class="demo-preview">Sheet 2</h3>
+      <HotTable settings={hot2Settings}>
+      </HotTable>
+    </Fragment>
   );
 };
 
@@ -364,6 +363,7 @@ new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example-data-grid :react
 ```jsx
@@ -377,7 +377,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const data = [
     ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
     ['172', '474', '0.51', '11', '=A2*(B2*C2)+D2'],
@@ -496,10 +495,10 @@ const ExampleComponent = () => {
 
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -716,8 +715,9 @@ button.addEventListener('click', (event) => {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example-named-expressions1 --html 1 --js 2 :react
+::: example #example-named-expressions1 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import { HyperFormula } from 'hyperformula';
@@ -765,15 +765,14 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <HotTable ref={hotNamedExpressionsRef} settings={hotNamedExpressionsSettings}>
-            </HotTable>
-            <form id="named-expressions-form" class="controls" style="margin-top: 10px" onSubmit={(...args) => formSubmitCallback(...args)}>
-              <input id="named-expressions-calculate-input" type="text" value="=10 * Sheet1!$A$2"/>
-              <button type="submit">Calculate price</button>
-            </form>
-
-          </Fragment>
+    <Fragment>
+      <HotTable ref={hotNamedExpressionsRef} settings={hotNamedExpressionsSettings}>
+      </HotTable>
+      <form id="named-expressions-form" class="controls" style="margin-top: 10px" onSubmit={(...args) => formSubmitCallback(...args)}>
+        <input id="named-expressions-calculate-input" type="text" value="=10 * Sheet1!$A$2"/>
+        <button type="submit">Calculate price</button>
+      </form>
+    </Fragment>
   );
 };
 

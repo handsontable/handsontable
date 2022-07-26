@@ -136,8 +136,9 @@ function ajax(url, method, params, callback) {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example1 --html 1 --js 2 :react
+::: example #example1 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
@@ -243,23 +244,21 @@ const ExampleComponent = () => {
   });
 
   return (
-          <Fragment>
-            <HotTable ref={hotRef} settings={hotSettings}>
-            </HotTable>
-
-            <div class="controls">
-              <button id="load" class="button button--primary button--blue">Load data</button>
-              <button id="save" class="button button--primary button--blue">Save data</button>
-              <label>
-                <input type="checkbox" name="autosave" id="autosave"/>
-                Autosave
-              </label>
-            </div>
-
-            <pre id="example1console" class="console">Click "Load" to load data from server</pre>
-
-
-          </Fragment>
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+  
+      <div class="controls">
+        <button id="load" class="button button--primary button--blue">Load data</button>
+        <button id="save" class="button button--primary button--blue">Save data</button>
+        <label>
+          <input type="checkbox" name="autosave" id="autosave"/>
+          Autosave
+        </label>
+      </div>
+  
+      <pre id="example1console" class="console">Click "Load" to load data from server</pre>
+    </Fragment>
   );
 };
 

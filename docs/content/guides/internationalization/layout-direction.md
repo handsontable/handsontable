@@ -95,6 +95,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example1 :hot-lang :react
 ```jsx
@@ -107,7 +108,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   //  generate random RTL data (e.g., Arabic)
   function generateArabicData() {
     const randomName = () => ["عمر", "علي", "عبد الله", "معتصم"][Math.floor(Math.random() * 3)];
@@ -151,10 +151,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -229,8 +229,9 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
-::: example #example2 --html 1 --js 2 :react
+::: example #example2 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
@@ -241,7 +242,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     licenseKey: 'non-commercial-and-evaluation',
     data: [
@@ -259,13 +259,12 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <section dir="rtl">
-              <HotTable settings={hotSettings}>
-              </HotTable>
-            </section>
-
-          </Fragment>
+    <Fragment>
+      <section dir="rtl">
+        <HotTable settings={hotSettings}>
+        </HotTable>
+      </section>
+    </Fragment>
   );
 };
 
@@ -305,6 +304,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example3 :react
 ```jsx
@@ -317,7 +317,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     licenseKey: 'non-commercial-and-evaluation',
     data: [
@@ -335,10 +334,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -378,6 +377,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example4 :react
 ```jsx
@@ -390,7 +390,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     licenseKey: 'non-commercial-and-evaluation',
     data: [
@@ -408,10 +407,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
@@ -460,6 +459,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+
 ::: only-for react
 ::: example #example5 :react
 ```jsx
@@ -472,7 +472,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   const hotSettings = {
     licenseKey: 'non-commercial-and-evaluation',
     data: [
@@ -500,10 +499,10 @@ const ExampleComponent = () => {
   };
 
   return (
-          <Fragment>
-            <HotTable settings={hotSettings}>
-            </HotTable>
-          </Fragment>
+    <Fragment>
+        <HotTable settings={hotSettings}>
+        </HotTable>
+    </Fragment>
   );
 };
 
