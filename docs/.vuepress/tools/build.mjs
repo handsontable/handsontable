@@ -33,15 +33,15 @@ async function buildVersion(version, framework) {
 
   await spawnProcess(
     'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-' + 
-    `${versionEscaped}/${framework}-${FRAMEWORK_SUFFIX}${ NO_CACHE ? ' --no-cache' : '' }`,
-    { cwd, env: { DOCS_BASE: version }, }
+    `${versionEscaped}/${framework}${FRAMEWORK_SUFFIX}${ NO_CACHE ? ' --no-cache' : '' }`,
+    { cwd, env: { DOCS_BASE: version, DOCS_FRAMEWORK: framework }, }
   );
 
   if (version !== 'next') {
     await spawnProcess(
       'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
-      `${versionEscaped}/${framework}-${FRAMEWORK_SUFFIX}${ NO_CACHE ? ' --no-cache' : '' }`,
-      { cwd, env: { DOCS_BASE: 'latest' }, }
+      `${versionEscaped}/${framework}${FRAMEWORK_SUFFIX}${ NO_CACHE ? ' --no-cache' : '' }`,
+      { cwd, env: { DOCS_BASE: 'latest', DOCS_FRAMEWORK: framework }, }
     );
   }
 
@@ -58,13 +58,14 @@ async function concatenate(version, framework) {
   if (version !== 'next') {
     const prebuildLatest = path.resolve(__dirname, '../../', '.vuepress/dist/pre-latest-' +
       `${version.replace('.', '-')}/${framework}-${FRAMEWORK_SUFFIX}`);
-    const distLatest = path.resolve(__dirname, '../../', `.vuepress/dist/docs/${framework}-${FRAMEWORK_SUFFIX}`);
+    const distLatest = path.resolve(__dirname, '../../', `.vuepress/dist/docs/${framework}${FRAMEWORK_SUFFIX}`);
 
     await fse.move(prebuildLatest, distLatest);
   }
 
-  const prebuildVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/pre-${version.replace('.', '-')}`);
-  const distVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/docs/${version}/${framework}-${FRAMEWORK_SUFFIX}`);
+  const prebuildVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/pre-${version.replace('.', '-')}` +
+    `/${framework}${FRAMEWORK_SUFFIX}`);
+  const distVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/docs/${version}/${framework}${FRAMEWORK_SUFFIX}`);
 
   logger.info('Apply built version to the `docs/`', version);
 

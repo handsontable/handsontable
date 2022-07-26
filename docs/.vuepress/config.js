@@ -51,7 +51,8 @@ module.exports = {
     ...getIgnoredFilesPatterns(),
   ],
   description: 'Handsontable',
-  base: `/docs/${docsBase === 'latest' ? '' : `${docsBase}/`}`,
+  base: `/docs/${docsBase === 'latest' ? `${framework}${FRAMEWORK_SUFFIX}` :
+    `${docsBase}/${framework}${FRAMEWORK_SUFFIX}`}/`,
   head: [
     ['link', {
       rel: 'icon',
