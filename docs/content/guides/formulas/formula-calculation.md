@@ -154,7 +154,7 @@ new Handsontable(container2, {
 :::
 
 ::: only-for react
-::: example #example1 --css 1 --js 2 :react
+::: example #example1 :react --css 1 --js 2
 ```css
 h3.demo-preview {
   margin-bottom: 0.3rem !important;
@@ -216,7 +216,6 @@ const ExampleComponent = () => {
     },
     licenseKey: 'non-commercial-and-evaluation'
   };
-
 
   return (
     <Fragment>

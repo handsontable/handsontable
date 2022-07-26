@@ -97,7 +97,7 @@ const hot = new Handsontable(container, {
 :::
 
 ::: only-for react
-::: example #example1 :hot-lang :react
+::: example #example1 :react-languages
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
