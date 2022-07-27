@@ -11,7 +11,7 @@
 
     </RouterLink>
     <VersionsDropdown></VersionsDropdown>
-<!--    <FrameworksDropdown></FrameworksDropdown>-->
+    <FrameworksDropdown></FrameworksDropdown>
     <ThemeSwitcher />
 
     <div
