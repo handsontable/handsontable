@@ -91,10 +91,14 @@ export default () => {
      *
      * You can set the `allowEmpty` option to one of the following:
      *
-     * | Setting          | Description                                                                                                                           |
-     * | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default) | - Accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` and `''` values as `valid`              |
-     * | `false`          | - Don't accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` and `''` values with as `invalid` |
+     * | Setting          | Description                                                                                                                          |
+     * | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `true` (default) | - Accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` or `''` values as `valid`              |
+     * | `false`          | - Don't accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` or `''` values with as `invalid` |
+     *
+     * ::: tip
+     * To use the [`allowEmpty`](#allowempty) option, you need to set the [`validator`](#validator) option (or the [`type`](#type) option).
+     * :::
      *
      * @memberof Options#
      * @type {boolean}
@@ -103,16 +107,17 @@ export default () => {
      *
      * @example
      * ```js
+     * type: 'date',
      * // allow empty values in every cell of the entire grid
      * allowEmpty: true,
      *
      * // or
      * columns: [
      *   {
-     *     data: 'date',
-     *     dateFormat: 'DD/MM/YYYY',
+     *     type: 'text',
+     *     validator: 'date',
      *     // allow empty values in every cell of the 'date' column
-     *     allowEmpty: true
+     *     allowEmpty: true,
      *   }
      * ],
      * ```
