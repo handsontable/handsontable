@@ -1729,6 +1729,17 @@ export default () => {
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
      *
+     * ::: tip
+     * You can set a cell's [`renderer`](#renderer), [`editor`](#editor) or [`validator`](#validator) individually, but you still need to set that cell's [`type`](#type). For example:
+     *
+     * ```js
+     * renderer: Handsontable.NumericRenderer,
+     * editor: Handsontable.editors.NumericEditor,
+     * validator: Handsontable.NumericValidator,
+     * type: 'numeric'
+     * ```
+     * :::
+     *
      * Read more:
      * - [Cell editor](@/guides/cell-functions/cell-editor.md)
      * - [Cell type](@/guides/cell-types/cell-type.md)
@@ -3505,6 +3516,17 @@ export default () => {
      * To set the [`renderer`](#renderer), [`editor`](#editor), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
      *
+     * ::: tip
+     * You can set a cell's [`renderer`](#renderer), [`editor`](#editor) or [`validator`](#validator) individually, but you still need to set that cell's [`type`](#type). For example:
+     *
+     * ```js
+     * renderer: Handsontable.NumericRenderer,
+     * editor: Handsontable.editors.NumericEditor,
+     * validator: Handsontable.NumericValidator,
+     * type: 'numeric'
+     * ```
+     * :::
+     *
      * Read more:
      * - [Cell renderer](@/guides/cell-functions/cell-renderer.md)
      * - [Cell type](@/guides/cell-types/cell-type.md)
@@ -4268,15 +4290,26 @@ export default () => {
      * | Cell type                                                         | Renderer, editor & validator                                                                                                                                                                                                                       |
      * | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | A [custom cell type](@/guides/cell-types/cell-type.md)            | Renderer: your [custom cell renderer](@/guides/cell-functions/cell-renderer.md)<br>Editor: your [custom cell editor](@/guides/cell-functions/cell-editor.md)<br>Validator: your [custom cell validator](@/guides/cell-functions/cell-validator.md) |
-     * | [`'autocomplete'`](@/guides/cell-types/autocomplete-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `AutocompleteEditor`<br>Validator: `AutocompleteValidator`                                                                         |
-     * | [`'checkbox'`](@/guides/cell-types/checkbox-cell-type.md)         | Renderer: `CheckboxRenderer`<br>Editor: `CheckboxEditor`<br>Validator: -                                                                                                                               |
-     * | [`'date'`](@/guides/cell-types/date-cell-type.md)                 | Renderer: `DateRenderer`<br>Editor: `DateEditor`<br>Validator: `DateValidator`                                                                                                 |
-     * | [`'dropdown'`](@/guides/cell-types/dropdown-cell-type.md)         | Renderer: `DropdownRenderer`<br>Editor: `DropdownEditor`<br>Validator: `DropdownValidator`                                                                                     |
-     * | [`'handsontable'`](@/guides/cell-types/handsontable-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `HandsontableEditor`<br>Validator: -                                                                                                                       |
-     * | [`'numeric'`](@/guides/cell-types/numeric-cell-type.md)           | Renderer: `NumericRenderer`<br>Editor: `NumericEditor`<br>Validator: `NumericValidator`                                                                                        |
-     * | [`'password'`](@/guides/cell-types/password-cell-type.md)         | Renderer: `PasswordRenderer`<br>Editor: `PasswordEditor`<br>Validator: -                                                                                                                               |
-     * | `'text'`                                                          | Renderer: `TextRenderer`<br>Editor: `TextEditor`<br>Validator: -                                                                                                                                       |
-     * | [`'time`'](@/guides/cell-types/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                 |
+     * | [`'autocomplete'`](@/guides/cell-types/autocomplete-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `AutocompleteEditor`<br>Validator: `AutocompleteValidator`                                                                                                                                             |
+     * | [`'checkbox'`](@/guides/cell-types/checkbox-cell-type.md)         | Renderer: `CheckboxRenderer`<br>Editor: `CheckboxEditor`<br>Validator: -                                                                                                                                                                           |
+     * | [`'date'`](@/guides/cell-types/date-cell-type.md)                 | Renderer: `DateRenderer`<br>Editor: `DateEditor`<br>Validator: `DateValidator`                                                                                                                                                                     |
+     * | [`'dropdown'`](@/guides/cell-types/dropdown-cell-type.md)         | Renderer: `DropdownRenderer`<br>Editor: `DropdownEditor`<br>Validator: `DropdownValidator`                                                                                                                                                         |
+     * | [`'handsontable'`](@/guides/cell-types/handsontable-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `HandsontableEditor`<br>Validator: -                                                                                                                                                                   |
+     * | [`'numeric'`](@/guides/cell-types/numeric-cell-type.md)           | Renderer: `NumericRenderer`<br>Editor: `NumericEditor` (same as `TextEditor`)<br>Validator: `NumericValidator`                                                                                                                                     |
+     * | [`'password'`](@/guides/cell-types/password-cell-type.md)         | Renderer: `PasswordRenderer`<br>Editor: `PasswordEditor`<br>Validator: -                                                                                                                                                                           |
+     * | `'text'`                                                          | Renderer: `TextRenderer`<br>Editor: `TextEditor`<br>Validator: -                                                                                                                                                                                   |
+     * | [`'time`'](@/guides/cell-types/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                                                                                     |
+     *
+     * ::: tip
+     * You can set a cell's [`renderer`](#renderer), [`editor`](#editor) or [`validator`](#validator) individually, but you still need to set that cell's [`type`](#type). For example:
+     *
+     * ```js
+     * renderer: Handsontable.NumericRenderer,
+     * editor: Handsontable.editors.NumericEditor,
+     * validator: Handsontable.NumericValidator,
+     * type: 'numeric'
+     * ```
+     * :::
      *
      * Read more:
      * - [Cell type](@/guides/cell-types/cell-type.md)
@@ -4413,6 +4446,17 @@ export default () => {
      *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
+     *
+     * ::: tip
+     * You can set a cell's [`renderer`](#renderer), [`editor`](#editor) or [`validator`](#validator) individually, but you still need to set that cell's [`type`](#type). For example:
+     *
+     * ```js
+     * renderer: Handsontable.NumericRenderer,
+     * editor: Handsontable.editors.NumericEditor,
+     * validator: Handsontable.NumericValidator,
+     * type: 'numeric'
+     * ```
+     * :::
      *
      * Read more:
      * - [Cell validator](@/guides/cell-functions/cell-validator.md)
