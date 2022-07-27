@@ -210,7 +210,7 @@ function getIgnoredFilesPatterns() {
  * @returns {string}
  */
 function parseFramework(url) {
-  const potentialFramework = getNormalizedPath(url).split('/')[2]?.replace(FRAMEWORK_SUFFIX, '');
+  const potentialFramework = getNormalizedPath(url).split('/')[1]?.replace(FRAMEWORK_SUFFIX, '');
 
   if (getFrameworks().includes(potentialFramework)) {
     return potentialFramework;
