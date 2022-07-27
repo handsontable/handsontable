@@ -118,9 +118,9 @@ function getSidebars() {
   } else {
     const framework = getEnvDocsFramework();
 
-    sidebars[`/${getThisDocsVersion}/examples/`] = sidebarConfig.examples;
-    sidebars[`/${getThisDocsVersion}/api/`] = sidebarConfig.api;
-    sidebars[`/${getThisDocsVersion}/next/`] = getTransformedGuides(sidebarConfig.guides, framework);
+    sidebars['/content/examples/'] = sidebarConfig.examples;
+    sidebars['/content/api/'] = sidebarConfig.api;
+    sidebars['/content/'] = getTransformedGuides(sidebarConfig.guides, framework);
   }
 
   return sidebars;
