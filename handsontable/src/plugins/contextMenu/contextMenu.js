@@ -280,6 +280,7 @@ export class ContextMenu extends BasePlugin {
    *
    * Or you can execute command registered in settings where `key` is your command name.
    *
+   * @private
    * @param {string} commandName The command name to be executed.
    * @param {*} params Additional paramteres passed to command executor module.
    */

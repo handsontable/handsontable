@@ -520,6 +520,7 @@ class Menu {
   /**
    * Execute menu command.
    *
+   * @private
    * @param {Event} [event] The mouse event object.
    */
   executeCommand(event) {

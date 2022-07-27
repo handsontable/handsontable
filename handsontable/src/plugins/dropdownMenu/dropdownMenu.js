@@ -288,6 +288,7 @@ export class DropdownMenu extends BasePlugin {
    *
    * Or you can execute command registered in settings where `key` is your command name.
    *
+   * @private
    * @param {string} commandName Command name to execute.
    * @param {*} params Additional parameters passed to the command executor.
    */
