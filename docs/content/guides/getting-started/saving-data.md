@@ -64,7 +64,7 @@ const hot = new Handsontable(container, {
 
     clearTimeout(autosaveNotification);
 
-    ajax('/docs/{{$page.currentVersion}}/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
+    ajax('/docs/next/javascript-data-grid/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
       exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
       autosaveNotification = setTimeout(() => {
         exampleConsole.innerText ='Changes will be autosaved';
@@ -85,7 +85,7 @@ load.addEventListener('click', () => {
 });
 save.addEventListener('click', () => {
   // save all cell's data
-  ajax('/docs/next/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
+  ajax('/docs/next/javascript-data-grid/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
     const response = JSON.parse(res.response);
 
     if (response.result === 'ok') {
@@ -140,7 +140,7 @@ function ajax(url, method, params, callback) {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -150,6 +150,7 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = React.createRef();
+  const [output, setOutput] = useState('');
 
   let autosaveNotification;
   const hotSettings = {
@@ -170,21 +171,23 @@ const ExampleComponent = () => {
 
       clearTimeout(autosaveNotification);
 
-      ajax('/docs/next/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
-        exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
+      ajax('/docs/next/react-data-grid/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
+        setOutput('Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')');
         autosaveNotification = setTimeout(() => {
           exampleConsole.innerText = 'Changes will be autosaved';
         }, 1000);
       });
     }
   };
-  Handsontable.dom.addEvent(autosave, 'click', () => {
+  let loadClickCallback;
+  let saveClickCallback;
+  const autosaveClickCallback = () => {
     if (autosave.checked) {
-      exampleConsole.innerText = 'Changes will be autosaved';
+      setOutput('Changes will be autosaved');
     } else {
       exampleConsole.innerText = 'Changes will not be autosaved';
     }
-  });
+  };
 
   function ajax(url, method, params, callback) {
     let obj;
@@ -219,28 +222,28 @@ const ExampleComponent = () => {
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
 
-    Handsontable.dom.addEvent(load, 'click', () => {
-      ajax('/docs/next/scripts/json/load.json', 'GET', '', res => {
+    loadClickCallback = () => {
+      ajax('/docs/next/react-data-grid/scripts/json/load.json', 'GET', '', res => {
         const data = JSON.parse(res.response);
 
         hot.loadData(data.data);
         // or, use `updateData()` to replace `data` without resetting states
 
-        exampleConsole.innerText = 'Data loaded';
+        setOutput('Data loaded');
       });
-    });
-    Handsontable.dom.addEvent(save, 'click', () => {
+    };
+    saveClickCallback = () => {
       // save all cell's data
-      ajax('/docs/next/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
+      ajax('/docs/next/react-data-grid/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
         const response = JSON.parse(res.response);
 
         if (response.result === 'ok') {
-          exampleConsole.innerText = 'Data saved';
+          setOutput('Data saved');
         } else {
-          exampleConsole.innerText = 'Save error';
+          setOutput('Save error');
         }
       });
-    });
+    };
   });
 
   return (
@@ -249,15 +252,15 @@ const ExampleComponent = () => {
       </HotTable>
   
       <div class="controls">
-        <button id="load" class="button button--primary button--blue">Load data</button>
-        <button id="save" class="button button--primary button--blue">Save data</button>
+        <button id="load" class="button button--primary button--blue" onClick={(...args) => loadClickCallback(...args)}>Load data</button>&nbsp;
+        <button id="save" class="button button--primary button--blue" onClick={(...args) => saveClickCallback(...args)}>Save data</button>
         <label>
-          <input type="checkbox" name="autosave" id="autosave"/>
+          <input type="checkbox" name="autosave" id="autosave" onClick={(...args) => autosaveClickCallback(...args)}/>
           Autosave
         </label>
       </div>
-  
-      <pre id="example1console" class="console">Click "Load" to load data from server</pre>
+
+      <output class="console" id="output">{output}</output>
     </Fragment>
   );
 };
