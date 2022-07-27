@@ -48,9 +48,9 @@ export default {
 
       if (!this.isExternal) {
         if (this.hideLatestVersion && this.$page.currentVersion === this.$page.latestVersion) {
-          href = href.replace('/{docsVersion}/', `${frameworkDir}`);
+          href = href.replace('/{docsVersion}/', `${frameworkDir}/`);
         } else {
-          href = href.replace('/{docsVersion}/', `/${this.$page.currentVersion}/${frameworkDir}`);
+          href = href.replace('/{docsVersion}/', `/${this.$page.currentVersion}/${frameworkDir}/`);
         }
       }
 
