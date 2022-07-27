@@ -135,7 +135,67 @@ sliceElem.addEventListener('transitionend', e => {
 ::: only-for react
 ::: example #example :react
 ```jsx
-// TODO: [react-content]
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+  const sliceElemRef = React.createRef();
+
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(100, 50),
+    rowHeaders: true,
+    colHeaders: true,
+    width: '100%',
+    height: '100%',
+    rowHeights: 23,
+    colWidths: 100,
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+  let expanderClickCallback = (e) => {
+    const triggerBtn = e.target;
+    const sliceElem = sliceElemRef.current;
+
+    if (triggerBtn.textContent === 'Collapse') {
+      triggerBtn.textContent = 'Expand';
+      sliceElem.style.height = '150px';
+    } else {
+      triggerBtn.textContent = 'Collapse';
+      sliceElem.style.height = '400px';
+    }
+  };
+  let sliceElemTransitionEndCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    sliceElemTransitionEndCallback = (e) => {
+      if (e.propertyName === 'height') {
+        hot.refreshDimensions();
+      }
+    };
+  });
+
+  return (
+    <Fragment>
+      <div ref={sliceElemRef} style={{transition: 'height 0.5s', height: 150}} onTransitionEnd={(...args) => sliceElemTransitionEndCallback(...args)}>
+        <HotTable ref={hotRef} settings={hotSettings}>
+        </HotTable>
+      </div>
+  
+      <div class="controls">
+        <button id="expander" className="button button--primary" onClick={(...args) => expanderClickCallback(...args)}>Expand container</button>
+      </div>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
 ```
 :::
 :::
