@@ -42,7 +42,7 @@ cell: [
 
 When editing values in a `numeric` cell:
 - Make sure that your values are numbers (not strings), as Handsontable doesn't parse strings to numbers.
-- As a decimal separator, use a dot (`50.5`). You can also use a comma (`50,5`), but not at Handosntable's [initialization](@/guides/getting-started/installation.md#initialize-handsontable).
+- As a decimal separator, use the dot (`50.5`). You can also use the comma (`50,5`), but not at Handosntable's [initialization](@/guides/getting-started/installation.md#initialize-handsontable).
 - Don't use any thousands separators.
 
 ::: tip
