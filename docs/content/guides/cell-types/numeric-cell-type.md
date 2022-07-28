@@ -15,19 +15,45 @@ By default, Handsontable treats all cell values as `string` type. This is becaus
 
 ## Usage
 
-To trigger the Numeric cell type, use the option `type: 'numeric'` in the [`columns`](@/api/options.md#columns) array or [`cells`](@/api/options.md#cells) function.
+To use the `numeric` cell type, set the [`type`](@/api/options.md#type) option to `'numeric'`:
 
-::: tip
-Ensure your cell values are numbers and not strings, as Handsontable doesn't parse strings to numbers.
-:::
+```js
+// set the `numeric` cell type for each cell of the entire grid
+type: `'numeric'`,
 
-You can input float-type values in the numeric editor using a dot or a comma as a decimal separator. For example, both `500000.5`, `500000,5` will be accepted. You are not able to use a thousands separator in the editor.
+// set the `numeric` cell type for each cell of a single column
+columns: [
+  {
+    type: 'numeric',
+  },
+]
 
-You can format the displayed values of the entered numbers using the [`numericFormat`](@/api/options.md#numericformat) option. Note that it ** does not influence the way you enter data**.
+// set the `numeric` cell type for a single cell
+cell: [
+  {
+    row: 0,
+    col: 0,
+    type: 'numeric',
+  }
+],
+```
+
+### Edit numeric values
+
+When editing values in a `numeric` cell:
+- Make sure that your values are numbers (not strings), as Handsontable doesn't parse strings to numbers.
+- As a decimal separator, use the dot (`50.5`). You can also use the comma (`50,5`), but not at Handosntable's [initialization](@/guides/getting-started/installation.md#initialize-handsontable).
+- Don't use any thousands separators.
 
 ::: tip
 All the positive and negative integers whose magnitude is no greater than 253 (+/- 9007199254740991) are representable in the `Number` type, i.e., safe integer. Any calculations that are performed on bigger numbers won't be calculated precisely due to JavaScript limitations.
 :::
+
+### Display numeric values
+
+To format the look of numeric values, use the [`numericFormat`](@/api/options.md#numericformat) option.
+
+Note that the [`numericFormat`](@/api/options.md#numericformat) option doesn't change the way you [edit](#edit-numeric-values) numeric data.
 
 ## Basic example
 
