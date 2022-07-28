@@ -25,27 +25,31 @@ async function cleanUp() {
  * @param {string} version The docs version to build.
  * @param {string} framework The docs framework to build.
  */
-async function buildVersion(version, framework) {
-  logger.info(`Version ${version} build started at`, new Date().toString());
+const buildVersion = (version, framework) => {
+  return new Promise(async (resolve, reject) => {
+    logger.info(`Version ${version} build started at`, new Date().toString());
 
-  const cwd = path.resolve(__dirname, '../../');
-  const versionEscaped = version.replace('.', '-');
+    const cwd = path.resolve(__dirname, '../../');
+    const versionEscaped = version.replace('.', '-');
 
-  await spawnProcess(
-    'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-' + 
-    `${versionEscaped}/${framework}${FRAMEWORK_SUFFIX}${ NO_CACHE ? ' --no-cache' : '' }`,
-    { cwd, env: { DOCS_BASE: version, DOCS_FRAMEWORK: framework }, }
-  );
-
-  if (version !== 'next') {
     await spawnProcess(
-      'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
+      'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-' +
       `${versionEscaped}/${framework}${FRAMEWORK_SUFFIX}${ NO_CACHE ? ' --no-cache' : '' }`,
-      { cwd, env: { DOCS_BASE: 'latest', DOCS_FRAMEWORK: framework }, }
+      { cwd, env: { DOCS_BASE: version, DOCS_FRAMEWORK: framework }, }
     );
-  }
 
-  logger.success('Version build finished at', new Date().toString());
+    if (version !== 'next') {
+      await spawnProcess(
+        'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
+        `${versionEscaped}/${framework}${FRAMEWORK_SUFFIX}${ NO_CACHE ? ' --no-cache' : '' }`,
+        { cwd, env: { DOCS_BASE: 'latest', DOCS_FRAMEWORK: framework }, }
+      );
+    }
+
+    logger.success('Version build finished at', new Date().toString());
+
+    resolve();
+  });
 }
 
 /**
@@ -85,10 +89,10 @@ const buildApp = async() => {
 
   await cleanUp();
 
-  frameworks.forEach(async (framework) => {
+  for (const framework of frameworks) {
     await buildVersion(getThisDocsVersion(), framework);
     await concatenate(getThisDocsVersion(), framework);
-  });
+  }
 
   logger.success('Build finished at', new Date().toString());
 }
