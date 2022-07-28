@@ -103,7 +103,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // allow empty values in every cell of the entire grid
+     * // allow empty values in each cell of the entire grid
      * allowEmpty: true,
      *
      * // or
@@ -111,7 +111,7 @@ export default () => {
      *   {
      *     data: 'date',
      *     dateFormat: 'DD/MM/YYYY',
-     *     // allow empty values in every cell of the 'date' column
+     *     // allow empty values in each cell of the 'date' column
      *     allowEmpty: true
      *   }
      * ],
@@ -147,7 +147,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['<strong>foo</strong>', '<strong>bar</strong>']
@@ -530,13 +530,13 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `checkbox`
+     *     // set the `type` of each cell in this column to `checkbox`
      *     // when checked, the cell's value is `true`
      *     // when unchecked, the cell's value is `false`
      *     type: 'checkbox',
      *   },
      *   {
-     *     // set the `type` of every cell in this column to `checkbox`
+     *     // set the `type` of each cell in this column to `checkbox`
      *     type: 'checkbox',
      *     // when checked, the cell's value is `'Yes'`
      *     checkedTemplate: 'Yes',
@@ -950,7 +950,7 @@ export default () => {
      * @example
      * ```js
      * // add a `has-comment` CSS class name
-     * // to every cell that has a comment
+     * // to each cell that has a comment
      * commentedCellClassName: 'has-comment',
      * ```
      */
@@ -1097,17 +1097,17 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable copying for every cell of the entire grid
+     * // enable copying for each cell of the entire grid
      * copyable: true,
      *
      * // enable copying for individual columns
      * columns: [
      *   {
-     *     // enable copying for every cell of this column
+     *     // enable copying for each cell of this column
      *     copyable: true
      *   },
      *   {
-     *     // disable copying for every cell of this column
+     *     // disable copying for each cell of this column
      *     copyable: false
      *   }
      * ]
@@ -1195,7 +1195,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *   // set the `type` of every cell in this column to `date`
+     *   // set the `type` of each cell in this column to `date`
      *   type: 'date',
      *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
      *   dateFormat: 'YYYY-MM-DD',
@@ -1209,7 +1209,7 @@ export default () => {
 
     /**
      * The `currentColClassName` option lets you add a CSS class name
-     * to every cell of the currently-visible, currently-selected columns.
+     * to each cell of the currently-visible, currently-selected columns.
      *
      * Read more:
      * - [`currentRowClassName`](#currentRowClassName)
@@ -1231,7 +1231,7 @@ export default () => {
      * @example
      * ```js
      * // add a `your-class-name` CSS class name
-     * // to every cell of the currently-visible, currently-selected columns
+     * // to each cell of the currently-visible, currently-selected columns
      * currentColClassName: 'your-class-name',
      * ```
      */
@@ -1268,7 +1268,7 @@ export default () => {
 
     /**
      * The `currentRowClassName` option lets you add a CSS class name
-     * to every cell of the currently-visible, currently-selected rows.
+     * to each cell of the currently-visible, currently-selected rows.
      *
      * Read more:
      * - [`currentColClassName`](#currentColClassName)
@@ -1290,7 +1290,7 @@ export default () => {
      * @example
      * ```js
      * // add a `your-class-name` CSS class name
-     * // to every cell of the currently-visible, currently-selected rows
+     * // to each cell of the currently-visible, currently-selected rows
      * currentRowClassName: 'your-class-name',
      * ```
      */
@@ -1502,7 +1502,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *   // set the `type` of every cell in this column to `date`
+     *   // set the `type` of each cell in this column to `date`
      *   type: 'date',
      *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
      *   dateFormat: 'YYYY-MM-DD',
@@ -1561,7 +1561,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `date`
+     *     // set the `type` of each cell in this column to `date`
      *     type: 'date',
      *     // in every empty `date` cell of this column, display `2015-02-02`
      *     defaultDate: '2015-02-02'
@@ -1742,17 +1742,17 @@ export default () => {
      *
      * @example
      * ```js
-     * // use the `numeric` editor for every cell of the entire grid
+     * // use the `numeric` editor for each cell of the entire grid
      * editor: 'numeric',
      *
      * // apply the `editor` option to individual columns
      * columns: [
      *   {
-     *     // use the `autocomplete` editor for every cell of this column
+     *     // use the `autocomplete` editor for each cell of this column
      *     editor: 'autocomplete'
      *   },
      *   {
-     *     // disable editing cells through cell editors for every cell of this column
+     *     // disable editing cells through cell editors for each cell of this column
      *     editor: false
      *   }
      * ]
@@ -1915,7 +1915,7 @@ export default () => {
      * @example
      * ```js
      * columns: [{
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C'],
@@ -3121,7 +3121,7 @@ export default () => {
 
     /**
      * The `noWordWrapClassName` option lets you add a CSS class name
-     * to every cell that has the [`wordWrap`](#wordWrap) option set to `false`.
+     * to each cell that has the [`wordWrap`](#wordWrap) option set to `false`.
      *
      * Read more:
      * - [`wordWrap`](#wordWrap)
@@ -3143,7 +3143,7 @@ export default () => {
      * @example
      * ```js
      * // add an `is-noWrapCell` CSS class name
-     * // to every cell that doesn't wrap content
+     * // to each cell that doesn't wrap content
      * noWordWrapClassName: 'is-noWrapCell',
      * ```
      */
@@ -3181,7 +3181,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `numeric`
+     *     // set the `type` of each cell in this column to `numeric`
      *     type: 'numeric',
      *     // set the `numericFormat` option for every `numeric` cell of this column
      *     numericFormat: {
@@ -3342,7 +3342,7 @@ export default () => {
      * @example
      * ```js
      * // add a `has-placeholder` CSS class name
-     * // to every cell that contains `placeholder` text
+     * // to each cell that contains `placeholder` text
      * placeholderCellClassName: 'has-placeholder',
      * ```
      */
@@ -3518,7 +3518,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // use the `numeric` renderer for every cell of the entire grid
+     * // use the `numeric` renderer for each cell of the entire grid
      * renderer: `'numeric'`,
      *
      * // add a custom renderer function
@@ -3530,11 +3530,11 @@ export default () => {
      * // apply the `renderer` option to individual columns
      * columns: [
      *   {
-     *     // use the `autocomplete` renderer for every cell of this column
+     *     // use the `autocomplete` renderer for each cell of this column
      *     renderer: 'autocomplete'
      *   },
      *   {
-     *     // use the `myCustomRenderer` renderer for every cell of this column
+     *     // use the `myCustomRenderer` renderer for each cell of this column
      *     renderer: 'myCustomRenderer'
      *   }
      * ]
@@ -3761,7 +3761,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `select`
+     *     // set the `type` of each cell in this column to `select`
      *     type: 'select',
      *     // set the first option's value and label to `A`
      *     // set the second option's value and label to `B`
@@ -3769,7 +3769,7 @@ export default () => {
      *     selectOptions: ['A', 'B', 'C'],
      *   },
      *   {
-     *     // set the `type` of every cell in this column to `select`
+     *     // set the `type` of each cell in this column to `select`
      *     type: 'select',
      *     selectOptions: {
      *       // set the first option's value to `value1` and label to `Label 1`
@@ -3781,7 +3781,7 @@ export default () => {
      *     },
      *   },
      *   {
-     *     // set the `type` of every cell in this column to `select`
+     *     // set the `type` of each cell in this column to `select`
      *     type: 'select',
      *     // set `selectOption` to a function that returns available options as an object
      *     selectOptions(visualRow, visualColumn, prop) {
@@ -3890,7 +3890,7 @@ export default () => {
      * @example
      * ```js
      * columns: [{
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['D', 'C', 'B', 'A'],
@@ -3927,7 +3927,7 @@ export default () => {
      * ```js
      * // set `source` to an array
      * columns: [{
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C', 'D']
@@ -3935,7 +3935,7 @@ export default () => {
      *
      * // set `source` to a function
      * columns: [{
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // for every `autocomplete` cell in this column, fetch data from an external source
      *   source(query, callback) {
@@ -4039,7 +4039,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C'],
@@ -4182,13 +4182,13 @@ export default () => {
      * columns: [
      *   {
      *     type: 'autocomplete',
-     *     // for every cell of this column
+     *     // for each cell of this column
      *     // make the `autocomplete` list's width the same as the edited cell's width
      *     trimDropdown: true,
      *   },
      *   {
      *     type: 'dropdown',
-     *     // for every cell of this column
+     *     // for each cell of this column
      *     // scale the `dropdown` list's width to the list's content
      *     trimDropdown: false,
      *   }
@@ -4237,7 +4237,7 @@ export default () => {
      *
      * | Setting          | Description                                                     |
      * | ---------------- | --------------------------------------------------------------- |
-     * | `true` (default) | Remove whitespace at the beginning and at the end of every cell |
+     * | `true` (default) | Remove whitespace at the beginning and at the end of each cell |
      * | `false`          | Don't remove whitespace                                         |
      *
      * @memberof Options#tr
@@ -4295,17 +4295,17 @@ export default () => {
      *
      * @example
      * ```js
-     * // use the `numeric` cell type for every cell of the entire grid
+     * // set the `numeric` cell type for each cell of the entire grid
      * type: `'numeric'`,
      *
      * // apply the `type` option to individual columns
      * columns: [
      *   {
-     *     // use the `autocomplete` cell type for every cell of this column
+     *     // set the `autocomplete` cell type for each cell of this column
      *     type: 'autocomplete'
      *   },
      *   {
-     *     // use the `myCustomCellType` cell type for every cell of this column
+     *     // set the `myCustomCellType` cell type for each cell of this column
      *     type: 'myCustomCellType'
      *   }
      * ]
@@ -4338,13 +4338,13 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `checkbox`
+     *     // set the `type` of each cell in this column to `checkbox`
      *     // when unchecked, the cell's value is `false`
      *     // when checked, the cell's value is `true`
      *     type: 'checkbox',
      *   },
      *   {
-     *     // set the `type` of every cell in this column to `checkbox`
+     *     // set the `type` of each cell in this column to `checkbox`
      *     // when unchecked, the cell's value is `'No'`
      *     // when checked, the cell's value is `'Yes'`
      *     type: 'checkbox',
@@ -4525,13 +4525,13 @@ export default () => {
      *   {
      *     type: 'autocomplete',
      *     // set the `autocomplete` list's height to 15 options
-     *     // for every cell of this column
+     *     // for each cell of this column
      *     visibleRows: 15,
      *   },
      *   {
      *     type: 'dropdown',
      *     // set the `dropdown` list's height to 5 options
-     *     // for every cell of this column
+     *     // for each cell of this column
      *     visibleRows: 5,
      *   }
      * ],
