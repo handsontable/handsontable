@@ -1419,9 +1419,13 @@ export default () => {
      * - Either to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
      * - Or to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects).
      *
+     * If you don't set the `data` option (or set it to `null`), Handsontable renders as an empty 5x5 grid by default.
+     *
      * Read more:
      * - [Binding to data](@/guides/getting-started/binding-to-data.md)
      * - [`dataSchema`](#dataSchema)
+     * - [`startRows`](#startRows)
+     * - [`startCols`](#startCols)
      *
      * @memberof Options#
      * @type {Array[]|object[]}
