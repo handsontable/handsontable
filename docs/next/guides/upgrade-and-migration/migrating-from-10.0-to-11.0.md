@@ -14,7 +14,7 @@ To upgrade your Handsontable version from 10.x.x to 11.x.x, follow this guide.
 
 ## Step 1: React, Angular, Vue – register your modules
 
-Starting with Handsontable 11.0.0, the [React wrapper](@/guides/integrate-with-react/react-installation.md), the [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md), and the [Vue wrapper](@/guides/integrate-with-vue/vue-installation.md) support [modularization](@/guides/building-and-testing/modules.md).
+Starting with Handsontable 11.0.0, the [React wrapper](../../react-data-grid), the [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md), and the [Vue wrapper](@/guides/integrate-with-vue/vue-installation.md) support [modularization](@/guides/building-and-testing/modules.md).
 
 If you don't use any of the wrappers, you don't need to change anything.
 
@@ -30,13 +30,6 @@ import { registerAllModules } from 'handsontable/registry';
 // register all Handsontable modules
 registerAllModules();
 ```
-
-### Using individual modules
-
-To start using individual Handsontable modules with your wrapper, see the following guides:
-- [Using modules with React](@/guides/integrate-with-react/react-modules.md)
-- [Using modules with Angular](@/guides/integrate-with-angular/angular-modules.md)
-- [Using modules with Vue](@/guides/integrate-with-vue/vue-modules.md)
 
 ## Step 2: Adapt to the type definition changes
 

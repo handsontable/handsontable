@@ -1,11 +1,11 @@
 ---
-title: 'Redux example'
-metaTitle: 'Redux example - Guide - Handsontable Documentation'
-permalink: /next/react-redux-example
-canonicalUrl: /react-redux-example
+title: 'Redux'
+metaTitle: 'Redux - Guide - Handsontable Documentation'
+permalink: /next/redux
+canonicalUrl: /redux
 ---
 
-# Redux example
+# Redux
 
 [[toc]]
 

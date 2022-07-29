@@ -14,6 +14,7 @@ tags:
 [[toc]]
 
 ## Overview
+
 The following guide provides information on using a data source and manipulating how the data is displayed in the data grid.
 
 ## Compatible data types
@@ -392,9 +393,9 @@ Handsontable binds to your data source by reference, not by values. We don't cop
 
 To avoid this scenario, copy the data before you pass it to the grid. To change the data from outside Handsontable, you can use our API methods. For example, a change being made will be displayed immediately on the screen after calling the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
-::: example #example9
+::: example #example8
 ```js
-const container = document.getElementById('example9');
+const container = document.getElementById('example8');
 
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
@@ -420,9 +421,9 @@ hot.setDataAtCell(0, 1, 'Ford');
 
 When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
 
-::: example #example10
+::: example #example9
 ```js
-const container = document.getElementById('example10');
+const container = document.getElementById('example9');
 
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],

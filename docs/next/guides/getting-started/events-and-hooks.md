@@ -64,11 +64,81 @@ hot.addHook('beforeCreateRow', (row, amount) => {
 
 The first argument may be modified and passed on through the hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application.
 
+::: only-for react
+## External control
+
+::: example #example3 :react
+```jsx
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
+
+// register Handsontable's modules
+registerAllModules();
+
+const App = () => {
+  const [settings, setSettings] = useState(() => {
+    const initialState = {
+      data: createSpreadsheetData(15, 20),
+      height: 220,
+      licenseKey: 'non-commercial-and-evaluation'
+    }
+
+    return initialState;
+  });
+
+  const handleChange = (setting, states) => event => {
+    setSettings(prevState => ({
+      ...prevState,
+      [setting]: states[event.target.checked ? 1 : 0],
+    }))
+  }
+
+  return (
+    <div>
+      <div className="controls">
+        <label>
+          <input onChange={handleChange('fixedRowsTop', [0, 2])} type="checkbox" />
+          Add fixed rows
+        </label>
+        <br/>
+
+        <label>
+          <input onChange={handleChange('fixedColumnsStart', [0, 2])} type="checkbox" />
+          Add fixed columns
+        </label>
+        <br/>
+
+        <label>
+          <input onChange={handleChange('rowHeaders', [false, true])} type="checkbox" />
+          Enable row headers
+        </label>
+        <br/>
+
+        <label>
+          <input onChange={handleChange('colHeaders', [false, true])} type="checkbox" />
+          Enable column headers
+        </label>
+        <br/>
+      </div>
+
+      <HotTable root="hot" settings={settings}/>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('example3'));
+```
+:::
+:::
+
 ## All available hooks example
 
 Note that some callbacks are checked on this page by default.
 
-::: example #example1 --css 1 --html 2 --js 3 --skipTransform
+::: example #example1 --css 1 --html 2 --js 3
 ```css
 #example1_events {
   height: 166px;
@@ -102,7 +172,7 @@ Note that some callbacks are checked on this page by default.
 <strong> Choose events to be logged:</strong>
 
 <ul id="hooksList">
-  <li><label><input type="checkbox" id="check_select_all"/>Select all</label></li>
+  <li><label><input type="checkbox" id="check_select_all">Select all</label></li>
 </ul>
 ```
 ```js
@@ -136,7 +206,7 @@ hooks.forEach(function(hook) {
     checked = 'checked';
   }
 
-  hooksList.innerHTML += '<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"/> ' + hook + '</label></li>';
+  hooksList.innerHTML += '<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"> ' + hook + '</label></li>';
   config[hook] = function() {
     log_events(hook, arguments);
   }

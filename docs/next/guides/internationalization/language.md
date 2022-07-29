@@ -70,6 +70,7 @@ To properly use the internationalization feature, you'll need to load the langua
 
 Please right click on a cell to see the translated context menu. Language files were loaded after loading Handsontable.
 
+::: only-for javascript
 ::: example #example1 :hot-lang
 ```js
 const container = document.querySelector('#example1');
@@ -90,6 +91,68 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+:::
+:::
+
+::: only-for react
+::: tip
+Note that the `language` property is bound to the component separately using `language={this.language}"`, but it could be included in the `settings` property just as well.
+:::
+
+::: example #example2 :react-languages
+```jsx
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { getLanguagesDictionaries } from 'handsontable/i18n';
+import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: createSpreadsheetData(5, 10),
+  colHeaders: true,
+  rowHeaders: true,
+  contextMenu: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () => {
+  const [language, setLanguage] = useState('en-US');
+  const [languageList, setLanguageList] = useState([]);
+
+  useEffect(() => {
+    setLanguageList(getLanguagesDictionaries());
+  }, []);
+
+  const updateHotLanguage = event => {
+    setLanguage(event.target.value);
+  };
+
+  return (
+    <div>
+      <div className="controls"><label>Select language:
+        {' '}
+        <select value={language} onChange={updateHotLanguage}>
+          {languageList.map(({ languageCode }) => (
+            <option key={languageCode} value={languageCode}>
+              {languageCode}
+            </option>
+          ))}
+        </select>
+      </label></div>
+
+      <HotTable language={language} settings={hotSettings}/>
+    </div>
+  );
+}
+
+ReactDOM.render(<App/>, document.getElementById('example1'));
+```
+:::
 :::
 
 ## List of translatable features

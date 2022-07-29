@@ -9,6 +9,8 @@ canonicalUrl: /cell-renderer
 
 [[toc]]
 
+## Overview
+
 When you create a renderer, a good idea is to assign it as an alias that will refer to this particular renderer function. Handsontable defines 10 aliases by default:
 
 * `autocomplete` for `Handsontable.renderers.AutocompleteRenderer`
@@ -23,6 +25,77 @@ When you create a renderer, a good idea is to assign it as an alias that will re
 * `time` for `Handsontable.renderers.TimeRenderer`
 
 It gives users a convenient way for defining which renderer should be used when table rendering was triggered. User doesn't need to know which renderer function is responsible for displaying the cell value, he does not even need to know that there is any function at all. What is more, you can change the render function associated with an alias without a need to change code that defines a table.
+
+::: only-for react
+## Example
+
+You can declare a custom renderer for the `HotTable` component by declaring it as a function in the Handsontable options or creating a rendering component.
+
+The following example implements `@handsontable/react` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
+
+::: example #example1 :react
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data:
+    [
+      ['A1', 'https://handsontable.com/docs/next/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+      ['A2', 'https://handsontable.com/docs/next/img/examples/javascript-the-good-parts.jpg']
+    ],
+  columns: [
+    {},
+    {
+      renderer(instance, td, row, col, prop, value, cellProperties) {
+        const escaped = `${value}`;
+
+        if (escaped.indexOf('http') === 0) {
+          const img = document.createElement('IMG');
+          img.src = value;
+
+          img.addEventListener('mousedown', event => {
+            event.preventDefault();
+          });
+
+          td.innerText = '';
+          td.appendChild(img);
+
+        } else {
+          textRenderer.apply(this, arguments);
+        }
+
+        return td;
+      }
+    }
+  ],
+  colHeaders: true,
+  rowHeights: 55,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () => {
+  return (
+    <div>
+      <HotTable
+        id="hot"
+        settings={hotSettings}
+      />
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('example1'));
+```
+:::
+:::
 
 ## Using a cell renderer
 
@@ -113,7 +186,7 @@ This example shows how to use custom cell renderers to display HTML content in a
 * **Comments** column uses a custom renderer (`safeHtmlRenderer`). This should be safe for user input, because only certain tags are allowed
 * **Cover** column accepts image URL as a string and converts it to a `<img>` in the renderer
 
-::: example #example1
+::: example #example2
 ```js
 const data = [
   {
@@ -136,7 +209,7 @@ const data = [
   }
 ];
 
-const container = document.getElementById('example1');
+const container = document.getElementById('example2');
 const hot = new Handsontable(container, {
   data,
   colWidths: [200, 200, 200, 80],
@@ -185,25 +258,11 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
 
-::: example #example2 --js 2 --html 1
-```html
-<div id="exampleContainer2">
-  <div id="example2"></div>
-</div>
-```
+::: example #example3
 ```js
 let isChecked = false;
-const exampleContainer2 = document.querySelector('#exampleContainer2');
-const container = document.querySelector('#example2');
+const container = document.querySelector('#example3');
 
-function customRenderer(instance, td) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
-  if (isChecked) {
-    td.style.backgroundColor = 'yellow';
-  } else {
-    td.style.backgroundColor = 'white';
-  }
-}
 
 const hot = new Handsontable(container, {
   height: 'auto',
@@ -222,13 +281,22 @@ const hot = new Handsontable(container, {
   }
 });
 
-exampleContainer2.addEventListener('mousedown', event => {
+function customRenderer(instance, td) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  if (isChecked) {
+    td.style.backgroundColor = 'yellow';
+  } else {
+    td.style.backgroundColor = 'white';
+  }
+}
+
+container.addEventListener('mousedown', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     event.stopPropagation();
   }
 });
 
-exampleContainer2.addEventListener('mouseup', event => {
+container.addEventListener('mouseup', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     isChecked = !event.target.checked;
     hot.render();
@@ -256,12 +324,13 @@ Cell renderers are called separately for every displayed cell, during every tabl
 
 ## Related articles
 
+::: only-for javascript
 ### Related guides
 
-- [Custom renderer in React](@/guides/integrate-with-react/react-custom-renderer-example.md)
 - [Custom renderer in Angular](@/guides/integrate-with-angular/angular-custom-renderer-example.md)
 - [Custom renderer in Vue 2](@/guides/integrate-with-vue/vue-custom-renderer-example.md)
 - [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example.md)
+:::
 
 ### Related API reference
 
