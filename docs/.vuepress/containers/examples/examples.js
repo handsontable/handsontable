@@ -7,6 +7,7 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const { buildCode } = require('./code-builder');
 const { jsfiddle } = require('./jsfiddle');
+const { isEnvDev } = require('../../helpers');
 const { getContainerFramework } = require('../helpers');
 
 const tab = (tabName, token) => {
@@ -111,7 +112,10 @@ module.exports = function(docsVersion) {
         const noEdit = !!args.match(/--no-edit/)?.[0];
 
         const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), jsToken.content, env.relativePath);
-        const encodedCode = encodeURI(`useHandsontable('${docsVersion}', function(){${code}}, '${preset}')`);
+        const encodedCode = encodeURI(
+          `useHandsontable('${docsVersion}', function(){${code}}, '${preset}', ${
+            isEnvDev() ? '\'development\'' : '\'production\''
+          })`);
 
         [htmlIndex, jsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
           tokens.splice(x, 1);

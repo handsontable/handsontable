@@ -48,8 +48,7 @@ export default {
     imageUrl() {
       const currentVersion = this.$page.currentVersion;
       const frameworkWithoutNumber = this.$page.currentFramework.replace(/\d+$/, '');
-      const src = `/docs/${currentVersion}/${this.$page.currentFramework}${this.$page.frameworkSuffix}` +
-        `/img/pages/introduction/${frameworkWithoutNumber}.svg`;
+      const src = this.$withBase(`/img/pages/introduction/${frameworkWithoutNumber}.svg`);
 
       return getLinkTransformed(src, currentVersion, this.$page.latestVersion);
     },
