@@ -291,14 +291,16 @@ export default {
     },
 
     isSearchable(page) {
-      let framework = '';
+      // Documentation created using the production build always search pages for proper framework.
+      let isSelectedFramework = true;
 
       // Only dev environment contain framework element as a part of the `normalizedPath` key's value.
       if (this.$page.isEnvDev === true) {
-        framework = `${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
+        isSelectedFramework =
+          page.normalizedPath.startsWith(`/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`);
       }
 
-      return page.isSearchable === true && page.normalizedPath.startsWith(`/${this.$page.currentVersion}/${framework}`);
+      return page.isSearchable === true && isSelectedFramework;
     },
 
     onHotkey(event) {
