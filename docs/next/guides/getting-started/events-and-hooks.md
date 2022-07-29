@@ -138,7 +138,7 @@ ReactDOM.render(<App />, document.getElementById('example3'));
 
 Note that some callbacks are checked on this page by default.
 
-::: example #example1 --css 1 --html 2 --js 3
+::: example #example1 --css 1 --html 2 --js 3 --skipTransform
 ```css
 #example1_events {
   height: 166px;
