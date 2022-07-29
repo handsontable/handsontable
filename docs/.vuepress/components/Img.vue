@@ -16,12 +16,13 @@ export default {
 
   computed: {
     parsedSrc() {
+      const frameworkDir = `${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
       let src = this.src;
 
       if (this.$page.currentVersion === this.$page.latestVersion && this.$page.buildMode === 'production') {
-        src = src.replace('/{docsVersion}/', '/');
+        src = src.replace('/{docsVersion}/', `/${frameworkDir}/`);
       } else {
-        src = src.replace('/{docsVersion}/', `/${this.$page.currentVersion}/`);
+        src = src.replace('/{docsVersion}/', `/${this.$page.currentVersion}/${frameworkDir}/`);
       }
 
       return src;

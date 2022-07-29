@@ -1,5 +1,5 @@
 <template>
-  <nav class="nav-frameworks nav-links" v-if="isFrameworked">
+  <nav class="nav-frameworks nav-links">
     <img :src="imageUrl"/>
     <!-- user links -->
     <nav class="nav-item" >
@@ -45,9 +45,6 @@ export default {
     }
   },
   computed: {
-    isFrameworked() {
-      return this.$page.currentFramework !== void 0;
-    },
     imageUrl() {
       const currentVersion = this.$page.currentVersion;
       const frameworkWithoutNumber = this.$page.currentFramework.replace(/\d+$/, '');

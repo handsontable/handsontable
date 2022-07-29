@@ -118,9 +118,9 @@ function getSidebars() {
   } else {
     const framework = getEnvDocsFramework();
 
-    sidebars[`/${framework}/examples/`] = sidebarConfig.examples;
-    sidebars[`/${framework}/api/`] = sidebarConfig.api;
-    sidebars[`/${framework}/`] = getTransformedGuides(sidebarConfig.guides, framework);
+    sidebars['/content/examples/'] = sidebarConfig.examples;
+    sidebars['/content/api/'] = sidebarConfig.api;
+    sidebars['/content/'] = getTransformedGuides(sidebarConfig.guides, framework);
   }
 
   return sidebars;
@@ -210,20 +210,11 @@ function getIgnoredFilesPatterns() {
  * @returns {string}
  */
 function parseFramework(url) {
-  const potentialFramework = getNormalizedPath(url).split('/')[2]?.replace(FRAMEWORK_SUFFIX, '');
+  const potentialFramework = getNormalizedPath(url).split('/')[1]?.replace(FRAMEWORK_SUFFIX, '');
 
   if (getFrameworks().includes(potentialFramework)) {
     return potentialFramework;
   }
-}
-
-/**
- * Gets docs version that is currently building (based on the environment variable).
- *
- * @returns {string}
- */
-function getEnvDocsVersion() {
-  return process.env.DOCS_VERSION;
 }
 
 /**
@@ -267,7 +258,6 @@ module.exports = {
   getNotSearchableLinks,
   parseFramework,
   getEnvDocsFramework,
-  getEnvDocsVersion,
   getDefaultFramework,
   isEnvDev,
   createSymlinks,
