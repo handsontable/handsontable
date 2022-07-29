@@ -7,7 +7,7 @@ const {
 const isBrowser = (typeof window !== 'undefined');
 
 const formatVersion = version => (/^\d+\.\d+$/.test(version) ? version : 'latest');
-const generatePrefixes = (version, framework) => {
+const generatePrefixes = (version, framework, buildMode) => {
   const isLatestVersion = semver.satisfies(
     semver.coerce(version)?.version,
     semver.coerce(currentHandsontableVersion)?.version.replace(/\.([a-z0-9]|-)+$/, '.x')
@@ -15,23 +15,24 @@ const generatePrefixes = (version, framework) => {
 
   const versionPrefix = !isLatestVersion || version === 'next' ? `${version}/` : '';
   const frameworkPrefix = framework ? `${framework}-data-grid/` : '';
+  const urlPrefix = buildMode === 'production' ? `${versionPrefix}${frameworkPrefix}` : `${versionPrefix}`;
 
   return {
     versionPrefix,
-    frameworkPrefix
+    frameworkPrefix,
+    urlPrefix
   };
 };
-const getHotUrls = (version, framework) => {
+const getHotUrls = (version, framework, buildMode) => {
   const {
-    versionPrefix,
-    frameworkPrefix
-  } = generatePrefixes(version, framework);
+    urlPrefix
+  } = generatePrefixes(version, framework, buildMode);
 
   if (version === 'next' && isBrowser) {
     return {
-      handsontableJs: `/docs/${versionPrefix}${frameworkPrefix}handsontable/handsontable.full.js`,
-      handsontableCss: `/docs/${versionPrefix}${frameworkPrefix}/handsontable/handsontable.full.css`,
-      languagesJs: `/docs/${versionPrefix}${frameworkPrefix}/handsontable/languages/all.js`
+      handsontableJs: `/docs/${urlPrefix}handsontable/handsontable.full.js`,
+      handsontableCss: `/docs/${urlPrefix}handsontable/handsontable.full.css`,
+      languagesJs: `/docs/${urlPrefix}handsontable/languages/all.js`
     };
   }
 
@@ -43,21 +44,25 @@ const getHotUrls = (version, framework) => {
     languagesJs: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/languages/all.js`
   };
 };
-const getCommonScript = (scriptName, version, framework) => {
+const getCommonScript = (scriptName, version, framework, buildMode) => {
   const {
     versionPrefix,
-    frameworkPrefix
-  } = generatePrefixes(version, framework);
+    frameworkPrefix,
+    urlPrefix
+  } = generatePrefixes(version, framework, buildMode);
 
   if (isBrowser) {
     // eslint-disable-next-line no-restricted-globals
     return [
-      `${window.location.origin}/docs/${versionPrefix}${frameworkPrefix}scripts/${scriptName}.js`,
+      `${window.location.origin}/docs/${urlPrefix}scripts/${scriptName}.js`,
       ['require', 'exports']
     ];
   }
 
-  return [`https://handsontable.com/docs/${versionPrefix}${frameworkPrefix}scripts/${scriptName}.js`, ['require', 'exports']];
+  return [
+    `https://handsontable.com/docs/${versionPrefix}${frameworkPrefix}scripts/${scriptName}.js`,
+    ['require', 'exports']
+  ];
 };
 
 /**
@@ -66,14 +71,15 @@ const getCommonScript = (scriptName, version, framework) => {
  *
  * @param {string} version The current selected documentation version.
  * @param {string} framework The current selected documentation framework.
+ * @param {'development'|'production'} buildMode The documentation build mode.
  * @returns {Function} Returns a function factory with the signature
  *                     `{function(dependency: string): [string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?]`.
  */
-const buildDependencyGetter = (version, framework) => {
-  const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version, framework);
+const buildDependencyGetter = (version, framework, buildMode) => {
+  const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version, framework, buildMode);
   const mappedVersion = formatVersion(version);
-  const fixer = getCommonScript('fixer', version, framework);
-  const helpers = getCommonScript('helpers', version, framework);
+  const fixer = getCommonScript('fixer', version, framework, buildMode);
+  const helpers = getCommonScript('helpers', version, framework, buildMode);
 
   return (dependency) => {
     /* eslint-disable max-len */

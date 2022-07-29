@@ -46,11 +46,11 @@ export default async({ router, siteData, isServer }) => {
   if (!isServer) {
     const currentVersion = siteData.pages[0].currentVersion;
     const framework = `${siteData.pages[0].currentFramework}${siteData.pages[0].frameworkSuffix}`;
-    const buildMode = siteData.pages[0].buildMode;
-    let pathVersion = '';
+    const devBuildMode = siteData.pages[0].isEnvDev;
+    let pathVersion = `${currentVersion}/`;
 
-    if (buildMode !== 'production') {
-      pathVersion = `${currentVersion}/${framework}/`;
+    if (!devBuildMode) {
+      pathVersion += `${framework}/`;
     }
 
     const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
