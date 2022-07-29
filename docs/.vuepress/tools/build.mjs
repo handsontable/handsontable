@@ -26,7 +26,7 @@ async function cleanUp() {
  * @param {string} framework The docs framework to build.
  */
 const buildVersion = (version, framework) => {
-  return new Promise(async (resolve, reject) => {
+  return new Promise(async(resolve) => {
     logger.info(`Version ${version} build started at`, new Date().toString());
 
     const cwd = path.resolve(__dirname, '../../');
@@ -34,14 +34,14 @@ const buildVersion = (version, framework) => {
 
     await spawnProcess(
       'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-' +
-      `${versionEscaped}/${framework}${FRAMEWORK_SUFFIX}${ NO_CACHE ? ' --no-cache' : '' }`,
+      `${versionEscaped}/${framework}${FRAMEWORK_SUFFIX}${NO_CACHE ? ' --no-cache' : ''}`,
       { cwd, env: { DOCS_BASE: version, DOCS_FRAMEWORK: framework }, }
     );
 
     if (version !== 'next') {
       await spawnProcess(
         'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
-        `${versionEscaped}/${framework}${FRAMEWORK_SUFFIX}${ NO_CACHE ? ' --no-cache' : '' }`,
+        `${versionEscaped}/${framework}${FRAMEWORK_SUFFIX}${NO_CACHE ? ' --no-cache' : ''}`,
         { cwd, env: { DOCS_BASE: 'latest', DOCS_FRAMEWORK: framework }, }
       );
     }
@@ -50,7 +50,7 @@ const buildVersion = (version, framework) => {
 
     resolve();
   });
-}
+};
 
 /**
  * Concatenates the dist's.
@@ -67,9 +67,14 @@ async function concatenate(version, framework) {
     await fse.move(prebuildLatest, distLatest);
   }
 
-  const prebuildVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/pre-${version.replace('.', '-')}` +
-    `/${framework}${FRAMEWORK_SUFFIX}`);
-  const distVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/docs/${version}/${framework}${FRAMEWORK_SUFFIX}`);
+  const prebuildVersioned = path.resolve(
+    __dirname,
+    '../../', `.vuepress/dist/pre-${version.replace('.', '-')}/${framework}${FRAMEWORK_SUFFIX}`
+  );
+  const distVersioned = path.resolve(
+    __dirname,
+    '../../', `.vuepress/dist/docs/${version}/${framework}${FRAMEWORK_SUFFIX}`
+  );
 
   logger.info('Apply built version to the `docs/`', version);
 
@@ -95,6 +100,6 @@ const buildApp = async() => {
   }
 
   logger.success('Build finished at', new Date().toString());
-}
+};
 
 buildApp();
