@@ -23,6 +23,41 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
  * This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the
  * {@link Options#multiColumnSorting} property to the correct value (see the examples below).
  *
+ * ::: example #example1
+ * ```js
+ *  const arrayOfArrays = [
+ *     ["Tesla", "Model 3", "BlueStar", "USA", "★★★★"],
+ *     ["Tesla", "Model S", "WhiteStar", "USA", "★★★★★"],
+ *     ["Mitsubishi", "iMiEV", "", "Japan", "★★"],
+ *     ["Ford", "Focus EV", "", "USA", "★★"],
+ *     ["Mitsubishi", "iMiEV Sport", "", "Japan", "★★"],
+ *     ["Tesla", "Roadster", "DarkStar", "USA", "★★★★★"],
+ *     ["Volkswagen", "e-Golf", "", "Germany", "★★"],
+ *     ["Volkswagen", "E-Up!", "", "Germany", "★★"],
+ *     ["Ford", "C-Max Energi", "", "USA", "★"],
+ *   ];
+ *
+ *   const container = document.querySelector('#example1');
+ *
+ *   const hot = new Handsontable(container, {
+ *     data: arrayOfArrays,
+ *     colHeaders: ["Brand", "Model", "Code name", "Country of origin", "Rank"],
+ *     multiColumnSorting: {
+ *       initialConfig: [{
+ *         column: 1,
+ *         sortOrder: 'asc'
+ *       }, {
+ *         column: 0,
+ *         sortOrder: 'desc'
+ *       }]
+ *     },
+ *     rowHeaders: true,
+ *     height: 'auto',
+ *     licenseKey: 'non-commercial-and-evaluation'
+ *   });
+ * ```
+ * :::
+ *
  * @example
  * ```js
  * // as boolean
