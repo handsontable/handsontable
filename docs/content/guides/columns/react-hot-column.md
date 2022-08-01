@@ -1,7 +1,7 @@
 ---
 title: '<HotColumn/> component'
 metaTitle: '<HotColumn/> component - Guide - Handsontable Documentation'
-permalink: /next/hot-column
+permalink: /hot-column
 canonicalUrl: /hot-column
 ---
 

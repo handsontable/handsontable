@@ -1,7 +1,7 @@
 ---
 title: 'Redux'
 metaTitle: 'Redux - Guide - Handsontable Documentation'
-permalink: /next/redux
+permalink: /redux
 canonicalUrl: /redux
 ---
 
