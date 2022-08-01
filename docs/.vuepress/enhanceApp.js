@@ -1,9 +1,6 @@
 /* global GA_ID, ga */
-const semver = require('semver');
 const { applyToWindow, instanceRegister } = require('./handsontable-manager');
 const { themeLoader } = require('./themeLoader');
-
-const MIN_FRAMEWORKED_DOCS_VERSION = '12.1.0';
 
 applyToWindow();
 
@@ -73,8 +70,7 @@ export default async({ router, siteData, isServer }) => {
 
       page.versions = docsData.versions;
       page.latestVersion = docsData.latestVersion;
-      page.frameworkedVersions = page.versions.filter(version => version === 'next' ||
-          semver.gte(semver.coerce(version), semver.coerce(MIN_FRAMEWORKED_DOCS_VERSION)));
+      page.frameworkedVersions = docsData.frameworkedVersions;
     });
 
     themeLoader();
