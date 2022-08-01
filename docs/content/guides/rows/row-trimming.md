@@ -15,7 +15,20 @@ The _Trim Rows_ plugin allows the trimming of specific rows from the table. Rows
 
 ## Setup
 
-To enable row trimming, set the [`trimRows`](@/api/options.md#trimrows) option to an array of physical row indexes.
+To enable row trimming, set the [`trimRows`](@/api/options.md#trimrows) option to `true`.
+
+```js
+// enable the `TrimRows` plugin
+trimRows: true,
+```
+
+To both enable row trimming and trim selected rows at Handsontable's initialization, set the [`trimRows`](@/api/options.md#trimrows) option to an array of physical row indexes.
+
+```js
+// enable the `TrimRows` plugin
+// at Handsontable's initialization, trim rows 5, 10, and 15
+trimRows: [5, 10, 15],
+```
 
 See the [examples](#example) section for a live demo.
 
