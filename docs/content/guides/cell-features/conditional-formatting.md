@@ -50,9 +50,9 @@ function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
 function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
   Handsontable.renderers.TextRenderer.apply(this, arguments);
 
-  // if row contains negative number
+  // if the row contains a negative number
   if (parseInt(value, 10) < 0) {
-    // add class "negative"
+    // add class 'make-me-red'
     td.className = 'make-me-red';
   }
 
