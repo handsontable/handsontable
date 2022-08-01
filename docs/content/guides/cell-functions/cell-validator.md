@@ -187,7 +187,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -196,6 +196,8 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
+  const [output, setOutput] = useState('');
+
   const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
   const emailValidator = (value, callback) => {
     setTimeout(() => {
@@ -240,8 +242,8 @@ const ExampleComponent = () => {
       }
     },
     afterChange(changes, source) {
-      if (source !== 'loadData') {
-        console.innerText = JSON.stringify(changes);
+      if (source !== 'loadData' && source !== 'updateData') {
+        setOutput(JSON.stringify(changes));
       }
     },
     colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
@@ -260,9 +262,7 @@ const ExampleComponent = () => {
     <Fragment>
       <HotTable settings={hotSettings}>
       </HotTable>
-      <pre class="language-js">
-        <code id="example1console">Here you will see the log</code>
-      </pre>
+      <output class="console" id="output">{output}</output>
     </Fragment>
   );
 };

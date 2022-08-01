@@ -94,8 +94,8 @@ const ExampleComponent = () => {
 
   return (
     <Fragment>
-        <HotTable settings={hotSettings}>
-        </HotTable>
+      <HotTable settings={hotSettings}>
+      </HotTable>
     </Fragment>
   );
 };
@@ -182,8 +182,8 @@ const ExampleComponent = () => {
 
   return (
     <Fragment>
-        <HotTable settings={hotSettings}>
-        </HotTable>
+      <HotTable settings={hotSettings}>
+      </HotTable>
     </Fragment>
   );
 };
@@ -328,8 +328,8 @@ const ExampleComponent = () => {
 
   return (
     <Fragment>
-        <HotTable settings={hotSettings}>
-        </HotTable>
+      <HotTable settings={hotSettings}>
+      </HotTable>
     </Fragment>
   );
 };
