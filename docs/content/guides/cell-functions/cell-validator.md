@@ -242,7 +242,7 @@ const ExampleComponent = () => {
       }
     },
     afterChange(changes, source) {
-      if (source !== 'loadData' && source !== 'updateData') {
+      if (source !== 'loadData') {
         setOutput(JSON.stringify(changes));
       }
     },
