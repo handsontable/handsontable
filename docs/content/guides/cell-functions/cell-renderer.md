@@ -401,7 +401,6 @@ exampleContainer3.addEventListener('mouseup', event => {
 ::: example #example3 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
-import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -410,71 +409,59 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const data = [{
-    title: '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
-    description: 'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
-    comments: 'I would rate it ★★★★☆',
-    cover: 'https://handsontable.com/docs/next/img/examples/professional-javascript-developers-nicholas-zakas.jpg'
-  },
-    {
-      title: '<a href="https://shop.oreilly.com/product/9780596517748.do">JavaScript: The Good Parts</a>',
-      description: 'This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.',
-      comments: 'This is the book about JavaScript',
-      cover: 'https://handsontable.com/docs/next/img/examples/javascript-the-good-parts.jpg'
-    },
-    {
-      title: '<a href="https://shop.oreilly.com/product/9780596805531.do">JavaScript: The Definitive Guide</a>',
-      description: '<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.',
-      comments: 'I\'ve never actually read it, but the <a href="https://shop.oreilly.com/product/9780596805531.do">comments</a> are highly <strong>positive</strong>.',
-      cover: 'https://handsontable.com/docs/next/img/examples/javascript-the-definitive-guide.jpg'
+  const hotRef = React.createRef();
+
+  let isChecked = false;
+
+  function customRenderer(instance, td) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    if (isChecked) {
+      td.style.backgroundColor = 'yellow';
+    } else {
+      td.style.backgroundColor = 'white';
     }
-  ];
+  }
   const hotSettings = {
-    data,
-    colWidths: [200, 200, 200, 80],
-    colHeaders: ['Title', 'Description', 'Comments', 'Cover'],
     height: 'auto',
     columns: [
-      { data: 'title', renderer: 'html' },
-      { data: 'description', renderer: 'html' },
-      { data: 'comments', renderer: safeHtmlRenderer },
-      { data: 'cover', renderer: coverRenderer }
+      {},
+      { renderer: customRenderer }
     ],
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+    colHeaders(col) {
+      switch (col) {
+        case 0:
+          return '<b>Bold</b> and <em>Beautiful</em>';
 
-  function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
-    // be sure you only allow certain HTML tags to avoid XSS threats
-    // (you should also remove unwanted HTML attributes)
-    td.innerHTML = Handsontable.helper.sanitize(value, {
-      ALLOWED_TAGS: ['em', 'b', 'strong', 'a', 'big'],
-    });
-  }
-
-  function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
-    const stringifiedValue = Handsontable.helper.stringify(value);
-
-    if (stringifiedValue.startsWith('http')) {
-      const img = document.createElement('IMG');
-
-      img.src = value;
-
-      img.addEventListener('mousedown', event => {
-        event.preventDefault(); // prevent selection quirk
-      });
-
-      Handsontable.dom.empty(td);
-      td.appendChild(img);
-    } else {
-      // render as text
-      Handsontable.renderers.TextRenderer.apply(this, arguments);
+        case 1:
+          return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
+      }
     }
-  }
+  };
+  const exampleContainer3MousedownCallback = event => {
+    if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
+      event.stopPropagation();
+    }
+  };
+  let exampleContainer3MouseupCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    exampleContainer3MouseupCallback = event => {
+      if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
+        isChecked = !event.target.checked;
+        hot.render();
+      }
+    };
+  });
 
   return (
     <Fragment>
-      <HotTable settings={hotSettings}>
+      <div id="exampleContainer3" onMouseUp={(...args) => exampleContainer3MouseupCallback(...args)}>
+        <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
+      </div>
+      
     </Fragment>
   );
 };
