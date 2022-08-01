@@ -16,13 +16,11 @@ export default {
 
   computed: {
     parsedSrc() {
-      const frameworkDir = `${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
+      const withBaseMatches = new RegExp(/\$withBase\('(.*)'\)/).exec(this.src);
       let src = this.src;
 
-      if (this.$page.currentVersion === this.$page.latestVersion && this.$page.buildMode === 'production') {
-        src = src.replace('/{docsVersion}/', `/${frameworkDir}/`);
-      } else {
-        src = src.replace('/{docsVersion}/', `/${this.$page.currentVersion}/${frameworkDir}/`);
+      if (withBaseMatches) {
+        src = this.$withBase(withBaseMatches[1]);
       }
 
       return src;

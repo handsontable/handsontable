@@ -3,7 +3,7 @@
     <SidebarButton @toggle-sidebar="$emit('toggle-sidebar')" />
 
     <RouterLink
-        :to="'/'"
+        :to="`${this.frameworkUrlPrefix}/`"
         class="home-link"
     >
 
@@ -60,6 +60,11 @@ export default {
     };
   },
   computed: {
+    frameworkUrlPrefix() {
+      return this.$page.isEnvDev ?
+        `/${this.$page.currentFramework}${this.$page.frameworkSuffix}` :
+        '';
+    },
     algolia() {
       return this.$themeLocaleConfig.algolia || this.$site.themeConfig.algolia || {};
     },
