@@ -1168,8 +1168,9 @@ const REGISTERED_HOOKS = [
   'beforeHighlightingColumnHeader',
 
   /**
-   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
-   * {@link Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage.
+   *
+   * The `persistentStateLoad` hook is fired even when the {@link Options#persistentState} option is disabled.
    *
    * @event Hooks#persistentStateLoad
    * @param {string} key Key.
@@ -1187,8 +1188,9 @@ const REGISTERED_HOOKS = [
   'persistentStateReset',
 
   /**
-   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage. This hook is fired when
-   * {@link Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage.
+   *
+   * The `persistentStateSave` hook is fired even when the {@link Options#persistentState} option is disabled.
    *
    * @event Hooks#persistentStateSave
    * @param {string} key Key.
