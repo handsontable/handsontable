@@ -4207,11 +4207,11 @@ export default () => {
      *
      * You can set the `trimRows` option to one of the following:
      *
-     * | Setting  | Description                                                                                   |
-     * | -------- | --------------------------------------------------------------------------------------------- |
-     * | `false`  | Disable the [`TrimRows`](@/api/trimRows.md) plugin                                            |
-     * | `true`   | Enable the [`TrimRows`](@/api/trimRows.md) plugin                                             |
-     * | An array | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
+     * | Setting                          | Description                                                                                   |
+     * | -------------------------------- | --------------------------------------------------------------------------------------------- |
+     * | `false`                          | Disable the [`TrimRows`](@/api/trimRows.md) plugin                                            |
+     * | `true`                           | Enable the [`TrimRows`](@/api/trimRows.md) plugin                                             |
+     * | An array of physical row indexes | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
      *
      * Read more:
      * - [Plugins: `TrimRows`](@/api/trimRows.md)
