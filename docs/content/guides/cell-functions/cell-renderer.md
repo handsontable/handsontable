@@ -241,7 +241,7 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
 
     img.src = value;
 
-    Handsontable.dom.addEvent(img, 'mousedown', event =>{
+    img.addEventListener('mousedown', event =>{
       event.preventDefault(); // prevent selection quirk
     });
 
@@ -352,8 +352,17 @@ You can also put HTML into row and column headers. If you need to attach events 
 ::: example #example3
 ```js
 let isChecked = false;
+const exampleContainer3 = document.querySelector('#exampleContainer3');
 const container = document.querySelector('#example3');
 
+function customRenderer(instance, td) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  if (isChecked) {
+    td.style.backgroundColor = 'yellow';
+  } else {
+    td.style.backgroundColor = 'white';
+  }
+}
 
 const hot = new Handsontable(container, {
   height: 'auto',
@@ -372,22 +381,13 @@ const hot = new Handsontable(container, {
   }
 });
 
-function customRenderer(instance, td) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
-  if (isChecked) {
-    td.style.backgroundColor = 'yellow';
-  } else {
-    td.style.backgroundColor = 'white';
-  }
-}
-
-container.addEventListener('mousedown', event => {
+exampleContainer3.addEventListener('mousedown', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     event.stopPropagation();
   }
 });
 
-container.addEventListener('mouseup', event => {
+exampleContainer3.addEventListener('mouseup', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     isChecked = !event.target.checked;
     hot.render();
