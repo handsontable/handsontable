@@ -44,21 +44,26 @@ export default {
     ThemeSwitcher
   },
   computed: {
+    frameworkUrlPrefix() {
+      return this.$page.isEnvDev ?
+        `/${this.$page.currentFramework}${this.$page.frameworkSuffix}` :
+        '';
+    },
     guideLink() {
       return {
-        link: '/',
+        link: `${this.frameworkUrlPrefix}/`,
         text: 'Guides'
       };
     },
     examplesLink() {
       return {
-        link: '/examples/',
+        link: `${this.frameworkUrlPrefix}/examples/`,
         text: 'Examples'
       };
     },
     apiLink() {
       return {
-        link: '/api/',
+        link: `${this.frameworkUrlPrefix}/api/`,
         text: 'API Reference'
       };
     },
