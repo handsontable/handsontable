@@ -1176,15 +1176,21 @@ export default () => {
     copyPaste: true,
 
     /**
-     * The `correctFormat` option configures what happens when the format of a date entered into a [`date`](@/guides/cell-types/date-cell-type.md) cell doesn't match the format specified by the [`dateFormat`](#dateFormat) option:
+     * The `correctFormat` option configures whether incorrectly-formatted times and dates are amended or not.
      *
-     * | Setting           | Description                                                                        |
-     * | ----------------- | ---------------------------------------------------------------------------------- |
-     * | `false` (default) | Don't correct the entered date's format (treat the entered date as invalid)        |
-     * | `true`            | Correct the entered date's format to match the [`dateFormat`](#dateFormat) setting |
+     * When the user enters dates and times, Handsontable can automatically adjust their format
+     * to match the [`dateFormat`](#dateFormat) and [`timeFormat`](@/guides/cell-types/time-cell-type.md) settings.
+     *
+     * You can set the `correctFormat` option to one of the following:
+     *
+     * | Setting           | Description                                                                                                                                               |
+     * | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Don't correct the format of the entered date or time (treat the entered date or time as invalid)                                                          |
+     * | `true`            | Correct the format of the entered date or time to match the [`dateFormat`](#dateFormat) or [`timeFormat`](@/guides/cell-types/time-cell-type.md) settings |
      *
      * Read more:
      * - [Date cell type](@/guides/cell-types/date-cell-type.md)
+     * - [Time cell type](@/guides/cell-types/time-cell-type.md)
      * - [`dateFormat`](#dateFormat)
      *
      * @memberof Options#
@@ -1201,6 +1207,15 @@ export default () => {
      *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
      *   dateFormat: 'YYYY-MM-DD',
      *   // enforce the `YYYY-MM-DD` date format
+     *   correctFormat: true
+     *   },
+     *
+     *   {
+     *   // set the `type` of each cell in this column to `time`
+     *   type: 'time',
+     *   // for every `time` cell of this column, set the time format to `h:mm:ss a`
+     *   timeFormat: 'h:mm:ss a',
+     *   // enforce the `h:mm:ss a` time format
      *   correctFormat: true
      *   },
      * ],
