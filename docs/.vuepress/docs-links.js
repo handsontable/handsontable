@@ -1,6 +1,9 @@
 const { fs, path, parseFrontmatter } = require('@vuepress/shared-utils');
+const helpers = require('./helpers');
 
 module.exports = function(src) {
+  const resourcePathNormalized = path.sep === '\\' ? this.resourcePath.replace(/\\/g, '/') : this.resourcePath;
+  const pathForServingDocs = resourcePathNormalized.replace(/.*?docs\//, '/');
   const basePath = this.rootContext;
 
   return src.replace(/\((@\/([^)]*\.md))(#[^)]*)?\)/g, (m, full, file, hash) => {
@@ -11,6 +14,15 @@ module.exports = function(src) {
 
       if (fm.data.permalink) {
         permalink = fm.data.permalink;
+
+        // Docs base for full build already has framework part.
+        if (helpers.isEnvDev() === true) {
+          const framework = `${helpers.getEnvDocsFramework() || helpers.parseFramework(pathForServingDocs)}${
+            helpers.FRAMEWORK_SUFFIX}`;
+
+          permalink = `/${framework}/${permalink}`;
+        }
+
         permalink = permalink.endsWith('/') ? permalink : `${permalink}/`;
         permalink = hash ? permalink + hash : permalink;
       }
