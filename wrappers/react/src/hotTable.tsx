@@ -526,7 +526,10 @@ class HotTable extends React.Component<HotTableProps, {}> {
     });
 
     this.hotInstance.addHook('afterViewRender', function () {
-      hotTableComponent.handsontableAfterViewRender();
+      // Prevent clearing portal cache array in StrictMode second render.
+      if (hotTableComponent.renderedCellCache.size === hotTableComponent.portalCacheArray.length) {
+        hotTableComponent.handsontableAfterViewRender();
+      }
     });
 
     // `init` missing in Handsontable's type definitions.

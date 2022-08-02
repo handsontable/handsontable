@@ -1,0 +1,7 @@
+{
+  "title": "Prevent clearing portal cache array in StrictMode second render.",
+  "type": "fixed",
+  "issue": 9723,
+  "breaking": false,
+  "framework": "react"
+}
