@@ -367,6 +367,8 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 :::
 
+[//]: # (// TODO: [react-docs] In the above demo, output console does not work in React as in the JS variant)
+
 ## Related articles
 
 ### Related guides
