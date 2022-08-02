@@ -283,7 +283,7 @@ const ExampleComponent = () => {
 
     searchFieldKeyupCallback = function(event) {
       const search = hot.getPlugin('search');
-      const queryResult = search.query(this.value);
+      const queryResult = search.query(event.target.value);
 
       console.log(queryResult);
       hot.render();
@@ -409,7 +409,7 @@ const ExampleComponent = () => {
     searchFieldKeyupCallback = function(event) {
       const search = hot.getPlugin('search');
       // use the `Search`'s `query()` method
-      const queryResult = search.query(this.value);
+      const queryResult = search.query(event.target.value);
 
       console.log(queryResult);
 
@@ -560,7 +560,7 @@ const ExampleComponent = () => {
       searchResultCount = 0;
 
       const search = hot4.getPlugin('search');
-      const queryResult = search.query(this.value);
+      const queryResult = search.query(event.target.value);
 
       console.log(queryResult);
       setOutput(`${searchResultCount} results`);
