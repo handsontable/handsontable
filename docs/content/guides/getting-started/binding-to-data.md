@@ -20,7 +20,7 @@ The following guide provides information on using a data source and manipulating
 
 ### Array of arrays
 
-Array of arrays is the most popular choice for the more grid-like scenarios where you need to provide the end-user with permission to manipulate the grid, e.g., insert columns, delete rows, decorate cells, etc.
+Array of arrays is a good choice for the more grid-like scenarios where you need to provide the end user with permission to manipulate the grid, e.g., insert columns, delete rows, decorate cells, etc.
 
 ::: example #example1
 ```js
