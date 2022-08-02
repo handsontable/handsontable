@@ -1456,15 +1456,22 @@ export default () => {
 
     /**
      * @description
-     * If the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
+     * When the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
      * (or is empty), the `dataSchema` option defines the structure of new rows.
+     *
+     * Using the `dataSchema` option, you can start out with an empty grid.
+     *
+     * You can set the `dataSchema` option to one of the following:
+     * - An object
+     * - A function
      *
      * Read more:
      * - [Binding to data: Array of objects with custom data schema](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
+     * - [Binding to data: Function data source and schema](@/guides/getting-started/binding-to-data.md#function-data-source-and-schema)
      * - [`data`](#data)
      *
      * @memberof Options#
-     * @type {object}
+     * @type {object|Function}
      * @default undefined
      * @category Core
      *
