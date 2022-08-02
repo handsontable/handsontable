@@ -673,6 +673,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
+
   const arrayEach = Handsontable.helper.arrayEach;
   const curry = Handsontable.helper.curry;
   class DOMHelper {
@@ -727,9 +728,7 @@ const ExampleComponent = () => {
         item.className = 'item';
 
         const input = document.createElement('input');
-        const id = 'cellData' + '(' + this.state.getSelectedColumn() + ',' + rowIndex + ')';
 
-        input.id = id;
         input.type = 'checkbox';
         input.name = 'cellData';
         input.value = cellData;
@@ -739,10 +738,9 @@ const ExampleComponent = () => {
 
         const label = document.createElement('label');
 
-        label.htmlFor = id;
-        label.innerText = cellData;
+        label.innerText = ` ${cellData}`;
 
-        item.appendChild(input);
+        label.prepend(input);
         item.appendChild(label);
         this.inputs.push(input);
         this.itemsContainerUI.appendChild(item);
@@ -939,26 +937,26 @@ const ExampleComponent = () => {
       <HotTable settings={hotSettings}>
       </HotTable>
       <div id="externalFilter">
-        <div class="columnChoose">
+        <div className="columnChoose">
           <label>Choose Column: </label>
           <select></select>
         </div>
-
+      
         <div id="filterSelect">
-          <div class="controllers">
+          <div className="controllers">
             <div>
-              <input type='checkbox' id='filtersSelectAll' checked="checked" />
-              <label for='filtersSelectAll'>(Select all)</label>
+              <label><input type='checkbox' id='filtersSelectAll' checked="checked"/> (Select all)</label>
             </div>
           </div>
-          <div class="items"></div>
+          <div className="items"></div>
         </div>
-
-        <div class="buttons controls">
-          <button class="apply">Apply filter</button>
-          <button class="clear">Clear filter</button>
+      
+        <div className="buttons controls">
+          <button className="apply">Apply filter</button>
+          <button className="clear">Clear filter</button>
         </div>
       </div>
+      
     </Fragment>
   );
 };

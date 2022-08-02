@@ -1,7 +1,7 @@
 ---
 title: Instance methods
 metaTitle: Instance methods - Guide - Handsontable Documentation
-permalink: /next/methods
+permalink: /methods
 canonicalUrl: /methods
 tags:
   - referring

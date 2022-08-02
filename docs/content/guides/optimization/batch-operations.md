@@ -167,14 +167,17 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 ::: example #example1 --html 1 --js 2
 ```html
 <div id="example1"></div>
-<p>
-  <button id="buttonWithout" class="button button--primary">Run without batch method</button>&nbsp;
+<div class="controls">
+  <button id="buttonWithout" class="button button--primary">Run without batch method</button>
   <button id="buttonWith" class="button button--primary">Run with batch method</button>
-</p>
-<div id="logOutput"></div>
+</div>
+<output class="console" id="output">Here you will see the log</output>
 ```
 ```js
 const container = document.querySelector('#example1');
+const buttonWithout = document.querySelector('#buttonWithout');
+const buttonWith = document.querySelector('#buttonWith');
+const output = document.querySelector('#output');
 
 const data1 = [
   [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
@@ -226,16 +229,16 @@ const alterTable = () => {
   hot.render(); // Render is needed here to populate the new "className"s
 }
 
-const logOutput = msg => {
-  const logDiv = document.querySelector('#logOutput');
-  const div = document.createElement('div');
-  const now = new Date();
+let loggedText = '';
+let counter = 0;
 
-  div.innerText = '[' + now.toTimeString().slice(0, 8) + '] ' + msg;
-  logDiv.insertBefore(div, logDiv.firstChild);
+const logOutput = msg => {
+  counter++;
+  loggedText = `[${counter}] ${msg}\n${loggedText}`;
+  output.innerText = loggedText;
 }
 
-Handsontable.dom.addEvent(buttonWithout, 'click', () => {
+buttonWithout.addEventListener('click', () => {
   const t1 = performance.now();
   alterTable();
   const t2 = performance.now();
@@ -243,7 +246,7 @@ Handsontable.dom.addEvent(buttonWithout, 'click', () => {
   logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
 });
 
-Handsontable.dom.addEvent(buttonWith, 'click', () => {
+buttonWith.addEventListener('click', () => {
   const t1 = performance.now();
   hot.batch(alterTable);
   const t2 = performance.now();
@@ -257,7 +260,7 @@ Handsontable.dom.addEvent(buttonWith, 'click', () => {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -267,6 +270,7 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = React.createRef();
+  const [output, setOutput] = useState('');
 
   const data1 = [
     [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
@@ -296,20 +300,14 @@ const ExampleComponent = () => {
     licenseKey: 'non-commercial-and-evaluation'
   };
   const logOutput = msg => {
-    const logDiv = document.querySelector('#logOutput');
-    const div = document.createElement('div');
-    const now = new Date();
-
-    div.innerText = '[' + now.toTimeString().slice(0, 8) + '] ' + msg;
-    logDiv.insertBefore(div, logDiv.firstChild);
+    counter++;
+    loggedText = `[${counter}] ${msg}\n${loggedText}`;
+    setOutput(loggedText);
   }
-  Handsontable.dom.addEvent(buttonWithout, 'click', () => {
-    const t1 = performance.now();
-    alterTable();
-    const t2 = performance.now();
-
-    logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
-  });
+  let buttonWithoutClickCallback;
+  let buttonWithClickCallback;
+  let loggedText = '';
+  let counter = 0;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
@@ -332,25 +330,33 @@ const ExampleComponent = () => {
       hot.setCellMeta(10, 5, 'className', 'red-bg');
       hot.render(); // Render is needed here to populate the new "className"s
     }
-    Handsontable.dom.addEvent(buttonWith, 'click', () => {
+
+    buttonWithClickCallback = () => {
       const t1 = performance.now();
       hot.batch(alterTable);
       const t2 = performance.now();
 
       logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
-    });
+    };
+
+    buttonWithoutClickCallback = () => {
+      const t1 = performance.now();
+      alterTable();
+      const t2 = performance.now();
+
+      logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
+    };
   });
 
   return (
     <Fragment>
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
-      <p>
-        <button id="buttonWithout" class="button button--primary">Run without batch method</button> 
-        <button id="buttonWith" class="button button--primary">Run with batch method</button>
-      </p>
-      <div id="logOutput"></div>
-
+      <div className="controls">
+        <button id="buttonWithout" className="button button--primary" onClick={(...args) => buttonWithoutClickCallback(...args)}>Run without batch method</button>
+        <button id="buttonWith" className="button button--primary" onClick={(...args) => buttonWithClickCallback(...args)}>Run with batch method</button>
+      </div>
+      <output className="console" id="output">{output}</output>
     </Fragment>
   );
 };

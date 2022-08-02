@@ -73,6 +73,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
+
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(5, 5),
     rowHeaders: true,
@@ -178,31 +179,33 @@ const ExampleComponent = () => {
     height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
   };
-  Handsontable.dom.addEvent(copyBtn, 'click', function() {
+  const copyBtnClickCallback = function() {
     document.execCommand('copy');
-  });
-  Handsontable.dom.addEvent(cutBtn, 'click', function() {
+  };
+  const cutBtnClickCallback = function() {
     document.execCommand('cut');
-  });
+  };
+  let copyBtnMousedownCallback;
+  let cutBtnMousedownCallback;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
 
-    Handsontable.dom.addEvent(copyBtn, 'mousedown', function() {
+    copyBtnMousedownCallback = function() {
       hot.selectCell(1, 1);
-    });
-    Handsontable.dom.addEvent(cutBtn, 'mousedown', function() {
+    };
+    cutBtnMousedownCallback = function() {
       hot.selectCell(1, 1);
-    });
+    };
   });
 
   return (
     <Fragment>
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
-      <div class="controls">
-        <button id="copy">Select and copy cell B2</button>
-        <button id="cut">Select and cut cell B2</button>
+      <div className="controls">
+        <button id="copy" onMouseDown={(...args) => copyBtnMousedownCallback(...args)} onClick={(...args) => copyBtnClickCallback(...args)}>Select and copy cell B2</button>
+        <button id="cut" onMouseDown={(...args) => cutBtnMousedownCallback(...args)} onClick={(...args) => cutBtnClickCallback(...args)}>Select and cut cell B2</button>
       </div>
     </Fragment>
   );

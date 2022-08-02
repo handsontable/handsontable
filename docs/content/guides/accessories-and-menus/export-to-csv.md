@@ -114,7 +114,7 @@ const ExampleComponent = () => {
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
   
-      <div class="controls">
+      <div className="controls">
         <button id="export-file" onClick={(...args) => buttonClickCallback(...args)}>Download CSV</button>
       </div>
     </Fragment>
@@ -225,7 +225,7 @@ const ExampleComponent = () => {
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
   
-      <div class="controls">
+      <div className="controls">
         <button id="export-blob" onClick={(...args) => buttonClickCallback(...args)}>Export as a Blob</button>
       </div>
     </Fragment>
@@ -334,7 +334,7 @@ const ExampleComponent = () => {
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
   
-      <div class="controls">
+      <div className="controls">
         <button id="export-string" onClick={(...args) => buttonClickCallback(...args)}>Export as a string</button>
       </div>
     </Fragment>

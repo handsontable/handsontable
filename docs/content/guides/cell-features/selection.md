@@ -116,11 +116,11 @@ const ExampleComponent = () => {
     <Fragment>
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
-      <div>
-        <select id="selectOption" style={{width: 'auto', marginTop: 16}} onChange={(...args) => selectOptionChangeCallback(...args)}>
-          <option>Single selection</option>
-          <option>Range selection</option>
-          <option selected="selected">Multiple ranges selection</option>
+      <div className="controls">
+        <select id="selectOption" style={{width: 'auto', marginTop: 16}} onChange={(...args) => selectOptionChangeCallback(...args)} defaultValue="multiple">
+          <option value="single">Single selection</option>
+          <option value="range">Range selection</option>
+          <option value="multiple">Multiple ranges selection</option>
         </select>
       </div>
     </Fragment>
@@ -223,7 +223,7 @@ const ExampleComponent = () => {
         data.push(hot.getData(...item));
       }
 
-      setOutput(JSON.stringify(data, null, 2));
+      setOutput(JSON.stringify(data));
     };
   });
 
@@ -231,10 +231,11 @@ const ExampleComponent = () => {
     <Fragment>
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
-      <pre id="output">{output}</pre>
-      <div class="controls">
+      <output className="console" id="output">{output}</output>
+      <div className="controls">
         <button id="getButton" onClick={(...args) => getButtonClickCallback(...args)}>Get data</button>
       </div>
+      
     </Fragment>
   );
 };
@@ -329,6 +330,7 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = React.createRef();
+
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(10, 10),
     width: 'auto',
@@ -341,15 +343,15 @@ const ExampleComponent = () => {
     selectionMode: 'multiple', // 'single', 'range' or 'multiple',
     licenseKey: 'non-commercial-and-evaluation'
   };
-  let buttonsClickCallback;
+  let buttonClickCallback;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
 
-    buttonsClickCallback = event => {
+    buttonClickCallback = event => {
       const selected = hot.getSelected() || [];
       const target = event.target.id;
-      
+
       hot.suspendRender();
 
       for (let index = 0; index < selected.length; index += 1) {
@@ -358,20 +360,15 @@ const ExampleComponent = () => {
         const endRow = Math.max(row1, row2);
         const startCol = Math.max(Math.min(column1, column2), 0);
         const endCol = Math.max(column1, column2);
-        
+
         for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
           for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
-            if (target === 'set-data-action') {
-              hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
-            }
-            
-            if (target === 'add-css-class-action') {
-              hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
-            }
+            hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
+            hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
           }
         }
       }
-      
+
       hot.render();
       hot.resumeRender();
     };
@@ -381,15 +378,14 @@ const ExampleComponent = () => {
     <Fragment>
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
-      <div id="buttons" className="controls" style={{marginTop: 10}} onClick={(...args) => buttonsClickCallback(...args)}>
-        <button id="set-data-action">Change selected data</button>
-        <button id="add-css-class-action">Make selected cells red</button>
+      
+      <div className="controls">
+        <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Change selected data and change the CSS class of the cell</button>
       </div>
+      
     </Fragment>
   );
-
 };
-
 
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 ```

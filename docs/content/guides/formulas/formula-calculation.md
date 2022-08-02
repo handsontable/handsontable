@@ -219,10 +219,10 @@ const ExampleComponent = () => {
 
   return (
     <Fragment>
-      <h3 class="demo-preview">Sheet 1</h3>
+      <h3 className="demo-preview">Sheet 1</h3>
       <HotTable settings={hotSettings}>
       </HotTable>
-      <h3 class="demo-preview">Sheet 2</h3>
+      <h3 className="demo-preview">Sheet 2</h3>
       <HotTable settings={hot2Settings}>
       </HotTable>
     </Fragment>
@@ -750,14 +750,13 @@ const ExampleComponent = () => {
     },
     licenseKey: 'non-commercial-and-evaluation'
   };
-  let formSubmitCallback;
+  let buttonClickCallback;
 
   useEffect(() => {
     const hotNamedExpressions = hotNamedExpressionsRef.current.hotInstance;
 
     const formulasPlugin = hotNamedExpressions.getPlugin('formulas');
-    formSubmitCallback = (event) => {
-      event.preventDefault();
+    buttonClickCallback = (event) => {
       formulasPlugin.engine.changeNamedExpression('ADDITIONAL_COST', input.value);
       hotNamedExpressions.render();
     };
@@ -767,10 +766,11 @@ const ExampleComponent = () => {
     <Fragment>
       <HotTable ref={hotNamedExpressionsRef} settings={hotNamedExpressionsSettings}>
       </HotTable>
-      <form id="named-expressions-form" class="controls" style="margin-top: 10px" onSubmit={(...args) => formSubmitCallback(...args)}>
-        <input id="named-expressions-calculate-input" type="text" value="=10 * Sheet1!$A$2"/>
-        <button type="submit">Calculate price</button>
-      </form>
+      <div className="controls">
+        <input id="named-expressions-input" type="text" value="=10 * Sheet1!$A$2"/>
+        <button id="named-expressions-button" onClick={(...args) => buttonClickCallback(...args)}>Calculate price</button>
+      </div>
+      
     </Fragment>
   );
 };

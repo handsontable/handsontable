@@ -1,7 +1,7 @@
 ---
 title: 'Redux'
 metaTitle: 'Redux - Guide - Handsontable Documentation'
-permalink: /next/redux
+permalink: /redux
 canonicalUrl: /redux
 ---
 
@@ -57,7 +57,7 @@ const App = () => {
       <div id="example-container">
 
         <div id="example-preview">
-          <div class="controls">
+          <div className="controls">
             <label>
               <input onClick={toggleReadOnly} type="checkbox"/>
               Toggle <code>readOnly</code> for the entire table

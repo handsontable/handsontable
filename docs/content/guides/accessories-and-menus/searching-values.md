@@ -108,7 +108,7 @@ searchField.addEventListener('keyup', function(event) {
   // get the `Search` plugin's instance
   const search = hot.getPlugin('search');
   // use the `Search` plugin's `query()` method
-  const queryResult = search.query(this.value);
+  const queryResult = search.query(event.target.value);
 
   console.log(queryResult);
 
@@ -146,26 +146,30 @@ const ExampleComponent = () => {
     height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
   };
+  //  add a search input listener
+  let searchFieldKeyupCallback;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
 
     //  add a search input listener
-    Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+    searchFieldKeyupCallback = function(event) {
       // get the `Search` plugin's instance
       const search = hot.getPlugin('search');
       // use the `Search` plugin's `query()` method
-      const queryResult = search.query(this.value);
+      const queryResult = search.query(event.target.value);
 
       console.log(queryResult);
 
       hot.render();
-    });
+    };
   });
 
   return (
     <Fragment>
-      <input id="search_field" type="search" placeholder="Search"/>
+      <div className="controls">
+        <input id="search_field" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
+      </div>
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
     </Fragment>
@@ -272,24 +276,28 @@ const ExampleComponent = () => {
     height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
   };
+  let searchFieldKeyupCallback;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
 
-    Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+    searchFieldKeyupCallback = function(event) {
       const search = hot.getPlugin('search');
       const queryResult = search.query(this.value);
 
       console.log(queryResult);
       hot.render();
-    });
+    };
   });
 
   return (
     <Fragment>
-      <input id="search_field2" type="search" placeholder="Search"/>
+      <div className="controls">
+        <input id="search_field2" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
+      </div>
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
+      
     </Fragment>
   );
 };
@@ -393,11 +401,12 @@ const ExampleComponent = () => {
     height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
   };
+  let searchFieldKeyupCallback;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
 
-    Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+    searchFieldKeyupCallback = function(event) {
       const search = hot.getPlugin('search');
       // use the `Search`'s `query()` method
       const queryResult = search.query(this.value);
@@ -405,14 +414,17 @@ const ExampleComponent = () => {
       console.log(queryResult);
 
       hot.render();
-    });
+    };
   });
 
   return (
     <Fragment>
-      <input id="search_field3" type="search" placeholder="Search"/>
+      <div className="controls">
+        <input id="search_field3" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
+      </div>
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
+      
     </Fragment>
   );
 };
@@ -497,7 +509,7 @@ searchField.addEventListener('keyup', function(event) {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -507,6 +519,7 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hot4Ref = React.createRef();
+  const [output, setOutput] = useState('');
 
   let searchResultCount = 0;
   const data = [
@@ -538,28 +551,32 @@ const ExampleComponent = () => {
     height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
   };
+  let searchFieldKeyupCallback;
 
   useEffect(() => {
     const hot4 = hot4Ref.current.hotInstance;
 
-    Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+    searchFieldKeyupCallback = function(event) {
       searchResultCount = 0;
 
       const search = hot4.getPlugin('search');
       const queryResult = search.query(this.value);
 
       console.log(queryResult);
-      resultCount.innerText = searchResultCount.toString();
+      setOutput(`${searchResultCount} results`);
       hot4.render();
-    });
+    };
   });
 
   return (
     <Fragment>
-      <input id="search_field4" type="search" placeholder="Search"/>
-      <p><span id="resultCount">0</span> results</p>
+      <div className="controls">
+        <input id="search_field4" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
+      </div>
+      <output className="console" id="output">{output}</output>
       <HotTable ref={hot4Ref} settings={hot4Settings}>
       </HotTable>
+      
     </Fragment>
   );
 };

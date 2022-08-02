@@ -251,16 +251,16 @@ const ExampleComponent = () => {
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
   
-      <div class="controls">
-        <button id="load" class="button button--primary button--blue" onClick={(...args) => loadClickCallback(...args)}>Load data</button>&nbsp;
-        <button id="save" class="button button--primary button--blue" onClick={(...args) => saveClickCallback(...args)}>Save data</button>
+      <div className="controls">
+        <button id="load" className="button button--primary button--blue" onClick={(...args) => loadClickCallback(...args)}>Load data</button>&nbsp;
+        <button id="save" className="button button--primary button--blue" onClick={(...args) => saveClickCallback(...args)}>Save data</button>
         <label>
           <input type="checkbox" name="autosave" id="autosave" onClick={(...args) => autosaveClickCallback(...args)}/>
           Autosave
         </label>
       </div>
 
-      <output class="console" id="output">{output}</output>
+      <output className="console" id="output">{output}</output>
     </Fragment>
   );
 };
