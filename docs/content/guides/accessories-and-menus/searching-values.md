@@ -230,7 +230,7 @@ const hot = new Handsontable(container, {
 
 searchField.addEventListener('keyup', function(event) {
   const search = hot.getPlugin('search');
-  const queryResult = search.query(this.value);
+  const queryResult = search.query(event.target.value);
 
   console.log(queryResult);
   hot.render();
@@ -356,7 +356,7 @@ const hot = new Handsontable(container, {
 searchField.addEventListener('keyup', function(event) {
   const search = hot.getPlugin('search');
   // use the `Search`'s `query()` method
-  const queryResult = search.query(this.value);
+  const queryResult = search.query(event.target.value);
 
   console.log(queryResult);
 
@@ -496,7 +496,7 @@ searchField.addEventListener('keyup', function(event) {
   searchResultCount = 0;
 
   const search = hot4.getPlugin('search');
-  const queryResult = search.query(this.value);
+  const queryResult = search.query(event.target.value);
 
   console.log(queryResult);
   output.innerText = `${searchResultCount} results`;
