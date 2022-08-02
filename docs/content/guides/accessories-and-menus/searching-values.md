@@ -167,7 +167,7 @@ const ExampleComponent = () => {
 
   return (
     <Fragment>
-      <div class="controls">
+      <div className="controls">
         <input id="search_field" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
       </div>
       <HotTable ref={hotRef} settings={hotSettings}>
@@ -292,7 +292,7 @@ const ExampleComponent = () => {
 
   return (
     <Fragment>
-      <div class="controls">
+      <div className="controls">
         <input id="search_field2" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
       </div>
       <HotTable ref={hotRef} settings={hotSettings}>
@@ -419,7 +419,7 @@ const ExampleComponent = () => {
 
   return (
     <Fragment>
-      <div class="controls">
+      <div className="controls">
         <input id="search_field3" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
       </div>
       <HotTable ref={hotRef} settings={hotSettings}>
@@ -570,10 +570,10 @@ const ExampleComponent = () => {
 
   return (
     <Fragment>
-      <div class="controls">
+      <div className="controls">
         <input id="search_field4" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
       </div>
-      <output class="console" id="output">{output}</output>
+      <output className="console" id="output">{output}</output>
       <HotTable ref={hot4Ref} settings={hot4Settings}>
       </HotTable>
       

@@ -937,23 +937,23 @@ const ExampleComponent = () => {
       <HotTable settings={hotSettings}>
       </HotTable>
       <div id="externalFilter">
-        <div class="columnChoose">
+        <div className="columnChoose">
           <label>Choose Column: </label>
           <select></select>
         </div>
       
         <div id="filterSelect">
-          <div class="controllers">
+          <div className="controllers">
             <div>
               <label><input type='checkbox' id='filtersSelectAll' checked="checked"/> (Select all)</label>
             </div>
           </div>
-          <div class="items"></div>
+          <div className="items"></div>
         </div>
       
-        <div class="buttons controls">
-          <button class="apply">Apply filter</button>
-          <button class="clear">Clear filter</button>
+        <div className="buttons controls">
+          <button className="apply">Apply filter</button>
+          <button className="clear">Clear filter</button>
         </div>
       </div>
       

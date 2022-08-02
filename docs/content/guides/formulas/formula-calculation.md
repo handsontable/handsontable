@@ -219,10 +219,10 @@ const ExampleComponent = () => {
 
   return (
     <Fragment>
-      <h3 class="demo-preview">Sheet 1</h3>
+      <h3 className="demo-preview">Sheet 1</h3>
       <HotTable settings={hotSettings}>
       </HotTable>
-      <h3 class="demo-preview">Sheet 2</h3>
+      <h3 className="demo-preview">Sheet 2</h3>
       <HotTable settings={hot2Settings}>
       </HotTable>
     </Fragment>
@@ -766,7 +766,7 @@ const ExampleComponent = () => {
     <Fragment>
       <HotTable ref={hotNamedExpressionsRef} settings={hotNamedExpressionsSettings}>
       </HotTable>
-      <div class="controls">
+      <div className="controls">
         <input id="named-expressions-input" type="text" value="=10 * Sheet1!$A$2"/>
         <button id="named-expressions-button" onClick={(...args) => buttonClickCallback(...args)}>Calculate price</button>
       </div>

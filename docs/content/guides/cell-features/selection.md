@@ -231,8 +231,8 @@ const ExampleComponent = () => {
     <Fragment>
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
-      <output class="console" id="output">{output}</output>
-      <div class="controls">
+      <output className="console" id="output">{output}</output>
+      <div className="controls">
         <button id="getButton" onClick={(...args) => getButtonClickCallback(...args)}>Get data</button>
       </div>
       
@@ -379,7 +379,7 @@ const ExampleComponent = () => {
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
       
-      <div class="controls">
+      <div className="controls">
         <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Change selected data and change the CSS class of the cell</button>
       </div>
       

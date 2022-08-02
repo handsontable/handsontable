@@ -188,7 +188,7 @@ const ExampleComponent = () => {
         </HotTable>
       </div>
   
-      <div class="controls">
+      <div className="controls">
         <button id="expander" className="button button--primary" onClick={(...args) => expanderClickCallback(...args)}>Expand container</button>
       </div>
     </Fragment>

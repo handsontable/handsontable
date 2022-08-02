@@ -262,7 +262,7 @@ const ExampleComponent = () => {
     <Fragment>
       <HotTable settings={hotSettings}>
       </HotTable>
-      <output class="console" id="output">{output}</output>
+      <output className="console" id="output">{output}</output>
     </Fragment>
   );
 };

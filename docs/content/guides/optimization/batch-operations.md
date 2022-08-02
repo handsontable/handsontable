@@ -352,11 +352,11 @@ const ExampleComponent = () => {
     <Fragment>
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
-      <div class="controls">
-        <button id="buttonWithout" class="button button--primary" onClick={(...args) => buttonWithoutClickCallback(...args)}>Run without batch method</button>
-        <button id="buttonWith" class="button button--primary" onClick={(...args) => buttonWithClickCallback(...args)}>Run with batch method</button>
+      <div className="controls">
+        <button id="buttonWithout" className="button button--primary" onClick={(...args) => buttonWithoutClickCallback(...args)}>Run without batch method</button>
+        <button id="buttonWith" className="button button--primary" onClick={(...args) => buttonWithClickCallback(...args)}>Run with batch method</button>
       </div>
-      <output class="console" id="output">{output}</output>
+      <output className="console" id="output">{output}</output>
     </Fragment>
   );
 };
