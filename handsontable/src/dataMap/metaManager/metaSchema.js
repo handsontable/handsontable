@@ -4252,11 +4252,11 @@ export default () => {
      *
      * You can set the `trimRows` option to one of the following:
      *
-     * | Setting  | Description                                                                                   |
-     * | -------- | --------------------------------------------------------------------------------------------- |
-     * | `false`  | Disable the [`TrimRows`](@/api/trimRows.md) plugin                                            |
-     * | `true`   | Enable the [`TrimRows`](@/api/trimRows.md) plugin                                             |
-     * | An array | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
+     * | Setting                          | Description                                                                                   |
+     * | -------------------------------- | --------------------------------------------------------------------------------------------- |
+     * | `false`                          | Disable the [`TrimRows`](@/api/trimRows.md) plugin                                            |
+     * | `true`                           | Enable the [`TrimRows`](@/api/trimRows.md) plugin                                             |
+     * | An array of physical row indexes | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
      *
      * Read more:
      * - [Plugins: `TrimRows`](@/api/trimRows.md)
@@ -4273,7 +4273,7 @@ export default () => {
      * trimRows: true,
      *
      * // enable the `TrimRows` plugin
-     * // trim rows 5, 10, and 15 at Handsontable's initialization
+     * // at Handsontable's initialization, trim rows 5, 10, and 15
      * trimRows: [5, 10, 15],
      * ```
      */

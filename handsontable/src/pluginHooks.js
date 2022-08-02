@@ -66,6 +66,8 @@ const REGISTERED_HOOKS = [
    * Fired after one or more cells has been changed. The changes are triggered in any situation when the
    * value is entered using an editor or changed using API (e.q setDataAtCell).
    *
+   * `row` is a visual row index.
+   *
    * __Note:__ For performance reasons, the `changes` array is null for `"loadData"` source.
    *
    * @event Hooks#afterChange
@@ -708,6 +710,8 @@ const REGISTERED_HOOKS = [
   /**
    * Fired before one or more cells is changed. Its main purpose is to alter changes silently after input and before
    * table rendering.
+   *
+   * `row` is a visual row index.
    *
    * @event Hooks#beforeChange
    * @param {Array[]} changes 2D array containing information about each of the edited cells.
