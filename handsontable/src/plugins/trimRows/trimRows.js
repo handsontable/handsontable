@@ -169,7 +169,7 @@ export class TrimRows extends BasePlugin {
   }
 
   /**
-   * Trims the row provided as physical row index (counting from 0).
+   * Trims the row provided as a physical row index (counting from 0).
    *
    * @param {...number} row Physical row index.
    */
@@ -223,7 +223,7 @@ export class TrimRows extends BasePlugin {
   }
 
   /**
-   * Untrims the row provided as row index (counting from 0).
+   * Untrims the row provided as a physical row index (counting from 0).
    *
    * @param {...number} row Physical row index.
    */
@@ -249,7 +249,7 @@ export class TrimRows extends BasePlugin {
   }
 
   /**
-   * Get if trim config is valid. Check whether all of the provided row indexes are within source data.
+   * Get if trim config is valid. Check whether all of the provided physical row indexes are within source data.
    *
    * @param {Array} trimmedRows List of physical row indexes.
    * @returns {boolean}
