@@ -285,7 +285,7 @@ document.querySelector('#hooksList input[type=checkbox]').addEventListener('clic
 [//]: # (::: only-for react)
 [//]: # (::: example #example1 :react --css 1 --html 2 --js 3 )
 [//]: # (```jsx)
-[//]: # (// TODO: [react-content])
+[//]: # (// TODO: [react-docs] The React transformer failed to auto-generate this example.)
 [//]: # (```)
 [//]: # (:::)
 [//]: # (:::)

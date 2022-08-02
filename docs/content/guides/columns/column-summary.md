@@ -1147,6 +1147,8 @@ const hot = new Handsontable(container, {
 :::
 :::
 
+[//]: # (TODO: [react-docs] The vanilla version throws the same errors as the React one, but for some reason the React version doesn't render at all - needs to be investigated.)
+
 ::: only-for react
 ::: example #example11 :react
 ```jsx

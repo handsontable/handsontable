@@ -270,6 +270,8 @@ const hot = new Handsontable(container, {
 :::
 :::
 
+[//]: # (TODO: [react-docs] Requires work on rearranging the event methods.)
+
 ::: only-for react
 ::: example #example3 :react
 ```jsx

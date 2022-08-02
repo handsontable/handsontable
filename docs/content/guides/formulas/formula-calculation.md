@@ -715,6 +715,8 @@ button.addEventListener('click', (event) => {
 :::
 :::
 
+[//]: # (TODO: [react-docs] Requires rewriting the input submission logic)
+
 ::: only-for react
 ::: example #example-named-expressions1 :react
 ```jsx

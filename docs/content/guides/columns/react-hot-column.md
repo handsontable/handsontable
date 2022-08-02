@@ -9,6 +9,8 @@ canonicalUrl: /hot-column
 
 [[toc]]
 
+[//]: # (TODO: [react-docs]: This page is not reachable through the search engine.)
+
 ## Overview
 
 You can configure the column-related settings using the `<HotColumn/>` component's attributes. You can also create custom renderers and editors using React components.
