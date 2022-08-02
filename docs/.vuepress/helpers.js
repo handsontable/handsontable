@@ -60,7 +60,7 @@ function getPrettyFrameworkName(framework) {
  */
 function getFrameworkedVersions(versions) {
   return versions.filter(version => version === 'next' ||
-    semver.gte(semver.coerce(version), semver.coerce(MIN_FRAMEWORKED_DOCS_VERSION)))
+    semver.gte(semver.coerce(version), semver.coerce(MIN_FRAMEWORKED_DOCS_VERSION)));
 }
 
 /**
