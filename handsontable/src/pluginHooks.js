@@ -218,7 +218,7 @@ const REGISTERED_HOOKS = [
   'afterCreateRow',
 
   /**
-   * Fired after the current cell is deselected.
+   * Fired after all selected cells are deselected.
    *
    * @event Hooks#afterDeselect
    */
