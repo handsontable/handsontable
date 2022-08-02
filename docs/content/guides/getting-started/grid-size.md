@@ -131,9 +131,15 @@ triggerBtn.addEventListener('click', () => {
 :::
 
 ::: only-for react
-::: example #example :react
+::: example #example :react --css 1 --js 2
+```css
+#exampleParent {
+  height: 150px;
+}
+```
 ```jsx
 import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -143,7 +149,6 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = React.createRef();
-  const sliceElemRef = React.createRef();
 
   const hotSettings = {
     data: Handsontable.helper.createSpreadsheetData(100, 50),
@@ -155,40 +160,35 @@ const ExampleComponent = () => {
     colWidths: 100,
     licenseKey: 'non-commercial-and-evaluation'
   };
-  let expanderClickCallback = (e) => {
-    const triggerBtn = e.target;
-    const sliceElem = sliceElemRef.current;
-
-    if (triggerBtn.textContent === 'Collapse') {
-      triggerBtn.textContent = 'Expand';
-      sliceElem.style.height = '150px';
-    } else {
-      triggerBtn.textContent = 'Collapse';
-      sliceElem.style.height = '400px';
-    }
-  };
-  let sliceElemTransitionEndCallback;
+  let triggerBtnClickCallback;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
 
-    sliceElemTransitionEndCallback = (e) => {
-      if (e.propertyName === 'height') {
+    triggerBtnClickCallback = () => {
+      if (triggerBtn.textContent === 'Collapse container') {
+        exampleParent.style.height = ''; // reset to initial 150px;
         hot.refreshDimensions();
+        triggerBtn.textContent = 'Expand container';
+      } else {
+        exampleParent.style.height = '400px';
+        hot.refreshDimensions();
+        triggerBtn.textContent = 'Collapse container';
       }
     };
   });
 
   return (
     <Fragment>
-      <div ref={sliceElemRef} style={{transition: 'height 0.5s', height: 150}} onTransitionEnd={(...args) => sliceElemTransitionEndCallback(...args)}>
+      <div id="exampleParent">
         <HotTable ref={hotRef} settings={hotSettings}>
-        </HotTable>
+      </HotTable>
       </div>
-  
+      
       <div className="controls">
-        <button id="expander" className="button button--primary" onClick={(...args) => expanderClickCallback(...args)}>Expand container</button>
+        <button id="triggerBtn" className="button button--primary" onClick={(...args) => triggerBtnClickCallback(...args)}>Expand container</button>
       </div>
+      
     </Fragment>
   );
 };
