@@ -13,6 +13,7 @@ canonicalUrl: /password-cell-type
 
 The password cell type behaves like a text cell, the only difference being that it masks its value using asterisks in the cell renderer. An `<input type="password">` field is used for the cell editor. Data is stored in the data source as plain text.
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -35,11 +36,56 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    data: [
+      { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+      { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+      { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
+    ],
+    colHeaders: ['ID', 'First name', 'Last name', 'Password'],
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation',
+    columns: [
+      { data: 'id' },
+      { data: 'name.first' },
+      { data: 'name.last' },
+      { data: 'password', type: 'password' }
+    ]
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Fixed hash length
 
 By default, every hash has a length equal to the length of its corresponding value. Use option `hashLength` to set a fixed hash length.
 
+::: only-for javascript
 ::: example #example2
 ```js
 const container = document.querySelector('#example2');
@@ -62,11 +108,56 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    data: [
+      { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+      { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+      { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
+    ],
+    colHeaders: ['ID', 'First name', 'Last name', 'Password'],
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation',
+    columns: [
+      { data: 'id' },
+      { data: 'name.first' },
+      { data: 'name.last' },
+      { data: 'password', type: 'password', hashLength: 10 }
+    ]
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 ## Custom hash symbol
 
 By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to set a custom hash symbol. You can use any character, entity, or event HTML. Note that you can't change the symbol used by the input field due to browser limitations.
 
+::: only-for javascript
 ::: example #example3
 ```js
 const container = document.querySelector('#example3');
@@ -89,6 +180,50 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example3 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    data: [
+      { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+      { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+      { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
+    ],
+    colHeaders: ['ID', 'First name', 'Last name', 'Password'],
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation',
+    columns: [
+      { data: 'id' },
+      { data: 'name.first' },
+      { data: 'name.last' },
+      { data: 'password', type: 'password', hashSymbol: '■' }
+    ]
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
 
 ## Related articles
 

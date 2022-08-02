@@ -268,6 +268,7 @@ const hot = new Handsontable(container, {
 
 The example below shows some of the built-in cell types, i.e. combinations of cell renderers and editors available in Handsontable. The example also shows the declaration of custom cell renderers, namely `yellowRenderer` and `greenRenderer`.
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -313,6 +314,71 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
+  const yellowRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    td.style.backgroundColor = 'yellow';
+  };
+  const greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+    td.style.backgroundColor = 'green';
+  };
+  const hotSettings = {
+    data: [
+      { id: 1, name: 'Ted', isActive: true, color: 'orange', date: '2015-01-01' },
+      { id: 2, name: 'John', isActive: false, color: 'black', date: null },
+      { id: 3, name: 'Al', isActive: true, color: 'red', date: null },
+      { id: 4, name: 'Ben', isActive: false, color: 'blue', date: null },
+    ],
+    colHeaders: true,
+    licenseKey: 'non-commercial-and-evaluation',
+    columns: [
+      { data: 'id', type: 'text' },
+      // 'text' is default, you don't actually need to declare it
+      { data: 'name', renderer: yellowRenderer },
+      // use default 'text' cell type but overwrite its renderer with yellowRenderer
+      { data: 'isActive', type: 'checkbox' },
+      { data: 'date', type: 'date', dateFormat: 'YYYY-MM-DD' },
+      { data: 'color', type: 'autocomplete', source: colors }
+    ],
+    cell: [
+      { row: 1, col: 0, renderer: greenRenderer }
+    ],
+    cells(row, col, prop) {
+      if (row === 0 && col === 0) {
+        this.renderer = greenRenderer;
+      }
+    }
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Empty cells
 
@@ -322,6 +388,7 @@ It's worth to mention that values such as `''` (empty string), `null` and `undef
 Please keep in mind that opening a cell with `undefined` and `null` values results in **overwriting** the original value with an empty string. Moreover, copying and pasting that values will result in pasting the empty string.
 :::
 
+::: only-for javascript
 ::: example #example2
 ```js
 const container = document.querySelector('#example2');
@@ -365,6 +432,71 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    data: [
+      ['empty string', '', '', '', '', ''],
+      ['null', null, null, null, null, null],
+      ['undefined', undefined, undefined, undefined, undefined, undefined],
+      ['non-empty value', 'non-empty text', 13000, true, 'orange', 'password'],
+    ],
+    columnSorting: {
+      sortEmptyCells: true
+    },
+    columns: [{
+      columnSorting: {
+        indicator: false,
+        headerAction: false,
+        compareFunctionFactory: function compareFunctionFactory() {
+          return function comparator() {
+            return 0; // Don't sort the first visual column.
+          };
+        }
+      },
+      readOnly: true,
+    },
+      {},
+      {
+        type: 'numeric',
+        numericFormat: {
+          pattern: '$0,0.00',
+          culture: 'en-US' // this is the default culture, set up for USD
+        },
+      },
+      { type: 'checkbox' },
+      { type: 'dropdown', source: ['yellow', 'red', 'orange'] },
+      { type: 'password' },
+    ],
+    preventOverflow: 'horizontal',
+    colHeaders: ['value<br>underneath', 'type:text', 'type:numeric', 'type:checkbox', 'type:dropdown', 'type:password'],
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 Empty cells may be treated differently in different contexts, for example, the [ColumnSorting](@/api/columnSorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.
 

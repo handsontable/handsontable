@@ -83,20 +83,26 @@ hot.refreshDimensions();
 
 You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) and [`afterRefreshDimensions`](@/api/hooks.md#afterrefreshdimensions).
 
-::: example #example --html 1 --js 2
+::: only-for javascript
+::: example #example --html 1 --css 2 --js 3
 ```html
-<div><!-- slice element with dynamically added styles -->
+<div id="exampleParent"><!-- element with dynamically added styles -->
   <div id="example"></div>
 </div>
 
 <div class="controls">
-  <button id="expander" class="button button--primary">Expand container</button>
+  <button id="triggerBtn" class="button button--primary">Expand container</button>
 </div>
 ```
+```css
+#exampleParent {
+  height: 150px;
+}
+```
 ```js
-const triggerBtn = document.querySelector('#expander');
+const triggerBtn = document.querySelector('#triggerBtn');
 const example = document.querySelector('#example');
-const sliceElem = example.parentElement;
+const exampleParent = document.querySelector('#exampleParent');
 
 const hot = new Handsontable(example, {
   data: Handsontable.helper.createSpreadsheetData(100, 50),
@@ -109,26 +115,89 @@ const hot = new Handsontable(example, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-sliceElem.style = 'transition: height 0.5s; height: 150px;'
-hot.refreshDimensions();
-
 triggerBtn.addEventListener('click', () => {
-  if (triggerBtn.textContent === 'Collapse') {
-    triggerBtn.textContent = 'Expand';
-    sliceElem.style.height = '150px';
-  } else {
-    triggerBtn.textContent = 'Collapse';
-    sliceElem.style.height = '400px';
-  }
-});
-
-sliceElem.addEventListener('transitionend', e => {
-  if (e.propertyName === 'height') {
+  if (triggerBtn.textContent === 'Collapse container') {
+    exampleParent.style.height = ''; // reset to initial 150px;
     hot.refreshDimensions();
+    triggerBtn.textContent = 'Expand container';
+  } else {
+    exampleParent.style.height = '400px';
+    hot.refreshDimensions();
+    triggerBtn.textContent = 'Collapse container';
   }
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example :react --css 1 --js 2
+```css
+#exampleParent {
+  height: 150px;
+}
+```
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(100, 50),
+    rowHeaders: true,
+    colHeaders: true,
+    width: '100%',
+    height: '100%',
+    rowHeights: 23,
+    colWidths: 100,
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+  let triggerBtnClickCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    triggerBtnClickCallback = () => {
+      if (triggerBtn.textContent === 'Collapse container') {
+        exampleParent.style.height = ''; // reset to initial 150px;
+        hot.refreshDimensions();
+        triggerBtn.textContent = 'Expand container';
+      } else {
+        exampleParent.style.height = '400px';
+        hot.refreshDimensions();
+        triggerBtn.textContent = 'Collapse container';
+      }
+    };
+  });
+
+  return (
+    <Fragment>
+      <div id="exampleParent">
+        <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+      </div>
+      
+      <div className="controls">
+        <button id="triggerBtn" className="button button--primary" onClick={(...args) => triggerBtnClickCallback(...args)}>Expand container</button>
+      </div>
+      
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
+```
+:::
+:::
+
 
 ## Related API reference
 

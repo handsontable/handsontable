@@ -20,6 +20,7 @@ The plugin allows you to export data from Handsontable into a CSV file.
 
 ### Export to file
 
+::: only-for javascript
 ::: example #example1 --html 1 --js 2
 ```html
 <div id="example1"></div>
@@ -60,11 +61,77 @@ button.addEventListener('click', () => {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(7, 7),
+    colHeaders: true,
+    rowHeaders: true,
+    hiddenRows: { rows: [1, 3, 5], indicators: true },
+    hiddenColumns: { columns: [1, 3, 5], indicators: true },
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+  let buttonClickCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    const exportPlugin = hot.getPlugin('exportFile');
+    buttonClickCallback = () => {
+      exportPlugin.downloadFile('csv', {
+        bom: false,
+        columnDelimiter: ',',
+        columnHeaders: false,
+        exportHiddenColumns: true,
+        exportHiddenRows: true,
+        fileExtension: 'csv',
+        filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+        mimeType: 'text/csv',
+        rowDelimiter: '\r\n',
+        rowHeaders: true
+      });
+    };
+  });
+
+  return (
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+  
+      <div className="controls">
+        <button id="export-file" onClick={(...args) => buttonClickCallback(...args)}>Download CSV</button>
+      </div>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ### Export as a JavaScript Blob object
 
 Open a console in browser developer tools to see the result for the below example.
 
+::: only-for javascript
 ::: example #example2 --html 1 --js 2
 ```html
 <div id="example2"></div>
@@ -105,11 +172,77 @@ button.addEventListener('click', () => {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(7, 7),
+    colHeaders: true,
+    rowHeaders: true,
+    hiddenRows: { rows: [1, 3, 5], indicators: true },
+    hiddenColumns: { columns: [1, 3, 5], indicators: true },
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+  let buttonClickCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    const exportPlugin = hot.getPlugin('exportFile');
+    buttonClickCallback = () => {
+      const exportedBlob = exportPlugin.exportAsBlob('csv', {
+        bom: false,
+        columnDelimiter: ',',
+        columnHeaders: false,
+        exportHiddenColumns: true,
+        exportHiddenRows: true,
+        mimeType: 'text/csv',
+        rowDelimiter: '\r\n',
+        rowHeaders: true
+      });
+
+      console.log(exportedBlob);
+    };
+  });
+
+  return (
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+  
+      <div className="controls">
+        <button id="export-blob" onClick={(...args) => buttonClickCallback(...args)}>Export as a Blob</button>
+      </div>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 ### Export as a string
 
 Open a console in browser developer tools to see the result for the below example.
 
+::: only-for javascript
 ::: example #example3 --html 1 --js 2
 ```html
 <div id="example3"></div>
@@ -149,6 +282,70 @@ button.addEventListener('click', () => {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example3 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(7, 7),
+    colHeaders: true,
+    rowHeaders: true,
+    hiddenRows: { rows: [1, 3, 5], indicators: true },
+    hiddenColumns: { columns: [1, 3, 5], indicators: true },
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+  let buttonClickCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    const exportPlugin = hot.getPlugin('exportFile');
+    buttonClickCallback = () => {
+      const exportedString = exportPlugin.exportAsString('csv', {
+        bom: false,
+        columnDelimiter: ',',
+        columnHeaders: false,
+        exportHiddenColumns: true,
+        exportHiddenRows: true,
+        rowDelimiter: '\r\n',
+        rowHeaders: true
+      });
+
+      console.log(exportedString);
+    };
+  });
+
+  return (
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+  
+      <div className="controls">
+        <button id="export-string" onClick={(...args) => buttonClickCallback(...args)}>Export as a string</button>
+      </div>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
 
 ## Available methods
 

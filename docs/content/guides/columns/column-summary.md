@@ -31,6 +31,7 @@ To customize your column summaries, you can:
 
 The example below calculates and displays five different column summaries:
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -81,6 +82,77 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    licenseKey: 'non-commercial-and-evaluation',
+    data: [
+      [1, 2, 3, 4, 5],
+      [6, 7, 8, 9, 10],
+      [11, 12, 13, 14, 15],
+      [null]
+    ],
+    colHeaders: true,
+    rowHeaders: true,
+    // enable and configure the `ColumnSummary` plugin
+    columnSummary: [{
+      sourceColumn: 0,
+      type: 'sum',
+      destinationRow: 3,
+      destinationColumn: 0
+    },
+      {
+        sourceColumn: 1,
+        type: 'min',
+        destinationRow: 3,
+        destinationColumn: 1
+      },
+      {
+        sourceColumn: 2,
+        type: 'max',
+        destinationRow: 3,
+        destinationColumn: 2
+      },
+      {
+        sourceColumn: 3,
+        type: 'count',
+        destinationRow: 3,
+        destinationColumn: 3
+      },
+      {
+        sourceColumn: 4,
+        type: 'average',
+        destinationRow: 3,
+        destinationColumn: 4
+      }
+    ]
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ### Built-in summary functions
 
@@ -328,6 +400,7 @@ The example below sets up five different column summaries. To do this, it:
     - For each visible column, adds a column summary with a configuration
     - To display the column summaries in the empty row added by `generateData`, sets the [`reversedRowCoords`](@/api/columnSummary.md#options) option to `true`, and the [`destinationRow`](@/api/columnSummary.md#options) option to `0`
 
+::: only-for javascript
 ::: example #example7
 ```js
 // generate an array of arrays with dummy numeric data
@@ -379,9 +452,82 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example7 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  //  generate an array of arrays with dummy numeric data
+  const generateData = (rows = 3, columns = 7, additionalRows = true) => {
+    let counter = 0;
+
+    const array2d = [...new Array(rows)]
+      .map(_ => [...new Array(columns)]
+        .map(_ => counter++));
+
+    // add an empty row at the bottom, to display column summaries
+    if (additionalRows) {
+      array2d.push([]);
+    }
+
+    return array2d;
+  };
+  const hotSettings = {
+    licenseKey: 'non-commercial-and-evaluation',
+    // initialize a Handsontable instance with the generated data
+    data: generateData(5, 5, true),
+    height: 'auto',
+    rowHeaders: true,
+    colHeaders: ['sum', 'min', 'max', 'count', 'average'],
+    // set the `columnSummary` configuration option to a function
+    columnSummary() {
+      const configArray = [];
+      const summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
+
+      for (let i = 0; i < this.hot.countCols(); i++) { // iterate over visible columns
+        // for each visible column, add a column summary with a configuration
+        configArray.push({
+          sourceColumn: i,
+          type: summaryTypes[i],
+          // count row coordinates backward
+          reversedRowCoords: true,
+          // display the column summary in the bottom row (because of the reversed row coordinates)
+          destinationRow: 0,
+          destinationColumn: i,
+          forceNumeric: true
+        });
+      }
+
+      return configArray;
+    }
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example7'));
+```
+:::
+:::
+
 
 Using a function to provide a column summary configuration lets you set up all sorts of more complex column summaries. For example, you can sum subtotals for nested groups:
 
+::: only-for javascript
 ::: example #example8
 ```js
 const container = document.getElementById('example8');
@@ -453,6 +599,98 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example8 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    licenseKey: 'non-commercial-and-evaluation',
+    data: [{
+      value: null,
+      __children: [
+        { value: 5 },
+        { value: 6 },
+        { value: 7 },
+      ]
+    },
+      {
+        __children: [
+          { value: 15 },
+          { value: 16 },
+          { value: 17 },
+        ]
+      }
+    ],
+    columns: [
+      { data: 'value' }
+    ],
+    nestedRows: true,
+    rowHeaders: true,
+    colHeaders: ['sum', 'min', 'max', 'count', 'average'],
+    columnSummary() {
+      const endpoints = [];
+      const nestedRowsPlugin = this.hot.getPlugin('nestedRows');
+      const getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(nestedRowsPlugin.dataManager);
+      const resultColumn = 0;
+
+      let tempEndpoint = null;
+      let nestedRowsCache = null;
+
+      if (nestedRowsPlugin.isEnabled()) {
+        nestedRowsCache = this.hot.getPlugin('nestedRows').dataManager.cache;
+      } else {
+        return;
+      }
+
+      for (let i = 0; i < nestedRowsCache.levels[0].length; i++) {
+        tempEndpoint = {};
+
+        if (!nestedRowsCache.levels[0][i].__children || nestedRowsCache.levels[0][i].__children.length === 0) {
+          continue;
+        }
+
+        tempEndpoint.destinationColumn = resultColumn;
+        tempEndpoint.destinationRow = getRowIndex(nestedRowsCache.levels[0][i]);
+        tempEndpoint.type = 'sum';
+        tempEndpoint.forceNumeric = true;
+        tempEndpoint.ranges = [];
+
+        tempEndpoint.ranges.push([
+          getRowIndex(nestedRowsCache.levels[0][i].__children[0]),
+          getRowIndex(nestedRowsCache.levels[0][i].__children[nestedRowsCache.levels[0][i].__children.length - 1])
+        ]);
+
+        endpoints.push(tempEndpoint);
+        tempEndpoint = null;
+      }
+
+      return endpoints;
+    }
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example8'));
+```
+:::
+:::
+
 
 ## Implementing a custom summary function
 
@@ -489,6 +727,7 @@ To implement a custom summary function:
 
 The example below implements a function that counts the number of even values in a column:
 
+::: only-for javascript
 ::: example #example9
 ```js
 // generate an array of arrays with dummy numeric data
@@ -562,6 +801,100 @@ const hot = new Handsontable(container, {
   });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example9 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  //  generate an array of arrays with dummy numeric data
+  const generateData = (rows = 3, columns = 7, additionalRows = true) => {
+    let counter = 0;
+
+    const array2d = [...new Array(rows)]
+      .map(_ => [...new Array(columns)]
+        .map(_ => counter++));
+
+    if (additionalRows) {
+      array2d.push([]);
+      array2d.push([]);
+    }
+
+    return array2d;
+  };
+  const hotSettings = {
+    licenseKey: 'non-commercial-and-evaluation',
+    // initialize a Handsontable instance with the generated numeric data
+    data: generateData(5, 7),
+    height: 'auto',
+    colHeaders: true,
+    rowHeaders: true,
+    // enable the `ColumnSummary` plugin
+    columnSummary: [
+      // configure a column summary
+      {
+        // set the `type` option to `'custom'`
+        type: 'custom',
+        destinationRow: 0,
+        destinationColumn: 5,
+        reversedRowCoords: true,
+        // add your custom summary function
+        customFunction(endpoint) {
+          // implement a function that counts the number of even values in the column
+          const hotInstance = this.hot;
+          let evenCount = 0;
+
+          // a helper function
+          const checkRange = rowRange => {
+            let i = rowRange[1] || rowRange[0];
+            let counter = 0;
+
+            do {
+              if (parseInt(hotInstance.getDataAtCell(i, endpoint.sourceColumn), 10) % 2 === 0) {
+                counter++;
+              }
+
+              i--;
+            } while (i >= rowRange[0]);
+
+            return counter;
+          }
+
+          // go through all declared ranges
+          for (const r in endpoint.ranges) {
+            if (endpoint.ranges.hasOwnProperty(r)) {
+              evenCount += checkRange(endpoint.ranges[r]);
+            }
+          }
+
+          return evenCount;
+        },
+        forceNumeric: true
+      }
+    ]
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
+```
+:::
+:::
+
 
 ## Rounding a column summary result
 
@@ -569,6 +902,7 @@ You can round a column summary result to a specific number of digits after the d
 
 To enable this feature, set the [`roundFloat`](@/api/columnSummary.md) option to your preferred number of digits. For example:
 
+::: only-for javascript
 ::: example #example12
 ```js
 const container = document.querySelector('#example12');
@@ -602,6 +936,61 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example12 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    licenseKey: 'non-commercial-and-evaluation',
+    data: [
+      [0.5, 0.5],
+      [0.5, 0.5],
+      [1, 1],
+      [],
+      []
+    ],
+    colHeaders: true,
+    rowHeaders: true,
+    columnSummary: [{
+      type: 'average',
+      destinationRow: 0,
+      destinationColumn: 0,
+      reversedRowCoords: true
+    },
+      {
+        type: 'average',
+        destinationRow: 0,
+        destinationColumn: 1,
+        reversedRowCoords: true,
+        // round this column summary result to two digits after the decimal point
+        roundFloat: 2
+      }
+    ]
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example12'));
+```
+:::
+:::
+
 
 ## Dealing with non-numeric values
 
@@ -623,6 +1012,7 @@ This means that e.g., `3c` is treated as `3`, but `c3` is still treated as `c3`.
 
 To enable this feature, set the [`forceNumeric`](@/api/columnSummary.md) option to `true` (by default, [`forceNumeric`](@/api/columnSummary.md) is set to `false`). For example:
 
+::: only-for javascript
 ::: example #example10
 ```js
 const container = document.querySelector('#example10');
@@ -657,6 +1047,62 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example10 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    licenseKey: 'non-commercial-and-evaluation',
+    data: [
+      [0, 1, 2],
+      ['3c', '4b', 5],
+      [],
+      []
+    ],
+    colHeaders: true,
+    rowHeaders: true,
+    columnSummary: [{
+      type: 'sum',
+      destinationRow: 0,
+      destinationColumn: 0,
+      reversedRowCoords: true,
+      // force this column summary to treat non-numeric values as numeric values
+      forceNumeric: true
+    },
+      {
+        type: 'sum',
+        destinationRow: 0,
+        destinationColumn: 1,
+        reversedRowCoords: true,
+        // force this column summary to treat non-numeric values as numeric values
+        forceNumeric: true
+      }
+    ]
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example10'));
+```
+:::
+:::
+
 
 ### Throwing data type errors
 
@@ -664,6 +1110,7 @@ You can throw a data type error whenever a non-numeric value is passed to your c
 
 To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummary.md) option to `false` (by default, [`suppressDataTypeErrors`](@/api/columnSummary.md) is set to `true`). For example:
 
+::: only-for javascript
 ::: example #example11
 ```js
 const container = document.querySelector('#example11');
@@ -698,6 +1145,64 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+[//]: # (TODO: [react-docs] The vanilla version throws the same errors as the React one, but for some reason the React version doesn't render at all - needs to be investigated.)
+
+::: only-for react
+::: example #example11 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    licenseKey: 'non-commercial-and-evaluation',
+    data: [
+      [0, 1, 2],
+      ['3c', '4b', 5],
+      [],
+      []
+    ],
+    colHeaders: true,
+    rowHeaders: true,
+    columnSummary: [{
+      type: 'sum',
+      destinationRow: 0,
+      destinationColumn: 0,
+      reversedRowCoords: true,
+      // enable throwing data type errors for this column summary
+      suppressDataTypeErrors: false
+    },
+      {
+        type: 'sum',
+        destinationRow: 0,
+        destinationColumn: 1,
+        reversedRowCoords: true,
+        // enable throwing data type errors for this column summary
+        suppressDataTypeErrors: false
+      }
+    ]
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example11'));
+```
+:::
+:::
+
 
 ## Related API reference
 

@@ -36,6 +36,7 @@ See the [examples](#example) section for a live demo.
 
 Note that the second, third, and sixth rows are missing in the following example:
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -50,6 +51,43 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(10, 4),
+    colHeaders: true,
+    rowHeaders: true,
+    trimRows: [1, 2, 5],
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## API examples
 

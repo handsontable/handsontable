@@ -92,7 +92,7 @@ const hotSettings = {
   licenseKey: 'non-commercial-and-evaluation'
 };
 
-const App = () => {
+const ExampleComponent = () => {
   return (
     <div>
       <HotTable
@@ -103,7 +103,7 @@ const App = () => {
   );
 }
 
-ReactDOM.render(<App />, document.getElementById('example1'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
 :::
 :::
@@ -197,6 +197,7 @@ This example shows how to use custom cell renderers to display HTML content in a
 * **Comments** column uses a custom renderer (`safeHtmlRenderer`). This should be safe for user input, because only certain tags are allowed
 * **Cover** column accepts image URL as a string and converts it to a `<img>` in the renderer
 
+::: only-for javascript
 ::: example #example2
 ```js
 const data = [
@@ -251,7 +252,7 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
 
     img.src = value;
 
-    Handsontable.dom.addEvent(img, 'mousedown', event =>{
+    img.addEventListener('mousedown', event =>{
       event.preventDefault(); // prevent selection quirk
     });
 
@@ -264,16 +265,120 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
 }
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const data = [{
+    title: '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
+    description: 'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
+    comments: 'I would rate it ★★★★☆',
+    cover: 'https://handsontable.com/docs/next/img/examples/professional-javascript-developers-nicholas-zakas.jpg'
+  },
+    {
+      title: '<a href="https://shop.oreilly.com/product/9780596517748.do">JavaScript: The Good Parts</a>',
+      description: 'This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.',
+      comments: 'This is the book about JavaScript',
+      cover: 'https://handsontable.com/docs/next/img/examples/javascript-the-good-parts.jpg'
+    },
+    {
+      title: '<a href="https://shop.oreilly.com/product/9780596805531.do">JavaScript: The Definitive Guide</a>',
+      description: '<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.',
+      comments: 'I\'ve never actually read it, but the <a href="https://shop.oreilly.com/product/9780596805531.do">comments</a> are highly <strong>positive</strong>.',
+      cover: 'https://handsontable.com/docs/next/img/examples/javascript-the-definitive-guide.jpg'
+    }
+  ];
+  const hotSettings = {
+    data,
+    colWidths: [200, 200, 200, 80],
+    colHeaders: ['Title', 'Description', 'Comments', 'Cover'],
+    height: 'auto',
+    columns: [
+      { data: 'title', renderer: 'html' },
+      { data: 'description', renderer: 'html' },
+      { data: 'comments', renderer: safeHtmlRenderer },
+      { data: 'cover', renderer: coverRenderer }
+    ],
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
+    // be sure you only allow certain HTML tags to avoid XSS threats
+    // (you should also remove unwanted HTML attributes)
+    td.innerHTML = Handsontable.helper.sanitize(value, {
+      ALLOWED_TAGS: ['em', 'b', 'strong', 'a', 'big'],
+    });
+  }
+
+  function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
+    const stringifiedValue = Handsontable.helper.stringify(value);
+
+    if (stringifiedValue.startsWith('http')) {
+      const img = document.createElement('IMG');
+
+      img.src = value;
+
+      img.addEventListener('mousedown', event => {
+        event.preventDefault(); // prevent selection quirk
+      });
+
+      Handsontable.dom.empty(td);
+      td.appendChild(img);
+    } else {
+      // render as text
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+    }
+  }
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 ## Rendering custom HTML in header
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
 
-::: example #example3
+::: only-for javascript
+::: example #example3 --js 2 --html 1
+```html
+<div id="exampleContainer3">
+  <div id="example3"></div>
+</div>
+```
 ```js
 let isChecked = false;
+const exampleContainer3 = document.querySelector('#exampleContainer3');
 const container = document.querySelector('#example3');
 
+function customRenderer(instance, td) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  if (isChecked) {
+    td.style.backgroundColor = 'yellow';
+  } else {
+    td.style.backgroundColor = 'white';
+  }
+}
 
 const hot = new Handsontable(container, {
   height: 'auto',
@@ -292,22 +397,13 @@ const hot = new Handsontable(container, {
   }
 });
 
-function customRenderer(instance, td) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
-  if (isChecked) {
-    td.style.backgroundColor = 'yellow';
-  } else {
-    td.style.backgroundColor = 'white';
-  }
-}
-
-container.addEventListener('mousedown', event => {
+exampleContainer3.addEventListener('mousedown', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     event.stopPropagation();
   }
 });
 
-container.addEventListener('mouseup', event => {
+exampleContainer3.addEventListener('mouseup', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     isChecked = !event.target.checked;
     hot.render();
@@ -315,6 +411,82 @@ container.addEventListener('mouseup', event => {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example3 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+
+  let isChecked = false;
+
+  function customRenderer(instance, td) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    if (isChecked) {
+      td.style.backgroundColor = 'yellow';
+    } else {
+      td.style.backgroundColor = 'white';
+    }
+  }
+  const hotSettings = {
+    height: 'auto',
+    columns: [
+      {},
+      { renderer: customRenderer }
+    ],
+    colHeaders(col) {
+      switch (col) {
+        case 0:
+          return '<b>Bold</b> and <em>Beautiful</em>';
+
+        case 1:
+          return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
+      }
+    }
+  };
+  const exampleContainer3MousedownCallback = event => {
+    if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
+      event.stopPropagation();
+    }
+  };
+  let exampleContainer3MouseupCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    exampleContainer3MouseupCallback = event => {
+      if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
+        isChecked = !event.target.checked;
+        hot.render();
+      }
+    };
+  });
+
+  return (
+    <Fragment>
+      <div id="exampleContainer3" onMouseUp={(...args) => exampleContainer3MouseupCallback(...args)}>
+        <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+      </div>
+      
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
 
 ## Adding event listeners in cell renderer function
 

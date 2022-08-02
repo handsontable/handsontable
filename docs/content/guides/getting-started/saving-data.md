@@ -20,6 +20,7 @@ Persistent state storage is particularly useful when running multiple instances 
 Use the [`afterChange`](@/api/hooks.md#afterchange) callback to track changes made in the data grid. In the example below, Ajax is used to load and save the data. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
 
 
+::: only-for javascript
 ::: example #example1 --html 1 --js 2
 ```html
 <div id="example1"></div>
@@ -73,7 +74,7 @@ const hot = new Handsontable(container, {
 });
 
 load.addEventListener('click', () => {
-  ajax('/docs/next/scripts/json/load.json', 'GET', '', res => {
+  ajax('/docs/{{$page.currentVersion}}/scripts/json/load.json', 'GET', '', res => {
     const data = JSON.parse(res.response);
 
     hot.loadData(data.data);
@@ -84,7 +85,7 @@ load.addEventListener('click', () => {
 });
 save.addEventListener('click', () => {
   // save all cell's data
-  ajax('/docs/next/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
+  ajax('/docs/{{$page.currentVersion}}/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
     const response = JSON.parse(res.response);
 
     if (response.result === 'ok') {
@@ -134,6 +135,142 @@ function ajax(url, method, params, callback) {
 }
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+  const [output, setOutput] = useState('');
+
+  let autosaveNotification;
+  const hotSettings = {
+    startRows: 8,
+    startCols: 6,
+    rowHeaders: true,
+    colHeaders: true,
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation',
+    afterChange: function(change, source) {
+      if (source === 'loadData') {
+        return; //don't save this change
+      }
+
+      if (!autosave.checked) {
+        return;
+      }
+
+      clearTimeout(autosaveNotification);
+
+      ajax('/docs/{{$page.currentVersion}}/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
+        setOutput('Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')');
+        autosaveNotification = setTimeout(() => {
+          exampleConsole.innerText = 'Changes will be autosaved';
+        }, 1000);
+      });
+    }
+  };
+  let loadClickCallback;
+  let saveClickCallback;
+  const autosaveClickCallback = () => {
+    if (autosave.checked) {
+      setOutput('Changes will be autosaved');
+    } else {
+      exampleConsole.innerText = 'Changes will not be autosaved';
+    }
+  };
+
+  function ajax(url, method, params, callback) {
+    let obj;
+
+    try {
+      obj = new XMLHttpRequest();
+    } catch (e) {
+      try {
+        obj = new ActiveXObject('Msxml2.XMLHTTP');
+      } catch (e) {
+        try {
+          obj = new ActiveXObject('Microsoft.XMLHTTP');
+        } catch (e) {
+          alert('Your browser does not support Ajax.');
+          return false;
+        }
+      }
+    }
+    obj.onreadystatechange = () => {
+      if (obj.readyState == 4) {
+        callback(obj);
+      }
+    };
+    obj.open(method, url, true);
+    obj.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    obj.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    obj.send(params);
+
+    return obj;
+  }
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    loadClickCallback = () => {
+      ajax('/docs/{{$page.currentVersion}}/scripts/json/load.json', 'GET', '', res => {
+        const data = JSON.parse(res.response);
+
+        hot.loadData(data.data);
+        // or, use `updateData()` to replace `data` without resetting states
+
+        setOutput('Data loaded');
+      });
+    };
+    saveClickCallback = () => {
+      // save all cell's data
+      ajax('/docs/{{$page.currentVersion}}/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
+        const response = JSON.parse(res.response);
+
+        if (response.result === 'ok') {
+          setOutput('Data saved');
+        } else {
+          setOutput('Save error');
+        }
+      });
+    };
+  });
+
+  return (
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+  
+      <div className="controls">
+        <button id="load" className="button button--primary button--blue" onClick={(...args) => loadClickCallback(...args)}>Load data</button>&nbsp;
+        <button id="save" className="button button--primary button--blue" onClick={(...args) => saveClickCallback(...args)}>Save data</button>
+        <label>
+          <input type="checkbox" name="autosave" id="autosave" onClick={(...args) => autosaveClickCallback(...args)}/>
+          Autosave
+        </label>
+      </div>
+
+      <output className="console" id="output">{output}</output>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
+[//]: # (// TODO: [react-docs] An error appears when using autosave in the above example "Uncaught ReferenceError: exampleConsole is not defined")
 
 ## Saving data locally
 

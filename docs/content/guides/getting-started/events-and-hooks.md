@@ -78,7 +78,7 @@ import { createSpreadsheetData } from './helpers';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
   const [settings, setSettings] = useState(() => {
     const initialState = {
       data: createSpreadsheetData(15, 20),
@@ -129,7 +129,7 @@ const App = () => {
   );
 }
 
-ReactDOM.render(<App />, document.getElementById('example3'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 ```
 :::
 :::
@@ -138,6 +138,7 @@ ReactDOM.render(<App />, document.getElementById('example3'));
 
 Note that some callbacks are checked on this page by default.
 
+::: only-for javascript
 ::: example #example1 --css 1 --html 2 --js 3
 ```css
 #example1_events {
@@ -279,6 +280,16 @@ document.querySelector('#hooksList input[type=checkbox]').addEventListener('clic
 });
 ```
 :::
+:::
+
+[//]: # (::: only-for react)
+[//]: # (::: example #example1 :react --css 1 --html 2 --js 3 )
+[//]: # (```jsx)
+[//]: # (// TODO: [react-docs] The React transformer failed to auto-generate this example.)
+[//]: # (```)
+[//]: # (:::)
+[//]: # (:::)
+
 
 ## Definition for `source` argument
 
@@ -340,6 +351,7 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 * Pressing <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd> on a cell deletes the cell and shifts all cells beneath it in the column up resulting in the cursor, which doesn't move, having the value previously beneath it, now in the current cell.
 * Pressing <kbd>**Enter**</kbd> in a cell where the value remains unchanged pushes all the cells in the column beneath and including the current cell down one row. This results in a blank cell under the cursor which hasn't moved.
 
+::: only-for javascript
 ::: example #example2
 ```js
 let lastChange = null;
@@ -390,6 +402,84 @@ hot.updateSettings({
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = React.createRef();
+
+  let lastChange = null;
+  const hotSettings = {
+    data: [
+      ['Tesla', 2017, 'black', 'black'],
+      ['Nissan', 2018, 'blue', 'blue'],
+      ['Chrysler', 2019, 'yellow', 'black'],
+      ['Volvo', 2020, 'yellow', 'gray']
+    ],
+    colHeaders: true,
+    rowHeaders: true,
+    height: 'auto',
+    minSpareRows: 1,
+    beforeChange(changes, source) {
+      lastChange = changes;
+    },
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    hot.updateSettings({
+      beforeKeyDown(e) {
+        const selection = hot.getSelected()[0];
+        console.log(selection)
+        // BACKSPACE or DELETE
+        if (e.keyCode === 8 || e.keyCode === 46) {
+          e.stopImmediatePropagation();
+          // remove data at cell, shift up
+          hot.spliceCol(selection[1], selection[0], 1);
+          e.preventDefault();
+        }
+        // ENTER
+        else if (e.keyCode === 13) {
+          // if last change affected a single cell and did not change it's values
+          if (lastChange && lastChange.length === 1 && lastChange[0][2] == lastChange[0][3]) {
+            e.stopImmediatePropagation();
+            hot.spliceCol(selection[1], selection[0], 0, '');
+            // add new cell
+            hot.selectCell(selection[0], selection[1]);
+            // select new cell
+          }
+        }
+
+        lastChange = null;
+      }
+    });
+  });
+
+  return (
+    <Fragment>
+      <HotTable ref={hotRef} settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 ## Related API reference
 

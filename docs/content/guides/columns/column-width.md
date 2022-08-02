@@ -28,6 +28,7 @@ The content inside a cell will be wrapped if it doesn't fit the cell's width.
 
 In this example we set the same width of `100px` for all columns across the entire grid.
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -44,11 +45,51 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(5, 50),
+    width: '100%',
+    height: 'auto',
+    colHeaders: true,
+    rowHeaders: true,
+    colWidths: 100,
+    manualColumnResize: true,
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Setting the column width in an array
 
 In this example, the width is only set for the first four columns. Each additional column would automatically adjust to the content.
 
+::: only-for javascript
 ::: example #example2
 ```js
 const container = document.querySelector('#example2');
@@ -65,11 +106,51 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(5, 5),
+    width: '100%',
+    height: 'auto',
+    colHeaders: true,
+    rowHeaders: true,
+    colWidths: [50, 100, 200, 400],
+    manualColumnResize: true,
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 ## Setting the column width using a function
 
 In this example, the size of all columns is set using a function by taking a column `index` (1, 2 ...) and multiplying it by `40px` for each consecutive column.
 
+::: only-for javascript
 ::: example #example3
 ```js
 const container = document.querySelector('#example3');
@@ -88,6 +169,47 @@ const hot3 = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example3 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hot3Settings = {
+    data: Handsontable.helper.createSpreadsheetData(5, 5),
+    width: '100%',
+    height: 'auto',
+    colHeaders: true,
+    rowHeaders: true,
+    colWidths(index) {
+      return (index + 1) * 40;
+    },
+    manualColumnResize: true,
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hot3Settings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
 
 ## Adjust the column width manually
 
@@ -95,6 +217,7 @@ Set the option [`manualColumnResize`](@/api/options.md#manualcolumnresize) to `t
 
 You can adjust the size of one or multiple columns simultaneously, even if the selected columns are not placed next to each other.
 
+::: only-for javascript
 ::: example #example4
 ```js
 const container = document.querySelector('#example4');
@@ -111,6 +234,45 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example4 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(5, 6),
+    width: '100%',
+    height: 'auto',
+    colHeaders: true,
+    rowHeaders: true,
+    colWidths: [200, 100, 100], // initial width of the first 3 columns
+    manualColumnResize: true,
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+```
+:::
+:::
+
 
 ## Column stretching
 
@@ -124,6 +286,7 @@ Use the **context menu** to insert or remove columns. This will help you underst
 
 This example fits all columns to the container's width equally by setting the option [`stretchH: 'all'`](@/api/options.md#stretchh).
 
+::: only-for javascript
 ::: example #example5
 ```js
 const container = document.querySelector('#example5');
@@ -140,11 +303,51 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example5 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(5, 3),
+    width: '100%',
+    height: 'auto',
+    colHeaders: true,
+    rowHeaders: true,
+    stretchH: 'all', // 'none' is default
+    contextMenu: true,
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
+```
+:::
+:::
+
 
 ### Stretch only the last column
 
 In this example, the first three columns are set to be 80px wide, and the last column automatically fills the remaining space. This is achieved by setting the option [`stretchH: 'last'`](@/api/options.md#stretchh).
 
+::: only-for javascript
 ::: example #example6
 ```js
 const container = document.querySelector('#example6');
@@ -162,6 +365,46 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example6 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    data: Handsontable.helper.createSpreadsheetData(5, 4),
+    width: '100%',
+    height: 'auto',
+    colWidths: 80,
+    colHeaders: true,
+    rowHeaders: true,
+    stretchH: 'last',
+    contextMenu: true,
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
+```
+:::
+:::
+
 
 ## A note about the performance
 

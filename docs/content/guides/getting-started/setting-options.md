@@ -112,6 +112,7 @@ The top-level grid options cascade down:
 
 As a result, each cell in the grid is read-only:
 
+::: only-for javascript
 ::: example #example1 --html 1 --js 2
 ```html
 <div id="example1"></div>
@@ -136,6 +137,47 @@ const hot = new Handsontable(container, {
 hot.getCellMeta(0, 0).readOnly;
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    // configuration options, in the object literal notation
+    licenseKey: 'non-commercial-and-evaluation',
+    data: Handsontable.helper.createSpreadsheetData(5, 10),
+    // the `readOnly` option, applies to each cell of the entire grid
+    readOnly: true,
+    width: 'auto',
+    height: 'auto',
+    rowHeaders: true,
+    colHeaders: true
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Setting column options
 
@@ -194,6 +236,7 @@ The modified mid-level column options:
 
 As a result, each cell in the third and ninth columns is read-only:
 
+::: only-for javascript
 ::: example #example2 --html 1 --js 2
 ```html
 <div id="example2"></div>
@@ -227,6 +270,53 @@ hot.getCellMeta(0, 0).readOnly;
 hot.getCellMeta(0, 2).readOnly;
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    // top-level grid options
+    licenseKey: 'non-commercial-and-evaluation',
+    data: Handsontable.helper.createSpreadsheetData(5, 10),
+    width: 'auto',
+    height: 'auto',
+    rowHeaders: true,
+    colHeaders: true,
+    // in the top-level grid options, all cells are editable
+    readOnly: false,
+    columns(index) {
+      return {
+        type: index > 0 ? 'numeric' : 'text',
+        readOnly: index === 2 || index === 8
+      }
+    }
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 ## Setting row options
 
@@ -290,6 +380,7 @@ In the example below, the [`cells`](@/api/options.md#cells) option sets each cel
 
 Options modified through [`cells`](@/api/options.md#cells) overwrite all other options.
 
+::: only-for javascript
 ::: example #example3 --html 1 --js 2
 ```html
 <div id="example3"></div>
@@ -324,6 +415,54 @@ hot.getCellMeta(0, 0).readOnly;
 hot.getCellMeta(0, 1).readOnly;
 ```
 :::
+:::
+
+::: only-for react
+::: example #example3 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    // top-level grid options that apply to the entire grid
+    licenseKey: 'non-commercial-and-evaluation',
+    data: Handsontable.helper.createSpreadsheetData(5, 10),
+    width: 'auto',
+    height: 'auto',
+    rowHeaders: true,
+    colHeaders: true,
+    // the `cells` options overwrite all other options
+    // apply only to each cell of rows 1 and 4, as specified in the function's body
+    cells(row) {
+      if (row === 1 || row === 4) {
+        return {
+          readOnly: true,
+        };
+      }
+    },
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
 
 ## Setting cell options
 
@@ -383,6 +522,7 @@ The modified [`cell`](@/api/options.md#cell) options:
 - Overwrite the top-level grid options
 - Overwrite mid-level column options
 
+::: only-for javascript
 ::: example #example4 --html 1 --js 2
 ```html
 <div id="example4"></div>
@@ -425,6 +565,61 @@ hot.getCellMeta(0, 0).readOnly;
 hot.getCellMeta(0, 1).readOnly;
 ```
 :::
+:::
+
+::: only-for react
+::: example #example4 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    // top-level grid options that apply to the entire grid
+    data: Handsontable.helper.createSpreadsheetData(5, 10),
+    licenseKey: 'non-commercial-and-evaluation',
+    width: 'auto',
+    height: 'auto',
+    rowHeaders: true,
+    colHeaders: true,
+    readOnly: false,
+    cell: [{
+      // bottom-level cell options overwrite the top-level grid options
+      // apply only to a cell with coordinates (0, 0)
+      row: 0,
+      col: 0,
+      readOnly: true,
+    },
+      {
+        // bottom-level cell options overwrite the top-level grid options
+        // apply only to a cell with coordinates (1, 1)
+        row: 1,
+        col: 1,
+        readOnly: true,
+      }
+    ]
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+```
+:::
+:::
+
 
 ### Reading cell options
 
@@ -567,6 +762,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
 
 In the example below, the modified [`cells`](@/api/options.md#cells) options overwrite the top-level grid options.
 
+::: only-for javascript
 ::: example #example5 --html 1 --js 2
 ```html
 <div id="example5"></div>
@@ -594,6 +790,54 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example5 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    // top-level grid options that apply to the entire grid
+    licenseKey: 'non-commercial-and-evaluation',
+    data: Handsontable.helper.createSpreadsheetData(5, 10),
+    width: 'auto',
+    height: 'auto',
+    rowHeaders: true,
+    colHeaders: true,
+    // the `cells` option overwrites the top-level grid options
+    // apply only to cells selected by your custom logic
+    cells(row, col) {
+      if ((row === 1 || row === 3) && col === 1) {
+        return {
+          readOnly: true,
+        };
+      }
+    }
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
+```
+:::
+:::
+
 
 ## Configuration example
 
@@ -606,6 +850,7 @@ In the example below, some cells are read-only, and some cells are editable:
 - For cell `C3` (`3, 3`), the [`cells`](@/api/options.md#cells) option overwrites all other options.<br>
   As a result, cell `C3` (`3, 3`) is editable, despite not being part of the editable first column.
 
+::: only-for javascript
 ::: example #example6 --html 1 --js 2
 ```html
 <div id="example6"></div>
@@ -663,6 +908,82 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example6 :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotSettings = {
+    // top-level grid options that apply to the entire grid
+    licenseKey: 'non-commercial-and-evaluation',
+    data: Handsontable.helper.createSpreadsheetData(5, 10),
+    // in the top-level grid options, all cells are read-only
+    readOnly: true,
+    width: 'auto',
+    height: 'auto',
+    rowHeaders: true,
+    colHeaders: true,
+    // mid-level column options overwrite the top-level grid options
+    columns: [
+      // each cell in the first (by physical index) column is editable
+      {
+        readOnly: false,
+        className: '',
+      },
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+    ],
+    // bottom-level cell options overwrite the mid-level column options
+    // and ovewrite the top-level grid-options
+    cell: [{
+      // cell (0, 0) is read-only
+      row: 0,
+      col: 0,
+      readOnly: true,
+    }, ],
+    // the `cells` option's logic overwrites all other options
+    cells(row, col) {
+      // cell (2, 2) is editable
+      if (row === 2 && col === 2) {
+        return {
+          readOnly: false,
+          className: '',
+        }
+      }
+    },
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
+```
+:::
+:::
+
 
 ## Related API reference
 

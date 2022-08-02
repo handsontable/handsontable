@@ -196,6 +196,7 @@ const hot = new Handsontable(container, {
 
 ## Preview the result
 
+::: only-for javascript
 ::: example #example
 ```js
 const data = [
@@ -215,6 +216,47 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example :react
+```jsx
+import React, { Fragment, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const data = [
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
+  ];
+  const hotSettings = {
+    data: data,
+    rowHeaders: true,
+    colHeaders: true,
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={hotSettings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
+```
+:::
+:::
+
 
 ## Related articles
 

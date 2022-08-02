@@ -1,7 +1,7 @@
 ---
 title: 'Redux'
 metaTitle: 'Redux - Guide - Handsontable Documentation'
-permalink: /next/redux
+permalink: /redux
 canonicalUrl: /redux
 ---
 
@@ -28,7 +28,7 @@ import { createSpreadsheetData } from './helpers';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
   const hotSettings = useSelector(state => state);
   const dispatch = useDispatch();
   const hotTableComponent = useRef(null);
@@ -57,7 +57,7 @@ const App = () => {
       <div id="example-container">
 
         <div id="example-preview">
-          <div class="controls">
+          <div className="controls">
             <label>
               <input onClick={toggleReadOnly} type="checkbox"/>
               Toggle <code>readOnly</code> for the entire table
@@ -144,7 +144,7 @@ const reduxStore = createStore(updatesReducer);
 
 ReactDOM.render(
   <Provider store={reduxStore}>
-    <App/>
+    <ExampleComponent/>
   </Provider>,
   document.getElementById('example1')
 );
