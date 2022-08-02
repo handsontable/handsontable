@@ -382,9 +382,9 @@ export class IndexMapper {
    * point when handled index is NOT hidden.
    * @param {number} incrementBy We are searching for a next visible indexes by increasing (to be precise, or decreasing) indexes.
    * This variable represent indexes shift. We are looking for an index:
-   * - for rows: from the left to the right (increasing indexes, then variable should have value 1) or
+   * - for rows: from the top to the bottom (increasing indexes, then variable should have value 1) or
    * other way around (decreasing indexes, then variable should have the value -1)
-   * - for columns: from the top to the bottom (increasing indexes, then variable should have value 1)
+   * - for columns: from the left to the right (increasing indexes, then variable should have value 1)
    * or other way around (decreasing indexes, then variable should have the value -1).
    * @param {boolean} searchAlsoOtherWayAround The argument determine if an additional other way around search should be
    * performed, when the search in the first direction had no effect in finding visual index.
