@@ -190,7 +190,7 @@ const ExampleComponent = () => {
   );
 }
 
-ReactDOM.render(<ExampleComponent/>, document.getElementById('example1'));
+ReactDOM.render(<ExampleComponent/>, document.getElementById('example2'));
 ```
 :::
 :::
