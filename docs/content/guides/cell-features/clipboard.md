@@ -179,14 +179,14 @@ const ExampleComponent = () => {
     height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
   };
-  let copyBtnMousedownCallback;
   const copyBtnClickCallback = function() {
     document.execCommand('copy');
   };
-  let cutBtnMousedownCallback;
   const cutBtnClickCallback = function() {
     document.execCommand('cut');
   };
+  let copyBtnMousedownCallback;
+  let cutBtnMousedownCallback;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
@@ -203,11 +203,10 @@ const ExampleComponent = () => {
     <Fragment>
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
-      <div class="controls">
-        <button id="copy" onClick={(...args) => copyBtnClickCallback(...args)}>Select and copy cell B2</button>
-        <button id="cut" onClick={(...args) => cutBtnClickCallback(...args)}>Select and cut cell B2</button>
+      <div className="controls">
+        <button id="copy" onMouseDown={(...args) => copyBtnMousedownCallback(...args)} onClick={(...args) => copyBtnClickCallback(...args)}>Select and copy cell B2</button>
+        <button id="cut" onMouseDown={(...args) => cutBtnMousedownCallback(...args)} onClick={(...args) => cutBtnClickCallback(...args)}>Select and cut cell B2</button>
       </div>
-      
     </Fragment>
   );
 };

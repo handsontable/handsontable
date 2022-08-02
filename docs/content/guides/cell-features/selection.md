@@ -116,14 +116,13 @@ const ExampleComponent = () => {
     <Fragment>
       <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
-      <div class="controls">
-        <select id="selectOption" style="width: auto; margin-top: 16px" onChange={(...args) => selectOptionChangeCallback(...args)}>
-          <option>Single selection</option>
-          <option>Range selection</option>
-          <option selected="selected">Multiple ranges selection</option>
+      <div className="controls">
+        <select id="selectOption" style={{width: 'auto', marginTop: 16}} onChange={(...args) => selectOptionChangeCallback(...args)} defaultValue="multiple">
+          <option value="single">Single selection</option>
+          <option value="range">Range selection</option>
+          <option value="multiple">Multiple ranges selection</option>
         </select>
       </div>
-      
     </Fragment>
   );
 };

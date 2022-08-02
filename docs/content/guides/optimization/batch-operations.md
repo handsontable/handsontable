@@ -299,21 +299,15 @@ const ExampleComponent = () => {
     colHeaders: ['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return'],
     licenseKey: 'non-commercial-and-evaluation'
   };
-  let loggedText = '';
-  let counter = 0;
   const logOutput = msg => {
     counter++;
     loggedText = `[${counter}] ${msg}\n${loggedText}`;
     setOutput(loggedText);
   }
-  const buttonWithoutClickCallback = () => {
-    const t1 = performance.now();
-    alterTable();
-    const t2 = performance.now();
-
-    logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
-  };
+  let buttonWithoutClickCallback;
   let buttonWithClickCallback;
+  let loggedText = '';
+  let counter = 0;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
@@ -336,12 +330,21 @@ const ExampleComponent = () => {
       hot.setCellMeta(10, 5, 'className', 'red-bg');
       hot.render(); // Render is needed here to populate the new "className"s
     }
+
     buttonWithClickCallback = () => {
       const t1 = performance.now();
       hot.batch(alterTable);
       const t2 = performance.now();
 
       logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
+    };
+
+    buttonWithoutClickCallback = () => {
+      const t1 = performance.now();
+      alterTable();
+      const t2 = performance.now();
+
+      logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
     };
   });
 
@@ -354,7 +357,6 @@ const ExampleComponent = () => {
         <button id="buttonWith" class="button button--primary" onClick={(...args) => buttonWithClickCallback(...args)}>Run with batch method</button>
       </div>
       <output class="console" id="output">{output}</output>
-      
     </Fragment>
   );
 };
