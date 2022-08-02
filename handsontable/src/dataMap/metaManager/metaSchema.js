@@ -4228,7 +4228,7 @@ export default () => {
      * trimRows: true,
      *
      * // enable the `TrimRows` plugin
-     * // at Handsontable's initialization, trim rows 5, 10, and 15 
+     * // at Handsontable's initialization, trim rows 5, 10, and 15
      * trimRows: [5, 10, 15],
      * ```
      */
