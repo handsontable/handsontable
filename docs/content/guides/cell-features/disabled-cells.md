@@ -93,7 +93,11 @@ hot.updateSettings({
 
 ## Read-only cells vs. non-editable cells
 
-Non-editable cells behave like any other cells apart from preventing you from manually changing their values. You are still able to copy-paste or drag-to-fill the data. There is no additional CSS class added. Read-only cells do not permit the drag-to-fill functionality.
+Read-only cells:
+- Don't permit the drag-to-fill functionality.
+- Can't be changed by the [`populateFromArray()`](@/api/core.md#populatefromarray) method.
+
+Non-editable cells behave like any other cells apart from preventing you from manually changing their values. You are still able to copy-paste or drag-to-fill the data. There is no additional CSS class added.
 
 ## Non-editable columns
 

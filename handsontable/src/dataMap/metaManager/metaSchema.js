@@ -3424,6 +3424,8 @@ export default () => {
      * | `false` (default) | Set as editable                                                                                                           |
      * | `true`            | - Set as read-only<br>- Add the [`readOnlyCellClassName`](#readOnlyCellClassName) CSS class name (by default: `htDimmed`) |
      *
+     * `readOnly` cells can't be changed by the [`populateFromArray()`](@/api/core.md#populatefromarray) method.
+     *
      * Read more:
      * - [Configuration options: Cascading configuration](@/guides/getting-started/setting-options.md#cascading-configuration)
      *
