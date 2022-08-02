@@ -160,7 +160,7 @@ const hotSettings = {
   licenseKey: 'non-commercial-and-evaluation'
 };
 
-const App = () => {
+const ExampleComponent = () => {
   const [language, setLanguage] = useState('en-US');
   const [languageList, setLanguageList] = useState([]);
 
@@ -190,7 +190,7 @@ const App = () => {
   );
 }
 
-ReactDOM.render(<App/>, document.getElementById('example1'));
+ReactDOM.render(<ExampleComponent/>, document.getElementById('example1'));
 ```
 :::
 :::

@@ -32,7 +32,7 @@ const secondColumnSettings = {
   readOnly: true
 };
 
-const App = () => {
+const ExampleComponent = () => {
   return (
     <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
       <HotColumn title="First column header" />
@@ -41,7 +41,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example1'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
 :::
 
@@ -85,7 +85,7 @@ const RendererComponent = (props) => {
 
 const hotData = Handsontable.helper.createSpreadsheetData(10, 5);
 
-const App = () => {
+const ExampleComponent = () => {
   return (
     <div>
     <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
@@ -98,7 +98,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example2'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 ```
 :::
  
@@ -180,7 +180,7 @@ const hotSettings = {
   autoColumnSize: false
 };
 
-const App = () => {
+const ExampleComponent = () => {
   return (
     <HotTable settings={hotSettings}>
       {/* use the `data` prop to reference the column data */}
@@ -198,7 +198,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example3'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 ```
 :::
 
@@ -337,7 +337,7 @@ const hotSettings = {
   licenseKey: "non-commercial-and-evaluation"
 };
 
-const App = () => {
+const ExampleComponent = () => {
   return (
     <HotTable settings={hotSettings}>
       <HotColumn width={250}>
@@ -348,7 +348,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example4'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 ```
 :::
 
@@ -392,7 +392,7 @@ const hotSettings = {
   licenseKey: "non-commercial-and-evaluation"
 };
 
-const App = () => {
+const ExampleComponent = () => {
   const [darkMode, setDarkMode] = useState(false);
 
   const toggleDarkMode = (event) => {
@@ -414,7 +414,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example5'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
 ```
 :::
 
@@ -656,7 +656,7 @@ const hotSettings = {
   licenseKey: "non-commercial-and-evaluation"
 };
 
-const App = () => {
+const ExampleComponent = () => {
   useEffect(() => {
     reduxStore.dispatch({
       type: "initRatingColors",
@@ -686,6 +686,6 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example6'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
 ```
 :::

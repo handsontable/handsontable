@@ -78,7 +78,7 @@ import { createSpreadsheetData } from './helpers';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
   const [settings, setSettings] = useState(() => {
     const initialState = {
       data: createSpreadsheetData(15, 20),
@@ -129,7 +129,7 @@ const App = () => {
   );
 }
 
-ReactDOM.render(<App />, document.getElementById('example3'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 ```
 :::
 :::

@@ -92,7 +92,7 @@ const hotSettings = {
   licenseKey: 'non-commercial-and-evaluation'
 };
 
-const App = () => {
+const ExampleComponent = () => {
   return (
     <div>
       <HotTable
@@ -103,7 +103,7 @@ const App = () => {
   );
 }
 
-ReactDOM.render(<App />, document.getElementById('example1'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
 :::
 :::

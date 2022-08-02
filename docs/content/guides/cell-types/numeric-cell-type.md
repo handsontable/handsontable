@@ -232,7 +232,7 @@ const hotSettings = {
   licenseKey: 'non-commercial-and-evaluation'
 }
 
-const App = () => {
+const ExampleComponent = () => {
   return (
     <HotTable settings={hotSettings}>
       <HotColumn data="productName" type="text" width="120" />
@@ -252,7 +252,7 @@ const App = () => {
   )
 }
 
-ReactDOM.render(<App />, document.getElementById('example3'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 ```
 :::
 :::
