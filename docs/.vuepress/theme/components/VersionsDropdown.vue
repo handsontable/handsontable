@@ -29,11 +29,17 @@ export default {
       return version;
     },
     getLink(version) {
-      if (version === this.$page.latestVersion) {
-        return '/docs/';
+      let framework = '';
+
+      if (this.$page.frameworkedVersions.includes(version)) {
+        framework = `${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
       }
 
-      return `/docs/${version}/`;
+      if (version === this.$page.latestVersion) {
+        return `/docs/${framework}`;
+      }
+
+      return `/docs/${version}/${framework}`;
     },
     getLegacyVersions() {
       return [

@@ -70,6 +70,7 @@ export default async({ router, siteData, isServer }) => {
 
       page.versions = docsData.versions;
       page.latestVersion = docsData.latestVersion;
+      page.frameworkedVersions = docsData.frameworkedVersions;
     });
 
     themeLoader();

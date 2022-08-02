@@ -26,6 +26,7 @@ async function cleanUp() {
  * @param {string} framework The docs framework to build.
  */
 const buildVersion = (version, framework) => {
+  // eslint-disable-next-line no-async-promise-executor
   return new Promise(async(resolve) => {
     logger.info(`Version ${version} build started at`, new Date().toString());
 
@@ -59,26 +60,31 @@ const buildVersion = (version, framework) => {
  * @param {string} framework The docs framework to build.
  */
 async function concatenate(version, framework) {
-  if (version !== 'next') {
-    const prebuildLatest = path.resolve(__dirname, '../../', '.vuepress/dist/pre-latest-' +
-      `${version.replace('.', '-')}/${framework}-${FRAMEWORK_SUFFIX}`);
-    const distLatest = path.resolve(__dirname, '../../', `.vuepress/dist/docs/${framework}${FRAMEWORK_SUFFIX}`);
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async(resolve) => {
+    if (version !== 'next') {
+      const prebuildLatest = path.resolve(__dirname, '../../', '.vuepress/dist/pre-latest-' +
+        `${version.replace('.', '-')}/${framework}-${FRAMEWORK_SUFFIX}`);
+      const distLatest = path.resolve(__dirname, '../../', `.vuepress/dist/docs/${framework}${FRAMEWORK_SUFFIX}`);
 
-    await fse.move(prebuildLatest, distLatest);
-  }
+      await fse.move(prebuildLatest, distLatest);
+    }
 
-  const prebuildVersioned = path.resolve(
-    __dirname,
-    '../../', `.vuepress/dist/pre-${version.replace('.', '-')}/${framework}${FRAMEWORK_SUFFIX}`
-  );
-  const distVersioned = path.resolve(
-    __dirname,
-    '../../', `.vuepress/dist/docs/${version}/${framework}${FRAMEWORK_SUFFIX}`
-  );
+    const prebuildVersioned = path.resolve(
+      __dirname,
+      '../../', `.vuepress/dist/pre-${version.replace('.', '-')}/${framework}${FRAMEWORK_SUFFIX}`
+    );
+    const distVersioned = path.resolve(
+      __dirname,
+      '../../', `.vuepress/dist/docs/${version}/${framework}${FRAMEWORK_SUFFIX}`
+    );
 
-  logger.info('Apply built version to the `docs/`', version);
+    logger.info('Apply built version to the `docs/`', version);
 
-  await fse.move(prebuildVersioned, distVersioned);
+    await fse.move(prebuildVersioned, distVersioned);
+
+    resolve();
+  });
 }
 
 const buildApp = async() => {
@@ -94,8 +100,11 @@ const buildApp = async() => {
 
   await cleanUp();
 
+  // eslint-disable-next-line no-restricted-syntax
   for (const framework of frameworks) {
+    // eslint-disable-next-line no-await-in-loop
     await buildVersion(getThisDocsVersion(), framework);
+    // eslint-disable-next-line no-await-in-loop
     await concatenate(getThisDocsVersion(), framework);
   }
 
