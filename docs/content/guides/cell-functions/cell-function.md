@@ -19,6 +19,17 @@ With every cell in the Handsontable there are 3 associated functions:
 
 Each of those functions are responsible for a different cell behavior. You can define them separately or use a [cell type](#cell-type) to define all three at once.
 
+::: tip
+You can set a cell's [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator) individually, but you still need to set that cell's [`type`](@/api/options.md#type). For example:
+
+```js
+renderer: Handsontable.NumericRenderer,
+editor: Handsontable.editors.NumericEditor,
+validator: Handsontable.NumericValidator,
+type: 'numeric'
+```
+:::
+
 ## Renderer
 
 Handsontable does not display the values stored in the data source directly. Instead, every time a value from data source needs to be displayed in a table cell, it is passed to the cell `renderer` function, together with the table cell object of type `HTMLTableCellElement` (DOM node), along with other useful information.
