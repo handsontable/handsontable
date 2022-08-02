@@ -143,7 +143,7 @@ const App = () => {
         <br/>
       </div>
 
-      <HotTable root="hot" settings={settings}/>
+      <HotTable id="hot" settings={settings}/>
     </div>
   );
 }
