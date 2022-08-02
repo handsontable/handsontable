@@ -5,7 +5,10 @@ permalink: /disabled-cells
 canonicalUrl: /disabled-cells
 tags:
   - read-only
+  - readonly
+  - non-editable
   - noneditable
+  - locked
 ---
 
 # Disabled cells

@@ -9,6 +9,8 @@ tags:
   - populate data
   - drag down
   - square
+  - auto-fill
+  - auto fill
 ---
 
 # Autofill values
@@ -21,7 +23,7 @@ Autofill is a feature that enables you to copy the contents of a cell to another
 
 ## Autofill in all directions
 
-Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it (drag-down) to repeat the values from the cell. Double click the fill handle in `cell B4` where the value is `30` to fill the selection down to the last value in neighbouring column, just like it would in Excel or Google Sheets.
+Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it (drag-down) to repeat the values from the cell. Double click the fill handle in `cell B4` where the value is `30` to fill the selection down to the last value in neighboring column, just like it would in Excel or Google Sheets.
 
 ::: only-for javascript
 ::: example #example1

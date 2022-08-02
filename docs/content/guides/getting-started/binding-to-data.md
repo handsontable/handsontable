@@ -668,12 +668,60 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example7'));
 :::
 
 
+### No data
+
+By default, if you don't provide any data, Handsontable renders as an empty 5x5 grid.
+
+::: only-for javascript
+::: example #example9
+```js
+const container = document.getElementById('example9');
+
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+:::
+
+::: only-for react
+::: example #example9 :react
+```jsx
+import React, { Fragment } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const settings = {
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+
+  return (
+    <Fragment>
+      <HotTable settings={settings}>
+      </HotTable>
+    </Fragment>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
+
+```
+:::
+:::
+
+To change the number of rows or columns rendered by default, use the [`startRows`](@/api/options.md#startrows) and [`startCols`](@/api/options.md#startcols) options.
+
 ## Data-manipulating API methods
 
 There are multiple ways you can insert your data into Handsontable. Let's go through the most useful ones:
 
 ### The [`data`](@/api/options.md#data) configuration option
-You will probably want to initialize the table with some data (if you don't, the table will render a 5x5 empty grid for you). The easiest way to do it is passing your data array as [`data`](@/api/options.md#data) option in the initial config object:
+You will probably want to initialize the table with some data (if you don't, the table will render an empty 5x5 grid for you). The easiest way to do it is passing your data array as [`data`](@/api/options.md#data) option in the initial config object:
 ```js
 const hot = new Handsontable(container, {
   data: newDataset,
@@ -777,9 +825,9 @@ Handsontable binds to your data source by reference, not by values. We don't cop
 To avoid this scenario, copy the data before you pass it to the grid. To change the data from outside Handsontable, you can use our API methods. For example, a change being made will be displayed immediately on the screen after calling the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
 ::: only-for javascript
-::: example #example8
+::: example #example10
 ```js
-const container = document.getElementById('example8');
+const container = document.getElementById('example10');
 
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
@@ -803,7 +851,7 @@ hot.setDataAtCell(0, 1, 'Ford');
 :::
 
 ::: only-for react
-::: example #example8 :react
+::: example #example10 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
@@ -844,7 +892,7 @@ const ExampleComponent = () => {
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example8'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example10'));
 
 ```
 :::
@@ -856,9 +904,9 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example8'));
 When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
 
 ::: only-for javascript
-::: example #example9
+::: example #example11
 ```js
-const container = document.getElementById('example9');
+const container = document.getElementById('example11');
 
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
@@ -879,7 +927,7 @@ const hot = new Handsontable(container, {
 :::
 
 ::: only-for react
-::: example #example9 :react
+::: example #example11 :react
 ```jsx
 import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
@@ -912,7 +960,7 @@ const ExampleComponent = () => {
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example11'));
 ```
 :::
 :::

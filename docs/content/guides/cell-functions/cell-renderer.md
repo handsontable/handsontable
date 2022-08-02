@@ -26,6 +26,17 @@ When you create a renderer, a good idea is to assign it as an alias that will re
 
 It gives users a convenient way for defining which renderer should be used when table rendering was triggered. User doesn't need to know which renderer function is responsible for displaying the cell value, he does not even need to know that there is any function at all. What is more, you can change the render function associated with an alias without a need to change code that defines a table.
 
+::: tip
+You can set a cell's [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator) individually, but you still need to set that cell's [`type`](@/api/options.md#type). For example:
+
+```js
+renderer: Handsontable.NumericRenderer,
+editor: Handsontable.editors.NumericEditor,
+validator: Handsontable.NumericValidator,
+type: 'numeric'
+```
+:::
+
 ::: only-for react
 ## Example
 

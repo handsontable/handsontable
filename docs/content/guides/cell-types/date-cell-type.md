@@ -93,7 +93,6 @@ const hot = new Handsontable(container, {
         firstDay: 0,
         showWeekNumber: true,
         numberOfMonths: 3,
-        licenseKey: 'non-commercial-and-evaluation',
         disableDayFn(date) {
           // Disable Sunday and Saturday
           return date.getDay() === 0 || date.getDay() === 6;
