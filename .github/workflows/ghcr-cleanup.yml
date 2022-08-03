@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '0 0 * * *'  # every day at midnight
   push:
-    paths: 
+    paths:
       - .github/workflows/ghcr-cleanup.yml
 
 jobs:
@@ -19,5 +19,5 @@ jobs:
           cut-off: One month ago UTC
           account-type: org
           org-name: handsontable
-          skip-tags: latest, production
+          skip-tags: latest, production, next, v*
           token: ${{ secrets.WARPECH_PAT_DELETE_PACKAGES }}

@@ -4,13 +4,13 @@
   >
     <!-- user links -->
     <div class="nav-item">
-      <NavVersionedLink :item="guideLink"/>
+      <NavLink :item="guideLink"/>
     </div>
     <div class="nav-item">
-      <NavVersionedLink :item="examplesLink"/>
+      <NavLink :item="examplesLink"/>
     </div>
     <div class="nav-item">
-      <NavVersionedLink :item="apiLink"/>
+      <NavLink :item="apiLink"/>
     </div>
     <div
       v-for="item in userLinks"
@@ -32,7 +32,6 @@
 <script>
 import DropdownLink from '@theme/components/DropdownLink.vue';
 import NavLink from '@theme/components/NavLink.vue';
-import NavVersionedLink from '@theme/components/NavVersionedLink.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 import { resolveNavLinkItem } from '@vuepress/theme-default/util';
 
@@ -42,25 +41,29 @@ export default {
   components: {
     NavLink,
     DropdownLink,
-    NavVersionedLink,
     ThemeSwitcher
   },
   computed: {
+    frameworkUrlPrefix() {
+      return this.$page.isEnvDev ?
+        `/${this.$page.currentFramework}${this.$page.frameworkSuffix}` :
+        '';
+    },
     guideLink() {
       return {
-        link: '/',
+        link: `${this.frameworkUrlPrefix}/`,
         text: 'Guides'
       };
     },
     examplesLink() {
       return {
-        link: '/examples/',
+        link: `${this.frameworkUrlPrefix}/examples/`,
         text: 'Examples'
       };
     },
     apiLink() {
       return {
-        link: '/api/',
+        link: `${this.frameworkUrlPrefix}/api/`,
         text: 'API Reference'
       };
     },

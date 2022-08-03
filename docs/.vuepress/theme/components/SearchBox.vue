@@ -119,7 +119,7 @@ const matchQuery = (query, page, additionalStr = null, fuzzySearchDomains = []) 
   return matchTest(query, domain, isFuzzySearch);
 };
 
-const apiRegex = /^(\/(next|(\d*\.\d*)))?\/api\//;
+const apiRegex = /^\/api\//;
 
 export default {
   name: 'SearchBox',
@@ -291,14 +291,16 @@ export default {
     },
 
     isSearchable(page) {
-      let framework = '';
+      // Documentation created using the production build always search pages for proper framework.
+      let isSelectedFramework = true;
 
       // Only dev environment contain framework element as a part of the `normalizedPath` key's value.
-      if (this.$page.isEnvDev === true && this.$page.currentFramework) {
-        framework = `${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
+      if (this.$page.isEnvDev === true) {
+        isSelectedFramework =
+          page.normalizedPath.startsWith(`/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`);
       }
 
-      return page.isSearchable === true && page.normalizedPath.startsWith(`/${this.$page.currentVersion}/${framework}`);
+      return page.isSearchable === true && isSelectedFramework;
     },
 
     onHotkey(event) {

@@ -66,6 +66,8 @@ const REGISTERED_HOOKS = [
    * Fired after one or more cells has been changed. The changes are triggered in any situation when the
    * value is entered using an editor or changed using API (e.q setDataAtCell).
    *
+   * `row` is a visual row index.
+   *
    * __Note:__ For performance reasons, the `changes` array is null for `"loadData"` source.
    *
    * @event Hooks#afterChange
@@ -709,6 +711,8 @@ const REGISTERED_HOOKS = [
    * Fired before one or more cells is changed. Its main purpose is to alter changes silently after input and before
    * table rendering.
    *
+   * `row` is a visual row index.
+   *
    * @event Hooks#beforeChange
    * @param {Array[]} changes 2D array containing information about each of the edited cells.
    * @param {string} [source] String that identifies source of hook call
@@ -1168,8 +1172,9 @@ const REGISTERED_HOOKS = [
   'beforeHighlightingColumnHeader',
 
   /**
-   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
-   * {@link Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage.
+   *
+   * The `persistentStateLoad` hook is fired even when the {@link Options#persistentState} option is disabled.
    *
    * @event Hooks#persistentStateLoad
    * @param {string} key Key.
@@ -1187,8 +1192,9 @@ const REGISTERED_HOOKS = [
   'persistentStateReset',
 
   /**
-   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage. This hook is fired when
-   * {@link Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage.
+   *
+   * The `persistentStateSave` hook is fired even when the {@link Options#persistentState} option is disabled.
    *
    * @event Hooks#persistentStateSave
    * @param {string} key Key.
@@ -1366,6 +1372,27 @@ const REGISTERED_HOOKS = [
   'afterPaste',
 
   /**
+   * Fired by the {@link ManualColumnFreeze} plugin, before freezing a column.
+   *
+   * @event Hooks#beforeColumnFreeze
+   * @since 12.1.0
+   * @param {number} column The visual index of the column that is going to freeze.
+   * @param {boolean} freezePerformed If `true`: the column is going to freeze. If `false`: the column is not going to freeze (which might happen if the column is already frozen).
+   * @returns {boolean|undefined} If `false`: the column is not going to freeze, and the `afterColumnFreeze` hook won't fire.
+   */
+  'beforeColumnFreeze',
+
+  /**
+   * Fired by the {@link ManualColumnFreeze} plugin, right after freezing a column.
+   *
+   * @event Hooks#afterColumnFreeze
+   * @since 12.1.0
+   * @param {number} column The visual index of the frozen column.
+   * @param {boolean} freezePerformed If `true`: the column got successfully frozen. If `false`: the column didn't get frozen.
+   */
+  'afterColumnFreeze',
+
+  /**
    * Fired by {@link ManualColumnMove} plugin before change order of the visual indexes. This hook is fired when
    * {@link Options#manualColumnMove} option is enabled.
    *
@@ -1404,6 +1431,27 @@ const REGISTERED_HOOKS = [
    * @param {boolean} orderChanged Indicates if order of columns was changed by move.
    */
   'afterColumnMove',
+
+  /**
+   * Fired by the {@link ManualColumnFreeze} plugin, before unfreezing a column.
+   *
+   * @event Hooks#beforeColumnUnfreeze
+   * @since 12.1.0
+   * @param {number} column The visual index of the column that is going to unfreeze.
+   * @param {boolean} unfreezePerformed If `true`: the column is going to unfreeze. If `false`: the column is not going to unfreeze (which might happen if the column is already unfrozen).
+   * @returns {boolean|undefined} If `false`: the column is not going to unfreeze, and the `afterColumnUnfreeze` hook won't fire.
+   */
+  'beforeColumnUnfreeze',
+
+  /**
+   * Fired by the {@link ManualColumnFreeze} plugin, right after unfreezing a column.
+   *
+   * @event Hooks#afterColumnUnfreeze
+   * @since 12.1.0
+   * @param {number} column The visual index of the unfrozen column.
+   * @param {boolean} unfreezePerformed If `true`: the column got successfully unfrozen. If `false`: the column didn't get unfrozen.
+   */
+  'afterColumnUnfreeze',
 
   /**
    * Fired by {@link ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when

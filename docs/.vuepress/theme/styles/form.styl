@@ -6,13 +6,14 @@
   - textarea
   - select
   - checkbox
+  - output
 */
 
 /* BUTTON */
 
 .controls {
   margin-top: 10px;
-  padding-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 // select all <button>s that are not descendants of .handsontable container elements
@@ -65,4 +66,21 @@
       background-color: #fff;
     }
   }
+}
+
+/* OUTPUT */
+
+output.console {
+  display: block;
+  color: #ccc;
+  max-height: 392px;
+  margin: 10px 0;
+  line-height: 1.4;
+  padding: 1.25rem 1.5rem;
+  background-color: #282c34;
+  overflow: auto;
+  background: #2d2d2d;
+  font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+  font-size: 1em;
+  white-space: pre-line;
 }
