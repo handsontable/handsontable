@@ -464,7 +464,7 @@ export default () => {
 
     /**
      * @description
-     * The `cells` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to
+     * The `cells` option lets you apply any other [configuration options](@/guides/getting-started/setting-options.md) to
      * individual grid elements (columns, rows, cells), based on any logic you implement.
      *
      * The `cells` option overwrites all other options (including options set by [`columns`](#columns) and [`cell`](#cell)).
@@ -690,7 +690,7 @@ export default () => {
 
     /**
      * @description
-     * The `columns` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to individual columns (or ranges of columns).
+     * The `columns` option lets you apply any other [configuration options](@/guides/getting-started/setting-options.md) to individual columns (or ranges of columns).
      *
      * You can set the `columns` option to one of the following:
      * - An array of objects (each object represents one column)
@@ -698,13 +698,14 @@ export default () => {
      *
      * The `columns` option overwrites the [top-level grid options](@/guides/getting-started/setting-options.md#setting-grid-options).
      *
-     * When you use the `columns` option, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) are ignored.
+     * When you use `columns`, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) option are ignored.
      *
      * Read more:
      * - [Configuration options: Setting column options](@/guides/getting-started/setting-options.md#setting-column-options)
      * - [`startCols`](#startCols)
      * - [`minCols`](#minCols)
      * - [`maxCols`](#maxCols)
+     * - [`data`](#data)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -1175,15 +1176,21 @@ export default () => {
     copyPaste: true,
 
     /**
-     * The `correctFormat` option configures what happens when the format of a date entered into a [`date`](@/guides/cell-types/date-cell-type.md) cell doesn't match the format specified by the [`dateFormat`](#dateFormat) option:
+     * The `correctFormat` option configures whether incorrectly-formatted times and dates are amended or not.
      *
-     * | Setting           | Description                                                                        |
-     * | ----------------- | ---------------------------------------------------------------------------------- |
-     * | `false` (default) | Don't correct the entered date's format (treat the entered date as invalid)        |
-     * | `true`            | Correct the entered date's format to match the [`dateFormat`](#dateFormat) setting |
+     * When the user enters dates and times, Handsontable can automatically adjust their format
+     * to match the [`dateFormat`](#dateFormat) and [`timeFormat`](@/guides/cell-types/time-cell-type.md) settings.
+     *
+     * You can set the `correctFormat` option to one of the following:
+     *
+     * | Setting           | Description                                                                                                                                               |
+     * | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Don't correct the format of the entered date or time (treat the entered date or time as invalid)                                                          |
+     * | `true`            | Correct the format of the entered date or time to match the [`dateFormat`](#dateFormat) or [`timeFormat`](@/guides/cell-types/time-cell-type.md) settings |
      *
      * Read more:
      * - [Date cell type](@/guides/cell-types/date-cell-type.md)
+     * - [Time cell type](@/guides/cell-types/time-cell-type.md)
      * - [`dateFormat`](#dateFormat)
      *
      * @memberof Options#
@@ -1200,6 +1207,15 @@ export default () => {
      *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
      *   dateFormat: 'YYYY-MM-DD',
      *   // enforce the `YYYY-MM-DD` date format
+     *   correctFormat: true
+     *   },
+     *
+     *   {
+     *   // set the `type` of each cell in this column to `time`
+     *   type: 'time',
+     *   // for every `time` cell of this column, set the time format to `h:mm:ss a`
+     *   timeFormat: 'h:mm:ss a',
+     *   // enforce the `h:mm:ss a` time format
      *   correctFormat: true
      *   },
      * ],
@@ -1455,15 +1471,22 @@ export default () => {
 
     /**
      * @description
-     * If the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
+     * When the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
      * (or is empty), the `dataSchema` option defines the structure of new rows.
+     *
+     * Using the `dataSchema` option, you can start out with an empty grid.
+     *
+     * You can set the `dataSchema` option to one of the following:
+     * - An object
+     * - A function
      *
      * Read more:
      * - [Binding to data: Array of objects with custom data schema](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
+     * - [Binding to data: Function data source and schema](@/guides/getting-started/binding-to-data.md#function-data-source-and-schema)
      * - [`data`](#data)
      *
      * @memberof Options#
-     * @type {object}
+     * @type {object|Function}
      * @default undefined
      * @category Core
      *
@@ -1732,6 +1755,17 @@ export default () => {
      *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
+     *
+     * ::: tip
+     * You can set a cell's [`renderer`](#renderer), [`editor`](#editor) or [`validator`](#validator) individually, but you still need to set that cell's [`type`](#type). For example:
+     *
+     * ```js
+     * renderer: Handsontable.NumericRenderer,
+     * editor: Handsontable.editors.NumericEditor,
+     * validator: Handsontable.NumericValidator,
+     * type: 'numeric'
+     * ```
+     * :::
      *
      * Read more:
      * - [Cell editor](@/guides/cell-functions/cell-editor.md)
@@ -3509,6 +3543,17 @@ export default () => {
      * To set the [`renderer`](#renderer), [`editor`](#editor), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
      *
+     * ::: tip
+     * You can set a cell's [`renderer`](#renderer), [`editor`](#editor) or [`validator`](#validator) individually, but you still need to set that cell's [`type`](#type). For example:
+     *
+     * ```js
+     * renderer: Handsontable.NumericRenderer,
+     * editor: Handsontable.editors.NumericEditor,
+     * validator: Handsontable.NumericValidator,
+     * type: 'numeric'
+     * ```
+     * :::
+     *
      * Read more:
      * - [Cell renderer](@/guides/cell-functions/cell-renderer.md)
      * - [Cell type](@/guides/cell-types/cell-type.md)
@@ -4207,11 +4252,11 @@ export default () => {
      *
      * You can set the `trimRows` option to one of the following:
      *
-     * | Setting  | Description                                                                                   |
-     * | -------- | --------------------------------------------------------------------------------------------- |
-     * | `false`  | Disable the [`TrimRows`](@/api/trimRows.md) plugin                                            |
-     * | `true`   | Enable the [`TrimRows`](@/api/trimRows.md) plugin                                             |
-     * | An array | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
+     * | Setting                          | Description                                                                                   |
+     * | -------------------------------- | --------------------------------------------------------------------------------------------- |
+     * | `false`                          | Disable the [`TrimRows`](@/api/trimRows.md) plugin                                            |
+     * | `true`                           | Enable the [`TrimRows`](@/api/trimRows.md) plugin                                             |
+     * | An array of physical row indexes | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
      *
      * Read more:
      * - [Plugins: `TrimRows`](@/api/trimRows.md)
@@ -4228,7 +4273,7 @@ export default () => {
      * trimRows: true,
      *
      * // enable the `TrimRows` plugin
-     * // trim rows 5, 10, and 15 at Handsontable's initialization
+     * // at Handsontable's initialization, trim rows 5, 10, and 15
      * trimRows: [5, 10, 15],
      * ```
      */
@@ -4272,15 +4317,26 @@ export default () => {
      * | Cell type                                                         | Renderer, editor & validator                                                                                                                                                                                                                       |
      * | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | A [custom cell type](@/guides/cell-types/cell-type.md)            | Renderer: your [custom cell renderer](@/guides/cell-functions/cell-renderer.md)<br>Editor: your [custom cell editor](@/guides/cell-functions/cell-editor.md)<br>Validator: your [custom cell validator](@/guides/cell-functions/cell-validator.md) |
-     * | [`'autocomplete'`](@/guides/cell-types/autocomplete-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `AutocompleteEditor`<br>Validator: `AutocompleteValidator`                                                                         |
-     * | [`'checkbox'`](@/guides/cell-types/checkbox-cell-type.md)         | Renderer: `CheckboxRenderer`<br>Editor: `CheckboxEditor`<br>Validator: -                                                                                                                               |
-     * | [`'date'`](@/guides/cell-types/date-cell-type.md)                 | Renderer: `DateRenderer`<br>Editor: `DateEditor`<br>Validator: `DateValidator`                                                                                                 |
-     * | [`'dropdown'`](@/guides/cell-types/dropdown-cell-type.md)         | Renderer: `DropdownRenderer`<br>Editor: `DropdownEditor`<br>Validator: `DropdownValidator`                                                                                     |
-     * | [`'handsontable'`](@/guides/cell-types/handsontable-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `HandsontableEditor`<br>Validator: -                                                                                                                       |
-     * | [`'numeric'`](@/guides/cell-types/numeric-cell-type.md)           | Renderer: `NumericRenderer`<br>Editor: `NumericEditor`<br>Validator: `NumericValidator`                                                                                        |
-     * | [`'password'`](@/guides/cell-types/password-cell-type.md)         | Renderer: `PasswordRenderer`<br>Editor: `PasswordEditor`<br>Validator: -                                                                                                                               |
-     * | `'text'`                                                          | Renderer: `TextRenderer`<br>Editor: `TextEditor`<br>Validator: -                                                                                                                                       |
-     * | [`'time`'](@/guides/cell-types/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                 |
+     * | [`'autocomplete'`](@/guides/cell-types/autocomplete-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `AutocompleteEditor`<br>Validator: `AutocompleteValidator`                                                                                                                                             |
+     * | [`'checkbox'`](@/guides/cell-types/checkbox-cell-type.md)         | Renderer: `CheckboxRenderer`<br>Editor: `CheckboxEditor`<br>Validator: -                                                                                                                                                                           |
+     * | [`'date'`](@/guides/cell-types/date-cell-type.md)                 | Renderer: `DateRenderer`<br>Editor: `DateEditor`<br>Validator: `DateValidator`                                                                                                                                                                     |
+     * | [`'dropdown'`](@/guides/cell-types/dropdown-cell-type.md)         | Renderer: `DropdownRenderer`<br>Editor: `DropdownEditor`<br>Validator: `DropdownValidator`                                                                                                                                                         |
+     * | [`'handsontable'`](@/guides/cell-types/handsontable-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `HandsontableEditor`<br>Validator: -                                                                                                                                                                   |
+     * | [`'numeric'`](@/guides/cell-types/numeric-cell-type.md)           | Renderer: `NumericRenderer`<br>Editor: `NumericEditor` (same as `TextEditor`)<br>Validator: `NumericValidator`                                                                                                                                     |
+     * | [`'password'`](@/guides/cell-types/password-cell-type.md)         | Renderer: `PasswordRenderer`<br>Editor: `PasswordEditor`<br>Validator: -                                                                                                                                                                           |
+     * | `'text'`                                                          | Renderer: `TextRenderer`<br>Editor: `TextEditor`<br>Validator: -                                                                                                                                                                                   |
+     * | [`'time`'](@/guides/cell-types/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                                                                                     |
+     *
+     * ::: tip
+     * You can set a cell's [`renderer`](#renderer), [`editor`](#editor) or [`validator`](#validator) individually, but you still need to set that cell's [`type`](#type). For example:
+     *
+     * ```js
+     * renderer: Handsontable.NumericRenderer,
+     * editor: Handsontable.editors.NumericEditor,
+     * validator: Handsontable.NumericValidator,
+     * type: 'numeric'
+     * ```
+     * :::
      *
      * Read more:
      * - [Cell type](@/guides/cell-types/cell-type.md)
@@ -4417,6 +4473,17 @@ export default () => {
      *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
+     *
+     * ::: tip
+     * You can set a cell's [`renderer`](#renderer), [`editor`](#editor) or [`validator`](#validator) individually, but you still need to set that cell's [`type`](#type). For example:
+     *
+     * ```js
+     * renderer: Handsontable.NumericRenderer,
+     * editor: Handsontable.editors.NumericEditor,
+     * validator: Handsontable.NumericValidator,
+     * type: 'numeric'
+     * ```
+     * :::
      *
      * Read more:
      * - [Cell validator](@/guides/cell-functions/cell-validator.md)
