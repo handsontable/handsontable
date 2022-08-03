@@ -27,16 +27,10 @@ export default {
     },
     versionedLink() {
       const link = this.item.link;
+      const framework = `/${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
 
-      const framework = this.$page.currentFramework ?
-        `/${this.$page.currentFramework}${this.$page.frameworkSuffix}` : '';
-
-      // Already have version and framework placed in the url for some reason and a `RouterLink` process it properly.
-      if (this.$page.DOCS_VERSION && (this.$page.DOCS_FRAMEWORK || this.$page.isFrameworked === false)) {
+      if (this.$page.currentVersion === this.$page.latestVersion) {
         return ensureExt(link);
-
-      } else if (this.$page.currentVersion === this.$page.latestVersion) {
-        return ensureExt(`${framework}${link}`);
 
       } else {
         return ensureExt(`/${this.$page.currentVersion}${framework}${link}`);

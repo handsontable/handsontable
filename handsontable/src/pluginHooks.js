@@ -66,6 +66,8 @@ const REGISTERED_HOOKS = [
    * Fired after one or more cells has been changed. The changes are triggered in any situation when the
    * value is entered using an editor or changed using API (e.q setDataAtCell).
    *
+   * `row` is a visual row index.
+   *
    * __Note:__ For performance reasons, the `changes` array is null for `"loadData"` source.
    *
    * @event Hooks#afterChange
@@ -709,6 +711,8 @@ const REGISTERED_HOOKS = [
    * Fired before one or more cells is changed. Its main purpose is to alter changes silently after input and before
    * table rendering.
    *
+   * `row` is a visual row index.
+   *
    * @event Hooks#beforeChange
    * @param {Array[]} changes 2D array containing information about each of the edited cells.
    * @param {string} [source] String that identifies source of hook call
@@ -1168,8 +1172,9 @@ const REGISTERED_HOOKS = [
   'beforeHighlightingColumnHeader',
 
   /**
-   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
-   * {@link Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage.
+   *
+   * The `persistentStateLoad` hook is fired even when the {@link Options#persistentState} option is disabled.
    *
    * @event Hooks#persistentStateLoad
    * @param {string} key Key.
@@ -1187,8 +1192,9 @@ const REGISTERED_HOOKS = [
   'persistentStateReset',
 
   /**
-   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage. This hook is fired when
-   * {@link Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage.
+   *
+   * The `persistentStateSave` hook is fired even when the {@link Options#persistentState} option is disabled.
    *
    * @event Hooks#persistentStateSave
    * @param {string} key Key.

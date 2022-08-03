@@ -3,7 +3,7 @@
     <SidebarButton @toggle-sidebar="$emit('toggle-sidebar')" />
 
     <RouterLink
-        :to="versionedUrl($localePath)"
+        :to="`${this.frameworkUrlPrefix}/`"
         class="home-link"
     >
 
@@ -40,7 +40,6 @@ import NavLinks from '@theme/components/NavLinks.vue';
 import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
-import { ensureExt } from '@vuepress/theme-default/util';
 import Logo from './Logo.vue';
 
 export default {
@@ -55,29 +54,17 @@ export default {
     ThemeSwitcher,
     Logo
   },
-  methods: {
-    versionedUrl(url) {
-      const framework = this.$page.currentFramework ?
-        `/${this.$page.currentFramework}${this.$page.frameworkSuffix}` : '';
-
-      // Already have version and framework placed in the url for some reason and a `RouterLink` process it properly.
-      if (this.$page.DOCS_VERSION && (this.$page.DOCS_FRAMEWORK || this.$page.isFrameworked === false)) {
-        return ensureExt(url);
-
-      } else if (this.$page.currentVersion === this.$page.latestVersion) {
-        return ensureExt(`${framework}${url}`);
-
-      } else {
-        return ensureExt(`/${this.$page.currentVersion}${framework}${url}`);
-      }
-    },
-  },
   data() {
     return {
       linksWrapMaxWidth: null
     };
   },
   computed: {
+    frameworkUrlPrefix() {
+      return this.$page.isEnvDev ?
+        `/${this.$page.currentFramework}${this.$page.frameworkSuffix}` :
+        '';
+    },
     algolia() {
       return this.$themeLocaleConfig.algolia || this.$site.themeConfig.algolia || {};
     },

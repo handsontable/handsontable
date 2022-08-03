@@ -12,7 +12,6 @@
 <script>
 import { isExternal } from '@vuepress/theme-default/util';
 import NavLink from '@theme/components/NavLink.vue';
-import { getLinkTransformed } from './utils';
 
 export default {
   name: 'Link',
@@ -36,18 +35,23 @@ export default {
     }
   },
 
+  data() {
+    return {
+      latestVersion: null,
+    };
+  },
+
   computed: {
     parsedHref() {
-      const currentVersion = this.$page.currentVersion;
       const frameworkDir = `${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
       let href = this.href;
 
-      if (this.$page.currentFramework !== void 0) {
-        href = href.replace(currentVersion, `${currentVersion}/${frameworkDir}`);
-      }
-
-      if (!this.isExternal && this.hideLatestVersion) {
-        return getLinkTransformed(href, this.$page.currentVersion, this.$page.latestVersion);
+      if (!this.isExternal) {
+        if (this.hideLatestVersion && this.$page.currentVersion === this.$page.latestVersion) {
+          href = href.replace('/{docsVersion}/', `/${frameworkDir}/`);
+        } else {
+          href = href.replace('/{docsVersion}/', `/${this.$page.currentVersion}/${frameworkDir}/`);
+        }
       }
 
       return href;
@@ -62,6 +66,6 @@ export default {
     focusoutAction() {
       this.$emit('focusout');
     }
-  }
+  },
 };
 </script>

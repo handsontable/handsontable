@@ -37,7 +37,7 @@ export default {
     },
 
     show() {
-      return !this.isLatest || this.isNext;
+      return this.$page.latestVersion && !this.isLatest || this.isNext;
     }
   }
 };

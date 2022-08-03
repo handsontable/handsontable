@@ -42,8 +42,37 @@ const buildActiveHeaderLinkHandler = () => {
  */
 let isFirstPageLoaded = true;
 
-export default ({ router, isServer }) => {
+export default async({ router, siteData, isServer }) => {
   if (!isServer) {
+    const currentVersion = siteData.pages[0].currentVersion;
+    const framework = `${siteData.pages[0].currentFramework}${siteData.pages[0].frameworkSuffix}`;
+    const devBuildMode = siteData.pages[0].isEnvDev;
+    let pathVersion = `${currentVersion}/`;
+
+    if (!devBuildMode) {
+      pathVersion += `${framework}/`;
+    }
+
+    const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
+    const docsData = await response.json();
+    const canonicalURLs = new Map(docsData.urls);
+
+    siteData.pages.forEach((page) => {
+      const frontmatter = page.frontmatter;
+      const canonicalUrl = frontmatter.canonicalUrl;
+      const canonicalUrlNorm = canonicalUrl.replace(/^\/docs\//, '').replace(/\/$/, '');
+
+      if (canonicalURLs.has(canonicalUrlNorm) && canonicalURLs.get(canonicalUrlNorm) !== '') {
+        const docsVersion = canonicalURLs.get(canonicalUrlNorm);
+
+        frontmatter.canonicalUrl = canonicalUrl.replace(/^\/docs\//, `/docs/${docsVersion}/`);
+      }
+
+      page.versions = docsData.versions;
+      page.latestVersion = docsData.latestVersion;
+      page.frameworkedVersions = docsData.frameworkedVersions;
+    });
+
     themeLoader();
 
     if (typeof window.ga === 'function') {
@@ -52,7 +81,7 @@ export default ({ router, isServer }) => {
           ga.getAll().forEach((tracker) => {
             if (tracker.get('trackingId') === GA_ID) {
               // Collect the page view in the next browser event loop cycle to make sure
-              // that the VuePress finished render new page completly (change the URL address
+              // that the VuePress finished render new page completely (change the URL address
               // and document title).
               setTimeout(() => {
                 tracker.set('page', router.app.$withBase(to.fullPath));
