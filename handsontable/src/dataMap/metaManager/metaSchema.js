@@ -113,7 +113,7 @@ export default () => {
      * // or
      * columns: [
      *   {
-     *     data: 'date',
+     *     type: 'date',
      *     dateFormat: 'DD/MM/YYYY',
      *     // allow empty values in each cell of the 'date' column
      *     allowEmpty: true
