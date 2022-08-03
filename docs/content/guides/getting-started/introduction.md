@@ -27,7 +27,7 @@ Explore Handsontable's features and source code:
 ## Guides for your framework
 
 <div class="row-items-container">
-  <Link href="../javascript-data-grid" hide-latest-version class="row-item">
+  <Link href="../javascript-data-grid/" hide-latest-version class="row-item">
     <Img class="integration-framework-logo" src="$withBase('/img/pages/introduction/javascript.svg')" alt="JavaScript logo" />
       <h3>JavaScript</h3>
   </Link>
