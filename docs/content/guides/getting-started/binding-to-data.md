@@ -284,12 +284,28 @@ function property(attr) {
 ```
 :::
 
+### No data
+
+By default, if you don't provide any data, Handsontable renders as an empty 5x5 grid.
+
+::: example #example9
+```js
+const container = document.getElementById('example9');
+
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+
+To change the number of rows or columns rendered by default, use the [`startRows`](@/api/options.md#startrows) and [`startCols`](@/api/options.md#startcols) options.
+
 ## Data-manipulating API methods
 
 There are multiple ways you can insert your data into Handsontable. Let's go through the most useful ones:
 
 ### The [`data`](@/api/options.md#data) configuration option
-You will probably want to initialize the table with some data (if you don't, the table will render a 5x5 empty grid for you). The easiest way to do it is passing your data array as [`data`](@/api/options.md#data) option in the initial config object:
+You will probably want to initialize the table with some data (if you don't, the table will render an empty 5x5 grid for you). The easiest way to do it is passing your data array as [`data`](@/api/options.md#data) option in the initial config object:
 ```js
 const hot = new Handsontable(container, {
   data: newDataset,
@@ -392,9 +408,9 @@ Handsontable binds to your data source by reference, not by values. We don't cop
 
 To avoid this scenario, copy the data before you pass it to the grid. To change the data from outside Handsontable, you can use our API methods. For example, a change being made will be displayed immediately on the screen after calling the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
-::: example #example9
+::: example #example10
 ```js
-const container = document.getElementById('example9');
+const container = document.getElementById('example10');
 
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
@@ -420,9 +436,9 @@ hot.setDataAtCell(0, 1, 'Ford');
 
 When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
 
-::: example #example10
+::: example #example11
 ```js
-const container = document.getElementById('example10');
+const container = document.getElementById('example11');
 
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
