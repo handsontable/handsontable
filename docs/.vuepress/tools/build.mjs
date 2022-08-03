@@ -28,7 +28,8 @@ async function cleanUp() {
 const buildVersion = (version, framework) => {
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async(resolve) => {
-    logger.info(`Version "${version}" with framework "${getPrettyFrameworkName(framework)}" build started at`, new Date().toString());
+    logger.info(`Version "${version}" with framework "${getPrettyFrameworkName(framework)}" build started at`,
+      new Date().toString());
 
     const cwd = path.resolve(__dirname, '../../');
     const versionEscaped = version.replace('.', '-');
@@ -47,7 +48,8 @@ const buildVersion = (version, framework) => {
       );
     }
 
-    logger.success(`Version "${version}" with framework "${getPrettyFrameworkName(framework)}" build finished at`, new Date().toString());
+    logger.success(`Version "${version}" with framework "${getPrettyFrameworkName(framework)}" build ` +
+      'finished at', new Date().toString());
 
     resolve();
   });
@@ -79,7 +81,8 @@ async function concatenate(version, framework) {
       '../../', `.vuepress/dist/docs/${version}/${framework}${FRAMEWORK_SUFFIX}`
     );
 
-    logger.info(`Apply built version "${version}" with framework "${getPrettyFrameworkName(framework)}" to the \`docs/\``);
+    logger.info(`Apply built version "${version}" with framework "${getPrettyFrameworkName(framework)}" ` +
+      'to the `docs/`');
 
     await fse.move(prebuildVersioned, distVersioned);
 
