@@ -2,7 +2,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fse from 'fs-extra';
 import utils from './utils.js';
-import { getThisDocsVersion, getFrameworks, FRAMEWORK_SUFFIX } from '../helpers.js';
+import { getThisDocsVersion, getFrameworks, FRAMEWORK_SUFFIX, getPrettyFrameworkName } from '../helpers.js';
 
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -28,7 +28,8 @@ async function cleanUp() {
 const buildVersion = (version, framework) => {
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async(resolve) => {
-    logger.info(`Version ${version} build started at`, new Date().toString());
+    logger.info(`Version "${version}" with framework "${getPrettyFrameworkName(framework)}" build started at`,
+      new Date().toString());
 
     const cwd = path.resolve(__dirname, '../../');
     const versionEscaped = version.replace('.', '-');
@@ -47,7 +48,8 @@ const buildVersion = (version, framework) => {
       );
     }
 
-    logger.success('Version build finished at', new Date().toString());
+    logger.success(`Version "${version}" with framework "${getPrettyFrameworkName(framework)}" build ` +
+      'finished at', new Date().toString());
 
     resolve();
   });
@@ -79,7 +81,8 @@ async function concatenate(version, framework) {
       '../../', `.vuepress/dist/docs/${version}/${framework}${FRAMEWORK_SUFFIX}`
     );
 
-    logger.info('Apply built version to the `docs/`', version);
+    logger.info(`Apply built version "${version}" with framework "${getPrettyFrameworkName(framework)}" ` +
+      'to the `docs/`');
 
     await fse.move(prebuildVersioned, distVersioned);
 
