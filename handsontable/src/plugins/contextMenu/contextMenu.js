@@ -260,6 +260,10 @@ export class ContextMenu extends BasePlugin {
   /**
    * Execute context menu command.
    *
+   * The `executeCommand()` method works only for selected cells.
+   *
+   * When no cells are selected, `executeCommand()` doesn't do anything.
+   *
    * You can execute all predefined commands:
    *  * `'row_above'` - Insert row above
    *  * `'row_below'` - Insert row below
@@ -280,9 +284,8 @@ export class ContextMenu extends BasePlugin {
    *
    * Or you can execute command registered in settings where `key` is your command name.
    *
-   * @private
    * @param {string} commandName The command name to be executed.
-   * @param {*} params Additional paramteres passed to command executor module.
+   * @param {*} params Additional parameters passed to command executor module.
    */
   executeCommand(commandName, ...params) {
     if (this.itemsFactory === null) {
