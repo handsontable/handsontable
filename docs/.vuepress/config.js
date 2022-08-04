@@ -120,11 +120,12 @@ module.exports = {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
     }],
-    ['container', examples(getThisDocsVersion())],
+    ['container', examples(getThisDocsVersion(), base)],
     ['container', sourceCodeLink],
     {
       extendMarkdown(md) {
         const imageOrig = md.renderer.rules.image;
+        const withBaseRegexp = /\$withBase\('(.*)'\)/;
 
         // Add support for markdown images and links to have ability to substitute the
         // docs latest version variable to the "src" or "href" attributes.
@@ -132,9 +133,14 @@ module.exports = {
           tokens.forEach((token) => {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'src') {
-                token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
-                );
+                let url = decodeURIComponent(value);
+                const withBaseMatches = withBaseRegexp.exec(url);
+
+                if (withBaseMatches) {
+                  url = `${base}${withBaseMatches[1]}`.replace('//', '/');
+                }
+
+                token.attrs[index][1] = url;
               }
             });
           });
@@ -152,9 +158,14 @@ module.exports = {
 
             token.attrs.forEach(([name, value], index) => {
               if (name === 'href') {
-                token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
-                );
+                let url = decodeURIComponent(value);
+                const withBaseMatches = withBaseRegexp.exec(url);
+
+                if (withBaseMatches) {
+                  url = `${base}${withBaseMatches[1]}`.replace('//', '/');
+                }
+
+                token.attrs[index][1] = url;
               }
             });
           });

@@ -40,8 +40,9 @@ const app = createApp({
       hotSettings: {
         data:
           [
-            ['A1', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-            ['A2', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/javascript-the-good-parts.jpg']],
+            ['A1', 'https://handsontable.com/$withBase(\'img/examples/professional-javascript-developers-nicholas-zakas.jpg\')'],
+            ['A2', 'https://handsontable.com/$withBase(\'img/examples/javascript-the-good-parts.jpg\')']
+          ],
         columns: [
           {},
           {

@@ -72,12 +72,13 @@ const getPreviewTab = (id, cssContent, htmlContent, code) => {
   };
 };
 
-module.exports = function(docsVersion) {
+module.exports = function(docsVersion, base) {
   return {
     type: 'example',
     render(tokens, index, opts, env) {
       const token = tokens[index];
       const m = token.info.trim().match(EXAMPLE_REGEX);
+      const withBaseRegexp = /\/?\$withBase\(\\?'(.*?)\\?'\)/g;
 
       if (token.nesting === 1 && m) { // open preview
         let [, , id, klass, preset, args] = m;
@@ -106,7 +107,14 @@ module.exports = function(docsVersion) {
         const filePath = env.relativePath;
         const framework = getContainerFramework(filePath);
 
-        jsToken.content = jsToken.content.replaceAll('{{$page.currentVersion}}', docsVersion);
+        let url = jsToken.content;
+        const withBaseMatches = withBaseRegexp.exec(url);
+
+        if (withBaseMatches) {
+          url = `${base}${withBaseMatches[1]}`.replace('//', '/');
+        }
+
+        jsToken.content = jsToken.content.replaceAll(withBaseRegexp, url);
 
         const activeTab = args.match(/--tab (code|html|css|preview)/)?.[1] || 'code';
         const noEdit = !!args.match(/--no-edit/)?.[0];

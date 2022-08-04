@@ -64,7 +64,7 @@ const hot = new Handsontable(container, {
 
     clearTimeout(autosaveNotification);
 
-    ajax('/docs/{{$page.currentVersion}}/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
+    ajax('$withBase(\'/scripts/json/save.json\')', 'GET', JSON.stringify({ data: change }), data => {
       exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
       autosaveNotification = setTimeout(() => {
         exampleConsole.innerText ='Changes will be autosaved';
@@ -74,7 +74,7 @@ const hot = new Handsontable(container, {
 });
 
 load.addEventListener('click', () => {
-  ajax('/docs/{{$page.currentVersion}}/scripts/json/load.json', 'GET', '', res => {
+  ajax('$withBase(\'/scripts/json/load.json\')', 'GET', '', res => {
     const data = JSON.parse(res.response);
 
     hot.loadData(data.data);
@@ -85,7 +85,7 @@ load.addEventListener('click', () => {
 });
 save.addEventListener('click', () => {
   // save all cell's data
-  ajax('/docs/{{$page.currentVersion}}/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
+  ajax('$withBase(\'/scripts/json/save.json\')', 'GET', JSON.stringify({ data: hot.getData() }), res => {
     const response = JSON.parse(res.response);
 
     if (response.result === 'ok') {
@@ -171,7 +171,7 @@ const ExampleComponent = () => {
 
       clearTimeout(autosaveNotification);
 
-      ajax('/docs/{{$page.currentVersion}}/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
+      ajax('$withBase(\'/scripts/json/save.json\')', 'GET', JSON.stringify({ data: change }), data => {
         setOutput('Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')');
         autosaveNotification = setTimeout(() => {
           exampleConsole.innerText = 'Changes will be autosaved';
@@ -223,7 +223,7 @@ const ExampleComponent = () => {
     const hot = hotRef.current.hotInstance;
 
     loadClickCallback = () => {
-      ajax('/docs/{{$page.currentVersion}}/scripts/json/load.json', 'GET', '', res => {
+      ajax('$withBase(\'/scripts/json/load.json\')', 'GET', '', res => {
         const data = JSON.parse(res.response);
 
         hot.loadData(data.data);
@@ -234,7 +234,7 @@ const ExampleComponent = () => {
     };
     saveClickCallback = () => {
       // save all cell's data
-      ajax('/docs/{{$page.currentVersion}}/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
+      ajax('$withBase(\'/scripts/json/save.json\')', 'GET', JSON.stringify({ data: hot.getData() }), res => {
         const response = JSON.parse(res.response);
 
         if (response.result === 'ok') {
