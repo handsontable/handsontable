@@ -19,13 +19,12 @@ tags:
 
 Disabling a cell makes the cell read-only or non-editable. Both have similar outcomes, with the following differences:
 
-| Read-only cells<br>`readOnly: true`                                          | Non-editable cells<br>`editor: false`                                      |
+| Read-only cell<br>`readOnly: true`                                           | Non-editable cell<br>`editor: false`                                       |
 | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Can't be changed manually                                                    | Can't be changed manually                                                  |
-| Can't be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) | Can be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) |
-| Have additional CSS classes:<br>`htDimmed` and `className`                   | Have no additional CSS class                                               |
+| Has an additional CSS class (`htDimmed`)                                     | Has no additional CSS class                                                |
 | Copy-paste doesn't work                                                      | Copy-paste works                                                           |
 | Drag-to-fill doesn't work                                                    | Drag-to-fill works                                                         |
+| Can't be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) | Can be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) |
 
 ## Read-only columns
 
