@@ -11,11 +11,11 @@ canonicalUrl: /hot-column
 
 ## Overview
 
-You can configure the column-related settings using the `<HotColumn/>` component's attributes. You can also create custom renderers and editors using React components.
+You can configure the column-related settings using the `HotColumn` component's attributes. You can also create custom renderers and editors using React components.
 
 ## Declaring column settings
 
-To declare column-specific settings, pass the settings as `<HotColumn/>` properties, either separately or wrapped as a `settings` property, exactly as you would with `HotTable`.
+To declare column-specific settings, pass the settings as `HotColumn` properties, either separately or wrapped as a `settings` property, exactly as you would with `HotTable`.
 
 ::: example #example1 :react --tab preview
 ```jsx

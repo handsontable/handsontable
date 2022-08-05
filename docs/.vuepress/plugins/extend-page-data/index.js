@@ -27,7 +27,7 @@ function dedupeSlashes(string) {
   return string.replace(/(\/)+/g, '$1');
 }
 
-const notSearchableLinks = getNotSearchableLinks(buildMode);
+const notSearchableLinks = getNotSearchableLinks();
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const twoDigitDay = date.getDate();
