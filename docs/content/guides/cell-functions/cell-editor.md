@@ -26,14 +26,163 @@ type: 'numeric'
 ```
 :::
 
+## Declaring a custom editor as a component
+
+You can use React components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/react`.
+
+This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close`, and `focus` methods, which are abstract in the `BaseEditor`. For more info, check the section on [creating custom editors from scratch](#selecteditor-creating-editor-from-scratch).
+
+It's also worth noting that by default, the editors in Handsontable will close after clicking on them if the `outsideClickDeselects` option is enabled.
+To prevent that, the `mousedown` event on the editor container must call `event.stopPropagation()`.
+
+If you are using React 17 and newer, `event.stopPropagation()` should work for you as expected. See the [React 17 release notes](https://reactjs.org/blog/2020/08/10/react-v17-rc.html#changes-to-event-delegation) for details about event delegation.
+
+Note that in case of React 16 and older, it wouldn't work out of the box because of the way how React used to handle events. [This article by Eric Clemmons](https://medium.com/@ericclemmons/react-event-preventdefault-78c28c950e46) sums it up pretty well and presents a solution ([react-native-listener](https://www.npmjs.com/package/react-native-listener)).
+
+::: example #example1 :react --tab preview
+```jsx
+import ReactDOM from 'react-dom';
+import Handsontable from 'handsontable';
+import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
+import 'handsontable/dist/handsontable.min.css';
+
+// an editor component
+class EditorComponent extends BaseEditorComponent {
+  constructor(props) {
+    super(props);
+
+    this.mainElementRef = React.createRef();
+    this.containerStyle = {
+      display: 'none',
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      background: '#fff',
+      border: '1px solid #000',
+      padding: '15px',
+      zIndex: 999
+    };
+    this.state = {
+      value: ''
+    };
+  }
+
+  setValue(value, callback) {
+    this.setState((state, props) => {
+      return { value: value };
+    }, callback);
+  }
+
+  getValue() {
+    return this.state.value;
+  }
+
+  open() {
+    this.mainElementRef.current.style.display = 'block';
+  }
+
+  close() {
+    this.mainElementRef.current.style.display = 'none';
+  }
+
+  prepare(row, col, prop, td, originalValue, cellProperties) {
+    // We'll need to call the `prepare` method from
+    // the `BaseEditorComponent` class, as it provides
+    // the component with the information needed to use the editor
+    // (hotInstance, row, col, prop, TD, originalValue, cellProperties)
+    super.prepare(row, col, prop, td, originalValue, cellProperties);
+
+    const tdPosition = td.getBoundingClientRect();
+
+    // As the `prepare` method is triggered after selecting
+    // any cell, we're updating the styles for the editor element,
+    // so it shows up in the correct position.
+    this.mainElementRef.current.style.left = tdPosition.left + window.pageXOffset + 'px';
+    this.mainElementRef.current.style.top = tdPosition.top + window.pageYOffset + 'px';
+  }
+
+  setLowerCase() {
+    this.setState(
+      (state, props) => {
+        return { value: this.state.value.toString().toLowerCase() };
+      },
+      () => {
+        this.finishEditing();
+      }
+    );
+  }
+
+  setUpperCase() {
+    this.setState(
+      (state, props) => {
+        return { value: this.state.value.toString().toUpperCase() };
+      },
+      () => {
+        this.finishEditing();
+      }
+    );
+  }
+
+  stopMousedownPropagation(e) {
+    e.stopPropagation();
+  }
+
+  render() {
+    return (
+        <div
+          style={this.containerStyle}
+          ref={this.mainElementRef}
+          onMouseDown={this.stopMousedownPropagation}
+          id="editorElement"
+        >
+          <button onClick={this.setLowerCase.bind(this)}>
+            {this.state.value.toLowerCase()}
+          </button>
+          <button onClick={this.setUpperCase.bind(this)}>
+            {this.state.value.toUpperCase()}
+          </button>
+        </div>
+    );
+  }
+}
+
+const data = [
+    ['Obrien Fischer'],
+    ['Alexandria Gordon'],
+    ['John Stafford'],
+    ['Regina Waters'],
+    ['Kay Bentley'],
+    ['Emerson Drake'],
+    ['Dean Stapleton']
+];
+
+const ExampleComponent = () => {
+  return (
+    <HotTable 
+      data={data}
+      rowHeaders={true}
+      licenseKey="non-commercial-and-evaluation"
+    >
+      <HotColumn width={250}>
+        {/* add the `hot-editor` attribute to mark the component as a Handsontable editor */}
+        <EditorComponent hot-editor />
+      </HotColumn>
+    </HotTable>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+
 ::: only-for react
 ## Example - Declaring an editor as a class
 
-You can declare a custom editor for the `HotTable` component by declaring it as a class and passing it to the Handsontable options, or by creating an editor component.
+You can also declare a custom editor for the `HotTable` component by declaring it as a class and passing it to the Handsontable options.
 
 The following example implements the `@handsontable/react` component with a custom editor added, utilizing the `placeholder` attribute in the editor's `input` element.
 
-::: example #example1 :react  --no-edit
+::: example #example2 :react  --no-edit
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -61,32 +210,31 @@ class CustomEditor extends TextEditor {
   }
 }
 
-const hotSettings = {
-  startRows: 5,
-  columns: [
-    {
-      editor: CustomEditor
-    }
-  ],
-  colHeaders: true,
-  colWidths: 200,
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
 const ExampleComponent = () => {
   return (
-    <div>
-      <HotTable
-        id="hot"
-        settings={hotSettings}
-      />
-    </div>
+    <HotTable
+      id="hot"
+      startRows={5}
+      columns={[
+        {
+          editor: CustomEditor
+        }
+      ]}
+      colHeaders={true}
+      colWidths={200}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 }
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 ```
 :::
+
+::: tip
+All the sections below describe how to utilize the features available for the Handsontable class-based editors.
+:::
+
 :::
 
 ## EditorManager
@@ -361,6 +509,7 @@ class PasswordEditor extends Handsontable.editors.TextEditor {
 
 That's it! You can now use your new editor:
 
+::: only-for javascript
 ```js
 const container = document.querySelector('#container')
 
@@ -377,6 +526,24 @@ const hot = new Handsontable(container, {
   ]
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  columns={[
+    {
+      type: 'text'
+    },
+    {
+      editor: PasswordEditor
+      // If you want to use string 'password' instead of passing
+      // the actual editor class check out section "Registering editor"
+    }
+  ]}
+/>
+```
+:::
 
 Wow, that was easy. Just a few lines of code and everything works. Let's try something more complex, let's build new editor from the ground up.
 
@@ -464,6 +631,7 @@ In the previous step we implemented a function that creates the `<select>` input
 
 We want to be able to define an option list like this:
 
+::: only-for javascript
 ```js
 const container = document.querySelector('#container')
 
@@ -476,6 +644,19 @@ const hot = new Handsontable(container, {
   ]
 });
 ```
+
+::: only-for react
+```jsx
+<HotTable
+  columns={[
+    {
+      editor: SelectEditor,
+      selectOptions: ['option1', 'option2', 'option3']
+    }
+  ]}
+/>
+```
+:::
 
 There is no (easy) way to get to the value of [`selectOptions`](@/api/options.md#selectoptions). Even if we could get to this array we could only populate the list with options once, if we do this in the 'init' function. What if we have more than one column using `SelectEditor` and each of them has it's own option list? It's even possible that two cells in the same column can have different option lists (cascade configuration - remember?) It's clear that we have to find a better place for the code that creates items for our list.
 
@@ -577,6 +758,7 @@ Task four: **DONE**
 
 At this point we should have an editor that is ready to use. Put the code somewhere in your page and pass `SelectEditor` class function as value of the [`editor`](@/api/options.md#editor) configuration option.
 
+::: only-for javascript
 ```js
 const container = document.querySelector('#container')
 const hot = new Handsontable(container, {
@@ -589,6 +771,21 @@ const hot = new Handsontable(container, {
   ]
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  columns={[
+    {},
+    {
+      editor: SelectEditor,
+      selectOptions: ['option1', 'option2', 'option3']
+    }
+  ]}
+/>
+```
+:::
 
 #### Use <kbd>**Arrow Up**</kbd> and <kbd>**Arrow Down**</kbd> to change selected value
 
@@ -733,6 +930,7 @@ Code enclosed in IIFE cannot be accessed from outside, unless it's intentionally
 
 From now on, you can use `CustomEditor` like so:
 
+::: only-for javascript
 ```js
 const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
@@ -741,6 +939,17 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  columns={[{
+    editor: Handsontable.editors.CustomEditor
+  }]}
+/>
+```
+:::
 
 Extending your `CustomEditor` is also easy.
 
@@ -773,6 +982,7 @@ To sum up, a well prepared editor should look like this:
 
 From now on, you can use `CustomEditor` like so:
 
+::: only-for javascript
 ```js
 const container = document.querySelector('#container')
 const hot = new Handsontable(container, {
@@ -781,6 +991,17 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  columns={[{
+    editor: 'theBestEditor'
+  }]}
+/>
+```
+:::
 
 ## Related keyboard shortcuts
 
