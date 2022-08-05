@@ -387,21 +387,11 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
 For the most popular column hiding tasks, use the API methods below.
 
 ::: only-for react
+::: tip
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotIntance` property.
-```jsx
-const ExampleComponent = () => {
-  const hotRef = React.createRef();
 
-  useEffect(() => {
-    // `hot` now holds the reference to the Handsontable instance.
-    const hot = hotRef.current.hotInstance;
-  });
-
-  return (
-    <HotTable ref={hotRef}/>
-  );
-};
-```
+For more information, see the [`Instance Methods`](@/guides/react-methods.md) page. 
+:::
 :::
 
 To see your changes, re-render your Handsontable instance with the [`render()`](@/api/core.md#render) method.

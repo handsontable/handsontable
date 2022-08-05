@@ -176,7 +176,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 
 ::: only-for react
-## Example - Declaring an editor as a class
+## Declaring an editor as a class
 
 You can also declare a custom editor for the `HotTable` component by declaring it as a class and passing it to the Handsontable options.
 
@@ -233,6 +233,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 
 ::: tip
 All the sections below describe how to utilize the features available for the Handsontable class-based editors.
+This information is applicable in React when using the non-component editor approach.
 :::
 
 :::

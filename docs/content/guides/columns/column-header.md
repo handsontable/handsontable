@@ -54,8 +54,7 @@ const ExampleComponent = () => {
       rowHeaders={true}
       height="auto"
       licenseKey="non-commercial-and-evaluation"
-    >
-    </HotTable>
+    />
   );
 };
 
@@ -103,8 +102,7 @@ const ExampleComponent = () => {
       rowHeaders={true}
       height="auto"
       licenseKey="non-commercial-and-evaluation"
-    >
-    </HotTable>
+    />
   );
 };
 
@@ -156,8 +154,7 @@ const ExampleComponent = () => {
       rowHeaders={true}
       height="auto"
       licenseKey="non-commercial-and-evaluation"
-    >
-    </HotTable>
+    />
   );
 };
 

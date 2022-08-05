@@ -26,6 +26,7 @@ The maximum value for `colspan` for nested headers is 1000, meaning that the max
 
 ### Configuration
 
+::: only-for javascript
 ```js
 nestedHeaders: [
   ['A', { label: 'B', colspan: 8 }, 'C'],
@@ -34,6 +35,18 @@ nestedHeaders: [
   ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
 ]
 ```
+:::
+
+::: only-for react
+```jsx
+nestedHeaders={[
+  ['A', { label: 'B', colspan: 8 }, 'C'],
+  ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+  ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+  ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+]}
+```
+:::
 
 ### Example
 
@@ -110,12 +123,23 @@ To enable the Collapsible Columns plugin, either set the [`collapsibleColumns`](
 * `true` - this will enable the functionality for _all_ multi-column headers, every column with the `colspan` attribute defined will be extended with the "expand/collapse" button
 * An array of objects containing information specifying which headers should have the "expand/collapse" buttons for example:
 
+::: only-for javascript
 ```js
 collapsibleColumns: [
   { row: -4, col: 1, collapsible: true }, // Add the button to the 4th-level header of the 1st column - counting from the first table row upwards.
   { row: -3, col: 5, collapsible: true } // Add the button to the 3rd-level header of the 5th column - counting from the first table row upwards.
 ]
 ```
+:::
+
+::: only-for react
+```jsx
+collapsibleColumns={[
+  { row: -4, col: 1, collapsible: true }, // Add the button to the 4th-level header of the 1st column - counting from the first table row upwards.
+  { row: -3, col: 5, collapsible: true } // Add the button to the 3rd-level header of the 5th column - counting from the first table row upwards.
+]}
+```
+:::
 
 ### Example
 
