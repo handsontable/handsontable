@@ -53,9 +53,9 @@ Although it's possible to use class-based react components for this purpose, **w
 To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
 
 ::: tip
-Handsontable's `autoRowSize` and `autoColumnSize` options require calculating the widths/heights of some of the cells before rendering them into the table. For this reason, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
+Handsontable's [`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) options require calculating the widths/heights of some of the cells before rendering them into the table. For this reason, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
 
-Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that `autoColumnSize` is enabled by default.
+Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that [`autoColumnSize`](@/api/options.md#autocolumnsize) is enabled by default.
 :::
 
 ::: example #example2 :react --tab preview
@@ -104,7 +104,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
  
 ## Object data source
 
-When you use object data binding for `HotColumn`, you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in properties as `data`, for example, `<HotColumn data="id" />`:
+When you use object data binding for `HotColumn`, you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in properties as [`data`](@/api/options.md#data), for example, `<HotColumn data="id" />`:
 
 ::: example #example3 :react --tab preview
 ```jsx
@@ -208,7 +208,7 @@ You can also utilize the React components to create custom editors. To do so, yo
 
 This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close`, and `focus` methods, which are abstract in the `BaseEditor`. For more info, check the documentation on [creating custom editors from scratch](@/guides/cell-functions/cell-editor.md#selecteditor-creating-editor-from-scratch).
 
-It's also worth noting that editors in Handsontable will close after clicking on them if the `outsideClickDeselects` option is enabled - *default setting*.
+It's also worth noting that editors in Handsontable will close after clicking on them if the [`outsideClickDeselects`](@/api/options.md#outsideclickdeselects) option is enabled - *default setting*.
 
 To prevent that, the `mousedown` event on the editor container must call `event.stopPropagation()`. 
 

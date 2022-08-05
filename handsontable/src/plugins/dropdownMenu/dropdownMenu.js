@@ -268,6 +268,10 @@ export class DropdownMenu extends BasePlugin {
   /**
    * Executes context menu command.
    *
+   * The `executeCommand()` method works only for selected cells.
+   *
+   * When no cells are selected, `executeCommand()` doesn't do anything.
+   *
    * You can execute all predefined commands:
    *  * `'row_above'` - Insert row above
    *  * `'row_below'` - Insert row below
