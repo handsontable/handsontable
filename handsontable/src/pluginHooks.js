@@ -220,7 +220,7 @@ const REGISTERED_HOOKS = [
   'afterCreateRow',
 
   /**
-   * Fired after the current cell is deselected.
+   * Fired after all selected cells are deselected.
    *
    * @event Hooks#afterDeselect
    */
@@ -988,7 +988,7 @@ const REGISTERED_HOOKS = [
    * @param {number} column Visual column index.
    * @param {string} key The updated meta key.
    * @param {*} value The updated meta value.
-   * @returns {*|boolean} If false is returned the action is canceled.
+   * @returns {boolean|void} If false is returned the action is canceled.
    */
   'beforeSetCellMeta',
 
@@ -1138,6 +1138,7 @@ const REGISTERED_HOOKS = [
    * @param {boolean} topmost If set to `true`, it returns the TD element from the topmost overlay. For example,
    *                          if the wanted cell is in the range of fixed rows, it will return a TD element
    *                          from the `top` overlay.
+   * @returns {void|number[]}
    */
   'modifyGetCellCoords',
 
@@ -1524,7 +1525,7 @@ const REGISTERED_HOOKS = [
    * @param {number} newSize Calculated new row height.
    * @param {number} row Visual index of the resized row.
    * @param {boolean} isDoubleClick Flag that determines whether there was a double-click.
-   * @returns {number} Returns the new row size or `undefined` if row size should be calculated automatically.
+   * @returns {number|undefined} Returns the new row size or `undefined` if row size should be calculated automatically.
    */
   'beforeRowResize',
 
@@ -1561,7 +1562,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeStretchingColumnWidth
    * @param {number} stretchedWidth Calculated width.
    * @param {number} column Visual column index.
-   * @returns {number} Returns new width which will be applied to the column element.
+   * @returns {number|void} Returns new width which will be applied to the column element.
    */
   'beforeStretchingColumnWidth',
 
