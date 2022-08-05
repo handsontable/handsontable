@@ -1580,8 +1580,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Populate cells at position with 2D input array (e.g. `[[1, 2], [3, 4]]`). Use `endRow`, `endCol` when you
+   * Populates cells at position with 2D input array (e.g. `[[1, 2], [3, 4]]`). Use `endRow`, `endCol` when you
    * want to cut input when a certain row is reached.
+   *
+   * The `populateFromArray()` method can't change [`readOnly`](@/api/options.md#readonly) cells.
    *
    * Optional `method` argument has the same effect as pasteMode option (see {@link Options#pasteMode}).
    *
@@ -1772,6 +1774,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * The method is intended to be used by advanced users. Suspending the rendering
    * process could cause visual glitches when wrongly implemented.
    *
+   * Every [`suspendRender()`](@/api/core.md#suspendrender) call needs to correspond with one [`resumeRender()`](@/api/core.md#resumerender) call.
+   * For example, if you call [`suspendRender()`](@/api/core.md#suspendrender) 5 times, you need to call [`resumeRender()`](@/api/core.md#resumerender) 5 times as well.
+   *
    * @memberof Core#
    * @function suspendRender
    * @since 8.3.0
@@ -1802,6 +1807,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * The method is intended to be used by advanced users. Suspending the rendering
    * process could cause visual glitches when wrongly implemented.
+   *
+   * Every [`suspendRender()`](@/api/core.md#suspendrender) call needs to correspond with one [`resumeRender()`](@/api/core.md#resumerender) call.
+   * For example, if you call [`suspendRender()`](@/api/core.md#suspendrender) 5 times, you need to call [`resumeRender()`](@/api/core.md#resumerender) 5 times as well.
    *
    * @memberof Core#
    * @function resumeRender
