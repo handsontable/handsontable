@@ -45,7 +45,7 @@ export default {
         return Object.keys(this.$site.locales).some(rootLink => rootLink === this.link);
       }
 
-      return this.link === '/';
+      return this.link === `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
     },
 
     isNonHttpURI() {
