@@ -17,10 +17,10 @@ module.exports = function(src) {
 
         // Docs base for full build already has framework part.
         if (helpers.isEnvDev() === true) {
-          const framework = `${helpers.getEnvDocsFramework() || helpers.parseFramework(pathForServingDocs)}${
-            helpers.FRAMEWORK_SUFFIX}`;
+          const framework = `${helpers.getEnvDocsFramework() ||
+            helpers.parseFramework(pathForServingDocs)}${helpers.FRAMEWORK_SUFFIX}`;
 
-          permalink = `/${framework}/${permalink}`;
+          permalink = `/${framework}${permalink}`;
         }
 
         permalink = permalink.endsWith('/') ? permalink : `${permalink}/`;
