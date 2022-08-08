@@ -13,9 +13,9 @@ tags:
 
 # Instance methods
 
-You can programmatically change the internal state of Handsontable beyond what's possibile with props. To do that, you will need to call API methods of the relevant Handsontable instance associated with your instance of the `<HotTable/>` component.
+You can programmatically change the internal state of Handsontable beyond what's possibile with props. To do that, you will need to call API methods of the relevant Handsontable instance associated with your instance of the `HotTable` component.
 
-The following example implements the `<HotTable/>` component showing how to reference the Handsontable instance from the wrapper component. 
+The following example implements the `HotTable` component showing how to reference the Handsontable instance from the wrapper component. 
 
 ::: example #example1 :react
 ```jsx

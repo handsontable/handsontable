@@ -137,7 +137,9 @@ hot.batchExecution(() => {
 
 #### [`suspendRender()`](@/api/core.md#suspendrender) and [`resumeRender()`](@/api/core.md#resumerender)
 
-To suspend the rendering process, you can call the [`suspendRender()`](@/api/core.md#suspendrender) method just before the actions you want to batch. This is a manual approach. After suspending, you must remember to resume the process with the [`resumeRender()`](@/api/core.md#resumerender) method.
+To suspend the rendering process, call the [`suspendRender()`](@/api/core.md#suspendrender) method just before the actions you want to batch. This is a manual approach.
+
+After suspending, resume the process with the [`resumeRender()`](@/api/core.md#resumerender) method. Every [`suspendRender()`](@/api/core.md#suspendrender) call needs to correspond with one [`resumeRender()`](@/api/core.md#resumerender) call. For example, if you call [`suspendRender()`](@/api/core.md#suspendrender) 5 times, you need to call [`resumeRender()`](@/api/core.md#resumerender) 5 times as well.
 
 ```js
 hot.suspendRender(); // suspend rendering

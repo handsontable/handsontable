@@ -247,11 +247,11 @@ Available options in the browser's toolbar:
 
 ### Context menu
 
-Due to security reason, modern browsers disallow to read from the system clipboard. [Learn more](https://www.w3.org/TR/clipboard-apis/#privacy)
+Due to security reasons, modern browsers disallow reading from the system clipboard. [Learn more](https://www.w3.org/TR/clipboard-apis/#privacy)
 
 ### Trigger paste programmatically
 
-Due to security reason, modern browsers disallow to read from the system clipboard. [Learn more](https://www.w3.org/TR/clipboard-apis/#privacy)
+Due to security reasons, modern browsers disallow reading from the system clipboard. [Learn more](https://www.w3.org/TR/clipboard-apis/#privacy)
 
 ### Hooks
 

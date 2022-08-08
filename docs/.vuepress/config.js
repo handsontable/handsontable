@@ -39,7 +39,7 @@ const environmentHead = isProduction ?
 
 // The `vuepress dev` command needs placing directories in proper place. It's done by creating temporaty directories
 // which are watched by the script. It's done before a compilation is starting.
-createSymlinks(buildMode);
+createSymlinks();
 
 let base = '/docs/';
 
