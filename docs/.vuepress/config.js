@@ -125,7 +125,6 @@ module.exports = {
     {
       extendMarkdown(md) {
         const imageOrig = md.renderer.rules.image;
-        const withBaseRegexp = /\$withBase\('(.*)'\)/;
 
         // Add support for markdown images and links to have ability to substitute the
         // docs latest version variable to the "src" or "href" attributes.
@@ -133,14 +132,9 @@ module.exports = {
           tokens.forEach((token) => {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'src') {
-                let url = decodeURIComponent(value);
-                const withBaseMatches = withBaseRegexp.exec(url);
-
-                if (withBaseMatches) {
-                  url = `${base}${withBaseMatches[1]}`.replace('//', '/');
-                }
-
-                token.attrs[index][1] = url;
+                token.attrs[index][1] = (
+                  decodeURIComponent(value).replace('{{$basePath}}', base.replace(/\/$/, ''))
+                );
               }
             });
           });
@@ -158,14 +152,9 @@ module.exports = {
 
             token.attrs.forEach(([name, value], index) => {
               if (name === 'href') {
-                let url = decodeURIComponent(value);
-                const withBaseMatches = withBaseRegexp.exec(url);
-
-                if (withBaseMatches) {
-                  url = `${base}${withBaseMatches[1]}`.replace('//', '/');
-                }
-
-                token.attrs[index][1] = url;
+                token.attrs[index][1] = (
+                  decodeURIComponent(value).replace('{{$basePath}}', base.replace(/\/$/, ''))
+                );
               }
             });
           });

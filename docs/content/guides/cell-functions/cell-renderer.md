@@ -58,29 +58,23 @@ registerAllModules();
 const hotSettings = {
   data:
     [
-      ['A1', 'https://handsontable.com/$withBase(\'/img/examples/professional-javascript-developers-nicholas-zakas.jpg\')'],
-      ['A2', 'https://handsontable.com/$withBase(\'/img/examples/javascript-the-good-parts.jpg\')'],
+      ['A1', '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+      ['A2', '{{$basePath}}/img/examples/javascript-the-good-parts.jpg'],
     ],
   columns: [
     {},
     {
       renderer(instance, td, row, col, prop, value, cellProperties) {
-        const escaped = `${value}`;
+        const img = document.createElement('img');
 
-        if (escaped.indexOf('http') === 0) {
-          const img = document.createElement('IMG');
-          img.src = value;
+        img.src = value;
 
-          img.addEventListener('mousedown', event => {
-            event.preventDefault();
-          });
+        img.addEventListener('mousedown', event => {
+          event.preventDefault();
+        });
 
-          td.innerText = '';
-          td.appendChild(img);
-
-        } else {
-          textRenderer.apply(this, arguments);
-        }
+        td.innerText = '';
+        td.appendChild(img);
 
         return td;
       }
@@ -205,19 +199,19 @@ const data = [
     title: '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
     description: 'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
     comments: 'I would rate it &#x2605;&#x2605;&#x2605;&#x2605;&#x2606;',
-    cover: 'https://handsontable.com/$withBase(\'/img/examples/professional-javascript-developers-nicholas-zakas.jpg\')'
+    cover: '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'
   },
   {
     title: '<a href="https://shop.oreilly.com/product/9780596517748.do">JavaScript: The Good Parts</a>',
     description: 'This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.',
     comments: 'This is the book about JavaScript',
-    cover: 'https://handsontable.com/$withBase(\'/img/examples/javascript-the-good-parts.jpg\')'
+    cover: '{{$basePath}}/img/examples/javascript-the-good-parts.jpg'
   },
   {
     title: '<a href="https://shop.oreilly.com/product/9780596805531.do">JavaScript: The Definitive Guide</a>',
     description: '<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.',
     comments: 'I\'ve never actually read it, but the <a href="https://shop.oreilly.com/product/9780596805531.do">comments</a> are highly <strong>positive</strong>.',
-    cover: 'https://handsontable.com/$withBase(\'/img/examples/javascript-the-definitive-guide.jpg\')'
+    cover: '{{$basePath}}/img/examples/javascript-the-definitive-guide.jpg'
   }
 ];
 
@@ -245,23 +239,16 @@ function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
 }
 
 function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
-  const stringifiedValue = Handsontable.helper.stringify(value);
+  const img = document.createElement('img');
 
-  if (stringifiedValue.startsWith('http')) {
-    const img = document.createElement('IMG');
+  img.src = value;
 
-    img.src = value;
+  img.addEventListener('mousedown', event =>{
+    event.preventDefault(); // prevent selection quirk
+  });
 
-    img.addEventListener('mousedown', event =>{
-      event.preventDefault(); // prevent selection quirk
-    });
-
-    Handsontable.dom.empty(td);
-    td.appendChild(img);
-  } else {
-    // render as text
-    Handsontable.renderers.TextRenderer.apply(this, arguments);
-  }
+  Handsontable.dom.empty(td);
+  td.appendChild(img);
 }
 ```
 :::
@@ -284,19 +271,19 @@ const ExampleComponent = () => {
     title: '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
     description: 'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
     comments: 'I would rate it ★★★★☆',
-    cover: 'https://handsontable.com/docs/next/img/examples/professional-javascript-developers-nicholas-zakas.jpg'
+    cover: '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'
   },
     {
       title: '<a href="https://shop.oreilly.com/product/9780596517748.do">JavaScript: The Good Parts</a>',
       description: 'This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.',
       comments: 'This is the book about JavaScript',
-      cover: 'https://handsontable.com/docs/next/img/examples/javascript-the-good-parts.jpg'
+      cover: '{{$basePath}}/img/examples/javascript-the-good-parts.jpg'
     },
     {
       title: '<a href="https://shop.oreilly.com/product/9780596805531.do">JavaScript: The Definitive Guide</a>',
       description: '<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.',
       comments: 'I\'ve never actually read it, but the <a href="https://shop.oreilly.com/product/9780596805531.do">comments</a> are highly <strong>positive</strong>.',
-      cover: 'https://handsontable.com/docs/next/img/examples/javascript-the-definitive-guide.jpg'
+      cover: '{{$basePath}}/img/examples/javascript-the-definitive-guide.jpg'
     }
   ];
   const hotSettings = {
@@ -322,23 +309,16 @@ const ExampleComponent = () => {
   }
 
   function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
-    const stringifiedValue = Handsontable.helper.stringify(value);
+    const img = document.createElement('img');
 
-    if (stringifiedValue.startsWith('http')) {
-      const img = document.createElement('IMG');
+    img.src = value;
 
-      img.src = value;
+    img.addEventListener('mousedown', event => {
+      event.preventDefault(); // prevent selection quirk
+    });
 
-      img.addEventListener('mousedown', event => {
-        event.preventDefault(); // prevent selection quirk
-      });
-
-      Handsontable.dom.empty(td);
-      td.appendChild(img);
-    } else {
-      // render as text
-      Handsontable.renderers.TextRenderer.apply(this, arguments);
-    }
+    Handsontable.dom.empty(td);
+    td.appendChild(img);
   }
 
   return (
@@ -477,7 +457,7 @@ const ExampleComponent = () => {
         <HotTable ref={hotRef} settings={hotSettings}>
       </HotTable>
       </div>
-      
+
     </Fragment>
   );
 };
