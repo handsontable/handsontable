@@ -43,7 +43,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -53,20 +52,14 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: Handsontable.helper.createSpreadsheetData(12, 5),
-    colHeaders: true,
-    rowHeaders: true,
-    // enable the `HiddenRows` plugin
-    hiddenRows: true
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(12, 5)}
+      colHeaders={true}
+      rowHeaders={true}
+      hiddenRows={true}
+    />
   );
 };
 
@@ -111,7 +104,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -121,23 +113,17 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: Handsontable.helper.createSpreadsheetData(12, 5),
-    colHeaders: true,
-    rowHeaders: true,
-    // enable the `HiddenRows` plugin
-    hiddenRows: {
-      // specify rows hidden by default
-      rows: [3, 5, 9]
-    }
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(12, 5)}
+      colHeaders={true}
+      rowHeaders={true}
+      hiddenRows={{
+        // specify rows hidden by default
+        rows: [3, 5, 9]
+      }}
+    />
   );
 };
 
@@ -180,7 +166,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -190,23 +175,18 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: Handsontable.helper.createSpreadsheetData(12, 5),
-    colHeaders: true,
-    rowHeaders: true,
-    hiddenRows: {
-      rows: [3, 5, 9],
-      // show UI indicators to mark hidden rows
-      indicators: true
-    }
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(12, 5)}
+      colHeaders={true}
+      rowHeaders={true}
+      hiddenRows={{
+        rows: [3, 5, 9],
+        // show UI indicators to mark hidden rows
+        indicators: true
+      }}
+    />
   );
 };
 
@@ -248,7 +228,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -258,26 +237,18 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: Handsontable.helper.createSpreadsheetData(12, 5),
-    colHeaders: true,
-    rowHeaders: true,
-    // enable the context menu
-    contextMenu: true,
-    // enable the `HiddenRows` plugin
-    // automatically adds the context menu's row hiding items
-    hiddenRows: {
-      rows: [3, 5, 9],
-      indicators: true
-    }
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(12, 5)}
+      colHeaders={true}
+      rowHeaders={true}
+      contextMenu={true}
+      hiddenRows={{
+        rows: [3, 5, 9],
+        indicators: true
+      }}
+    />
   );
 };
 
@@ -313,7 +284,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example5 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -323,24 +293,18 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: Handsontable.helper.createSpreadsheetData(12, 5),
-    colHeaders: true,
-    rowHeaders: true,
-    // individually add row hiding context menu items
-    contextMenu: [`hidden_rows_show`, `hidden_rows_hide`],
-    hiddenRows: {
-      rows: [3, 5, 9],
-      indicators: true
-    }
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(12, 5)}
+      colHeaders={true}
+      rowHeaders={true}
+      contextMenu={[`hidden_rows_show`, `hidden_rows_hide`]}
+      hiddenRows={{
+        rows: [3, 5, 9],
+        indicators: true
+      }}
+    />
   );
 };
 
@@ -381,7 +345,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example6 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -391,25 +354,20 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: Handsontable.helper.createSpreadsheetData(12, 5),
-    colHeaders: true,
-    rowHeaders: true,
-    contextMenu: [`hidden_rows_show`, `hidden_rows_hide`],
-    hiddenRows: {
-      rows: [3, 5, 9],
-      indicators: true,
-      // exclude hidden rows from copying and pasting
-      copyPasteEnabled: false
-    }
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(12, 5)}
+      colHeaders={true}
+      rowHeaders={true}
+      contextMenu={[`hidden_rows_show`, `hidden_rows_hide`]}
+      hiddenRows={{
+        rows: [3, 5, 9],
+        indicators: true,
+        // exclude hidden rows from copying and pasting
+        copyPasteEnabled: false
+      }}
+    />
   );
 };
 
@@ -420,6 +378,14 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
 
 
 ## Row hiding API methods
+
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotIntance` property.
+
+For more information, see the [`Instance Methods`](@/guides/react-methods.md) page.
+:::
+:::
 
 For the most popular row hiding tasks, use the API methods below.
 
