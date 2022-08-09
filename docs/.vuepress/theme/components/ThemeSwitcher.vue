@@ -147,7 +147,6 @@ export default {
   transition: 0.4s;
   box-shadow: 0 0px 3px #2020203d;
   /* Fallback for IE, should work in production */
-  background: #ffffff url('/docs/javascript-data-grid/img/light-theme-icon.svg');
   background: #ffffff var(--light-icon-url);
   background-size: 70%;
   background-repeat: no-repeat;
@@ -167,7 +166,6 @@ input:checked + .slider:before {
   -ms-transform: translateX(16px);
   transform: translateX(16px);
   /* Fallback for IE, should work in production */
-  background: #ffffff url('/docs/javascript-data-grid/img/dark-theme-icon.svg');
   background: #ffffff var(--dark-icon-url);
   background-size: 70%;
   background-repeat: no-repeat;

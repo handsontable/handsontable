@@ -81,6 +81,9 @@ export default {
     text-transform capitalize
   }
 
+  .nav-dropdown
+    z-index 100
+
   .icon.outbound
     display none
 
