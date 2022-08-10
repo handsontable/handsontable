@@ -7,9 +7,6 @@
 const semver = require('semver');
 const { Octokit } = require('@octokit/rest');
 const { logger } = require('@vuepress/shared-utils');
-const {
-  getFrameworkedVersions,
-} = require('../../helpers');
 
 /**
  * Min Docs version that is listed in the Docs version dropdown menu.
@@ -69,7 +66,6 @@ async function readFromGitHub() {
   return {
     versions,
     latestVersion: versions[0],
-    frameworkedVersions: getFrameworkedVersions(versions),
   };
 }
 

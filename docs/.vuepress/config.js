@@ -15,7 +15,6 @@ const {
   createSymlinks,
   isEnvDev,
   getIgnoredFilesPatterns,
-  FRAMEWORK_SUFFIX,
 } = require('./helpers');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 
@@ -46,17 +45,12 @@ if (docsBase !== 'latest') {
   base += `${docsBase}/`;
 }
 
-if (frameworkFromEnv !== void 0) {
-  base += `${frameworkFromEnv}${FRAMEWORK_SUFFIX}/`;
-}
-
 module.exports = {
   define: {
     GA_ID: 'UA-33932793-7',
   },
   patterns: [
     isEnvDev() ? `${TMP_DIR_FOR_WATCH}/**/*.md` : 'content/**/*.md',
-    '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md',
     ...getIgnoredFilesPatterns(),
   ],
   description: 'Handsontable',

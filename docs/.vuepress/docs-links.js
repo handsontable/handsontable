@@ -13,16 +13,10 @@ module.exports = function(src) {
       const fm = parseFrontmatter(fs.readFileSync(path.resolve(basePath, 'content', file)));
 
       if (fm.data.permalink) {
-        permalink = fm.data.permalink;
+        const framework = `${helpers.getEnvDocsFramework() ||
+          helpers.parseFramework(pathForServingDocs)}${helpers.FRAMEWORK_SUFFIX}`;
 
-        // Docs base for full build already has framework part.
-        if (helpers.isEnvDev() === true) {
-          const framework = `${helpers.getEnvDocsFramework() ||
-            helpers.parseFramework(pathForServingDocs)}${helpers.FRAMEWORK_SUFFIX}`;
-
-          permalink = `/${framework}${permalink}`;
-        }
-
+        permalink = `/${framework}${fm.data.permalink}`;
         permalink = permalink.endsWith('/') ? permalink : `${permalink}/`;
         permalink = hash ? permalink + hash : permalink;
       }
