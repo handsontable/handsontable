@@ -1,38 +1,13 @@
-const semver = require('semver');
-const {
-  version: currentHandsontableVersion
-} = require('../../../handsontable/package.json');
-
 // eslint-disable-next-line no-restricted-globals
 const isBrowser = (typeof window !== 'undefined');
 
 const formatVersion = version => (/^\d+\.\d+$/.test(version) ? version : 'latest');
-const generatePrefixes = (version, framework, buildMode) => {
-  const isLatestVersion = semver.satisfies(
-    semver.coerce(version)?.version,
-    semver.coerce(currentHandsontableVersion)?.version.replace(/\.([a-z0-9]|-)+$/, '.x')
-  );
-
-  const versionPrefix = !isLatestVersion || version === 'next' ? `${version}/` : '';
-  const frameworkPrefix = framework ? `${framework}-data-grid/` : '';
-  const urlPrefix = buildMode === 'production' ? `${versionPrefix}${frameworkPrefix}` : `${versionPrefix}`;
-
-  return {
-    versionPrefix,
-    frameworkPrefix,
-    urlPrefix
-  };
-};
-const getHotUrls = (version, framework, buildMode) => {
-  const {
-    urlPrefix
-  } = generatePrefixes(version, framework, buildMode);
-
+const getHotUrls = (version) => {
   if (version === 'next' && isBrowser) {
     return {
-      handsontableJs: `/docs/${urlPrefix}handsontable/handsontable.full.js`,
-      handsontableCss: `/docs/${urlPrefix}handsontable/handsontable.full.css`,
-      languagesJs: `/docs/${urlPrefix}handsontable/languages/all.js`
+      handsontableJs: '/docs/next/handsontable/handsontable.full.js',
+      handsontableCss: '/docs/next/handsontable/handsontable.full.css',
+      languagesJs: '/docs/next/handsontable/languages/all.js'
     };
   }
 
@@ -44,25 +19,16 @@ const getHotUrls = (version, framework, buildMode) => {
     languagesJs: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/languages/all.js`
   };
 };
-const getCommonScript = (scriptName, version, framework, buildMode) => {
-  const {
-    versionPrefix,
-    frameworkPrefix,
-    urlPrefix
-  } = generatePrefixes(version, framework, buildMode);
-
+const getCommonScript = (scriptName, version) => {
   if (isBrowser) {
     // eslint-disable-next-line no-restricted-globals
     return [
-      `${window.location.origin}/docs/${urlPrefix}scripts/${scriptName}.js`,
+      `${window.location.origin}/docs/${version}/scripts/${scriptName}.js`,
       ['require', 'exports']
     ];
   }
 
-  return [
-    `https://handsontable.com/docs/${versionPrefix}${frameworkPrefix}scripts/${scriptName}.js`,
-    ['require', 'exports']
-  ];
+  return [`https://handsontable.com/docs/${version}/scripts/${scriptName}.js`, ['require', 'exports']];
 };
 
 /**
@@ -70,16 +36,14 @@ const getCommonScript = (scriptName, version, framework, buildMode) => {
  * The function `buildDependencyGetter` is the best place to care about that.
  *
  * @param {string} version The current selected documentation version.
- * @param {string} framework The current selected documentation framework.
- * @param {'development'|'production'} buildMode The documentation build mode.
  * @returns {Function} Returns a function factory with the signature
  *                     `{function(dependency: string): [string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?]`.
  */
-const buildDependencyGetter = (version, framework, buildMode) => {
-  const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version, framework, buildMode);
+const buildDependencyGetter = (version) => {
+  const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version);
   const mappedVersion = formatVersion(version);
-  const fixer = getCommonScript('fixer', version, framework, buildMode);
-  const helpers = getCommonScript('helpers', version, framework, buildMode);
+  const fixer = getCommonScript('fixer', version);
+  const helpers = getCommonScript('helpers', version);
 
   return (dependency) => {
     /* eslint-disable max-len */
@@ -148,8 +112,8 @@ const presetMap = {
   /* eslint-enable max-len */
 };
 
-const getDependencies = (version, preset, framework) => {
-  const getter = buildDependencyGetter(version, framework);
+const getDependencies = (version, preset) => {
+  const getter = buildDependencyGetter(version);
 
   if (!Array.isArray(presetMap[preset])) {
     throw new Error(`The preset "${preset}" was not found.`);

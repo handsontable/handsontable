@@ -10,18 +10,15 @@ const conditionalContainer = require('./plugins/markdown-it-conditional-containe
 const {
   getDocsBaseUrl,
   getThisDocsVersion,
-  getEnvDocsFramework,
   TMP_DIR_FOR_WATCH,
   createSymlinks,
   isEnvDev,
   getIgnoredFilesPatterns,
-  FRAMEWORK_SUFFIX,
 } = require('./helpers');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 
 const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
 const buildMode = process.env.BUILD_MODE;
-const frameworkFromEnv = getEnvDocsFramework();
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction ?
   [
@@ -46,17 +43,12 @@ if (docsBase !== 'latest') {
   base += `${docsBase}/`;
 }
 
-if (frameworkFromEnv !== void 0) {
-  base += `${frameworkFromEnv}${FRAMEWORK_SUFFIX}/`;
-}
-
 module.exports = {
   define: {
     GA_ID: 'UA-33932793-7',
   },
   patterns: [
     isEnvDev() ? `${TMP_DIR_FOR_WATCH}/**/*.md` : 'content/**/*.md',
-    '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md',
     ...getIgnoredFilesPatterns(),
   ],
   description: 'Handsontable',

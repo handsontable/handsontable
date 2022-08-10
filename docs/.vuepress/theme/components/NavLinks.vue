@@ -45,9 +45,7 @@ export default {
   },
   computed: {
     frameworkUrlPrefix() {
-      return this.$page.isEnvDev ?
-        `/${this.$page.currentFramework}${this.$page.frameworkSuffix}` :
-        '';
+      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
     },
     guideLink() {
       return {

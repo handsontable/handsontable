@@ -1,8 +1,9 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fse from 'fs-extra';
+import fs from 'fs/promises';
 import utils from './utils.js';
-import { getThisDocsVersion, getFrameworks, FRAMEWORK_SUFFIX, getPrettyFrameworkName } from '../helpers.js';
+import { getThisDocsVersion, getFrameworks, getPrettyFrameworkName } from '../helpers.js';
 
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -25,35 +26,30 @@ async function cleanUp() {
  * @param {string} version The docs version to build.
  * @param {string} framework The docs framework to build.
  */
-const buildVersion = (version, framework) => {
-  // eslint-disable-next-line no-async-promise-executor
-  return new Promise(async(resolve) => {
-    logger.info(`Version "${version}" with framework "${getPrettyFrameworkName(framework)}" build started at`,
-      new Date().toString());
+async function buildVersion(version, framework) {
+  logger.info(`Version "${version}" with framework "${getPrettyFrameworkName(framework)}" build started at`,
+    new Date().toString());
 
-    const cwd = path.resolve(__dirname, '../../');
-    const versionEscaped = version.replace('.', '-');
+  const cwd = path.resolve(__dirname, '../../');
+  const versionEscaped = version.replace('.', '-');
 
+  await spawnProcess(
+    'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-' +
+      `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
+    { cwd, env: { DOCS_BASE: version, DOCS_FRAMEWORK: framework }, }
+  );
+
+  if (version !== 'next') {
     await spawnProcess(
-      'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-' +
-      `${versionEscaped}/${framework}${FRAMEWORK_SUFFIX}${NO_CACHE ? ' --no-cache' : ''}`,
-      { cwd, env: { DOCS_BASE: version, DOCS_FRAMEWORK: framework }, }
+      'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
+        `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
+      { cwd, env: { DOCS_BASE: 'latest', DOCS_FRAMEWORK: framework }, }
     );
+  }
 
-    if (version !== 'next') {
-      await spawnProcess(
-        'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
-        `${versionEscaped}/${framework}${FRAMEWORK_SUFFIX}${NO_CACHE ? ' --no-cache' : ''}`,
-        { cwd, env: { DOCS_BASE: 'latest', DOCS_FRAMEWORK: framework }, }
-      );
-    }
-
-    logger.success(`Version "${version}" with framework "${getPrettyFrameworkName(framework)}" build ` +
-      'finished at', new Date().toString());
-
-    resolve();
-  });
-};
+  logger.success(`Version "${version}" with framework "${getPrettyFrameworkName(framework)}" build ` +
+    'finished at', new Date().toString());
+}
 
 /**
  * Concatenates the dist's.
@@ -62,56 +58,50 @@ const buildVersion = (version, framework) => {
  * @param {string} framework The docs framework to build.
  */
 async function concatenate(version, framework) {
-  // eslint-disable-next-line no-async-promise-executor
-  return new Promise(async(resolve) => {
-    if (version !== 'next') {
-      const prebuildLatest = path.resolve(__dirname, '../../', '.vuepress/dist/pre-latest-' +
-        `${version.replace('.', '-')}/${framework}-${FRAMEWORK_SUFFIX}`);
-      const distLatest = path.resolve(__dirname, '../../', `.vuepress/dist/docs/${framework}${FRAMEWORK_SUFFIX}`);
+  const versionEscaped = version.replace('.', '-');
 
-      await fse.move(prebuildLatest, distLatest);
-    }
+  if (version !== 'next') {
+    const prebuildLatest = path.resolve(__dirname, '../../', `.vuepress/dist/pre-latest-${versionEscaped}`);
+    const distLatest = path.resolve(__dirname, '../../', '.vuepress/dist/docs');
 
-    const prebuildVersioned = path.resolve(
-      __dirname,
-      '../../', `.vuepress/dist/pre-${version.replace('.', '-')}/${framework}${FRAMEWORK_SUFFIX}`
-    );
-    const distVersioned = path.resolve(
-      __dirname,
-      '../../', `.vuepress/dist/docs/${version}/${framework}${FRAMEWORK_SUFFIX}`
-    );
+    await fs.cp(prebuildLatest, distLatest, { force: true, recursive: true });
+    await fs.rmdir(prebuildLatest, { recursive: true });
+  }
 
-    logger.info(`Apply built version "${version}" with framework "${getPrettyFrameworkName(framework)}" ` +
-      'to the `docs/`');
+  const prebuildVersioned = path.resolve(
+    __dirname,
+    '../../', `.vuepress/dist/pre-${versionEscaped}`
+  );
+  const distVersioned = path.resolve(
+    __dirname,
+    '../../', `.vuepress/dist/docs/${version}`
+  );
 
-    await fse.move(prebuildVersioned, distVersioned);
+  logger.info(`Apply built version "${version}" with framework "${getPrettyFrameworkName(framework)}" ` +
+    'to the `docs/`');
 
-    resolve();
-  });
+  await fs.cp(prebuildVersioned, distVersioned, { force: true, recursive: true });
+  await fs.rmdir(prebuildVersioned, { recursive: true });
 }
 
-const buildApp = async() => {
-  const startedAt = new Date().toString();
+const startedAt = new Date().toString();
 
-  logger.info('Build started at', startedAt);
+logger.info('Build started at', startedAt);
 
-  if (buildMode) {
-    logger.info('buildMode: ', buildMode);
-  }
+if (buildMode) {
+  logger.info('buildMode: ', buildMode);
+}
 
-  const frameworks = getFrameworks();
+const frameworks = getFrameworks();
 
-  await cleanUp();
+await cleanUp();
 
-  // eslint-disable-next-line no-restricted-syntax
-  for (const framework of frameworks) {
-    // eslint-disable-next-line no-await-in-loop
-    await buildVersion(getThisDocsVersion(), framework);
-    // eslint-disable-next-line no-await-in-loop
-    await concatenate(getThisDocsVersion(), framework);
-  }
+// eslint-disable-next-line no-restricted-syntax
+for (const framework of frameworks) {
+  // eslint-disable-next-line no-await-in-loop
+  await buildVersion(getThisDocsVersion(), framework);
+  // eslint-disable-next-line no-await-in-loop
+  await concatenate(getThisDocsVersion(), framework);
+}
 
-  logger.success('Build finished at', new Date().toString());
-};
-
-buildApp();
+logger.success('Build finished at', new Date().toString());
