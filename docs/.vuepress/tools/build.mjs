@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import fse from 'fs-extra';
 import fs from 'fs/promises';
 import utils from './utils.js';
-import { getThisDocsVersion, getFrameworks, FRAMEWORK_SUFFIX, getPrettyFrameworkName } from '../helpers.js';
+import { getThisDocsVersion, getFrameworks, getPrettyFrameworkName } from '../helpers.js';
 
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -36,20 +36,20 @@ async function buildVersion(version, framework) {
   await spawnProcess(
     'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-' +
       `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
-      { cwd, env: { DOCS_BASE: version, DOCS_FRAMEWORK: framework }, }
-    );
+    { cwd, env: { DOCS_BASE: version, DOCS_FRAMEWORK: framework }, }
+  );
 
   if (version !== 'next') {
     await spawnProcess(
       'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
-      `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
+        `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
       { cwd, env: { DOCS_BASE: 'latest', DOCS_FRAMEWORK: framework }, }
     );
   }
 
   logger.success(`Version "${version}" with framework "${getPrettyFrameworkName(framework)}" build ` +
     'finished at', new Date().toString());
-};
+}
 
 /**
  * Concatenates the dist's.

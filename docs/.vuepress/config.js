@@ -10,7 +10,6 @@ const conditionalContainer = require('./plugins/markdown-it-conditional-containe
 const {
   getDocsBaseUrl,
   getThisDocsVersion,
-  getEnvDocsFramework,
   TMP_DIR_FOR_WATCH,
   createSymlinks,
   isEnvDev,
@@ -20,7 +19,6 @@ const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 
 const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
 const buildMode = process.env.BUILD_MODE;
-const frameworkFromEnv = getEnvDocsFramework();
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction ?
   [
