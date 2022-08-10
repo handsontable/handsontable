@@ -26,6 +26,8 @@ type: 'numeric'
 ```
 :::
 
+::: only-for react
+
 ## Component-based editors
 
 You can use React components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/react`.
@@ -175,7 +177,6 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
 :::
 
-::: only-for react
 ## Class-based editors
 
 You can also declare a custom editor for the `HotTable` component by declaring it as a class and passing it to the Handsontable options.

@@ -38,14 +38,13 @@ type: 'numeric'
 ```
 :::
 :::
+
 ::: only-for react
 ## Overview
 
 A renderer is a function that determines how a cell looks.
 
 Set together, a renderer, [editor](@/guides/cell-functions/cell-editor.md) and [validator](@/guides/cell-functions/cell-validator.md) form a [cell type](@/guides/cell-types/cell-type.md).
-:::
-::: only-for react
 
 ## Declaring a custom renderer as a component
 

@@ -123,8 +123,8 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   filters: true,
   dropdownMenu: ['filter_by_condition', 'filter_action_bar'],
-  height: "auto",
-  licenseKey: "non-commercial-and-evaluation"
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::

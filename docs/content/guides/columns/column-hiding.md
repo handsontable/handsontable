@@ -151,7 +151,7 @@ If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the [`H
 const container = document.querySelector('#example3');
 
 const hot = new Handsontable(container, {
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 12),
   colHeaders: true,
   rowHeaders: true,
@@ -331,7 +331,7 @@ To exclude hidden columns from copying and pasting, in the [`hiddenColumns`](@/a
 const container = document.querySelector('#example6');
 
 const hot = new Handsontable(container, {
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 12),
   colHeaders: true,
   rowHeaders: true,

@@ -33,12 +33,12 @@ const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(100, 50),
   colWidths: 100,
-  width: "100%",
+  width: '100%',
   height: 320,
   rowHeaders: true,
   colHeaders: true,
   fixedColumnsStart: 1,
-  licenseKey: "non-commercial-and-evaluation"
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::
