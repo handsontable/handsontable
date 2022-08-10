@@ -13,7 +13,7 @@ tags:
 
 ## Overview
 
-This plugin enables you to add a configurable dropdown menu to the table"s column headers.
+This plugin enables you to add a configurable dropdown menu to the table's column headers.
 The dropdown menu acts like the **Context Menu** but is triggered by clicking the button in the header.
 
 ## Quick setup

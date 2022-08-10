@@ -38,20 +38,26 @@ type: 'numeric'
 ```
 :::
 :::
+::: only-for react
+## Overview
 
+A renderer is a function that determines how a cell looks.
+
+Set together, a renderer, [editor](@/guides/cell-functions/cell-editor.md) and [validator](@/guides/cell-functions/cell-validator.md) form a [cell type](@/guides/cell-types/cell-type.md).
+:::
 ::: only-for react
 
 ## Declaring a custom renderer as a component
 
-The React wrapper allows creating custom renderers using React components.
+Handsontable's React wrapper lets you create custom cell renderers using React components.
 Although it's possible to use class-based react components for this purpose, **we strongly suggest** using functional components, as using the `state` of a class-based component would re-initialize on every Handsontable render.
 
 To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
 
 ::: tip
-Handsontable's `autoRowSize` and `autoColumnSize` options require calculating the widths/heights of some of the cells before rendering them into the table. For this reason, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
+Handsontable's [`autoRowSize`](@/api/options.md#autorowsize] and [`autoColumnSize`](@/api/options.md#autocolumnsize) options require calculating the widths/heights of some of the cells before rendering them into the table. For this reason, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
 
-Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that `autoColumnSize` is enabled by default.
+Be sure to turn those options off in your Handsontable configuration, as keeping them enabled may cause unexpected results. Please note that [`autoColumnSize`](@/api/options.md#autocolumnsize) is enabled by default.
 :::
 
 ::: example #example1 :react --tab preview
@@ -100,7 +106,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ## Using the renderer component within React's Context
 
-In this example, React's Context is used to pass the information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with editors just as well.
+In this example, React's `Context` passes information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with [editors](@/guides/cell-functions/cell-editor.md) as well.
 
 ::: example #example2 :react --css 1 --js 2 --tab preview
 ```css
