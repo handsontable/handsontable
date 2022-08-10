@@ -56,8 +56,8 @@ The latest security audits:
 
 | Handsontable version | Company   | Concluded on | Certificate                                 |
 | -------------------- | --------- | ------------ | ------------------------------------------- |
-| 8.2.0                | Securitum | Nov 30, 2020 | [Download](/docs/securitum-certificate.pdf) |
-| 11.1.0               | Seqred    | Feb 21, 2022 | [Download](/docs/seqred-certificate.pdf)    |
+| 8.2.0                | Securitum | Nov 30, 2020 | [Download]({{$basePath}}/securitum-certificate.pdf) |
+| 11.1.0               | Seqred    | Feb 21, 2022 | [Download]({{$basePath}}/seqred-certificate.pdf)    |
 
 The security audits were carried out in accordance with industry-standard methodologies, including:
 - OWASP Top 10

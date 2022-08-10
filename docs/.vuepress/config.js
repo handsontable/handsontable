@@ -1,5 +1,4 @@
 const path = require('path');
-const stylusNodes = require('stylus/lib/nodes');
 const highlight = require('./highlight');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
@@ -100,15 +99,6 @@ module.exports = {
       symlinks: false,
     }
   },
-  stylus: {
-    preferPathResolver: 'webpack',
-    define: {
-      versionedUrl: (expression) => {
-        return new stylusNodes
-          .Literal(`url("${expression.string.replace('{docsVersion}', getThisDocsVersion())}")`);
-      },
-    }
-  },
   plugins: [
     extendPageDataPlugin,
     'tabs',
@@ -120,7 +110,7 @@ module.exports = {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
     }],
-    ['container', examples(getThisDocsVersion())],
+    ['container', examples(getThisDocsVersion(), base)],
     ['container', sourceCodeLink],
     {
       extendMarkdown(md) {
@@ -133,7 +123,7 @@ module.exports = {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'src') {
                 token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                  decodeURIComponent(value).replace('{{$basePath}}', base.replace(/\/$/, ''))
                 );
               }
             });
@@ -153,7 +143,7 @@ module.exports = {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'href') {
                 token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                  decodeURIComponent(value).replace('{{$basePath}}', base.replace(/\/$/, ''))
                 );
               }
             });

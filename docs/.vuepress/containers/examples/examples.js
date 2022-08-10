@@ -72,7 +72,7 @@ const getPreviewTab = (id, cssContent, htmlContent, code) => {
   };
 };
 
-module.exports = function(docsVersion) {
+module.exports = function(docsVersion, base) {
   return {
     type: 'example',
     render(tokens, index, opts, env) {
@@ -106,7 +106,7 @@ module.exports = function(docsVersion) {
         const filePath = env.relativePath;
         const framework = getContainerFramework(filePath);
 
-        jsToken.content = jsToken.content.replaceAll('{{$page.currentVersion}}', docsVersion);
+        jsToken.content = jsToken.content.replaceAll('{{$basePath}}', base.replace(/\/$/, ''));
 
         const activeTab = args.match(/--tab (code|html|css|preview)/)?.[1] || 'code';
         const noEdit = !!args.match(/--no-edit/)?.[0];
