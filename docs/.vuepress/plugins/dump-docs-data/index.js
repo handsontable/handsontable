@@ -5,7 +5,6 @@ const { generateCommonCanonicalURLs } = require('./canonicals');
 const { fetchDocsVersions } = require('./docs-versions');
 const {
   getThisDocsVersion,
-  getFrameworkedVersions,
 } = require('../../helpers');
 
 const pluginName = 'hot/dump-canonicals';
@@ -57,7 +56,6 @@ module.exports = (options, context) => {
       docsDataCommon.urls = Array.from(canonicalURLs);
       docsDataCommon.versions = docsVersions.versions;
       docsDataCommon.latestVersion = docsVersions.latestVersion;
-      docsDataCommon.frameworkedVersions = getFrameworkedVersions(docsVersions.versions);
 
       try {
         await fsp.writeFile(`${outputDir}/common.json`, JSON.stringify(docsDataCommon));

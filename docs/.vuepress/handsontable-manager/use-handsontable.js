@@ -2,14 +2,12 @@ const { register } = require('./register');
 const {
   buildDependencyGetter,
   presetMap,
-  isBrowser
 } = require('./dependencies');
 
 const ATTR_VERSION = 'data-hot-version';
 
 const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode = 'production') => {
-  const framework = isBrowser ? window.location.pathname.match(/([a-z]+)-data-grid/)?.[1] : void 0;
-  const getDependency = buildDependencyGetter(version, framework, buildMode);
+  const getDependency = buildDependencyGetter(version, buildMode);
 
   const loadDependency = dep => new Promise((resolve) => {
     const id = `dependency-reloader_${dep}`;

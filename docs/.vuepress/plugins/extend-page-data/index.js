@@ -61,20 +61,17 @@ module.exports = (options, context) => {
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.isEnvDev = isEnvDev();
       $page.buildMode = buildMode;
-      $page.frontmatter.canonicalUrl = dedupeSlashes(`/docs${$page.frontmatter.canonicalUrl}/`);
-      $page.isSearchable =
-        notSearchableLinks[$page.currentFramework]?.every(
-          notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);
+      $page.isSearchable = notSearchableLinks[$page.currentFramework]?.every(
+        notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);
+
+      const frameworkPath = $page.currentFramework + FRAMEWORK_SUFFIX;
+
+      if ($page.frontmatter.canonicalUrl) {
+        $page.frontmatter.canonicalUrl = dedupeSlashes(`/docs/${frameworkPath}${$page.frontmatter.canonicalUrl}/`);
+      }
 
       if ($page.frontmatter.permalink) {
-        if ($page.currentVersion !== 'next') {
-          $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
-        }
-
-        // Only dev script need to perform build to specific place. Full build script perform moving directory separately.
-        if (isEnvDev()) {
-          $page.frontmatter.permalink = `/${$page.currentFramework}${FRAMEWORK_SUFFIX}${$page.frontmatter.permalink}`;
-        }
+        $page.frontmatter.permalink = `/${frameworkPath}${$page.frontmatter.permalink}`;
       }
     },
   };

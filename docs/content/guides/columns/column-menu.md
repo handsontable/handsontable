@@ -39,7 +39,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -49,19 +48,14 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(3, 7),
-    colHeaders: true,
-    dropdownMenu: true,
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(3, 7)}
+      colHeaders={true}
+      dropdownMenu={true}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -100,7 +94,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -110,25 +103,20 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(3, 7),
-    colHeaders: true,
-    licenseKey: 'non-commercial-and-evaluation',
-    height: 'auto',
-    dropdownMenu: [
-      'remove_col',
-      '---------',
-      'make_read_only',
-      '---------',
-      'alignment'
-    ]
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(3, 7)}
+      colHeaders={true}
+      licenseKey="non-commercial-and-evaluation"
+      height="auto"
+      dropdownMenu={[
+        'remove_col',
+        '---------',
+        'make_read_only',
+        '---------',
+        'alignment'
+      ]}
+    />
   );
 };
 

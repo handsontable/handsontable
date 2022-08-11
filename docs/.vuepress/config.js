@@ -1,5 +1,4 @@
 const path = require('path');
-const stylusNodes = require('stylus/lib/nodes');
 const highlight = require('./highlight');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
@@ -11,18 +10,15 @@ const conditionalContainer = require('./plugins/markdown-it-conditional-containe
 const {
   getDocsBaseUrl,
   getThisDocsVersion,
-  getEnvDocsFramework,
   TMP_DIR_FOR_WATCH,
   createSymlinks,
   isEnvDev,
   getIgnoredFilesPatterns,
-  FRAMEWORK_SUFFIX,
 } = require('./helpers');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 
 const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
 const buildMode = process.env.BUILD_MODE;
-const frameworkFromEnv = getEnvDocsFramework();
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction ?
   [
@@ -47,17 +43,12 @@ if (docsBase !== 'latest') {
   base += `${docsBase}/`;
 }
 
-if (frameworkFromEnv !== void 0) {
-  base += `${frameworkFromEnv}${FRAMEWORK_SUFFIX}/`;
-}
-
 module.exports = {
   define: {
     GA_ID: 'UA-33932793-7',
   },
   patterns: [
     isEnvDev() ? `${TMP_DIR_FOR_WATCH}/**/*.md` : 'content/**/*.md',
-    '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md',
     ...getIgnoredFilesPatterns(),
   ],
   description: 'Handsontable',
@@ -100,15 +91,6 @@ module.exports = {
       symlinks: false,
     }
   },
-  stylus: {
-    preferPathResolver: 'webpack',
-    define: {
-      versionedUrl: (expression) => {
-        return new stylusNodes
-          .Literal(`url("${expression.string.replace('{docsVersion}', getThisDocsVersion())}")`);
-      },
-    }
-  },
   plugins: [
     extendPageDataPlugin,
     'tabs',
@@ -120,7 +102,7 @@ module.exports = {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
     }],
-    ['container', examples(getThisDocsVersion())],
+    ['container', examples(getThisDocsVersion(), base)],
     ['container', sourceCodeLink],
     {
       extendMarkdown(md) {
@@ -133,7 +115,7 @@ module.exports = {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'src') {
                 token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                  decodeURIComponent(value).replace('{{$basePath}}', base.replace(/\/$/, ''))
                 );
               }
             });
@@ -153,7 +135,7 @@ module.exports = {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'href') {
                 token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                  decodeURIComponent(value).replace('{{$basePath}}', base.replace(/\/$/, ''))
                 );
               }
             });
