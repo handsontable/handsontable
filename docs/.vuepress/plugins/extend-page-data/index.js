@@ -5,8 +5,6 @@ const {
   getThisDocsVersion,
   getDocsBaseUrl,
   getPrettyFrameworkName,
-  getEnvDocsFramework,
-  isEnvDev,
   getDefaultFramework,
   FRAMEWORK_SUFFIX,
   getNotSearchableLinks,
@@ -14,8 +12,6 @@ const {
 
 const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/extend-page-data';
-
-const DOCS_FRAMEWORK = getEnvDocsFramework();
 
 /**
  * Dedupes the slashes in the string.
@@ -53,13 +49,11 @@ module.exports = (options, context) => {
       $page.normalizedPath = getNormalizedPath($page.path);
       $page.baseUrl = getDocsBaseUrl();
       $page.currentVersion = getThisDocsVersion();
-      // Framework isn't stored in PATH for full build. However, it's defined in ENV variable.
-      $page.currentFramework = DOCS_FRAMEWORK || parseFramework($page.normalizedPath);
+      $page.currentFramework = parseFramework($page.normalizedPath);
       $page.frameworkName = getPrettyFrameworkName($page.currentFramework);
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
-      $page.isEnvDev = isEnvDev();
       $page.buildMode = buildMode;
       $page.isSearchable = notSearchableLinks[$page.currentFramework]?.every(
         notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);
