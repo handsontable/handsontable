@@ -1,11 +1,9 @@
 const path = require('path');
 const fsExtra = require('fs-extra');
 const execa = require('execa');
-const semver = require('semver');
 
 const MULTI_FRAMEWORKED_CONTENT_DIR = '.watch-tmp';
 const FRAMEWORK_SUFFIX = '-data-grid';
-const MIN_FRAMEWORKED_DOCS_VERSION = '12.1.0';
 const versionFromBranchRegExp = /^prod-docs\/(\d+\.\d+)$/;
 let docsVersion = null;
 
@@ -41,17 +39,6 @@ function getDefaultFramework() {
  */
 function getPrettyFrameworkName(framework) {
   return frameworkToPrettyName.get(framework);
-}
-
-/**
- * Get list of "frameworked" docs versions based on a list of available versions.
- *
- * @param {Array<string>} versions List of available version.
- * @returns {Array<string>}
- */
-function getFrameworkedVersions(versions) {
-  return versions.filter(version => version === 'next' ||
-    semver.gte(semver.coerce(version), semver.coerce(MIN_FRAMEWORKED_DOCS_VERSION)));
 }
 
 /**
@@ -209,7 +196,6 @@ function getDocsBaseUrl() {
 module.exports = {
   MULTI_FRAMEWORKED_CONTENT_DIR,
   FRAMEWORK_SUFFIX,
-  getFrameworkedVersions,
   getNormalizedPath,
   getFrameworks,
   getPrettyFrameworkName,
