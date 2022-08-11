@@ -93,7 +93,7 @@ docs                            # All documentation files
 │   ├── examples                # The Handsontable examples
 │   ├── guides                  # The guides' source files: Markdown content
 │   └── sidebars.js             # Sidebars configuration
-├── .watch-tmp                  # Temporary directory created for storing symlinked directories, containing .MD files. It's done for purpose of using `vuepress dev` script on it. 
+├── .build-tmp                  # Temporary directory created for storing symlinked directories, containing .MD files. It's needed for generating multi-frameworked Docs content.
 │   ├── javascript-data-grid  # Symbolic link to content directory. Do not edit! Make changes in the source content directory.
 │   └── react-data-grid       # As above
 ├── README-DEPLOYMENT.md        # Documentation deployment guidelines

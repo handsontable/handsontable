@@ -2,7 +2,7 @@ const path = require('path');
 const fsExtra = require('fs-extra');
 const execa = require('execa');
 
-const MULTI_FRAMEWORKED_CONTENT_DIR = '.watch-tmp';
+const MULTI_FRAMEWORKED_CONTENT_DIR = '.build-tmp';
 const FRAMEWORK_SUFFIX = '-data-grid';
 const versionFromBranchRegExp = /^prod-docs\/(\d+\.\d+)$/;
 let docsVersion = null;
