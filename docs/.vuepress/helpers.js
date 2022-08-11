@@ -3,7 +3,7 @@ const fsExtra = require('fs-extra');
 const execa = require('execa');
 const semver = require('semver');
 
-const TMP_DIR_FOR_WATCH = '.watch-tmp';
+const MULTI_FRAMEWORKED_CONTENT_DIR = '.watch-tmp';
 const FRAMEWORK_SUFFIX = '-data-grid';
 const MIN_FRAMEWORKED_DOCS_VERSION = '12.1.0';
 const versionFromBranchRegExp = /^prod-docs\/(\d+\.\d+)$/;
@@ -114,27 +114,18 @@ function getSidebars() {
   // eslint-disable-next-line
   const sidebarConfig = require(path.join(__dirname, '../content/sidebars.js'));
 
-  if (isEnvDev()) {
-    frameworks.forEach((framework) => {
-      const apiTransformed = JSON.parse(JSON.stringify(sidebarConfig.api)); // Copy sidebar definition
-      const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
+  frameworks.forEach((framework) => {
+    const apiTransformed = JSON.parse(JSON.stringify(sidebarConfig.api)); // Copy sidebar definition
+    const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
 
-      // We store path in sidebars.js files in form <VERSION>/api/plugins.
-      plugins.path = `/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/api/plugins`;
+    // We store path in sidebars.js files in form <VERSION>/api/plugins.
+    plugins.path = `/${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/api/plugins`;
 
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/examples/`] = sidebarConfig.examples;
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/api/`] = apiTransformed;
-      sidebars[`/${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}/`] =
-        getTransformedGuides(sidebarConfig.guides, framework);
-    });
-
-  } else {
-    const framework = getEnvDocsFramework();
-
-    sidebars['/content/examples/'] = sidebarConfig.examples;
-    sidebars['/content/api/'] = sidebarConfig.api;
-    sidebars['/content/'] = getTransformedGuides(sidebarConfig.guides, framework);
-  }
+    sidebars[`/${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/examples/`] = sidebarConfig.examples;
+    sidebars[`/${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/api/`] = apiTransformed;
+    sidebars[`/${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/`] =
+      getTransformedGuides(sidebarConfig.guides, framework);
+  });
 
   return sidebars;
 }
@@ -146,15 +137,7 @@ function getSidebars() {
  * @returns {string}
  */
 function getNormalizedPath(normalizedPath) {
-  if (isEnvDev()) {
-    return normalizedPath.replace(new RegExp(`^/?${TMP_DIR_FOR_WATCH}`), '');
-  }
-
-  if (normalizedPath[0] !== '/') {
-    normalizedPath = `/${normalizedPath}`;
-  }
-
-  return normalizedPath;
+  return normalizedPath.replace(new RegExp(`^/?${MULTI_FRAMEWORKED_CONTENT_DIR}`), '');
 }
 
 /**
@@ -199,24 +182,6 @@ function getNotSearchableLinks() {
 }
 
 /**
- * Get ignored files for particular build.
- *
- * Note: Please keep in mind that this method is useful only for full build.
- *
- * @returns {Array<string>}
- */
-function getIgnoredFilesPatterns() {
-  if (isEnvDev() === false) {
-    const notSearchableLinks = getNotSearchableLinks();
-    const framework = getEnvDocsFramework();
-
-    return notSearchableLinks[framework].map(excludedPath => `!content/${excludedPath}.md`);
-  }
-
-  return [];
-}
-
-/**
  * Parses the docs framework from the URL.
  *
  * @param {string} url The URL to parse.
@@ -231,25 +196,14 @@ function parseFramework(url) {
 }
 
 /**
- * Gets docs framework that is currently building (based on the environment variable).
- *
- * @returns {string}
- */
-function getEnvDocsFramework() {
-  return process.env.DOCS_FRAMEWORK;
-}
-
-/**
- * Create symlinks needed for vuepress dev script.
+ * Create symlinks needed for multi-frameworked content.
  */
 function createSymlinks() {
-  if (isEnvDev()) {
-    fsExtra.removeSync(TMP_DIR_FOR_WATCH);
+  fsExtra.removeSync(MULTI_FRAMEWORKED_CONTENT_DIR);
 
-    getFrameworks().forEach((framework) => {
-      fsExtra.ensureSymlinkSync('content', `./${TMP_DIR_FOR_WATCH}/${framework}${FRAMEWORK_SUFFIX}`);
-    });
-  }
+  getFrameworks().forEach((framework) => {
+    fsExtra.ensureSymlinkSync('content', `./${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}`);
+  });
 }
 
 /**
@@ -262,7 +216,7 @@ function getDocsBaseUrl() {
 }
 
 module.exports = {
-  TMP_DIR_FOR_WATCH,
+  MULTI_FRAMEWORKED_CONTENT_DIR,
   FRAMEWORK_SUFFIX,
   getFrameworkedVersions,
   getNormalizedPath,
@@ -271,11 +225,9 @@ module.exports = {
   getSidebars,
   getNotSearchableLinks,
   parseFramework,
-  getEnvDocsFramework,
   getDefaultFramework,
   isEnvDev,
   createSymlinks,
   getThisDocsVersion,
   getDocsBaseUrl,
-  getIgnoredFilesPatterns,
 };

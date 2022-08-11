@@ -1,5 +1,5 @@
 const chalk = require('chalk');
-const { getEnvDocsFramework, parseFramework, getDefaultFramework, getNormalizedPath } = require('../../helpers');
+const { parseFramework, getDefaultFramework, getNormalizedPath } = require('../../helpers');
 
 /* eslint-disable */
 /**
@@ -62,13 +62,13 @@ module.exports = function conditionalContainer(markdown) {
       token.children.splice(childrenIndex, howMany);
     } else {
       // eslint-disable-next-line no-console
-      console.error(`${chalk.red('\nUnexpected error while processing a conditional container (::: only-for) in the file ' 
+      console.error(`${chalk.red('\nUnexpected error while processing a conditional container (::: only-for) in the file '
         `"${getNormalizedPath(env.relativePath)}".` +
         ` Please check the file or the resulting page "${env.frontmatter.permalink}".`
       )}`);
     }
   };
-  
+
   const cleanTokens = ({ tokens, token, tokenIndex, preciseRegexp, lessPreciseRegexp, env }) => {
     if (preciseRegexp.test(token.content)) {
       tokens.splice(tokenIndex, 1);
@@ -86,13 +86,13 @@ module.exports = function conditionalContainer(markdown) {
     }
 
     const env = state.env;
-    const frameworkId = getEnvDocsFramework() || parseFramework(relativePath) || getDefaultFramework();
+    const frameworkId = parseFramework(relativePath) || getDefaultFramework();
 
     for (let index = state.tokens.length - 1; index >= 0; index -= 1) {
       const token = state.tokens[index];
       // We don't create custom container intentionally. It can create paragraphs or break listed elements.
       const isNotNativeContainer = token.markup !== markupForCustomContainer;
-      
+
       if (isNotNativeContainer) {
         if (openAndCloseTagOneliner.test(token.content)) {
           const onlyForFrameworks = openAndCloseTagOneliner.exec(token.content)[capturedGroupIndex].split(' ');

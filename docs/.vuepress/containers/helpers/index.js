@@ -1,5 +1,4 @@
 const {
-  getEnvDocsFramework,
   parseFramework
 } = require('../../helpers');
 
@@ -36,12 +35,6 @@ function getContainerFrontMatterLength(frontMatterObj) {
  * @returns {string} The framework name.
  */
 function getContainerFramework(path) {
-  const envFramework = getEnvDocsFramework();
-
-  if (envFramework) {
-    return envFramework;
-  }
-
   return parseFramework(path);
 }
 
