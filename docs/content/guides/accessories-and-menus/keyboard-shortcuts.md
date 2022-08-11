@@ -194,6 +194,14 @@ These keyboard shortcuts work in context menus. To activate them, enable the [`C
 
 You can customize your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutManager.md) API.
 
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/react-methods.md) page.
+:::
+:::
+
 1. Access the [`ShortcutManager`](@/api/shortcutManager.md) API:
     ```js
     hot.getShortcutManager()
@@ -357,6 +365,7 @@ gridContext.addShortcuts(undoShortcut);
 
 To block a keyboard shortcut's actions, return `false` in the [`beforeKeyDown`](@/api/hooks.md#beforekeydown) hook's callback:
 
+::: only-for javascript
 ```js
 hot.addHook('beforeKeyDown', (event) => {
   // the `Enter` shortcut won't work
@@ -365,6 +374,20 @@ hot.addHook('beforeKeyDown', (event) => {
   }
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  beforeKeyDown={(event) => {
+    // the `Enter` shortcut won't work
+    if (event.key === 'enter') {
+      return false;
+    }
+  }}
+/>
+```
+:::
 
 ## Related API reference
 

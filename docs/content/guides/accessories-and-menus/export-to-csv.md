@@ -66,7 +66,7 @@ button.addEventListener('click', () => {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -76,17 +76,8 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef();
 
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(7, 7),
-    colHeaders: true,
-    rowHeaders: true,
-    hiddenRows: { rows: [1, 3, 5], indicators: true },
-    hiddenColumns: { columns: [1, 3, 5], indicators: true },
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
   let buttonClickCallback;
 
   useEffect(() => {
@@ -110,14 +101,21 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
-  
+    <>
+      <HotTable
+        ref={hotRef}
+        data={Handsontable.helper.createSpreadsheetData(7, 7)}
+        colHeaders={true}
+        rowHeaders={true}
+        hiddenRows={{ rows: [1, 3, 5], indicators: true }}
+        hiddenColumns={{ columns: [1, 3, 5], indicators: true }}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+      />
       <div className="controls">
         <button id="export-file" onClick={(...args) => buttonClickCallback(...args)}>Download CSV</button>
       </div>
-    </Fragment>
+    </>
   );
 };
 
@@ -177,7 +175,7 @@ button.addEventListener('click', () => {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -187,23 +185,14 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef();
 
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(7, 7),
-    colHeaders: true,
-    rowHeaders: true,
-    hiddenRows: { rows: [1, 3, 5], indicators: true },
-    hiddenColumns: { columns: [1, 3, 5], indicators: true },
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
   let buttonClickCallback;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
-
     const exportPlugin = hot.getPlugin('exportFile');
+    
     buttonClickCallback = () => {
       const exportedBlob = exportPlugin.exportAsBlob('csv', {
         bom: false,
@@ -221,14 +210,21 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
-  
+    <>
+      <HotTable
+        ref={hotRef}
+        data={Handsontable.helper.createSpreadsheetData(7, 7)}
+        colHeaders={true}
+        rowHeaders={true}
+        hiddenRows={{ rows: [1, 3, 5], indicators: true }}
+        hiddenColumns={{ columns: [1, 3, 5], indicators: true }}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+      />
       <div className="controls">
         <button id="export-blob" onClick={(...args) => buttonClickCallback(...args)}>Export as a Blob</button>
       </div>
-    </Fragment>
+    </>
   );
 };
 
@@ -287,7 +283,7 @@ button.addEventListener('click', () => {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -297,23 +293,14 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
-
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(7, 7),
-    colHeaders: true,
-    rowHeaders: true,
-    hiddenRows: { rows: [1, 3, 5], indicators: true },
-    hiddenColumns: { columns: [1, 3, 5], indicators: true },
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+  const hotRef = useRef();
+  
   let buttonClickCallback;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
-
     const exportPlugin = hot.getPlugin('exportFile');
+
     buttonClickCallback = () => {
       const exportedString = exportPlugin.exportAsString('csv', {
         bom: false,
@@ -330,14 +317,21 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
-  
+    <>
+      <HotTable
+        ref={hotRef}
+        data={Handsontable.helper.createSpreadsheetData(7, 7)}
+        colHeaders={true}
+        rowHeaders={true}
+        hiddenRows={{ rows: [1, 3, 5], indicators: true }}
+        hiddenColumns={{ columns: [1, 3, 5], indicators: true }}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+      />
       <div className="controls">
         <button id="export-string" onClick={(...args) => buttonClickCallback(...args)}>Export as a string</button>
       </div>
-    </Fragment>
+    </>
   );
 };
 
@@ -348,6 +342,14 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 
 
 ## Available methods
+
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/react-methods.md) page.
+:::
+:::
 
 The plugin exposes the following methods to export data.
 

@@ -12,6 +12,14 @@ tags:
 
 [[toc]]
 
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/react-methods.md) page.
+:::
+:::
+
 The search plugin provides an easy interface to search data across Handsontable.
 
 You should first enable the plugin by setting the [`search`](@/api/options.md#search) option to `true`. When enabled, the [`Search`](@/api/search.md) plugin exposes a new method [`query(queryStr)`](@/api/search.md#query), where [`queryStr`](@/api/search.md#query) is a string to find within the table. By default, the search is case insensitive.
@@ -121,7 +129,7 @@ searchField.addEventListener('keyup', function(event) {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -130,7 +138,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef();
 
   const data = [
     ['Tesla', 2017, 'black', 'black'],
@@ -138,15 +146,6 @@ const ExampleComponent = () => {
     ['Chrysler', 2019, 'yellow', 'black'],
     ['Volvo', 2020, 'yellow', 'gray']
   ];
-  const hotSettings = {
-    data,
-    colHeaders: true,
-    // enable the `Search` plugin
-    search: true,
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-  //  add a search input listener
   let searchFieldKeyupCallback;
 
   useEffect(() => {
@@ -166,13 +165,19 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
+    <>
       <div className="controls">
         <input id="search_field" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
       </div>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+      <HotTable
+        ref={hotRef}
+        data={data}
+        colHeaders={true}
+        search={true}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+      />
+    </>
   );
 };
 
@@ -248,7 +253,7 @@ searchField.addEventListener('keyup', function(event) {
 }
 ````
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -257,7 +262,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef();
 
   const data = [
     ['Tesla', 2017, 'black', 'black'],
@@ -265,17 +270,6 @@ const ExampleComponent = () => {
     ['Chrysler', 2019, 'yellow', 'black'],
     ['Volvo', 2020, 'yellow', 'gray']
   ];
-  const hotSettings = {
-    data,
-    colHeaders: true,
-    // enable the `Search` plugin
-    search: {
-      // add your custom CSS class
-      searchResultClass: 'my-custom-search-result-class'
-    },
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
   let searchFieldKeyupCallback;
 
   useEffect(() => {
@@ -291,14 +285,23 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
+    <>
       <div className="controls">
         <input id="search_field2" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
       </div>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
-      
-    </Fragment>
+      <HotTable
+        ref={hotRef}
+        data={data}
+        colHeaders={true}
+        // enable the `Search` plugin
+        search={{
+          // add your custom CSS class
+          searchResultClass: 'my-custom-search-result-class'
+        }}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+      />
+    </>
   );
 };
 
@@ -369,7 +372,7 @@ searchField.addEventListener('keyup', function(event) {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -378,7 +381,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef();
 
   const data = [
     ['Tesla', 2017, 'black', 'black'],
@@ -386,22 +389,12 @@ const ExampleComponent = () => {
     ['Chrysler', 2019, 'yellow', 'black'],
     ['Volvo', 2020, 'white', 'gray']
   ];
+  let searchFieldKeyupCallback;
+
   //  define your custom query method
   function onlyExactMatch(queryStr, value) {
     return queryStr.toString() === value.toString();
   }
-  const hotSettings = {
-    data,
-    colHeaders: true,
-    // enable the `Search` plugin
-    search: {
-      // add your custom query method
-      queryMethod: onlyExactMatch
-    },
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-  let searchFieldKeyupCallback;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
@@ -418,14 +411,23 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
+    <>
       <div className="controls">
         <input id="search_field3" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
       </div>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
-      
-    </Fragment>
+      <HotTable
+        ref={hotRef}
+        data={data}
+        colHeaders={true}
+        // enable the `Search` plugin
+        search={{
+          // add your custom query method
+          queryMethod: onlyExactMatch
+        }}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+      />
+    </>
   );
 };
 
@@ -509,7 +511,7 @@ searchField.addEventListener('keyup', function(event) {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import React, { Fragment, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -518,16 +520,18 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hot4Ref = React.createRef();
+  const hot4Ref = useRef();
   const [output, setOutput] = useState('');
-
-  let searchResultCount = 0;
+  
   const data = [
     ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
     ['Chrysler', 2019, 'yellow', 'black'],
     ['Volvo', 2020, 'white', 'gray']
   ];
+  let searchResultCount = 0;
+  let searchFieldKeyupCallback;
+
   //  define your custom callback function
   function searchResultCounter(instance, row, col, value, result) {
     const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
@@ -540,18 +544,6 @@ const ExampleComponent = () => {
       searchResultCount++;
     }
   }
-  const hot4Settings = {
-    data,
-    colHeaders: true,
-    // enable the `Search` plugin
-    search: {
-      // add your custom callback function
-      callback: searchResultCounter
-    },
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-  let searchFieldKeyupCallback;
 
   useEffect(() => {
     const hot4 = hot4Ref.current.hotInstance;
@@ -569,15 +561,24 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
+    <>
       <div className="controls">
         <input id="search_field4" type="search" placeholder="Search" onKeyUp={(...args) => searchFieldKeyupCallback(...args)}/>
       </div>
       <output className="console" id="output">{output}</output>
-      <HotTable ref={hot4Ref} settings={hot4Settings}>
-      </HotTable>
-      
-    </Fragment>
+      <HotTable
+        ref={hot4Ref}
+        data={data}
+        colHeaders={true}
+        // enable the `Search` plugin
+        search={{
+          // add your custom callback function
+          callback: searchResultCounter
+        }}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+      />
+    </>
   );
 };
 
