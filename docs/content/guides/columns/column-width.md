@@ -50,7 +50,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -60,22 +59,17 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 50),
-    width: '100%',
-    height: 'auto',
-    colHeaders: true,
-    rowHeaders: true,
-    colWidths: 100,
-    manualColumnResize: true,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 50)}
+      width="100%"
+      height="auto"
+      colHeaders={true}
+      rowHeaders={true}
+      colWidths={100}
+      manualColumnResize={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -111,7 +105,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -121,22 +114,17 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 5),
-    width: '100%',
-    height: 'auto',
-    colHeaders: true,
-    rowHeaders: true,
-    colWidths: [50, 100, 200, 400],
-    manualColumnResize: true,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 5)}
+      width="100%"
+      height="auto"
+      colHeaders={true}
+      rowHeaders={true}
+      colWidths={[50, 100, 200, 400]}
+      manualColumnResize={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -174,7 +162,6 @@ const hot3 = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -184,24 +171,19 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hot3Settings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 5),
-    width: '100%',
-    height: 'auto',
-    colHeaders: true,
-    rowHeaders: true,
-    colWidths(index) {
-      return (index + 1) * 40;
-    },
-    manualColumnResize: true,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hot3Settings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 5)}
+      width="100%"
+      height="auto"
+      colHeaders={true}
+      rowHeaders={true}
+      colWidths={(index) => {
+        return (index + 1) * 40;
+      }}
+      manualColumnResize={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -239,7 +221,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -249,22 +230,17 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 6),
-    width: '100%',
-    height: 'auto',
-    colHeaders: true,
-    rowHeaders: true,
-    colWidths: [200, 100, 100], // initial width of the first 3 columns
-    manualColumnResize: true,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 6)}
+      width="100%"
+      height="auto"
+      colHeaders={true}
+      rowHeaders={true}
+      colWidths={[200, 100, 100]}
+      manualColumnResize={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -308,7 +284,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example5 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -318,22 +293,17 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 3),
-    width: '100%',
-    height: 'auto',
-    colHeaders: true,
-    rowHeaders: true,
-    stretchH: 'all', // 'none' is default
-    contextMenu: true,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 3)}
+      width="100%"
+      height="auto"
+      colHeaders={true}
+      rowHeaders={true}
+      stretchH="all"
+      contextMenu={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -370,7 +340,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example6 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -380,23 +349,18 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 4),
-    width: '100%',
-    height: 'auto',
-    colWidths: 80,
-    colHeaders: true,
-    rowHeaders: true,
-    stretchH: 'last',
-    contextMenu: true,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 4)}
+      width="100%"
+      height="auto"
+      colWidths={80}
+      colHeaders={true}
+      rowHeaders={true}
+      stretchH="last"
+      contextMenu={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 

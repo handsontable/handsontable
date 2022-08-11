@@ -40,7 +40,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -50,22 +49,17 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(200, 20),
-    width: '100%',
-    height: 320,
-    rowHeaders: true,
-    colHeaders: true,
-    colWidths: 100,
-    manualColumnMove: true,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(200, 20)}
+      width="100%"
+      height={320}
+      rowHeaders={true}
+      colHeaders={true}
+      colWidths={100}
+      manualColumnMove={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 

@@ -26,6 +26,7 @@ The maximum value for `colspan` for nested headers is 1000, meaning that the max
 
 ### Configuration
 
+::: only-for javascript
 ```js
 nestedHeaders: [
   ['A', { label: 'B', colspan: 8 }, 'C'],
@@ -34,6 +35,18 @@ nestedHeaders: [
   ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
 ]
 ```
+:::
+
+::: only-for react
+```jsx
+nestedHeaders={[
+  ['A', { label: 'B', colspan: 8 }, 'C'],
+  ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+  ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+  ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+]}
+```
+:::
 
 ### Example
 
@@ -62,7 +75,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -72,25 +84,21 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 10),
-    colHeaders: true,
-    rowHeaders: true,
-    height: 'auto',
-    nestedHeaders: [
+  return (
+  <HotTable
+    data={Handsontable.helper.createSpreadsheetData(5, 10)}
+    colHeaders={true}
+    rowHeaders={true}
+    height="auto"
+    nestedHeaders={[
       ['A', { label: 'B', colspan: 8 }, 'C'],
       ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
       ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
       ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
-    ],
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
-  return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    ]}
+    licenseKey="non-commercial-and-evaluation"
+      >
+  </HotTable>
   );
 };
 
@@ -115,12 +123,23 @@ To enable the Collapsible Columns plugin, either set the [`collapsibleColumns`](
 * `true` - this will enable the functionality for _all_ multi-column headers, every column with the `colspan` attribute defined will be extended with the "expand/collapse" button
 * An array of objects containing information specifying which headers should have the "expand/collapse" buttons for example:
 
+::: only-for javascript
 ```js
 collapsibleColumns: [
   { row: -4, col: 1, collapsible: true }, // Add the button to the 4th-level header of the 1st column - counting from the first table row upwards.
   { row: -3, col: 5, collapsible: true } // Add the button to the 3rd-level header of the 5th column - counting from the first table row upwards.
 ]
 ```
+:::
+
+::: only-for react
+```jsx
+collapsibleColumns={[
+  { row: -4, col: 1, collapsible: true }, // Add the button to the 4th-level header of the 1st column - counting from the first table row upwards.
+  { row: -3, col: 5, collapsible: true } // Add the button to the 3rd-level header of the 5th column - counting from the first table row upwards.
+]}
+```
+:::
 
 ### Example
 
@@ -156,7 +175,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -166,32 +184,28 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 10),
-    colHeaders: true,
-    rowHeaders: true,
-    colWidths: 60,
-    height: 'auto',
-    nestedHeaders: [
-      ['A', { label: 'B', colspan: 8 }, 'C'],
-      ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
-      ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
-      ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
-    ],
-    collapsibleColumns: [
-      { row: -4, col: 1, collapsible: true },
-      { row: -3, col: 1, collapsible: true },
-      { row: -2, col: 1, collapsible: true },
-      { row: -2, col: 3, collapsible: true }
-    ],
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 10)}
+      colHeaders={true}
+      rowHeaders={true}
+      colWidths={60}
+      height="auto"
+      nestedHeaders={[
+        ['A', { label: 'B', colspan: 8 }, 'C'],
+        ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+        ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+        ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+      ]}
+      collapsibleColumns={[
+        { row: -4, col: 1, collapsible: true },
+        { row: -3, col: 1, collapsible: true },
+        { row: -2, col: 1, collapsible: true },
+        { row: -2, col: 3, collapsible: true }
+      ]}
+      licenseKey="non-commercial-and-evaluation"        
+    >
+    </HotTable>
   );
 };
 
