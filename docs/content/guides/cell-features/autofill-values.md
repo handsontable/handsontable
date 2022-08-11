@@ -56,7 +56,6 @@ hot.loadData(data);
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -65,8 +64,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
-
   const data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
     ['2017', 10, 11, 12, 13],
@@ -75,26 +72,16 @@ const ExampleComponent = () => {
     ['2020', '', '', '', ''],
     ['2021', '', '', '', '']
   ];
-  const hotSettings = {
-    rowHeaders: true,
-    colHeaders: true,
-    fillHandle: true, // possible values: true, false, "horizontal", "vertical",
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
-  useEffect(() => {
-    const hot = hotRef.current.hotInstance;
-
-    //  or, use `updateData()` to replace `data` without resetting states
-    hot.loadData(data);
-  });
 
   return (
-    <Fragment>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={data}
+      rowHeaders={true}
+      colHeaders={true}
+      fillHandle={true} // possible values: true, false, "horizontal", "vertical",
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -140,7 +127,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -157,23 +143,19 @@ const ExampleComponent = () => {
     ['2020', '', '', '', ''],
     ['2021', '', '', '', '']
   ];
-  const hotSettings = {
-    data: data,
-    rowHeaders: true,
-    colHeaders: true,
-    fillHandle: {
-      direction: 'vertical',
-      autoInsertRow: true
-    },
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={data}
+      rowHeaders={true}
+      colHeaders={true}
+      fillHandle={{
+        direction: 'vertical',
+        autoInsertRow: true
+      }}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 

@@ -52,11 +52,17 @@ Manually defining those functions for cells or columns would be tedious, so to s
 
 ## Cell functions getters
 
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/react-methods.md) page.
+:::
+:::
+
 If, for some reason, you have to get the `renderer`, `editor` or `validator` function of specific cell you can use standard [`getCellMeta()`](@/api/core.md#getcellmeta) method to get all properties of particular cell and then refer to cell functions like so:
 
 ```js
-const container = document.querySelector('#container');
-
 // get cell properties for cell [0, 0]
 const cellProperties = hot.getCellMeta(0, 0);
 
@@ -67,6 +73,7 @@ cellProperties.validator; // get cell validator
 
 However, you have to remember that [`getCellMeta()`](@/api/core.md#getcellmeta) return cell properties "as they are", which means that if you use cell type to set cell functions, instead of defining functions directly those cell functions will be `undefined`:
 
+::: only-for javascript
 ```js
 const container = document.querySelector('#container');
 
@@ -84,6 +91,36 @@ cellProperties.editor; // undefined
 cellProperties.validator; // undefined
 cellProperties.type; // "numeric"
 ```
+:::
+
+::: only-for react
+```jsx
+const ExampleComponent = () => {
+  const hotRef = useRef();
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    // get cell properties for cell [0, 0]
+    const cellProperties = hot.getCellMeta(0, 0);
+
+    cellProperties.renderer; // undefined
+    cellProperties.editor; // undefined
+    cellProperties.validator; // undefined
+    cellProperties.type; // "numeric"
+  });
+
+  return (
+    <HotTable
+      ref={hotRef}
+      columns={[{
+        type: 'numeric'
+      }]}
+    />
+  );
+};
+```
+:::
 
 To get the actual cell function use appropriate _cell function getter_:
 

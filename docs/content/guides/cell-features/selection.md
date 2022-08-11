@@ -74,7 +74,7 @@ selectOption.addEventListener('change', event => {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -84,19 +84,8 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
-
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(10, 10),
-    width: 'auto',
-    height: 'auto',
-    colWidths: 100,
-    rowHeights: 23,
-    rowHeaders: true,
-    colHeaders: true,
-    selectionMode: 'multiple', // 'single', 'range' or 'multiple',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+  const hotRef = useRef();
+  
   let selectOptionChangeCallback;
 
   useEffect(() => {
@@ -113,17 +102,32 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
+    <>
+      <HotTable 
+        ref={hotRef}
+        data={Handsontable.helper.createSpreadsheetData(10, 10)}
+        width="auto"
+        height="auto"
+        colWidths={100}
+        rowHeights={23}
+        rowHeaders={true}
+        colHeaders={true}
+        selectionMode="multiple" // 'single', 'range' or 'multiple',
+        licenseKey="non-commercial-and-evaluation"
+      />
       <div className="controls">
-        <select id="selectOption" style={{width: 'auto', marginTop: 16}} onChange={(...args) => selectOptionChangeCallback(...args)} defaultValue="multiple">
+        <select 
+          id="selectOption" 
+          style={{width: 'auto', marginTop: 16}} 
+          onChange={(...args) => selectOptionChangeCallback(...args)} 
+          defaultValue="multiple"
+        >
           <option value="single">Single selection</option>
           <option value="range">Range selection</option>
           <option value="multiple">Multiple ranges selection</option>
         </select>
       </div>
-    </Fragment>
+    </>
   );
 };
 
@@ -183,7 +187,7 @@ getButton.addEventListener('click', event => {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -193,21 +197,9 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef();
   const [output, setOutput] = useState('');
-
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(10, 10),
-    width: 'auto',
-    height: 'auto',
-    colWidths: 100,
-    rowHeights: 23,
-    rowHeaders: true,
-    colHeaders: true,
-    outsideClickDeselects: false,
-    selectionMode: 'multiple', // 'single', 'range' or 'multiple',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+  
   let getButtonClickCallback;
 
   useEffect(() => {
@@ -228,15 +220,30 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
+    <>
+      <HotTable
+        ref={hotRef}
+        data={Handsontable.helper.createSpreadsheetData(10, 10)}
+        width="auto"
+        height="auto"
+        colWidths={100}
+        rowHeights={23}
+        rowHeaders={true}
+        colHeaders={true}
+        outsideClickDeselects={false}
+        selectionMode="multiple" // 'single', 'range' or 'multiple',
+        licenseKey="non-commercial-and-evaluation"
+      />
       <output className="console" id="output">{output}</output>
       <div className="controls">
-        <button id="getButton" onClick={(...args) => getButtonClickCallback(...args)}>Get data</button>
+        <button 
+          id="getButton" 
+          onClick={(...args) => getButtonClickCallback(...args)}
+        >
+          Get data
+        </button>
       </div>
-      
-    </Fragment>
+    </>
   );
 };
 
@@ -317,9 +324,7 @@ button.addEventListener('click', event => {
 }
 ```
 ```jsx
-// TODO: original example changed [react-content]
-
-import React, { Fragment, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -329,20 +334,8 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
-
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(10, 10),
-    width: 'auto',
-    height: 272,
-    colWidths: 100,
-    rowHeights: 23,
-    rowHeaders: true,
-    colHeaders: true,
-    outsideClickDeselects: false,
-    selectionMode: 'multiple', // 'single', 'range' or 'multiple',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+  const hotRef = useRef();
+  
   let buttonClickCallback;
 
   useEffect(() => {
@@ -375,15 +368,24 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
-      
+    <>
+      <HotTable
+        ref={hotRef}
+        data={Handsontable.helper.createSpreadsheetData(10, 10)}
+        width="auto"
+        height={272}
+        colWidths={100}
+        rowHeights={23}
+        rowHeaders={true}
+        colHeaders={true}
+        outsideClickDeselects={false}
+        selectionMode="multiple" // 'single', 'range' or 'multiple',
+        licenseKey="non-commercial-and-evaluation"
+      />
       <div className="controls">
         <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Change selected data and change the CSS class of the cell</button>
       </div>
-      
-    </Fragment>
+    </>
   );
 };
 
