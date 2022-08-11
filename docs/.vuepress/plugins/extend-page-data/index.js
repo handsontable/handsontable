@@ -5,7 +5,6 @@ const {
   getThisDocsVersion,
   getDocsBaseUrl,
   getPrettyFrameworkName,
-  isEnvDev,
   getDefaultFramework,
   FRAMEWORK_SUFFIX,
   getNotSearchableLinks,
@@ -55,7 +54,6 @@ module.exports = (options, context) => {
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
-      $page.isEnvDev = isEnvDev();
       $page.buildMode = buildMode;
       $page.isSearchable = notSearchableLinks[$page.currentFramework]?.every(
         notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);

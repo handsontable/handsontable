@@ -16,15 +16,6 @@ const frameworkToPrettyName = new Map([
 ]);
 
 /**
- * Get whether we work in dev mode (watch script).
- *
- * @returns {boolean}
- */
-function isEnvDev() {
-  return process.env.NODE_ENV === 'development';
-}
-
-/**
  * Gets all available frameworks.
  *
  * @returns {string[]}
@@ -226,7 +217,6 @@ module.exports = {
   getNotSearchableLinks,
   parseFramework,
   getDefaultFramework,
-  isEnvDev,
   createSymlinks,
   getThisDocsVersion,
   getDocsBaseUrl,
