@@ -15,7 +15,13 @@ The dropdown cell type is based on an autocomplete cell type and can also be sea
 ## Usage
 This example shows the usage of the dropdown feature. Dropdown is based on [Autocomplete](@/guides/cell-types/autocomplete-cell-type.md) cell type. All options used by `autocomplete` cell type apply to `dropdown` as well.
 
+::: only-for javascript
 Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplete', strict: true, filter: false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
+:::
+
+::: only-for react
+Internally, cell `type={'dropdown'}` is equivalent to cell `type={'autocomplete'} strict={true} filter={false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
+:::
 
 ::: only-for javascript
 ::: example #example1
@@ -51,7 +57,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -60,34 +65,29 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      ['Tesla', 2017, 'black', 'black'],
-      ['Nissan', 2018, 'blue', 'blue'],
-      ['Chrysler', 2019, 'yellow', 'black'],
-      ['Volvo', 2020, 'white', 'gray']
-    ],
-    colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
-    columns: [
-      {},
-      { type: 'numeric' },
-      {
-        type: 'dropdown',
-        source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
-      },
-      {
-        type: 'dropdown',
-        source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
-      }
-    ],
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        ['Tesla', 2017, 'black', 'black'],
+        ['Nissan', 2018, 'blue', 'blue'],
+        ['Chrysler', 2019, 'yellow', 'black'],
+        ['Volvo', 2020, 'white', 'gray']
+      ]}
+      colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
+      columns={[
+        {},
+        { type: 'numeric' },
+        {
+          type: 'dropdown',
+          source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
+        },
+        {
+          type: 'dropdown',
+          source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
+        }
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
