@@ -209,3 +209,42 @@ The `example` Markdown container offers the following options:
 | `--css <pos>`  | No       | `--css 2`       | Positive integer<br>(default `0`)                                                                                                                                                                                                                           | Sets the CSS code snippet's position<br>in the markdown container.<br><br>`0` disables the CSS tab.   |
 | `--no-edit`    | No       | `--no-edit`     | `--no-edit`                                                                                                                                                                                                                                                 | Removes the **Edit** button.                                                                          |
 | `--tab <tab>`  | No       | `--tab preview` | `code` \| `html` \| `css` \| `preview`                                                                                                                                                                                                                      | Sets a tab as open by default.                                                                        |
+
+## React style guide
+
+When you edit React examples and code samples, follow the guidelines below.
+
+For matters not covered here, follow the conventions of https://beta.reactjs.org/learn.
+
+- Don't gather multiple props in a single `settings={}` prop. Instead, specify individual props.
+  ```jsx
+  <HotTable>
+    data={data}
+    height="auto"
+  <HotTable/>
+  ```
+- In JSX, use double quotes (`""`). If a prop's value is a string, use double quotes without curly braces.
+  ```jsx
+  licenseKey="00000-00000-00000-00000-00000"
+  ```
+- In JS inside of JSX, use single quotes (`''`). For example, if a React prop contains a JS object:
+  ```jsx
+  <HotTable>
+    licenseKey="00000-00000-00000-00000-00000"
+    nestedHeaders={[
+      ['A', { label: 'B', colspan: 8 }, 'C']
+    ]}
+  <HotTable/>
+  ```
+- Get rid of elements that are not necessary (e.g., a `<Fragment>` with a single child).
+- Use named imports:
+  ```js
+  import { useRef } from 'react';
+  useRef(...);
+  ```
+- If a constant's value is a reference to the Handsontable component instance, add `Ref` to that constant's name.
+  ```js
+  const hotRef = useRef(null);
+  const hotTableComponentRef = useRef(null);
+  ```
+- In functional React components, use `useRef` instead of `React.createRef`.
