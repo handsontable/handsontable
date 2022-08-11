@@ -85,7 +85,8 @@ async function fetchDocsVersions() {
     try {
       docsData = await readFromDocsLatest();
     } catch { // ...or GH API as fallback
-      logger.warn(`The remote JSON file with Docs versions is inaccessible (https://handsontable.com). Switching to GH API.`);
+      logger.warn('The remote JSON file with Docs versions is inaccessible (https://handsontable.com). ' +
+                  'Switching to GH API.');
       docsData = await readFromGitHub();
     }
   }
