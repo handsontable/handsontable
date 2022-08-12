@@ -111,7 +111,7 @@ hot.loadData(data);
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -120,7 +120,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef();
 
   const templateValues = ['one', 'two', 'three'];
   const data = [
@@ -129,6 +129,7 @@ const ExampleComponent = () => {
     ['2018', 20, 11, 14, 13],
     ['2019', 30, 15, 12, 13]
   ];
+  let hot = null;
 
   function isEmptyRow(instance, row) {
     var rowData = instance.countRows();
@@ -155,62 +156,61 @@ const ExampleComponent = () => {
 
     Handsontable.renderers.TextRenderer.apply(this, args);
   }
-  const hotSettings = {
-    startRows: 8,
-    startCols: 5,
-    minSpareRows: 1,
-    contextMenu: true,
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
-    cells(row, col, prop) {
-      const cellProperties = {};
-
-      cellProperties.renderer = defaultValueRenderer;
-
-      return cellProperties;
-    },
-    beforeChange(changes) {
-      const instance = hot;
-      const columns = instance.countCols();
-      const rowColumnSeen = {};
-      const rowsToFill = {};
-
-      for (let i = 0; i < changes.length; i++) {
-        // if oldVal is empty
-        if (changes[i][2] === null && changes[i][3] !== null) {
-          if (isEmptyRow(instance, changes[i][0])) {
-            // add this row/col combination to the cache so it will not be overwritten by the template
-            rowColumnSeen[changes[i][0] + '/' + changes[i][1]] = true;
-            rowsToFill[changes[i][0]] = true;
-          }
-        }
-      }
-
-      for (var r in rowsToFill) {
-        if (rowsToFill.hasOwnProperty(r)) {
-          for (let c = 0; c < columns; c++) {
-            // if it is not provided by user in this change set, take the value from the template
-            if (!rowColumnSeen[r + '/' + c]) {
-              changes.push([r, c, null, templateValues[c]]);
-            }
-          }
-        }
-      }
-    }
-  };
 
   useEffect(() => {
-    const hot = hotRef.current.hotInstance;
+    hot = hotRef.current.hotInstance;
 
     //  or, use `updateData()` to replace `data` without resetting states
     hot.loadData(data);
   });
 
   return (
-    <Fragment>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <>
+      <HotTable
+        ref={hotRef}
+        startRows={8}
+        startCols={5}
+        minSpareRows={1}
+        contextMenu={true}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+        cells={function(row, col, prop) {
+          const cellProperties = {};
+
+          cellProperties.renderer = defaultValueRenderer;
+
+          return cellProperties;
+        }}
+        beforeChange={function(changes) {
+          const instance = hot;
+          const columns = instance.countCols();
+          const rowColumnSeen = {};
+          const rowsToFill = {};
+
+          for (let i = 0; i < changes.length; i++) {
+            // if oldVal is empty
+            if (changes[i][2] === null && changes[i][3] !== null) {
+              if (isEmptyRow(instance, changes[i][0])) {
+                // add this row/col combination to the cache so it will not be overwritten by the template
+                rowColumnSeen[changes[i][0] + '/' + changes[i][1]] = true;
+                rowsToFill[changes[i][0]] = true;
+              }
+            }
+          }
+
+          for (var r in rowsToFill) {
+            if (rowsToFill.hasOwnProperty(r)) {
+              for (let c = 0; c < columns; c++) {
+                // if it is not provided by user in this change set, take the value from the template
+                if (!rowColumnSeen[r + '/' + c]) {
+                changes.push([r, c, null, templateValues[c]]);
+              }
+            }
+          }
+        }
+        }}
+      />
+    </>
   );
 };
 
