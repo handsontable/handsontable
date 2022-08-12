@@ -10,10 +10,8 @@ const conditionalContainer = require('./plugins/markdown-it-conditional-containe
 const {
   getDocsBaseUrl,
   getThisDocsVersion,
-  TMP_DIR_FOR_WATCH,
+  MULTI_FRAMEWORKED_CONTENT_DIR,
   createSymlinks,
-  isEnvDev,
-  getIgnoredFilesPatterns,
 } = require('./helpers');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 
@@ -33,7 +31,7 @@ const environmentHead = isProduction ?
   ]
   : [];
 
-// The `vuepress dev` command needs placing directories in proper place. It's done by creating temporaty directories
+// The `vuepress dev` command needs placing directories in proper place. It's done by creating temporary directories
 // which are watched by the script. It's done before a compilation is starting.
 createSymlinks();
 
@@ -48,8 +46,7 @@ module.exports = {
     GA_ID: 'UA-33932793-7',
   },
   patterns: [
-    isEnvDev() ? `${TMP_DIR_FOR_WATCH}/**/*.md` : 'content/**/*.md',
-    ...getIgnoredFilesPatterns(),
+    `${MULTI_FRAMEWORKED_CONTENT_DIR}/**/*.md`,
   ],
   description: 'Handsontable',
   base,

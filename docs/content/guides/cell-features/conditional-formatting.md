@@ -110,7 +110,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -155,44 +154,40 @@ const ExampleComponent = () => {
   }
   //  maps function to a lookup string
   Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
-  const hotSettings = {
-    data: data,
-    licenseKey: 'non-commercial-and-evaluation',
-    height: 'auto',
-    afterSelection(row, col, row2, col2) {
-      const meta = this.getCellMeta(row2, col2);
-
-      if (meta.readOnly) {
-        this.updateSettings({ fillHandle: false });
-
-      } else {
-        this.updateSettings({ fillHandle: true });
-      }
-    },
-    cells(row, col) {
-      const cellProperties = {};
-      const data = this.instance.getData();
-
-      if (row === 0 || data[row] && data[row][col] === 'readOnly') {
-        cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
-      }
-
-      if (row === 0) {
-        cellProperties.renderer = firstRowRenderer; // uses function directly
-
-      } else {
-        cellProperties.renderer = 'negativeValueRenderer'; // uses lookup map
-      }
-
-      return cellProperties;
-    }
-  };
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={data}
+      licenseKey="non-commercial-and-evaluation"
+      height="auto"
+      afterSelection={function(row, col, row2, col2) {
+        const meta = this.getCellMeta(row2, col2);
+
+        if (meta.readOnly) {
+        this.updateSettings({ fillHandle: false });
+
+        } else {
+          this.updateSettings({ fillHandle: true });
+        }
+      }}
+      cells={function(row, col) {
+        const cellProperties = {};
+        const data = this.instance.getData();
+
+        if (row === 0 || data[row] && data[row][col] === 'readOnly') {
+        cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
+        }
+    
+        if (row === 0) {
+          cellProperties.renderer = firstRowRenderer; // uses function directly
+    
+        } else {
+          cellProperties.renderer = 'negativeValueRenderer'; // uses lookup map
+        }
+
+        return cellProperties;
+      }}
+    />
   );
 };
 

@@ -13,8 +13,7 @@ module.exports = function(src) {
       const fm = parseFrontmatter(fs.readFileSync(path.resolve(basePath, 'content', file)));
 
       if (fm.data.permalink) {
-        const framework = `${helpers.getEnvDocsFramework() ||
-          helpers.parseFramework(pathForServingDocs)}${helpers.FRAMEWORK_SUFFIX}`;
+        const framework = `${helpers.parseFramework(pathForServingDocs)}${helpers.FRAMEWORK_SUFFIX}`;
 
         permalink = `/${framework}${fm.data.permalink}`;
         permalink = permalink.endsWith('/') ? permalink : `${permalink}/`;

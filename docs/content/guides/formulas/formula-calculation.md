@@ -163,7 +163,6 @@ h3.demo-preview {
 }
 ```
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import { HyperFormula } from 'hyperformula';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -193,39 +192,34 @@ const ExampleComponent = () => {
     // initialize it with the `'internal-use-in-handsontable'` license key
     licenseKey: 'internal-use-in-handsontable',
   });
-  const hotSettings = {
-    data: data1,
-    colHeaders: true,
-    rowHeaders: true,
-    height: 'auto',
-    formulas: {
-      engine: hyperformulaInstance,
-      sheetName: 'Sheet1'
-    },
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
-  const hot2Settings = {
-    data: data2,
-    colHeaders: true,
-    rowHeaders: true,
-    height: 'auto',
-    formulas: {
-      engine: hyperformulaInstance,
-      sheetName: 'Sheet2'
-    },
-    licenseKey: 'non-commercial-and-evaluation'
-  };
 
   return (
-    <Fragment>
+    <>
       <h3 className="demo-preview">Sheet 1</h3>
-      <HotTable settings={hotSettings}>
-      </HotTable>
+      <HotTable
+        data={data1}
+        colHeaders={true}
+        rowHeaders={true}
+        height="auto"
+        formulas={{
+          engine: hyperformulaInstance,
+          sheetName: 'Sheet1'
+        }}
+        licenseKey="non-commercial-and-evaluation"
+      />
       <h3 className="demo-preview">Sheet 2</h3>
-      <HotTable settings={hot2Settings}>
-      </HotTable>
-    </Fragment>
+      <HotTable
+        data={data2}
+        colHeaders={true}
+        rowHeaders={true}
+        height="auto"
+        formulas={{
+          engine: hyperformulaInstance,
+          sheetName: 'Sheet2'
+        }}
+        licenseKey="non-commercial-and-evaluation"
+      />
+    </>
   );
 };
 
@@ -366,7 +360,6 @@ new Handsontable(container, {
 ::: only-for react
 ::: example #example-data-grid :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import { HyperFormula } from 'hyperformula';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -480,24 +473,19 @@ const ExampleComponent = () => {
     ['Sum', 'Average', 'Average', 'Sum', 'Sum'],
     ['=SUM(A1:A100)', '=AVERAGE(B1:B100)', '=AVERAGE(C1:C100)', '=SUM(D1:D100)', '=SUM(E1:E100)']
   ];
-  const hotSettings = {
-    data: data,
-    formulas: {
-      engine: HyperFormula,
-    },
-    colHeaders: ['Qty', 'Unit price', 'Discount', 'Freight', 'Total due (fx)'],
-    fixedRowsBottom: 2,
-    stretchH: 'all',
-    height: 500,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={data}
+      formulas={{
+        engine: HyperFormula,
+      }}
+      colHeaders={['Qty', 'Unit price', 'Discount', 'Freight', 'Total due (fx)']}
+      fixedRowsBottom={2}
+      stretchH="all"
+      height={500}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -534,6 +522,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 
 ### Passing the HyperFormula class/instance to Handsontable
 
+::: only-for javascript
 ```js
 {
   formulas: {
@@ -542,9 +531,22 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
   }
 }
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  formulas={{
+    engine: HyperFormula,
+    // [plugin configuration]
+  }}
+/>
+```
+:::
 
 or
 
+::: only-for javascript
 ```js
 {
   formulas: {
@@ -558,9 +560,27 @@ or
   }
 }
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  formulas={{
+    engine: {
+      hyperformula: HyperFormula, // or `engine: hyperformulaInstance`
+      leapYear1900: false,
+      // ...and more engine configuration options.
+      // See https://handsontable.github.io/hyperformula/api/interfaces/configparams.html#number
+    },
+    // [plugin configuration]
+  }}
+/>
+```
+:::
 
 ### Single Handsontable instance with an external HyperFormula instance
 
+::: only-for javascript
 ```js
 const hyperformulaInstance = HyperFormula.buildEmpty({
   // to use an external HyperFormula instance,
@@ -574,9 +594,31 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
   }
 }
 ```
+:::
+
+::: only-for react
+```jsx
+const ExampleComponent = () => {
+  const hyperformulaInstance = HyperFormula.buildEmpty({
+    // to use an external HyperFormula instance,
+    // initialize it with the `'internal-use-in-handsontable'` license key
+    licenseKey: 'internal-use-in-handsontable',
+  });
+
+  return (
+    <HotTable
+      formulas={{
+        engine: hyperformulaInstance
+      }}
+    />
+  );
+};
+```
+:::
 
 ### Multiple independent Handsontable instances
 
+::: only-for javascript
 ```js
 // Instance 1
 {
@@ -594,7 +636,32 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
   }
 }
 ```
+:::
 
+::: only-for react
+```jsx
+const ExampleComponent = () => {
+  return (
+    <>
+      <HotTable
+        formulas={{
+          engine: HyperFormula,
+          // [plugin configuration]
+        }}
+      />
+      <HotTable
+        formulas={{
+          engine: HyperFormula,
+          // [plugin configuration]
+        }}
+      />
+    </>
+  );
+};
+```
+:::
+
+::: only-for javascript
 ### Multiple Handsontable instances with a shared HyperFormula instance
 
 ```js
@@ -616,9 +683,11 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
   }
 }
 ```
+:::
 
 ### Multiple Handsontable instances with an external shared HyperFormula instance
 
+::: only-for javascript
 ```js
 const hyperformulaInstance = HyperFormula.buildEmpty({
   // to use an external HyperFormula instance,
@@ -644,11 +713,44 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
   }
 }
 ```
+:::
+
+::: only-for react
+```jsx
+const ExampleComponent = () => {
+  const hyperformulaInstance = HyperFormula.buildEmpty({
+    // to use an external HyperFormula instance,
+    // initialize it with the `'internal-use-in-handsontable'` license key
+    licenseKey: 'internal-use-in-handsontable',
+  });
+
+  return (
+    <>
+      <HotTable
+        formulas={{
+          engine: hyperformulaInstance,
+          sheetName: 'Sheet1'
+          // [plugin configuration]
+        }}
+      />
+      <HotTable
+        formulas={{
+          engine: hyperformulaInstance,
+          sheetName: 'Sheet2'
+          // [plugin configuration]
+        }}
+      />
+    </>
+  );
+};
+```
+:::
 
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
 This hook listens for any changes to cells in the calculation engine, including dependent cells containing formulas.
 
+::: only-for javascript
 ```js
 const afterFormulasValuesUpdate = (changes) => {
   changes.forEach((change) => {
@@ -663,6 +765,28 @@ new Handsontable(element, {
   afterFormulasValuesUpdate
 })
 ```
+:::
+
+::: only-for react
+```jsx
+const ExampleComponent = () => {
+  const afterFormulasValuesUpdate = (changes) => {
+    changes.forEach((change) => {
+      console.log('change', change.address, change.newValue)
+    })
+  }
+
+  return (
+    <HotTable
+      formulas={{
+        engine: HyperFormula
+      }}
+      afterFormulasValuesUpdate={afterFormulasValuesUpdate}
+    />
+  );
+};
+```
+:::
 
 ## Named expressions
 
@@ -720,7 +844,7 @@ button.addEventListener('click', (event) => {
 ::: only-for react
 ::: example #example-named-expressions1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { HyperFormula } from 'hyperformula';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -730,7 +854,8 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotNamedExpressionsRef = React.createRef();
+  const hotNamedExpressionsRef = useRef();
+  const [namedExpressionValue, setNamedExpressionValue] = useState('=10 * Sheet1!$A$2');
 
   const data = [
     ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
@@ -738,42 +863,53 @@ const ExampleComponent = () => {
     ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
     ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)']
   ];
-  const hotNamedExpressionsSettings = {
-    data: data,
-    colHeaders: true,
-    rowHeaders: true,
-    height: 'auto',
-    formulas: {
-      engine: HyperFormula,
-      namedExpressions: [{
-        name: 'ADDITIONAL_COST',
-        expression: 100
-      }]
-    },
-    licenseKey: 'non-commercial-and-evaluation'
+  const inputChangeCallback = (event) => {
+    setNamedExpressionValue(event.target.value);
   };
   let buttonClickCallback;
 
   useEffect(() => {
     const hotNamedExpressions = hotNamedExpressionsRef.current.hotInstance;
-
     const formulasPlugin = hotNamedExpressions.getPlugin('formulas');
+
     buttonClickCallback = (event) => {
-      formulasPlugin.engine.changeNamedExpression('ADDITIONAL_COST', input.value);
+      formulasPlugin.engine.changeNamedExpression('ADDITIONAL_COST', namedExpressionValue);
+
       hotNamedExpressions.render();
     };
   });
 
   return (
-    <Fragment>
-      <HotTable ref={hotNamedExpressionsRef} settings={hotNamedExpressionsSettings}>
-      </HotTable>
+    <>
+      <HotTable
+        ref={hotNamedExpressionsRef}
+        data={data}
+        colHeaders={true}
+        rowHeaders={true}
+        height="auto"
+        formulas={{
+          engine: HyperFormula,
+          namedExpressions: [{
+            name: 'ADDITIONAL_COST',
+            expression: 100
+          }]
+        }}
+        licenseKey="non-commercial-and-evaluation"
+      />
       <div className="controls">
-        <input id="named-expressions-input" type="text" value="=10 * Sheet1!$A$2"/>
-        <button id="named-expressions-button" onClick={(...args) => buttonClickCallback(...args)}>Calculate price</button>
+        <input 
+          id="named-expressions-input" 
+          type="text" 
+          defaultValue={namedExpressionValue} 
+          onChange={(...args) => inputChangeCallback(...args)}/>
+        <button 
+          id="named-expressions-button" 
+          onClick={(...args) => buttonClickCallback(...args)}
+        >
+          Calculate price
+        </button>
       </div>
-      
-    </Fragment>
+    </>
   );
 };
 
