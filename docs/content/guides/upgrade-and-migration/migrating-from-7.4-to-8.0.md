@@ -18,7 +18,7 @@ This guide helps you upgrade your Handsontable version to 8.0.0. We strongly rec
 
 In previous versions of Handsontable, the calculation between physical and visual indexes was based on callbacks between [Handsontable's hooks](@/api/hooks.md). As Handsontable was getting more features, in some cases, its growing complexity led to calculation inconsistencies. To fix that, we made a major change to how indexes are mapped.
 
-Handsontable 8.0.0 introduces an [index mapper](@/api/indexMapper.md) that stores, manages, and registers indexes globally. Under the hood, it is indirectly responsible for managing both rows and columns, as a single source of truth to refer to. This modification is a major rewrite of a core feature and may result in breaking changes in your application.
+Handsontable 8.0.0 introduces [`IndexMapper`](@/api/indexMapper.md), a new API that stores, manages, and registers indexes globally. Under the hood, it is indirectly responsible for managing both rows and columns, as a single source of truth to refer to. This modification is a major rewrite of a core feature and may result in breaking changes in your application.
 
 ## General guidelines
 
@@ -493,7 +493,7 @@ The following Handsontable hooks have different sets of parameters now:
 - [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove)
 - [`afterColumnMove`](@/api/hooks.md#aftercolumnmove)
 
-Methods [`moveColumn()`](@/api/manualColumnMove.md#movecolumn), [`moveColumns()`](@/api/manualColumnMove.md#movecolumns), [`moveRow()`](@/api/manualRowMove.md#moverow), and [`moveRows()`](@/api/manualRowMove.md#moverows) have different parameters now. Starting with Handsontable 8.0.0, the `target` parameter was changed to `finalIndex`. They work differently now and a **new [`dragRow()`](@/api/manualRowMove.md#dragrow), [`dragRows()`](@/api/manualRowMove.md#dragrows), [`dragColumn`](@/api/manualColumnMove.md#dragcolumn) and [`dragColumns()`](@/api/manualColumnMove.md#dragcolumns) methods took over the old methods' functionality**.
+Methods [`moveColumn()`](@/api/manualColumnMove.md#movecolumn), [`moveColumns()`](@/api/manualColumnMove.md#movecolumns), [`moveRow()`](@/api/manualRowMove.md#moverow), and [`moveRows()`](@/api/manualRowMove.md#moverows) have different parameters now. Starting with Handsontable 8.0.0, the `target` parameter was changed to `finalIndex`. They work differently now and a new [`dragRow()`](@/api/manualRowMove.md#dragrow), [`dragRows()`](@/api/manualRowMove.md#dragrows), [`dragColumn`](@/api/manualColumnMove.md#dragcolumn) and [`dragColumns()`](@/api/manualColumnMove.md#dragcolumns) methods took over the old methods' functionality.
 
 To preserve the previous functionality of [`moveRows()`](@/api/manualRowMove.md#moverows) rename it to [`dragRows()`](@/api/manualRowMove.md#dragrows).
 
@@ -505,7 +505,7 @@ The `drag*` methods come with a parameter called `dropIndex`. It directs where t
 
 ![drag_action]({{$basePath}}/img/drag_action.svg)
 
-The `move*` methods comes with a parameter called `finalIndex`. It tells where to **overlap** the first element from the moved ones. The place you intend to move the element is managed by **visual indexes**.
+The `move*` methods come with a parameter called `finalIndex`. It tells where to **overlap** the first element from the moved ones. The place you intend to move the element is managed by **visual indexes**.
 
 ![move_action]({{$basePath}}/img/move_action.svg)
 
