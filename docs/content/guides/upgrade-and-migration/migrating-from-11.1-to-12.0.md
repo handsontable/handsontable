@@ -27,9 +27,11 @@ Each [`updateSettings()`](@/api/core.md#updatesettings) call with the [`data`](@
 
 #### Migrating to Handsontable 12.0
 
+::: only-for javascript
 If you need to reset your index mapper information and configuration options  along with updating your [`data`](@/api/options.md#data):
 
 - Instead of passing the [`data`](@/api/options.md#data) option to the [`updateSettings()`](@/api/core.md#updatesettings) method, run [`loadData()`](@/api/core.md#loadData) and provide the new dataset as its argument:
+
 ```js
 // Handsontable 12.0: this doesn't reset your configuration options and index mapper information
 hotInstance.updateSettings({
@@ -39,7 +41,31 @@ hotInstance.updateSettings({
 // Handsontable 12.0: this does reset your configuration options and index mapper information
 hotInstance.loadData(newDataset);
 ```
+:::
 
+::: only-for react
+Updating your [`data`](@/api/options.md#data) through a component's property no longer resets your [index mapper](@/api/indexMapper.md) information and [configuration options](@/guides/getting-started/setting-options.md).
+
+If you still want to reset the states when replacing [`data`](@/api/options.md#data), call the [`loadData()`](@/api/core.md#loadData) method, referencing the Handsontable instance from the component:
+
+```jsx
+import { useRef } from 'react';
+
+const hotTableComponentRef = useRef();
+
+// Handsontable 12.0: this doesn't reset your configuration options and index mapper information
+hotTableComponentRef.current.hotInstance.updateSettings({
+  data: newDataset
+});
+
+// Handsontable 12.0: this does reset your configuration options and index mapper information
+hotTableComponentRef.current.hotInstance.loadData(newDataset);
+```
+
+To learn more about referencing the Handsontable instance, see the [Instance methods](@/guides/getting-started/react-methods.md) guide.
+:::
+
+::: only-for javascript
 #### Framework wrappers
 
 Updating your [`data`](@/api/options.md#data) through a component property no longer resets your index mapper information and configuration options.
@@ -48,9 +74,10 @@ To replace [`data`](@/api/options.md#data) and reset the states, call the [`load
 
 Read more on referencing the Handsontable instance:
 - [Referencing the Handsontable instance in Angular](@/guides/integrate-with-angular/angular-hot-reference.md)
-- [Referencing the Handsontable instance in React](../../react-data-grid)
+- [Referencing the Handsontable instance in React](../../react-data-grid/methods)
 - [Referencing the Handsontable instance in Vue 2](@/guides/integrate-with-vue/vue-hot-reference.md)
 - [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference.md)
+:::
 
 ## Step 2: Adjust to the `updatePlugin()` changes
 
@@ -227,8 +254,8 @@ Handsontable 12.0.0 makes it clear that Handsontable's rendering engine (`_wt`, 
 
 To emphasize this, we changed the following property name:
 
-| Before                    | After                      |
-| ------------------------- | -------------------------- |
+| Before                         | After                           |
+| ------------------------------ | ------------------------------- |
 | `handsontableInstance.view.wt` | `handsontableInstance.view._wt` |
 
 #### Migrating to Handsontable 12.0
