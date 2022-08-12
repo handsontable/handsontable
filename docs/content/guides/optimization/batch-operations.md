@@ -281,6 +281,7 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef();
+  const [counter, setCounter] = useState(0);
   const [output, setOutput] = useState('');
 
   const data2 = [
@@ -292,14 +293,11 @@ const ExampleComponent = () => {
     [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
   ];
   const logOutput = msg => {
-    counter++;
-    loggedText = `[${counter}] ${msg}\n${loggedText}`;
-    setOutput(loggedText);
+    setCounter(counter + 1);
+    setOutput(`[${counter}] ${msg}\n${output}`);
   }
   let buttonWithoutClickCallback;
   let buttonWithClickCallback;
-  let loggedText = '';
-  let counter = 0;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
@@ -365,7 +363,7 @@ const ExampleComponent = () => {
         <button id="buttonWithout" className="button button--primary" onClick={(...args) => buttonWithoutClickCallback(...args)}>Run without batch method</button>
         <button id="buttonWith" className="button button--primary" onClick={(...args) => buttonWithClickCallback(...args)}>Run with batch method</button>
       </div>
-      <output className="console" id="output">{output}</output>
+      <output className="console" id="output">{output || 'Here you will see the log'}</output>
     </>
   );
 };
@@ -375,7 +373,6 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 :::
 
-[//]: # (// TODO: [react-docs] In the above demo, output console does not work in React as in the JS variant)
 
 ## Related articles
 
