@@ -59,7 +59,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -68,36 +67,31 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
-      { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
-      { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
-      { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
-      { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
-    ],
-    colHeaders: ['Car model', 'Year of manufacture', 'Available'],
-    height: 'auto',
-    columns: [{
-      data: 'car'
-    },
-      {
-        data: 'year',
-        type: 'numeric'
-      },
-      {
-        data: 'available',
-        type: 'checkbox'
-      }
-    ],
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+        { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+        { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+        { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+        { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+      ]}
+      colHeaders={['Car model', 'Year of manufacture', 'Available']}
+      height="auto"
+      columns={[{
+          data: 'car'
+        },
+        {
+          data: 'year',
+          type: 'numeric'
+        },
+        {
+          data: 'available',
+          type: 'checkbox'
+        }
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -150,7 +144,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -159,38 +152,33 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
-      { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
-      { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
-      { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
-      { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
-    ],
-    colHeaders: ['Car model', 'Year of manufacture', 'Comes in black'],
-    height: 'auto',
-    columns: [{
-      data: 'car'
-    },
-      {
-        data: 'year',
-        type: 'numeric'
-      },
-      {
-        data: 'comesInBlack',
-        type: 'checkbox',
-        checkedTemplate: 'yes',
-        uncheckedTemplate: 'no'
-      }
-    ],
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+        { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+        { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+        { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+        { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+      ]}
+      colHeaders={['Car model', 'Year of manufacture', 'Comes in black']}
+      height="auto"
+      columns={[{
+          data: 'car'
+        },
+        {
+          data: 'year',
+          type: 'numeric'
+        },
+        {
+          data: 'comesInBlack',
+          type: 'checkbox',
+          checkedTemplate: 'yes',
+          uncheckedTemplate: 'no'
+        }
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -251,7 +239,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -260,46 +247,41 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
-      { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
-      { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
-      { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
-      { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
-    ],
-    colHeaders: ['Car model', 'Accepted', 'Comes in black'],
-    height: 'auto',
-    columns: [{
-      data: 'car'
-    },
-      {
-        data: 'available',
-        type: 'checkbox',
-        label: {
-          position: 'after',
-          property: 'car' // Read value from row object
-        },
-      },
-      {
-        data: 'comesInBlack',
-        type: 'checkbox',
-        checkedTemplate: 'yes',
-        uncheckedTemplate: 'no',
-        label: {
-          position: 'before',
-          value: 'In black? '
-        },
-      },
-    ],
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+        { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+        { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+        { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+        { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+      ]}
+      colHeaders={['Car model', 'Accepted', 'Comes in black']}
+      height="auto"
+      columns={[{
+          data: 'car'
+        },
+        {
+          data: 'available',
+          type: 'checkbox',
+          label: {
+            position: 'after',
+            property: 'car' // Read value from row object
+          },
+        },
+        {
+          data: 'comesInBlack',
+          type: 'checkbox',
+          checkedTemplate: 'yes',
+          uncheckedTemplate: 'no',
+          label: {
+            position: 'before',
+            value: 'In black? '
+          },
+        },
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
