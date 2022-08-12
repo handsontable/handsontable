@@ -41,7 +41,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -50,28 +49,23 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
-      { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
-      { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
-    ],
-    colHeaders: ['ID', 'First name', 'Last name', 'Password'],
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
-    columns: [
-      { data: 'id' },
-      { data: 'name.first' },
-      { data: 'name.last' },
-      { data: 'password', type: 'password' }
-    ]
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+        { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+        { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
+      ]}
+      colHeaders={['ID', 'First name', 'Last name', 'Password']}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+      columns={[
+        { data: 'id' },
+        { data: 'name.first' },
+        { data: 'name.last' },
+        { data: 'password', type: 'password' }
+      ]}
+    />
   );
 };
 
@@ -113,7 +107,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -122,28 +115,23 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
-      { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
-      { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
-    ],
-    colHeaders: ['ID', 'First name', 'Last name', 'Password'],
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
-    columns: [
-      { data: 'id' },
-      { data: 'name.first' },
-      { data: 'name.last' },
-      { data: 'password', type: 'password', hashLength: 10 }
-    ]
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+        { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+        { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
+      ]}
+      colHeaders={['ID', 'First name', 'Last name', 'Password']}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+      columns={[
+        { data: 'id' },
+        { data: 'name.first' },
+        { data: 'name.last' },
+        { data: 'password', type: 'password', hashLength: 10 }
+      ]}
+    />
   );
 };
 
@@ -194,28 +182,23 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
-      { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
-      { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
-    ],
-    colHeaders: ['ID', 'First name', 'Last name', 'Password'],
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
-    columns: [
-      { data: 'id' },
-      { data: 'name.first' },
-      { data: 'name.last' },
-      { data: 'password', type: 'password', hashSymbol: '■' }
-    ]
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+        { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+        { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
+      ]}
+      colHeaders={['ID', 'First name', 'Last name', 'Password']}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+      columns={[
+        { data: 'id' },
+        { data: 'name.first' },
+        { data: 'name.last' },
+        { data: 'password', type: 'password', hashSymbol: '&#9632;' }
+      ]}
+    />
   );
 };
 
