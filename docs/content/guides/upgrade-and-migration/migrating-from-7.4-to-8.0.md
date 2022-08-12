@@ -801,7 +801,7 @@ hotTableComponentRef.current.hotInstance.getSelectedRangeLast().from.clone().nor
 
 ### Removals
 
-Handsontable' `skipLengthCache` hook was removed, as [`IndexMapper`](@/api/indexMapper.md) is now responsible for the cache and length.
+Handsontable's `skipLengthCache` hook was removed, as [`IndexMapper`](@/api/indexMapper.md) is now responsible for the cache and length.
 
 Public methods `colOffset()` and `rowOffset()` were removed and their functionality is now for internal use only.
 
