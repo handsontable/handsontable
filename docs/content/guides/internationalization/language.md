@@ -165,7 +165,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ::: only-for react
 ::: tip
-Note that the `language` property is bound to the component separately using `language={language}"`, but it could be included in the `settings` property just as well.
+Note that the `language` property is bound to the component separately using `language={language}`, but it could be included in the `settings` property just as well.
 :::
 
 ::: example #example2 :react-languages
