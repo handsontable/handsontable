@@ -99,7 +99,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react-languages
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -107,54 +106,47 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+//  generate random RTL data (e.g., Arabic)
+function generateArabicData() {
+  const randomName = () => ["عمر", "علي", "عبد الله", "معتصم"][Math.floor(Math.random() * 3)];
+  const randomCountry = () => ["تركيا", "مصر", "لبنان", "العراق"][Math.floor(Math.random() * 3)];
+  const randomDate = () =>
+          new Date(Math.floor(Math.random() * Date.now())).toLocaleDateString()
+  const randomBool = () => Math.random() > 0.5;
+  const randomNumber = (a = 0, b = 1000) => a + Math.floor(Math.random() * b);
+  const randomPhrase = () =>
+          `${randomCountry()} ${randomName()} ${randomNumber()}`;
+
+  const arr = Array.from({ length: 10 }, () => [
+    randomBool(),
+    randomName(),
+    randomCountry(),
+    randomPhrase(),
+    randomDate(),
+    randomPhrase(),
+    randomBool(),
+    randomNumber(0, 200).toString(),
+    randomNumber(0, 10),
+    randomNumber(0, 5),
+  ]);
+
+  return arr;
+}
+
 const ExampleComponent = () => {
-  //  generate random RTL data (e.g., Arabic)
-  function generateArabicData() {
-    const randomName = () => ["عمر", "علي", "عبد الله", "معتصم"][Math.floor(Math.random() * 3)];
-    const randomCountry = () => ["تركيا", "مصر", "لبنان", "العراق"][Math.floor(Math.random() * 3)];
-    const randomDate = () =>
-            new Date(Math.floor(Math.random() * Date.now())).toLocaleDateString()
-    const randomBool = () => Math.random() > 0.5;
-    const randomNumber = (a = 0, b = 1000) => a + Math.floor(Math.random() * b);
-    const randomPhrase = () =>
-            `${randomCountry()} ${randomName()} ${randomNumber()}`;
-
-    const arr = Array.from({ length: 10 }, () => [
-      randomBool(),
-      randomName(),
-      randomCountry(),
-      randomPhrase(),
-      randomDate(),
-      randomPhrase(),
-      randomBool(),
-      randomNumber(0, 200).toString(),
-      randomNumber(0, 10),
-      randomNumber(0, 5),
-    ]);
-
-    return arr;
-  }
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: generateArabicData(),
-    colHeaders: true,
-    rowHeaders: true,
-    height: 'auto',
-    // render Handsontable from the right to the left
-    layoutDirection: 'rtl',
-    // load an RTL language (e.g., Arabic)
-    language: 'ar-AR',
-    // enable a few options that exemplify the layout direction
-    dropdownMenu: true,
-    filters: true,
-    contextMenu: true
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={generateArabicData()}
+      colHeaders={true}
+      rowHeaders={true}
+      height="auto"
+      layoutDirection="rtl"
+      language="ar-AR"
+      dropdownMenu={true}
+      filters={true}
+      contextMenu={true}
+    />
   );
 };
 
@@ -233,7 +225,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -242,29 +233,22 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: [
-      ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-      ['2019', 10, 11, 12, 13],
-      ['2020', 20, 11, 14, 13],
-      ['2021', 30, 15, 12, 13]
-    ],
-    colHeaders: true,
-    rowHeaders: true,
-    height: 'auto',
-    // inherit Handsontable's layout direction
-    // from the value of your HTML document's `dir` attribute
-    layoutDirection: 'inherit',
-  };
-
   return (
-    <Fragment>
-      <section dir="rtl">
-        <HotTable settings={hotSettings}>
-        </HotTable>
-      </section>
-    </Fragment>
+    <section dir="rtl">
+      <HotTable
+        licenseKey="non-commercial-and-evaluation"
+        data={[
+          ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+          ['2019', 10, 11, 12, 13],
+          ['2020', 20, 11, 14, 13],
+          ['2021', 30, 15, 12, 13]
+        ]}
+        colHeaders={true}
+        rowHeaders={true}
+        height="auto"
+        layoutDirection="inherit"
+      />
+    </section>
   );
 };
 
@@ -308,7 +292,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -317,27 +300,20 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: [
-      ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-      ['2019', 10, 11, 12, 13],
-      ['2020', 20, 11, 14, 13],
-      ['2021', 30, 15, 12, 13]
-    ],
-    colHeaders: true,
-    rowHeaders: true,
-    height: 'auto',
-    // render Handsontable from the right to the left
-    // regardless of your HTML document's `dir`
-    layoutDirection: 'rtl',
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={[
+        ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+        ['2019', 10, 11, 12, 13],
+        ['2020', 20, 11, 14, 13],
+        ['2021', 30, 15, 12, 13]
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      height="auto"
+      layoutDirection="rtl"
+    />
   );
 };
 
@@ -381,7 +357,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -390,27 +365,20 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: [
-      ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-      ['2019', 10, 11, 12, 13],
-      ['2020', 20, 11, 14, 13],
-      ['2021', 30, 15, 12, 13]
-    ],
-    colHeaders: true,
-    rowHeaders: true,
-    height: 'auto',
-    // render Handsontable from the left to the right
-    // regardless of your HTML document's `dir`
-    layoutDirection: 'ltr',
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={[
+        ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+        ['2019', 10, 11, 12, 13],
+        ['2020', 20, 11, 14, 13],
+        ['2021', 30, 15, 12, 13]
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      height="auto"
+      layoutDirection="ltr"
+    />
   );
 };
 
@@ -463,7 +431,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example5 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -472,37 +439,30 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: [
-      ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-      ['2019', 10, 11, 12, 13],
-      ['2020', 20, 11, 14, 13],
-      ['2021', 30, 15, 12, 13]
-    ],
-    colHeaders: true,
-    rowHeaders: true,
-    height: 'auto',
-    // render Handsontable from the right to the left
-    // regardless of your HTML document's `dir`
-    layoutDirection: 'rtl',
-    columns: [
-      {},
-      // align this column's text to the left
-      { className: 'htLeft' },
-      // align this column's text to the center
-      { className: 'htCenter' },
-      // align this column's text to the right
-      { className: 'htRight' },
-      {},
-    ]
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={[
+        ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+        ['2019', 10, 11, 12, 13],
+        ['2020', 20, 11, 14, 13],
+        ['2021', 30, 15, 12, 13]
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      height="auto"
+      layoutDirection="rtl"
+      columns={[
+        {},
+        // align this column's text to the left
+        { className: 'htLeft' },
+        // align this column's text to the center
+        { className: 'htCenter' },
+        // align this column's text to the right
+        { className: 'htRight' },
+        {},
+      ]}
+    />
   );
 };
 
