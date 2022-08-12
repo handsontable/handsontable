@@ -175,6 +175,60 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 :::
 :::
 
+::: only-for react
+## Context menu with custom options
+
+In addition to built-in options, you can equip your context menu with custom options.
+
+::: example #example4 :react
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { ContextMenu } from 'handsontable/plugins/contextMenu';
+import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hotSettings = {
+  data: createSpreadsheetData(5, 5),
+  colHeaders: true,
+  height: 'auto',
+  contextMenu: {
+    items: {
+      'row_above': {
+        name: 'Insert row above this one (custom name)'
+      },
+      'row_below': {},
+      'separator': ContextMenu.SEPARATOR,
+      'clear_custom': {
+        name: 'Clear all cells (custom)',
+        callback: function() {
+          this.clear();
+        }
+      }
+    }
+  },
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const ExampleComponent = () => {
+  return (
+    <div>
+      <HotTable
+        id="hot"
+        settings={hotSettings}
+      />
+    </div>
+  )
+}
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+```
+:::
+:::
 
 ## Context menu with fully custom configuration
 
@@ -374,62 +428,6 @@ const ExampleComponent = () => {
 };
 
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
-```
-:::
-:::
-
-
-::: only-for react
-## Context menu example
-
-The following example is an implementation of the `@handsontable/react` component, with a custom context menu added using React:
-
-::: example #example4 :react
-```jsx
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { ContextMenu } from 'handsontable/plugins/contextMenu';
-import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
-
-// register Handsontable's modules
-registerAllModules();
-
-const hotSettings = {
-  data: createSpreadsheetData(5, 5),
-  colHeaders: true,
-  height: 'auto',
-  contextMenu: {
-    items: {
-      'row_above': {
-        name: 'Insert row above this one (custom name)'
-      },
-      'row_below': {},
-      'separator': ContextMenu.SEPARATOR,
-      'clear_custom': {
-        name: 'Clear all cells (custom)',
-        callback: function() {
-          this.clear();
-        }
-      }
-    }
-  },
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const ExampleComponent = () => {
-  return (
-    <div>
-      <HotTable
-        id="hot"
-        settings={hotSettings}
-      />
-    </div>
-  )
-}
-
-ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 ```
 :::
 :::
