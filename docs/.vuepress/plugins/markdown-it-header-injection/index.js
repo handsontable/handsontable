@@ -1,4 +1,4 @@
-const { getPrettyFrameworkName, getEnvDocsFramework, parseFramework } = require('../../helpers');
+const { getPrettyFrameworkName, parseFramework } = require('../../helpers');
 
 module.exports = function firstHeaderInjection(markdown) {
   const insertedTokenTag = 'span';
@@ -15,7 +15,7 @@ module.exports = function firstHeaderInjection(markdown) {
       return;
     }
 
-    const frameworkId = getEnvDocsFramework() || parseFramework(relativePath);
+    const frameworkId = parseFramework(relativePath);
 
     if (frameworkId === void 0) {
       return;

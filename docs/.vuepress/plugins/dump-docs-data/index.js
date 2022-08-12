@@ -25,7 +25,7 @@ module.exports = (options, context) => {
     name: pluginName,
 
     /**
-     * Based on the permalink of the latest docs version generate nginx redirect rules.
+     * Collect the canonical URLs of the currently generated Docs version.
      *
      * @param {object} $page The $page value of the page you’re currently reading.
      */

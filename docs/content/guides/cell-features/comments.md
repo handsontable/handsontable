@@ -19,12 +19,23 @@ This feature makes it possible to add, edit and remove comments in Handsontable 
 
 Set the [`comments`](@/api/options.md#comments) configuration option to `true` to enable the feature and add all the needed context menu items. For example:
 
+::: only-for javascript
 ```js
 const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
   comments: true
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  data={Handsontable.helper.createSpreadsheetData(10, 10)}
+  comments={true}
+/>
+```
+:::
 
 ## Adding comments via the context menu
 
@@ -38,11 +49,21 @@ After you've enabled the plugin, the [Context Menu](@/guides/accessories-and-men
 
 You can also pre-define comments for your table. Comments are stored in the table's/column's/cell's metadata object and can be declared as any value of that type. For example:
 
+::: only-for javascript
 ```js
 cell: [
   { row: 1, col: 1, comment: { value: 'Hello world!' } }
 ]
 ```
+:::
+
+::: only-for react
+```jsx
+cell={[
+  { row: 1, col: 1, comment: { value: 'Hello world!' } }
+]}
+```
+:::
 
 In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 
@@ -80,7 +101,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -89,32 +109,27 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-      ['2017', 10, 11, 12, 13, 15, 16],
-      ['2018', 10, 11, 12, 13, 15, 16],
-      ['2019', 10, 11, 12, 13, 15, 16],
-      ['2020', 10, 11, 12, 13, 15, 16],
-      ['2021', 10, 11, 12, 13, 15, 16]
-    ],
-    rowHeaders: true,
-    colHeaders: true,
-    contextMenu: true,
-    comments: true,
-    cell: [
-      { row: 1, col: 1, comment: { value: 'Some comment' } },
-      { row: 2, col: 2, comment: { value: 'More comments' } }
-    ],
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+        ['2017', 10, 11, 12, 13, 15, 16],
+        ['2018', 10, 11, 12, 13, 15, 16],
+        ['2019', 10, 11, 12, 13, 15, 16],
+        ['2020', 10, 11, 12, 13, 15, 16],
+        ['2021', 10, 11, 12, 13, 15, 16]
+      ]}
+      rowHeaders={true}
+      colHeaders={true}
+      contextMenu={true}
+      comments={true}
+      cell={[
+        { row: 1, col: 1, comment: { value: 'Some comment' } },
+        { row: 2, col: 2, comment: { value: 'More comments' } }
+      ]}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -158,7 +173,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -167,30 +181,25 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
-      ['2018', 10, 11, 12, 13, 15, 16],
-      ['2019', 10, 11, 12, 13, 15, 16],
-      ['2020', 10, 11, 12, 13, 15, 16],
-    ],
-    rowHeaders: true,
-    colHeaders: true,
-    contextMenu: true,
-    comments: true,
-    cell: [
-      { row: 0, col: 1, comment: { value: 'A read-only comment.', readOnly: true } },
-      { row: 0, col: 3, comment: { value: 'You can edit this comment' } }
-    ],
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
+        ['2018', 10, 11, 12, 13, 15, 16],
+        ['2019', 10, 11, 12, 13, 15, 16],
+        ['2020', 10, 11, 12, 13, 15, 16],
+      ]}
+      rowHeaders={true}
+      colHeaders={true}
+      contextMenu={true}
+      comments={true}
+      cell={[
+        { row: 0, col: 1, comment: { value: 'A read-only comment.', readOnly: true } },
+        { row: 0, col: 3, comment: { value: 'You can edit this comment' } }
+      ]}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -235,7 +244,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -244,31 +252,26 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-      ['2017', 10, 11, 12, 13, 15, 16],
-      ['2018', 10, 11, 12, 13, 15, 16],
-      ['2019', 10, 11, 12, 13, 15, 16],
-    ],
-    rowHeaders: true,
-    colHeaders: true,
-    contextMenu: true,
-    comments: true,
-    cell: [
-      { row: 1, col: 1, comment: { value: 'Some comment' } },
-      // add the `style` parameter
-      { row: 2, col: 2, comment: { value: 'Comment 200x50 px', style: { width: 200, height: 50 } } }
-    ],
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+        ['2017', 10, 11, 12, 13, 15, 16],
+        ['2018', 10, 11, 12, 13, 15, 16],
+        ['2019', 10, 11, 12, 13, 15, 16],
+      ]}
+      rowHeaders={true}
+      colHeaders={true}
+      contextMenu={true}
+      comments={true}
+      cell={[
+        { row: 1, col: 1, comment: { value: 'Some comment' } },
+        // add the `style` parameter
+        { row: 2, col: 2, comment: { value: 'Comment 200x50 px', style: { width: 200, height: 50 } } }
+      ]}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -314,7 +317,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -323,32 +325,27 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
-      ['2018', 10, 11, 12, 13, 15, 16],
-      ['2019', 10, 11, 12, 13, 15, 16],
-      ['2020', 10, 11, 12, 13, 15, 16],
-    ],
-    rowHeaders: true,
-    colHeaders: true,
-    contextMenu: true,
-    comments: {
-      // on mouseover, wait 2 seconds before the comment box displays
-      displayDelay: 2000,
-    },
-    cell: [
-      { row: 1, col: 1, comment: { value: 'Some comment' } },
-    ],
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
+        ['2018', 10, 11, 12, 13, 15, 16],
+        ['2019', 10, 11, 12, 13, 15, 16],
+        ['2020', 10, 11, 12, 13, 15, 16],
+      ]}
+      rowHeaders={true}
+      colHeaders={true}
+      contextMenu={true}
+      comments={{
+        // on mouseover, wait 2 seconds before the comment box displays
+        displayDelay: 2000,
+      }}
+      cell={[
+        { row: 1, col: 1, comment: { value: 'Some comment' } },
+      ]}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
