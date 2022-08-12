@@ -21,7 +21,7 @@ If you don't use any of the wrappers, you don't need to change anything.
 
 ### Using all modules
 
-To continue using all Handsontable modules with your wrapper, register all modules with the new `registerAllModules()` method.
+To continue using all Handsontable modules with your wrapper, register them with the new `registerAllModules()` method.
 
 In the entry point file of your application, add the following code:
 ```js
@@ -47,7 +47,7 @@ Starting with version 11.0.0, Handsontable's React wrapper supports [modularizat
 
 ### Using all modules
 
-To continue using all Handsontable modules, register all modules with the new `registerAllModules()` method.
+To continue using all Handsontable modules, register them with the new `registerAllModules()` method.
 
 In the entry point file of your application, add the following code:
 ```js
