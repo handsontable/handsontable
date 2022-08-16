@@ -13,11 +13,15 @@ tags:
 
 [[toc]]
 
+Create a custom plugin that extends Handsontable's built-in functionalities.
+
 ## Overview
 
 Plugins are a great way of extending Handsontable's capabilities. In fact, most Handsontable features are provided by plugins.
 
-This guide shows you how to create a custom plugin.
+::: only-for react
+You can create a custom plugin in JavaScript, and then reference it from within your React app.
+:::
 
 ### 1. Prerequisites
 
