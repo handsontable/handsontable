@@ -147,6 +147,7 @@ For the full list of those modules, see the [List of all modules](#list-of-all-m
 
 For example, you can import the `numeric` cell type as a whole:
 
+::: only-for javascript
 ```js
 import Handsontable from 'handsontable/base';
 import {
@@ -166,9 +167,33 @@ new Handsontable(container, {
   ]
 });
 ```
+:::
+
+::: only-for react
+```jsx
+import Handsontable from 'handsontable/base';
+import {
+  registerCellType,
+  NumericCellType,
+} from 'handsontable/cellTypes';
+
+registerCellType(NumericCellType);
+
+const container = document.querySelector('#example1');
+
+<HotTable
+  columns={[
+    {
+    type: 'numeric'
+    }
+  ]}
+/>
+```
+:::
 
 Or, you can import the `numeric` cell type's renderer, editor, and validator individually (the effect is the same as above):
 
+::: only-for javascript
 ```js
 import Handsontable from 'handsontable/base';
 import {
@@ -188,8 +213,6 @@ registerRenderer(numericRenderer);
 registerEditor(NumericEditor);
 registerValidator(numericValidator);
 
-const container = document.querySelector('#example1');
-
 new Handsontable(container, {
   columns: [
     {
@@ -197,10 +220,47 @@ new Handsontable(container, {
       editor: 'numeric',
       validator: 'numeric',
       dataType: 'number',
+      type: 'numeric',
     }
   ]
 });
 ```
+:::
+
+::: only-for react
+```jsx
+import Handsontable from 'handsontable/base';
+import {
+  registerRenderer,
+  numericRenderer,
+} from 'handsontable/renderers';
+import {
+  registerEditor,
+  NumericEditor,
+} from 'handsontable/editors';
+import {
+  registerValidator,
+  numericValidator,
+} from 'handsontable/validators';
+
+registerRenderer(numericRenderer);
+registerEditor(NumericEditor);
+registerValidator(numericValidator);
+
+<HotTable
+  columns={[
+    {
+      renderer: 'numeric',
+      editor: 'numeric',
+      validator: 'numeric',
+      dataType: 'number',
+      type: 'numeric',
+    }
+  ]}
+/>
+
+```
+:::
 
 ### Plugin modules
 
