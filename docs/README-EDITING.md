@@ -23,9 +23,22 @@ Each Markdown file can start with the following frontmatter tags:
 | `canonicalUrl` | A canonical URL of the page's latest version. | None (not required)                                        |
 | `metaTitle`    | The page's SEO meta title.                    | None (not required)                                        |
 | `description`  | The page's SEO meta description.              | None (not required)                                        |
-| `tags`         | Tags used by the documentation search engine. | None (not required)                                        |
+| `tags`         | Search tags used by the documentation search engine. | None (not required)                                        |
+| `react`        | Holds an alternative set of frontmatter tags (applied only to the React version of the page) | None (not required)                                        |
 
-Each tag value can be overwritten. For multi-frameworked pages, there can be a case when the page title, description, or search tags should be different. To overwrite the values for specific framework, use the same tag names and define them under the framework key. The list of supported framework keys: `react`.
+You can set different frontmatter tags for different framework versions of the page. For example, you can set `metaTitle` to say either `JS data grid` or `React data table`, depending on the framework:
+
+\```yaml
+// applies to the JS version of the page
+metaTitle: JS data grid
+
+// applies to the React version of the page
+react:
+  metaTitle: React data table
+\```
+
+You can use the following framework keys:
+- `react`
 
 Frontmatter example:
 
