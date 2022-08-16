@@ -38,7 +38,6 @@ The [`BasePlugin`](@/api/basePlugin.md) interface takes care of:
 * Memory leak prevention
 * Properly binding your plugin's instance to Handsontable
 
-
 ```js
 export class CustomPlugin extends BasePlugin {
  /**
@@ -252,6 +251,7 @@ There are two ways to register a plugin:
 ### 4. Use your plugin in Handsontable
 To control the plugin's options, pass a boolean or an object at the plugin's initialization:
 
+::: only-for javascript
 ```js
 import Handsontable from 'handsontable';
 import { CustomPlugin } from './customPlugin';
@@ -267,15 +267,50 @@ const hotInstance = new Handsontable(container, {
   [CustomPlugin.PLUGIN_KEY]: false,
 });
 ```
+:::
+
+::: only-for react
+```jsx
+import Handsontable from 'handsontable';
+import { CustomPlugin } from './customPlugin';
+
+<HotTable
+  // Pass `true` to enable the plugin with default options.
+  [CustomPlugin.PLUGIN_KEY]={true}
+  // You can also enable the plugin by passing an object with options.
+  [CustomPlugin.PLUGIN_KEY]={{
+    msg: 'user-defined message',
+  }}
+  // You can also initialize the plugin without enabling it at the beginning.
+  [CustomPlugin.PLUGIN_KEY]={false}
+/>
+```
+:::
 
 ### 5. Get a reference to the plugin's instance
 To use the plugin's API, call the [`getPlugin`](@/api/core.md#getplugin) method to get a reference to the plugin's instance.
 
+::: only-for javascript
 ```js
 const pluginInstance = hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
 
 pluginInstance.externalMethodExample();
 ```
+:::
+
+::: only-for react
+::: tip
+To use the Handsontable API, create a reference to the `HotTable` component, and read its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+
+```jsx
+const hotTableComponent = useRef(null);
+
+const pluginInstance = hotTableComponent.current.hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
+```
+:::
 
 ## Related API reference
 
