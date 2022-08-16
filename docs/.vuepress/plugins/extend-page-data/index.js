@@ -64,9 +64,9 @@ module.exports = (options, context) => {
       const frontmatter = $page.frontmatter;
 
       if (frontmatter[currentFramework]) {
-        for (const prop in frontmatter[currentFramework]) {
-          frontmatter[prop] = frontmatter[currentFramework][prop] ?? frontmatter[prop];
-        }
+        Object.keys(frontmatter[currentFramework]).forEach((key) => {
+          frontmatter[key] = frontmatter[currentFramework][key] ?? frontmatter[key];
+        });
       }
 
       const frameworkPath = $page.currentFramework + FRAMEWORK_SUFFIX;
