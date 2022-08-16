@@ -22,15 +22,37 @@ Each Markdown file can start with the following frontmatter tags:
 | `permalink`    | The page's **unique** URL.                    | If not set, gets generated from the Markdown file name.    |
 | `canonicalUrl` | A canonical URL of the page's latest version. | None (not required)                                        |
 | `metaTitle`    | The page's SEO meta title.                    | None (not required)                                        |
-| `tags`         | Tags used by the documentation search engine. | None (not required)                                        |
+| `description`  | The page's SEO meta description.              | None (not required)                                        |
+| `tags`         | Search tags used by the documentation search engine. | None (not required)                                        |
+| `react`        | Holds an alternative set of frontmatter tags (applied only to the React version of the page) | None (not required)                                        |
+
+You can set different frontmatter tags for different framework versions of the page. For example, you can set `metaTitle` to say either `JS data grid` or `React data table`, depending on the framework:
+
+\```yaml
+// applies to the JS version of the page
+metaTitle: JS data grid
+
+// applies to the React version of the page
+react:
+  metaTitle: React data table
+\```
+
+You can use the following framework keys:
+- `react`
 
 Frontmatter example:
 
-```
+```yaml
 ---
 title: Introduction
+metaTitle: Installation - Guide - Handsontable Documentation for Javascript
+description: Easily install the data grid using your preferred package manager or import Handsontable assets directly from the CDN.
 permalink: /api/
 canonicalUrl: /api/
+react:
+  metaTitle: Installation - Guide - Handsontable Documentation for React
+  description: Install the wrapper for React via npm, import stylesheets, and use it to get up and running your application.
+  customValue: Custom # Custom value that can be used within template and will be available only for React framework
 ---
 ```
 
