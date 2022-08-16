@@ -11,7 +11,28 @@ tags:
 
 [[toc]]
 
-Install Handsontable in your preferred way.
+::: only-for react
+
+To install Handsontable locally using a package manager, run one of these commands:
+
+<code-group>
+  <code-block title="npm">
+
+  ```bash
+  npm install handsontable @handsontable/react
+  ```
+
+  </code-block>
+  <code-block title="Yarn">
+
+  ```bash
+  yarn add handsontable @handsontable/react
+  ```
+
+  </code-block>
+</code-group>
+
+:::
 
 ::: only-for javascript
 ::: tip
@@ -21,7 +42,6 @@ To install Handsontable using a framework, see:
  - [Installation in Angular](@/guides/integrate-with-angular/angular-installation.md)
  - [Installation in Vue 2](@/guides/integrate-with-vue/vue-installation.md)
  - [Installation in Vue 3](@/guides/integrate-with-vue3/vue3-installation.md)
-:::
 :::
 
 ## Overview
@@ -217,42 +237,51 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
+:::
+
+:::
+
+:::
 
 ::: only-for react
+
+
+## Basic example
+
+
 ::: example #example :react
+
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
+
+import 'handsontable/dist/handsontable.full.css';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+const App = () => {
   const data = [
     ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
     ['2019', 10, 11, 12, 13],
     ['2020', 20, 11, 14, 13],
     ['2021', 30, 15, 12, 13]
   ];
-  const hotSettings = {
-    data: data,
-    rowHeaders: true,
-    colHeaders: true,
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
-  };
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+      <HotTable
+        data={data}
+        rowHeaders={true}
+        colHeaders={true}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation" // for non-commercial use only
+      />
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
+ReactDOM.render(<App />, document.getElementById('example'));
 ```
 :::
 :::
@@ -260,9 +289,19 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
 
 ## Related articles
 
+::: only-for react
+
+### API Reference 
+
+Read more about available props and configuration options in [API Reference](@/api)
+
+:::
+
 ### Related guides
 
 - [Modules](@/guides/tools-and-building/modules.md)
+
+::: only-for javascript
 
 ### Related API reference
 
@@ -280,3 +319,5 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
   - [`beforeInit`](@/api/hooks.md#beforeinit)
   - [`beforeInitWalkontable`](@/api/hooks.md#beforeinitwalkontable)
   - [`construct`](@/api/hooks.md#construct)
+  
+:::

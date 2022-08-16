@@ -24,6 +24,8 @@ Explore Handsontable's features and source code:
 
 - [Demo](@/guides/getting-started/demo.md)
 
+::: only-for javascript
+
 ## Guides for your framework
 
 <div class="row-items-container">
@@ -48,6 +50,7 @@ Explore Handsontable's features and source code:
       <h3>Vue 3</h3>
   </Link>
 </div>
+:::
 
 ## What's new
 

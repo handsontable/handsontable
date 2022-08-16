@@ -31,7 +31,7 @@ Handsontable doesn't observe CSS changes for containers out of the box.
 If you'd like to observe it, you can define the dimensions in the configuration object or create your own observer.
 :::
 
-### Pass the size in the configuration object
+### Pass the size in the configuration
 
 ```js
 {
@@ -46,6 +46,11 @@ If you'd like to observe it, you can define the dimensions in the configuration 
     height: 100 // For a better compatibility we convert number into pixels
 }
 ```
+::: only-for react
+```jsx
+  <HotTable height={100} width={100} /> 
+```
+:::
 
 These dimensions will be set as inline styles in a container element, and `overflow: hidden` will be added automatically.
 
@@ -65,21 +70,31 @@ Handsontable observes window resizing. If the window's dimensions have changed, 
 
 You can easily overwrite this behaviour by returning `false` in the [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) hook.
 
+::: only-for javascript
 ```js
 {
   beforeRefreshDimensions() { return false; }
 }
 ```
+:::
+
+::: only-for react
+```jsx
+  <HotTable beforeRefreshDimensions={() => false} /> 
+```
+:::
 
 ## Manual resizing
 
 The Handsontable instance exposes the [`refreshDimensions()`](@/api/core.md#refreshdimensions) method, which helps you to resize grid elements properly.
 
+::: only-for javascript
 ```js
 const hot = new Handsontable(...);
 
 hot.refreshDimensions();
 ```
+:::
 
 You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) and [`afterRefreshDimensions`](@/api/hooks.md#afterrefreshdimensions).
 
@@ -147,19 +162,9 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+const App = () => {
   const hotRef = React.createRef();
-
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(100, 50),
-    rowHeaders: true,
-    colHeaders: true,
-    width: '100%',
-    height: '100%',
-    rowHeights: 23,
-    colWidths: 100,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+  
   let triggerBtnClickCallback;
 
   useEffect(() => {
@@ -179,21 +184,30 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
+    <>
       <div id="exampleParent">
-        <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
+        <HotTable
+          data={Handsontable.helper.createSpreadsheetData(100, 50)}
+          rowHeaders={true}
+          colHeaders={true}
+          width="100%"
+          height="100%"
+          rowHeights={23}
+          colWidths={100}
+          licenseKey="non-commercial-and-evaluation"  
+          ref={hotRef}
+        />
       </div>
       
       <div className="controls">
         <button id="triggerBtn" className="button button--primary" onClick={(...args) => triggerBtnClickCallback(...args)}>Expand container</button>
       </div>
       
-    </Fragment>
+    </>
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
+ReactDOM.render(<App />, document.getElementById('example'));
 ```
 :::
 :::

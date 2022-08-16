@@ -19,6 +19,7 @@ We require you to specify which terms apply to your usage, by passing a license 
 
 If you use the paid version of Handsontable, pass the string of numbers delivered to you after the purchase. Note that the license key is a string, so you need to wrap it in quotes `''`.
 
+::: only-for javascript
 ```js
 const settings = {
   licenseKey: '00000-00000-00000-00000-00000',
@@ -58,17 +59,36 @@ To use it with a framework, pass the string to a [`licenseKey`](@/api/options.md
 
 </code-block>
 </code-group>
+:::
+
+::: only-for react
+
+```jsx
+<HotTable licenseKey="00000-00000-00000-00000-00000" />
+```
+
+:::
 
 ## Free license
 
 If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass the string  `'non-commercial-and-evaluation'`.
 
+::: only-for javascript
 ```js
 const settings = {
   licenseKey: 'non-commercial-and-evaluation',
   //... other options
 }
 ```
+:::
+
+::: only-for react
+
+```jsx
+<HotTable licenseKey="non-commercial-and-evaluation" />
+```
+
+:::
 
 ## The validation process
 

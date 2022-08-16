@@ -20,12 +20,19 @@ tags:
 [[toc]]
 
 ## Overview
-Callbacks are used to react before or after actions occur. We refer to them as hooks. Hooks share some characteristics with events and middleware, combining them both in a unique structure.
+Callbacks are used to react before or after actions occur. We refer to them as hooks. Handsontable's hooks share some characteristics with events and middleware, combining them both in a unique structure.
 
 ## Events
 
-If you only react to emitted hooks and forget about all their other features, you can treat hooks as pure events. You would want to limit your scope to `after` prefixed hooks, so they are emitted after something has happened and the results of the actions are already committed.
+If you only react to emitted hooks and forget about all their other features, you can treat Handsontable's hooks as pure events. You would want to limit your scope to `after` prefixed hooks, so they are emitted after something has happened and the results of the actions are already committed.
 
+::: only-for react
+```jsx
+<HotTable afterCreateRow={(row, amount) => {
+  console.log(`${amount} row(s) were created, starting at index ${row}`);
+}}/>
+```
+:::
 ```js
 hot.addHook('afterCreateRow', (row, amount) => {
   console.log(`${amount} row(s) were created, starting at index ${row}`);
@@ -36,6 +43,16 @@ hot.addHook('afterCreateRow', (row, amount) => {
 
 Middleware is a concept known in the JavaScript world from Node.js frameworks such as Express or Koa. Middleware is a callback that can pipe to a process and allow the developer to modify it. We're no longer just reacting to an emitted event, but we can influence what's happening inside the component and modify the process.
 
+::: only-for react
+
+```jsx
+<HotTable modifyColWidth={(width, column) => {
+    if (column > 10) {
+      return 150;
+    }
+}}/>
+```
+:::
 ```js
 hot.addHook('modifyColWidth', (width, column) => {
   if (column > 10) {
@@ -46,14 +63,24 @@ hot.addHook('modifyColWidth', (width, column) => {
 
 Note that the first argument is the current width that we're going to modify. Later arguments are immutable, and additional information can be used to decide whether the data should be modified.
 
-## Hooks
+## Handsontable Hooks
 
-We refer to all callbacks as "hooks" because although they share some characteristics with events and middleware, they combine them both in a unique structure. You may already be familiar with the concept as we're not the only ones that use the hooks convention.
+We refer to all callbacks as "handsontable hooks" because although they share some characteristics with events and middleware, they combine them both in a unique structure. You may already be familiar with the concept as we're not the only ones that use the hooks convention.
 
-Almost all `before` prefixed hooks allow the developer to return `false` and, therefore, block the execution of an action. It may be used for validation, rejecting operation by the outside service, or blocking our native algorithm and replace it with a custom implementation.
+Almost all `before` prefixed handsontable hooks allow the developer to return `false` and, therefore, block the execution of an action. It may be used for validation, rejecting operation by the outside service, or blocking our native algorithm and replace it with a custom implementation.
 
 A great example for this is our integration with HyperFormula engine where creating a new row is only possible if the engine itself will allow it:
 
+::: only-for react
+
+```jsx
+<HotTable beforeCreateRow={(row, amount) => {
+  if (!hyperFormula.isItPossibleToAddRows(0, [row, amount])) {
+    return false;
+  }
+}}/>
+```
+:::
 ```js
 hot.addHook('beforeCreateRow', (row, amount) => {
   if (!hyperFormula.isItPossibleToAddRows(0, [row, amount])) {
@@ -62,7 +89,7 @@ hot.addHook('beforeCreateRow', (row, amount) => {
 })
 ```
 
-The first argument may be modified and passed on through the hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application.
+The first argument may be modified and passed on through the Handsontable hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application.
 
 ::: only-for react
 ## External control
@@ -78,7 +105,7 @@ import { createSpreadsheetData } from './helpers';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+const App = () => {
   const [settings, setSettings] = useState(() => {
     const initialState = {
       data: createSpreadsheetData(15, 20),
@@ -124,21 +151,20 @@ const ExampleComponent = () => {
         <br/>
       </div>
 
-      <HotTable root="hot" settings={settings}/>
+      <HotTable id="hot" {...settings}/>
     </div>
   );
 }
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+ReactDOM.render(<App />, document.getElementById('example3'));
 ```
 :::
 :::
 
-## All available hooks example
+## All available Handsontable hooks example
 
 Note that some callbacks are checked on this page by default.
 
-::: only-for javascript
 ::: example #example1 --css 1 --html 2 --js 3
 ```css
 #example1_events {
@@ -280,7 +306,6 @@ document.querySelector('#hooksList input[type=checkbox]').addEventListener('clic
 });
 ```
 :::
-:::
 
 [//]: # (::: only-for react)
 [//]: # (::: example #example1 :react --css 1 --html 2 --js 3 )
@@ -293,7 +318,7 @@ document.querySelector('#hooksList input[type=checkbox]').addEventListener('clic
 
 ## Definition for `source` argument
 
-It's worth mentioning that some hooks are triggered from the Handsontable core and some from the plugins. In some situations, it is helpful to know what triggered the callback. Did Handsontable trigger it, or was it triggered by external code or a user action? That's why in crucial hooks, Handsontable delivers `source` as an argument informing you who triggered the action and providing detailed information about the source. Using the information retrieved in the `source`, you can create additional conditions.
+It's worth mentioning that some Handsontable hooks are triggered from the Handsontable core and some from the plugins. In some situations, it is helpful to know what triggered the callback. Did Handsontable trigger it, or was it triggered by external code or a user action? That's why in crucial hooks, Handsontable delivers `source` as an argument informing you who triggered the action and providing detailed information about the source. Using the information retrieved in the `source`, you can create additional conditions.
 
 `source` argument is optional. It takes the following values:
 
@@ -415,26 +440,10 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+const App = () => {
   const hotRef = React.createRef();
 
   let lastChange = null;
-  const hotSettings = {
-    data: [
-      ['Tesla', 2017, 'black', 'black'],
-      ['Nissan', 2018, 'blue', 'blue'],
-      ['Chrysler', 2019, 'yellow', 'black'],
-      ['Volvo', 2020, 'yellow', 'gray']
-    ],
-    colHeaders: true,
-    rowHeaders: true,
-    height: 'auto',
-    minSpareRows: 1,
-    beforeChange(changes, source) {
-      lastChange = changes;
-    },
-    licenseKey: 'non-commercial-and-evaluation'
-  };
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
@@ -468,14 +477,27 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        ['Tesla', 2017, 'black', 'black'],
+        ['Nissan', 2018, 'blue', 'blue'],
+        ['Chrysler', 2019, 'yellow', 'black'],
+        ['Volvo', 2020, 'yellow', 'gray']
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      height="auto"
+      minSpareRows={1}
+      beforeChange={(changes, source) => {
+        lastChange = changes;
+      }}
+      licenseKey="non-commercial-and-evaluation"  
+      ref={hotRef}
+    />
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+ReactDOM.render(<App />, document.getElementById('example2'));
 ```
 :::
 :::
@@ -491,6 +513,6 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
   - [`hasHook()`](@/api/core.md#hashook)
   - [`runHooks()`](@/api/core.md#runhooks)
 - Hooks:
-  - [List of all hooks](@/api/hooks.md)
+  - [List of all Handsontable hooks](@/api/hooks.md)
   - [`afterListen`](@/api/hooks.md#afterlisten)
   - [`afterUnlisten`](@/api/hooks.md#afterunlisten)

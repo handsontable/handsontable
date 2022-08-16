@@ -5,9 +5,11 @@ permalink: /redux
 canonicalUrl: /redux
 ---
 
-# Redux
+# Integration with Redux
 
 [[toc]]
+
+Handsontable can be integrated with Redux or similar state management library.
 
 ## Overview
 
@@ -28,7 +30,7 @@ import { createSpreadsheetData } from './helpers';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+const App = () => {
   const hotSettings = useSelector(state => state);
   const dispatch = useDispatch();
   const hotTableComponent = useRef(null);
@@ -67,7 +69,7 @@ const ExampleComponent = () => {
           <HotTable
             ref={hotTableComponent}
             beforeChange={onBeforeHotChange}
-            settings={hotSettings}
+            {...hotSettings}
           />
         </div>
 
@@ -144,7 +146,7 @@ const reduxStore = createStore(updatesReducer);
 
 ReactDOM.render(
   <Provider store={reduxStore}>
-    <ExampleComponent/>
+    <App/>
   </Provider>,
   document.getElementById('example1')
 );
