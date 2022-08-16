@@ -6,7 +6,6 @@
       :value="query"
       :class="{ 'focused': focused }"
       :placeholder="placeholder"
-      :style="inputCustomCssProps"
       autocomplete="off"
       spellcheck="false"
       @input="query = $event.target.value"
@@ -130,9 +129,6 @@ export default {
       focused: false,
       focusIndex: 0,
       placeholder: undefined,
-      inputCustomCssProps: {
-        '--search-icon-url': `url('${this.$router.options.base}/img/search.svg')`,
-      }
     };
   },
 

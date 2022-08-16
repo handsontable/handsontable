@@ -2,7 +2,7 @@
   <label id="switch" class="switch">
     <div class="inner">
       <input type="checkbox" v-on:change="toggleTheme" id="slider" :checked="isDarkTheme">
-      <span :style="sliderCustomCssProps" class="slider round"></span>
+      <span class="slider round"></span>
     </div>
   </label>
 </template>
@@ -39,10 +39,6 @@ export default {
     return {
       isDarkTheme: null,
       htmlDomEl: null,
-      sliderCustomCssProps: {
-        '--light-icon-url': `url('${this.$router.options.base}/img/light-theme-icon.svg')`,
-        '--dark-icon-url': `url('${this.$router.options.base}/img/dark-theme-icon.svg')`
-      }
     };
   },
   beforeMount() {
@@ -147,7 +143,7 @@ export default {
   transition: 0.4s;
   box-shadow: 0 0px 3px #2020203d;
   /* Fallback for IE, should work in production */
-  background: #ffffff var(--light-icon-url);
+  background: #ffffff versionedUrl('{{$basePath}}/img/light-theme-icon.svg');
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;
@@ -166,7 +162,7 @@ input:checked + .slider:before {
   -ms-transform: translateX(16px);
   transform: translateX(16px);
   /* Fallback for IE, should work in production */
-  background: #ffffff var(--dark-icon-url);
+  background: #ffffff versionedUrl('{{$basePath}}/img/dark-theme-icon.svg');
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;
