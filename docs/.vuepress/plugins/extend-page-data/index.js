@@ -46,10 +46,13 @@ module.exports = (options, context) => {
      * @param {object} $page The $page value of the page you’re currently reading.
      */
     extendPageData($page) {
-      $page.normalizedPath = getNormalizedPath($page.path);
+      const normalizedPath = getNormalizedPath($page.path);
+      const currentFramework = parseFramework(normalizedPath);
+
+      $page.normalizedPath = normalizedPath;
       $page.baseUrl = getDocsBaseUrl();
       $page.currentVersion = getThisDocsVersion();
-      $page.currentFramework = parseFramework($page.normalizedPath);
+      $page.currentFramework = currentFramework;
       $page.frameworkName = getPrettyFrameworkName($page.currentFramework);
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
@@ -57,6 +60,14 @@ module.exports = (options, context) => {
       $page.buildMode = buildMode;
       $page.isSearchable = notSearchableLinks[$page.currentFramework]?.every(
         notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);
+
+      const frontmatter = $page.frontmatter;
+
+      if (frontmatter[currentFramework]) {
+        for (const prop in frontmatter[currentFramework]) {
+          frontmatter[prop] = frontmatter[currentFramework][prop] ?? frontmatter[prop];
+        }
+      }
 
       const frameworkPath = $page.currentFramework + FRAMEWORK_SUFFIX;
 

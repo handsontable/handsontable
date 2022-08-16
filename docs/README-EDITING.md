@@ -22,15 +22,24 @@ Each Markdown file can start with the following frontmatter tags:
 | `permalink`    | The page's **unique** URL.                    | If not set, gets generated from the Markdown file name.    |
 | `canonicalUrl` | A canonical URL of the page's latest version. | None (not required)                                        |
 | `metaTitle`    | The page's SEO meta title.                    | None (not required)                                        |
+| `description`  | The page's SEO meta description.              | None (not required)                                        |
 | `tags`         | Tags used by the documentation search engine. | None (not required)                                        |
+
+Each tag value can be overwritten. For multi-frameworked pages, there can be a case when the page title, description, or search tags should be different. To overwrite the values for specific framework, use the same tag names and define them under the framework key. The list of supported framework keys: `react`.
 
 Frontmatter example:
 
-```
+```yaml
 ---
 title: Introduction
+metaTitle: Installation - Guide - Handsontable Documentation for Javascript
+description: Easily install the data grid using your preferred package manager or import Handsontable assets directly from the CDN.
 permalink: /api/
 canonicalUrl: /api/
+react:
+  metaTitle: Installation - Guide - Handsontable Documentation for React
+  description: Install the wrapper for React via npm, import stylesheets, and use it to get up and running your application.
+  customValue: Custom # Custom value that can be used within template and will be available only for React framework
 ---
 ```
 
