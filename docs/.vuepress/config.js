@@ -76,7 +76,7 @@ module.exports = {
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
     anchor: {
-      callback: function(token, slugInfo) {
+      callback(token, slugInfo) {
         if (['h1', 'h2', 'h3'].includes(token.tag)) {
           // Remove the `-[number]` suffix from the slugs and header IDs
           const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrs[0][1]);
