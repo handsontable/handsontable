@@ -52,6 +52,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
  *   data: getData(),
@@ -66,6 +67,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *   // code...
  * }
  * ```
+ * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export class AutoRowSize extends BasePlugin {

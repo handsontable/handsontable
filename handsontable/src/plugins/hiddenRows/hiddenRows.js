@@ -45,6 +45,7 @@ export const PLUGIN_PRIORITY = 320;
  *
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -80,6 +81,42 @@ export const PLUGIN_PRIORITY = 320;
  * // to see your changes, re-render your Handsontable instance
  * hot.render();
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={getData()}
+ *   hiddenRows={{
+ *     copyPasteEnabled: true,
+ *     indicators: true,
+ *     rows: [1, 2, 5]
+ *   }}
+ * />
+ *
+ * // access the `HiddenRows` plugin's instance
+ * const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
+ *
+ * // hide a single row
+ * hiddenRowsPlugin.hideRow(1);
+ *
+ * // hide multiple rows
+ * hiddenRowsPlugin.hideRow(1, 2, 9);
+ *
+ * // hide multiple rows as an array
+ * hiddenRowsPlugin.hideRows([1, 2, 9]);
+ *
+ * // unhide a single row
+ * hiddenRowsPlugin.showRow(1);
+ *
+ * // unhide multiple rows
+ * hiddenRowsPlugin.showRow(1, 2, 9);
+ *
+ * // unhide multiple rows as an array
+ * hiddenRowsPlugin.showRows([1, 2, 9]);
+ *
+ * // to see your changes, re-render your Handsontable instance
+ * hot.render();
  */
 export class HiddenRows extends BasePlugin {
   static get PLUGIN_KEY() {

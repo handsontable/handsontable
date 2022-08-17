@@ -23,6 +23,7 @@ const bindTypeToMapStrategy = new Map([
  * at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
  *
  * @example
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -31,6 +32,17 @@ const bindTypeToMapStrategy = new Map([
  *   bindRowsWithHeaders: true
  * });
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={getData()},
+ *   // enable plugin
+ *   bindRowsWithHeaders={true}
+ * />
+ * ```
+ * :::
  */
 export class BindRowsWithHeaders extends BasePlugin {
   static get PLUGIN_KEY() {

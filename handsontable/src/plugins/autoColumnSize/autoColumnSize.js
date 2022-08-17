@@ -70,6 +70,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
  *   data: getData(),
@@ -83,6 +84,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * if (plugin.isEnabled()) {
  *   // code...
  * }
+ * :::
  * ```
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */

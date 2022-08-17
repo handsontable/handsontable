@@ -45,6 +45,7 @@ export const PLUGIN_PRIORITY = 310;
  *
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -79,7 +80,44 @@ export const PLUGIN_PRIORITY = 310;
  *
  * // to see your changes, re-render your Handsontable instance
  * hot.render();
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={getData()}
+ *   hiddenColumns={{
+ *     copyPasteEnabled: true,
+ *     indicators: true,
+ *     columns: [1, 2, 5]
+ *   }}
+ * />
+ *
+ * // access the `HiddenColumns` plugin's instance
+ * const hiddenColumnsPlugin = hot.getPlugin('hiddenColumns');
+ *
+ * // hide a single column
+ * hiddenColumnsPlugin.hideColumn(1);
+ *
+ * // hide multiple columns
+ * hiddenColumnsPlugin.hideColumn(1, 2, 9);
+ *
+ * // hide multiple columns as an array
+ * hiddenColumnsPlugin.hideColumns([1, 2, 9]);
+ *
+ * // unhide a single column
+ * hiddenColumnsPlugin.showColumn(1);
+ *
+ * // unhide multiple columns
+ * hiddenColumnsPlugin.showColumn(1, 2, 9);
+ *
+ * // unhide multiple columns as an array
+ * hiddenColumnsPlugin.showColumns([1, 2, 9]);
+ *
+ * // to see your changes, re-render your Handsontable instance
+ * hot.render();
  * ```
+ * :::
  */
 export class HiddenColumns extends BasePlugin {
   static get PLUGIN_KEY() {

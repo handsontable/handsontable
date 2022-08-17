@@ -39,6 +39,7 @@ export const PLUGIN_PRIORITY = 250;
  * See [the filtering demo](@/guides/columns/column-filter.md) for examples.
  *
  * @example
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -49,6 +50,18 @@ export const PLUGIN_PRIORITY = 250;
  *   filters: true
  * });
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={getData()}
+ *   colHeaders={true}
+ *   rowHeaders={true}
+ *   dropdownMenu={true}
+ *   filters={true}
+ * />
+ * :::
  */
 export class Filters extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -309,6 +322,7 @@ export class Filters extends BasePlugin {
    * **Note**: Mind that you cannot mix different types of operations (for instance, if you use `conjunction`, use it consequently for a particular column).
    *
    * @example
+   * ::: only-for javascript
    * ```js
    * const container = document.getElementById('example');
    * const hot = new Handsontable(container, {
@@ -338,6 +352,39 @@ export class Filters extends BasePlugin {
    * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'disjunction');
    * filtersPlugin.filter();
    * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   data={getData()}
+   *   filters={true}
+   * />
+   *
+   * // access to filters plugin instance
+   * const filtersPlugin = hot.getPlugin('filters');
+   *
+   * // add filter "Greater than" 95 to column at index 1
+   * filtersPlugin.addCondition(1, 'gt', [95]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "By value" to column at index 1
+   * // in this case all value's that don't match will be filtered.
+   * filtersPlugin.addCondition(1, 'by_value', [['ing', 'ed', 'as', 'on']]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Begins with" with value "de" AND "Not contains" with value "ing"
+   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'conjunction');
+   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'conjunction');
+   * filtersPlugin.filter();
+   *
+   * // add filter "Begins with" with value "de" OR "Not contains" with value "ing"
+   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'disjunction');
+   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'disjunction');
+   * filtersPlugin.filter();
+   * ```
+   * :::
+   *
    * @param {number} column Visual column index.
    * @param {string} name Condition short name.
    * @param {Array} args Condition arguments.
