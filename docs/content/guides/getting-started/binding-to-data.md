@@ -54,7 +54,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -62,35 +62,30 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
-  const data = [
-    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-    ['2017', 10, 11, 12, 13, 15, 16],
-    ['2018', 10, 11, 12, 13, 15, 16],
-    ['2019', 10, 11, 12, 13, 15, 16],
-    ['2020', 10, 11, 12, 13, 15, 16],
-    ['2021', 10, 11, 12, 13, 15, 16]
-  ];
-  const hotSettings = {
-    data,
-    startRows: 5,
-    startCols: 5,
-    height: 'auto',
-    width: 'auto',
-    colHeaders: true,
-    minSpareRows: 1,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+const App = () => {
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+        ['2017', 10, 11, 12, 13, 15, 16],
+        ['2018', 10, 11, 12, 13, 15, 16],
+        ['2019', 10, 11, 12, 13, 15, 16],
+        ['2020', 10, 11, 12, 13, 15, 16],
+        ['2021', 10, 11, 12, 13, 15, 16]
+      ]}
+      startRows={5}
+      startCols={5}
+      height="auto"
+      width="auto"
+      colHeaders={true}
+      minSpareRows={1}
+      licenseKey="non-commercial-and-evaluation"
+    />  
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+ReactDOM.render(<App />, document.getElementById('example1'));
 ```
 :::
 :::
@@ -138,7 +133,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -146,42 +141,37 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
-  const data = [
-    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-    ['2017', 10, 11, 12, 13, 15, 16],
-    ['2018', 10, 11, 12, 13, 15, 16],
-    ['2019', 10, 11, 12, 13, 15, 16],
-    ['2020', 10, 11, 12, 13, 15, 16],
-    ['2021', 10, 11, 12, 13, 15, 16]
-  ];
-  const hotSettings = {
-    data,
-    colHeaders: true,
-    minSpareRows: 1,
-    height: 'auto',
-    width: 'auto',
-    columns: [
-      { data: 0 },
-      // skip the second column
-      { data: 2 },
-      { data: 3 },
-      { data: 4 },
-      { data: 5 },
-      { data: 6 }
-    ],
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+const App = () => {
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+        ['2017', 10, 11, 12, 13, 15, 16],
+        ['2018', 10, 11, 12, 13, 15, 16],
+        ['2019', 10, 11, 12, 13, 15, 16],
+        ['2020', 10, 11, 12, 13, 15, 16],
+        ['2021', 10, 11, 12, 13, 15, 16]
+      ]}
+      colHeaders={true}
+      minSpareRows={1}
+      height="auto"
+      width="auto"
+      columns={[
+        { data: 0 },
+        // skip the second column
+        { data: 2 },
+        { data: 3 },
+        { data: 4 },
+        { data: 5 },
+        { data: 6 }
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+ReactDOM.render(<App />, document.getElementById('example2'));
 ```
 :::
 :::
@@ -219,7 +209,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -227,32 +217,47 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
-  const data = [
-    { id: 1, name: 'Ted Right', address: '' },
-    { id: 2, name: 'Frank Honest', address: '' },
-    { id: 3, name: 'Joan Well', address: '' },
-    { id: 4, name: 'Gail Polite', address: '' },
-    { id: 5, name: 'Michael Fair', address: '' },
-  ];
-  const hotSettings = {
-    data,
-    colHeaders: true,
-    height: 'auto',
-    width: 'auto',
-    minSpareRows: 1,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+const App = () => {
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        {
+          id: 1,
+          name: 'Ted Right',
+          address: ''
+        },
+        {
+          id: 2,
+          name: 'Frank Honest',
+          address: ''
+        },
+        {
+          id: 3,
+          name: 'Joan Well',
+          address: ''
+        },
+        {
+          id: 4,
+          name: 'Gail Polite',
+          address: ''
+        },
+        {
+          id: 5,
+          name: 'Michael Fair',
+          address: ''
+        },
+      ]}
+      colHeaders={true}
+      height="auto"
+      width="auto"
+      minSpareRows={1}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+ReactDOM.render(<App />, document.getElementById('example3'));
 ```
 :::
 :::
@@ -305,7 +310,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 .custom-class :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -313,47 +318,59 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
-  const data = [
-    { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
-    { id: 2, address: '' }, // HOT will create missing properties on demand
-    { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
-  ];
-  const hotSettings = {
-    data,
-    colHeaders: true,
-    height: 'auto',
-    width: 'auto',
-    columns: function(column) {
-      let columnMeta = {};
-
-      if (column === 0) {
-        columnMeta.data = 'id';
-      } else if (column === 1) {
-        columnMeta.data = 'name.first';
-      } else if (column === 2) {
-        columnMeta.data = 'name.last';
-      } else if (column === 3) {
-        columnMeta.data = 'address';
-      } else {
-        columnMeta = null;
-      }
-
-      return columnMeta;
-    },
-    minSpareRows: 1,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+const App = () => {
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        {
+          id: 1,
+          name: {
+            first: 'Ted',
+            last: 'Right'
+          },
+          address: ''
+        },
+        {
+          id: 2,
+          address: ''
+        }, // HOT will create missing properties on demand
+        {
+          id: 3,
+          name: {
+            first: 'Joan',
+            last: 'Well'
+          },
+          address: ''
+        }
+      ]}
+      colHeaders={true}
+      height="auto"
+      width="auto"
+      columns={(column) => {
+        let columnMeta = {};
+
+        if (column === 0) {
+          columnMeta.data = 'id';
+        } else if (column === 1) {
+          columnMeta.data = 'name.first';
+        } else if (column === 2) {
+          columnMeta.data = 'name.last';
+        } else if (column === 3) {
+          columnMeta.data = 'address';
+        } else {
+          columnMeta = null;
+        }
+
+        return columnMeta;
+      }}
+      minSpareRows={1}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+ReactDOM.render(<App />, document.getElementById('example4'));
 ```
 :::
 :::
@@ -395,7 +412,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example5 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -403,36 +420,34 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+const App = () => {
   const data = [
-    { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
-    { id: 2, address: '' }, // HOT will create missing properties on demand
-    { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
+
   ];
-  const hotSettings = {
-    data,
-    colHeaders: true,
-    height: 'auto',
-    width: 'auto',
-    columns: [
-      { data: 'id' },
-      { data: 'name.first' },
-      { data: 'name.last' },
-      { data: 'address' }
-    ],
-    minSpareRows: 1,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={
+        { id: 1,  name: { first: 'Ted', last: 'Right' }, address: '' },
+        { id: 2, address: '' }, // HOT will create missing properties on demand
+        { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
+      }
+      colHeaders={true}
+      height="auto"
+      width="auto"
+      columns={[
+        { data: 'id' },
+        { data: 'name.first' },
+        { data: 'name.last' },
+        { data: 'address' }
+      ]}
+      minSpareRows={1}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
+ReactDOM.render(<App />, document.getElementById('example5'));
 ```
 :::
 :::
@@ -473,7 +488,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example6 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -481,34 +496,37 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
-  const hotSettings = {
-    data: [],
-    dataSchema: { id: null, name: { first: null, last: null }, address: null },
-    startRows: 5,
-    startCols: 4,
-    colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
-    height: 'auto',
-    width: 'auto',
-    columns: [
-      { data: 'id' },
-      { data: 'name.first' },
-      { data: 'name.last' },
-      { data: 'address' }
-    ],
-    minSpareRows: 1,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+const App = () => {
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[]}
+      dataSchema={{ 
+        id: null,
+        name: {
+          first: null,
+          last: null
+        },
+        address: null
+      }}
+      startRows={5}
+      startCols={4}
+      colHeaders={['ID', 'First Name', 'Last Name', 'Address']}
+      height="auto"
+      width="auto"
+      columns={[
+        { data: 'id' },
+        { data: 'name.first' },
+        { data: 'name.last' },
+        { data: 'address' }
+      ]}
+      minSpareRows={1}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
+ReactDOM.render(<App />, document.getElementById('example6'));
 ```
 :::
 :::
@@ -588,7 +606,7 @@ function property(attr) {
 ::: only-for react
 ::: example #example7 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -596,7 +614,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+const App = () => {
   const hotSettings = {
     data: [
       model({ id: 1, name: 'Ted Right', address: '' }),
@@ -655,14 +673,30 @@ const ExampleComponent = () => {
   }
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        model({ id: 1, name: 'Ted Right', address: '' }),
+        model({ id: 2, name: 'Frank Honest', address: '' }),
+        model({ id: 3, name: 'Joan Well', address: '' }),
+        model({ id: 4, name: 'Gail Polite', address: '' }),
+        model({ id: 5, name: 'Michael Fair', address: '' })
+      ]}
+      dataSchema={model}
+      height="auto"
+      width="auto"
+      colHeaders={['ID', 'Name', 'Address']}
+      columns={[
+        { data: property('id') },
+        { data: property('name') },
+        { data: property('address') }
+      ]}
+      minSpareRows={1}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example7'));
+ReactDOM.render(<App />, document.getElementById('example7'));
 ```
 :::
 :::
@@ -687,7 +721,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example9 :react
 ```jsx
-import React, { Fragment } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -695,20 +729,14 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
-  const settings = {
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+const App = () => {
 
   return (
-    <Fragment>
-      <HotTable settings={settings}>
-      </HotTable>
-    </Fragment>
+    <HotTable licenseKey="non-commercial-and-evaluation" />
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
+ReactDOM.render(<App />, document.getElementById('example9'));
 
 ```
 :::
@@ -718,9 +746,98 @@ To change the number of rows or columns rendered by default, use the [`startRows
 
 ## Data-manipulating API methods
 
+### Understand binding as a reference
+
+Handsontable binds to your data source by reference, not by values. We don't copy the input dataset, and we rely on
+JavaScript to handle the objects. Any data entered into the grid will alter the original data source.
+
+::: tip
+**Note:** Handsontable initializes the source data for the table using a reference, but you shouldn't rely on it. For
+example, you shouldn't change values in the source data using the reference to the input dataset. Some mechanisms for
+handling data aren't prepared for external changes that are made in this way.
+:::
+
+To avoid this scenario, copy the data before you pass it to the grid. To change the data from outside Handsontable, you
+can use our API methods. For example, a change being made will be displayed immediately on the screen after calling
+the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
+
+::: only-for javascript
+::: example #example10
+
+```js
+const container = document.getElementById('example10');
+
+const data = [
+  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+  ['2017', 10, 11, 12, 13, 15, 16],
+  ['2018', 10, 11, 12, 13, 15, 16],
+  ['2019', 10, 11, 12, 13, 15, 16],
+  ['2020', 10, 11, 12, 13, 15, 16],
+  ['2021', 10, 11, 12, 13, 15, 16]
+];
+const settings = {
+  data: data,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const hot = new Handsontable(container, settings);
+
+hot.setDataAtCell(0, 1, 'Ford');
+```
+
+:::
+:::
+
+::: only-for react
+::: example #example10 :react
+
+```jsx
+import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+const App = () => {
+  const hotRef = React.createRef();
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    hot.setDataAtCell(0, 1, 'Ford');
+  });
+
+  return (
+      <HotTable 
+        ref={hotRef}
+        data={[
+          ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+          ['2017', 10, 11, 12, 13, 15, 16],
+          ['2018', 10, 11, 12, 13, 15, 16],
+          ['2019', 10, 11, 12, 13, 15, 16],
+          ['2020', 10, 11, 12, 13, 15, 16],
+          ['2021', 10, 11, 12, 13, 15, 16]
+        ]}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+      />
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById('example10'));
+
+```
+
+:::
+:::
+
 There are multiple ways you can insert your data into Handsontable. Let's go through the most useful ones:
 
 ### The [`data`](@/api/options.md#data) configuration option
+::: only-for javascript
 You will probably want to initialize the table with some data (if you don't, the table will render an empty 5x5 grid for you). The easiest way to do it is passing your data array as [`data`](@/api/options.md#data) option in the initial config object:
 ```js
 const hot = new Handsontable(container, {
@@ -728,6 +845,15 @@ const hot = new Handsontable(container, {
   // ... other config options
 });
 ```
+:::
+
+::: only-for react
+You will probably want to initialize the table with some data (if you don't, the table will render an empty 5x5 grid for
+you). The easiest way to do it is passing your data array as [`data`](@/api/options.md#data) prop in ```HotTable``` component:
+```jsx
+<HotTable data={dataArray} />
+```
+:::
 
 ### The data-loading API methods
 To replace the entire data in an already-initialized Handsontable instance, you can use one of the data-loading API methods:
@@ -819,89 +945,6 @@ To modify just a subset of data passed to Handsontable, these are the methods yo
   hot.populateFromArray(1, 1, newValues, 2, 2);
   ```
 
-## Understand binding as a reference
-
-Handsontable binds to your data source by reference, not by values. We don't copy the input dataset, and we rely on JavaScript to handle the objects. Any data entered into the grid will alter the original data source.
-
-**Note:** Handsontable initializes the source data for the table using a reference, but you shouldn't rely on it. For example, you shouldn't change values in the source data using the reference to the input dataset. Some mechanisms for handling data aren't prepared for external changes that are made in this way.
-
-To avoid this scenario, copy the data before you pass it to the grid. To change the data from outside Handsontable, you can use our API methods. For example, a change being made will be displayed immediately on the screen after calling the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
-
-::: only-for javascript
-::: example #example10
-```js
-const container = document.getElementById('example10');
-
-const data = [
-  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-  ['2017', 10, 11, 12, 13, 15, 16],
-  ['2018', 10, 11, 12, 13, 15, 16],
-  ['2019', 10, 11, 12, 13, 15, 16],
-  ['2020', 10, 11, 12, 13, 15, 16],
-  ['2021', 10, 11, 12, 13, 15, 16]
-];
-const settings = {
-  data: data,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const hot = new Handsontable(container, settings);
-
-hot.setDataAtCell(0, 1, 'Ford');
-```
-:::
-:::
-
-::: only-for react
-::: example #example10 :react
-```jsx
-import React, { Fragment, useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
-
-const ExampleComponent = () => {
-  const hotRef = React.createRef();
-
-  const data = [
-    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-    ['2017', 10, 11, 12, 13, 15, 16],
-    ['2018', 10, 11, 12, 13, 15, 16],
-    ['2019', 10, 11, 12, 13, 15, 16],
-    ['2020', 10, 11, 12, 13, 15, 16],
-    ['2021', 10, 11, 12, 13, 15, 16]
-  ];
-  const settings = {
-    data: data,
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
-  useEffect(() => {
-    const hot = hotRef.current.hotInstance;
-
-    hot.setDataAtCell(0, 1, 'Ford');
-  });
-
-  return (
-    <Fragment>
-      <HotTable ref={hotRef} settings={settings}>
-      </HotTable>
-    </Fragment>
-  );
-};
-
-ReactDOM.render(<ExampleComponent />, document.getElementById('example10'));
-
-```
-:::
-:::
-
-
 ## Working with a copy of data
 
 When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
@@ -932,7 +975,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example11 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -940,7 +983,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+const App = () => {
   const data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -949,21 +992,17 @@ const ExampleComponent = () => {
     ['2020', 10, 11, 12, 13, 15, 16],
     ['2021', 10, 11, 12, 13, 15, 16]
   ];
-  const hotSettings = {
-    data: JSON.parse(JSON.stringify(data)),
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={JSON.parse(JSON.stringify(data))}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
-ReactDOM.render(<ExampleComponent />, document.getElementById('example11'));
+ReactDOM.render(<App />, document.getElementById('example11'));
 ```
 :::
 :::
