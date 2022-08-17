@@ -1,6 +1,6 @@
 ---
-title: 'Redux'
-metaTitle: 'Redux - Guide - Handsontable Documentation'
+title: 'Integration with Redux'
+metaTitle: 'Integration with Redux - Guide - Handsontable Documentation'
 permalink: /redux
 canonicalUrl: /redux
 ---
