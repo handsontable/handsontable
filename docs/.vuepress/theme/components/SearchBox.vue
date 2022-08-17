@@ -6,7 +6,6 @@
       :value="query"
       :class="{ 'focused': focused }"
       :placeholder="placeholder"
-      :style="inputCustomCssProps"
       autocomplete="off"
       spellcheck="false"
       @input="query = $event.target.value"
@@ -130,9 +129,6 @@ export default {
       focused: false,
       focusIndex: 0,
       placeholder: undefined,
-      inputCustomCssProps: {
-        '--search-icon-url': `url('${this.$router.options.base}/img/search.svg')`,
-      }
     };
   },
 
@@ -291,14 +287,8 @@ export default {
     },
 
     isSearchable(page) {
-      // Documentation created using the production build always search pages for proper framework.
-      let isSelectedFramework = true;
-
-      // Only dev environment contain framework element as a part of the `normalizedPath` key's value.
-      if (this.$page.isEnvDev === true) {
-        isSelectedFramework =
-          page.normalizedPath.startsWith(`/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`);
-      }
+      const isSelectedFramework = page.normalizedPath
+        .startsWith(`/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`);
 
       return page.isSearchable === true && isSelectedFramework;
     },
@@ -378,8 +368,7 @@ export default {
     padding 0 0.5rem 0 2rem
     outline none
     /* Fallback for IE, should work in production */
-    background #fff url('/docs/javascript-data-grid/img/search.svg') 0.6rem 0.5rem no-repeat
-    background #fff var(--search-icon-url) 0.6rem 0.5rem no-repeat
+    background #fff url('{{$basePath}}/img/search.svg') 0.6rem 0.5rem no-repeat
     background-size 1rem
     &:focus
       color #104bcd

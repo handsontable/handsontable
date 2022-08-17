@@ -11,18 +11,13 @@ const conditionalContainer = require('./plugins/markdown-it-conditional-containe
 const {
   getDocsBaseUrl,
   getThisDocsVersion,
-  getEnvDocsFramework,
-  TMP_DIR_FOR_WATCH,
+  MULTI_FRAMEWORKED_CONTENT_DIR,
   createSymlinks,
-  isEnvDev,
-  getIgnoredFilesPatterns,
-  FRAMEWORK_SUFFIX,
 } = require('./helpers');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 
 const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
 const buildMode = process.env.BUILD_MODE;
-const frameworkFromEnv = getEnvDocsFramework();
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction ?
   [
@@ -37,9 +32,9 @@ const environmentHead = isProduction ?
   ]
   : [];
 
-// The `vuepress dev` command needs placing directories in proper place. It's done by creating temporaty directories
+// The `vuepress dev` command needs placing directories in proper place. It's done by creating temporary directories
 // which are watched by the script. It's done before a compilation is starting.
-createSymlinks(buildMode);
+createSymlinks();
 
 let base = '/docs/';
 
@@ -47,18 +42,12 @@ if (docsBase !== 'latest') {
   base += `${docsBase}/`;
 }
 
-if (frameworkFromEnv !== void 0) {
-  base += `${frameworkFromEnv}${FRAMEWORK_SUFFIX}/`;
-}
-
 module.exports = {
   define: {
     GA_ID: 'UA-33932793-7',
   },
   patterns: [
-    isEnvDev() ? `${TMP_DIR_FOR_WATCH}/**/*.md` : 'content/**/*.md',
-    '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md',
-    ...getIgnoredFilesPatterns(),
+    `${MULTI_FRAMEWORKED_CONTENT_DIR}/**/*.md`,
   ],
   description: 'Handsontable',
   base,
@@ -87,6 +76,19 @@ module.exports = {
       includeLevel: [2, 3],
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
+    anchor: {
+      callback(token, slugInfo) {
+        if (['h1', 'h2', 'h3'].includes(token.tag)) {
+          // Remove the `-[number]` suffix from the slugs and header IDs
+          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrs[0][1]);
+
+          if (duplicatedSlugsMatch) {
+            token.attrs[0][1] = duplicatedSlugsMatch[1];
+            slugInfo.slug = duplicatedSlugsMatch[1];
+          }
+        }
+      }
+    },
     externalLinks: {
       target: '_blank',
       rel: 'nofollow noopener noreferrer'
@@ -103,9 +105,9 @@ module.exports = {
   stylus: {
     preferPathResolver: 'webpack',
     define: {
-      versionedUrl: (expression) => {
+      url: (expression) => {
         return new stylusNodes
-          .Literal(`url("${expression.string.replace('{docsVersion}', getThisDocsVersion())}")`);
+          .Literal(`url("${expression.string.replace('{{$basePath}}', base.replace(/\/$/, ''))}")`);
       },
     }
   },
@@ -120,7 +122,7 @@ module.exports = {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
     }],
-    ['container', examples(getThisDocsVersion())],
+    ['container', examples(getThisDocsVersion(), base)],
     ['container', sourceCodeLink],
     {
       extendMarkdown(md) {
@@ -133,7 +135,7 @@ module.exports = {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'src') {
                 token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                  decodeURIComponent(value).replace('{{$basePath}}', base.replace(/\/$/, ''))
                 );
               }
             });
@@ -153,7 +155,7 @@ module.exports = {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'href') {
                 token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                  decodeURIComponent(value).replace('{{$basePath}}', base.replace(/\/$/, ''))
                 );
               }
             });

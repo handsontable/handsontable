@@ -68,7 +68,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -92,22 +91,18 @@ const ExampleComponent = () => {
 
     return array2d;
   };
-  const hotSettings = {
-    data: generateData(),
-    colHeaders: true,
-    rowHeaders: true,
-    height: 'auto',
-    contextMenu: true,
-    manualRowMove: true,
-    bindRowsWithHeaders: 'strict',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={generateData()}
+      colHeaders={true}
+      rowHeaders={true}
+      height="auto"
+      contextMenu={true}
+      manualRowMove={true}
+      bindRowsWithHeaders="strict"
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 

@@ -63,7 +63,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -73,21 +72,15 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 5),
-    rowHeaders: true,
-    colHeaders: true,
-    contextMenu: ['copy', 'cut'],
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 5)}
+      rowHeaders={true}
+      colHeaders={true}
+      contextMenu={['copy', 'cut']}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -98,6 +91,14 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 
 ### Trigger copy & cut programmatically
+
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+:::
 
 First, select a cell range to copy or cut.
 
@@ -159,7 +160,7 @@ cutBtn.addEventListener('click', function() {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -169,16 +170,8 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
-
-  const hotSettings = {
-    rowHeaders: true,
-    colHeaders: true,
-    data: Handsontable.helper.createSpreadsheetData(5, 5),
-    outsideClickDeselects: false,
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+  const hotRef = useRef();
+  
   const copyBtnClickCallback = function() {
     document.execCommand('copy');
   };
@@ -200,14 +193,33 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
+    <>
+      <HotTable
+        ref={hotRef}
+        rowHeaders={true}
+        colHeaders={true}
+        data={Handsontable.helper.createSpreadsheetData(5, 5)}
+        outsideClickDeselects={false}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+      />
       <div className="controls">
-        <button id="copy" onMouseDown={(...args) => copyBtnMousedownCallback(...args)} onClick={(...args) => copyBtnClickCallback(...args)}>Select and copy cell B2</button>
-        <button id="cut" onMouseDown={(...args) => cutBtnMousedownCallback(...args)} onClick={(...args) => cutBtnClickCallback(...args)}>Select and cut cell B2</button>
+        <button 
+          id="copy" 
+          onMouseDown={(...args) => copyBtnMousedownCallback(...args)} 
+          onClick={(...args) => copyBtnClickCallback(...args)}
+        >
+          Select and copy cell B2
+        </button>
+        <button 
+          id="cut" 
+          onMouseDown={(...args) => cutBtnMousedownCallback(...args)} 
+          onClick={(...args) => cutBtnClickCallback(...args)}
+        >
+          Select and cut cell B2
+        </button>
       </div>
-    </Fragment>
+    </>
   );
 };
 
@@ -247,11 +259,11 @@ Available options in the browser's toolbar:
 
 ### Context menu
 
-Due to security reason, modern browsers disallow to read from the system clipboard. [Learn more](https://www.w3.org/TR/clipboard-apis/#privacy)
+Due to security reasons, modern browsers disallow reading from the system clipboard. [Learn more](https://www.w3.org/TR/clipboard-apis/#privacy)
 
 ### Trigger paste programmatically
 
-Due to security reason, modern browsers disallow to read from the system clipboard. [Learn more](https://www.w3.org/TR/clipboard-apis/#privacy)
+Due to security reasons, modern browsers disallow reading from the system clipboard. [Learn more](https://www.w3.org/TR/clipboard-apis/#privacy)
 
 ### Hooks
 

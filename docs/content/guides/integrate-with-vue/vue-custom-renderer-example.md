@@ -39,28 +39,23 @@ new Vue({
       hotSettings: {
         data:
           [
-            ['A1', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-            ['A2', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/javascript-the-good-parts.jpg']],
+            ['A1', '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+            ['A2', '{{$basePath}}/img/examples/javascript-the-good-parts.jpg']
+          ],
         columns: [
           {},
           {
             renderer(instance, td, row, col, prop, value, cellProperties) {
-              const escaped = `${value}`;
+              const img = document.createElement('img');
 
-              if (escaped.indexOf('http') === 0) {
-                const img = document.createElement('IMG');
-                img.src = value;
+              img.src = value;
 
-                img.addEventListener('mousedown', event => {
-                  event.preventDefault();
-                });
+              img.addEventListener('mousedown', event => {
+                event.preventDefault();
+              });
 
-                td.innerText = '';
-                td.appendChild(img);
-
-              } else {
-                textRenderer.apply(this, arguments);
-              }
+              td.innerText = '';
+              td.appendChild(img);
 
               return td;
             }

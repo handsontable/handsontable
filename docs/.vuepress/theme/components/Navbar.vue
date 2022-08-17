@@ -61,9 +61,7 @@ export default {
   },
   computed: {
     frameworkUrlPrefix() {
-      return this.$page.isEnvDev ?
-        `/${this.$page.currentFramework}${this.$page.frameworkSuffix}` :
-        '';
+      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
     },
     algolia() {
       return this.$themeLocaleConfig.algolia || this.$site.themeConfig.algolia || {};
@@ -148,5 +146,8 @@ $navbar-horizontal-padding = 1.5rem
     padding-left 4rem
     .can-hide
       display none
+@media (max-width: $MQNarrow)
+  .navbar .nav-frameworks
+    display none
 
 </style>

@@ -27,11 +27,21 @@ The **Nested Rows** plugin extends Handsontable, adding new functionality that d
 
 To enable the plugin, simply set the [`nestedRows`](@/api/options.md#nestedrows) option to `true`.
 
+::: only-for javascript
 ```js
 const hot = new Handsontable(container, {
   nestedRows: true,
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  nestedRows={true}
+/>
+```
+:::
 
 Note that using all the functionalities provided by the plugin requires enabling the row headers and the Handsontable context menu. To do this set [`rowHeaders`](@/api/options.md#rowheaders) and [`contextMenu`](@/api/options.md#contextmenu) to `true`. The _collapse_ / _expand_ buttons are located in the row headers, and the row modification options _add row_, _insert child_, etc., are in the Context Menu.
 
@@ -187,7 +197,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -311,21 +320,17 @@ const ExampleComponent = () => {
       }]
     }
   ];
-  const hotSettings = {
-    data: sourceDataObject,
-    preventOverflow: 'horizontal',
-    rowHeaders: true,
-    colHeaders: ['Category', 'Artist', 'Title', 'Album', 'Label'],
-    nestedRows: true,
-    contextMenu: true,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={sourceDataObject}
+      preventOverflow="horizontal"
+      rowHeaders={true}
+      colHeaders={['Category', 'Artist', 'Title', 'Album', 'Label']}
+      nestedRows={true}
+      contextMenu={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 

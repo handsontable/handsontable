@@ -46,6 +46,14 @@ There are several API methods you can use for suspending, but [`batch()`](@/api/
 
 The following snippet shows a simple example of a few operations batched. Three API operations are called one after another. Without placing them inside the batch callback, every single operation would end with a [`render()`](@/api/core.md#render). Thanks to the batching feature, you can skip two renders and end the whole action with one render at the end. This is more optimal, and the gain increases with the number of operations placed inside the [`batch()`](@/api/core.md#batch).
 
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+:::
+
 ```js
 // call the batch method on an instance
 hot.batch(() => {
@@ -59,7 +67,7 @@ hot.batch(() => {
 
 Suspending the render results in better performance, which is especially noticeable when numerous operations are batched. The diagram shows a comparison where the same operations were performed **with** (deep blue columns) **and without the batch** (light blue columns). The gain in speed of execution time increases with the number of operations batched.
 
-![batch_operations_comparison](/docs/{{$page.currentVersion}}/img/batch_operations_comparison.png)
+![batch_operations_comparison]({{$basePath}}/img/batch_operations_comparison.png)
 
 :::tip
 Note that other methods can be used to batch operations, but they are slightly more advanced and should be used with caution. Flickering, glitches or other visual distortion may happen when you forget to `resume` render after suspending it several times. Mixing methods of a render type with those focused on operations can also result in some unexpected behavior. Above all, [`batch()`](@/api/core.md#batch) should be sufficient in most use cases, and it is safe to work with.
@@ -137,7 +145,9 @@ hot.batchExecution(() => {
 
 #### [`suspendRender()`](@/api/core.md#suspendrender) and [`resumeRender()`](@/api/core.md#resumerender)
 
-To suspend the rendering process, you can call the [`suspendRender()`](@/api/core.md#suspendrender) method just before the actions you want to batch. This is a manual approach. After suspending, you must remember to resume the process with the [`resumeRender()`](@/api/core.md#resumerender) method.
+To suspend the rendering process, call the [`suspendRender()`](@/api/core.md#suspendrender) method just before the actions you want to batch. This is a manual approach.
+
+After suspending, resume the process with the [`resumeRender()`](@/api/core.md#resumerender) method. Every [`suspendRender()`](@/api/core.md#suspendrender) call needs to correspond with one [`resumeRender()`](@/api/core.md#resumerender) call. For example, if you call [`suspendRender()`](@/api/core.md#suspendrender) 5 times, you need to call [`resumeRender()`](@/api/core.md#resumerender) 5 times as well.
 
 ```js
 hot.suspendRender(); // suspend rendering
@@ -261,7 +271,7 @@ buttonWith.addEventListener('click', () => {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -270,21 +280,10 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef();
+  const [counter, setCounter] = useState(0);
   const [output, setOutput] = useState('');
 
-  const data1 = [
-    [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
-    [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
-    [3, 'Ronald Carver', 'Sunny T-shirt', 'S', 1, 'no'],
-    [4, 'Samuel Watkins', 'Floppy socks', 'S', 3, 'no'],
-    [5, 'Stephanie Huddart', 'Bushy-bush cap', 'XXL', 1, 'no'],
-    [6, 'Madeline McGillivray', 'Long skirt', 'L', 1, 'no'],
-    [7, 'Jai Moor', 'Happy dress', 'XS', 1, 'no'],
-    [8, 'Ben Lower', 'Speckled trousers', 'M', 1, 'no'],
-    [9, 'Ali Tunbridge', 'Speckled trousers', 'M', 2, 'no'],
-    [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no']
-  ];
   const data2 = [
     [11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes'],
   ];
@@ -293,22 +292,12 @@ const ExampleComponent = () => {
     [13, 'Anna Moon', 'Unicorn shades', 'uni', 200, 'no'],
     [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
   ];
-  const hotSettings = {
-    data: data1,
-    width: 'auto',
-    height: 'auto',
-    colHeaders: ['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return'],
-    licenseKey: 'non-commercial-and-evaluation'
-  };
   const logOutput = msg => {
-    counter++;
-    loggedText = `[${counter}] ${msg}\n${loggedText}`;
-    setOutput(loggedText);
+    setCounter(counter + 1);
+    setOutput(`[${counter}] ${msg}\n${output}`);
   }
   let buttonWithoutClickCallback;
   let buttonWithClickCallback;
-  let loggedText = '';
-  let counter = 0;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
@@ -350,15 +339,32 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
+    <>
+      <HotTable
+        ref={hotRef}
+        data={[
+          [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
+          [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
+          [3, 'Ronald Carver', 'Sunny T-shirt', 'S', 1, 'no'],
+          [4, 'Samuel Watkins', 'Floppy socks', 'S', 3, 'no'],
+          [5, 'Stephanie Huddart', 'Bushy-bush cap', 'XXL', 1, 'no'],
+          [6, 'Madeline McGillivray', 'Long skirt', 'L', 1, 'no'],
+          [7, 'Jai Moor', 'Happy dress', 'XS', 1, 'no'],
+          [8, 'Ben Lower', 'Speckled trousers', 'M', 1, 'no'],
+          [9, 'Ali Tunbridge', 'Speckled trousers', 'M', 2, 'no'],
+          [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no']
+        ]}
+        width="auto"
+        height="auto"
+        colHeaders={['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return']}
+        licenseKey="non-commercial-and-evaluation"
+      />
       <div className="controls">
         <button id="buttonWithout" className="button button--primary" onClick={(...args) => buttonWithoutClickCallback(...args)}>Run without batch method</button>
         <button id="buttonWith" className="button button--primary" onClick={(...args) => buttonWithClickCallback(...args)}>Run with batch method</button>
       </div>
-      <output className="console" id="output">{output}</output>
-    </Fragment>
+      <output className="console" id="output">{output || 'Here you will see the log'}</output>
+    </>
   );
 };
 
@@ -367,7 +373,6 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 :::
 
-[//]: # (// TODO: [react-docs] In the above demo, output console does not work in React as in the JS variant)
 
 ## Related articles
 

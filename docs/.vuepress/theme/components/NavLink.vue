@@ -41,11 +41,11 @@ export default {
       return !!this.item.isHtmlLink;
     },
     exact() {
-      if (this.$site.locales) {
-        return Object.keys(this.$site.locales).some(rootLink => rootLink === this.link);
+      if (this.link === `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`) {
+        return /\/api\//.test(this.$route.fullPath) || /\/examples\//.test(this.$route.fullPath);
       }
 
-      return this.link === '/';
+      return false;
     },
 
     isNonHttpURI() {

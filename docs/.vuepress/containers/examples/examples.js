@@ -7,8 +7,6 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const { buildCode } = require('./code-builder');
 const { jsfiddle } = require('./jsfiddle');
-const { isEnvDev } = require('../../helpers');
-const { getContainerFramework } = require('../helpers');
 
 const tab = (tabName, token) => {
   if (!token) return [];
@@ -72,7 +70,7 @@ const getPreviewTab = (id, cssContent, htmlContent, code) => {
   };
 };
 
-module.exports = function(docsVersion) {
+module.exports = function(docsVersion, base) {
   return {
     type: 'example',
     render(tokens, index, opts, env) {
@@ -103,10 +101,8 @@ module.exports = function(docsVersion) {
         const jsPos = args.match(/--js (\d*)/)?.[1] || 1;
         const jsIndex = index + Number.parseInt(jsPos, 10);
         const jsToken = tokens[jsIndex];
-        const filePath = env.relativePath;
-        const framework = getContainerFramework(filePath);
 
-        jsToken.content = jsToken.content.replaceAll('{{$page.currentVersion}}', docsVersion);
+        jsToken.content = jsToken.content.replaceAll('{{$basePath}}', base.replace(/\/$/, ''));
 
       const activeTab = [args.match(/--tab (code|html|css|preview)/)?.[1]].map((entry) => {
         if (!entry || entry === 'preview') {
@@ -119,10 +115,7 @@ module.exports = function(docsVersion) {
       const noEdit = !!args.match(/--no-edit/)?.[0];
 
         const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), jsToken.content, env.relativePath);
-        const encodedCode = encodeURI(
-          `useHandsontable('${docsVersion}', function(){${code}}, '${preset}', ${
-            isEnvDev() ? '\'development\'' : '\'production\''
-          })`);
+        const encodedCode = encodeURI(`useHandsontable('${docsVersion}', function(){${code}}, '${preset}')`);
 
         [htmlIndex, jsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
           tokens.splice(x, 1);
@@ -138,7 +131,7 @@ module.exports = function(docsVersion) {
         tokens.splice(index + 1, 0, ...newTokens);
 
         return `
-            ${!noEdit ? jsfiddle(id, htmlContent, jsToken.content, cssContent, docsVersion, preset, framework) : ''}
+            ${!noEdit ? jsfiddle(id, htmlContent, jsToken.content, cssContent, docsVersion, preset) : ''}
             <tabs
               :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
               cache-lifetime="0"

@@ -45,7 +45,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -54,30 +53,25 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      ['2017', 'Honda', 10],
-      ['2018', 'Toyota', 20],
-      ['2019', 'Nissan', 30]
-    ],
-    colWidths: [50, 70, 50],
-    colHeaders: true,
-    columns: [
-      {},
-      {
-        editor: 'select',
-        selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda']
-      },
-      {}
-    ],
-    licenseKey: 'non-commercial-and-evaluation',
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        ['2017', 'Honda', 10],
+        ['2018', 'Toyota', 20],
+        ['2019', 'Nissan', 30]
+      ]}
+      colWidths={[50, 70, 50]}
+      colHeaders={true}
+      columns={[
+        {},
+        {
+          editor: 'select',
+          selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda']
+        },
+        {}
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 

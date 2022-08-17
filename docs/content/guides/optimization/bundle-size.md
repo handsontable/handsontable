@@ -19,6 +19,7 @@ To reduce the bundle size and JavaScript parsing time, import only those of Hand
 
 The following example shows how to import and register the [`ContextMenu`](@/api/contextMenu.md) plugin on top of the base module of Handsontable, without importing anything else.
 
+::: only-for javascript
 ```js
 import Handsontable from 'handsontable/base';
 import { registerPlugin, ContextMenu } from 'handsontable/plugins';
@@ -29,6 +30,24 @@ new Handsontable(container, {
   contextMenu: true,
 });
 ```
+:::
+
+::: only-for react
+```js
+import Handsontable from 'handsontable/base';
+import { registerPlugin, ContextMenu } from 'handsontable/plugins';
+
+registerPlugin(ContextMenu);
+
+const App = () => {
+  return (
+    <HotTable
+      contextMenu={true}
+    />
+  );
+};
+```
+:::
 
 ## Optimize Moment.js
 
@@ -38,6 +57,7 @@ To [optimize Moment.js locales](https://github.com/jmblog/how-to-optimize-moment
 
 ```js
 const webpack = require('webpack');
+
 module.exports = {
   //...
   plugins: [
@@ -49,6 +69,7 @@ module.exports = {
 
 And then explicitly load Moment.js, importing just those locales that you need:
 
+::: only-for javascript
 ```js
 import Handsontable from 'handsontable/base';
 import { registerCellType, DateCellType } from 'handsontable/cellTypes';
@@ -66,6 +87,31 @@ new Handsontable(container, {
   type: 'date',
 });
 ```
+:::
+
+::: only-for react
+```js
+import Handsontable from 'handsontable/base';
+import { registerCellType, DateCellType } from 'handsontable/cellTypes';
+
+// explicitly import Moment.js
+import moment from 'moment';
+// explicitly import a Moment.js locale of your choice
+import 'moment/locale/ja';
+
+// register the Moment.js locale of your choice
+moment.locale('ja');
+registerCellType(DateCellType);
+
+const App = () => {
+  return (
+    <HotTable
+      type={'date'}
+    />
+  );
+};
+```
+:::
 
 ## Related guides
 

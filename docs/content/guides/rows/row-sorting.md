@@ -65,7 +65,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -74,32 +73,27 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
-      ['Tesla', 'Model S', 'WhiteStar', 'USA', '★★★★★'],
-      ['Mitsubishi', 'iMiEV', '', 'Japan', '★★'],
-      ['Ford', 'Focus EV', '', 'USA', '★★'],
-      ['Mitsubishi', 'iMiEV Sport', '', 'Japan', '★★'],
-      ['Tesla', 'Roadster', 'DarkStar', 'USA', '★★★★★'],
-      ['Volkswagen', 'e-Golf', '', 'Germany', '★★'],
-      ['Volkswagen', 'E-Up!', '', 'Germany', '★★'],
-      ['Ford', 'C-Max Energi', '', 'USA', '★'],
-      ['BYD', 'Denza', '', 'China', '★★★'],
-      ['BYD', 'e5', '', 'China', '★★★'],
-      ['BYD', 'e6', '', 'China', '★★★★']
-    ],
-    colHeaders: ['Brand', 'Model', 'Code name', 'Country of origin', 'Rank'],
-    columnSorting: true,
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
+        ['Tesla', 'Model S', 'WhiteStar', 'USA', '★★★★★'],
+        ['Mitsubishi', 'iMiEV', '', 'Japan', '★★'],
+        ['Ford', 'Focus EV', '', 'USA', '★★'],
+        ['Mitsubishi', 'iMiEV Sport', '', 'Japan', '★★'],
+        ['Tesla', 'Roadster', 'DarkStar', 'USA', '★★★★★'],
+        ['Volkswagen', 'e-Golf', '', 'Germany', '★★'],
+        ['Volkswagen', 'E-Up!', '', 'Germany', '★★'],
+        ['Ford', 'C-Max Energi', '', 'USA', '★'],
+        ['BYD', 'Denza', '', 'China', '★★★'],
+        ['BYD', 'e5', '', 'China', '★★★'],
+        ['BYD', 'e6', '', 'China', '★★★★']
+      ]}
+      colHeaders={['Brand', 'Model', 'Code name', 'Country of origin', 'Rank']}
+      columnSorting={true}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -163,7 +157,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -172,38 +165,33 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
-      ['Tesla', 'Model S', 'WhiteStar', 'USA', '★★★★★'],
-      ['Mitsubishi', 'iMiEV', '', 'Japan', '★★'],
-      ['Ford', 'Focus EV', '', 'USA', '★★'],
-      ['Mitsubishi', 'iMiEV Sport', '', 'Japan', '★★'],
-      ['Tesla', 'Roadster', 'DarkStar', 'USA', '★★★★★'],
-      ['Volkswagen', 'e-Golf', '', 'Germany', '★★'],
-      ['Volkswagen', 'E-Up!', '', 'Germany', '★★'],
-      ['Ford', 'C-Max Energi', '', 'USA', '★'],
-      ['BYD', 'Denza', '', 'China', '★★★'],
-      ['BYD', 'e5', '', 'China', '★★★'],
-      ['BYD', 'e6', '', 'China', '★★★★']
-    ],
-    height: 320,
-    colHeaders: ['Brand', 'Model', 'Code name', 'Country of origin', 'Rank'],
-    columnSorting: {
-      sortEmptyCells: true,
-      initialConfig: {
-        column: 2,
-        sortOrder: 'asc'
-      }
-    },
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
+        ['Tesla', 'Model S', 'WhiteStar', 'USA', '★★★★★'],
+        ['Mitsubishi', 'iMiEV', '', 'Japan', '★★'],
+        ['Ford', 'Focus EV', '', 'USA', '★★'],
+        ['Mitsubishi', 'iMiEV Sport', '', 'Japan', '★★'],
+        ['Tesla', 'Roadster', 'DarkStar', 'USA', '★★★★★'],
+        ['Volkswagen', 'e-Golf', '', 'Germany', '★★'],
+        ['Volkswagen', 'E-Up!', '', 'Germany', '★★'],
+        ['Ford', 'C-Max Energi', '', 'USA', '★'],
+        ['BYD', 'Denza', '', 'China', '★★★'],
+        ['BYD', 'e5', '', 'China', '★★★'],
+        ['BYD', 'e6', '', 'China', '★★★★']
+      ]}
+      height={320}
+      colHeaders={['Brand', 'Model', 'Code name', 'Country of origin', 'Rank']}
+      columnSorting={{
+        sortEmptyCells: true,
+        initialConfig: {
+          column: 2,
+          sortOrder: 'asc'
+        }
+      }}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -283,7 +271,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -292,60 +279,55 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
-      { brand: 'Tesla', model: 'Model S', maxSpeed: 139, range: 275, seats: 7, price: 71788, productionDate: '04/02/2012' },
-      { brand: 'Mitsubishi', model: 'iMiEV', maxSpeed: 81, range: 99, seats: 4, price: 31426.9, productionDate: '09/11/2009' },
-      { brand: 'Ford', model: 'Focus EV', maxSpeed: 85, range: 100, seats: 4, price: 12000, productionDate: '10/01/2011' },
-      { brand: 'Mitsubishi', model: 'iMiEV Sport', maxSpeed: 84, range: 124, seats: 4, price: 15000, productionDate: '05/11/2007' },
-      { brand: 'Tesla', model: 'Roadster', maxSpeed: 125, range: 244, seats: 2, price: 113904.5, productionDate: '02/17/2008' },
-      { brand: 'Volkswagen', model: 'e-Golf', maxSpeed: 87, range: 118, seats: 5, price: 33012, productionDate: '10/05/2011' },
-      { brand: 'Volkswagen', model: 'E-Up!', maxSpeed: 85, range: 80, seats: 3, price: 32258.75, productionDate: '11/09/2009' },
-      { brand: 'Ford', model: 'C-Max Energi', maxSpeed: 115, range: 18, seats: 5, price: 27120, productionDate: '11/25/2014' },
-      { brand: 'BYD', model: 'Denza', maxSpeed: 93, range: 157, seats: 5, price: 47600, productionDate: '10/01/2011' },
-      { brand: 'BYD', model: 'e5', maxSpeed: 93, range: 136, seats: 5, price: 22966.92, productionDate: '07/19/2015' },
-      { brand: 'BYD', model: 'e6', maxSpeed: 87, range: 199, seats: 5, price: 31440, productionDate: '06/22/2009' }
-    ],
-    width: '100%',
-    height: 320,
-    colHeaders: ['Brand', 'Model', 'Max speed<br>(in miles per hour)', 'Range<br>(in miles)', 'Seats', 'Price', 'Start of<br>production'],
-    columns: [{
-      data: 'brand' // 1st column is simple text, no special options here
-    }, {
-      data: 'model' // 2nd column is simple text, no special options here
-    }, {
-      data: 'maxSpeed',
-      type: 'numeric'
-    }, {
-      data: 'range',
-      type: 'numeric'
-    }, {
-      data: 'seats',
-      type: 'numeric'
-    }, {
-      data: 'price',
-      type: 'numeric',
-      numericFormat: {
-        pattern: '$ 0,0.00',
-        culture: 'en-US'
-      }
-    }, {
-      data: 'productionDate',
-      type: 'date',
-      dateFormat: 'MM/DD/YYYY',
-      correctFormat: true,
-      defaultDate: '01/01/1900'
-    }],
-    columnSorting: true,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
+        { brand: 'Tesla', model: 'Model S', maxSpeed: 139, range: 275, seats: 7, price: 71788, productionDate: '04/02/2012' },
+        { brand: 'Mitsubishi', model: 'iMiEV', maxSpeed: 81, range: 99, seats: 4, price: 31426.9, productionDate: '09/11/2009' },
+        { brand: 'Ford', model: 'Focus EV', maxSpeed: 85, range: 100, seats: 4, price: 12000, productionDate: '10/01/2011' },
+        { brand: 'Mitsubishi', model: 'iMiEV Sport', maxSpeed: 84, range: 124, seats: 4, price: 15000, productionDate: '05/11/2007' },
+        { brand: 'Tesla', model: 'Roadster', maxSpeed: 125, range: 244, seats: 2, price: 113904.5, productionDate: '02/17/2008' },
+        { brand: 'Volkswagen', model: 'e-Golf', maxSpeed: 87, range: 118, seats: 5, price: 33012, productionDate: '10/05/2011' },
+        { brand: 'Volkswagen', model: 'E-Up!', maxSpeed: 85, range: 80, seats: 3, price: 32258.75, productionDate: '11/09/2009' },
+        { brand: 'Ford', model: 'C-Max Energi', maxSpeed: 115, range: 18, seats: 5, price: 27120, productionDate: '11/25/2014' },
+        { brand: 'BYD', model: 'Denza', maxSpeed: 93, range: 157, seats: 5, price: 47600, productionDate: '10/01/2011' },
+        { brand: 'BYD', model: 'e5', maxSpeed: 93, range: 136, seats: 5, price: 22966.92, productionDate: '07/19/2015' },
+        { brand: 'BYD', model: 'e6', maxSpeed: 87, range: 199, seats: 5, price: 31440, productionDate: '06/22/2009' }
+      ]}
+      width="100%"
+      height={320}
+      colHeaders={['Brand', 'Model', 'Max speed<br>(in miles per hour)', 'Range<br>(in miles)', 'Seats', 'Price', 'Start of<br>production']}
+      columns={[{
+        data: 'brand' // 1st column is simple text, no special options here
+      }, {
+        data: 'model' // 2nd column is simple text, no special options here
+      }, {
+        data: 'maxSpeed',
+        type: 'numeric'
+      }, {
+        data: 'range',
+        type: 'numeric'
+      }, {
+        data: 'seats',
+        type: 'numeric'
+      }, {
+        data: 'price',
+        type: 'numeric',
+        numericFormat: {
+          pattern: '$ 0,0.00',
+          culture: 'en-US'
+        }
+      }, {
+        data: 'productionDate',
+        type: 'date',
+        dateFormat: 'MM/DD/YYYY',
+        correctFormat: true,
+        defaultDate: '01/01/1900'
+      }]}
+      columnSorting={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -441,7 +423,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -450,66 +431,61 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
-      { brand: 'Tesla', model: 'Model S', maxSpeed: 139, range: 275, seats: 7, price: 71788, productionDate: '04/02/2012' },
-      { brand: 'Mitsubishi', model: 'iMiEV', maxSpeed: 81, range: 99, seats: 4, price: 31426.9, productionDate: '09/11/2009' },
-      { brand: 'Ford', model: 'Focus EV', maxSpeed: 85, range: 100, seats: 4, price: 12000, productionDate: '10/01/2011' },
-      { brand: 'Mitsubishi', model: 'iMiEV Sport', maxSpeed: 84, range: 124, seats: 4, price: 15000, productionDate: '05/11/2007' },
-      { brand: 'Tesla', model: 'Roadster', maxSpeed: 125, range: 244, seats: 2, price: 113904.5, productionDate: '02/17/2008' },
-      { brand: 'Volkswagen', model: 'e-Golf', maxSpeed: 87, range: 118, seats: 5, price: 33012, productionDate: '10/05/2011' },
-      { brand: 'Volkswagen', model: 'E-Up!', maxSpeed: 85, range: 80, seats: 3, price: 32258.75, productionDate: '11/09/2009' },
-      { brand: 'Ford', model: 'C-Max Energi', maxSpeed: 115, range: 18, seats: 5, price: 27120, productionDate: '11/25/2014' },
-      { brand: 'BYD', model: 'Denza', maxSpeed: 93, range: 157, seats: 5, price: 47600, productionDate: '10/01/2011' },
-      { brand: 'BYD', model: 'e5', maxSpeed: 93, range: 136, seats: 5, price: 22966.92, productionDate: '07/19/2015' },
-      { brand: 'BYD', model: 'e6', maxSpeed: 87, range: 199, seats: 5, price: 31440, productionDate: '06/22/2009' }
-    ],
-    height: 320,
-    colHeaders: ['Brand<br><b>(non-sortable)</b>', 'Model', 'Max speed<br>(in miles per hour)', 'Range<br>(in miles)', 'Seats', 'Price', 'Start of<br>production'],
-    columns: [{
-      data: 'brand', // 1st column is simple text, no special options here
-      columnSorting: {
-        indicator: false,
-        headerAction: false,
-        compareFunctionFactory(sortOrder, columnMeta) {
-          return (value, nextValue) => 0; // Don't sort the first visual column.
-        }
-      }
-    }, {
-      data: 'model' // 2nd column is simple text, no special options here
-    }, {
-      data: 'maxSpeed',
-      type: 'numeric'
-    }, {
-      data: 'range',
-      type: 'numeric'
-    }, {
-      data: 'seats',
-      type: 'numeric'
-    }, {
-      data: 'price',
-      type: 'numeric',
-      numericFormat: {
-        pattern: '$ 0,0.00',
-        culture: 'en-US'
-      }
-    }, {
-      data: 'productionDate',
-      type: 'date',
-      dateFormat: 'MM/DD/YYYY',
-      correctFormat: true,
-      defaultDate: '01/01/1900'
-    }],
-    columnSorting: true,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={[
+        { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
+        { brand: 'Tesla', model: 'Model S', maxSpeed: 139, range: 275, seats: 7, price: 71788, productionDate: '04/02/2012' },
+        { brand: 'Mitsubishi', model: 'iMiEV', maxSpeed: 81, range: 99, seats: 4, price: 31426.9, productionDate: '09/11/2009' },
+        { brand: 'Ford', model: 'Focus EV', maxSpeed: 85, range: 100, seats: 4, price: 12000, productionDate: '10/01/2011' },
+        { brand: 'Mitsubishi', model: 'iMiEV Sport', maxSpeed: 84, range: 124, seats: 4, price: 15000, productionDate: '05/11/2007' },
+        { brand: 'Tesla', model: 'Roadster', maxSpeed: 125, range: 244, seats: 2, price: 113904.5, productionDate: '02/17/2008' },
+        { brand: 'Volkswagen', model: 'e-Golf', maxSpeed: 87, range: 118, seats: 5, price: 33012, productionDate: '10/05/2011' },
+        { brand: 'Volkswagen', model: 'E-Up!', maxSpeed: 85, range: 80, seats: 3, price: 32258.75, productionDate: '11/09/2009' },
+        { brand: 'Ford', model: 'C-Max Energi', maxSpeed: 115, range: 18, seats: 5, price: 27120, productionDate: '11/25/2014' },
+        { brand: 'BYD', model: 'Denza', maxSpeed: 93, range: 157, seats: 5, price: 47600, productionDate: '10/01/2011' },
+        { brand: 'BYD', model: 'e5', maxSpeed: 93, range: 136, seats: 5, price: 22966.92, productionDate: '07/19/2015' },
+        { brand: 'BYD', model: 'e6', maxSpeed: 87, range: 199, seats: 5, price: 31440, productionDate: '06/22/2009' }
+      ]}
+      height={320}
+      colHeaders={['Brand<br><b>(non-sortable)</b>', 'Model', 'Max speed<br>(in miles per hour)', 'Range<br>(in miles)', 'Seats', 'Price', 'Start of<br>production']}
+      columns={[{
+        data: 'brand', // 1st column is simple text, no special options here
+        columnSorting: {
+          indicator: false,
+          headerAction: false,
+          compareFunctionFactory(sortOrder, columnMeta) {
+            return (value, nextValue) => 0; // Don't sort the first visual column.
+          }
+        }
+      }, {
+        data: 'model' // 2nd column is simple text, no special options here
+      }, {
+        data: 'maxSpeed',
+        type: 'numeric'
+      }, {
+        data: 'range',
+        type: 'numeric'
+      }, {
+        data: 'seats',
+        type: 'numeric'
+      }, {
+        data: 'price',
+        type: 'numeric',
+        numericFormat: {
+          pattern: '$ 0,0.00',
+          culture: 'en-US'
+        }
+      }, {
+        data: 'productionDate',
+        type: 'date',
+        dateFormat: 'MM/DD/YYYY',
+        correctFormat: true,
+        defaultDate: '01/01/1900'
+      }]}
+      columnSorting={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -534,6 +510,7 @@ To use a custom sort implementation, you need to:
 
 The code snippet below provides an example of a custom sort implementation:
 
+::: only-for javascript
 ```js
 beforeColumnSort(currentSortConfig, destinationSortConfigs) {
   const columnSortPlugin = this.getPlugin('columnSorting');
@@ -547,6 +524,25 @@ beforeColumnSort(currentSortConfig, destinationSortConfigs) {
   return false; // The blockade for the default sort action.
 }
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  beforeColumnSort={function(currentSortConfig, destinationSortConfigs) {
+    const columnSortPlugin = this.getPlugin('columnSorting');
+
+    columnSortPlugin.setSortConfig(destinationSortConfigs);
+
+    // const newData = ... // Calculated data set, ie. from an AJAX call.
+
+    // this.loadData(newData); // Load a new data set.
+
+    return false; // The blockade for the default sort action.
+  }}
+/>
+```
+:::
 
 ## Plugin hooks
 

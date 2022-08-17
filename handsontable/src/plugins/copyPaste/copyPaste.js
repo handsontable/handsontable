@@ -311,6 +311,8 @@ export class CopyPaste extends BasePlugin {
   /**
    * Simulates the paste action.
    *
+   * Due to security reasons, modern browsers disallow reading from the system clipboard.
+   *
    * @param {string} pastableText Value as raw string to paste.
    * @param {string} [pastableHtml=''] Value as HTML to paste.
    */

@@ -5,8 +5,6 @@ const {
   getThisDocsVersion,
   getDocsBaseUrl,
   getPrettyFrameworkName,
-  getEnvDocsFramework,
-  isEnvDev,
   getDefaultFramework,
   FRAMEWORK_SUFFIX,
   getNotSearchableLinks,
@@ -14,8 +12,6 @@ const {
 
 const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/extend-page-data';
-
-const DOCS_FRAMEWORK = getEnvDocsFramework();
 
 /**
  * Dedupes the slashes in the string.
@@ -27,7 +23,7 @@ function dedupeSlashes(string) {
   return string.replace(/(\/)+/g, '$1');
 }
 
-const notSearchableLinks = getNotSearchableLinks(buildMode);
+const notSearchableLinks = getNotSearchableLinks();
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const twoDigitDay = date.getDate();
@@ -50,31 +46,37 @@ module.exports = (options, context) => {
      * @param {object} $page The $page value of the page you’re currently reading.
      */
     extendPageData($page) {
-      $page.normalizedPath = getNormalizedPath($page.path);
+      const normalizedPath = getNormalizedPath($page.path);
+      const currentFramework = parseFramework(normalizedPath);
+
+      $page.normalizedPath = normalizedPath;
       $page.baseUrl = getDocsBaseUrl();
       $page.currentVersion = getThisDocsVersion();
-      // Framework isn't stored in PATH for full build. However, it's defined in ENV variable.
-      $page.currentFramework = DOCS_FRAMEWORK || parseFramework($page.normalizedPath);
+      $page.currentFramework = currentFramework;
       $page.frameworkName = getPrettyFrameworkName($page.currentFramework);
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
-      $page.isEnvDev = isEnvDev();
       $page.buildMode = buildMode;
-      $page.frontmatter.canonicalUrl = dedupeSlashes(`/docs${$page.frontmatter.canonicalUrl}/`);
-      $page.isSearchable =
-        notSearchableLinks[$page.currentFramework]?.every(
-          notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);
+      $page.isSearchable = notSearchableLinks[$page.currentFramework]?.every(
+        notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);
+
+      const frontmatter = $page.frontmatter;
+
+      if (frontmatter[currentFramework]) {
+        Object.keys(frontmatter[currentFramework]).forEach((key) => {
+          frontmatter[key] = frontmatter[currentFramework][key] ?? frontmatter[key];
+        });
+      }
+
+      const frameworkPath = $page.currentFramework + FRAMEWORK_SUFFIX;
+
+      if ($page.frontmatter.canonicalUrl) {
+        $page.frontmatter.canonicalUrl = dedupeSlashes(`/docs/${frameworkPath}${$page.frontmatter.canonicalUrl}/`);
+      }
 
       if ($page.frontmatter.permalink) {
-        if ($page.currentVersion !== 'next') {
-          $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
-        }
-
-        // Only dev script need to perform build to specific place. Full build script perform moving directory separately.
-        if (isEnvDev()) {
-          $page.frontmatter.permalink = `/${$page.currentFramework}${FRAMEWORK_SUFFIX}${$page.frontmatter.permalink}`;
-        }
+        $page.frontmatter.permalink = `/${frameworkPath}${$page.frontmatter.permalink}`;
       }
     },
   };
