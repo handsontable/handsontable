@@ -368,7 +368,7 @@ export default {
     padding 0 0.5rem 0 2rem
     outline none
     /* Fallback for IE, should work in production */
-    background #fff versionedUrl('{{$basePath}}/img/search.svg') 0.6rem 0.5rem no-repeat
+    background #fff url('{{$basePath}}/img/search.svg') 0.6rem 0.5rem no-repeat
     background-size 1rem
     &:focus
       color #104bcd

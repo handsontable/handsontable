@@ -143,7 +143,7 @@ export default {
   transition: 0.4s;
   box-shadow: 0 0px 3px #2020203d;
   /* Fallback for IE, should work in production */
-  background: #ffffff versionedUrl('{{$basePath}}/img/light-theme-icon.svg');
+  background: #ffffff url('{{$basePath}}/img/light-theme-icon.svg');
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;
@@ -162,7 +162,7 @@ input:checked + .slider:before {
   -ms-transform: translateX(16px);
   transform: translateX(16px);
   /* Fallback for IE, should work in production */
-  background: #ffffff versionedUrl('{{$basePath}}/img/dark-theme-icon.svg');
+  background: #ffffff url('{{$basePath}}/img/dark-theme-icon.svg');
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;

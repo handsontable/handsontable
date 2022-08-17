@@ -92,7 +92,7 @@ module.exports = {
   stylus: {
     preferPathResolver: 'webpack',
     define: {
-      versionedUrl: (expression) => {
+      url: (expression) => {
         return new stylusNodes
           .Literal(`url("${expression.string.replace('{{$basePath}}', base.replace(/\/$/, ''))}")`);
       },
