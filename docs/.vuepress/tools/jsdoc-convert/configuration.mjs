@@ -1,3 +1,4 @@
+/* eslint max-len: 0 */
 export default {
   pathToSource: '../../../../handsontable/src',
   pathToDist: '../../../content/api',

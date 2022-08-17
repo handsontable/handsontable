@@ -27,14 +27,15 @@ export const buildHeaderWriter = ({ seo, urlPrefix }) => {
   };
 
   return (file, isPlugin) => {
-    const pageMeta = Object.assign({
+    const pageMeta = {
       title: genSeoTitle(file),
       metaTitle: genSeoMetaTitle(file, isPlugin),
       permalink: genSeoPermalink(file),
       canonicalUrl: genSeoPermalink(file),
       hotPlugin: isPlugin,
       editLink: false,
-    }, seo[file] || {});
+      ...seo[file],
+    };
 
     return `---
 ${toYaml(pageMeta)}
