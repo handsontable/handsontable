@@ -5,12 +5,10 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const { spawnProcess } = require('../utils');
 const {
-  getLatestVersion,
-  getDocsFrameworkedVersions,
   FRAMEWORK_SUFFIX
 } = require('../../helpers');
 
-const mdDir = path.resolve(__dirname, '../../../');
+const mdDir = path.resolve(__dirname, '../../../content/guides/');
 
 /**
  * Log a dot indicating the result of a check.
@@ -68,12 +66,11 @@ function serveFiles(PORT) {
 /**
  * Go through the `.md` files looking for `::: example` containers and return the search results.
  *
- * @param {string} version Version of the docs to look for in.
  * @returns {Promise}
  */
-async function findExampleContainersInFiles(version) {
+async function findExampleContainersInFiles() {
   return replaceInFiles({
-    files: path.join(mdDir, version, '**/*.md'),
+    files: path.join(mdDir, '**/*.md'),
     from: /::: example/g,
     onlyFindPathsWithoutReplace: true
   });
@@ -100,12 +97,11 @@ async function setupBrowser() {
 /**
  * Get the paths from the `sidebar.js` file along with their inherited `onlyFor` conditions.
  *
- * @param {string} version The version being processed.
  * @returns {object}
  */
-function fetchPathsWithConditions(version) {
+function fetchPathsWithConditions() {
   // eslint-disable-next-line import/no-dynamic-require, global-require
-  const { sidebar } = require(`../../../${version}/guides/sidebar.js`);
+  const { sidebar } = require(`../../../content/guides/sidebar.js`);
   const paths = {};
 
   sidebar.forEach((menuEntry) => {
@@ -143,15 +139,14 @@ function fetchPathsWithConditions(version) {
  * Get the permalinks of all the pages containing the `::: example` container.
  *
  * @param {object} searchResults Search results returned from the `findExampleContainersInFiles` function.
- * @param {string} version The version being processed.
  * @param {object} pathsWithConditions Paths along with their conditional frameworks.
  * @returns {string[]}
  */
-function fetchPermalinks(searchResults, version, pathsWithConditions) {
+function fetchPermalinks(searchResults, pathsWithConditions) {
   const permalinks = [];
 
   searchResults.paths.forEach((filePath) => {
-    const relativePathWithoutExtension = filePath.split(`docs/${version}/`)[1].replace('.md', '');
+    const relativePathWithoutExtension = filePath.split(`docs/content/`)[1].replace('.md', '');
     const onlyFor = pathsWithConditions[relativePathWithoutExtension].onlyFor;
 
     const mdFile = fs.readFileSync(filePath, {
@@ -170,33 +165,14 @@ function fetchPermalinks(searchResults, version, pathsWithConditions) {
 }
 
 /**
- * Extend the permalink with the framework information and modify the url to match the versioned structure (the
- * latest version is available as an url without a version number).
+ * Extend the permalink with the framework information and modify the url to match the versioned structure.
  *
  * @param {string} permalink The permalink to be modified.
  * @param {string} framework The framework to be processed.
- * @param {string} version The version to be processed.
  * @returns {string}
  */
-function extendPermalink(permalink, framework, version) {
-  const latestVersion = getLatestVersion();
-  const frameworkSpecificDocsVersions = getDocsFrameworkedVersions('development');
-
-  // If the currently run version is the latest version (it's not being put in a subdirectory).
-  if (permalink.includes(latestVersion)) {
-    // If the version's in the range of framework-specific documentations
-    if (frameworkSpecificDocsVersions.includes(latestVersion)) {
-      permalink = permalink.replace(`${latestVersion}/`, `${framework}${FRAMEWORK_SUFFIX}/`);
-
-      // If the version's NOT in the range of framework-specific documentations
-    } else {
-      permalink = permalink.replace(`${latestVersion}/`, '');
-    }
-
-    // If the version's in the range of framework-specific documentations, but it's not the latest version.
-  } else if (frameworkSpecificDocsVersions.includes(version)) {
-    permalink = permalink.replace(`${version}/`, `${version}/${framework}${FRAMEWORK_SUFFIX}/`);
-  }
+function extendPermalink(permalink, framework) {
+  permalink = permalink.replace(`/`, `/next/${framework}${FRAMEWORK_SUFFIX}/`);
 
   return permalink;
 }

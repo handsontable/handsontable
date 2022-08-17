@@ -25,12 +25,10 @@ const {
   extendPermalink
 } = require('./helpers');
 const {
-  getDocsFrameworkedVersions,
   getFrameworks
 } = require('../../helpers');
 const { testCases } = require('./testCases');
 
-const [cliVersion] = process.argv.slice(2);
 /**
  * Port to serve the static docs pages under.
  *
@@ -57,19 +55,10 @@ const EXAMPLE_INIT_TIMEOUT = 300;
  *
  * @type {number}
  */
-const CHECK_TRIES = 2;
+const CHECK_TRIES = 4;
 
 (async() => {
-  if (cliVersion !== 'next' && !semver.valid(`${cliVersion}.0`)) {
-    logger.error('Invalid version number.');
-    process.exit(1);
-  }
-
-  let FRAMEWORKS_TO_CHECK = ['javascript'];
-
-  if (getDocsFrameworkedVersions('development').includes(cliVersion)) {
-    FRAMEWORKS_TO_CHECK = getFrameworks();
-  }
+  let FRAMEWORKS_TO_CHECK = getFrameworks();
 
   serveFiles(PORT);
 
@@ -78,9 +67,9 @@ const CHECK_TRIES = 2;
 
   const brokenExamplePaths = [];
   const suspiciousPaths = [];
-  const searchResults = await findExampleContainersInFiles(cliVersion);
-  const pathsWithConditions = fetchPathsWithConditions(cliVersion);
-  const permalinks = fetchPermalinks(searchResults, cliVersion, pathsWithConditions);
+  const searchResults = await findExampleContainersInFiles();
+  const pathsWithConditions = fetchPathsWithConditions();
+  const permalinks = fetchPermalinks(searchResults, pathsWithConditions);
   const {
     browser,
     page
@@ -99,12 +88,12 @@ const CHECK_TRIES = 2;
         continue;
       }
 
-      const permalink = extendPermalink(permalinks[i].permalink, framework, cliVersion);
+      const permalink = extendPermalink(permalinks[i].permalink, framework);
 
       await page.goto(`http://localhost:${PORT}/docs${permalink}`, {});
 
       for (let testIndex = 0; testIndex < testCases.length; testIndex++) {
-        let pageEvaluation = await page.evaluate(testCases[testIndex]);
+        let pageEvaluation = await page.evaluate(testCases[testIndex], permalink);
         let tryCount = 0;
 
         // If the test fails, do another try after a timeout (some instances might have not been initialized yet).
@@ -114,7 +103,7 @@ const CHECK_TRIES = 2;
           // Wait for the HOT instances to initialize.
           await sleep(EXAMPLE_INIT_TIMEOUT);
 
-          pageEvaluation = await page.evaluate(testCases[testIndex]);
+          pageEvaluation = await page.evaluate(testCases[testIndex], permalink);
         }
 
         if (pageEvaluation.error) {
@@ -144,6 +133,12 @@ const CHECK_TRIES = 2;
 
   await browser.close();
 
+  if (suspiciousPaths.length > 0) {
+    logger.warn(
+      `\n\n0 Handsontable instances were expected (despite the ':::example' containers being present) in: \n\n${suspiciousPaths.map(entry => `${entry.path}`).join('\n')}`
+    );
+  }
+
   if (brokenExamplePaths.length > 0) {
     logger.error(`\nBroken examples found in: \n\n${brokenExamplePaths.map(
       entry =>
@@ -151,19 +146,10 @@ const CHECK_TRIES = 2;
       .join('\n')}`
     );
     process.exit(1);
-
   }
 
-  if (suspiciousPaths.length > 0) {
-    logger.warn(
-      `\nExpected 0 instances in: \n\n${suspiciousPaths.map(entry => `${entry.path}\n`).join('\n')}`
-    );
-
-    process.exit(1);
-  }
-
-  if (brokenExamplePaths.length === 0 && suspiciousPaths.length === 0) {
-    logger.success(`\nDid not find any broken examples for version ${cliVersion}.`);
+  if (brokenExamplePaths.length === 0) {
+    logger.success(`\nDid not find any broken examples.`);
     process.exit(0);
   }
 })();

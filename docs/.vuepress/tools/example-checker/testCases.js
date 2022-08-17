@@ -20,7 +20,12 @@
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 const testCases = [
-  () => {
+  (permalink) => {
+    const INSTANCE_NUMBER_EXCEPTIONS = {
+      // One example on the page shows an error being thrown - the Handsontable instance is never rendered.
+      '/next/react-data-grid/column-summary': -1
+    };
+
     /**
      * Fetch the framework defined as a preset type in the container configuration.
      *
@@ -89,6 +94,9 @@ const testCases = [
 
       hotInstancesCount += tabContent.match(prefixRegex)?.length || 0;
     });
+
+    // Modify the number of expected instances, if there are any exceptions to the given page.
+    hotInstancesCount += (INSTANCE_NUMBER_EXCEPTIONS[permalink] || 0);
 
     return {
       result: hotInstancesCount === htMasterElements.length,
