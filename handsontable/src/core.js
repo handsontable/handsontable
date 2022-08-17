@@ -50,6 +50,7 @@ let activeGuid = null;
  *
  * ## How to call a method
  *
+ * ::: only-for javascript
  * ```js
  * // First, let's contruct Handsontable
  * const hot = new Handsontable(document.getElementById('example'), options);
@@ -57,6 +58,7 @@ let activeGuid = null;
  * // Then, let's use the setDataAtCell method
  * hot.setDataAtCell(0, 0, 'new value');
  * ```
+ * :::
  *
  * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
  * @param {object} userSettings The user defined options.
