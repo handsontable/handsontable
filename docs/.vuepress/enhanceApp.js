@@ -45,12 +45,11 @@ let isFirstPageLoaded = true;
 export default async({ router, siteData, isServer }) => {
   if (!isServer) {
     const currentVersion = siteData.pages[0].currentVersion;
-    const framework = `${siteData.pages[0].currentFramework}${siteData.pages[0].frameworkSuffix}`;
-    const devBuildMode = siteData.pages[0].isEnvDev;
-    let pathVersion = `${currentVersion}/`;
+    const buildMode = siteData.pages[0].buildMode;
+    let pathVersion = '';
 
-    if (!devBuildMode) {
-      pathVersion += `${framework}/`;
+    if (buildMode !== 'production') {
+      pathVersion = `${currentVersion}/`;
     }
 
     const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
@@ -70,7 +69,6 @@ export default async({ router, siteData, isServer }) => {
 
       page.versions = docsData.versions;
       page.latestVersion = docsData.latestVersion;
-      page.frameworkedVersions = docsData.frameworkedVersions;
     });
 
     themeLoader();

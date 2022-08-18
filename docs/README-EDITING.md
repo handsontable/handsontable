@@ -22,15 +22,37 @@ Each Markdown file can start with the following frontmatter tags:
 | `permalink`    | The page's **unique** URL.                    | If not set, gets generated from the Markdown file name.    |
 | `canonicalUrl` | A canonical URL of the page's latest version. | None (not required)                                        |
 | `metaTitle`    | The page's SEO meta title.                    | None (not required)                                        |
-| `tags`         | Tags used by the documentation search engine. | None (not required)                                        |
+| `description`  | The page's SEO meta description.              | None (not required)                                        |
+| `tags`         | Search tags used by the documentation search engine. | None (not required)                                        |
+| `react`        | Holds an alternative set of frontmatter tags (applied only to the React version of the page) | None (not required)                                        |
+
+You can set different frontmatter tags for different framework versions of the page. For example, you can set `metaTitle` to say either `JS data grid` or `React data table`, depending on the framework:
+
+\```yaml
+// applies to the JS version of the page
+metaTitle: JS data grid
+
+// applies to the React version of the page
+react:
+  metaTitle: React data table
+\```
+
+You can use the following framework keys:
+- `react`
 
 Frontmatter example:
 
-```
+```yaml
 ---
 title: Introduction
+metaTitle: Installation - Guide - Handsontable Documentation for Javascript
+description: Easily install the data grid using your preferred package manager or import Handsontable assets directly from the CDN.
 permalink: /api/
 canonicalUrl: /api/
+react:
+  metaTitle: Installation - Guide - Handsontable Documentation for React
+  description: Install the wrapper for React via npm, import stylesheets, and use it to get up and running your application.
+  customValue: Custom # Custom value that can be used within template and will be available only for React framework
 ---
 ```
 
@@ -209,3 +231,42 @@ The `example` Markdown container offers the following options:
 | `--css <pos>`  | No       | `--css 2`       | Positive integer<br>(default `0`)                                                                                                                                                                                                                           | Sets the CSS code snippet's position<br>in the markdown container.<br><br>`0` disables the CSS tab.   |
 | `--no-edit`    | No       | `--no-edit`     | `--no-edit`                                                                                                                                                                                                                                                 | Removes the **Edit** button.                                                                          |
 | `--tab <tab>`  | No       | `--tab preview` | `code` \| `html` \| `css` \| `preview`                                                                                                                                                                                                                      | Sets a tab as open by default.                                                                        |
+
+## React style guide
+
+When you edit React examples and code samples, follow the guidelines below.
+
+For matters not covered here, follow the conventions of https://beta.reactjs.org/learn.
+
+- Don't gather multiple props in a single `settings={}` prop. Instead, specify individual props.
+  ```jsx
+  <HotTable>
+    data={data}
+    height="auto"
+  <HotTable/>
+  ```
+- In JSX, use double quotes (`""`). If a prop's value is a string, use double quotes without curly braces.
+  ```jsx
+  licenseKey="00000-00000-00000-00000-00000"
+  ```
+- In JS inside of JSX, use single quotes (`''`). For example, if a React prop contains a JS object:
+  ```jsx
+  <HotTable>
+    licenseKey="00000-00000-00000-00000-00000"
+    nestedHeaders={[
+      ['A', { label: 'B', colspan: 8 }, 'C']
+    ]}
+  <HotTable/>
+  ```
+- Get rid of elements that are not necessary (e.g., a `<Fragment>` with a single child).
+- Use named imports:
+  ```js
+  import { useRef } from 'react';
+  useRef(...);
+  ```
+- If a constant's value is a reference to the Handsontable component instance, add `Ref` to that constant's name.
+  ```js
+  const hotRef = useRef(null);
+  const hotTableComponentRef = useRef(null);
+  ```
+- In functional React components, use `useRef` instead of `React.createRef`.

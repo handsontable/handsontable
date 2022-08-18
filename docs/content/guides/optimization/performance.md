@@ -21,12 +21,22 @@ We use Performance Lab to measure the execution times in various configurations.
 
 You can set a constant size for your table's columns. This way, Handsontable won't have to calculate the optimal width for each column. To do this, define the column widths by setting the [`colWidths`](@/api/options.md#colwidths) configuration option:
 
+::: only-for javascript
 ```js
 const hot = new Handsontable(obj, {
   // other options
   colWidths: [50, 150, 45]
 });
 ```
+:::
+
+::: only-for react
+```js
+<HotTable
+  colWidths={[50, 150, 45]}
+/>
+```
+:::
 
 For more information, see [our documentation](@/api/options.md#colwidths).
 
@@ -53,6 +63,14 @@ Changing your background, font colors, etc., shouldn't lower the performance. Ho
 ## Suspend rendering
 
 By default, Handsontable will call the render after each CRUD operation. Usually, this is expected behavior, but you may find it slightly excessive in some use cases. By using one of the batching methods, you can suspend rendering and call it just once at the end. For example:
+
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+:::
 
 ```js
 hot.batch(() => {

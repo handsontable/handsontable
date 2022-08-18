@@ -44,7 +44,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 
 ::: tip
-ExampleComponently configuration options as individual `HotTable` or `HotColumn` components props or by passing them as an object in `settings` prop.
+Apply configuration options as individual `HotTable` or `HotColumn` components props or by passing them as an object in `settings` prop.
 :::
 
 ```jsx

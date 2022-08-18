@@ -1,15 +1,12 @@
 /**
  * The script reads from the remote API list of the available Docs versions. Depending on
  * which environment the Docs is built, the list is fetched from the pre-generated JSON
- * file from the https://handsontable.com/docs/docs-data.json (for local builds, watch)
+ * file from the https://handsontable.com/docs/data/common.json(for local builds, watch)
  * or from the GitHub API when the production Docs image is created.
  */
 const semver = require('semver');
 const { Octokit } = require('@octokit/rest');
 const { logger } = require('@vuepress/shared-utils');
-const {
-  getFrameworkedVersions,
-} = require('../../helpers');
 
 /**
  * Min Docs version that is listed in the Docs version dropdown menu.
@@ -22,7 +19,7 @@ const MIN_DOCS_VERSION = '9.0';
  * @returns {object}
  */
 async function readFromDocsLatest() {
-  const response = await fetch('https://handsontable.com/docs/docs-data.json');
+  const response = await fetch('https://handsontable.com/docs/data/common.json');
   const data = await response.json();
 
   return data;
@@ -69,7 +66,6 @@ async function readFromGitHub() {
   return {
     versions,
     latestVersion: versions[0],
-    frameworkedVersions: getFrameworkedVersions(versions),
   };
 }
 
@@ -89,6 +85,8 @@ async function fetchDocsVersions() {
     try {
       docsData = await readFromDocsLatest();
     } catch { // ...or GH API as fallback
+      logger.warn('The remote JSON file with Docs versions is inaccessible (https://handsontable.com). ' +
+                  'Switching to GH API.');
       docsData = await readFromGitHub();
     }
   }

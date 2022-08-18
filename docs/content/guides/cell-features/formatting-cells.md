@@ -67,7 +67,6 @@ td.custom-cell {
 }
 ```
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -77,26 +76,21 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 5),
-    rowHeaders: true,
-    colHeaders: true,
-    stretchH: 'all',
-    className: 'custom-table',
-    cell: [{
-      row: 0,
-      col: 0,
-      className: 'custom-cell',
-    }, ],
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 5)}
+      rowHeaders={true}
+      colHeaders={true}
+      stretchH="all"
+      className="custom-table"
+      cell={[{
+        row: 0,
+        col: 0,
+        className: 'custom-cell',
+      }, ]}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -147,7 +141,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -158,33 +151,29 @@ registerAllModules();
 
 const ExampleComponent = () => {
   Handsontable
-          .renderers
-          .registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
-            Handsontable.renderers.getRenderer('text')(hotInstance, TD, ...rest);
-
-            TD.style.fontWeight = 'bold';
-            TD.style.color = 'green';
-            TD.style.background = '#d7f1e1';
-          });
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 5),
-    rowHeaders: true,
-    colHeaders: true,
-    stretchH: 'all',
-    cell: [{
-      row: 0,
-      col: 0,
-      renderer: 'customStylesRenderer',
-    }, ],
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+    .renderers
+    .registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
+      Handsontable.renderers.getRenderer('text')(hotInstance, TD, ...rest);
+  
+      TD.style.fontWeight = 'bold';
+      TD.style.color = 'green';
+      TD.style.background = '#d7f1e1';
+    });
 
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 5)}
+      rowHeaders={true}
+      colHeaders={true}
+      stretchH="all"
+      cell={[{
+        row: 0,
+        col: 0,
+        renderer: 'customStylesRenderer',
+      }]}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -266,7 +255,6 @@ const hot = Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -276,61 +264,56 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 6),
-    rowHeaders: true,
-    colHeaders: true,
-    stretchH: 'all',
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
-    customBorders: [{
-      range: {
-        from: {
-          row: 1,
-          col: 1
+  return (
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 6)}
+      rowHeaders={true}
+      colHeaders={true}
+      stretchH="all"
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+      customBorders={[{
+        range: {
+          from: {
+            row: 1,
+            col: 1
+          },
+          to: {
+            row: 3,
+            col: 4
+          }
         },
-        to: {
-          row: 3,
-          col: 4
-        }
-      },
-      top: {
-        width: 2,
-        color: '#5292F7'
-      },
-      bottom: {
-        width: 2,
-        color: 'red'
-      },
-      start: {
-        width: 2,
-        color: 'orange'
-      },
-      end: {
-        width: 2,
-        color: 'magenta'
-      }
-    },
-      {
-        row: 2,
-        col: 2,
-        start: {
+        top: {
+          width: 2,
+          color: '#5292F7'
+        },
+        bottom: {
           width: 2,
           color: 'red'
         },
+        start: {
+          width: 2,
+          color: 'orange'
+        },
         end: {
-          width: 1,
-          color: 'green'
+          width: 2,
+          color: 'magenta'
         }
-      }
-    ]
-  };
-
-  return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+      },
+        {
+          row: 2,
+          col: 2,
+          start: {
+            width: 2,
+            color: 'red'
+          },
+          end: {
+            width: 1,
+            color: 'green'
+          }
+        }
+      ]}
+    />
   );
 };
 

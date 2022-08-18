@@ -40,7 +40,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -50,22 +49,17 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(200, 20),
-    width: '100%',
-    height: 320,
-    rowHeaders: true,
-    colHeaders: true,
-    colWidths: 100,
-    manualColumnMove: true,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(200, 20)}
+      width="100%"
+      height={320}
+      rowHeaders={true}
+      colHeaders={true}
+      colWidths={100}
+      manualColumnMove={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -85,12 +79,12 @@ Both of these methods trigger the [beforeColumnMove](@/api/hooks.md#beforecolumn
 
 The [dragColumns](@/api/manualColumnMove.md#dragcolumns) method has a [`dropIndex`](@/api/manualColumnMove.md#dragcolumns) parameter, which points to where the elements are being dropped.
 
-![dragColumns method](/docs/{{$page.currentVersion}}/img/drag_action.svg)
+![dragColumns method]({{$basePath}}/img/drag_action.svg)
 
 
 The [moveColumns](@/api/manualColumnMove.md#movecolumns) method has a `finalIndex` parameter, which points to where the elements will be placed after the _moving_ action - `finalIndex` being the index of the first moved element.
 
-![moveColumns method](/docs/{{$page.currentVersion}}/img/move_action.svg)
+![moveColumns method]({{$basePath}}/img/move_action.svg)
 
 The [`moveColumns`](@/api/manualColumnMove.md#movecolumns) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [isMovePossible](@/api/manualColumnMove.md#ismovepossible) API method and the `movePossible` parameters [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) hooks help in determine such situations.
 

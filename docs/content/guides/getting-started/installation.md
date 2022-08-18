@@ -1,6 +1,10 @@
 ---
 title: Installation
 metaTitle: Installation - Guide - Handsontable Documentation
+description: Easily install the data grid using your preferred package manager or import Handsontable assets directly from the CDN.
+react:
+  metaTitle: Installation - Guide - Handsontable Documentation for React
+  description: Install the wrapper for React via npm, import stylesheets, and use it to get up and running your application.
 permalink: /installation
 canonicalUrl: /installation
 tags:

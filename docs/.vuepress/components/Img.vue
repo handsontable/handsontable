@@ -16,14 +16,7 @@ export default {
 
   computed: {
     parsedSrc() {
-      const withBaseMatches = new RegExp(/\$withBase\('(.*)'\)/).exec(this.src);
-      let src = this.src;
-
-      if (withBaseMatches) {
-        src = this.$withBase(withBaseMatches[1]);
-      }
-
-      return src;
+      return this.$withBase(this.src);
     },
   },
 

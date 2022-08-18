@@ -47,7 +47,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -57,22 +56,17 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(100, 50),
-    colWidths: 100,
-    width: '100%',
-    height: 320,
-    rowHeaders: true,
-    colHeaders: true,
-    fixedColumnsStart: 1,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(100, 50)}
+      colWidths={100}
+      width="100%"
+      height={320}
+      rowHeaders={true}
+      colHeaders={true}
+      fixedColumnsStart={1}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 
@@ -84,7 +78,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ## User-triggered freeze
 
-To manually freeze a column, you need to set the [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) configuration option to `true` in the Handsontable initialization. When the Manual Column Freeze plugin is enabled, you can freeze any non-fixed column and unfreeze any fixed column in your Handsontable instance using the Context Menu.
+To manually freeze a column, you need to set the [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) configuration option to `true` in the Handsontable settings. When the Manual Column Freeze plugin is enabled, you can freeze any non-fixed column and unfreeze any fixed column in your Handsontable instance using the Context Menu.
 
 ::: tip
 A frozen column won't go back to the original position after you unfreeze it.
@@ -114,7 +108,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -124,24 +117,19 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(100, 50),
-    colWidths: 100,
-    width: '100%',
-    height: 320,
-    rowHeaders: true,
-    colHeaders: true,
-    fixedColumnsStart: 2,
-    contextMenu: true,
-    manualColumnFreeze: true,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(100, 50)}
+      colWidths={100}
+      width="100%"
+      height={320}
+      rowHeaders={true}
+      colHeaders={true}
+      fixedColumnsStart={2}
+      contextMenu={true}
+      manualColumnFreeze={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
   );
 };
 

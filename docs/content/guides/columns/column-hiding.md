@@ -43,7 +43,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -53,20 +52,15 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: Handsontable.helper.createSpreadsheetData(5, 12),
-    colHeaders: true,
-    rowHeaders: true,
-    // enable the `HiddenColumns` plugin
-    hiddenColumns: true,
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey='non-commercial-and-evaluation'
+      data={Handsontable.helper.createSpreadsheetData(5, 12)}
+      colHeaders={true}
+      rowHeaders={true}
+      // enable the `HiddenColumns` plugin
+      hiddenColumns={true}
+    />
   );
 };
 
@@ -111,7 +105,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -121,23 +114,18 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: Handsontable.helper.createSpreadsheetData(5, 12),
-    colHeaders: true,
-    rowHeaders: true,
-    // enable the `HiddenColumns` plugin
-    hiddenColumns: {
-      // specify columns hidden by default
-      columns: [3, 5, 9]
-    }
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(5, 12)}
+      colHeaders={true}
+      rowHeaders={true}
+      // enable the `HiddenColumns` plugin
+      hiddenColumns={{
+        // specify columns hidden by default
+        columns: [3, 5, 9]
+      }}
+    />
   );
 };
 
@@ -180,7 +168,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -190,23 +177,18 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: Handsontable.helper.createSpreadsheetData(5, 12),
-    colHeaders: true,
-    rowHeaders: true,
-    hiddenColumns: {
-      columns: [3, 5, 9],
-      // show UI indicators to mark hidden columns
-      indicators: true
-    }
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(5, 12)}
+      colHeaders={true}
+      rowHeaders={true}
+      hiddenColumns={{
+        columns: [3, 5, 9],
+        // show UI indicators to mark hidden columns
+        indicators: true
+      }}
+    />
   );
 };
 
@@ -248,7 +230,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -258,26 +239,21 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: Handsontable.helper.createSpreadsheetData(5, 12),
-    colHeaders: true,
-    rowHeaders: true,
-    // enable the context menu
-    contextMenu: true,
-    // enable the `HiddenColumns` plugin
-    // automatically adds the context menu's column hiding items
-    hiddenColumns: {
-      columns: [3, 5, 9],
-      indicators: true
-    }
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey={"non-commercial-and-evaluation"}
+      data={Handsontable.helper.createSpreadsheetData(5, 12)}
+      colHeaders={true}
+      rowHeaders={true}
+      // enable the context menu
+      contextMenu={true}
+      // enable the `HiddenColumns` plugin
+      // automatically adds the context menu's column hiding items
+      hiddenColumns={{
+        columns: [3, 5, 9],
+        indicators: true
+      }}
+    />
   );
 };
 
@@ -313,7 +289,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example5 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -323,24 +298,18 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: Handsontable.helper.createSpreadsheetData(5, 12),
-    colHeaders: true,
-    rowHeaders: true,
-    // individually add column hiding context menu items
-    contextMenu: [`hidden_columns_show`, `hidden_columns_hide`],
-    hiddenColumns: {
-      columns: [3, 5, 9],
-      indicators: true
-    }
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(5, 12)}
+      colHeaders={true}
+      rowHeaders={true}
+      contextMenu={[`hidden_columns_show`, `hidden_columns_hide`]}
+      hiddenColumns={{
+        columns: [3, 5, 9],
+        indicators: true
+      }}
+    />
   );
 };
 
@@ -381,7 +350,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example6 :react
 ```jsx
-import React, { Fragment, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -391,25 +359,20 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    licenseKey: 'non-commercial-and-evaluation',
-    data: Handsontable.helper.createSpreadsheetData(5, 12),
-    colHeaders: true,
-    rowHeaders: true,
-    contextMenu: [`hidden_columns_show`, `hidden_columns_hide`],
-    hiddenColumns: {
-      columns: [3, 5, 9],
-      indicators: true,
-      // exclude hidden columns from copying and pasting
-      copyPasteEnabled: false
-    }
-  };
-
   return (
-    <Fragment>
-      <HotTable settings={hotSettings}>
-      </HotTable>
-    </Fragment>
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(5, 12)}
+      colHeaders={true}
+      rowHeaders={true}
+      contextMenu={[`hidden_columns_show`, `hidden_columns_hide`]}
+      hiddenColumns={{
+        columns: [3, 5, 9],
+        indicators: true,
+        // exclude hidden columns from copying and pasting
+        copyPasteEnabled: false
+      }}
+    />
   );
 };
 
@@ -422,6 +385,14 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
 ## Column hiding API methods
 
 For the most popular column hiding tasks, use the API methods below.
+
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page. 
+:::
+:::
 
 To see your changes, re-render your Handsontable instance with the [`render()`](@/api/core.md#render) method.
 
