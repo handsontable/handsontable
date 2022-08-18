@@ -244,10 +244,9 @@ const ExampleComponent = () => {
             return;
           }
 
-          ajax('{{$basePath}}/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
-            data => {
+          ajax('{{$basePath}}/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
               setOutput('Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')');
-            }});
+            });
         }}
       />
   

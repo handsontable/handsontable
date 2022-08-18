@@ -65,7 +65,7 @@ Note that the first argument is the current width that we're going to modify. La
 
 ## Handsontable Hooks
 
-We refer to all callbacks as "handsontable hooks" because although they share some characteristics with events and middleware, they combine them both in a unique structure. You may already be familiar with the concept as we're not the only ones that use the hooks convention.
+We refer to all callbacks as "Handsontable hooks" because although they share some characteristics with events and middleware, they combine them both in a unique structure. You may already be familiar with the concept as we're not the only ones that use the hooks convention.
 
 Almost all `before` prefixed handsontable hooks allow the developer to return `false` and, therefore, block the execution of an action. It may be used for validation, rejecting operation by the outside service, or blocking our native algorithm and replace it with a custom implementation.
 

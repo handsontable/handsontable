@@ -241,11 +241,6 @@ const hot = new Handsontable(container, {
 ```
 :::
 :::
-:::
-
-:::
-
-:::
 
 ::: only-for react
 

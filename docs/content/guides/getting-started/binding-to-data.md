@@ -219,31 +219,11 @@ const ExampleComponent = () => {
   return (
     <HotTable
       data={[
-        {
-          id: 1,
-          name: 'Ted Right',
-          address: ''
-        },
-        {
-          id: 2,
-          name: 'Frank Honest',
-          address: ''
-        },
-        {
-          id: 3,
-          name: 'Joan Well',
-          address: ''
-        },
-        {
-          id: 4,
-          name: 'Gail Polite',
-          address: ''
-        },
-        {
-          id: 5,
-          name: 'Michael Fair',
-          address: ''
-        },
+        { id: 1, name: 'Ted Right', address: '' },
+        { id: 2, name: 'Frank Honest', address: '' },
+        { id: 3, name: 'Joan Well', address: '' },
+        { id: 4, name: 'Gail Polite', address: '' },
+        { id: 5, name: 'Michael Fair', address: '' }
       ]}
       colHeaders={true}
       height="auto"
@@ -271,7 +251,7 @@ const container = document.getElementById('example4');
 
 const data = [
   { id: 1, name: {first: 'Ted', last: 'Right'}, address: '' },
-  { id: 2, address: '' },// HOT will create missing properties on demand
+  { id: 2, address: '' },// Handsontable will create missing properties on demand
   { id: 3, name: {first: 'Joan', last: 'Well'}, address: '' }
 ];
 
@@ -320,7 +300,7 @@ const ExampleComponent = () => {
     <HotTable
       data={[
         { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
-        { id: 2, address: '' }, // HOT will create missing properties on demand
+        { id: 2, address: '' }, // Handsontable will create missing properties on demand
         { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
       ]}
       colHeaders={true}
@@ -366,7 +346,7 @@ const container = document.getElementById('example5');
 
 const data = [
   { id: 1, name: {first: 'Ted', last: 'Right'}, address: '' },
-  { id: 2, address: '' }, // HOT will create missing properties on demand
+  { id: 2, address: '' }, // Handsontable will create missing properties on demand
   { id: 3, name: {first: 'Joan', last: 'Well'}, address: '' }
 ];
 
@@ -399,15 +379,12 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const data = [
-
-  ];
 
   return (
     <HotTable
       data={
         { id: 1,  name: { first: 'Ted', last: 'Right' }, address: '' },
-        { id: 2, address: '' }, // HOT will create missing properties on demand
+        { id: 2, address: '' }, // Handsontable will create missing properties on demand
         { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
       }
       colHeaders={true}
@@ -591,27 +568,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotSettings = {
-    data: [
-      model({ id: 1, name: 'Ted Right', address: '' }),
-      model({ id: 2, name: 'Frank Honest', address: '' }),
-      model({ id: 3, name: 'Joan Well', address: '' }),
-      model({ id: 4, name: 'Gail Polite', address: '' }),
-      model({ id: 5, name: 'Michael Fair', address: '' })
-    ],
-    dataSchema: model,
-    height: 'auto',
-    width: 'auto',
-    colHeaders: ['ID', 'Name', 'Address'],
-    columns: [
-      { data: property('id') },
-      { data: property('name') },
-      { data: property('address') }
-    ],
-    minSpareRows: 1,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
-
+  
   function model(opts) {
     let _pub = {
       id: undefined,
@@ -950,7 +907,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example11 :react
 ```jsx
-import { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
