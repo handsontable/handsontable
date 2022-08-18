@@ -83,7 +83,12 @@ const META_READONLY = 'readOnly';
  *
  * ::: only-for react
  * ```jsx
+ * const hotRef = useRef();
+ *
+ * ...
+ *
  * <HotTable
+ *   ref={hotRef}
  *   data={getData()}
  *   comments={true}
  *   cell={[
@@ -93,7 +98,7 @@ const META_READONLY = 'readOnly';
  * />
  *
  * // Access to the Comments plugin instance:
- * const commentsPlugin = hot.getPlugin('comments');
+ * const commentsPlugin = hotRef.getPlugin('comments');
  *
  * // Manage comments programmatically:
  * commentsPlugin.setCommentAtCell(1, 6, 'Comment contents');

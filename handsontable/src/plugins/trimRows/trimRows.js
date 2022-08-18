@@ -54,14 +54,19 @@ export const PLUGIN_PRIORITY = 330;
  *
  * ::: only-for react
  * ```jsx
+ * const hotRef = useRef();
+ *
+ * ...
+ *
  * <HotTable
+ *   ref={hotRef}
  *   data={getData()}
  *   // hide selected rows on table initialization
  *   trimRows={[1, 2, 5]}
  * />
  *
  * // access the trimRows plugin instance
- * const trimRowsPlugin = hot.getPlugin('trimRows');
+ * const trimRowsPlugin = hotRef.getPlugin('trimRows');
  *
  * // hide single row
  * trimRowsPlugin.trimRow(1);
@@ -82,7 +87,7 @@ export const PLUGIN_PRIORITY = 330;
  * trimRowsPlugin.untrimRows([1, 2, 9]);
  *
  * // rerender table to see the changes
- * hot.render();
+ * hotRef.render();
  * ```
  * :::
  */

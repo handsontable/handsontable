@@ -49,12 +49,17 @@ export const PLUGIN_PRIORITY = 240;
  *
  * ::: only-for react
  * ```jsx
+ * const hotRef = useRef();
+ *
+ * ...
+ *
  * <HotTable
+ *   ref={hotRef}
  *   data={getData()}
  * />
  *
  * // access to exportFile plugin instance
- * const exportPlugin = hot.getPlugin('exportFile');
+ * const exportPlugin = hotRef.getPlugin('exportFile');
  *
  * // export as a string
  * exportPlugin.exportAsString('csv');

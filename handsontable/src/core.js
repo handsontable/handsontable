@@ -60,6 +60,20 @@ let activeGuid = null;
  * ```
  * :::
  *
+ * ::: only-for react
+ * ```jsx
+ * // First, let's contruct Handsontable
+ * <HotTable
+ *   settings={options}
+ * />
+ *
+ * ...
+ *
+ * // Then, let's use the setDataAtCell method
+ * hotRef.setDataAtCell(0, 0, 'new value');
+ * ```
+ * :::
+ *
  * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
  * @param {object} userSettings The user defined options.
  * @param {boolean} [rootInstanceSymbol=false] Indicates if the instance is root of all later instances created.

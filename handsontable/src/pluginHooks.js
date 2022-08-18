@@ -38,9 +38,9 @@ import { fastCall } from './helpers/function';
  *         'Content-Type': 'application/json'
  *       },
  *       body: JSON.stringify(changes)
- *     };
- *   },
- * });
+ *     });
+ *   }}
+ * />
  * :::
  *
  * ::: only-for javascript
@@ -72,19 +72,25 @@ import { fastCall } from './helpers/function';
  *
  * ::: only-for react
  * ```jsx
+ * const hotRef1 = useRef();
+ * const hotRef2 = useRef();
+ *
  * // Using events as plugin hooks:
  * ...
+ *
  * <HotTable
+ *   ref={hotRef1}
  *   myPlugin={true}
  * });
  *
  * <HotTable
+ *   ref={hotRef2}
  *   myPlugin={false}
  * });
  *
  * // global hook
  * Handsontable.hooks.add('afterChange', function() {
- *   // Fired twice - for hot1 and hot2
+ *   // Fired twice - for hotRef1 and hotRef2
  *   if (this.getSettings().myPlugin) {
  *     // function body - will only run for first instance
  *   }
@@ -119,7 +125,7 @@ const REGISTERED_HOOKS = [
    * ```js
    * new Handsontable(element, {
    *   afterChange: (changes) => {
-   *     changes.forEach(([row, prop, oldValue, newValue]) => {
+   *     changes?.forEach(([row, prop, oldValue, newValue]) => {
    *       // Some logic...
    *     });
    *   }
@@ -848,6 +854,7 @@ const REGISTERED_HOOKS = [
    * <HotTable
    *   beforeChange={(changes, source) => {
    *     // [[row, prop, oldVal, newVal], ...]
+   *     // @ts-ignore
    *     changes[0] = null;
    *   }}
    * />

@@ -85,7 +85,12 @@ export const PLUGIN_PRIORITY = 320;
  *
  * ::: only-for react
  * ```jsx
+ * const hotRef = useRef();
+ *
+ * ...
+ *
  * <HotTable
+ *   ref={hotRef}
  *   data={getData()}
  *   hiddenRows={{
  *     copyPasteEnabled: true,
@@ -95,7 +100,7 @@ export const PLUGIN_PRIORITY = 320;
  * />
  *
  * // access the `HiddenRows` plugin's instance
- * const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
+ * const hiddenRowsPlugin = hotRef.getPlugin('hiddenRows');
  *
  * // hide a single row
  * hiddenRowsPlugin.hideRow(1);
@@ -116,7 +121,7 @@ export const PLUGIN_PRIORITY = 320;
  * hiddenRowsPlugin.showRows([1, 2, 9]);
  *
  * // to see your changes, re-render your Handsontable instance
- * hot.render();
+ * hotRef.render();
  */
 export class HiddenRows extends BasePlugin {
   static get PLUGIN_KEY() {

@@ -37,7 +37,7 @@ const bindTypeToMapStrategy = new Map([
  * ::: only-for react
  * ```jsx
  * <HotTable
- *   data={getData()},
+ *   data={getData()}
  *   // enable plugin
  *   bindRowsWithHeaders={true}
  * />

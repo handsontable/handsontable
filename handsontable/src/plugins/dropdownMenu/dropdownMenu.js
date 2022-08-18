@@ -70,7 +70,7 @@ const BUTTON_CLASS_NAME = 'changeType';
  * ::: only-for react
  * ```jsx
  * <HotTable
- *   data
+ *   data={data}
  *   comments={true}
  *   // enable and configure dropdown menu
  *   dropdownMenu={['remove_col', '---------', 'make_read_only', 'alignment']}

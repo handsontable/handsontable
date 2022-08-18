@@ -356,13 +356,18 @@ export class Filters extends BasePlugin {
    *
    * ::: only-for react
    * ```jsx
+   * const hotRef = useRef();
+   *
+   * ...
+   *
    * <HotTable
+   *   ref={hotRef}
    *   data={getData()}
    *   filters={true}
    * />
    *
    * // access to filters plugin instance
-   * const filtersPlugin = hot.getPlugin('filters');
+   * const filtersPlugin = hotRef.getPlugin('filters');
    *
    * // add filter "Greater than" 95 to column at index 1
    * filtersPlugin.addCondition(1, 'gt', [95]);

@@ -68,6 +68,32 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * }
  * ```
  * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * const hotRef = useRef();
+ *
+ * ...
+ *
+ * // First, let's contruct Handsontable
+ * <HotTable
+ *   ref={hotRef}
+ *   data={getData()}
+ *   autoRowSize={true}
+ * />
+ *
+ * ...
+ *
+ * // Access to plugin instance:
+ * const plugin = hotRef.getPlugin('autoRowSize');
+ *
+ * plugin.getRowHeight(4);
+ *
+ * if (plugin.isEnabled()) {
+ *   // code...
+ * }
+ * ```
+ * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export class AutoRowSize extends BasePlugin {
