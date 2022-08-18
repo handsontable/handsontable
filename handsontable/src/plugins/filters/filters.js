@@ -61,6 +61,7 @@ export const PLUGIN_PRIORITY = 250;
  *   dropdownMenu={true}
  *   filters={true}
  * />
+ * ```
  * :::
  */
 export class Filters extends BasePlugin {

@@ -80,6 +80,7 @@ export const PLUGIN_PRIORITY = 310;
  *
  * // to see your changes, re-render your Handsontable instance
  * hot.render();
+ * ```
  * :::
  *
  * ::: only-for react

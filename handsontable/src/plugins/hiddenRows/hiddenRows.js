@@ -122,6 +122,8 @@ export const PLUGIN_PRIORITY = 320;
  *
  * // to see your changes, re-render your Handsontable instance
  * hotRef.render();
+ * ```
+ * :::
  */
 export class HiddenRows extends BasePlugin {
   static get PLUGIN_KEY() {
