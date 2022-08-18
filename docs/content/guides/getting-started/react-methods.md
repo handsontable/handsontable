@@ -19,7 +19,7 @@ The following example implements the `HotTable` component showing how to referen
 
 ::: example #example1 :react
 ```jsx
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';

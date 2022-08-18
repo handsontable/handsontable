@@ -252,6 +252,7 @@ const hot = new Handsontable(container, {
 
 ## Basic example
 
+Use ```HotTable``` component and [configuration options](@/guides/getting-started/setting-options.md) via props in your JSX.
 
 ::: example #example :react
 

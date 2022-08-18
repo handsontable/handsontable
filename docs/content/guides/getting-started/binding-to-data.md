@@ -768,7 +768,7 @@ hot.setDataAtCell(0, 1, 'Ford');
 ::: example #example10 :react
 
 ```jsx
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -950,7 +950,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example11 :react
 ```jsx
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';

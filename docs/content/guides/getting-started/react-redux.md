@@ -11,6 +11,12 @@ canonicalUrl: /redux
 
 Handsontable can be integrated with Redux or similar state management library.
 
+::: tip
+Before integrating with Redux or another state library, please
+visit [Binding to data](@/guides/getting-started/binding-to-data.md#understand-binding-as-a-reference) section to fully
+understand how Handsontable handles data and avoid errors.
+:::
+
 ## Overview
 
 The following example implements the `@handsontable/react` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Redux state manager.
@@ -19,7 +25,7 @@ The following example implements the `@handsontable/react` component with a [`re
 
 ::: example #example1 :react-redux
 ```jsx
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { createStore } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
