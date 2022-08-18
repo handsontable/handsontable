@@ -84,8 +84,8 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * if (plugin.isEnabled()) {
  *   // code...
  * }
- * :::
  * ```
+ * :::
  *
  * ::: only-for react
  * ```jsx
