@@ -62,8 +62,13 @@ let activeGuid = null;
  *
  * ::: only-for react
  * ```jsx
+ * const hotRef = useRef();
+ *
+ * ...
+ *
  * // First, let's contruct Handsontable
  * <HotTable
+ *   ref={hotRef}
  *   settings={options}
  * />
  *
