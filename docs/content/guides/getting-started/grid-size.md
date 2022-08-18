@@ -153,7 +153,7 @@ triggerBtn.addEventListener('click', () => {
 }
 ```
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import { useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -162,7 +162,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
   const hotRef = React.createRef();
   
   let triggerBtnClickCallback;
@@ -207,7 +207,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
 ```
 :::
 :::

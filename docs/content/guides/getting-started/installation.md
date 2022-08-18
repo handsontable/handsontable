@@ -252,7 +252,6 @@ const hot = new Handsontable(container, {
 ::: example #example :react
 
 ```jsx
-import React from 'react';
 import ReactDOM from 'react-dom';
 
 import 'handsontable/dist/handsontable.full.css';
@@ -262,7 +261,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
   const data = [
     ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
     ['2019', 10, 11, 12, 13],
@@ -281,7 +280,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
 ```
 :::
 :::

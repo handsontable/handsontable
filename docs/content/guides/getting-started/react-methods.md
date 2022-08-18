@@ -28,7 +28,7 @@ import { createSpreadsheetData } from './helpers';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
   const hotTableComponent = useRef(null);
 
   const swapHotData = () => {
@@ -52,6 +52,6 @@ const App = () => {
   );
 }
 
-ReactDOM.render(<App/>, document.getElementById('example1'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
 :::

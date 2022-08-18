@@ -30,7 +30,7 @@ import { createSpreadsheetData } from './helpers';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
   const hotSettings = useSelector(state => state);
   const dispatch = useDispatch();
   const hotTableComponent = useRef(null);
@@ -146,7 +146,7 @@ const reduxStore = createStore(updatesReducer);
 
 ReactDOM.render(
   <Provider store={reduxStore}>
-    <App/>
+    <ExampleComponent />
   </Provider>,
   document.getElementById('example1')
 );

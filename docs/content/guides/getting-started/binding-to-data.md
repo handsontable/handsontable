@@ -54,7 +54,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -62,7 +61,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
 
   return (
     <HotTable
@@ -85,7 +84,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example1'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
 :::
 :::
@@ -133,7 +132,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -141,7 +139,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
 
   return (
     <HotTable
@@ -171,7 +169,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example2'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 ```
 :::
 :::
@@ -209,7 +207,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -217,7 +214,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
 
   return (
     <HotTable
@@ -257,7 +254,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example3'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 ```
 :::
 :::
@@ -310,7 +307,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 .custom-class :react
 ```jsx
-import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -318,31 +314,14 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
 
   return (
     <HotTable
       data={[
-        {
-          id: 1,
-          name: {
-            first: 'Ted',
-            last: 'Right'
-          },
-          address: ''
-        },
-        {
-          id: 2,
-          address: ''
-        }, // HOT will create missing properties on demand
-        {
-          id: 3,
-          name: {
-            first: 'Joan',
-            last: 'Well'
-          },
-          address: ''
-        }
+        { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
+        { id: 2, address: '' }, // HOT will create missing properties on demand
+        { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
       ]}
       colHeaders={true}
       height="auto"
@@ -370,7 +349,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example4'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 ```
 :::
 :::
@@ -412,7 +391,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example5 :react
 ```jsx
-import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -420,7 +398,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
   const data = [
 
   ];
@@ -447,7 +425,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example5'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
 ```
 :::
 :::
@@ -488,7 +466,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example6 :react
 ```jsx
-import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -496,7 +473,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
 
   return (
     <HotTable
@@ -526,7 +503,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example6'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
 ```
 :::
 :::
@@ -606,7 +583,6 @@ function property(attr) {
 ::: only-for react
 ::: example #example7 :react
 ```jsx
-import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -614,7 +590,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
   const hotSettings = {
     data: [
       model({ id: 1, name: 'Ted Right', address: '' }),
@@ -696,7 +672,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example7'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example7'));
 ```
 :::
 :::
@@ -721,7 +697,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example9 :react
 ```jsx
-import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -729,14 +704,14 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
 
   return (
     <HotTable licenseKey="non-commercial-and-evaluation" />
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example9'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
 
 ```
 :::
@@ -801,7 +776,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
   const hotRef = React.createRef();
 
   useEffect(() => {
@@ -827,7 +802,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example10'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example10'));
 
 ```
 
@@ -983,7 +958,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
   const data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -1002,7 +977,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example11'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example11'));
 ```
 :::
 :::

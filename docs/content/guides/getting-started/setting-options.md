@@ -44,7 +44,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 
 ::: tip
-Apply configuration options as individual `HotTable` or `HotColumn` components props or by passing them as an object in `settings` prop.
+ExampleComponently configuration options as individual `HotTable` or `HotColumn` components props or by passing them as an object in `settings` prop.
 :::
 
 ```jsx
@@ -200,7 +200,6 @@ hot.getCellMeta(0, 0).readOnly;
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -209,7 +208,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
 
   return (
     <HotTable
@@ -224,7 +223,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example1'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
 :::
 :::
@@ -347,7 +346,6 @@ hot.getCellMeta(0, 2).readOnly;
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import React from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -356,7 +354,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
 
   return (
     <HotTable
@@ -377,7 +375,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example2'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 ```
 :::
 :::
@@ -511,7 +509,6 @@ hot.getCellMeta(0, 1).readOnly;
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -520,7 +517,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
 
   return (
     <HotTable
@@ -541,7 +538,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example3'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 ```
 :::
 :::
@@ -669,7 +666,6 @@ hot.getCellMeta(0, 1).readOnly;
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import React from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -678,7 +674,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
 
   return (
     <HotTable
@@ -708,7 +704,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example4'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 ```
 :::
 :::
@@ -909,7 +905,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example6 :react
 ```jsx
-import React from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -918,7 +913,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
 
   return (
     <HotTable
@@ -964,7 +959,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example6'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
 ```
 :::
 :::

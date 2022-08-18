@@ -153,7 +153,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
   const hotRef = React.createRef();
   const [output, setOutput] = useState('');
 
@@ -265,7 +265,7 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('example1'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
 :::
 :::
