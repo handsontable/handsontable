@@ -11,7 +11,6 @@
  * `npm run docs:build`
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-const semver = require('semver');
 const { logger } = require('../utils');
 const {
   logCheck,
@@ -58,7 +57,7 @@ const EXAMPLE_INIT_TIMEOUT = 300;
 const CHECK_TRIES = 4;
 
 (async() => {
-  let FRAMEWORKS_TO_CHECK = getFrameworks();
+  const FRAMEWORKS_TO_CHECK = getFrameworks();
 
   serveFiles(PORT);
 
@@ -135,7 +134,10 @@ const CHECK_TRIES = 4;
 
   if (suspiciousPaths.length > 0) {
     logger.warn(
-      `\n\n0 Handsontable instances were expected (despite the ':::example' containers being present) in: \n\n${suspiciousPaths.map(entry => `${entry.path}`).join('\n')}`
+      `
+0 Handsontable instances were expected (despite the ':::example' containers being present) in:
+
+${suspiciousPaths.map(entry => `${entry.path}`).join('\n')}`
     );
   }
 
@@ -149,7 +151,7 @@ const CHECK_TRIES = 4;
   }
 
   if (brokenExamplePaths.length === 0) {
-    logger.success(`\nDid not find any broken examples.`);
+    logger.success('\nDid not find any broken examples.');
     process.exit(0);
   }
 })();

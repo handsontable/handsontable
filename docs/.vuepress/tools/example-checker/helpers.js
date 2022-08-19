@@ -101,7 +101,7 @@ async function setupBrowser() {
  */
 function fetchPathsWithConditions() {
   // eslint-disable-next-line import/no-dynamic-require, global-require
-  const { sidebar } = require(`../../../content/guides/sidebar.js`);
+  const { sidebar } = require('../../../content/guides/sidebar');
   const paths = {};
 
   sidebar.forEach((menuEntry) => {
@@ -146,7 +146,7 @@ function fetchPermalinks(searchResults, pathsWithConditions) {
   const permalinks = [];
 
   searchResults.paths.forEach((filePath) => {
-    const relativePathWithoutExtension = filePath.split(`docs/content/`)[1].replace('.md', '');
+    const relativePathWithoutExtension = filePath.split('docs/content/')[1].replace('.md', '');
     const onlyFor = pathsWithConditions[relativePathWithoutExtension].onlyFor;
 
     const mdFile = fs.readFileSync(filePath, {
@@ -172,7 +172,7 @@ function fetchPermalinks(searchResults, pathsWithConditions) {
  * @returns {string}
  */
 function extendPermalink(permalink, framework) {
-  permalink = permalink.replace(`/`, `/next/${framework}${FRAMEWORK_SUFFIX}/`);
+  permalink = permalink.replace('/', `/next/${framework}${FRAMEWORK_SUFFIX}/`);
 
   return permalink;
 }
