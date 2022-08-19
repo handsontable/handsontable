@@ -280,13 +280,13 @@ import { CustomPlugin } from './customPlugin';
 
 <HotTable
   // Pass `true` to enable the plugin with default options.
-  [CustomPlugin.PLUGIN_KEY]={true}
+  customPlugin={true}
   // You can also enable the plugin by passing an object with options.
-  [CustomPlugin.PLUGIN_KEY]={{
+  customPlugin={{
     msg: 'user-defined message',
   }}
   // You can also initialize the plugin without enabling it at the beginning.
-  [CustomPlugin.PLUGIN_KEY]={false}
+  customPlugin={false}
 />
 ```
 :::
