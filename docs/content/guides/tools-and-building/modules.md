@@ -184,7 +184,7 @@ const container = document.querySelector('#example1');
 <HotTable
   columns={[
     {
-    type: 'numeric'
+      type: 'numeric'
     }
   ]}
 />
