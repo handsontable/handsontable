@@ -3136,7 +3136,7 @@ export default () => {
      * - [Column groups: Nested headers](@/guides/columns/column-groups.md#nested-headers)
      *
      * @memberof Options#
-     * @type {Array[]}
+     * @type {boolean|Array[]}
      * @default undefined
      * @category NestedHeaders
      *
