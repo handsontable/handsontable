@@ -7,9 +7,6 @@
       <NavLink :item="guideLink"/>
     </div>
     <div class="nav-item">
-      <NavLink :item="examplesLink"/>
-    </div>
-    <div class="nav-item">
       <NavLink :item="apiLink"/>
     </div>
     <div
@@ -51,12 +48,6 @@ export default {
       return {
         link: `${this.frameworkUrlPrefix}/`,
         text: 'Guides'
-      };
-    },
-    examplesLink() {
-      return {
-        link: `${this.frameworkUrlPrefix}/examples/`,
-        text: 'Examples'
       };
     },
     apiLink() {
