@@ -185,16 +185,28 @@ function createSymlinks() {
 }
 
 /**
- * Gets docs base url (eq: https://handsontable.com/docs).
+ * Gets docs base path (eq: /docs/12.1).
  *
  * @returns {string}
  */
-function getDocsBaseUrl() {
-  if (process.env.BUILD_MODE) {
-    return `${getDocsHostname()}/docs`;
+function getDocsBase() {
+  const docsBase = process.env.DOCS_BASE ?? getThisDocsVersion();
+  let base = '/docs/';
+
+  if (docsBase !== 'latest') {
+    base += `${docsBase}/`;
   }
 
-  return ''; // use relative URLs for local builds
+  return base.replace(/\/$/, '');
+}
+
+/**
+ * Gets docs base full url with hostname (eq: https://handsontable.com/docs/12.1).
+ *
+ * @returns {string}
+ */
+function getDocsBaseFullUrl() {
+  return `${getDocsHostname()}${getDocsBase()}`;
 }
 
 /**
@@ -203,7 +215,13 @@ function getDocsBaseUrl() {
  * @returns {string}
  */
 function getDocsHostname() {
-  return `https://${process.env.BUILD_MODE === 'staging' ? 'dev.' : ''}handsontable.com`;
+  const buildMode = process.env.BUILD_MODE;
+
+  if (!buildMode) {
+    return 'http://localhost:8080'
+  }
+
+  return `https://${buildMode === 'staging' ? 'dev.' : ''}handsontable.com`;
 }
 
 module.exports = {
@@ -218,6 +236,7 @@ module.exports = {
   getDefaultFramework,
   createSymlinks,
   getThisDocsVersion,
-  getDocsBaseUrl,
+  getDocsBase,
+  getDocsBaseFullUrl,
   getDocsHostname,
 };

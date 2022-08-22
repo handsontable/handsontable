@@ -29,9 +29,9 @@ const getCommonScript = (scriptName, version) => {
   }
 
   // eslint-disable-next-line global-require
-  const { getDocsBaseUrl } = require('../helpers');
+  const { getDocsBaseFullUrl } = require('../helpers');
 
-  return [`${getDocsBaseUrl()}/${version}/scripts/${scriptName}.js`, ['require', 'exports']];
+  return [`${getDocsBaseFullUrl()}/scripts/${scriptName}.js`, ['require', 'exports']];
 };
 
 /**
