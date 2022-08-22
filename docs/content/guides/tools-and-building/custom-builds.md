@@ -291,5 +291,7 @@ From the `/wrappers/vue3` directory, you can also run individual Vue 3 `build` t
 
 ## Related guides
 
+::: only-for javascript
 - [Packages](@/guides/tools-and-building/packages.md)
+:::
 - [Testing](@/guides/tools-and-building/testing.md)
