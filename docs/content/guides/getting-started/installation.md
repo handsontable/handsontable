@@ -243,12 +243,23 @@ const hot = new Handsontable(container, {
 :::
 
 ::: only-for react
+## `HotTable` component
 
+The main Handsontable component is called `HotTable`.
+
+To set Handsontable's [configuration options](@/guides/getting-started/setting-options.md), use `HotTable`'s props. For example:
+
+```jsx
+<HotTable
+  data={data}
+  rowHeaders={true}
+  colHeaders={true}
+  height="auto"
+  licenseKey="non-commercial-and-evaluation" // for non-commercial use only
+/>
+\```
 
 ## Basic example
-
-Use ```HotTable``` component and [configuration options](@/guides/getting-started/setting-options.md) via props in your JSX.
-
 ::: example #example :react
 
 ```jsx
@@ -288,19 +299,9 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
 
 ## Related articles
 
-::: only-for react
-
-### API Reference 
-
-Read more about available props and configuration options in [API Reference](@/api)
-
-:::
-
 ### Related guides
 
 - [Modules](@/guides/tools-and-building/modules.md)
-
-::: only-for javascript
 
 ### Related API reference
 
@@ -318,5 +319,3 @@ Read more about available props and configuration options in [API Reference](@/a
   - [`beforeInit`](@/api/hooks.md#beforeinit)
   - [`beforeInitWalkontable`](@/api/hooks.md#beforeinitwalkontable)
   - [`construct`](@/api/hooks.md#construct)
-  
-:::

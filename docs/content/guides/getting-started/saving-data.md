@@ -17,13 +17,9 @@ Persistent state storage is particularly useful when running multiple instances 
 
 ## Saving changes using a callback
 
-::: only-for javascript
-Use the [`afterChange`](@/api/hooks.md#afterchange) callback to track changes made in the data grid. In the example below, Ajax is used to handle the data. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
-:::
+To track changes made in your data grid, use Handsontable's [`afterChange`](@/api/hooks.md#afterchange) hook.
 
-::: only-for react
-Use the [`afterChange`](@/api/hooks.md#afterchange) prop to track changes made in the data grid. In the example below, Ajax is used to handle the data. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
-:::
+The example below handles data by using Ajax. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
 
 ::: only-for javascript
 ::: example #example1 --html 1 --js 2
