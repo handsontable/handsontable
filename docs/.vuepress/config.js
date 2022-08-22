@@ -49,7 +49,7 @@ module.exports = {
   head: [
     ['link', {
       rel: 'icon',
-      href: `${getDocsBaseFullUrl()}/static/images/template/ModCommon/favicon-32x32.png`
+      href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png'
     }],
     ['link', {
       rel: 'preload',
