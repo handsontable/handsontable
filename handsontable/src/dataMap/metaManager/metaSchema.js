@@ -3101,9 +3101,17 @@ export default () => {
      * @description
      * The `nestedHeaders` option configures the [`NestedHeaders`](@/api/nestedHeaders.md) plugin.
      *
-     * You can set the `nestedHeaders` option to an array of arrays:
-     * - Each array configures one set of nested headers.
-     * - Each array element configures one header, and can be one of the following:
+     * You can set the `nestedHeaders` option to one of the following:
+     *
+     * | Setting           | Description                                                                                                                           |
+     * | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Disable the [`NestedHeaders`](@/api/nestedHeaders.md) plugin                                                                          |
+     * | `true`            | - Enable the [`NestedHeaders`](@/api/nestedHeaders.md) plugin<br>- Don't configure any nested headers                                 |
+     * | Array of arrays   | - Enable the [`NestedHeaders`](@/api/nestedHeaders.md) plugin<br>- Configure headers that are nested on Handsontable's initialization |
+     *
+     * If you set the `nestedHeaders` option to an array of arrays, each array configures one set of nested headers.
+     *
+     * Each array element configures one header, and can be one of the following:
      *
      * | Array element | Description                                                                                  |
      * | ------------- | -------------------------------------------------------------------------------------------- |
