@@ -78,7 +78,6 @@ const actionDictionary = new Map([
  *   data={generateDataObj()}
  *   colHeaders={true}
  *   rowHeaders={true}
- *   // @ts-ignore
  *   nestedHeaders={true}
  *   // enable plugin
  *   collapsibleColumns={true}
@@ -89,7 +88,6 @@ const actionDictionary = new Map([
  *   data={generateDataObj()}
  *   colHeaders={true}
  *   rowHeaders={true}
- *   // @ts-ignore
  *   nestedHeaders={true}
  *   // enable and configure which columns can be collapsed
  *   collapsibleColumns={[

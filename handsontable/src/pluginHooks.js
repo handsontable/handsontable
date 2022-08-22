@@ -862,7 +862,6 @@ const REGISTERED_HOOKS = [
    * <HotTable
    *   beforeChange={(changes, source) => {
    *     // [[row, prop, oldVal, newVal], ...]
-   *     // @ts-ignore
    *     changes[0] = null;
    *   }}
    * />
