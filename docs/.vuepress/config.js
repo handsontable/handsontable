@@ -102,7 +102,7 @@ module.exports = {
     define: {
       url: (expression) => {
         return new stylusNodes
-          .Literal(`url("${expression.string.replace('{{$basePath}}', getDocsBase())}")`);
+          .Literal(`url("${expression.string.replace('{{$basePath}}', getDocsBaseFullUrl())}")`);
       },
     }
   },
@@ -117,7 +117,7 @@ module.exports = {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
     }],
-    ['container', examples(getThisDocsVersion(), getDocsBase())],
+    ['container', examples(getThisDocsVersion(), getDocsBaseFullUrl())],
     ['container', sourceCodeLink],
     {
       extendMarkdown(md) {
@@ -130,7 +130,7 @@ module.exports = {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'src') {
                 token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$basePath}}', getDocsBase())
+                  decodeURIComponent(value).replace('{{$basePath}}', getDocsBaseFullUrl())
                 );
               }
             });
@@ -150,7 +150,7 @@ module.exports = {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'href') {
                 token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$basePath}}', getDocsBase())
+                  decodeURIComponent(value).replace('{{$basePath}}', getDocsBaseFullUrl())
                 );
               }
             });

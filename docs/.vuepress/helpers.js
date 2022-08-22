@@ -218,7 +218,7 @@ function getDocsHostname() {
   const buildMode = process.env.BUILD_MODE;
 
   if (!buildMode) {
-    return 'http://localhost:8080'
+    return 'http://localhost:8080';
   }
 
   return `https://${buildMode === 'staging' ? 'dev.' : ''}handsontable.com`;
