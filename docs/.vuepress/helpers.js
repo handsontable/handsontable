@@ -186,7 +186,7 @@ function createSymlinks() {
 }
 
 /**
- * Returns the repository latest SHA
+ * Returns the repository latest SHA.
  *
  * @returns {string}
  */
