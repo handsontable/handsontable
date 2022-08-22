@@ -64,7 +64,7 @@ You can also pass your options as an object, using the `settings` prop.
 
 ```jsx
 <HotTable
-  settings={
+  settings={{
     // configuration options, in the object literal notation
     licenseKey: 'non-commercial-and-evaluation',
     data: Handsontable.helper.createSpreadsheetData(5, 10),
@@ -77,7 +77,7 @@ You can also pass your options as an object, using the `settings` prop.
     multiColumnSorting: true,
     filters: true,
     manualRowMove: true,
-  }
+  }}
 />
 ```
 :::

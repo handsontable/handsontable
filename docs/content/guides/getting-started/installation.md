@@ -257,7 +257,7 @@ To set Handsontable's [configuration options](@/guides/getting-started/setting-o
   height="auto"
   licenseKey="non-commercial-and-evaluation" // for non-commercial use only
 />
-\```
+```
 
 ## Basic example
 ::: example #example :react

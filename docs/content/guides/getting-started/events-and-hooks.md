@@ -1,5 +1,5 @@
 ---
-title: Events and hooks
+title: Events and Handsontable hooks
 metaTitle: Events and hooks - Guide - Handsontable Documentation
 permalink: /events-and-hooks
 canonicalUrl: /events-and-hooks
@@ -15,7 +15,7 @@ tags:
 - hooks
 ---
 
-# Events and hooks
+# Events and Handsontable hooks
 
 [[toc]]
 
