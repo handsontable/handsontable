@@ -185,11 +185,24 @@ function createSymlinks() {
 }
 
 /**
- * Gets docs base url (eq: https://handsontable.com).
+ * Gets docs base url (eq: https://handsontable.com/docs).
  *
  * @returns {string}
  */
 function getDocsBaseUrl() {
+  if (process.env.BUILD_MODE) {
+    return `${getDocsHostname()}/docs`;
+  }
+
+  return ''; // use relative URLs for local builds
+}
+
+/**
+ * Gets docs hostname (eq: https://handsontable.com).
+ *
+ * @returns {string}
+ */
+function getDocsHostname() {
   return `https://${process.env.BUILD_MODE === 'staging' ? 'dev.' : ''}handsontable.com`;
 }
 
@@ -206,4 +219,5 @@ module.exports = {
   createSymlinks,
   getThisDocsVersion,
   getDocsBaseUrl,
+  getDocsHostname,
 };

@@ -10,6 +10,7 @@ const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
 const {
   getDocsBaseUrl,
+  getDocsHostname,
   getThisDocsVersion,
   MULTI_FRAMEWORKED_CONTENT_DIR,
   createSymlinks,
@@ -58,7 +59,7 @@ module.exports = {
     }],
     ['link', {
       rel: 'preload',
-      href: isProduction ? `${getDocsBaseUrl()}/docs/data/common.json` : '/data/common.json',
+      href: `${getDocsBaseUrl()}/data/common.json`,
       as: 'fetch',
       crossorigin: ''
     }],
@@ -115,7 +116,7 @@ module.exports = {
     extendPageDataPlugin,
     'tabs',
     ['sitemap', {
-      hostname: getDocsBaseUrl(),
+      hostname: getDocsHostname(),
       exclude: ['/404.html']
     }],
     ['@vuepress/active-header-links', {

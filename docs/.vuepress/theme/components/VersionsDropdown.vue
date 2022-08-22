@@ -62,7 +62,7 @@ export default {
         '4.0.0',
       ].map(version => ({
         text: version.replace(/\.\d+$/, ''),
-        link: `${this.$page.baseUrl}/docs/${version}/`
+        link: `${this.$page.baseUrl}/${version}/`
       }));
     }
   },
