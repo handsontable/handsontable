@@ -88,9 +88,17 @@ import { fastCall } from './helpers/function';
  *   myPlugin={false}
  * });
  *
+ * ...
+ *
+ * const hot2 = hotRef2.current.hotInstance;
+ * // local hook (has same effect as a callback)
+ * hot2.addHook('afterChange', function() {
+ *   // function body - will only run in #example2
+ * });
+ *
  * // global hook
  * Handsontable.hooks.add('afterChange', function() {
- *   // Fired twice - for hotRef1 and hotRef2
+ *   // Fired twice - for hot1 and hot2
  *   if (this.getSettings().myPlugin) {
  *     // function body - will only run for first instance
  *   }
@@ -137,7 +145,7 @@ const REGISTERED_HOOKS = [
    * ```jsx
    * <HotTable
    *   afterChange={(changes, source) => {
-   *     changes.forEach(([row, prop, oldValue, newValue]) => {
+   *     changes?.forEach(([row, prop, oldValue, newValue]) => {
    *       // Some logic...
    *     });
    *   }}
