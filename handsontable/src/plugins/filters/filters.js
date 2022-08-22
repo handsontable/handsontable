@@ -368,7 +368,8 @@ export class Filters extends BasePlugin {
    * />
    *
    * // access to filters plugin instance
-   * const filtersPlugin = hotRef.getPlugin('filters');
+   * const hot = hotRef.current.hotInstance;
+   * const filtersPlugin = hot.getPlugin('filters');
    *
    * // add filter "Greater than" 95 to column at index 1
    * filtersPlugin.addCondition(1, 'gt', [95]);

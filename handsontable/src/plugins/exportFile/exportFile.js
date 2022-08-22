@@ -58,8 +58,9 @@ export const PLUGIN_PRIORITY = 240;
  *   data={getData()}
  * />
  *
+ * const hot = hotRef.current.hotInstance;
  * // access to exportFile plugin instance
- * const exportPlugin = hotRef.getPlugin('exportFile');
+ * const exportPlugin = hot.getPlugin('exportFile');
  *
  * // export as a string
  * exportPlugin.exportAsString('csv');

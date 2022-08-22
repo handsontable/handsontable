@@ -100,7 +100,8 @@ export const PLUGIN_PRIORITY = 320;
  * />
  *
  * // access the `HiddenRows` plugin's instance
- * const hiddenRowsPlugin = hotRef.getPlugin('hiddenRows');
+ * const hot = hotRef.current.hotInstance;
+ * const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
  *
  * // hide a single row
  * hiddenRowsPlugin.hideRow(1);
@@ -121,7 +122,7 @@ export const PLUGIN_PRIORITY = 320;
  * hiddenRowsPlugin.showRows([1, 2, 9]);
  *
  * // to see your changes, re-render your Handsontable instance
- * hotRef.render();
+ * hot.render();
  * ```
  * :::
  */

@@ -103,7 +103,8 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * ...
  *
  * // Access to plugin instance:
- * const plugin = hotRef.getPlugin('autoColumnSize');
+ * const hot = hotRef.current.hotInstance;
+ * const plugin = hot.getPlugin('autoColumnSize');
  *
  * plugin.getColumnWidth(4);
  *

@@ -100,7 +100,8 @@ export const PLUGIN_PRIORITY = 310;
  * />
  *
  * // access the `HiddenColumns` plugin's instance
- * const hiddenColumnsPlugin = hotRef.getPlugin('hiddenColumns');
+ * const hot = hotRef.current.hotInstance;
+ * const hiddenColumnsPlugin = hot.getPlugin('hiddenColumns');
  *
  * // hide a single column
  * hiddenColumnsPlugin.hideColumn(1);
@@ -121,7 +122,7 @@ export const PLUGIN_PRIORITY = 310;
  * hiddenColumnsPlugin.showColumns([1, 2, 9]);
  *
  * // to see your changes, re-render your Handsontable instance
- * hotRef.render();
+ * hot.render();
  * ```
  * :::
  */

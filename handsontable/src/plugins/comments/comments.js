@@ -98,7 +98,8 @@ const META_READONLY = 'readOnly';
  * />
  *
  * // Access to the Comments plugin instance:
- * const commentsPlugin = hotRef.getPlugin('comments');
+ * const hot = hotRef.current.hotInstance;
+ * const commentsPlugin = hot.getPlugin('comments');
  *
  * // Manage comments programmatically:
  * commentsPlugin.setCommentAtCell(1, 6, 'Comment contents');

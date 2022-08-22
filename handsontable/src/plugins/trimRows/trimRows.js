@@ -65,8 +65,9 @@ export const PLUGIN_PRIORITY = 330;
  *   trimRows={[1, 2, 5]}
  * />
  *
+ * const hot = hotRef.current.hotInstance;
  * // access the trimRows plugin instance
- * const trimRowsPlugin = hotRef.getPlugin('trimRows');
+ * const trimRowsPlugin = hot.getPlugin('trimRows');
  *
  * // hide single row
  * trimRowsPlugin.trimRow(1);
@@ -87,7 +88,7 @@ export const PLUGIN_PRIORITY = 330;
  * trimRowsPlugin.untrimRows([1, 2, 9]);
  *
  * // rerender table to see the changes
- * hotRef.render();
+ * hot.render();
  * ```
  * :::
  */

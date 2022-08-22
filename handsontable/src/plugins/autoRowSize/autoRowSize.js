@@ -85,7 +85,8 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * ...
  *
  * // Access to plugin instance:
- * const plugin = hotRef.getPlugin('autoRowSize');
+ * const hot = hotRef.current.hotInstance;
+ * const plugin = hot.getPlugin('autoRowSize');
  *
  * plugin.getRowHeight(4);
  *

@@ -74,8 +74,9 @@ let activeGuid = null;
  *
  * ...
  *
+ * const hot = hotRef.current.hotInstance;
  * // Then, let's use the setDataAtCell method
- * hotRef.setDataAtCell(0, 0, 'new value');
+ * hot.setDataAtCell(0, 0, 'new value');
  * ```
  * :::
  *
