@@ -8,10 +8,12 @@ const {
   getDefaultFramework,
   FRAMEWORK_SUFFIX,
   getNotSearchableLinks,
+  getDocsRepoSHA,
 } = require('../../helpers');
 
 const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/extend-page-data';
+const now = new Date();
 
 /**
  * Dedupes the slashes in the string.
@@ -60,6 +62,13 @@ module.exports = (options, context) => {
       $page.buildMode = buildMode;
       $page.isSearchable = notSearchableLinks[$page.currentFramework]?.every(
         notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);
+
+      if ($page.currentVersion === 'next') {
+        $page.docsGenStamp = `<!--
+Generated at ${now}
+SHA: ${getDocsRepoSHA()}
+-->`;
+      }
 
       const frontmatter = $page.frontmatter;
 
