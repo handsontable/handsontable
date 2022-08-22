@@ -5,6 +5,7 @@ permalink: /column-groups
 canonicalUrl: /column-groups
 tags:
   - nested headers
+  - nestedHeaders
   - collapsing columns
 ---
 

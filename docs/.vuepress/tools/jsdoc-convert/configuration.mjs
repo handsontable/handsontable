@@ -1,27 +1,24 @@
+/* eslint max-len: 0 */
 export default {
   pathToSource: '../../../../handsontable/src',
   pathToDist: '../../../content/api',
   urlPrefix: '/api/',
   seo: {
-    'dataMap/metaManager/metaSchema.js': {
+    'Options.md': {
       title: 'Options',
-      metaTitle: 'Options - API Reference - Handsontable Documentation',
-      permalink: '/api/options'
+      metaTitle: 'Options - API Reference - Handsontable Documentation for Javascript',
+      description: 'Configure your Handsontable instance using the "Configuration Options" object. You can also use it to implement custom functions.',
+      react: {
+        metaTitle: 'Options - API Reference - Handsontable Documentation for React',
+      },
     },
-    'pluginHooks.js': {
+    'Hooks.md': {
       title: 'Hooks',
       metaTitle: 'Hooks - API Reference - Handsontable Documentation',
-      permalink: '/api/hooks'
     },
-    'core.js': {
+    'Core.md': {
       title: 'Core',
       metaTitle: 'Core - API Reference - Handsontable Documentation',
-      permalink: '/api/core'
     },
-    '3rdparty/walkontable/src/cell/coords.js': {
-      title: 'CellCoords',
-      metaTitle: 'CellCoords - API Reference - Handsontable Documentation',
-      permalink: '/api/coords'
-    }
   }
 };
