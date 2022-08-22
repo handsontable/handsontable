@@ -1,4 +1,5 @@
 const path = require('path');
+const stylusNodes = require('stylus/lib/nodes');
 const highlight = require('./highlight');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
@@ -75,6 +76,19 @@ module.exports = {
       includeLevel: [2, 3],
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
+    anchor: {
+      callback(token, slugInfo) {
+        if (['h1', 'h2', 'h3'].includes(token.tag)) {
+          // Remove the `-[number]` suffix from the slugs and header IDs
+          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrs[0][1]);
+
+          if (duplicatedSlugsMatch) {
+            token.attrs[0][1] = duplicatedSlugsMatch[1];
+            slugInfo.slug = duplicatedSlugsMatch[1];
+          }
+        }
+      }
+    },
     externalLinks: {
       target: '_blank',
       rel: 'nofollow noopener noreferrer'
@@ -86,6 +100,15 @@ module.exports = {
   configureWebpack: {
     resolve: {
       symlinks: false,
+    }
+  },
+  stylus: {
+    preferPathResolver: 'webpack',
+    define: {
+      url: (expression) => {
+        return new stylusNodes
+          .Literal(`url("${expression.string.replace('{{$basePath}}', base.replace(/\/$/, ''))}")`);
+      },
     }
   },
   plugins: [
