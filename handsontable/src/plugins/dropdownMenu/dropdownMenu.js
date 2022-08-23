@@ -47,6 +47,7 @@ const BUTTON_CLASS_NAME = 'changeType';
  * See [the dropdown menu demo](@/guides/columns/column-menu.md) for examples.
  *
  * @example
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -64,6 +65,18 @@ const BUTTON_CLASS_NAME = 'changeType';
  *   dropdownMenu: ['remove_col', '---------', 'make_read_only', 'alignment']
  * });
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={data}
+ *   comments={true}
+ *   // enable and configure dropdown menu
+ *   dropdownMenu={['remove_col', '---------', 'make_read_only', 'alignment']}
+ * />
+ * ```
+ * :::
  */
 
 export class DropdownMenu extends BasePlugin {

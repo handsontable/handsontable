@@ -54,7 +54,7 @@ const META_READONLY = 'readOnly';
  * To add comments at the table initialization, define the `comment` property in the `cell` config array as in an example below.
  *
  * @example
- *
+ * ::: only-for javascript
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
  *   data: getData(),
@@ -79,6 +79,40 @@ const META_READONLY = 'readOnly';
  * commentsPlugin.show();
  * commentsPlugin.removeComment();
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * const hotRef = useRef();
+ *
+ * ...
+ *
+ * <HotTable
+ *   ref={hotRef}
+ *   data={getData()}
+ *   comments={true}
+ *   cell={[
+ *     {row: 1, col: 1, comment: {value: 'Foo'}},
+ *     {row: 2, col: 2, comment: {value: 'Bar'}}
+ *   ]}
+ * />
+ *
+ * // Access to the Comments plugin instance:
+ * const hot = hotRef.current.hotInstance;
+ * const commentsPlugin = hot.getPlugin('comments');
+ *
+ * // Manage comments programmatically:
+ * commentsPlugin.setCommentAtCell(1, 6, 'Comment contents');
+ * commentsPlugin.showAtCell(1, 6);
+ * commentsPlugin.removeCommentAtCell(1, 6);
+ *
+ * // You can also set range once and use proper methods:
+ * commentsPlugin.setRange({from: {row: 1, col: 6}});
+ * commentsPlugin.setComment('Comment contents');
+ * commentsPlugin.show();
+ * commentsPlugin.removeComment();
+ * ```
+ * :::
  */
 export class Comments extends BasePlugin {
   static get PLUGIN_KEY() {

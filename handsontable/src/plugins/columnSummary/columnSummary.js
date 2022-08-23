@@ -33,6 +33,8 @@ export const PLUGIN_PRIORITY = 220;
  * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function) |
  *
  * @example
+ * ::: only-for javascript
+ * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
  *   data: getData(),
@@ -58,6 +60,37 @@ export const PLUGIN_PRIORITY = 220;
  *     }
  *   ]
  * });
+ * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={getData()}
+ *   colHeaders={true}
+ *   rowHeaders={true}
+ *   columnSummary={[
+ *     {
+ *       type: 'min',
+ *       destinationRow: 4,
+ *       destinationColumn: 1,
+ *     },
+ *     {
+ *       type: 'max',
+ *       destinationRow: 0,
+ *       destinationColumn: 3,
+ *       reversedRowCoords: true
+ *     },
+ *     {
+ *       type: 'sum',
+ *       destinationRow: 4,
+ *       destinationColumn: 5,
+ *       forceNumeric: true
+ *     }
+ *   ]}
+ * />
+ * ```
+ * :::
  */
 export class ColumnSummary extends BasePlugin {
   static get PLUGIN_KEY() {
