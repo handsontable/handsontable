@@ -474,7 +474,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeAutofill: (start, end, data) => {},
   beforeAutofillInsidePopulate: (index, direction, input, deltas) => {},
   beforeCellAlignment: (stateBefore, range, type, alignmentClass) => {},
-  beforeChange: (changes, source) => { changes[0][3] = 10; return false; },
+  beforeChange: (changes, source) => { if (changes?.[0] !== null) { changes[0][3] = 10; } return false; },
   beforeChangeRender: (changes, source) => {},
   beforeColumnCollapse: (currentCollapsedColumn, destinationCollapsedColumns, collapsePossible) => {},
   beforeColumnExpand: (currentCollapsedColumn, destinationCollapsedColumns, expandPossible) => {},
