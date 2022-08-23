@@ -245,7 +245,7 @@ searchField.addEventListener('keyup', function(event) {
 :::
 
 ::: only-for react
-::: example #example2 --css 1 --js 2 :react
+::: example #example2 :react --css 1 --js 2
 ````css
 .my-custom-search-result-class{
   color: #ff0000;
