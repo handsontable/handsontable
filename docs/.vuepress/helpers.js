@@ -6,6 +6,7 @@ const MULTI_FRAMEWORKED_CONTENT_DIR = '.build-tmp';
 const FRAMEWORK_SUFFIX = '-data-grid';
 const versionFromBranchRegExp = /^prod-docs\/(\d+\.\d+)$/;
 let docsVersion = null;
+let docsSHA = null;
 
 // Please keep in mind that the first element is default framework.
 const frameworkToPrettyName = new Map([
@@ -185,6 +186,19 @@ function createSymlinks() {
 }
 
 /**
+ * Returns the repository latest SHA.
+ *
+ * @returns {string}
+ */
+function getDocsRepoSHA() {
+  if (docsSHA === null) {
+    docsSHA = execa.sync('git rev-parse HEAD', { shell: true }).stdout;
+  }
+
+  return docsSHA;
+}
+
+/**
  * Gets docs base path (eq: /docs/12.1).
  *
  * @returns {string}
@@ -236,6 +250,7 @@ module.exports = {
   getDefaultFramework,
   createSymlinks,
   getThisDocsVersion,
+  getDocsRepoSHA,
   getDocsBase,
   getDocsBaseFullUrl,
   getDocsHostname,
