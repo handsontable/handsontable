@@ -185,12 +185,43 @@ function createSymlinks() {
 }
 
 /**
- * Gets docs base url (eq: https://handsontable.com).
+ * Gets docs base path (eq: /docs/12.1).
  *
  * @returns {string}
  */
-function getDocsBaseUrl() {
-  return `https://${process.env.BUILD_MODE === 'staging' ? 'dev.' : ''}handsontable.com`;
+function getDocsBase() {
+  const docsBase = process.env.DOCS_BASE ?? getThisDocsVersion();
+  let base = '/docs/';
+
+  if (docsBase !== 'latest') {
+    base += `${docsBase}/`;
+  }
+
+  return base.replace(/\/$/, '');
+}
+
+/**
+ * Gets docs base full url with hostname (eq: https://handsontable.com/docs/12.1).
+ *
+ * @returns {string}
+ */
+function getDocsBaseFullUrl() {
+  return `${getDocsHostname()}${getDocsBase()}`;
+}
+
+/**
+ * Gets docs hostname (eq: https://handsontable.com).
+ *
+ * @returns {string}
+ */
+function getDocsHostname() {
+  const buildMode = process.env.BUILD_MODE;
+
+  if (!buildMode) {
+    return 'http://localhost:8080';
+  }
+
+  return `https://${buildMode === 'staging' ? 'dev.' : ''}handsontable.com`;
 }
 
 module.exports = {
@@ -205,5 +236,7 @@ module.exports = {
   getDefaultFramework,
   createSymlinks,
   getThisDocsVersion,
-  getDocsBaseUrl,
+  getDocsBase,
+  getDocsBaseFullUrl,
+  getDocsHostname,
 };
