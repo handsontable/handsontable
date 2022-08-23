@@ -9,7 +9,7 @@ canonicalUrl: /api/
 
 [[toc]]
 
-Welcome to Handsontable API reference. Our goal is make it easy to dive in and start coding from day one.
+Welcome to Handsontable's API reference. Our goal is to make it easy to dive in and start coding from day one.
 
 However, data grids are rather complex libraries, so we assume that you possess a certain level of expertise in JavaScript before moving forward. If you want to grab some basics, we have provided a JavaScript example in the [demo](@/guides/getting-started/demo.md) section.
 

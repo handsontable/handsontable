@@ -1,6 +1,6 @@
 ---
 title: Context menu
-metaTitle: Context menu - Guide - Handsontable Documentation
+metaTitle: Introduction | Developer documentation and guides | Handsontable - JavaScript Data Grid
 permalink: /context-menu
 canonicalUrl: /context-menu
 tags:
