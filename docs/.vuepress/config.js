@@ -9,14 +9,15 @@ const extendPageDataPlugin = require('./plugins/extend-page-data');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
 const {
-  getDocsBaseUrl,
+  getDocsBaseFullUrl,
+  getDocsBase,
+  getDocsHostname,
   getThisDocsVersion,
   MULTI_FRAMEWORKED_CONTENT_DIR,
   createSymlinks,
 } = require('./helpers');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 
-const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction ?
@@ -36,12 +37,6 @@ const environmentHead = isProduction ?
 // which are watched by the script. It's done before a compilation is starting.
 createSymlinks();
 
-let base = '/docs/';
-
-if (docsBase !== 'latest') {
-  base += `${docsBase}/`;
-}
-
 module.exports = {
   define: {
     GA_ID: 'UA-33932793-7',
@@ -50,15 +45,15 @@ module.exports = {
     `${MULTI_FRAMEWORKED_CONTENT_DIR}/**/*.md`,
   ],
   description: 'Handsontable',
-  base,
+  base: `${getDocsBase()}/`,
   head: [
     ['link', {
       rel: 'icon',
-      href: `${getDocsBaseUrl()}/static/images/template/ModCommon/favicon-32x32.png`
+      href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png'
     }],
     ['link', {
       rel: 'preload',
-      href: isProduction ? `${getDocsBaseUrl()}/docs/data/common.json` : '/data/common.json',
+      href: `${getDocsBaseFullUrl()}/data/common.json`,
       as: 'fetch',
       crossorigin: ''
     }],
@@ -107,7 +102,7 @@ module.exports = {
     define: {
       url: (expression) => {
         return new stylusNodes
-          .Literal(`url("${expression.string.replace('{{$basePath}}', base.replace(/\/$/, ''))}")`);
+          .Literal(`url("${expression.string.replace('{{$basePath}}', getDocsBaseFullUrl())}")`);
       },
     }
   },
@@ -115,14 +110,14 @@ module.exports = {
     extendPageDataPlugin,
     'tabs',
     ['sitemap', {
-      hostname: getDocsBaseUrl(),
+      hostname: getDocsHostname(),
       exclude: ['/404.html']
     }],
     ['@vuepress/active-header-links', {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
     }],
-    ['container', examples(getThisDocsVersion(), base)],
+    ['container', examples(getThisDocsVersion(), getDocsBaseFullUrl())],
     ['container', sourceCodeLink],
     {
       extendMarkdown(md) {
@@ -135,7 +130,7 @@ module.exports = {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'src') {
                 token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$basePath}}', base.replace(/\/$/, ''))
+                  decodeURIComponent(value).replace('{{$basePath}}', getDocsBaseFullUrl())
                 );
               }
             });
@@ -155,7 +150,7 @@ module.exports = {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'href') {
                 token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$basePath}}', base.replace(/\/$/, ''))
+                  decodeURIComponent(value).replace('{{$basePath}}', getDocsBaseFullUrl())
                 );
               }
             });

@@ -3,7 +3,6 @@ const {
   getNormalizedPath,
   parseFramework,
   getThisDocsVersion,
-  getDocsBaseUrl,
   getPrettyFrameworkName,
   getDefaultFramework,
   FRAMEWORK_SUFFIX,
@@ -52,7 +51,6 @@ module.exports = (options, context) => {
       const currentFramework = parseFramework(normalizedPath);
 
       $page.normalizedPath = normalizedPath;
-      $page.baseUrl = getDocsBaseUrl();
       $page.currentVersion = getThisDocsVersion();
       $page.currentFramework = currentFramework;
       $page.frameworkName = getPrettyFrameworkName($page.currentFramework);

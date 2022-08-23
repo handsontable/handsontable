@@ -102,7 +102,7 @@ module.exports = function(docsVersion, base) {
         const jsIndex = index + Number.parseInt(jsPos, 10);
         const jsToken = tokens[jsIndex];
 
-        jsToken.content = jsToken.content.replaceAll('{{$basePath}}', base.replace(/\/$/, ''));
+        jsToken.content = jsToken.content.replaceAll('{{$basePath}}', base);
 
         const activeTab = args.match(/--tab (code|html|css|preview)/)?.[1] || 'code';
         const noEdit = !!args.match(/--no-edit/)?.[0];
