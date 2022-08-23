@@ -1,7 +1,7 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * Array of functions to be deployed on the documentation web pages. The return statements of those methods will be
- * returned back to the checker logic.
+ * returned to the checker logic.
  *
  * The return object should be structured as below:
  * ```
@@ -50,14 +50,14 @@ const testCases = [
     /**
      * Fetch the content of the tab containing the example configuration (differs between frameworks).
      *
-     * @param {HTMLElement} parentNode Parent node of the example container.
+     * @param {HTMLElement} parentElement Parent node of the example container.
      * @param {string} containerFramework Framework defined in the container config.
      * @returns {string}
      */
-    function fetchTabContent(parentNode, containerFramework) {
+    function fetchTabContent(parentElement, containerFramework) {
       // Examples have duplicated #code elements, when fixed, this will have to be changed as well.
-      const codeTab = parentNode.querySelector('#code');
-      const htmlTab = parentNode.querySelector('#html');
+      const codeTab = parentElement.querySelector('[id^=code-tab]');
+      const htmlTab = parentElement.querySelector('[id^=html-tab]');
       const definitionTab = {
         javascript: codeTab,
         react: codeTab,
@@ -76,7 +76,7 @@ const testCases = [
     // Actual logic starts here:
     // ----------------------------------------
 
-    const previewTabs = document.querySelectorAll('[id^=preview-tab]');
+    const codeTabs = document.querySelectorAll('[id^=code-tab]');
     const htMasterElements = document.querySelectorAll('.handsontable.ht_master');
     const hotInitPrefixes = {
       javascript: ' Handsontable\\(',
@@ -84,25 +84,34 @@ const testCases = [
       vue: '<hot-table',
       angular: '<hot-table'
     };
+    const emptyExampleContainers = [];
     let hotInstancesCount = 0;
 
-    previewTabs.forEach((previewTab) => {
-      const previewParentNode = previewTab.parentNode;
-      const containerFramework = fetchContainerFramework(previewParentNode);
-      const tabContent = fetchTabContent(previewParentNode, containerFramework);
+    codeTabs.forEach((codeTab) => {
+      const exampleId = codeTab.id.split('-').at(-1);
+      const codeTabParentElement = codeTab.parentElement;
+      const containerFramework = fetchContainerFramework(codeTabParentElement);
+      const tabContent = fetchTabContent(codeTabParentElement, containerFramework);
       const prefixRegex = new RegExp(hotInitPrefixes[containerFramework], 'g');
+      const foundInits = tabContent.match(prefixRegex)?.length;
 
-      hotInstancesCount += tabContent.match(prefixRegex)?.length || 0;
+      if (foundInits) {
+        hotInstancesCount += foundInits;
+
+      } else {
+        emptyExampleContainers.push(exampleId);
+      }
     });
 
     // Modify the number of expected instances, if there are any exceptions to the given page.
     hotInstancesCount += (INSTANCE_NUMBER_EXCEPTIONS[permalink] || 0);
 
     return {
-      result: hotInstancesCount === htMasterElements.length,
+      result: (hotInstancesCount === htMasterElements.length) && emptyExampleContainers.length === 0,
+      emptyExampleContainers,
       expected: hotInstancesCount,
       received: htMasterElements.length,
-      error: !document.body.innerHTML ? 'Page not accessible.' : null,
+      error: (!document.body.innerHTML ? 'Page not accessible.' : null),
     };
   }
 ];

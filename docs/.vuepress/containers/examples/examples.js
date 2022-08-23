@@ -8,7 +8,7 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 const { buildCode } = require('./code-builder');
 const { jsfiddle } = require('./jsfiddle');
 
-const tab = (tabName, token) => {
+const tab = (tabName, token, id) => {
   if (!token) return [];
 
   return [
@@ -20,7 +20,7 @@ const tab = (tabName, token) => {
       nesting: 0,
       level: 1,
       children: null,
-      content: `<tab name="${tabName}">`,
+      content: `<tab id="${tabName.toLowerCase()}-tab-${id}" name="${tabName}">`,
       markup: '',
       info: '',
       meta: null,
@@ -122,9 +122,9 @@ module.exports = function(docsVersion, base) {
         });
 
         const newTokens = [
-          ...tab('Code', jsToken),
-          ...tab('HTML', htmlToken),
-          ...tab('CSS', cssToken),
+          ...tab('Code', jsToken, id),
+          ...tab('HTML', htmlToken, id),
+          ...tab('CSS', cssToken, id),
           getPreviewTab(id, cssContent, htmlContentRoot, encodedCode)
         ];
 

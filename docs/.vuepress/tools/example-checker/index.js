@@ -47,14 +47,14 @@ const FILE_SERVE_TIMEOUT = 300;
  *
  * @type {number}
  */
-const EXAMPLE_INIT_TIMEOUT = 300;
+const EXAMPLE_INIT_TIMEOUT = 200;
 
 /**
  * Number of tries to perform if the number of the rendered examples differs from the expected count.
  *
  * @type {number}
  */
-const CHECK_TRIES = 4;
+const CHECK_TRIES = 7;
 
 (async() => {
   const FRAMEWORKS_TO_CHECK = getFrameworks();
@@ -65,7 +65,6 @@ const CHECK_TRIES = 4;
   await sleep(FILE_SERVE_TIMEOUT);
 
   const brokenExamplePaths = [];
-  const suspiciousPaths = [];
   const searchResults = await findExampleContainersInFiles();
   const pathsWithConditions = fetchPathsWithConditions();
   const permalinks = fetchPermalinks(searchResults, pathsWithConditions);
@@ -74,13 +73,13 @@ const CHECK_TRIES = 4;
     page
   } = await setupBrowser();
 
-  logger.info('Checking if the examples got rendered correctly:');
+  logger.log('Checking if the examples rendered correctly:');
 
   /* eslint-disable no-await-in-loop, no-continue */
   for (let f = 0; f < FRAMEWORKS_TO_CHECK.length; f++) {
     const framework = FRAMEWORKS_TO_CHECK[f];
 
-    logger.info(`\n${firstUppercase(framework)} flavor:`);
+    logger.log(`\n${firstUppercase(framework)} flavor:`);
 
     for (let i = 0; i < permalinks.length; i++) {
       if (permalinks[i].onlyFor && !permalinks[i].onlyFor.includes(framework)) {
@@ -110,19 +109,17 @@ const CHECK_TRIES = 4;
 
         } else {
           // Mark the check as suspicious, if the expected number of instances is 0.
-          logCheck(pageEvaluation.result, pageEvaluation.expected === 0);
+          logCheck(pageEvaluation.result);
 
           const errObj = {
             path: permalink,
             expected: pageEvaluation.expected,
-            received: pageEvaluation.received
+            received: pageEvaluation.received,
+            emptyExampleContainers: pageEvaluation.emptyExampleContainers
           };
 
           if (!pageEvaluation.result) {
             brokenExamplePaths.push(errObj);
-
-          } else if (pageEvaluation.expected === 0) {
-            suspiciousPaths.push(errObj);
           }
         }
       }
@@ -132,20 +129,30 @@ const CHECK_TRIES = 4;
 
   await browser.close();
 
-  if (suspiciousPaths.length > 0) {
-    logger.warn(
-      `
-0 Handsontable instances were expected (despite the ':::example' containers being present) in:
-
-${suspiciousPaths.map(entry => `${entry.path}`).join('\n')}`
-    );
-  }
-
   if (brokenExamplePaths.length > 0) {
-    logger.error(`\nBroken examples found in: \n\n${brokenExamplePaths.map(
-      entry =>
-        `${entry.path}: Expected: ${entry.expected}, Received: ${entry.received}.`)
-      .join('\n')}`
+    logger.error(`
+
+Errors:
+${brokenExamplePaths.map(
+    (entry) => {
+      let errorMessage = '';
+
+      if (entry.expected !== entry.received) {
+        errorMessage += `
+  - Expected ${entry.expected} Handsontable instances, ${entry.received} were rendered.`;
+      }
+
+      if (entry.emptyExampleContainers.length > 0) {
+        entry.emptyExampleContainers.forEach((exampleId) => {
+          errorMessage += `
+  - Empty example container ("${exampleId}")`;
+        });
+      }
+
+      return `
+- ${entry.path}: ${errorMessage}`;
+    })
+    .join('\n')}`
     );
     process.exit(1);
   }

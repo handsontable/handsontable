@@ -14,17 +14,12 @@ const mdDir = path.resolve(__dirname, '../../../content/guides/');
  * Log a dot indicating the result of a check.
  *
  * @param {boolean} valid `true` if the check was successful, `false` otherwise.
- * @param {boolean} warn `true` if the check was successful, `false` otherwise.
  */
-function logCheck(valid, warn) {
+function logCheck(valid) {
   let logColor = 'red';
 
   if (valid) {
-    if (warn) {
-      logColor = 'yellow';
-    } else {
-      logColor = 'green';
-    }
+    logColor = 'green';
   }
 
   process.stdout.write(chalk[logColor]('.'));
