@@ -10,11 +10,13 @@
 
 <script>
 import DropdownLink from '@theme/components/DropdownLink.vue';
-import { getLinkTransformed } from '../../components/utils';
 
 const frameworkIdToFullName = new Map([
-  ['javascript', 'JavaScript'],
-  ['react', 'React'],
+  ['javascript', { name: 'JavaScript' }],
+  ['angular', { name: 'Angular', homepage: '/javascript-data-grid/angular-installation/' }],
+  ['react', { name: 'React' }],
+  ['vue', { name: 'Vue 2', homepage: '/javascript-data-grid/vue-installation/' }],
+  ['vue3', { name: 'Vue 3', homepage: '/javascript-data-grid/vue3-installation/' }],
 ]);
 
 export default {
@@ -22,21 +24,37 @@ export default {
   components: {
     DropdownLink
   },
+  watch: {
+    $route(to) {
+      this.detectFramework(to.fullPath);
+    }
+  },
   methods: {
+    detectFramework(path) {
+      const frameworkMatch = path.match(/javascript-data-grid\/(vue3|vue|angular)?/);
+
+      if (frameworkMatch) {
+        this.$page.currentFramework = frameworkMatch[1] ?? 'javascript';
+      }
+    },
     getLink(framework) {
+      const {
+        homepage = `/${framework}${this.$page.frameworkSuffix}/`
+      } = frameworkIdToFullName.get(framework);
+
       if (this.$page.currentVersion === this.$page.latestVersion) {
-        return `/docs/${framework}${this.$page.frameworkSuffix}/`;
+        return `/docs${homepage}`;
       }
 
-      return `/docs/${this.$page.currentVersion}/${framework}${this.$page.frameworkSuffix}/`;
+      return `/docs/${this.$page.currentVersion}${homepage}`;
     },
     getFrameworkName(id) {
-      return frameworkIdToFullName.get(id);
+      return frameworkIdToFullName.get(id).name;
     },
     getFrameworkItems() {
-      return Array.from(frameworkIdToFullName.entries()).map(([id, fullName]) => {
+      return Array.from(frameworkIdToFullName.entries()).map(([id, { name }]) => {
         return {
-          text: fullName,
+          text: name,
           link: this.getLink(id),
           target: '_self',
           isHtmlLink: true
@@ -46,11 +64,9 @@ export default {
   },
   computed: {
     imageUrl() {
-      const currentVersion = this.$page.currentVersion;
       const frameworkWithoutNumber = this.$page.currentFramework.replace(/\d+$/, '');
-      const src = this.$withBase(`/img/pages/introduction/${frameworkWithoutNumber}.svg`);
 
-      return getLinkTransformed(src, currentVersion, this.$page.latestVersion);
+      return this.$withBase(`/img/pages/introduction/${frameworkWithoutNumber}.svg`);
     },
     item() {
       return {
@@ -58,6 +74,9 @@ export default {
         items: this.getFrameworkItems(),
       };
     }
+  },
+  created() {
+    this.detectFramework(this.$route.fullPath);
   }
 };
 </script>
@@ -98,7 +117,7 @@ export default {
     overflow-y auto
     position absolute
     top 100%
-    left 0
+    left -19px
     background-color #fff
     padding 0.6rem 0
     border 1px solid #ddd
