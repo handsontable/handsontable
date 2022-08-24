@@ -90,7 +90,6 @@ docs                            # All documentation files
 │   └── redirects.conf          # File that allows create custom redirects for documentation
 ├── content                     # The documentation content files
 │   ├── api                     # The API reference output, generated automatically from JSDoc. Do not edit for "next" Docs version!
-│   ├── examples                # The Handsontable examples
 │   ├── guides                  # The guides' source files: Markdown content
 │   └── sidebars.js             # Sidebars configuration
 ├── .build-tmp                  # Temporary directory created for storing symlinked directories, containing .MD files. It's needed for generating multi-frameworked Docs content.

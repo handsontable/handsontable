@@ -30,7 +30,7 @@ ${html}
       ${isAngularPanel ? '<input type="hidden" name="panel_js" value="4" readOnly>' : ''}
 
       <div class="js-fiddle-link">
-        <button type="submit">Edit</button>
+        <button type="submit">Edit in JSFiddle</button>
       </div>
     </form>
   `;

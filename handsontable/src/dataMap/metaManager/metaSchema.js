@@ -19,6 +19,7 @@ import { isObjectEqual } from '../../helpers/object';
  * a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-handsontable),
  * using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
  *
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  *
@@ -37,6 +38,26 @@ import { isObjectEqual } from '../../helpers/object';
  *   manualRowMove: true,
  * });
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   // configuration options, in the object literal notation
+ *   licenseKey='non-commercial-and-evaluation'
+ *   data={Handsontable.helper.createSpreadsheetData(5, 10)}
+ *   width={400}
+ *   height={300}
+ *   colHeaders={true}
+ *   rowHeaders={true}
+ *   customBorders={true}
+ *   dropdownMenu={true}
+ *   multiColumnSorting={true}
+ *   filters={true}
+ *   manualRowMove={true}
+ * />
+ * ```
+ * :::
  *
  * Depending on your needs, you can apply [configuration options](@/api/options.md) to different elements of your grid:
  * - [The entire grid](@/guides/getting-started/setting-options.md#setting-grid-options)
@@ -3123,7 +3144,7 @@ export default () => {
      * - [Column groups: Nested headers](@/guides/columns/column-groups.md#nested-headers)
      *
      * @memberof Options#
-     * @type {Array[]}
+     * @type {boolean|Array[]}
      * @default undefined
      * @category NestedHeaders
      *

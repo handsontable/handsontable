@@ -70,6 +70,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
  *   data: getData(),
@@ -84,6 +85,34 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *   // code...
  * }
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * const hotRef = useRef();
+ *
+ * ...
+ *
+ * // First, let's contruct Handsontable
+ * <HotTable
+ *   ref={hotRef}
+ *   data={getData()}
+ *   autoColumnSize={true}
+ * />
+ *
+ * ...
+ *
+ * // Access to plugin instance:
+ * const hot = hotRef.current.hotInstance;
+ * const plugin = hot.getPlugin('autoColumnSize');
+ *
+ * plugin.getColumnWidth(4);
+ *
+ * if (plugin.isEnabled()) {
+ *   // code...
+ * }
+ * ```
+ * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export class AutoColumnSize extends BasePlugin {

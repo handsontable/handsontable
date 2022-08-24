@@ -33,6 +33,7 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  *
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
  *  data: getData(),
@@ -42,6 +43,21 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  *    {row: 4, col: 8, rowspan: 3, colspan: 3}
  *  ],
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={getData()}
+ *   // enable plugin
+ *   mergeCells={[
+ *    {row: 0, col: 3, rowspan: 3, colspan: 3},
+ *    {row: 2, col: 6, rowspan: 2, colspan: 2},
+ *    {row: 4, col: 8, rowspan: 3, colspan: 3}
+ *   ]}
+ * />
+ * ```
+ * :::
  */
 export class MergeCells extends BasePlugin {
   static get PLUGIN_KEY() {
