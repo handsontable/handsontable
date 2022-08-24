@@ -1,8 +1,11 @@
 ---
 title: Column hiding
-metaTitle: Column hiding - Guide - Handsontable Documentation
+metaTitle: Column hiding - JavaScript Data Grid | Handsontable
+description: Hide selected columns from your interface to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.
 permalink: /column-hiding
 canonicalUrl: /column-hiding
+react:
+  metaTitle: Column hiding - React Data Grid | Handsontable
 ---
 
 # Column hiding

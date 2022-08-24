@@ -1,8 +1,11 @@
 ---
-title: Column header
-metaTitle: Column header - Guide - Handsontable Documentation
+title: Column headers
+metaTitle: Column headers - JavaScript Data Grid | Handsontable
+description: Set column headers, using the "colHeader" option. Set the default header names (A, B, C), or declare custom names using an array or a function.
 permalink: /column-header
 canonicalUrl: /column-header
+react:
+  metaTitle: Column headers - React Data Grid | Handsontable
 ---
 
 # Column header
