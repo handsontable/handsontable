@@ -14,12 +14,14 @@ tags:
 
 Play around with a demo of Handsontable, in your favorite framework.
 
-<div class="example-container"><iframe
-    src="https://handsontable.github.io/handsontable/examples/next/docs/js/demo/"
-    allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone;
-      midi; payment; usb; vr; xr-spatial-tracking"
-    sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-  ></iframe></div>
+<div class="example-container">
+  <div id="example"></div>
+  <script src="https://examples.handsontable.com/examples/12.1.1/docs/js/demo/src.3f3ef8b8.js"></script>
+  <style>
+    @import 'https://examples.handsontable.com/examples/12.1.1/docs/js/demo/src.4d67a99b.css';
+  </style>
+</div>
+
 ## Find the code on GitHub
 
 - [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/js/demo/)
