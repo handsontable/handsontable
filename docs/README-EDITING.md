@@ -176,6 +176,24 @@ To check for broken links:
    ```
 4. Open the broken links report: `/docs/report-check-links.xlsx`.
 
+
+## Markdown variables
+
+It is possible to include metadata from VuePress or frontmatter in the content using the `$page` object and the following syntax:
+
+```
+Welcome the users of {{ $page.frameworkName }}!
+```
+
+The above code prints the following text in the React variant of the docs:
+
+> Welcome the users of React!
+
+The full list of available variables is available at:
+
+- https://vuepress.vuejs.org/guide/frontmatter.html (official)
+- https://github.com/handsontable/handsontable/blob/develop/docs/.vuepress/plugins/extend-page-data/index.js#L53-L60 (our modifications)
+
 ## Markdown containers
 
 To render content in different ways, the documentation uses Markdown containers, for example:
