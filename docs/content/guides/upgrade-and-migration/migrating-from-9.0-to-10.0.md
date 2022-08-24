@@ -35,7 +35,7 @@ For more details on the breaking changes between HyperFormula 0.6.x and HyperFor
 
 ## Step 3: Adapt to the configuration options' new default values
 
-In Handsontable 10.0.0, we changed the default values of the [`autoWrapCol`](@/api/options.md#autowrapcol) and [`autoWrapRow`](@/api/options.md#autowraprow) [configuration options](@/guides/getting-started/setting-options.md), from `true` to `false` ([#8662](https://github.com/handsontable/handsontable/pull/8662)):
+In Handsontable 10.0.0, we changed the default values of the [`autoWrapCol`](@/api/options.md#autowrapcol) and [`autoWrapRow`](@/api/options.md#autowraprow) [configuration options](@/guides/getting-started/configuration-options.md), from `true` to `false` ([#8662](https://github.com/handsontable/handsontable/pull/8662)):
 
 ::: only-for javascript
 | Before                                              | After                                                |

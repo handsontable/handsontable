@@ -1,6 +1,7 @@
 ---
 title: Events and hooks
-metaTitle: Events and hooks - Guide - Handsontable Documentation
+metaTitle: Events and hooks - JavaScript Data Grid | Handsontable
+description: Run your code before or after an action, using Handsontable's API hooks. For example, you can control what happens with the user's input.
 permalink: /events-and-hooks
 canonicalUrl: /events-and-hooks
 tags:
@@ -13,6 +14,8 @@ tags:
 - before
 - events
 - hooks
+react:
+  metaTitle: Events and hooks - React Data Grid | Handsontable
 ---
 
 # Events and hooks

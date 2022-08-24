@@ -44,7 +44,7 @@ hotInstance.loadData(newDataset);
 :::
 
 ::: only-for react
-Updating your [`data`](@/api/options.md#data) through a component's property no longer resets your [index mapper](@/api/indexMapper.md) information and [configuration options](@/guides/getting-started/setting-options.md).
+Updating your [`data`](@/api/options.md#data) through a component's property no longer resets your [index mapper](@/api/indexMapper.md) information and [configuration options](@/guides/getting-started/configuration-options.md).
 
 If you still want to reset the states when replacing [`data`](@/api/options.md#data), call the [`loadData()`](@/api/core.md#loadData) method, referencing the Handsontable instance from the component:
 

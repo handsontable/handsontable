@@ -473,11 +473,11 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
 
 
 You can apply the horizontal text alignment settings to:
-- [The entire grid](@/guides/getting-started/setting-options.md#setting-grid-options), by setting [`className`](@/api/options.md#classname) on the global level
-- [Individual columns](@/guides/getting-started/setting-options.md#setting-column-options), by setting [`className`](@/api/options.md#classname) on the column level
-- [Individual rows](@/guides/getting-started/setting-options.md#setting-row-options), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
-- [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options), by setting [`className`](@/api/options.md#classname) on the cell level
-- [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
+- [The entire grid](@/guides/getting-started/configuration-options.md#setting-grid-options), by setting [`className`](@/api/options.md#classname) on the global level
+- [Individual columns](@/guides/getting-started/configuration-options.md#setting-column-options), by setting [`className`](@/api/options.md#classname) on the column level
+- [Individual rows](@/guides/getting-started/configuration-options.md#setting-row-options), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
+- [Individual cells](@/guides/getting-started/configuration-options.md#setting-cell-options), by setting [`className`](@/api/options.md#classname) on the cell level
+- [Individual grid elements, based on any logic you implement](@/guides/getting-started/configuration-options.md#implementing-custom-logic), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
 
 ## Related articles
 
