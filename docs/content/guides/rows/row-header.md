@@ -58,7 +58,7 @@ const hot = new Handsontable(container, {
   height: 'auto',
   contextMenu: true,
   manualRowMove: true,
-  bindRowsWithHeaders: 'strict',
+  bindRowsWithHeaders: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
