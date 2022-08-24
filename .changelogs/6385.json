@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue with \"0\" values being unrecognized by the Column Summary plugin.",
+  "type": "fixed",
+  "issue": 6385,
+  "breaking": false,
+  "framework": "none"
+}
