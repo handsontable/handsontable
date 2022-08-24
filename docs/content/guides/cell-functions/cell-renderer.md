@@ -113,7 +113,7 @@ In this example, React's `Context` passes information available in the main app 
 }
 ```
 ```jsx
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
@@ -603,7 +603,7 @@ exampleContainer3.addEventListener('mouseup', event => {
 ::: only-for react
 ::: example #example5 :react
 ```jsx
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
