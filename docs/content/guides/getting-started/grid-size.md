@@ -33,22 +33,33 @@ If you'd like to observe it, you can define the dimensions in the configuration 
 
 ### Pass the size in the configuration
 
+You can pass width and height values to Handsontable as CSS strings or numbers:
+::: only-for javascript
 ```js
 {
-    width: '100px',
-    width: '75%',
-    width: 100 // For a better compatibility we convert number into pixels
+  width: '100px',
+  height: '100px',
 }
-...
+or
 {
-    height: '100px',
-    height: '75%',
-    height: 100 // For a better compatibility we convert number into pixels
+  width: '75%',
+  height: '75%',
+}
+or 
+{
+  width: 100,
+  height: 100,
 }
 ```
+:::
+
 ::: only-for react
 ```jsx
-  <HotTable height={100} width={100} /> 
+  <HotTable height={100} width={100} />
+or
+  <HotTable height="75%" width="75%" />
+or
+  <HotTable height="100px" width="100px" /> 
 ```
 :::
 
@@ -202,7 +213,6 @@ const ExampleComponent = () => {
       <div className="controls">
         <button id="triggerBtn" className="button button--primary" onClick={(...args) => triggerBtnClickCallback(...args)}>Expand container</button>
       </div>
-      
     </>
   );
 };

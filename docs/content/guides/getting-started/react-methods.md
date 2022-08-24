@@ -31,9 +31,9 @@ registerAllModules();
 const ExampleComponent = () => {
   const hotTableComponent = useRef(null);
 
-  const swapHotData = () => {
+  const selectCell = () => {
     // The Handsontable instance is stored under the `hotInstance` property of the wrapper component.
-    hotTableComponent.current.hotInstance.loadData([['new', 'data']]);
+    hotTableComponent.current.hotInstance.selectCell(1, 1);
   };
 
   return (
@@ -46,7 +46,7 @@ const ExampleComponent = () => {
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button onClick={swapHotData}>Load new data!</button>
+        <button onClick={selectCell}>Select B2 cell!</button>
       </div>
     </>
   );

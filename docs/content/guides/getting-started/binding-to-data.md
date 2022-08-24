@@ -62,7 +62,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   return (
     <HotTable
       data={[
@@ -140,7 +139,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   return (
     <HotTable
       data={[
@@ -215,7 +213,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   return (
     <HotTable
       data={[
@@ -295,7 +292,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   return (
     <HotTable
       data={[
@@ -379,14 +375,13 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   return (
     <HotTable
-      data={
+      data={[
         { id: 1,  name: { first: 'Ted', last: 'Right' }, address: '' },
         { id: 2, address: '' }, // Handsontable will create missing properties on demand
         { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
-      }
+      ]}
       colHeaders={true}
       height="auto"
       width="auto"
@@ -451,7 +446,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   return (
     <HotTable
       data={[]}
@@ -568,7 +562,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  
   function model(opts) {
     let _pub = {
       id: undefined,
@@ -662,7 +655,6 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-
   return (
     <HotTable licenseKey="non-commercial-and-evaluation" />
   );
@@ -788,8 +780,17 @@ you). The easiest way to do it is by passing your data array as the value of `Ho
 :::
 
 ### The data-loading API methods
-To replace the entire data in an already-initialized Handsontable instance, you can use one of the data-loading API methods:
 
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference
+to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+:::
+
+To replace the entire data in an already-initialized Handsontable instance, you can use one of the data-loading API methods:
 - [`loadData()`](@/api/core.md#loaddata)<br>
   Replaces the data used in Handsontable with the dataset provided as the method argument. <br> **Note:** Since version `12.0.0` this method causes the table to reset its configuration options and index mapper information, so some of the work done on the table since its initialization might be lost.
   ```js

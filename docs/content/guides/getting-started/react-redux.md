@@ -12,7 +12,6 @@ canonicalUrl: /redux
 You can integrate Handsontable with Redux or a similar state management library.
 
 Before using any state management library, make sure you know how Handsontable handles data: see the [Binding to data](@/guides/getting-started/binding-to-data.md#understand-binding-as-a-reference) page.
-:::
 
 ## Overview
 

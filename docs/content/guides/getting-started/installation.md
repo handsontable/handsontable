@@ -264,7 +264,6 @@ To set Handsontable's [configuration options](@/guides/getting-started/setting-o
 
 ```jsx
 import ReactDOM from 'react-dom';
-
 import 'handsontable/dist/handsontable.full.css';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';

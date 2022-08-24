@@ -1,5 +1,5 @@
 ---
-title: Events and Handsontable hooks
+title: Events and hooks
 metaTitle: Events and hooks - Guide - Handsontable Documentation
 permalink: /events-and-hooks
 canonicalUrl: /events-and-hooks
@@ -15,7 +15,7 @@ tags:
 - hooks
 ---
 
-# Events and Handsontable hooks
+# Events and hooks
 
 [[toc]]
 
@@ -308,14 +308,6 @@ document.querySelector('#hooksList input[type=checkbox]').addEventListener('clic
 ```
 :::
 
-[//]: # (::: only-for react)
-[//]: # (::: example #example1 :react --css 1 --html 2 --js 3 )
-[//]: # (```jsx)
-[//]: # (// TODO: [react-docs] The React transformer failed to auto-generate this example.)
-[//]: # (```)
-[//]: # (:::)
-[//]: # (:::)
-
 
 ## Definition for `source` argument
 
@@ -443,7 +435,6 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = React.createRef();
-
   let lastChange = null;
 
   useEffect(() => {
