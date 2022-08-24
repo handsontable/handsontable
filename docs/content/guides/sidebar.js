@@ -1,6 +1,6 @@
 const gettingStartedItems = [
   { path: 'guides/getting-started/introduction' },
-  // { path: 'guides/getting-started/demo' }, (temporarily hidden, till the demo is fixed)
+  { path: 'guides/getting-started/demo' },
   { path: 'guides/getting-started/installation' },
   { path: 'guides/getting-started/binding-to-data' },
   { path: 'guides/getting-started/react-redux', onlyFor: ['react'] },
