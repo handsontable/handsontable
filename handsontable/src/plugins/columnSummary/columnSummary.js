@@ -193,7 +193,7 @@ export class ColumnSummary extends BasePlugin {
     let biggestDecimalPlacesCount = 0;
 
     do {
-      cellValue = this.getCellValue(i, col) || 0;
+      cellValue = this.getCellValue(i, col) ?? 0;
       const decimalPlaces = (((`${cellValue}`).split('.')[1] || []).length) || 1;
 
       if (decimalPlaces > biggestDecimalPlacesCount) {
@@ -250,7 +250,7 @@ export class ColumnSummary extends BasePlugin {
    * @param {Array} rowRange Range for the calculation.
    * @param {number} col Column index.
    * @param {string} type `'min'` or `'max'`.
-   * @returns {number} Min or max value.
+   * @returns {number|null} Min or max value.
    */
   getPartialMinMax(rowRange, col, type) {
     let result = null;
@@ -258,7 +258,7 @@ export class ColumnSummary extends BasePlugin {
     let cellValue;
 
     do {
-      cellValue = this.getCellValue(i, col) || null;
+      cellValue = this.getCellValue(i, col) ?? null;
 
       if (result === null) {
         result = cellValue;
@@ -296,9 +296,9 @@ export class ColumnSummary extends BasePlugin {
     let i = rowRange[1] || rowRange[0];
 
     do {
-      cellValue = this.getCellValue(i, col);
+      cellValue = this.getCellValue(i, col) ?? null;
 
-      if (!cellValue) {
+      if (cellValue === null) {
         counter += 1;
       }
 

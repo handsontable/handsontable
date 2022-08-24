@@ -17,7 +17,14 @@ tags:
 
 ## Overview
 
-Disabling a cell makes the cell read-only or non-editable. Both have similar outcomes, the difference between the two being that the non-editable cells allow the drag-to-fill functionality, whereas read-only cells do not.
+Disabling a cell makes the cell read-only or non-editable. Both have similar outcomes, with the following differences:
+
+| Read-only cell<br>`readOnly: true`                                           | Non-editable cell<br>`editor: false`                                       |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Has an additional CSS class (`htDimmed`)                                     | Has no additional CSS class                                                |
+| Copy-paste doesn't work                                                      | Copy-paste works                                                           |
+| Drag-to-fill doesn't work                                                    | Drag-to-fill works                                                         |
+| Can't be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) | Can be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) |
 
 ## Read-only columns
 
@@ -91,9 +98,7 @@ hot.updateSettings({
 ```
 :::
 
-## Read-only cells vs. non-editable cells
-
-Non-editable cells behave like any other cells apart from preventing you from manually changing their values. You are still able to copy-paste or drag-to-fill the data. There is no additional CSS class added. Read-only cells do not permit the drag-to-fill functionality.
+Non-editable cells behave like any other cells apart from preventing you from manually changing their values.
 
 ## Non-editable columns
 
