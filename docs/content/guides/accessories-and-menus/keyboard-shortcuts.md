@@ -1,6 +1,7 @@
 ---
 title: Keyboard shortcuts
-metaTitle: Keyboard shortcuts - Guide - Handsontable Documentation
+metaTitle: Keyboard shortcuts - JavaScript Data Grid | Handsontable
+description: Navigate the grid similarly to Google Sheets or Microsoft Excel, using the built-in keyboard shortcuts. Create your own shortcuts.
 permalink: /keyboard-shortcuts
 canonicalUrl: /keyboard-shortcuts
 tags:
@@ -13,7 +14,8 @@ tags:
 - accessibility
 - function key
 - commands
-
+react:
+  metaTitle: Keyboard shortcuts - React Data Grid | Handsontable
 ---
 
 # Keyboard shortcuts
