@@ -77,11 +77,22 @@ function createRegister() {
 
           if (rootExampleElement) {
             const examplePresetType = rootExampleElement.getAttribute('data-preset-type');
-
-            register.add(createDestroyableResource(examplePresetType, {
+            const tabsComponent = closest(this.rootElement, '.tabs-component');
+            const allTabs = tabsComponent.querySelectorAll('a');
+            const codeTab = Array.from(allTabs).find(tab => tab.innerText === 'Code'); // Usually first tab
+            const destroyableResource = createDestroyableResource(examplePresetType, {
               rootExampleElement,
               hotInstance: this,
-            }));
+            });
+
+            codeTab?.addEventListener('click', () => {
+              if (register.has(destroyableResource)) {
+                register.delete(destroyableResource);
+                destroyableResource();
+              }
+            });
+
+            register.add(destroyableResource);
           }
         });
       }

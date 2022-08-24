@@ -47,6 +47,9 @@ export default {
       if (selectedTab.tab.computedId.startsWith('preview-tab')) {
         this.activatedExamples.push(exampleId);
         parentContainer.className += ` ${changedClass}`; // Adding class by method compatible with IE
+
+      } else {
+        this.activatedExamples = this.activatedExamples.filter(activatedExample => activatedExample !== exampleId);
       }
     },
     isScriptLoaderActivated(exampleId) {
