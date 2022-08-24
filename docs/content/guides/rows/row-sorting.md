@@ -97,7 +97,7 @@ const hot = new Handsontable(container, {
   ],
   height: 320,
   colHeaders: ['Brand', 'Model', 'Code name', 'Country of origin', 'Rank'],
-  columnSorting: {
+  multiColumnSorting: {
     sortEmptyCells: true,
     initialConfig: {
       column: 2,
