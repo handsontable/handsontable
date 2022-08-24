@@ -159,15 +159,13 @@ const ExampleComponent = () => {
 
   useEffect(() => {
     hot = hotRef.current.hotInstance;
-
-    //  or, use `updateData()` to replace `data` without resetting states
-    hot.loadData(data);
   });
 
   return (
     <>
       <HotTable
         ref={hotRef}
+        data={data}
         startRows={8}
         startCols={5}
         minSpareRows={1}
