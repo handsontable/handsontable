@@ -1,7 +1,7 @@
 ---
 title: Column summary
 metaTitle: Column summary - JavaScript Data Grid | Handsontable
-description: Calculate sum, min, max, count, average or custom aggregates of selected columns' data, using Handsontable's aggregate functions.
+description: Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
 permalink: /column-summary
 canonicalUrl: /column-summary
 tags:
