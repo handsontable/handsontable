@@ -39,6 +39,10 @@ jobs:
         run: |
           npm run docs:docker:build
 
+      - name: Test examples
+        run: |
+          npm run docs:test:example-checker
+
       - name: Docker tags
         run: |
           docker tag docs-md $GHA_DOCKER_TAG_NEXT
