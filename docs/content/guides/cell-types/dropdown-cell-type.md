@@ -20,7 +20,7 @@ Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplet
 :::
 
 ::: only-for react
-Internally, cell `type={'dropdown'}` is equivalent to cell `type={'autocomplete'} strict={true} filter={false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" strict={true} filter={false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
 :::
 
 ::: only-for javascript
