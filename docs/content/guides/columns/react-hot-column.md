@@ -59,9 +59,7 @@ const ScoreRenderer = (props) => {
   const { value } = props;
   const color = value > 60 ? '#2ECC40' : '#FF4136';
   return (
-    <>
-      <span style={{ color }}>{value}</span>
-    </>
+    <span style={{ color }}>{value}</span>
   );
 };
 
@@ -70,15 +68,11 @@ const PromotionRenderer = (props) => {
   const { value } = props;
   if (value) {
     return (
-      <>
-        <span>&#10004;</span>
-      </>
+      <span>&#10004;</span>
     );
   }
   return (
-    <>
-      <span>&#10007;</span>
-    </>
+    <span>&#10007;</span>
   );
 };
 
@@ -149,7 +143,7 @@ In this example, the custom editor component is created with an external depende
 
 ::: example #example6 :react-advanced --tab preview
 ```jsx
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HexColorPicker } from 'react-colorful';
 import StarRatingComponent from 'react-star-rating-component';
