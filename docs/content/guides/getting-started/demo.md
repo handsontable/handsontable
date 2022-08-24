@@ -12,7 +12,13 @@ tags:
 
 [[toc]]
 
+::: only-for javascript
 Play around with a demo of Handsontable, in your favorite framework.
+:::
+
+::: only-for react
+Play around with a demo of Handsontable, in React.
+:::
 
 <div class="example-container">
   <div id="example"></div>
