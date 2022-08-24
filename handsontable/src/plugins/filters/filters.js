@@ -4,7 +4,7 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
 import EventManager from '../../eventManager';
-import { addClass, removeClass, closest } from '../../helpers/dom/element';
+import { addClass, removeClass } from '../../helpers/dom/element';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import ConditionComponent from './component/condition';
@@ -227,7 +227,6 @@ export class Filters extends BasePlugin {
 
     this.components.forEach(component => component.show());
 
-    this.registerEvents();
     this.addHook('beforeDropdownMenuSetItems', items => this.onBeforeDropdownMenuSetItems(items));
     this.addHook('afterDropdownMenuDefaultOptions',
       defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
@@ -242,15 +241,6 @@ export class Filters extends BasePlugin {
     }
 
     super.enablePlugin();
-  }
-
-  /**
-   * Registers the DOM listeners.
-   *
-   * @private
-   */
-  registerEvents() {
-    this.eventManager.addEventListener(this.hot.rootElement, 'click', event => this.onTableClick(event));
   }
 
   /**
@@ -432,11 +422,22 @@ export class Filters extends BasePlugin {
   /**
    * Gets last selected column index.
    *
-   * @returns {object|null} Return `null` when column isn't selected otherwise
+   * @returns {object} Return `null` when column isn't selected otherwise
    * object containing information about selected column with keys `visualIndex` and `physicalIndex`.
    */
   getSelectedColumn() {
-    return this.lastSelectedColumn;
+    const selection = this.hot.getSelectedRangeLast()?.highlight;
+    const selectedColumn = {
+      visualIndex: null,
+      physicalIndex: null,
+    };
+
+    if (selection) {
+      selectedColumn.visualIndex = selection.col;
+      selectedColumn.physicalIndex = this.hot.toPhysicalColumn(selectedColumn.visualIndex);
+    }
+
+    return selectedColumn;
   }
 
   /**
@@ -609,6 +610,13 @@ export class Filters extends BasePlugin {
   onActionBarSubmit(submitType) {
     if (submitType === 'accept') {
       const physicalIndex = this.getSelectedColumn()?.physicalIndex;
+
+      if (physicalIndex === null) {
+        this.dropdownMenuPlugin?.close();
+
+        return;
+      }
+
       const byConditionState1 = this.components.get('filter_by_condition').getState();
       const byConditionState2 = this.components.get('filter_by_condition2').getState();
       const byValueState = this.components.get('filter_by_value').getState();
@@ -648,9 +656,7 @@ export class Filters extends BasePlugin {
       this.filter();
     }
 
-    if (this.dropdownMenuPlugin) {
-      this.dropdownMenuPlugin.close();
-    }
+    this.dropdownMenuPlugin?.close();
   }
 
   /**
@@ -723,26 +729,6 @@ export class Filters extends BasePlugin {
       addClass(TH, 'htFiltersActive');
     } else {
       removeClass(TH, 'htFiltersActive');
-    }
-  }
-
-  /**
-   * On table click listener.
-   *
-   * @private
-   * @param {Event} event DOM Event.
-   */
-  onTableClick(event) {
-    const th = closest(event.target, 'TH');
-
-    if (th) {
-      const visualIndex = this.hot.getCoords(th).col;
-      const physicalIndex = this.hot.toPhysicalColumn(visualIndex);
-
-      this.lastSelectedColumn = {
-        visualIndex,
-        physicalIndex
-      };
     }
   }
 
