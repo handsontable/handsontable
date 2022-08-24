@@ -182,7 +182,6 @@ In addition to built-in options, you can equip your context menu with custom opt
 
 ::: example #example4 :react
 ```jsx
-import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
@@ -192,34 +191,30 @@ import { createSpreadsheetData } from './helpers';
 // register Handsontable's modules
 registerAllModules();
 
-const hotSettings = {
-  data: createSpreadsheetData(5, 5),
-  colHeaders: true,
-  height: 'auto',
-  contextMenu: {
-    items: {
-      'row_above': {
-        name: 'Insert row above this one (custom name)'
-      },
-      'row_below': {},
-      'separator': ContextMenu.SEPARATOR,
-      'clear_custom': {
-        name: 'Clear all cells (custom)',
-        callback: function() {
-          this.clear();
-        }
-      }
-    }
-  },
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
 const ExampleComponent = () => {
   return (
     <div>
       <HotTable
         id="hot"
-        settings={hotSettings}
+        data={createSpreadsheetData(5, 5)}
+        colHeaders={true}
+        height="auto"
+        contextMenu={{
+          items: {
+            'row_above': {
+              name: 'Insert row above this one (custom name)'
+            },
+            'row_below': {},
+            'separator': ContextMenu.SEPARATOR,
+            'clear_custom': {
+              name: 'Clear all cells (custom)',
+              callback: function() {
+                this.clear();
+              }
+            }
+          }
+        }}
+        licenseKey="non-commercial-and-evaluation" 
       />
     </div>
   )
