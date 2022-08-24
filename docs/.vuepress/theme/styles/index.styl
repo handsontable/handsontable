@@ -30,18 +30,20 @@
 
 html {
   color-scheme light
+  /* Fix for anchor correct scroll positioning */
+  scroll-padding-top ($navbarHeight + 1.1rem)
 }
 
 body {
-  font-size: 15px;
+  font-size 15px
 }
 
 body, html, #app {
-  min-height 100vh;
+  min-height 100vh
 }
 
 body div {
-  user-select: initial;
+  user-select initial
 }
 
 .hidden {
@@ -155,9 +157,8 @@ a.source-code-link {
 h1 {
   font-size: 2rem;
   margin-bottom: 2rem !important;
-  /* Fix for anchor correct scroll positioning */
-  padding-top: 4.6rem !important;
-  margin-top: -3.8rem !important;
+  padding-top: 0 !important;
+  margin-top: 0.7rem !important;
 }
 
 h2 {
@@ -165,17 +166,16 @@ h2 {
   padding-bottom: 6px;
   font-size: 1.55rem;
   border-color: #e9eef2;
-  /* Fix for anchor correct scroll positioning */
-  padding-top: 5rem !important;
-  margin-top: -4.1rem !important;
+  padding-top: 0.5rem !important;
+  margin-top: 1.3rem !important;
 }
 
 h3 {
   margin-bottom: 1rem !important;
   font-size: 1.25rem;
-  /* Fix for anchor correct scroll positioning */
-  padding-top: 5.1rem !important;
-  margin-top: -4.6rem !important;
+  padding-top: 0.1rem !important;
+  padding-bottom: 0.1rem !important;
+  margin-top: 1.1rem !important;
 }
 
 h4 {
