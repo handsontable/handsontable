@@ -1,0 +1,7 @@
+{
+  "title": "Removed merge sort in favoir of build-in sort algorithm",
+  "type": "removed",
+  "issue": 6091,
+  "breaking": false,
+  "framework": "none"
+}
