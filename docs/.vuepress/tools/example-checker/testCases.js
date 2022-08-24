@@ -22,8 +22,9 @@
 const testCases = [
   (permalink) => {
     const INSTANCE_NUMBER_EXCEPTIONS = {
-      // One example on the page shows an error being thrown - the Handsontable instance is never rendered.
-      '/next/react-data-grid/column-summary': -1
+      // The column-summary example on the page of the each framework shows an error being thrown - the Handsontable instance is never rendered.
+      '/next/react-data-grid/column-summary': -1,
+      '/next/javascript-data-grid/column-summary': -1,
     };
 
     /**
