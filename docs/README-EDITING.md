@@ -248,7 +248,7 @@ To use the `example-checker` script: (all the commands need to be run from the `
   npm run docs:test:example-checker
   ```
 
-The script is also automatically deployed by the `Docs Staging Deployment` Github Actions workflow.
+The script is also automatically executed by the `Docs Staging Deployment` Github Actions workflow.
 
 ## React style guide
 
