@@ -24,11 +24,18 @@ Play around with a demo of Handsontable, in your favorite framework.
 
 ## Find the code on GitHub
 
+::: only-for javascript
 - [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/js/demo/)
 - [TypeScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/ts/demo/)
-- [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/angular/demo/)
 - [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/react/demo/)
+- [Angular demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/angular/demo/)
 - [Vue demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/vue/demo/)
+:::
+
+::: only-for react
+- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/ts/demo/)
+- [React demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/react/demo/)
+:::
 
 ## Try out the demo's features
 
