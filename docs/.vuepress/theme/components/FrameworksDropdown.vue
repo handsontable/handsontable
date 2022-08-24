@@ -26,16 +26,19 @@ export default {
   },
   watch: {
     $route(to) {
-      this.detectFramework(to.fullPath);
+      this.detectLegacyFramework(to.fullPath);
     }
   },
+  data() {
+    return {
+      legacyFramework: null
+    };
+  },
   methods: {
-    detectFramework(path) {
+    detectLegacyFramework(path) {
       const frameworkMatch = path.match(/javascript-data-grid\/(vue3|vue|angular)?/);
 
-      if (frameworkMatch) {
-        this.$page.currentFramework = frameworkMatch[1] ?? 'javascript';
-      }
+      this.legacyFramework = frameworkMatch ? frameworkMatch[1] : null;
     },
     getLink(framework) {
       const {
@@ -64,19 +67,19 @@ export default {
   },
   computed: {
     imageUrl() {
-      const frameworkWithoutNumber = this.$page.currentFramework.replace(/\d+$/, '');
+      const frameworkWithoutNumber = (this.legacyFramework ?? this.$page.currentFramework).replace(/\d+$/, '');
 
       return this.$withBase(`/img/pages/introduction/${frameworkWithoutNumber}.svg`);
     },
     item() {
       return {
-        text: this.getFrameworkName(this.$page.currentFramework),
+        text: this.getFrameworkName(this.legacyFramework ?? this.$page.currentFramework),
         items: this.getFrameworkItems(),
       };
     }
   },
   created() {
-    this.detectFramework(this.$route.fullPath);
+    this.detectLegacyFramework(this.$route.fullPath);
   }
 };
 </script>
