@@ -47,6 +47,8 @@ const tab = (tabName, token, id) => {
 };
 
 const getPreviewTab = (id, cssContent, htmlContent, code) => {
+  const renderElement = `$parent.$parent.isScriptLoaderActivated('${id}')`;
+
   return {
     type: 'html_block',
     tag: '',
@@ -58,8 +60,8 @@ const getPreviewTab = (id, cssContent, htmlContent, code) => {
     content: `
       <tab name="Preview" id="preview-tab-${id}">
         <style v-pre>${cssContent}</style>
-        <div v-pre>${htmlContent}</div>
-        <ScriptLoader v-if="$parent.$parent.isScriptLoaderActivated('${id}')" code="${code}"></ScriptLoader>
+        <div v-if="${renderElement}">${htmlContent}</div>
+        <ScriptLoader v-if="${renderElement}" code="${code}"></ScriptLoader>
       </tab>
     `,
     markup: '',
