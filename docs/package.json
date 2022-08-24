@@ -22,7 +22,8 @@
     "docs:docker:build:production": "cross-env BUILD_MODE=production npm run docs:build && docker build -f docker/Dockerfile -t docs-md:production ./",
     "docs:api": "node .vuepress/tools/jsdoc-convert/index.mjs",
     "docs:check-links": "node .vuepress/tools/check-links.js",
-    "docs:review": "./.vuepress/tools/review-commit.sh"
+    "docs:review": "./.vuepress/tools/review-commit.sh",
+    "docs:test:example-checker": "node .vuepress/tools/example-checker"
   },
   "license": "CC BY 4.0",
   "devDependencies": {
