@@ -1,6 +1,7 @@
 ---
-title: 'Modules in Angular'
-metaTitle: 'Modules in Angular - Guide - Handsontable Documentation'
+title: Modules in Angular
+metaTitle: Modules - Angular Data Grid | Handsontable
+description: Reduce the size of your Angular app by only importing the modules that you need and use.
 permalink: /angular-modules
 canonicalUrl: /angular-modules
 ---

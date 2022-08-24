@@ -23,6 +23,7 @@ react:
 [[toc]]
 
 ## Overview
+
 Callbacks are used to react before or after actions occur. We refer to them as hooks. Hooks share some characteristics with events and middleware, combining them both in a unique structure.
 
 ## Events

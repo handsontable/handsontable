@@ -1,7 +1,7 @@
 ---
 title: Binding to data
 metaTitle: Binding to data - JavaScript Data Grid | Handsontable
-description: Fill the data grid with various data structures, including an array of arrays or arrays of objects, using Handsontable's configuration options or API methods.
+description: Use Handsontable's configuration options or API methods to fill the data grid with various data structures, including an array of arrays, or arrays of objects.
 permalink: /binding-to-data
 canonicalUrl: /binding-to-data
 tags:
