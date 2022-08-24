@@ -1,8 +1,11 @@
 ---
 title: Conditional formatting
-metaTitle: Conditional formatting - Guide - Handsontable Documentation
+metaTitle: Conditional formatting - JavaScript Data Grid | Handsontable
+description: Format individual cells based on dynamic conditions.
 permalink: /conditional-formatting
 canonicalUrl: /conditional-formatting
+react:
+  metaTitle: Conditional formatting - React Data Grid | Handsontable
 ---
 
 # Conditional formatting
