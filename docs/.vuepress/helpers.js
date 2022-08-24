@@ -1,40 +1,57 @@
-const fs = require('fs');
 const path = require('path');
-const semver = require('semver');
+const execa = require('execa');
 
-const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
-  .filter(f => semver.valid(semver.coerce(f)));
+const versionFromBranchRegExp = /^prod-docs\/(\d+\.\d+)$/;
+let docsVersion = null;
 
-const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
+/**
+ * Gets the current (this) version of docs.
+ *
+ * @returns {string}
+ */
+function getThisDocsVersion() {
+  if (docsVersion === null) {
+    const branchName = execa.sync('git rev-parse --abbrev-ref HEAD', { shell: true }).stdout;
+
+    if (versionFromBranchRegExp.test(branchName)) {
+      docsVersion = branchName.match(versionFromBranchRegExp)[1];
+    } else {
+      docsVersion = 'next';
+    }
+  }
+
+  return docsVersion;
+}
+
+/**
+ * Gets the sidebar object for docs.
+ *
+ * @returns {object}
+ */
+function getSidebars() {
+  const sidebars = { };
+
+  // eslint-disable-next-line
+  const s = require(path.join(__dirname, '../content/sidebars.js'));
+
+  sidebars['/content/examples/'] = s.examples;
+  sidebars['/content/api/'] = s.api;
+  sidebars['/content/'] = s.guides;
+
+  return sidebars;
+}
+
+/**
+ * Gets docs base url (eq: https://handsontable.com).
+ *
+ * @returns {string}
+ */
+function getDocsBaseUrl() {
+  return `https://${process.env.BUILD_MODE === 'staging' ? 'dev.' : ''}handsontable.com`;
+}
 
 module.exports = {
-  getVersions(buildMode) {
-    const next = buildMode !== 'production' ? ['next'] : [];
-
-    return [...next, ...availableVersions];
-  },
-
-  getLatestVersion() {
-    return availableVersions[0];
-  },
-
-  getSidebars(buildMode) {
-    const sidebars = { };
-    const versions = this.getVersions(buildMode);
-
-    versions.forEach((version) => {
-      // eslint-disable-next-line
-      const s = require(path.join(__dirname, `../${version}/sidebars.js`));
-
-      sidebars[`/${version}/examples/`] = s.examples;
-      sidebars[`/${version}/api/`] = s.api;
-      sidebars[`/${version}/`] = s.guides;
-    });
-
-    return sidebars;
-  },
-
-  parseVersion(url) {
-    return url.split('/')[1] || this.getLatestVersion();
-  }
+  getThisDocsVersion,
+  getSidebars,
+  getDocsBaseUrl,
 };

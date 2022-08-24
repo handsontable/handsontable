@@ -1,7 +1,0 @@
-{
-  "title": "Fixed errors being thrown in the formulas plugin if a provided sheet name contained a dash character",
-  "type": "fixed",
-  "issue": 8057,
-  "breaking": false,
-  "framework": "none"
-}

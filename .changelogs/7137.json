@@ -1,7 +1,0 @@
-{
-  "title": "An error won't be thrown while inserting new row for nested rows in specific case",
-  "type": "fixed",
-  "issue": 7137,
-  "breaking": false,
-  "framework": "none"
-}

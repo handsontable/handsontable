@@ -11,10 +11,10 @@ import inquirer from 'inquirer';
 import semver from 'semver';
 import {
   cleanNodeModules,
+  scheduleRelease,
+  spawnProcess,
   displayErrorMessage,
   displaySeparator,
-  scheduleRelease,
-  spawnProcess
 } from './utils/index.mjs';
 
 const argv = yargs(hideBin(process.argv))
@@ -52,8 +52,8 @@ displaySeparator();
     const processInfo = await spawnProcess('npm --version', { silent: true });
     const npmVersion = processInfo.stdout.toString();
 
-    if (!semver.satisfies(npmVersion, '>=7.2.0')) {
-      displayErrorMessage('The minimum required npm version is 7.2.0');
+    if (!semver.satisfies(npmVersion, '>=7.17.0')) {
+      displayErrorMessage('The minimum required npm version is 7.17.0');
       process.exit(1);
     }
   }

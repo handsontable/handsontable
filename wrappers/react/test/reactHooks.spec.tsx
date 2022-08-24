@@ -1,27 +1,16 @@
 import React, { useState } from 'react';
 import {
-  mount,
-  ReactWrapper
-} from 'enzyme';
-import {
   HotTable
 } from '../src/hotTable';
 import {
+  createSpreadsheetData,
   mockElementDimensions,
-  sleep,
-  simulateMouseEvent
+  simulateMouseEvent,
+  mountComponent
 } from './_helpers';
-import Handsontable from 'handsontable';
-
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-});
 
 describe('Using hooks within HotTable renderers', () => {
-  it('should be possible to use hook-enabled components as renderers', async (done) => {
+  it('should be possible to use hook-enabled components as renderers', async () => {
     function HookEnabledRenderer(props) {
       const [count, setCount] = useState(0);
 
@@ -35,10 +24,10 @@ describe('Using hooks within HotTable renderers', () => {
       );
     }
 
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    const hotInstance = mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -49,12 +38,8 @@ describe('Using hooks within HotTable renderers', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>
         <HookEnabledRenderer hot-renderer></HookEnabledRenderer>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
-
-    const hotInstance = wrapper.instance().hotInstance;
+      </HotTable>
+    )).hotInstance;
 
     expect(hotInstance.getCell(0,0).querySelectorAll('.hook-enabled-renderer-container').length).toEqual(1);
     expect(hotInstance.getCell(1,1).querySelectorAll('.hook-enabled-renderer-container').length).toEqual(1);
@@ -65,9 +50,6 @@ describe('Using hooks within HotTable renderers', () => {
 
     expect(hotInstance.getCell(0,0).querySelector('span').innerHTML).toEqual('3');
     expect(hotInstance.getCell(1,1).querySelector('span').innerHTML).toEqual('0');
-
-    wrapper.detach();
-    done();
   });
 });
 

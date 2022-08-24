@@ -26,14 +26,14 @@ We update the documentation:
 
 To start a local Handsontable documentation server:
 
-1. From the `handsontable/docs` directory, install the documentation dependencies:
+1. From the `docs` directory, install the documentation dependencies:
     ```bash
     npm install
     ```
 2. Generate the API reference:
    ```bash
    npm run docs:api
-   ```   
+   ```
 3. Start your local documentation server:
    ```bash
    npm run docs:start
@@ -42,21 +42,20 @@ To start a local Handsontable documentation server:
 
 ## Documentation npm scripts:
 
-From the `handsontable/docs` directory, you can run the following npm scripts:
+From the `docs` directory, you can run the following npm scripts:
 
 * `npm run docs:start` – Starts a local documentation server at `localhost:8080/docs/`.
 * `npm run docs:start:no-cache` – Starts a local documentation server without cache.
-* `npm run docs:api` – Generates the Handsontable API reference into `/next/api`.
-* `npm run docs:build` – Builds the documentation output into `/.vuepress/dist` and checks for broken links.
-* `npm run docs:build:no-check-links` – Builds the documentation output into `/.vuepress/dist`.
-* `npm run docs:docker:build` – Builds a Docker image for the staging environment.
-* `npm run docs:docker:build:staging` – Builds a Docker image for the staging environment.
-* `npm run docs:docker:build:production` – Builds a Docker image for the production environment.
-* `npm run docs:version <semver.version>` – Creates a new documentation version in a new `/<semver.version>/` directory.
-* `npm run docs:check-links` – Checks for broken links. You can also run it for a specific URL (e.g. `npm run docs:check-links https://handsontable.com`).
+* `npm run docs:api` – Generates the Handsontable API reference into `/content/api`.
+* `npm run docs:build` – Builds the documentation output into `/.vuepress/dist`.
+* `npm run docs:docker:build` – Builds a Docker image for the staging environment (includes the docs for the `next` version).
+* `npm run docs:docker:build:staging` – Builds a Docker image for the staging environment (includes the docs for the `next` version).
+* `npm run docs:docker:build:production` – Builds a Docker image for the production environment (excludes the docs for the `next` version).
+* `npm run docs:check-links` – Checks for broken links (first, run `npm run docs:build`). You can also run it for a specific URL (e.g. `npm run docs:check-links https://handsontable.com`).
 * `npm run docs:lint` – Runs ESLint on the `/next/` directory's content.
 * `npm run docs:lint:fix` – Runs ESLint on the `/next/` directory's content and auto-fixes problems.
-* `npm run docs:assets:next` – Prepares the `next` documentation version's CSS and JavaScript.
+* `npm run docs:scripts:link-assets` – Prepares the `next` documentation version's CSS and JavaScript.
+* `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a `[COMMIT_HASH]` commit.
 
 ## Handsontable documentation directory structure
 
@@ -68,6 +67,7 @@ docs                            # All documentation files
 │   │   ├── examples            # Code examples container
 │   │   └── sourceCodeLink.js   # `source-code-link` container.
 │   ├── handsontable-manager    # A module that runs Handsontable examples in different Handsontable versions
+│   ├── plugins                 # VuePress plugins
 │   ├── public                  # The documentation's public (static) assets
 │   ├── theme                   # Theme overwrites and customizations
 │   ├── tools                   # Our custom documentation tools
@@ -79,15 +79,50 @@ docs                            # All documentation files
 │   ├── docs-links.js           # Lets us link within the currently-selected docs version with `@` (e.g. [link](@/guides/path/file.md).)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
 │   ├── helpers.js              # Common helpers that set up sidebars and the documentation version picker
-│   ├── highlight.js            # Code highlight configuration
+│   └── highlight.js            # Code highlight configuration
 ├── docker                      # Docker configuration
-├── next                        # The documentation's draft version, unavailable on the production environment
-│   ├── api                     # The API reference output, generated automatically from JSDoc. Do not edit!
+│   ├── ...                     # Docker configuration files
+│   └── redirects.conf          # File that allows create custom redirects for documentation
+├── content                     # The documentation content files
+│   ├── api                     # The API reference output, generated automatically from JSDoc. Do not edit for "next" Docs version!
 │   ├── examples                # The Handsontable examples
 │   ├── guides                  # The guides' source files: Markdown content
 │   └── sidebars.js             # Sidebars configuration
-├── <semver.version>            # Multiple <semver.version> versions of the documentation (for example, 8.4 or 9.0).
 ├── README-DEPLOYMENT.md        # Documentation deployment guidelines
 ├── README-EDITING.md           # Documentation editing guidelines
 └── README.md                   # The file you're looking at right now!
+```
+
+## Handsontable documentation branches structure
+
+Each documentation version has its own production branch from which the deployment is happening. The documentation branches are created using the following pattern `prod-docs/<MAJOR.MINOR>`.
+
+The documentation branches are created automatically once the Handsontable release script finishes its job. Depending on the Handsontable release version, two scenarios may happen:
+1. Patch release:
+    * Checkout to the existing branch;
+    * Regenerate Docs content for the API by executing `npm run docs:api`;
+    * Commit and push the changes to the origin;
+2. Major or Minor release:
+    * Create a new Docs branch, e.g. `prod-docs/13.0` from the `develop` branch (after the release branch is merged to the `develop` branch);
+    * Generate Docs content for the API by executing `npm run docs:api`;
+    * Commit and push the changes to the origin;
+
+Committing directly to the Documentation production branch triggers GitHub workflow that deploys the changes to the server. The exception is the `develop` branch that holds the changes for the "next" version. The staging version can be deployed only [manually](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment).
+
+```bash
+[branch] `prod-docs/12.0`       # All documentation files related to documentation 12.0
+  docs
+  ├── .vuepress                 # All VuePress files
+  ├── content                   # The documentation content files
+  └── docker                    # Docker configuration
+[branch] `prod-docs/12.1`       # All documentation files related to documentation 12.1
+  docs
+  ├── .vuepress                 # All VuePress files
+  ├── content                   # The documentation content files
+  └── docker                    # Docker configuration
+[branch] `develop`              # All documentation files related to the "next" documentation version
+  docs
+  ├── .vuepress                 # All VuePress files
+  ├── content                   # The documentation content files
+  └── docker                    # Docker configuration
 ```

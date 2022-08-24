@@ -9,11 +9,19 @@ import {
   displayConfirmationMessage
 } from './index.mjs';
 
-import hotPackageJson from '../../package.json';
+import mainPackageJson from '../../package.json' assert { type: 'json' };
+import hotConfig from '../../hot.config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const workspacePackages = hotPackageJson.workspaces.packages;
+const workspacePackages = mainPackageJson.workspaces;
+
+/**
+ * Current version of the monorepo (before updating).
+ *
+ * @type {string}
+ */
+export const CURRENT_VERSION = hotConfig.HOT_VERSION;
 
 /**
  * Check if the provided version number is a valid semver version number.
@@ -59,10 +67,18 @@ export function validateReleaseDate(date) {
  * @param {Array} [packages] Array of package paths. Defaults to the workspace config.
  */
 export function setVersion(version, packages = workspacePackages) {
-  let versionReplaced = true;
+  // Set the new version number to hot.config.js.
+  const hotConfigPath = path.resolve(__dirname, '../../hot.config.js');
 
+  validateReplacementStatus(replace.sync({
+    files: hotConfigPath,
+    from: /HOT_VERSION: '(.*)'/,
+    to: `HOT_VERSION: '${version}'`,
+  }), version);
+
+  // Set the new version number to all the packages.
   packages.forEach((packagesLocation) => {
-    const replacementStatus = replace.sync({
+    validateReplacementStatus(replace.sync({
       files: `${packagesLocation}${packagesLocation === '.' ? '' : '*'}/package.json`,
       from: [/"version": "(.*)"/, /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g],
       to: (fullMatch, ...[semverPrefix, previousVersion]) => {
@@ -82,24 +98,8 @@ export function setVersion(version, packages = workspacePackages) {
         `${packagesLocation}*/projects/hot-table/package.json`,
         `${packagesLocation}*/dist/hot-table/package.json`,
       ],
-    });
-
-    replacementStatus.forEach((infoObj) => {
-      const filePath = infoObj.file.replace('./', '');
-
-      if (!infoObj.hasChanged) {
-        displayErrorMessage(`${filePath} was not modified.`);
-        versionReplaced = false;
-
-      } else {
-        displayConfirmationMessage(`- Saved the new version (${version}) to ${filePath}.`);
-      }
-    });
+    }), version);
   });
-
-  if (!versionReplaced) {
-    process.exit(1);
-  }
 }
 
 /**
@@ -114,30 +114,8 @@ export function setReleaseDate(date) {
     from: /HOT_RELEASE_DATE: '(.*)'/,
     to: `HOT_RELEASE_DATE: '${date}'`,
   });
-  const notModifiedFiles = [];
 
-  replacementStatus.forEach((infoObj) => {
-    const filePath = infoObj.file.replace('./', '');
-
-    if (!infoObj.hasChanged) {
-      notModifiedFiles.push(filePath);
-    }
-  });
-
-  if (notModifiedFiles.length) {
-    notModifiedFiles.forEach((url) => {
-      displayErrorMessage(`${url} was not modified.`);
-    });
-
-    process.exit(1);
-
-  } else {
-    const rootPath = `${path.resolve(__dirname, '../..')}/`;
-
-    displayConfirmationMessage(
-      `- Saved the new date (${date}) to ${replacementStatus[0].file.replace(rootPath, '')}.`
-    );
-  }
+  validateReplacementStatus(replacementStatus, date);
 }
 
 /**
@@ -160,7 +138,7 @@ export function getVersionFromReleaseType(type, currentVersion) {
  * @returns {object}
  */
 export async function scheduleRelease(version, releaseDate) {
-  const currentVersion = hotPackageJson.version;
+  const currentVersion = hotConfig.HOT_VERSION;
   const questions = [
     {
       type: 'list',
@@ -281,4 +259,31 @@ Are the version number and release date above correct?`,
     version: finalVersion,
     releaseDate: finalReleaseDate
   };
+}
+
+/**
+ * Helper function validating the return status of `replace-in-file`'s `replace` method.
+ *
+ * @private
+ * @param {Array} replacementStatus Replacement status array returned from `replace-in-file`'s `replace` method.
+ * @param {string} replacedString The string replaced in the source file.
+ */
+function validateReplacementStatus(replacementStatus, replacedString) {
+  let versionReplaced = true;
+
+  replacementStatus.forEach((infoObj) => {
+    const filePath = infoObj.file.replace('./', '');
+
+    if (!infoObj.hasChanged) {
+      displayErrorMessage(`${filePath} was not modified.`);
+      versionReplaced = false;
+
+    } else {
+      displayConfirmationMessage(`- Saved '${replacedString}' to ${path.relative(process.cwd(), filePath)}.`);
+    }
+  });
+
+  if (!versionReplaced) {
+    process.exit(1);
+  }
 }

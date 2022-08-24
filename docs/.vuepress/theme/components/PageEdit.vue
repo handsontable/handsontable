@@ -24,7 +24,7 @@
 
 <script>
 import isNil from 'lodash/isNil';
-import { endingSlashRE, outboundRE } from './util';
+import { endingSlashRE, outboundRE } from '@vuepress/theme-default/util';
 
 export default {
   name: 'PageEdit',

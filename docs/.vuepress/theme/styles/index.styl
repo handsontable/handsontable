@@ -2,6 +2,8 @@
 @import '~vuepress-plugin-tabs/dist/themes/default.styl'
 @import 'vuepress-tabs-custom'
 
+@import 'utils'
+
 /* Code group tabs */
 @import 'code-group'
 
@@ -23,6 +25,12 @@
 /* Themes */
 @import 'theme-dark'
 
+/* Cookiebot */
+@import 'cookiebot'
+
+html {
+  color-scheme light
+}
 
 body {
   font-size: 15px;
@@ -117,6 +125,14 @@ a.source-code-link {
   position: absolute;
   top: 0;
   width: 100%;
+}
+
+.example-container iframe {
+  width: 100%;
+  height: 466px;
+  border: 0;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 /*
@@ -215,10 +231,6 @@ table {
   .page {
     padding-left: 0;
   }
-
-  table {
-    word-break: break-word;
-  }
 }
 
 @media (min-width: 1080px) {
@@ -296,7 +308,7 @@ div.js-fiddle-link {
   flex-wrap: wrap;
 
   .row-item {
-    width: calc(25% - 48px);
+    width: calc(20% - 48px);
     margin: 0 6px;
     flex-grow: 1;
     flex-basis: auto;
@@ -334,8 +346,48 @@ div.js-fiddle-link {
   background-color: #eef0f7;
 }
 
-/* Keyboard keys names formatting */
+.sidebar {
+  scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+}
 
+/* Table of contents */
+.table-of-contents {
+  scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+}
+
+/* Tabs component */
+.tabs-component {
+  .tabs-component-panels {
+    section {
+      &#code {
+        pre {
+          padding 20px 24px
+          scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+        }
+      }
+
+      &#html {
+        pre {
+          scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+        }
+      }
+    }
+  }
+}
+
+/* Language specific code blocks */
+div[class*="language-"] {
+  pre {
+    scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+  }
+}
+
+/* Table styling starts */
+.scrollable-table {
+  scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+}
+
+/* Keyboard keys names formatting */
 kbd {
   padding: 0 0.25em;
   font-size: 13px;
@@ -344,6 +396,14 @@ kbd {
   border-bottom-width: 2px;
   background: #fafbff;
 }
+
+@media (max-width: $MQMobileNarrow) {
+  kbd {
+    white-space: pre-wrap;
+    display: inline-block;
+  }
+}
+
 
 /* Styles for the icon-pack page */
 

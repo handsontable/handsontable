@@ -9,7 +9,7 @@ import {
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import {
   HotTableRegisterer,
   HOT_DESTROYED_WARNING
@@ -81,6 +81,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() filteringCaseSensitive: Handsontable.GridSettings['filteringCaseSensitive'];
   @Input() filters: Handsontable.GridSettings['filters'];
   @Input() fixedColumnsLeft: Handsontable.GridSettings['fixedColumnsLeft'];
+  @Input() fixedColumnsStart: Handsontable.GridSettings['fixedColumnsStart'];
   @Input() fixedRowsBottom: Handsontable.GridSettings['fixedRowsBottom'];
   @Input() fixedRowsTop: Handsontable.GridSettings['fixedRowsTop'];
   @Input() formulas: Handsontable.GridSettings['formulas'];
@@ -91,6 +92,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() invalidCellClassName: Handsontable.GridSettings['invalidCellClassName'];
   @Input() label: Handsontable.GridSettings['label'];
   @Input() language: Handsontable.GridSettings['language'];
+  @Input() layoutDirection: Handsontable.GridSettings['layoutDirection'];
   @Input() licenseKey: Handsontable.GridSettings['licenseKey'];
   @Input() manualColumnFreeze: Handsontable.GridSettings['manualColumnFreeze'];
   @Input() manualColumnMove: Handsontable.GridSettings['manualColumnMove'];

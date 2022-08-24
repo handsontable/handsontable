@@ -1,0 +1,35 @@
+name: Docs Linter
+
+on:
+  push:
+    paths:
+      - 'docs/**'
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+
+env:
+  NODE_VERSION: 16
+
+jobs:
+  lint:
+    name: JS & CSS & VUE
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+
+      - name: Use Node.js 16
+        uses: actions/setup-node@56899e050abffc08c2b3b61f3ec6a79a9dc3223d # https://github.com/actions/setup-node/releases/tag/v1.4.4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Handsontable dependencies
+        run: |
+          npm ci --no-audit
+
+      - name: Install Documentation dependencies
+        run: |
+          cd docs/ && npm ci --no-audit
+
+      - name: Lint
+        run: |
+          cd docs/ && npm run docs:lint

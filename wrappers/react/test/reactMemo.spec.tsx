@@ -1,29 +1,20 @@
 import React from 'react';
 import {
-  mount,
-  ReactWrapper
-} from 'enzyme';
-import {
   HotTable
 } from '../src/hotTable';
 import {
+  createSpreadsheetData,
   mockElementDimensions,
+  mountComponent,
   sleep,
 } from './_helpers';
-import Handsontable from 'handsontable';
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-});
 
 /**
  * Worth noting, that although it's possible to use React.memo on renderer components, it doesn't do much, as currently they're recreated on every
  * Handsontable's `render`.
  */
 describe('React.memo', () => {
-  it('should be possible to use React.memo on renderer components.', async (done) => {
+  it('should be possible to use React.memo on renderer components.', async () => {
     function RendererComponent2 (props) {
       return (
         <>
@@ -34,10 +25,10 @@ describe('React.memo', () => {
 
     const MemoizedRendererComponent2 = React.memo(RendererComponent2);
 
-    const wrapper: ReactWrapper<{}, {}, any> = mount(
+    const hotInstance = mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(1, 1)}
+                data={createSpreadsheetData(1, 1)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -48,23 +39,14 @@ describe('React.memo', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>
         <MemoizedRendererComponent2 hot-renderer/>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
-
-    const hotTableInstance = wrapper.instance();
-    const hotInstance = hotTableInstance.hotInstance;
+      </HotTable>
+    )).hotInstance;
 
     hotInstance.render();
 
     await sleep(100);
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');
-
-    wrapper.detach();
-
-    done();
   });
 
   /*

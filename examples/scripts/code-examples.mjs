@@ -5,7 +5,11 @@ import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 import rimraf from 'rimraf';
 import { spawnProcess } from '../../scripts/utils/processes.mjs';
-import { displayInfoMessage, displayConfirmationMessage, displayErrorMessage } from '../../scripts/utils/console.mjs';
+import {
+  displayInfoMessage,
+  displayConfirmationMessage,
+  displayErrorMessage
+} from '../../scripts/utils/console.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT_DIR = __dirname.split('examples')[0];
@@ -199,7 +203,7 @@ switch (shellCommand) {
         // this env is used in each `Smoke.spec.js` file inside code example directory
         process.env.TEST_URL = `http://127.0.0.1:8080${split[splitLength - 1]}/dist`;
 
-        runNpmCommandInExample(exampleDir, 'npm run test');
+        runNpmCommandInExample(exampleDir, 'npm run test --if-present');
       }
 
       if (i === examplesFolders.length - 1) {

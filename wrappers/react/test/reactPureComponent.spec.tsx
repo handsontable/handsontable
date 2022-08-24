@@ -1,29 +1,19 @@
 import React from 'react';
 import {
-  mount,
-  ReactWrapper
-} from 'enzyme';
-import {
   HotTable
 } from '../src/hotTable';
 import {
+  createSpreadsheetData,
   mockElementDimensions,
-  sleep,
+  mountComponent
 } from './_helpers';
-import Handsontable from 'handsontable';
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-});
 
 /**
  * Worth noting, that although it's possible to use React's Pure Components on renderer components, it doesn't do much, as currently they're recreated on every
  * Handsontable's `render`.
  */
 describe('React PureComponents', () => {
-  it('should be possible to declare the renderer as PureComponent', async (done) => {
+  it('should be possible to declare the renderer as PureComponent', async () => {
     class RendererComponent2 extends React.PureComponent<any, any> {
       render(): React.ReactElement<string> {
         return (
@@ -34,10 +24,10 @@ describe('React PureComponents', () => {
       }
     }
 
-    const wrapper: ReactWrapper<{}, {}, any> = mount(
+    const hotInstance = mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -48,19 +38,10 @@ describe('React PureComponents', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>
         <RendererComponent2 hot-renderer/>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
-
-    const hotTableInstance = wrapper.instance();
-    const hotInstance = hotTableInstance.hotInstance;
+      </HotTable>
+    )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');
-
-    wrapper.detach();
-
-    done();
   });
 
   /*

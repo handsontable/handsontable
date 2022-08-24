@@ -1,53 +1,531 @@
-name: Code Examples
+#  -------------------------------------------------------------------------------------------
+#  Workflow responsible for deployment of the examples stored in the ./examples directory.
+#  -------------------------------------------------------------------------------------------
+#
+#  It's triggered on the "push" event to the develop branch or manual dispatching from the "Actions" tab on GitHub.
+#
+#  Depending on the version of the examples (recognized from the modified files or provided in the dispatch prompt), it
+#  either builds only the versioned examples or Handsontable + the framework wrappers before it:
+#
+#  - Semver-compliant version (eg. 11.0.0, 10.1.0):
+#      - Installs the dependencies of examples for the provided versions and all wrappers
+#      - Builds the examples
+#  - Version specified as `next`:
+#      - Installs the dependencies of Handsontable and the framework wrappers
+#      - Builds Handsontable and the wrappers
+#      - Installs the dependencies of examples for the provided versions and all wrappers
+#      - Builds the examples
+#
+#  After the above steps are finished, the example builds are gathered and deployed to the `examples` directory on the
+#  `gh-pages` branch.
+#
+#  The structure of the examples on the `gh-pages` branch should look as follows:
+#
+#    ├─examples/
+#    │  ├─[version]/
+#    │  │  ├─ docs/
+#    │  │  │  ├─ [framework]/
+#    │  │  │  │  ├─ [example name]/
+#
+
+name: Code Examples Deployment
 
 on:
   workflow_dispatch:
     inputs:
       hotVersion:
-        description: 'Handsontable version to update all code examples (eg.: 8.0.0)'
+        description: 'A valid Handsontable version (eg.: 11.0.0).'
+        required: true
+  push:
+    paths:
+      - examples/[0-9]*.[0-9]*.[0-9]*/**
+      - examples/next/**
+
+env:
+  NODE_VERSION: 16
+  NODE_MODULES_PATHS: |
+    ./node_modules
+    ./handsontable/node_modules/
+    ./wrappers/angular/node_modules/
+    ./wrappers/react/node_modules/
+    ./wrappers/vue/node_modules/
+    ./wrappers/vue3/node_modules/
 
 jobs:
-  Examples:
-    name: Version and Deploy
+  prepare-matrix:
+    name: Prepare the version Matrix and cache dependencies.
     runs-on: ubuntu-18.04
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    outputs:
+      versions: ${{ steps.get-dispatch-value.outputs.matrix || steps.prepare-version-matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node 15
-        uses: actions/setup-node@c46424eee26de4078d34105d3de3cc4992202b1e # https://github.com/actions/setup-node/releases/tag/v2.1.4
         with:
-          node-version: '15'
-      - name: Checkout gh-pages branch to "./examples/tmp" folder
+          fetch-depth: 2
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
+        with:
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - id: get-dispatch-value
+        run: echo "::set-output name=matrix::${{ format('[\"{0}\"]', github.event.inputs.hotVersion) }}"
+        if: github.event_name == 'workflow_dispatch'
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # https://github.com/dorny/paths-filter/releases/tag/v2.10.2
+        id: check-modified-paths
+        if: github.event_name != 'workflow_dispatch'
+        with:
+          base: 'develop'
+          list-files: 'json'
+          filters: |
+            examples: &examples
+              - './examples/**'
+      - uses: actions/github-script@441359b1a30438de65712c2fbca0abe4816fa667 # https://github.com/actions/github-script/releases/tag/v5.0.0
+        id: get-versions
+        if: github.event_name != 'workflow_dispatch'
+        with:
+          script: |
+            return [...new Set(
+              ${{steps.check-modified-paths.outputs.examples_files}}.map(
+                url => {
+                  const match = url.match(/examples\/(([0-9]+\.[0-9]+\.[0-9]+)|(next))\/*/i);
+
+                  if (match) {
+                    return match[1];
+                  }
+                }
+              )
+            )].filter(n => n);
+      - id: prepare-version-matrix
+        if: github.event_name != 'workflow_dispatch'
+        run: echo "::set-output name=matrix::${{ toJSON(steps.get-versions.outputs.result) }}"
+
+  # ---------------------------------------------------------
+  # --- Only applicable if processing the `next` version. ---
+  # ------------------------ START --------------------------
+  build-handsontable-umd:
+    name: "[BUILD] Handsontable: UMD"
+    needs: [ prepare-matrix ]
+    runs-on: ubuntu-latest
+    if: contains(needs.prepare-matrix.outputs.versions, 'next')
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
+        with:
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Build
+        run: |
+          cd handsontable
+          npm run build:umd && npm run build:languages
+          npm run build:umd.min && npm run build:languages.min
+      - run: tar -zcf dist.tar.gz -C ./handsontable/dist ./
+      - name: Upload the Handsontable UMD build artifact.
+        uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
+        with:
+          name: handsontable-build-umd
+          path: |
+            dist.tar.gz
+
+  build-handsontable-es-cjs:
+    name: "[BUILD] Handsontable: ES + CJS"
+    runs-on: ubuntu-latest
+    needs: [ prepare-matrix ]
+    if: contains(needs.prepare-matrix.outputs.versions, 'next')
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
+        with:
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Build
+        run: |
+          cd handsontable
+          npm run build:es && npm run build:languages.es
+          npm run build:commonjs
+          npm run postbuild
+      - run: tar -zcf tmp.tar.gz -C ./handsontable/tmp ./
+      - name: Upload the Handsontable ES + CJS build artifact.
+        uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
+        with:
+          name: handsontable-build-es-cjs
+          path: |
+            tmp.tar.gz
+
+  build-angular:
+    name: "[BUILD] Wrapper: Angular"
+    runs-on: ubuntu-latest
+    needs: [ prepare-matrix, build-handsontable-es-cjs ]
+    if: contains(needs.prepare-matrix.outputs.versions, 'next')
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
+        with:
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: mkdir -p ./handsontable/tmp
+      - run: tar -zxf tmp.tar.gz -C ./handsontable/tmp && rm tmp.tar.gz
+      - run: cd handsontable
+      - run: npm run swap-package-links
+      - run: npm run in angular build
+      - run: rm -rf ./wrappers/angular/node_modules
+      - run: tar -zcf tmp.tar.gz -C ./wrappers/angular ./
+      - name: Upload the build artifact.
+        uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
+        with:
+          name: angular-build
+          path: |
+            tmp.tar.gz
+
+  build-react:
+    name: "[BUILD] Wrapper: React"
+    runs-on: ubuntu-latest
+    needs: [ prepare-matrix, build-handsontable-es-cjs ]
+    if: contains(needs.prepare-matrix.outputs.versions, 'next')
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
+        with:
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: mkdir -p ./handsontable/tmp
+      - run: tar -zxf tmp.tar.gz -C ./handsontable/tmp && rm tmp.tar.gz
+      - run: cd handsontable
+      - run: npm run swap-package-links
+      - run: npm run in react build
+      - run: rm -rf ./wrappers/react/node_modules
+      - run: tar -zcf tmp.tar.gz -C ./wrappers/react ./
+      - name: Upload the build artifact.
+        uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
+        with:
+          name: react-build
+          path: |
+            tmp.tar.gz
+
+  build-vue:
+    name: "[BUILD] Wrapper: Vue"
+    runs-on: ubuntu-latest
+    needs: [ prepare-matrix, build-handsontable-es-cjs ]
+    if: contains(needs.prepare-matrix.outputs.versions, 'next')
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
+        with:
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: mkdir -p ./handsontable/tmp
+      - run: tar -zxf tmp.tar.gz -C ./handsontable/tmp && rm tmp.tar.gz
+      - run: cd handsontable
+      - run: npm run swap-package-links
+      - run: npm run in vue build
+      - run: rm -rf ./wrappers/vue/node_modules
+      - run: tar -zcf tmp.tar.gz -C ./wrappers/vue ./
+      - name: Upload the build artifact.
+        uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
+        with:
+          name: vue-build
+          path: |
+            tmp.tar.gz
+
+  build-vue3:
+    name: "[BUILD] Wrapper: Vue3"
+    runs-on: ubuntu-latest
+    needs: [ prepare-matrix, build-handsontable-es-cjs ]
+    if: contains(needs.prepare-matrix.outputs.versions, 'next')
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
+        with:
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: mkdir -p ./handsontable/tmp
+      - run: tar -zxf tmp.tar.gz -C ./handsontable/tmp && rm tmp.tar.gz
+      - run: cd handsontable
+      - run: npm run swap-package-links
+      - run: npm run in vue3 build
+      - run: rm -rf ./wrappers/vue3/node_modules
+      - run: tar -zcf tmp.tar.gz -C ./wrappers/vue3 ./
+      - name: Upload the build artifact.
+        uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
+        with:
+          name: vue3-build
+          path: |
+            tmp.tar.gz
+  # ---------------------------------------------------------
+  # --- Only applicable if processing the `next` version. ---
+  # ------------------------ END --------------------------
+
+  install-and-build:
+    name: ${{ matrix.version }} -> ${{ matrix.framework }} - Install, build, and test
+    needs: [ prepare-matrix, build-handsontable-es-cjs, build-handsontable-umd, build-angular, build-react, build-vue, build-vue3 ]
+    if: |
+      always() &&
+      needs.prepare-matrix.result == 'success' &&
+      needs.build-handsontable-es-cjs.result != 'failure' &&
+      needs.build-handsontable-umd.result != 'failure' &&
+      needs.build-angular.result != 'failure' &&
+      needs.build-react.result != 'failure' &&
+      needs.build-vue.result != 'failure' &&
+      needs.build-vue3.result != 'failure' &&
+      needs.prepare-matrix.outputs.versions != '[]'
+    runs-on: ubuntu-18.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ${{fromJson(needs.prepare-matrix.outputs.versions)}}
+        framework: [angular, angular-9, angular-10, angular-11, angular-12, angular-13, js, react, vue, vue3, ts]
+
+    env:
+      FRAMEWORK_EXAMPLES_PATH: examples/${{ matrix.version }}/docs/${{ matrix.framework }}
+      TMP_FRAMEWORK_EXAMPLES_PATH: examples/tmp/${{ matrix.version }}/docs/${{ matrix.framework }}
+      ARTIFACT_FILENAME: examples-build-${{ matrix.version }}-${{ matrix.framework }}.tar.gz
+
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Check if the ${{ env.FRAMEWORK_EXAMPLES_PATH }} directory exist.
+        id: path-check
+        run: if [ ! -d ./${{ env.FRAMEWORK_EXAMPLES_PATH }} ]; then echo "::set-output name=n-a::true"; fi
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        if: steps.path-check.outputs.n-a != 'true'
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
+        if: steps.path-check.outputs.n-a != 'true'
+        with:
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # ---------------------------------------------------------
+      # --- Only applicable if processing the `next` version. ---
+      # ------------------------ START --------------------------
+
+      # Downloading the Handsontable builds
+      - name: Download the Handsontable ES + CJS build artifact
+        if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: |
+          mkdir -p ./handsontable/tmp
+          tar -zxf tmp.tar.gz -C ./handsontable/tmp && rm tmp.tar.gz
+        if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
+      - name: Download the Handsontable UMD build artifact
+        if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: handsontable-build-umd
+          path: ./
+      - run: |
+          mkdir -p ./handsontable/tmp/dist
+          tar -zxf dist.tar.gz -C ./handsontable/tmp/dist && rm dist.tar.gz
+        if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
+
+      # Downloading the @handsontable/angular build
+      - name: Download the @handsontable/angular build artifact
+        if: |
+          matrix.version == 'next' &&
+          steps.path-check.outputs.n-a != 'true' &&
+          startsWith(matrix.framework, 'angular')
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: angular-build
+          path: ./
+      - run: tar -zxf tmp.tar.gz -C ./wrappers/angular && rm tmp.tar.gz
+        if: |
+          matrix.version == 'next' &&
+          steps.path-check.outputs.n-a != 'true' &&
+          startsWith(matrix.framework, 'angular')
+
+      # Downloading the @handsontable/react build
+      - name: Download the @handsontable/react build artifact
+        if: |
+          matrix.version == 'next' &&
+          steps.path-check.outputs.n-a != 'true' &&
+          startsWith(matrix.framework, 'react')
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: react-build
+          path: ./
+      - run: tar -zxf tmp.tar.gz -C ./wrappers/react && rm tmp.tar.gz
+        if: |
+          matrix.version == 'next' &&
+          steps.path-check.outputs.n-a != 'true' &&
+          startsWith(matrix.framework, 'react')
+
+      # Downloading the @handsontable/vue build
+      - name: Download the @handsontable/vue build artifact
+        if: |
+          matrix.version == 'next' &&
+          steps.path-check.outputs.n-a != 'true' &&
+          startsWith(matrix.framework, 'vue')
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: vue-build
+          path: ./
+      - run: tar -zxf tmp.tar.gz -C ./wrappers/vue && rm tmp.tar.gz
+        if: |
+          matrix.version == 'next' &&
+          steps.path-check.outputs.n-a != 'true' &&
+          startsWith(matrix.framework, 'vue')
+
+      # Downloading the @handsontable/vue3 build
+      - name: Download the @handsontable/vue3 build artifact
+        if: |
+          matrix.version == 'next' &&
+          steps.path-check.outputs.n-a != 'true' &&
+          startsWith(matrix.framework, 'vue')
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: vue3-build
+          path: ./
+      - run: tar -zxf tmp.tar.gz -C ./wrappers/vue3 && rm tmp.tar.gz
+        if: |
+          matrix.version == 'next' &&
+          steps.path-check.outputs.n-a != 'true' &&
+          startsWith(matrix.framework, 'vue')
+
+      # Setup symlinks for the needed packages
+      - run: |
+          node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable
+          node --experimental-json-modules ./scripts/swap-package-links.mjs @handsontable/${{ matrix.framework }}
+        if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
+
+      # ---------------------------------------------------------
+      # --- Only applicable if processing the `next` version ---
+      # -------------------- END --------------------------------
+      - name: Install dependencies for examples/${{ matrix.version }}/docs/${{ matrix.framework }}
+        if: steps.path-check.outputs.n-a != 'true'
+        run: |
+          cd ${{ env.FRAMEWORK_EXAMPLES_PATH }}
+          npm install --no-audit
+      - name: Link packages in ${{ env.FRAMEWORK_EXAMPLES_PATH }} (only for "next" version)
+        if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
+        run: |
+          cd ./examples
+          npm run link-packages -- --f ${{ matrix.framework }} --examples-version ${{ matrix.version }}
+      - name: Build all examples in ${{ env.FRAMEWORK_EXAMPLES_PATH }}
+        if: steps.path-check.outputs.n-a != 'true'
+        run: |
+          cd ${{ env.FRAMEWORK_EXAMPLES_PATH }}
+          npm run build --workspaces
+      - name: Test all examples in ${{ env.FRAMEWORK_EXAMPLES_PATH }}
+        if: steps.path-check.outputs.n-a != 'true'
+        run: |
+          cd ${{ env.FRAMEWORK_EXAMPLES_PATH }}
+          npm run test --workspaces
+      - name: Copy the builds to a temporary directory
+        if: steps.path-check.outputs.n-a != 'true'
+        run: |
+          mkdir -p ${{ env.TMP_FRAMEWORK_EXAMPLES_PATH }}
+          rsync -av --progress ${{ env.FRAMEWORK_EXAMPLES_PATH }}/ ${{ env.TMP_FRAMEWORK_EXAMPLES_PATH }} --exclude='node_modules' --include=/{,'*/'{,dist/{,'**'}}} --exclude='*'
+          cd ${{ env.TMP_FRAMEWORK_EXAMPLES_PATH }}
+          for i in $(ls);do mv ./$i/dist/* ./$i && rm -rf ./$i/dist; done;
+      - name: Create the artifact for ${{ matrix.framework }} (${{ matrix.version }})
+        if: steps.path-check.outputs.n-a != 'true'
+        run: |
+          cd ./examples/tmp
+          tar -zcf ${{ env.ARTIFACT_FILENAME }} ./**
+          ls -la
+      - name: Upload the artifact for ${{ matrix.framework }} (${{ matrix.version }})
+        if: steps.path-check.outputs.n-a != 'true'
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2 # https://github.com/actions/upload-artifact/releases/tag/v2.3.1
+        with:
+          name: examples-build-${{ matrix.version }}-${{ matrix.framework }}
+          path: |
+            examples/tmp/${{ env.ARTIFACT_FILENAME }}
+
+  gather-and-deploy-builds:
+    name: Gather the builds and deploy them to gh-pages (only on develop or when manually dispatched).
+    needs: install-and-build
+    if: |
+      always() &&
+      (github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch') &&
+      needs.install-and-build.result == 'success'
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Checkout gh-pages branch to "./examples/tmp".
         uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
         with:
           ref: gh-pages
-          path: './examples/tmp'
-      - name: Install global dependencies
-        run: npm ci
-      - name: Create new examples for version
-        run: npm run examples:version ${{ github.event.inputs.hotVersion }}
-        # this action can throw an error, when the examples for specific version exist already. If they exist, move to the next action
-        continue-on-error: true
-      - name: Install dependencies of code examples
-        run: npm run examples:install ${{ github.event.inputs.hotVersion }}
-      - name: Build the code examples
-        run: npm run examples:build ${{ github.event.inputs.hotVersion }}
-      - name: Test each code example
-        run: npm run examples:test ${{ github.event.inputs.hotVersion }}
-      - name: Setup git config
-        run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
-      - name: Commit
-        # make commit only when there is something to commit, so when new examples have been made
-        run: |
-          git pull --ff
-          if [ "$(git status --porcelain)" ]; then
-            git add examples/${{ github.event.inputs.hotVersion }}
-            git commit -m "Update code examples with version: ${{ github.event.inputs.hotVersion }}"
-            git push origin develop
-          fi
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@bbdfb200618d235585ad98e965f4aafc39b4c501 # https://github.com/peaceiris/actions-gh-pages/releases/tag/v3.7.3
+          path: './tmp'
+      - name: Download the artifacts
+        uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # https://github.com/actions/download-artifact/releases/tag/v2.1.0
+        with:
+          path: ./artifacts/
+      - run: mkdir -p ./tmp/examples
+      - run: for f in ./artifacts/**/examples-build-*.tar.gz; do tar -zxf "$f" -C ./tmp/examples; done
+      - run: rm -rf ./artifacts/
+      - name: Deploy to gh-pages.
+        uses: peaceiris/actions-gh-pages@068dc23d9710f1ba62e86896f84735d869951305 # https://github.com/peaceiris/actions-gh-pages/releases/tag/v3.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./examples/tmp
+          publish_dir: ./tmp
+          keep_files: true

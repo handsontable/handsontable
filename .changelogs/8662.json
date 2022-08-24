@@ -1,7 +1,0 @@
-{
-  "title": "Changed the `autoWrapRow` and `autoWrapCol` options` default values from `true` to `false`.",
-  "type": "changed",
-  "issue": 8662,
-  "breaking": true,
-  "framework": "none"
-}

@@ -11,7 +11,7 @@ export const applyLinkToSource = (data) => {
 
   return data.map((x) => {
     if (x.meta && x.meta.path && x.meta.filename && x.meta.lineno) {
-      const filepath = path.relative(path.join(__dirname, '../../../../../'), x.meta.path);
+      const filepath = path.relative(path.join(__dirname, '../../../../../../'), x.meta.path);
       const filename = x.meta.filename;
       const line = x.meta.lineno;
 

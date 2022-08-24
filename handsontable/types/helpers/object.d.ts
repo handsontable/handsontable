@@ -1,0 +1,16 @@
+export function duckSchema(object: any[] | object): any[] | object;
+export function inherit(Child: object, Parent: object): object;
+export function extend(target: object, extension: object, writableKeys?: string[]): object;
+export function deepExtend(target: object, extension: object): void;
+export function deepClone(obj: object): object;
+export function clone(object: object): object;
+export function mixin(Base: object, ...mixins: object[]): object;
+export function isObjectEqual(object1: object | any[], object2: object | any[]): boolean;
+export function isObject(object: any): boolean;
+export function defineGetter(object: object, property: any, value: any, options: object): void;
+export function objectEach(object: object, iteratee: (value: any, key: any, object: object) => void): object;
+export function getProperty(object: object, name: string): any;
+export function setProperty(object: object, name: string, value: any): void;
+export function deepObjectSize(object: object): number;
+export function createObjectPropListener(defaultValue?: any, propertyToListen?: string): object;
+export function hasOwnProperty(object: object, key: string): boolean;

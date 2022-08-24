@@ -1,29 +1,20 @@
 import React from 'react';
-import {
-  mount,
-  ReactWrapper
-} from 'enzyme';
-import Handsontable from 'handsontable';
 import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
 import {
+  createSpreadsheetData,
   RendererComponent,
   mockElementDimensions,
   sleep,
   EditorComponent,
   simulateKeyboardEvent,
-  simulateMouseEvent
+  simulateMouseEvent,
+  mountComponent
 } from './_helpers';
 
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-});
-
 describe('Passing column settings using HotColumn', () => {
-  it('should apply the Handsontable settings passed as HotColumn arguments to the Handsontable instance', async (done) => {
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+  it('should apply the Handsontable settings passed as HotColumn arguments to the Handsontable instance', async () => {
+    const hotInstance = mountComponent((
       <HotTable
         licenseKey="non-commercial-and-evaluation"
         id="test-hot" data={[[2]]}
@@ -31,12 +22,8 @@ describe('Passing column settings using HotColumn', () => {
       >
         <HotColumn title="test title"></HotColumn>
         <HotColumn readOnly={true}></HotColumn>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(300);
-
-    let hotInstance = wrapper.instance().hotInstance;
+      </HotTable>
+    )).hotInstance;
 
     expect(hotInstance.getSettings().columns[0].title).toEqual('test title');
     expect(hotInstance.getCellMeta(0, 0).readOnly).toEqual(false);
@@ -45,42 +32,30 @@ describe('Passing column settings using HotColumn', () => {
     expect(hotInstance.getCellMeta(0, 1).readOnly).toEqual(true);
 
     expect(hotInstance.getSettings().licenseKey).toEqual('non-commercial-and-evaluation');
-
-    wrapper.detach();
-
-    done();
   });
 
-  it('should allow to use data option as a string', async(done) => {
+  it('should allow to use data option as a string', async () => {
     const dataKeyCellValue = 'Value of key1 in row 0';
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    const hotInstance = mountComponent((
       <HotTable
         licenseKey="non-commercial-and-evaluation"
         id="test-hot" data={[{ key1: dataKeyCellValue }]}
         readOnly={false}
       >
         <HotColumn data="key1"></HotColumn>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(300);
-
-    let hotInstance = wrapper.instance().hotInstance;
+      </HotTable>
+    )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual(dataKeyCellValue);
-
-    wrapper.detach();
-
-    done();
-  })
+  });
 });
 
 describe('Renderer configuration using React components', () => {
-  it('should use the renderer component as Handsontable renderer, when it\'s nested under HotColumn and assigned the \'hot-renderer\' attribute', async (done) => {
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+  it('should use the renderer component as Handsontable renderer, when it\'s nested under HotColumn and assigned the \'hot-renderer\' attribute', async () => {
+    const hotInstance = mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(100, 2)}
+                data={createSpreadsheetData(100, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -94,12 +69,8 @@ describe('Renderer configuration using React components', () => {
         <HotColumn>
           <RendererComponent hot-renderer></RendererComponent>
         </HotColumn>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(300);
-
-    let hotInstance = wrapper.instance().hotInstance;
+      </HotTable>
+    )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('A1');
     expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>value: B1</div>');
@@ -111,19 +82,15 @@ describe('Renderer configuration using React components', () => {
 
     expect(hotInstance.getCell(99, 0).innerHTML).toEqual('A100');
     expect(hotInstance.getCell(99, 1).innerHTML).toEqual('<div>value: B100</div>');
-
-    wrapper.detach();
-
-    done();
   });
 });
 
 describe('Editor configuration using React components', () => {
-  it('should use the editor component as Handsontable editor, when it\'s nested under HotTable and assigned the \'hot-editor\' attribute', async (done) => {
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+  it('should use the editor component as Handsontable editor, when it\'s nested under HotTable and assigned the \'hot-editor\' attribute', async () => {
+    const hotInstance = mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -135,12 +102,8 @@ describe('Editor configuration using React components', () => {
         <HotColumn>
           <EditorComponent hot-editor></EditorComponent>
         </HotColumn>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
-
-    const hotInstance = wrapper.instance().hotInstance;
+      </HotTable>
+    )).hotInstance;
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
@@ -163,15 +126,67 @@ describe('Editor configuration using React components', () => {
     simulateKeyboardEvent('keydown', 13);
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
+  });
 
-    wrapper.detach();
+  it('should be possible to reuse editor components between columns width different props passed to them', async () => {
+    class ReusableEditor extends EditorComponent {
+      prepare(row, col, prop, TD, originalValue, cellProperties): any {
+        super.prepare(row, col, prop, TD, originalValue, cellProperties);
 
-    done();
+        this.mainElementRef.current.style.backgroundColor = this.props.background;
+      }
+    }
+
+    const hotInstance = mountComponent((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}>
+        <HotColumn>
+          <ReusableEditor background='red' hot-editor></ReusableEditor>
+        </HotColumn>
+        <HotColumn>
+          <ReusableEditor background='yellow' hot-editor></ReusableEditor>
+        </HotColumn>
+      </HotTable>
+    )).hotInstance;
+
+    hotInstance.selectCell(0, 0);
+
+    expect((document.querySelectorAll('#editorComponentContainer')[0] as any).style.backgroundColor).toEqual('red');
+
+    simulateKeyboardEvent('keydown', 13);
+
+    expect(hotInstance.getActiveEditor().editorComponent.mainElementRef.current.style.backgroundColor).toEqual('red');
+
+    hotInstance.getActiveEditor().close();
+
+    hotInstance.selectCell(0, 1);
+
+    expect((document.querySelectorAll('#editorComponentContainer')[1] as any).style.backgroundColor).toEqual('yellow');
+
+    simulateKeyboardEvent('keydown', 13);
+
+    expect(hotInstance.getActiveEditor().editorComponent.mainElementRef.current.style.backgroundColor).toEqual('yellow');
+
+    hotInstance.selectCell(0, 0);
+
+    simulateKeyboardEvent('keydown', 13);
+
+    expect(hotInstance.getActiveEditor().editorComponent.mainElementRef.current.style.backgroundColor).toEqual('red');
+
+    hotInstance.getActiveEditor().close();
   });
 });
 
 describe('Dynamic HotColumn configuration changes', () => {
-  it('should be possible to rearrange and change the column + editor + renderer configuration dynamically', async (done) => {
+  it('should be possible to rearrange and change the column + editor + renderer configuration dynamically', async () => {
     function RendererComponent2(props) {
       return (
         <>r2: {props.value}</>
@@ -198,7 +213,7 @@ describe('Dynamic HotColumn configuration changes', () => {
       render() {
         return (
           <HotTable licenseKey="non-commercial-and-evaluation" id="test-hot"
-                    data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                    data={createSpreadsheetData(3, 2)}
                     width={300}
                     height={300}
                     rowHeights={23}
@@ -218,12 +233,9 @@ describe('Dynamic HotColumn configuration changes', () => {
 
     let hotTableInstanceRef = React.createRef();
 
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    const wrapperComponentInstance = mountComponent((
       <WrapperComponent/>
-      , {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(300);
+    ));
 
     let hotInstance = (hotTableInstanceRef.current as any).hotInstance;
     let editorElement = document.querySelector('#editorComponentContainer');
@@ -252,7 +264,7 @@ describe('Dynamic HotColumn configuration changes', () => {
     expect(hotInstance.getActiveEditor().editorComponent).toEqual(void 0);
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
-    wrapper.instance().setState({
+    wrapperComponentInstance.setState({
       setup: [
         <EditorComponent className="editor-className-2" id="editor-id-2" style={{background: 'blue'}} hot-editor key={'1'}/>,
         <HotColumn title="test title 2" key={'2'}>
@@ -294,9 +306,5 @@ describe('Dynamic HotColumn configuration changes', () => {
     hotInstance.getActiveEditor().close();
 
     expect(hotInstance.getSettings().licenseKey).toEqual('non-commercial-and-evaluation');
-
-    wrapper.detach();
-
-    done();
   });
 });

@@ -1,29 +1,19 @@
 import React from 'react';
 import {
-  mount,
-  ReactWrapper
-} from 'enzyme';
-import {
   HotTable
 } from '../src/hotTable';
 import {
   HotColumn
 } from '../src/hotColumn';
 import {
+  createSpreadsheetData,
   mockElementDimensions,
-  sleep
+  mountComponent
 } from './_helpers';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
-import Handsontable from 'handsontable';
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-});
 
 describe('React Context', () => {
-  it('should be possible to declare a context and use it inside both renderers and editors', async (done) => {
+  it('should be possible to declare a context and use it inside both renderers and editors', async () => {
     let hotTableInstance = null;
     const TestContext = React.createContext('def-test-val');
 
@@ -67,11 +57,11 @@ describe('React Context', () => {
     }
     EditorComponent3.contextType = TestContext;
 
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    mountComponent((
       <TestContext.Provider value={'testContextValue'}>
         <HotTable licenseKey="non-commercial-and-evaluation"
                   id="test-hot"
-                  data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                  data={createSpreadsheetData(3, 2)}
                   width={300}
                   height={300}
                   rowHeights={23}
@@ -93,10 +83,8 @@ describe('React Context', () => {
             <EditorComponent3 hot-editor className="ec3"/>
           </HotColumn>
         </HotTable>
-      </TestContext.Provider>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
+      </TestContext.Provider>
+    ));
 
     const hotInstance = hotTableInstance.hotInstance;
 
@@ -109,8 +97,5 @@ describe('React Context', () => {
     expect(hotInstance.getCell(1, 1).innerHTML).toEqual('<div>testContextValue</div>');
 
     expect(document.querySelector('.ec3').innerHTML).toEqual('testContextValue');
-
-    wrapper.detach();
-    done();
   });
 });

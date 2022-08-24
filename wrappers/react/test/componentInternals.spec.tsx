@@ -1,26 +1,17 @@
 import React from 'react';
-import {
-  mount,
-  ReactWrapper
-} from 'enzyme';
 import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
 import {
+  createSpreadsheetData,
   mockElementDimensions,
+  mountComponent,
   sleep,
 } from './_helpers';
 import { HOT_DESTROYED_WARNING } from "../src/helpers";
 import { BaseEditorComponent } from '../src/baseEditorComponent';
-import Handsontable from 'handsontable';
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-});
 
 describe('Subcomponent state', () => {
-  it('should be possible to set the state of the renderer components passed to HotTable and HotColumn', async (done) => {
+  it('should be possible to set the state of the renderer components passed to HotTable and HotColumn', async () => {
     class RendererComponent2 extends React.Component<any, any, any> {
       constructor(props) {
         super(props);
@@ -41,10 +32,11 @@ describe('Subcomponent state', () => {
 
     let zeroRendererInstance = null;
     let oneRendererInstance = null;
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+
+    const hotInstance = mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -67,13 +59,8 @@ describe('Subcomponent state', () => {
             }
           }} hot-renderer></RendererComponent2>
         </HotColumn>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
-
-    const hotTableInstance = wrapper.instance();
-    const hotInstance = hotTableInstance.hotInstance;
+      </HotTable>
+    )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>initial</div>');
     expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>initial</div>');
@@ -88,12 +75,9 @@ describe('Subcomponent state', () => {
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>altered</div>');
     expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>altered as well</div>');
-
-    wrapper.detach();
-    done();
   });
 
-  it('should be possible to set the state of the editor components passed to HotTable and HotColumn', async (done) => {
+  it('should be possible to set the state of the editor components passed to HotTable and HotColumn', async () => {
     class RendererEditor2 extends BaseEditorComponent {
       constructor(props) {
         super(props);
@@ -114,10 +98,11 @@ describe('Subcomponent state', () => {
 
     let globalEditorInstance = null;
     let columnEditorInstance = null;
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+
+    mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -134,13 +119,8 @@ describe('Subcomponent state', () => {
             columnEditorInstance = instance;
           }} hot-editor></RendererEditor2>
         </HotColumn>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
-
-    const hotTableInstance = wrapper.instance();
-    const hotInstance = hotTableInstance.hotInstance;
+      </HotTable>
+    ));
 
     expect(document.querySelector('#first-editor').innerHTML).toEqual('initial');
     expect(document.querySelector('#second-editor').innerHTML).toEqual('initial');
@@ -155,14 +135,11 @@ describe('Subcomponent state', () => {
 
     expect(document.querySelector('#first-editor').innerHTML).toEqual('altered');
     expect(document.querySelector('#second-editor').innerHTML).toEqual('altered as well');
-
-    wrapper.detach();
-    done();
   });
 });
 
 describe('Component lifecyle', () => {
-  it('renderer components should trigger their lifecycle methods', async (done) => {
+  it('renderer components should trigger their lifecycle methods', async () => {
     class RendererComponent2 extends React.Component<any, any, any> {
       constructor(props) {
         super(props);
@@ -201,10 +178,11 @@ describe('Component lifecyle', () => {
     let secondGo = false;
     const rendererRefs = new Map();
     const rendererCounters = new Map();
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+
+    const hotInstance = mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -227,13 +205,8 @@ describe('Component lifecyle', () => {
             }
           }} hot-renderer></RendererComponent2>
         </HotColumn>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
-
-    const hotTableInstance = wrapper.instance();
-    const hotInstance = hotTableInstance.hotInstance;
+      </HotTable>
+    )).hotInstance;
 
     rendererCounters.forEach((counters) => {
       expect(counters.willMount).toEqual(1);
@@ -251,12 +224,9 @@ describe('Component lifecyle', () => {
       expect(counters.didMount).toEqual(1);
       expect(counters.willUnmount).toEqual(1);
     });
-
-    wrapper.detach();
-    done();
   });
 
-  it('editor components should trigger their lifecycle methods', async (done) => {
+  it('editor components should trigger their lifecycle methods', async () => {
     class EditorComponent2 extends BaseEditorComponent {
       constructor(props) {
         super(props);
@@ -302,10 +272,11 @@ describe('Component lifecyle', () => {
         }
       }} hot-editor key={Math.random()}></EditorComponent2>
     ];
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+
+    const hotTableInstance = mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -314,12 +285,8 @@ describe('Component lifecyle', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>
         {childrenArray}
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
-
-    const hotTableInstance = wrapper.instance();
+      </HotTable>
+    ));
 
     editorCounters.forEach((counters) => {
       expect(counters.willMount).toEqual(1);
@@ -338,44 +305,36 @@ describe('Component lifecyle', () => {
       expect(counters.didMount).toEqual(1);
       expect(counters.willUnmount).toEqual(1);
     });
-
-    wrapper.detach();
-    done();
   });
 
   it('should display a warning and not throw any errors, when the underlying Handsontable instance ' +
-    'has been destroyed', async(done) => {
+    'has been destroyed', async () => {
     const warnFunc = console.warn;
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    const warnCalls = [];
+
+    const componentInstance = mountComponent((
       <HotTable
         id="test-hot"
         data={[[2]]}
         licenseKey="non-commercial-and-evaluation"
-      />, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-    const warnCalls = [];
-
-    await sleep(300);
+      />
+    ));
 
     console.warn = (warningMessage) => {
       warnCalls.push(warningMessage);
     };
 
-    expect(wrapper.instance().hotInstance.isDestroyed).toEqual(false);
+    expect(componentInstance.hotInstance.isDestroyed).toEqual(false);
 
-    wrapper.instance().hotInstance.destroy();
+    componentInstance.hotInstance.destroy();
 
-    expect(wrapper.instance().hotInstance).toEqual(null);
+    expect(componentInstance.hotInstance).toEqual(null);
 
     expect(warnCalls.length).toBeGreaterThan(0);
     warnCalls.forEach((message) => {
       expect(message).toEqual(HOT_DESTROYED_WARNING);
     });
 
-    wrapper.detach();
-
     console.warn = warnFunc;
-
-    done();
   });
 });

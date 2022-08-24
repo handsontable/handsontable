@@ -42,10 +42,10 @@ export default {
     };
   },
   beforeMount() {
-    const userPrefferedTheme = localStorage ? localStorage.getItem(STORAGE_KEY) : 'light';
+    const userPreferredTheme = localStorage ? localStorage.getItem(STORAGE_KEY) : 'light';
 
-    if (userPrefferedTheme) {
-      this.isDarkTheme = userPrefferedTheme === 'dark';
+    if (userPreferredTheme) {
+      this.isDarkTheme = userPreferredTheme === 'dark';
 
       return;
     }
@@ -62,7 +62,6 @@ export default {
     this.htmlDomEl = document.querySelector('html');
 
     toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme);
-
   }
 };
 </script>
@@ -76,13 +75,13 @@ export default {
   @media (max-width: $MQNarrow) {
     & {
       display: inline-block;
-      left: 80px;
+      left: 50px;
     }
   }
 
   @media (max-width: $MQMobile) {
     & {
-      left: 90px;
+      left: 65px;
     }
   }
 }
@@ -144,7 +143,7 @@ export default {
   -webkit-transition: 0.4s;
   transition: 0.4s;
   box-shadow: 0 0px 3px #2020203d;
-  background: #ffffff url('/docs/img/light-theme-icon.svg');
+  background: #ffffff versionedUrl('/docs/{docsVersion}/img/light-theme-icon.svg');
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;
@@ -162,7 +161,7 @@ input:checked + .slider:before {
   -webkit-transform: translateX(16px);
   -ms-transform: translateX(16px);
   transform: translateX(16px);
-  background: #ffffff url('/docs/img/dark-theme-icon.svg');
+  background: #ffffff versionedUrl('/docs/{docsVersion}/img/dark-theme-icon.svg');
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;

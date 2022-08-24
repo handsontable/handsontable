@@ -37,7 +37,7 @@ const entryDestination = name =>
 const fileExists = p => fs.access(p).then(() => true).catch(() => false);
 
 const stringifyChangelogEntryObject = ({ title, issue, framework, breaking }) => {
-  const breakingFragment = breaking ? '**Breaking change** ' : '';
+  const breakingFragment = breaking ? '**Breaking change**: ' : '';
 
   const frameworkFragment = framework === 'none' ? '' : `*${uppercaseFirstLetter(framework)}:* `;
 

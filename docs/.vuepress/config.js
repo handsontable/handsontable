@@ -1,12 +1,18 @@
 const path = require('path');
+const stylusNodes = require('stylus/lib/nodes');
 const highlight = require('./highlight');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
-const assetsVersioningPlugin = require('./plugins/assets-versioning');
+const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
+const extendPageDataPlugin = require('./plugins/extend-page-data');
+const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
+const { getThisDocsVersion, getDocsBaseUrl } = require('./helpers');
 
+const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
 const buildMode = process.env.BUILD_MODE;
-const environmentHead = buildMode === 'production' ?
+const isProduction = buildMode === 'production';
+const environmentHead = isProduction ?
   [
     // Google Tag Manager, an extra element within the `ssr.html` file.
     ['script', {}, `
@@ -20,11 +26,25 @@ const environmentHead = buildMode === 'production' ?
   : [];
 
 module.exports = {
-  patterns: ['**/*.md', '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'], // to enable vue pages add: '**/*.vue'.
+  define: {
+    GA_ID: 'UA-33932793-7',
+  },
+  patterns: [
+    'content/**/*.md'
+  ],
   description: 'Handsontable',
-  base: '/docs/',
+  base: `/docs/${docsBase === 'latest' ? '' : `${docsBase}/`}`,
   head: [
-    ['link', { rel: 'icon', href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png' }],
+    ['link', {
+      rel: 'icon',
+      href: `${getDocsBaseUrl()}/static/images/template/ModCommon/favicon-32x32.png`
+    }],
+    ['link', {
+      rel: 'preload',
+      href: isProduction ? `${getDocsBaseUrl()}/docs/data/common.json` : '/data/common.json',
+      as: 'fetch',
+      crossorigin: ''
+    }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     // Cookiebot - cookie consent popup
     ['script', {
@@ -39,20 +59,73 @@ module.exports = {
       includeLevel: [2, 3],
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
+    externalLinks: {
+      target: '_blank',
+      rel: 'nofollow noopener noreferrer'
+    },
+  },
+  stylus: {
+    preferPathResolver: 'webpack',
+    define: {
+      versionedUrl: (expression) => {
+        return new stylusNodes
+          .Literal(`url("${expression.string.replace('{docsVersion}', getThisDocsVersion())}")`);
+      },
+    }
   },
   plugins: [
+    extendPageDataPlugin,
     'tabs',
     ['sitemap', {
-      hostname: 'https://handsontable.com',
+      hostname: getDocsBaseUrl(),
+      exclude: ['/404.html']
     }],
     ['@vuepress/active-header-links', {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
     }],
-    ['container', examples],
+    ['container', examples(getThisDocsVersion())],
     ['container', sourceCodeLink],
     {
       extendMarkdown(md) {
+        const imageOrig = md.renderer.rules.image;
+
+        // Add support for markdown images and links to have ability to substitute the
+        // docs latest version variable to the "src" or "href" attributes.
+        md.renderer.rules.image = function(tokens, ...rest) {
+          tokens.forEach((token) => {
+            token.attrs.forEach(([name, value], index) => {
+              if (name === 'src') {
+                token.attrs[index][1] = (
+                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                );
+              }
+            });
+          });
+
+          return imageOrig(tokens, ...rest);
+        };
+
+        const linkOrig = md.renderer.rules.link_open;
+
+        md.renderer.rules.link_open = function(tokens, ...rest) {
+          tokens.forEach((token) => {
+            if (token.type !== 'link_open') {
+              return;
+            }
+
+            token.attrs.forEach(([name, value], index) => {
+              if (name === 'href') {
+                token.attrs[index][1] = (
+                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                );
+              }
+            });
+          });
+
+          return linkOrig(tokens, ...rest);
+        };
+
         const render = function(tokens, options, env) {
           let i; let type;
           let result = '';
@@ -64,7 +137,7 @@ module.exports = {
             if (type === 'inline') {
               result += this.renderInline(tokens[i].children, options, env);
             } else if (typeof rules[type] !== 'undefined') {
-              result += rules[tokens[i].type](tokens, i, options, env, this);
+              result += rules[tokens[i].type](tokens, i, options, env, this, getThisDocsVersion());
             } else {
               result += this.renderToken(tokens, i, options, env);
             }
@@ -92,10 +165,15 @@ module.exports = {
           .end();
       },
     },
-    assetsVersioningPlugin,
-    [nginxRedirectsPlugin, {
-      outputFile: path.resolve(__dirname, '../docker/redirects.conf')
+    [dumpDocsDataPlugin, {
+      outputDir: path.resolve(__dirname, './public/data/')
     }],
+    [nginxRedirectsPlugin, {
+      outputFile: path.resolve(__dirname, '../docker/redirects-autogenerated.conf')
+    }],
+    [nginxVariablesPlugin, {
+      outputFile: path.resolve(__dirname, '../docker/variables.conf')
+    }]
   ],
   themeConfig: {
     nextLinks: true,
