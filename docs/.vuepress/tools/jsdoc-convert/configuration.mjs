@@ -5,20 +5,28 @@ export default {
   urlPrefix: '/api/',
   seo: {
     'Options.md': {
-      title: 'Options',
-      metaTitle: 'Options - API Reference - Handsontable Documentation for Javascript',
-      description: 'Configure your Handsontable instance using the "Configuration Options" object. You can also use it to implement custom functions.',
+      title: 'Configuration options',
+      metaTitle: '"API reference: Options - JavaScript Data Grid | Handsontable"',
+      description: 'A complete list of Handsontable\'s configuration options that let you customize your data grid instance.',
       react: {
-        metaTitle: 'Options - API Reference - Handsontable Documentation for React',
+        metaTitle: '"API reference: Options - React Data Grid | Handsontable"',
       },
     },
     'Hooks.md': {
       title: 'Hooks',
-      metaTitle: 'Hooks - API Reference - Handsontable Documentation',
+      metaTitle: "'API reference: Hooks - JavaScript Data Grid | Handsontable'",
+      description: 'A complete list of Handsontable\'s API hooks (callbacks) that let you run your code before or after specific data grid actions.',
+      react: {
+        metaTitle: "'API reference: Hooks - React Data Grid | Handsontable'",
+      },
     },
     'Core.md': {
-      title: 'Core',
-      metaTitle: 'Core - API Reference - Handsontable Documentation',
+      title: 'Core methods',
+      metaTitle: "'API reference: Core - JavaScript Data Grid | Handsontable'",
+      description: 'A complete list of the public API methods of Handsontable\'s core that let you control your data grid programmatically.',
+      react: {
+        metaTitle: "'API reference: Core methods - React Data Grid | Handsontable'",
+      },
     },
   }
 };

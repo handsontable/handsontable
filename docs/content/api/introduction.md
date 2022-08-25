@@ -1,11 +1,14 @@
 ---
 title: Introduction
-metaTitle: API Reference - Handsontable Documentation
+metaTitle: API reference - JavaScript Data Grid | Handsontable
+description: Control the data grid programmatically, using Handsontable's API options and methods.
 permalink: /api/
 canonicalUrl: /api/
+react:
+  metaTitle: API reference - React Data Grid | Handsontable
 ---
 
-# Handsontable API Reference
+# Handsontable API reference
 
 [[toc]]
 

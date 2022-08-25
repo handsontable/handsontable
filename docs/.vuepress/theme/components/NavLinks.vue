@@ -53,7 +53,7 @@ export default {
     apiLink() {
       return {
         link: `${this.frameworkUrlPrefix}/api/`,
-        text: 'API Reference'
+        text: 'API reference'
       };
     },
     userNav() {

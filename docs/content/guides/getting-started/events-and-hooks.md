@@ -1,7 +1,7 @@
 ---
 title: Events and hooks
 metaTitle: Events and hooks - JavaScript Data Grid | Handsontable
-description: Run your code before or after an action, using Handsontable's API hooks. For example, you can control what happens with the user's input.
+description: Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
 permalink: /events-and-hooks
 canonicalUrl: /events-and-hooks
 tags:
