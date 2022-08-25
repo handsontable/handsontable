@@ -1,12 +1,15 @@
 ---
 title: Migrating from 11.1 to 12.0
-metaTitle: Migrating from 11.1 to 12.0 - Guide - Handsontable Documentation
+metaTitle: Migrate from 11.1 to 12.0 - JavaScript Data Grid | Handsontable
+description: Migrate from Handsontable 11.1 to Handsontable 12.0, released on April 28, 2022.
 permalink: /migration-from-11.1-to-12.0
 canonicalUrl: /migration-from-11.1-to-12.0
 pageClass: migration-guide
+react:
+  metaTitle: Migrate from 11.1 to 12.0 - React Data Grid | Handsontable
 ---
 
-# Migrating from 11.1 to 12.0
+# Migrate from 11.1 to 12.0
 
 [[toc]]
 

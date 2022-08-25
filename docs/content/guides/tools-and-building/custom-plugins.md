@@ -1,12 +1,15 @@
 ---
 title: Custom plugins
-metaTitle: Custom plugins - Guide - Handsontable Documentation
+metaTitle: Custom plugins - JavaScript Data Grid | Handsontable
+description: Extend Handsontable's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
 permalink: /custom-plugins
 canonicalUrl: /custom-plugins
 tags:
   - plugin development
   - skeleton
   - extend
+react:
+  metaTitle: Custom plugins - React Data Grid | Handsontable
 ---
 
 # Custom plugins

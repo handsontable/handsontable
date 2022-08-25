@@ -1,6 +1,7 @@
 ---
 title: Release notes
-metaTitle: Release notes - Guide - Handsontable Documentation
+metaTitle: Release notes - JavaScript Data Grid | Handsontable
+description: See the full history of changes made to Handsontable in each major, minor, and patch release.
 permalink: /release-notes
 canonicalUrl: /release-notes
 tags:
@@ -9,6 +10,8 @@ tags:
   - update
   - upgrade
   - breaking change
+react:
+  metaTitle: Release notes - React Data Grid | Handsontable
 ---
 
 # Release notes
