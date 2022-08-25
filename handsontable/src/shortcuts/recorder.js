@@ -81,7 +81,10 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
 
     const result = beforeKeyDown(event);
 
-    if (result === false || isImmediatePropagationStopped(event)) {
+    // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is
+    // produced when unfinished character is entering using the IME editor. It is fired on macOS,
+    // Windows and linux (ubuntu) with installed ibus-pinyin package.
+    if (event.keyCode === 229 || result === false || isImmediatePropagationStopped(event)) {
       return;
     }
 
