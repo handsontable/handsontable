@@ -79,7 +79,7 @@ function createRegister() {
             const examplePresetType = rootExampleElement.getAttribute('data-preset-type');
             const tabsComponent = closest(this.rootElement, '.tabs-component');
             const allTabs = tabsComponent.querySelectorAll('a');
-            const codeTab = Array.from(allTabs).find(tab => tab.innerText === 'Code'); // Usually first tab
+            const codeTab = Array.from(allTabs).find(tab => tab?.href?.startsWith('#code-tab')); // Usually first tab
             const destroyableResource = createDestroyableResource(examplePresetType, {
               rootExampleElement,
               hotInstance: this,
