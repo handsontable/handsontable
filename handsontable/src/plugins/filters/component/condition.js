@@ -193,7 +193,7 @@ class ConditionComponent extends BaseComponent {
     let items = [getConditionDescriptor(CONDITION_NONE)];
 
     if (visualIndex !== null) {
-      items = getOptionsList(this.hot.getDataType(0, visualIndex));
+      items = getOptionsList(this.hot.getDataType(0, visualIndex, this.hot.countRows(), visualIndex));
     }
 
     arrayEach(this.getInputElements(), element => element.hide());

@@ -422,18 +422,18 @@ export class Filters extends BasePlugin {
   /**
    * Gets last selected column index.
    *
-   * @returns {object} Return `null` when column isn't selected otherwise
-   * object containing information about selected column with keys `visualIndex` and `physicalIndex`.
+   * @returns {{visualIndex: number | null, physicalIndex: number | null}} Return `null` when column isn't selected
+   * otherwise object containing information about selected column with keys `visualIndex` and `physicalIndex`.
    */
   getSelectedColumn() {
-    const selection = this.hot.getSelectedRangeLast()?.highlight;
+    const highlight = this.hot.getSelectedRangeLast()?.highlight;
     const selectedColumn = {
       visualIndex: null,
       physicalIndex: null,
     };
 
-    if (selection) {
-      selectedColumn.visualIndex = selection.col;
+    if (highlight) {
+      selectedColumn.visualIndex = highlight.col;
       selectedColumn.physicalIndex = this.hot.toPhysicalColumn(selectedColumn.visualIndex);
     }
 
@@ -446,10 +446,10 @@ export class Filters extends BasePlugin {
    * @private
    */
   clearColumnSelection() {
-    const coords = this.hot.getSelectedRangeLast()?.getTopStartCorner();
+    const { visualIndex } = this.getSelectedColumn();
 
-    if (coords !== void 0) {
-      this.hot.selectCell(coords.row, coords.col);
+    if (visualIndex !== null) {
+      this.hot.selectCell(0, visualIndex);
     }
   }
 
