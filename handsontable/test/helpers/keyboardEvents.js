@@ -71,14 +71,14 @@ const KEY_CODES_MAP = new Map([
  * @param {HTMLElement} options.target The DOM element that the event is dispatched from.
  * @param {boolean} options.ime Indicates whether the event needs to be dispatched as it would by IME.
  */
-export function handsontableKeyTriggerFactory(type, key, { extend, target, ime }) {
+export function keyTriggerFactory(type, key, { extend, target, ime }) {
   const ev = {};
 
   if (ime) {
     // emulates the event that happens while using IME
     ev.keyCode = 229;
   } else {
-    ev.keyCode = KEY_CODES_MAP.has(key) ?? key.codePointAt(0);
+    ev.keyCode = KEY_CODES_MAP.has(key) ? KEY_CODES_MAP.get(key) : key.codePointAt(0);
   }
 
   ev.key = key;
@@ -120,7 +120,7 @@ function triggerKeys(type) {
       extend.shiftKey = isKeyUp && key === 'shift' ? false : keys.includes('shift');
       extend.altKey = isKeyUp && key === 'alt' ? false : keys.includes('alt');
 
-      handsontableKeyTriggerFactory(type, key, { extend, target, ime });
+      keyTriggerFactory(type, key, { extend, target, ime });
     });
   };
 }
