@@ -204,7 +204,7 @@ class EditorManager {
       return;
     }
 
-    const { row, col } = this.instance.selection.selectedRange.current().highlight;
+    const { row, col } = this.instance.getSelectedRangeLast().highlight;
     const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', row, col);
     let visualRowToCheck = row;
     let visualColumnToCheck = col;
@@ -219,7 +219,7 @@ class EditorManager {
     const { activeElement } = this.instance.rootDocument;
 
     if (activeElement) {
-      // Bluring the activeElement removes unwanted border around the focusable element
+      // Blurring the activeElement removes unwanted border around the focusable element
       // (and resets activeElement prop). Without blurring the activeElement points to the
       // previously focusable element after clicking onto the cell (#6877).
       activeElement.blur();
@@ -232,19 +232,21 @@ class EditorManager {
     }
 
     const editorClass = this.instance.getCellEditor(this.cellProperties);
-    // Getting element using coordinates from the selection.
-    const td = this.instance.getCell(row, col, true);
 
-    if (editorClass && td) {
-      const prop = this.instance.colToProp(visualColumnToCheck);
+    if (editorClass) {
+      const td = this.instance.getCell(row, col, true);
 
-      const originalValue =
-        this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
+      // Skip editor preparation when the DOM element do not exist
+      if (td) {
+        const prop = this.instance.colToProp(visualColumnToCheck);
+        const originalValue =
+          this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
 
-      this.activeEditor = getEditorInstance(editorClass, this.instance);
-      // Using not modified coordinates, as we need to get the table element using selection coordinates.
-      // There is an extra translation in the editor for saving value.
-      this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
+        this.activeEditor = getEditorInstance(editorClass, this.instance);
+        // Using not modified coordinates, as we need to get the table element using selection coordinates.
+        // There is an extra translation in the editor for saving value.
+        this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
+      }
 
     } else {
       this.clearActiveEditor();
