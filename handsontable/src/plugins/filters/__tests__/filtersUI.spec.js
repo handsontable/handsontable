@@ -2252,8 +2252,8 @@ describe('Filters UI', () => {
 
       inputs[0].value = '1';
       inputs[1].value = '15';
-      keyUp('1', {}, inputs[0]);
-      keyUp('5', {}, inputs[1]);
+      keyUp('1', { target: inputs[0] });
+      keyUp('5', { target: inputs[1] });
       simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       await sleep(10);
