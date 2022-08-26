@@ -60,7 +60,9 @@ const getPreviewTab = (id, cssContent, htmlContent, code) => {
     content: `
       <tab name="Preview" id="preview-tab-${id}">
         <style v-pre>${cssContent}</style>
-        <div v-if="${renderElement}">${htmlContent}</div>
+        <template v-if="${renderElement}">
+          <div v-pre>${htmlContent}</div>
+        </template>
         <ScriptLoader v-if="${renderElement}" code="${code}"></ScriptLoader>
       </tab>
     `,
