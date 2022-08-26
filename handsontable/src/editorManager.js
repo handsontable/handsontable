@@ -233,23 +233,25 @@ class EditorManager {
 
     const editorClass = this.instance.getCellEditor(this.cellProperties);
 
-    if (editorClass) {
-      const td = this.instance.getCell(row, col, true);
-
-      // Skip editor preparation when the DOM element do not exist
-      if (td) {
-        const prop = this.instance.colToProp(visualColumnToCheck);
-        const originalValue =
-          this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
-
-        this.activeEditor = getEditorInstance(editorClass, this.instance);
-        // Using not modified coordinates, as we need to get the table element using selection coordinates.
-        // There is an extra translation in the editor for saving value.
-        this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
-      }
-
-    } else {
+    if (!editorClass || this.isCellHidden()) {
       this.clearActiveEditor();
+
+      return;
+    }
+
+    const td = this.instance.getCell(row, col, true);
+
+    // Skip the preparation when the cell is not rendered in the DOM. The cell is scrolled out of
+    // the table's viewport.
+    if (td) {
+      const prop = this.instance.colToProp(visualColumnToCheck);
+      const originalValue =
+        this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
+
+      this.activeEditor = getEditorInstance(editorClass, this.instance);
+      // Using not modified coordinates, as we need to get the table element using selection coordinates.
+      // There is an extra translation in the editor for saving value.
+      this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
     }
   }
 
@@ -273,7 +275,11 @@ class EditorManager {
       return;
     }
 
-    this.activeEditor.beginEditing(newInitialValue, event);
+    if (this.isCellHidden()) {
+      this.clearActiveEditor();
+    } else {
+      this.activeEditor.beginEditing(newInitialValue, event);
+    }
   }
 
   /**
@@ -317,6 +323,23 @@ class EditorManager {
    */
   clearActiveEditor() {
     this.activeEditor = void 0;
+  }
+
+  /**
+   * Checks if the currently selected cell is hidden.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isCellHidden() {
+    const { row, col } = this.instance.getSelectedRangeLast().highlight;
+    const {
+      rowIndexMapper,
+      columnIndexMapper
+    } = this.instance;
+
+    return rowIndexMapper.isHidden(this.instance.toPhysicalRow(row)) ||
+      columnIndexMapper.isHidden(this.instance.toPhysicalColumn(col));
   }
 
   /**
