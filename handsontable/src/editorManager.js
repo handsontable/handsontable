@@ -326,7 +326,7 @@ class EditorManager {
   }
 
   /**
-   * Checks if the currently selected cell is hidden.
+   * Checks if the currently selected cell (pointed by selection highlight coords) is hidden.
    *
    * @private
    * @returns {boolean}
