@@ -753,6 +753,17 @@ hot.getCellMeta(1, 1).readOnly;
 
 ::: only-for react
 ```jsx
+// Consider the HotTable component with the `cell` option declared:
+<HotTable
+  cell={[
+    {
+      row: 1,
+      col: 1,
+      readOnly: true
+    }
+  ]}
+/>
+
 // for cell (0, 0), the `readOnly` option is the default (`false`)
 // returns `false`
 hot.getCellMeta(0, 0).readOnly;

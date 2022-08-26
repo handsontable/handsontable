@@ -33,7 +33,7 @@ If you'd like to observe it, you can define the dimensions in the configuration 
 
 ### Pass the size in the configuration
 
-You can pass width and height values to Handsontable as CSS strings or numbers:
+You can pass width and height values to Handsontable as numbers or possible CSS values for the "width"/"height" properties:
 ::: only-for javascript
 ```js
 {
