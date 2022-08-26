@@ -349,12 +349,6 @@ class EditorManager {
 
     const { keyCode } = event;
 
-    // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
-    // character is entering (using IME editor). It is fired mainly on linux (ubuntu) with installed ibus-pinyin package.
-    if (keyCode === 229) {
-      return;
-    }
-
     if (!this.selection.isSelected()) {
       return;
     }
