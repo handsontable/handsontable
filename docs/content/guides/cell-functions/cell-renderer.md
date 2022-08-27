@@ -78,12 +78,12 @@ const RendererComponent = (props) => {
   // - `TD` (the HTML cell element)
   // - `cellProperties` (the `cellProperties` object for the edited cell)
   return (
-    <React.Fragment>
+    <>
       <i style={{ color: "#a9a9a9" }}>
         Row: {props.row}, column: {props.col},
       </i>{" "}
       value: {props.value}
-    </React.Fragment>
+    </>
   );
 }
 
@@ -91,14 +91,12 @@ const hotData = Handsontable.helper.createSpreadsheetData(10, 5);
 
 const ExampleComponent = () => {
   return (
-    <div>
     <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
       <HotColumn width={250}>
         {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
         <RendererComponent hot-renderer />
       </HotColumn>
     </HotTable>
-    </div>
   );
 };
 

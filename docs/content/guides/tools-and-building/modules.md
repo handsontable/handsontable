@@ -49,7 +49,13 @@ No matter which of the optional modules you use, you always need to import the b
 
 ### Import the base module
 
+::: only-for javascript
 To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the [full distribution package](@/guides/tools-and-building/packages.md)):
+:::
+
+::: only-for react
+To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the full distribution package):
+:::
 
 ```js
 import Handsontable from 'handsontable/base';

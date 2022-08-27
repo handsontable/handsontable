@@ -137,7 +137,7 @@ const internationalizationItems = [
 ];
 
 const buildingAndToolingItems = [
-  { path: 'guides/tools-and-building/packages' },
+  { path: 'guides/tools-and-building/packages', onlyFor: ['javascript'] },
   { path: 'guides/tools-and-building/modules' },
   { path: 'guides/tools-and-building/custom-plugins' },
   { path: 'guides/tools-and-building/custom-builds' },

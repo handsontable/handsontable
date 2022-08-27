@@ -232,6 +232,24 @@ The `example` Markdown container offers the following options:
 | `--no-edit`    | No       | `--no-edit`     | `--no-edit`                                                                                                                                                                                                                                                 | Removes the **Edit** button.                                                                          |
 | `--tab <tab>`  | No       | `--tab preview` | `code` \| `html` \| `css` \| `preview`                                                                                                                                                                                                                      | Sets a tab as open by default.                                                                        |
 
+### Finding the broken examples
+
+The `example-checker` script checks if:
+- Every example container's code initializes at least one Handsontable instance.
+- The number of Handsontable instances implemented in the example containers corresponds to the number of Handsontable instance DOM containers being rendered on the page.
+
+To use the `example-checker` script: (all the commands need to be run from the `docs` directory)
+1. Build the documentation. 
+  ```bash
+  npm run docs:build
+  ```
+2. Run the script:
+  ```bash
+  npm run docs:test:example-checker
+  ```
+
+The script is also automatically executed by the `Docs Staging Deployment` Github Actions workflow.
+
 ## React style guide
 
 When you edit React examples and code samples, follow the guidelines below.
@@ -270,3 +288,12 @@ For matters not covered here, follow the conventions of https://beta.reactjs.org
   const hotTableComponentRef = useRef(null);
   ```
 - In functional React components, use `useRef` instead of `React.createRef`.
+- For the React Fragments, use the `<>` shorthand instead of the explicit syntax (`<React.Fragment>`).
+  ```jsx
+    <>
+      <HotTable/>
+      <div className="controls">
+      // (...)
+      </div>
+    </>
+  ```
