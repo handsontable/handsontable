@@ -1,7 +1,7 @@
 ---
 title: Export to CSV
 metaTitle: Export to CSV - JavaScript Data Grid | Handsontable
-description: Export your grid's data to the CSV format, as a file, a blob, or a string. Customize your export using Handsontable's configuration options.
+description: Export your grid's data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
 permalink: /export-to-csv
 canonicalUrl: /export-to-csv
 tags:

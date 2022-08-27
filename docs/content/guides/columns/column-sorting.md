@@ -1,7 +1,7 @@
 ---
 title: Column sorting
 metaTitle: Column sorting - JavaScript Data Grid | Handsontable
-description: Sort your data in ascending, descending, or a custom order, across one or multiple columns of the data grid.
+description: Sort the view (not the source data) in ascending, descending, or a custom order, across one or multiple columns of the data grid.
 permalink: /column-sorting
 canonicalUrl: /column-sorting
 react:
