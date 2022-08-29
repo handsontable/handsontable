@@ -80,7 +80,7 @@ class EditorManager {
 
     // Open editor when text composition is started (IME editor)
     this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'compositionstart', (event) => {
-      if (!this.destroyed && this.activeEditor && !this.activeEditor.isOpened() && this.instance.isListening()) {
+      if (!this.destroyed && this.instance.isListening()) {
         this.openEditor('', event);
       }
     });
@@ -116,11 +116,7 @@ class EditorManager {
     gridContext.addShortcuts([{
       keys: [['F2']],
       callback: (event) => {
-        if (this.activeEditor) {
-          this.activeEditor.enableFullEditMode();
-        }
-
-        this.openEditor(null, event);
+        this.openEditor(null, event, true);
       },
     }, {
       keys: [['Backspace'], ['Delete']],
@@ -135,9 +131,8 @@ class EditorManager {
           if (this.cellProperties.readOnly) {
             this.moveSelectionAfterEnter();
 
-          } else if (this.activeEditor) {
-            this.activeEditor.enableFullEditMode();
-            this.openEditor(null, event);
+          } else {
+            this.openEditor(null, event, true);
           }
 
         } else {
@@ -225,15 +220,7 @@ class EditorManager {
       activeElement.blur();
     }
 
-    if (this.cellProperties.readOnly) {
-      this.clearActiveEditor();
-
-      return;
-    }
-
-    const editorClass = this.instance.getCellEditor(this.cellProperties);
-
-    if (!editorClass || this.isCellHidden()) {
+    if (!this.isCellEditable()) {
       this.clearActiveEditor();
 
       return;
@@ -244,6 +231,7 @@ class EditorManager {
     // Skip the preparation when the cell is not rendered in the DOM. The cell is scrolled out of
     // the table's viewport.
     if (td) {
+      const editorClass = this.instance.getCellEditor(this.cellProperties);
       const prop = this.instance.colToProp(visualColumnToCheck);
       const originalValue =
         this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
@@ -269,15 +257,31 @@ class EditorManager {
    *
    * @param {null|string} newInitialValue New value from which editor will start if handled property it's not the `null`.
    * @param {Event} event The event object.
+   * @param {boolean} [enableFullEditMode=false] When true, an editor works in full editing mode. Mode disallows closing an editor
+   *                                             when arrow keys are pressed.
    */
-  openEditor(newInitialValue, event) {
-    if (!this.activeEditor) {
+  openEditor(newInitialValue, event, enableFullEditMode = false) {
+    if (!this.isCellEditable()) {
+      this.clearActiveEditor();
+
       return;
     }
 
-    if (this.isCellHidden()) {
-      this.clearActiveEditor();
-    } else {
+    if (!this.activeEditor) {
+      const { row, col } = this.instance.getSelectedRangeLast().highlight;
+      const renderableRowIndex = this.instance.rowIndexMapper.getRenderableFromVisualIndex(row);
+      const renderableColumnIndex = this.instance.columnIndexMapper.getRenderableFromVisualIndex(col);
+
+      this.instance.view.scrollViewport(this.instance._createCellCoords(renderableRowIndex, renderableColumnIndex));
+      this.instance.view.render();
+      this.prepareEditor();
+    }
+
+    if (this.activeEditor) {
+      if (enableFullEditMode) {
+        this.activeEditor.enableFullEditMode();
+      }
+
       this.activeEditor.beginEditing(newInitialValue, event);
     }
   }
@@ -326,20 +330,30 @@ class EditorManager {
   }
 
   /**
-   * Checks if the currently selected cell (pointed by selection highlight coords) is hidden.
+   * It checks if the currently selected cell (pointed by selection highlight coords) is editable.
+   * Meaning of the editable cell:
+   *   - the cell has defined an editor type;
+   *   - the cell is not marked as read-only;
+   *   - the cell is not hidden.
    *
    * @private
    * @returns {boolean}
    */
-  isCellHidden() {
+  isCellEditable() {
+    const editorClass = this.instance.getCellEditor(this.cellProperties);
     const { row, col } = this.instance.getSelectedRangeLast().highlight;
     const {
       rowIndexMapper,
       columnIndexMapper
     } = this.instance;
-
-    return rowIndexMapper.isHidden(this.instance.toPhysicalRow(row)) ||
+    const isCellHidden = rowIndexMapper.isHidden(this.instance.toPhysicalRow(row)) ||
       columnIndexMapper.isHidden(this.instance.toPhysicalColumn(col));
+
+    if (this.cellProperties.readOnly || !editorClass || isCellHidden) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -428,10 +442,7 @@ class EditorManager {
   onCellDblClick(event, coords, elem) {
     // may be TD or TH
     if (elem.nodeName === 'TD') {
-      if (this.activeEditor) {
-        this.activeEditor.enableFullEditMode();
-      }
-      this.openEditor(null, event);
+      this.openEditor(null, event, true);
     }
   }
 
