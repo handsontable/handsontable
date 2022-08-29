@@ -66,7 +66,7 @@ function createRegister() {
     return null;
   }
 
-  const register = new Set();
+  const register = new Map();
 
   const listen = () => {
     try {
@@ -77,22 +77,12 @@ function createRegister() {
 
           if (rootExampleElement) {
             const examplePresetType = rootExampleElement.getAttribute('data-preset-type');
-            const tabsComponent = closest(this.rootElement, '.tabs-component');
-            const allTabs = tabsComponent.querySelectorAll('a');
-            const codeTab = Array.from(allTabs).find(tab => tab?.href?.startsWith('#code-tab')); // Usually first tab
-            const destroyableResource = createDestroyableResource(examplePresetType, {
+            const exampleId = rootExampleElement.getAttribute('data-example-id');
+
+            register.set(exampleId, createDestroyableResource(examplePresetType, {
               rootExampleElement,
               hotInstance: this,
-            });
-
-            codeTab?.addEventListener('click', () => {
-              if (register.has(destroyableResource)) {
-                register.delete(destroyableResource);
-                destroyableResource();
-              }
-            });
-
-            register.add(destroyableResource);
+            }));
           }
         });
       }
@@ -107,9 +97,16 @@ function createRegister() {
     register.clear();
   };
 
+  const destroyExample = (exampleId) => {
+    if (register.has(exampleId)) {
+      register.get(exampleId)();
+    }
+  };
+
   return {
     listen,
     destroyAll,
+    destroyExample,
   };
 }
 

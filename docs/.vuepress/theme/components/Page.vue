@@ -12,6 +12,7 @@
 </template>
 
 <script>
+/* global instanceRegister */
 import PageEdit from '@theme/components/PageEdit.vue';
 import PageNav from '@theme/components/PageNav.vue';
 
@@ -49,6 +50,7 @@ export default {
         parentContainer.className += ` ${changedClass}`; // Adding class by method compatible with IE
 
       } else {
+        instanceRegister.destroyExample(exampleId);
         this.activatedExamples = this.activatedExamples.filter(activatedExample => activatedExample !== exampleId);
       }
     },
