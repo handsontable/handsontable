@@ -98,7 +98,7 @@ const CHECK_TRIES = 15;
         while (
           (!pageEvaluation.result && tryCount < CHECK_TRIES) &&
           !pageEvaluation.elementsNotYetRendered
-          ) {
+        ) {
           tryCount += 1;
 
           // Wait for the HOT instances to initialize.
