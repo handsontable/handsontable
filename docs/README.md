@@ -38,13 +38,13 @@ To start a local Handsontable documentation server:
    ```bash
    npm run docs:start
    ```
-4. In your browser, go to: http://localhost:8080/docs/.
+4. In your browser, go to: http://localhost:8080/docs/next/.
 
 ## Documentation npm scripts:
 
 From the `docs` directory, you can run the following npm scripts:
 
-* `npm run docs:start` – Starts a local documentation server at `localhost:8080/docs/`.
+* `npm run docs:start` – Starts a local documentation server at `localhost:8080/docs/next/`.
 * `npm run docs:start:no-cache` – Starts a local documentation server without cache.
 * `npm run docs:api` – Generates the Handsontable API reference into `/content/api`.
 * `npm run docs:build` – Builds the documentation output into `/.vuepress/dist`.
@@ -56,6 +56,7 @@ From the `docs` directory, you can run the following npm scripts:
 * `npm run docs:lint:fix` – Runs ESLint on the `/next/` directory's content and auto-fixes problems.
 * `npm run docs:scripts:link-assets` – Prepares the `next` documentation version's CSS and JavaScript.
 * `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a `[COMMIT_HASH]` commit.
+* `npm run docs:test:example-checker` – Runs the tests that checks if all Docs examples work.
 
 ## Handsontable documentation directory structure
 
@@ -68,18 +69,20 @@ docs                            # All documentation files
 │   │   └── sourceCodeLink.js   # `source-code-link` container.
 │   ├── handsontable-manager    # A module that runs Handsontable examples in different Handsontable versions and frameworks
 │   ├── plugins                 # VuePress plugins
-|   |   ├── assets-versioning                  # Plugin responsible for copying from `docs/<semver.version>/public` to `dist/docs/<semver.version>/public` directory
+|   |   ├── active-header-links                # Plugin responsible for updating the URL with hash after scrolling the page to the nearest anchor
+|   |   ├── dump-docs-data                     # Plugin responsible for generating the all available Docs version and canonical URLs to the JSON file. Then, the file is consumed by other Docs Docker images as source of true about Docs versions and canonicals.
 |   |   ├── extend-page-data                   # Plugin responsible for extending `$page` object and rewriting some properties to add framework ID/name
 |   |   ├── generate-nginx-redirects           # Plugin responsible for generating nginx redirects
+|   |   ├── generate-nginx-variables           # Plugin responsible for generating nginx variables
 |   |   ├── markdown-it-header-injection       # Plugin responsible for injecting `<FRAMEWORK NAME> Data Grid` string before the first header
 |   |   ├── markdown-it-conditional-container  # Plugin responsible for creating conditional containers used for displaying/hiding blocks of content relevant to specific frameworks
 │   ├── public                  # The documentation's public (static) assets
 │   ├── theme                   # Theme overwrites and customizations
 │   ├── tools                   # Our custom documentation tools
+│   │   ├── build.mjs           # Builds the documentation for staging or production
 │   │   ├── check-links.js      # The documentation's link checker
 │   │   ├── jsdoc-convert       # JSDoc-to-Markdown converter
 │   │   ├── utils.js            # Tools utilities
-│   │   └── version             # A tool that creates new documentation versions
 │   ├── config.js               # VuePress configuration
 │   ├── docs-links.js           # Lets us link within the currently-selected docs version and framework with `@` (e.g. [link](@/guides/path/file.md).)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
