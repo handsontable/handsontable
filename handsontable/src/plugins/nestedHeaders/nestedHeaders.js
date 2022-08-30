@@ -461,8 +461,8 @@ export class NestedHeaders extends BasePlugin {
       columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
     }
 
-    // If there are no rendered rows, selecting columns causes a full headers redraw, blocking all the other
-    // `mouseDown`/`mouseUp`/`click` events callbacks.
+    // If there are no rendered rows, selecting columns causes a full headers redraw, blocking all the
+    // `click` events callbacks.
     // In that case -> wait with the selecting action until all the other callbacks had been called by adding it at
     // the top of the `click` event stack.
     if (this.hot.countRenderedRows() === 0) {
