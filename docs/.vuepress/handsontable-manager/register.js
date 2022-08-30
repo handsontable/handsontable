@@ -100,6 +100,7 @@ function createRegister() {
   const destroyExample = (exampleId) => {
     if (register.has(exampleId)) {
       register.get(exampleId)();
+      register.delete(exampleId);
     }
   };
 
