@@ -213,7 +213,7 @@ Note that some callbacks are checked on this page by default.
     }
   </style>
   <script>
-  useHandsontable(undefined, () => {
+  useHandsontable(DOCS_VERSION, () => {
     const config = {
       data: [
         ['', 'Tesla', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
