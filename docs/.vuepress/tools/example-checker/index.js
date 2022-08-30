@@ -54,7 +54,7 @@ const EXAMPLE_INIT_TIMEOUT = 500;
  *
  * @type {number}
  */
-const CHECK_TRIES = 7;
+const CHECK_TRIES = 20;
 
 (async() => {
   const FRAMEWORKS_TO_CHECK = getFrameworks();
@@ -95,13 +95,16 @@ const CHECK_TRIES = 7;
         let tryCount = 0;
 
         // If the test fails, do another try after a timeout (some instances might have not been initialized yet).
-        while (!pageEvaluation.result && tryCount < CHECK_TRIES) {
+        while (
+          (!pageEvaluation.result && tryCount < CHECK_TRIES) &&
+          !pageEvaluation.elementsNotYetRendered
+        ) {
           tryCount += 1;
 
           // Wait for the HOT instances to initialize.
           await sleep(EXAMPLE_INIT_TIMEOUT);
 
-          pageEvaluation = await page.evaluate(testCases[testIndex], permalink);
+          pageEvaluation = await page.evaluate(testCases[testIndex]);
         }
 
         if (pageEvaluation.error) {
