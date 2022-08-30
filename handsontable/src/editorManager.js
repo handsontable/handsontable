@@ -330,8 +330,8 @@ class EditorManager {
   }
 
   /**
-   * It checks if the currently selected cell (pointed by selection highlight coords) is editable.
-   * Meaning of the editable cell:
+   * Checks if the currently selected cell (pointed by selection highlight coords) is editable.
+   * Editable cell is when:
    *   - the cell has defined an editor type;
    *   - the cell is not marked as read-only;
    *   - the cell is not hidden.
@@ -395,7 +395,7 @@ class EditorManager {
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
 
-    if (this.activeEditor && !this.activeEditor.isWaiting()) {
+    if (!this.activeEditor || (this.activeEditor && !this.activeEditor.isWaiting())) {
       if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
         const shortcutManager = this.instance.getShortcutManager();
         const editorContext = shortcutManager.getContext('editor');
