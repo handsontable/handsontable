@@ -47,14 +47,14 @@ const FILE_SERVE_TIMEOUT = 300;
  *
  * @type {number}
  */
-const EXAMPLE_INIT_TIMEOUT = 500;
+const EXAMPLE_INIT_TIMEOUT = 100;
 
 /**
  * Number of tries to perform if the number of the rendered examples differs from the expected count.
  *
  * @type {number}
  */
-const CHECK_TRIES = 20;
+const CHECK_TRIES = 10;
 
 (async() => {
   const FRAMEWORKS_TO_CHECK = getFrameworks();
