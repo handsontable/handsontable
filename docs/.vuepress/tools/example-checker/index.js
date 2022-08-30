@@ -54,7 +54,7 @@ const EXAMPLE_INIT_TIMEOUT = 500;
  *
  * @type {number}
  */
-const CHECK_TRIES = 15;
+const CHECK_TRIES = 20;
 
 (async() => {
   const FRAMEWORKS_TO_CHECK = getFrameworks();
