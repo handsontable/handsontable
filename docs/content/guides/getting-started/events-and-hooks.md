@@ -166,148 +166,143 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 
 Note that some callbacks are checked on this page by default.
 
-::: example #example1 --css 1 --html 2 --js 3
-```css
-#example1_events {
-  height: 166px;
-  padding: 5px;
-  margin: 10px 0;
-  overflow-y: scroll;
-  font-size: 11px;
-  border: 1px solid #CCC;
-  box-sizing: border-box;
-}
-#example1 {
-  margin-top: 0;
-}
-#hooksList {
-  padding: 0;
-}
-
-#hooksList li {
-  list-style: none;
-  width: 33%;
-  display: inline-block;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-```
-```html
-<div id="example1"></div>
-<div id="example1_events"></div>
-
-<strong> Choose events to be logged:</strong>
-
-<ul id="hooksList">
-  <li><label><input type="checkbox" id="check_select_all">Select all</label></li>
-</ul>
-```
-```js
-const config = {
-  data: [
-    ['', 'Tesla', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
-    ['2017', 0, 2941, 4303, 354, 5814],
-    ['2018', 3, 2905, 2867, 412, 5284],
-    ['2019', 4, 2517, 4822, 552, 6127],
-    ['2020', 2, 2422, 5399, 776, 4151]
-  ],
-  minRows: 5,
-  minCols: 6,
-  height: 'auto',
-  stretchH: 'all',
-  minSpareRows: 1,
-  autoWrapRow: true,
-  colHeaders: true,
-  contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation'
-};
-
-const example1Events = document.getElementById("example1_events");
-const hooksList = document.getElementById('hooksList');
-const hooks = Handsontable.hooks.getRegistered();
-
-hooks.forEach(function(hook) {
-  let checked = '';
-
-  if (hook === 'afterChange' || hook === 'afterSelection' || hook === 'afterCreateRow' || hook === 'afterRemoveRow' || hook === 'afterCreateCol' || hook === 'afterRemoveCol') {
-    checked = 'checked';
-  }
-
-  hooksList.innerHTML += '<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"> ' + hook + '</label></li>';
-  config[hook] = function() {
-    log_events(hook, arguments);
-  }
-});
-
-const start = (new Date()).getTime();
-let i = 0;
-let timer;
-
-function log_events(event, data) {
-  if (document.getElementById('check_' + event).checked) {
-    const now = (new Date()).getTime();
-    const diff = now - start;
-    let str;
-
-    const vals = [ i, '@' + numbro(diff / 1000).format('0.000'), '[' + event + ']'];
-
-    for (let d = 0; d < data.length; d++) {
-      try {
-        str = JSON.stringify(data[d]);
-      } catch (e) {
-        str = data[d].toString(); // JSON.stringify breaks on circular reference to a HTML node
-      }
-
-      if (str === void 0) {
-        continue;
-      }
-      if (str.length > 20) {
-        str = data[d].toString();
-      }
-      if (d < data.length - 1) {
-        str += ',';
-      }
-
-      vals.push(str);
+<div class="example-container">
+  <div class="example-table-container">
+    <div id="example1"></div>
+  </div>
+  <div id="example1_events"></div>
+  <strong> Choose events to be logged:</strong>
+  <ul id="hooksList">
+    <li><label><input type="checkbox" id="check_select_all">Select all</label></li>
+  </ul>
+  <style>
+    .example-table-container {
+      padding: 10px;
+      background-color: white;
     }
-
-    if (window.console) {
-      console.log(i, '@' + numbro(diff / 1000).format('0.000'), '[' + event + ']', data);
+    #example1_events {
+      height: 166px;
+      padding: 5px;
+      margin: 10px 0;
+      overflow-y: scroll;
+      font-size: 11px;
+      border: 1px solid #CCC;
+      box-sizing: border-box;
     }
-
-    const div = document.createElement('div');
-    const text = document.createTextNode(vals.join(' '));
-    div.appendChild(text);
-    example1Events.appendChild(div);
-    clearTimeout(timer);
-    timer = setTimeout(function() {
-      example1Events.scrollTop = example1Events.scrollHeight;
-    }, 10);
-
-    i++;
-  }
-}
-
-const example1 = document.getElementById('example1');
-const hot = new Handsontable(example1, config);
-
-document.querySelector('#check_select_all').addEventListener('click', function () {
-  const state = this.checked;
-  const inputs = document.querySelectorAll('#hooksList input[type=checkbox]');
-  Array.prototype.forEach.call(inputs, function (input) {
-    input.checked = state;
+    #example1_events div {
+      padding: 4px 0;
+    }
+    #example1_events div:nth-child(odd) {
+      background-color: rgba(255, 255 ,255, 0.1);
+    }
+    #example1 {
+      margin-top: 0;
+    }
+    #hooksList {
+      padding: 0;
+      height: 300px;
+      overflow: auto;
+    }
+    #hooksList li {
+      list-style: none;
+      width: 33%;
+      display: inline-block;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+  </style>
+  <script>
+  useHandsontable(undefined, () => {
+    const config = {
+      data: [
+        ['', 'Tesla', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
+        ['2017', 0, 2941, 4303, 354, 5814],
+        ['2018', 3, 2905, 2867, 412, 5284],
+        ['2019', 4, 2517, 4822, 552, 6127],
+        ['2020', 2, 2422, 5399, 776, 4151]
+      ],
+      minRows: 5,
+      minCols: 6,
+      height: 'auto',
+      stretchH: 'all',
+      minSpareRows: 1,
+      autoWrapRow: true,
+      colHeaders: true,
+      contextMenu: true,
+      licenseKey: 'non-commercial-and-evaluation'
+    };
+    const example1Events = document.getElementById("example1_events");
+    const hooksList = document.getElementById('hooksList');
+    const hooks = Handsontable.hooks.getRegistered();
+    hooks.forEach(function(hook) {
+      let checked = '';
+      if (hook === 'afterChange' || hook === 'afterSelection' || hook === 'afterCreateRow' || hook === 'afterRemoveRow' ||
+        hook === 'afterCreateCol' || hook === 'afterRemoveCol') {
+        checked = 'checked';
+      }
+      hooksList.innerHTML += '<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"> ' + hook + '</label></li>';
+      config[hook] = function() {
+        log_events(hook, arguments);
+      }
+    });
+    const start = (new Date()).getTime();
+    let i = 0;
+    let timer;
+    function log_events(event, data) {
+      if (document.getElementById('check_' + event).checked) {
+        const now = (new Date()).getTime();
+        const diff = now - start;
+        let str;
+        const vals = [ i, '@' + numbro(diff / 1000).format('0.000'), '[' + event + ']'];
+        for (let d = 0; d < data.length; d++) {
+          try {
+            str = JSON.stringify(data[d]);
+          } catch (e) {
+            str = data[d].toString();
+          }
+          if (str === void 0) {
+            continue;
+          }
+          if (str.length > 20) {
+            str = data[d].toString();
+          }
+          if (d < data.length - 1) {
+            str += ',';
+          }
+          vals.push(str);
+        }
+        if (window.console) {
+          console.log(i, '@' + numbro(diff / 1000).format('0.000'), '[' + event + ']', data);
+        }
+        const div = document.createElement('div');
+        const text = document.createTextNode(vals.join(' '));
+        div.appendChild(text);
+        example1Events.appendChild(div);
+        clearTimeout(timer);
+        timer = setTimeout(function() {
+          example1Events.scrollTop = example1Events.scrollHeight;
+        }, 10);
+        i++;
+      }
+    }
+    const example1 = document.getElementById('example1');
+    const hot = new Handsontable(example1, config);
+    document.querySelector('#check_select_all').addEventListener('click', function () {
+      const state = this.checked;
+      const inputs = document.querySelectorAll('#hooksList input[type=checkbox]');
+      Array.prototype.forEach.call(inputs, function (input) {
+        input.checked = state;
+      });
+    });
+    document.querySelector('#hooksList input[type=checkbox]').addEventListener('click', function () {
+      if (!this.checked) {
+        document.getElementById('check_select_all').checked = false;
+      }
+    });
   });
-});
-
-document.querySelector('#hooksList input[type=checkbox]').addEventListener('click', function () {
-  if (!this.checked) {
-    document.getElementById('check_select_all').checked = false;
-  }
-});
-```
-:::
-
+  </script>
+</div>
 
 ## Definition for `source` argument
 
