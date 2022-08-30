@@ -298,19 +298,19 @@ class Selection {
       // are hidden that visual coordinates are translated to renderable coordinates that do not exist.
       // Hence no header highlight is generated. In that case, to make a column (or a row) header
       // highlight, the row and column index has to point to the header (the negative value). See #7052.
-      const areAnyRowsRendered = this.tableProps.countRowsTranslated() === 0;
-      const areAnyColumnsRendered = this.tableProps.countColsTranslated() === 0;
+      const areNoRowsRendered = this.tableProps.countRowsTranslated() === 0;
+      const areNoColumnsRendered = this.tableProps.countColsTranslated() === 0;
       let headerCellRange = cellRange;
 
-      if (areAnyRowsRendered || areAnyColumnsRendered) {
+      if (areNoRowsRendered || areNoColumnsRendered) {
         headerCellRange = cellRange.clone();
       }
 
-      if (areAnyRowsRendered) {
+      if (areNoRowsRendered) {
         headerCellRange.from.row = -1;
       }
 
-      if (areAnyColumnsRendered) {
+      if (areNoColumnsRendered) {
         headerCellRange.from.col = -1;
       }
 
