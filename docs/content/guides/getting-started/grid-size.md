@@ -107,13 +107,17 @@ You can easily overwrite this behaviour by returning `false` in the [`beforeRefr
 
 The Handsontable instance exposes the [`refreshDimensions()`](@/api/core.md#refreshdimensions) method, which helps you to resize grid elements properly.
 
-::: only-for
-```js
-const hot = new Handsontable(...);
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+:::
+
+```js
 hot.refreshDimensions();
 ```
-:::
 
 You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) and [`afterRefreshDimensions`](@/api/hooks.md#afterrefreshdimensions).
 
