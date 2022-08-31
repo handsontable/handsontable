@@ -6,6 +6,7 @@ canonicalUrl: /saving-data
 tags:
   - load and save
   - server
+  - ajax
 ---
 
 # Saving data
@@ -19,7 +20,7 @@ Persistent state storage is particularly useful when running multiple instances 
 
 To track changes made in your data grid, use Handsontable's [`afterChange`](@/api/hooks.md#afterchange) hook.
 
-The example below handles data by using Ajax. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
+The example below handles data by using `fetch`. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
 
 ::: only-for javascript
 ::: example #example1 --html 1 --js 2
