@@ -48,8 +48,20 @@ export default async({ router, siteData, isServer }) => {
     return;
   }
 
-  const currentVersion = siteData.pages[0].currentVersion;
-  const buildMode = siteData.pages[0].buildMode;
+  const {
+    currentVersion,
+    buildMode,
+    defaultFramework,
+    frameworkSuffix,
+  } = siteData.pages[0];
+
+  // in watch mode redirect to page with default framework
+  if (location.pathname === '/docs/next/' && !buildMode) {
+    location.replace(`${location.href}${defaultFramework}${frameworkSuffix}`);
+
+    return;
+  }
+
   let pathVersion = '';
 
   if (buildMode !== 'production') {
