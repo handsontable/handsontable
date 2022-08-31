@@ -43,7 +43,7 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
-To apply configuration options, pass them as individual props of the [`HotTable`](@/getting-started/installation.md##hottable-component) or [`HotColumn`](@/columns/react-hot-column.md) components.
+To apply configuration options, pass them as individual props of the [`HotTable`](@/guides/getting-started/installation.md##hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
 
 ```jsx
 <HotTable
@@ -135,7 +135,7 @@ To apply configuration options to the entire grid:
 :::
 
 ::: only-for react
-- Pass your options as individual props of the [`HotTable`](@/getting-started/installation.md##hottable-component) or [`HotColumn`](@/columns/react-hot-column.md) components.
+- Pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation.md##hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
 - You can also pass your options as an object, using the `settings` prop.
 :::
 
@@ -281,7 +281,7 @@ To apply configuration options to an individual column (or a range of columns), 
   ]}
 />
 ```
-Alternatively, you can use the [`HotColumn`](@/columns/react-hot-column.md) component to configure columns declaratively:
+Alternatively, you can use the [`HotColumn`](@/guides/columns/react-hot-column.md) component to configure columns declaratively:
 ```jsx
 <HotTable>
   <HotColumn width={100}/>
