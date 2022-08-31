@@ -231,7 +231,6 @@ export interface Events {
   modifyRowHeader?: (row: number) => void;
   modifyRowHeaderWidth?: (rowHeaderWidth: number) => void;
   modifyRowHeight?: (height: number, row: number) => void;
-  modifyRowSourceData?: (row: number) => void;
   modifySourceData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyTransformEnd?: (delta: CellCoords) => void;
   modifyTransformStart?: (delta: CellCoords) => void;
