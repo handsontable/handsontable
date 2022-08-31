@@ -242,10 +242,16 @@ const hot = new Handsontable(container, {
 :::
 :::
 
+:::
+
 ::: only-for react
-## `HotTable` component
+<br/>
+## HotTable component
 
 The main Handsontable component is called `HotTable`.
+```jsx
+import { HotTable } from '@handsontable/react';
+```
 
 To set Handsontable's [configuration options](@/guides/getting-started/setting-options.md), use `HotTable`'s props. For example:
 
@@ -257,6 +263,14 @@ To set Handsontable's [configuration options](@/guides/getting-started/setting-o
   height="auto"
   licenseKey="non-commercial-and-evaluation" // for non-commercial use only
 />
+```
+
+## Import Handsontable's CSS
+
+Import Handsontable's CSS into your application.
+
+```jsx
+import 'handsontable/dist/handsontable.full.css';
 ```
 
 ## Basic example

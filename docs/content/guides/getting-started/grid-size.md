@@ -99,7 +99,7 @@ You can easily overwrite this behaviour by returning `false` in the [`beforeRefr
 
 The Handsontable instance exposes the [`refreshDimensions()`](@/api/core.md#refreshdimensions) method, which helps you to resize grid elements properly.
 
-::: only-for javascript
+::: only-for
 ```js
 const hot = new Handsontable(...);
 
