@@ -1,8 +1,9 @@
 ---
-title: 'Setting up a translation in Angular'
-metaTitle: 'Setting up a translation in Angular - Guide - Handsontable Documentation'
-permalink: /angular-setting-up-a-language
-canonicalUrl: /angular-setting-up-a-language
+title: Setting up a translation in Angular
+metaTitle: Setting up a translation - Angular Data Grid | Handsontable
+description: Configure your Angular data grid with different number formats, depending on the specified language and culture.
+permalink: /angular-setting-up-a-translation
+canonicalUrl: /angular-setting-up-a-translation
 ---
 
 # Setting up a translation in Angular

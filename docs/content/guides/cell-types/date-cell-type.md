@@ -1,8 +1,11 @@
 ---
 title: Date cell type
-metaTitle: Date cell type - Guide - Handsontable Documentation
+metaTitle: Date cell type - JavaScript Data Grid | Handsontable
+description: Use the date cell type to display, format, and validate date values. Pick a date using an interactive pop-up editor.
 permalink: /date-cell-type
 canonicalUrl: /date-cell-type
+react:
+  metaTitle: Date cell type - React Data Grid | Handsontable
 ---
 
 # Date cell type

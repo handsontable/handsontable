@@ -1,11 +1,15 @@
 ---
 title: Demo
-metaTitle: Demo - Guide - Handsontable Documentation
+metaTitle: Demo - JavaScript Data Grid | Handsontable
+description: Play around with a demo of Handsontable, in your favorite framework.
 permalink: /demo
 canonicalUrl: /demo
 tags:
   - demo
   - hello world
+react:
+  metaTitle: Demo - React Data Grid | Handsontable
+  description: Play around with a demo of Handsontable in React.
 ---
 
 # Demo

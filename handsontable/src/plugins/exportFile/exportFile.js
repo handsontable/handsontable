@@ -10,8 +10,7 @@ export const PLUGIN_PRIORITY = 240;
  * @class ExportFile
  *
  * @description
- * The plugin enables exporting table data to file. It allows to export data as a string, blob or a downloadable file in
- * CSV format.
+ * The `ExportFile` plugin lets you export table data as a string, blob, or downloadable CSV file.
  *
  * See [the export file demo](@/guides/accessories-and-menus/export-to-csv.md) for examples.
  *
@@ -94,7 +93,7 @@ export class ExportFile extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link ExportFile#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link ExportFile#enablePlugin} method is called.
    *
    * @returns {boolean}
    */

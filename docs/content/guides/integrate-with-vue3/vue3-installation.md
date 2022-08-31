@@ -1,6 +1,7 @@
 ---
-title: 'Installation in Vue 3'
-metaTitle: 'Installation in Vue 3 - Guide - Handsontable Documentation'
+title: Installation in Vue 3
+metaTitle: Installation - Vue 3 Data Grid | Handsontable
+description: Install Handsontable's Vue 3 wrapper via npm, import the stylesheets, and get your application up and running.
 permalink: /vue3-installation
 canonicalUrl: /vue3-installation
 ---

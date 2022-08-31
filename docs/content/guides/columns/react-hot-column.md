@@ -1,6 +1,7 @@
 ---
-title: 'HotColumn component'
-metaTitle: 'HotColumn component - Guide - Handsontable Documentation'
+title: HotColumn component
+metaTitle: HotColumn component - React Data Grid | Handsontable
+description: Configure the React data grid's columns, using the props of the "HotColumn" component. Pass your component as a custom cell editor or a custom cell renderer.
 permalink: /hot-column
 canonicalUrl: /hot-column
 ---

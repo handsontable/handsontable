@@ -1,10 +1,13 @@
 ---
 title: Column filter
-metaTitle: Column filter - Guide - Handsontable Documentation
+metaTitle: Column filter - JavaScript Data Grid | Handsontable
+description: Filter your data by a value or by a combination of conditions. Customize the filter menu, using the available API methods.
 permalink: /column-filter
 canonicalUrl: /column-filter
 tags:
   - filtering data
+react:
+  metaTitle: Column filter - React Data Grid | Handsontable
 ---
 
 # Column filter

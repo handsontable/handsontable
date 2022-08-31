@@ -1,11 +1,14 @@
 ---
-title: 'Redux'
-metaTitle: 'Redux - Guide - Handsontable Documentation'
+title: Integration with Redux
+metaTitle: Integration with Redux - JavaScript Data Grid | Handsontable
+description: Use the Redux state container to maintain the data and configuration options of your React data grid.
 permalink: /redux
 canonicalUrl: /redux
+react:
+  metaTitle: Integration with Redux - React Data Grid | Handsontable
 ---
 
-# Redux
+# Integration with Redux
 
 [[toc]]
 
