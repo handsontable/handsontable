@@ -40,12 +40,16 @@ You can pass width and height values to Handsontable as numbers or possible CSS 
   width: '100px',
   height: '100px',
 }
+```
 or
+```js
 {
   width: '75%',
   height: '75%',
 }
-or 
+```
+or
+```js 
 {
   width: 100,
   height: 100,
@@ -56,9 +60,13 @@ or
 ::: only-for react
 ```jsx
   <HotTable height={100} width={100} />
+```
 or
+```jsx
   <HotTable height="75%" width="75%" />
+```
 or
+```jsx
   <HotTable height="100px" width="100px" /> 
 ```
 :::
