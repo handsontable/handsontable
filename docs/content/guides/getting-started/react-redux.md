@@ -8,7 +8,7 @@ react:
   metaTitle: Integration with Redux - React Data Grid | Handsontable
 ---
 
-# Redux
+# Integration with Redux
 
 [[toc]]
 
