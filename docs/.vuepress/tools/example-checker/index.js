@@ -104,7 +104,7 @@ const CHECK_TRIES = 10;
           // Wait for the HOT instances to initialize.
           await sleep(EXAMPLE_INIT_TIMEOUT);
 
-          pageEvaluation = await page.evaluate(testCases[testIndex]);
+          pageEvaluation = await page.evaluate(testCases[testIndex], permalink);
         }
 
         if (pageEvaluation.error) {
