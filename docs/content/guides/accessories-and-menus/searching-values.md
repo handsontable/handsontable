@@ -1,11 +1,14 @@
 ---
 title: Searching values
-metaTitle: Searching values - Guide - Handsontable Documentation
+metaTitle: Searching values - JavaScript Data Grid | Handsontable
+description: Type the text you are looking for in the search bar to highlight the desired values. Use API methods to implement the search bar outside of the data grid.
 permalink: /searching-values
 canonicalUrl: /searching-values
 tags:
   - find values
   - highlight values
+react:
+  metaTitle: Searching values - React Data Grid | Handsontable
 ---
 
 # Searching values
@@ -245,7 +248,7 @@ searchField.addEventListener('keyup', function(event) {
 :::
 
 ::: only-for react
-::: example #example2 --css 1 --js 2 :react
+::: example #example2 :react --css 1 --js 2
 ````css
 .my-custom-search-result-class{
   color: #ff0000;

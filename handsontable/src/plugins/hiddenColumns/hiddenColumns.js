@@ -45,6 +45,7 @@ export const PLUGIN_PRIORITY = 310;
  *
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -80,6 +81,50 @@ export const PLUGIN_PRIORITY = 310;
  * // to see your changes, re-render your Handsontable instance
  * hot.render();
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * const hotRef = useRef();
+ *
+ * ...
+ *
+ * <HotTable
+ *   ref={hotRef}
+ *   data={getData()}
+ *   hiddenColumns={{
+ *     copyPasteEnabled: true,
+ *     indicators: true,
+ *     columns: [1, 2, 5]
+ *   }}
+ * />
+ *
+ * // access the `HiddenColumns` plugin's instance
+ * const hot = hotRef.current.hotInstance;
+ * const hiddenColumnsPlugin = hot.getPlugin('hiddenColumns');
+ *
+ * // hide a single column
+ * hiddenColumnsPlugin.hideColumn(1);
+ *
+ * // hide multiple columns
+ * hiddenColumnsPlugin.hideColumn(1, 2, 9);
+ *
+ * // hide multiple columns as an array
+ * hiddenColumnsPlugin.hideColumns([1, 2, 9]);
+ *
+ * // unhide a single column
+ * hiddenColumnsPlugin.showColumn(1);
+ *
+ * // unhide multiple columns
+ * hiddenColumnsPlugin.showColumn(1, 2, 9);
+ *
+ * // unhide multiple columns as an array
+ * hiddenColumnsPlugin.showColumns([1, 2, 9]);
+ *
+ * // to see your changes, re-render your Handsontable instance
+ * hot.render();
+ * ```
+ * :::
  */
 export class HiddenColumns extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -107,7 +152,7 @@ export class HiddenColumns extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link HiddenColumns#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link HiddenColumns#enablePlugin} method is called.
    *
    * @returns {boolean}
    */

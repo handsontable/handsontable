@@ -1,14 +1,17 @@
 ---
 title: Instance methods
-metaTitle: Instance methods - Guide - Handsontable Documentation
-permalink: /methods
-canonicalUrl: /methods
+metaTitle: Instance methods - JavaScript Data Grid | Handsontable
+description: Reference the Handsontable instance from a React component, to programmatically perform actions such as selecting cells.
+permalink: /instance-methods
+canonicalUrl: /instance-methods
 tags:
   - referring
   - referencing
   - ref
   - instance
   - methods
+react:
+  metaTitle: Instance methods - React Data Grid | Handsontable
 ---
 
 # Instance methods

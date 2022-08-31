@@ -1,6 +1,7 @@
 ---
 title: Language
-metaTitle: Language - Guide - Handsontable Documentation
+metaTitle: Language - JavaScript Data Grid | Handsontable
+description: Set Handsontable's UI language to one of the built-in translations, or create your own language set using our templates.
 permalink: /language
 canonicalUrl: /language
 tags:
@@ -9,6 +10,8 @@ tags:
   - translation
   - L10n
   - i18n
+react:
+  metaTitle: Language - React Data Grid | Handsontable
 ---
 
 # Language

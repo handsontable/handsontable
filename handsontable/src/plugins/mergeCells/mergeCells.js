@@ -33,6 +33,7 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  *
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
  *  data: getData(),
@@ -42,6 +43,21 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  *    {row: 4, col: 8, rowspan: 3, colspan: 3}
  *  ],
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={getData()}
+ *   // enable plugin
+ *   mergeCells={[
+ *    {row: 0, col: 3, rowspan: 3, colspan: 3},
+ *    {row: 2, col: 6, rowspan: 2, colspan: 2},
+ *    {row: 4, col: 8, rowspan: 3, colspan: 3}
+ *   ]}
+ * />
+ * ```
+ * :::
  */
 export class MergeCells extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -84,7 +100,7 @@ export class MergeCells extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link MergeCells#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link MergeCells#enablePlugin} method is called.
    *
    * @returns {boolean}
    */

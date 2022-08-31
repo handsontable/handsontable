@@ -1,8 +1,11 @@
 ---
 title: Cell editor
-metaTitle: Cell editor - Guide - Handsontable Documentation
+metaTitle: Cell editor - JavaScript Data Grid | Handsontable
+description: Create a custom cell editor function, to have full control over how editing works in the cells of your data grid.
 permalink: /cell-editor
 canonicalUrl: /cell-editor
+react:
+  metaTitle: Cell editor - React Data Grid | Handsontable
 ---
 
 # Cell editor
@@ -274,7 +277,7 @@ We will discuss each of those tasks in detail.
 ##### Selecting proper editor for an active cell
 :::
 
-When user selects a cell [`EditorManager`](@/api/baseEditor.md) finds the editor class assigned to this cell, examining the value of the [`editor`](@/api/options.md#editor) configuration option. You can define the [`editor`](@/api/options.md#editor) configuration option globally (for all cells in table), per column (for all cells in column) or for each cell individually. For more details, see the [Configuration options](@/guides/getting-started/setting-options.md#cascading-configuration) guide.
+When user selects a cell [`EditorManager`](@/api/baseEditor.md) finds the editor class assigned to this cell, examining the value of the [`editor`](@/api/options.md#editor) configuration option. You can define the [`editor`](@/api/options.md#editor) configuration option globally (for all cells in table), per column (for all cells in column) or for each cell individually. For more details, see the [Configuration options](@/guides/getting-started/configuration-options.md#cascading-configuration) guide.
 
 The value of the [`editor`](@/api/options.md#editor) configuration option can be either a string representing an editor (such as 'text', 'autocomplete', 'checkbox' etc.), or an editor class. [`EditorManager`](@/api/baseEditor.md) will then get an instance of editor class and the first very important thing to remember is: **there is always one instance of certain editor class in a single table**, in other words each editor class object **is a singleton** within a single table, which means that its constructor will be invoked only once per table. If you have 3 tables on a page, each table will have its own instance of editor class. This has some important implications that you have to consider creating your own editor.
 

@@ -1,6 +1,7 @@
 ---
 title: Disabled cells
-metaTitle: Disabled cells - Guide - Handsontable Documentation
+metaTitle: Disabled cells - JavaScript Data Grid | Handsontable
+description: Make a specific cell or a range of cells read-only to protect them from unwanted changes but still allow navigation and copying of data.
 permalink: /disabled-cells
 canonicalUrl: /disabled-cells
 tags:
@@ -9,6 +10,8 @@ tags:
   - non-editable
   - noneditable
   - locked
+react:
+  metaTitle: Disabled cells - React Data Grid | Handsontable
 ---
 
 # Disabled cells

@@ -17,6 +17,7 @@ export const PLUGIN_PRIORITY = 330;
  * data is not visible to other plugins.
  *
  * @example
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -49,6 +50,47 @@ export const PLUGIN_PRIORITY = 330;
  * // rerender table to see the changes
  * hot.render();
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * const hotRef = useRef();
+ *
+ * ...
+ *
+ * <HotTable
+ *   ref={hotRef}
+ *   data={getData()}
+ *   // hide selected rows on table initialization
+ *   trimRows={[1, 2, 5]}
+ * />
+ *
+ * const hot = hotRef.current.hotInstance;
+ * // access the trimRows plugin instance
+ * const trimRowsPlugin = hot.getPlugin('trimRows');
+ *
+ * // hide single row
+ * trimRowsPlugin.trimRow(1);
+ *
+ * // hide multiple rows
+ * trimRowsPlugin.trimRow(1, 2, 9);
+ *
+ * // or as an array
+ * trimRowsPlugin.trimRows([1, 2, 9]);
+ *
+ * // show single row
+ * trimRowsPlugin.untrimRow(1);
+ *
+ * // show multiple rows
+ * trimRowsPlugin.untrimRow(1, 2, 9);
+ *
+ * // or as an array
+ * trimRowsPlugin.untrimRows([1, 2, 9]);
+ *
+ * // rerender table to see the changes
+ * hot.render();
+ * ```
+ * :::
  */
 export class TrimRows extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -71,7 +113,7 @@ export class TrimRows extends BasePlugin {
   }
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link AutoRowSize#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link AutoRowSize#enablePlugin} method is called.
    *
    * @returns {boolean}
    */

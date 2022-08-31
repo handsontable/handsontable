@@ -1,6 +1,7 @@
 ---
 title: Testing
-metaTitle: Testing - Guide - Handsontable Documentation
+metaTitle: Testing - JavaScript Data Grid | Handsontable
+description: Run one or multiple tests, using Handsontable's ready-made commands for Jasmine and Puppeteer.
 permalink: /testing
 canonicalUrl: /testing
 tags:
@@ -10,7 +11,8 @@ tags:
   - end to end test
   - puppeteer
   - spec
-  -
+react:
+  metaTitle: Testing - React Data Grid | Handsontable
 ---
 
 # Testing
@@ -58,4 +60,6 @@ Keep in mind that running wrapper tests require building the Handsontable (`npm 
 ## Related guides
 
 - [Building](@/guides/tools-and-building/custom-builds.md)
+::: only-for javascript
 - [Packages](@/guides/tools-and-building/packages.md)
+:::
