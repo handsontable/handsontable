@@ -63,7 +63,7 @@ hot.addHook('modifyColWidth', (width, column) => {
 
 Note that the first argument is the current width that we're going to modify. Later arguments are immutable, and additional information can be used to decide whether the data should be modified.
 
-## Handsontable Hooks
+## Handsontable hooks
 
 We refer to all callbacks as "Handsontable hooks" because, although they share some characteristics with events and middleware, they combine them both in a unique structure. You may already be familiar with the concept as we're not the only ones that use the hooks convention.
 
