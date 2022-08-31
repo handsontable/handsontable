@@ -63,7 +63,7 @@ const hot = new Handsontable(container, {
 
     fetch('{{$basePath}}/scripts/json/save.json')
       .then(response => {
-        exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
+        exampleConsole.innerText = `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`;
       });
   }
 });
@@ -174,7 +174,7 @@ const ExampleComponent = () => {
 
           fetch('{{$basePath}}/scripts/json/save.json')
             .then(response => {
-              setOutput('Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')');
+              setOutput(`Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`);
             });
         }}
       />
