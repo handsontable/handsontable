@@ -1,15 +1,54 @@
 <template>
-  <div class="example-container">
-    <div id="example"></div>
-    <script defer src="https://examples.handsontable.com/examples/12.1.1/docs/js/demo/src.3f3ef8b8.js"></script>
-    <style>
-      @import 'https://examples.handsontable.com/examples/12.1.1/docs/js/demo/src.4d67a99b.css';
-    </style>
-  </div>
+  <div class="example-container" style="height: 450px"></div>
 </template>
 
 <script>
+import { convertRelativeToAbsoluteAttributeUrl } from "./demo-common";
+
 export default {
-  name: 'DemoJS',
+  name: "DemoJS",
+  props: {
+    fullVersionNumber: {
+      required: true,
+    },
+  },
+  mounted() {
+    const url = `https://examples.handsontable.com/examples/${this.fullVersionNumber}/docs/js/demo/index.html`;
+    fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((html) => {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, "text/html");
+
+        const headNodes = Array.from(doc.head.childNodes).filter((node) => {
+          if (node.nodeName == "LINK" && node.rel === "stylesheet") {
+            convertRelativeToAbsoluteAttributeUrl(node, node, "href", url);
+            return true;
+          }
+          return false;
+        });
+
+        const bodyNodes = Array.from(doc.body.childNodes).map((node) => {
+          if (node.nodeName == "SCRIPT") {
+            // scripts need to be cloned, otherwise Chrome refuses to run them
+            const newNode = document.createElement("script");
+            if (node.hasAttribute("src")) {
+              convertRelativeToAbsoluteAttributeUrl(node, newNode, "src", url);
+            }
+            newNode.innerText = node.innerText;
+            return newNode;
+          }
+          return node;
+        });
+
+        this.$el.append(...headNodes, ...bodyNodes);
+      })
+      .catch(function (err) {
+        // There was an error
+        console.warn("Something went wrong.", err);
+      });
+  },
 };
 </script>

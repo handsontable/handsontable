@@ -14,19 +14,15 @@ tags:
 
 ::: only-for javascript
 Play around with a demo of Handsontable, in your favorite framework.
+
+<DemoJS fullVersionNumber="12.1.1" />
 :::
 
 ::: only-for react
 Play around with a demo of Handsontable, in React.
+
+<DemoReact fullVersionNumber="12.1.1" />
 :::
-
-JS
-
-<DemoJS />
-
-React
-
-<DemoReact />
 
 ## Find the code on GitHub
 
