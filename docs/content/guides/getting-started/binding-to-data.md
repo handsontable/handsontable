@@ -62,16 +62,18 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
+  const data = [
+    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+    ['2017', 10, 11, 12, 13, 15, 16],
+    ['2018', 10, 11, 12, 13, 15, 16],
+    ['2019', 10, 11, 12, 13, 15, 16],
+    ['2020', 10, 11, 12, 13, 15, 16],
+    ['2021', 10, 11, 12, 13, 15, 16]
+  ];
+
   return (
     <HotTable
-      data={[
-        ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-        ['2017', 10, 11, 12, 13, 15, 16],
-        ['2018', 10, 11, 12, 13, 15, 16],
-        ['2019', 10, 11, 12, 13, 15, 16],
-        ['2020', 10, 11, 12, 13, 15, 16],
-        ['2021', 10, 11, 12, 13, 15, 16]
-      ]}
+      data={data}
       startRows={5}
       startCols={5}
       height="auto"
@@ -139,16 +141,18 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
+  const data = [
+    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+    ['2017', 10, 11, 12, 13, 15, 16],
+    ['2018', 10, 11, 12, 13, 15, 16],
+    ['2019', 10, 11, 12, 13, 15, 16],
+    ['2020', 10, 11, 12, 13, 15, 16],
+    ['2021', 10, 11, 12, 13, 15, 16]
+  ];
+  
   return (
     <HotTable
-      data={[
-        ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-        ['2017', 10, 11, 12, 13, 15, 16],
-        ['2018', 10, 11, 12, 13, 15, 16],
-        ['2019', 10, 11, 12, 13, 15, 16],
-        ['2020', 10, 11, 12, 13, 15, 16],
-        ['2021', 10, 11, 12, 13, 15, 16]
-      ]}
+      data={data}
       colHeaders={true}
       minSpareRows={1}
       height="auto"
@@ -213,15 +217,17 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
+  const data = [
+    { id: 1, name: 'Ted Right', address: '' },
+    { id: 2, name: 'Frank Honest', address: '' },
+    { id: 3, name: 'Joan Well', address: '' },
+    { id: 4, name: 'Gail Polite', address: '' },
+    { id: 5, name: 'Michael Fair', address: '' }
+  ];
+  
   return (
     <HotTable
-      data={[
-        { id: 1, name: 'Ted Right', address: '' },
-        { id: 2, name: 'Frank Honest', address: '' },
-        { id: 3, name: 'Joan Well', address: '' },
-        { id: 4, name: 'Gail Polite', address: '' },
-        { id: 5, name: 'Michael Fair', address: '' }
-      ]}
+      data={data}
       colHeaders={true}
       height="auto"
       width="auto"
@@ -292,13 +298,15 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
+  const data = [
+    { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
+    { id: 2, address: '' }, // Handsontable will create missing properties on demand
+    { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
+  ];
+      
   return (
     <HotTable
-      data={[
-        { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
-        { id: 2, address: '' }, // Handsontable will create missing properties on demand
-        { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
-      ]}
+      data={data}
       colHeaders={true}
       height="auto"
       width="auto"
@@ -375,13 +383,15 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
+  const data = [
+    { id: 1,  name: { first: 'Ted', last: 'Right' }, address: '' },
+    { id: 2, address: '' }, // Handsontable will create missing properties on demand
+    { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
+  ];
+  
   return (
     <HotTable
-      data={[
-        { id: 1,  name: { first: 'Ted', last: 'Right' }, address: '' },
-        { id: 2, address: '' }, // Handsontable will create missing properties on demand
-        { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
-      ]}
+      data={data}
       colHeaders={true}
       height="auto"
       width="auto"
@@ -598,15 +608,17 @@ const ExampleComponent = () => {
     }
   }
 
+  const data = [
+    model({ id: 1, name: 'Ted Right', address: '' }),
+    model({ id: 2, name: 'Frank Honest', address: '' }),
+    model({ id: 3, name: 'Joan Well', address: '' }),
+    model({ id: 4, name: 'Gail Polite', address: '' }),
+    model({ id: 5, name: 'Michael Fair', address: '' })
+  ];
+
   return (
     <HotTable
-      data={[
-        model({ id: 1, name: 'Ted Right', address: '' }),
-        model({ id: 2, name: 'Frank Honest', address: '' }),
-        model({ id: 3, name: 'Joan Well', address: '' }),
-        model({ id: 4, name: 'Gail Polite', address: '' }),
-        model({ id: 5, name: 'Michael Fair', address: '' })
-      ]}
+      data={data}
       dataSchema={model}
       height="auto"
       width="auto"
@@ -734,17 +746,19 @@ const ExampleComponent = () => {
     hot.setDataAtCell(0, 1, 'Ford');
   });
 
+  const data = [
+    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+    ['2017', 10, 11, 12, 13, 15, 16],
+    ['2018', 10, 11, 12, 13, 15, 16],
+    ['2019', 10, 11, 12, 13, 15, 16],
+    ['2020', 10, 11, 12, 13, 15, 16],
+    ['2021', 10, 11, 12, 13, 15, 16]
+  ];
+
   return (
       <HotTable 
         ref={hotRef}
-        data={[
-          ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-          ['2017', 10, 11, 12, 13, 15, 16],
-          ['2018', 10, 11, 12, 13, 15, 16],
-          ['2019', 10, 11, 12, 13, 15, 16],
-          ['2020', 10, 11, 12, 13, 15, 16],
-          ['2021', 10, 11, 12, 13, 15, 16]
-        ]}
+        data={data}
         height="auto"
         licenseKey="non-commercial-and-evaluation"
       />
