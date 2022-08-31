@@ -62,9 +62,16 @@ const hot = new Handsontable(container, {
       return;
     }
 
-    fetch('{{$basePath}}/scripts/json/save.json')
+    fetch('{{$basePath}}/scripts/json/save.json', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ data: change })
+    })
       .then(response => {
         exampleConsole.innerText = `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`;
+        console.log('The POST request is only used here for the demo purposes');
       });
   }
 });
@@ -81,13 +88,16 @@ load.addEventListener('click', () => {
 });
 save.addEventListener('click', () => {
   // save all cell's data
-  fetch('{{$basePath}}/scripts/json/save.json')
+  fetch('{{$basePath}}/scripts/json/save.json', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ data: hot.getData() })
+  })
     .then(response => {
-      if (response.statusText === 'OK') {
-        exampleConsole.innerText = 'Data saved';
-      } else {
-        exampleConsole.innerText = 'Save error';
-      }
+      exampleConsole.innerText = 'Data saved';
+      console.log('The POST request is only used here for the demo purposes');
     });
 });
 
@@ -143,13 +153,16 @@ const ExampleComponent = () => {
     };
     saveClickCallback = () => {
       // save all cell's data
-      fetch('{{$basePath}}/scripts/json/save.json')
+      fetch('{{$basePath}}/scripts/json/save.json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ data: hot.getData() })
+      })
         .then(response => {
-          if (response.statusText === 'OK') {
-            setOutput('Data saved');
-          } else {
-            setOutput('Save error');
-          }
+          setOutput('Data saved');
+          console.log('The POST request is only used here for the demo purposes');
         });
     };
   });
@@ -173,9 +186,16 @@ const ExampleComponent = () => {
             return;
           }
 
-          fetch('{{$basePath}}/scripts/json/save.json')
+          fetch('{{$basePath}}/scripts/json/save.json', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ data: change })
+          })
             .then(response => {
               setOutput(`Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`);
+              console.log('The POST request is only used here for the demo purposes');
             });
         }}
       />
