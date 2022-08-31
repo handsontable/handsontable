@@ -551,7 +551,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
   modifyRowHeader: (row) => {},
   modifyRowHeaderWidth: (rowHeaderWidth) => {},
   modifyRowHeight: (height, row) => {},
-  modifyRowSourceData: (row) => {},
   modifyTransformEnd: (delta) => {},
   modifyTransformStart: (delta) => {},
   persistentStateLoad: () => {},
