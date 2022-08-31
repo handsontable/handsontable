@@ -281,7 +281,7 @@ To apply configuration options to an individual column (or a range of columns), 
   ]}
 />
 ```
-Alternatively, you can use the `HotColumn` component to configure columns declaratively:
+Alternatively, you can use the [`HotColumn`](@/columns/react-hot-column.md) component to configure columns declaratively:
 ```jsx
 <HotTable>
   <HotColumn width={100}/>
