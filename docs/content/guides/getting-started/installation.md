@@ -220,7 +220,6 @@ const hot = new Handsontable(container, {
 
 ## Preview the result
 
-::: only-for javascript
 ::: example #example
 ```js
 const data = [
@@ -240,12 +239,10 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
-:::
 
 :::
 
 ::: only-for react
-<br/>
 ## HotTable component
 
 The main Handsontable component is called `HotTable`.
