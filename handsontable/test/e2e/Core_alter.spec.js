@@ -1530,15 +1530,5 @@ describe('Core_alter', () => {
       expect(getDataAtRow(0)).toEqual([null, 'E1', null, 'D1', 'C1', 'B1', 'A1', null]);
       expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', null, 'D1', null, 'E1', null]);
     });
-
-    it('should not throw an exception while adding lot of columns', () => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5)
-      });
-
-      expect(() => {
-        alter('insert_col', 0, 100000);
-      }).not.toThrowError();
-    });
   });
 });
