@@ -96,8 +96,8 @@ const CHECK_TRIES = 10;
 
         // If the test fails, do another try after a timeout (some instances might have not been initialized yet).
         while (
-          (!pageEvaluation.result && tryCount < CHECK_TRIES) &&
-          !pageEvaluation.elementsNotYetRendered
+          (!pageEvaluation.result && tryCount < CHECK_TRIES) ||
+          pageEvaluation.elementsNotYetRendered
         ) {
           tryCount += 1;
 
@@ -114,15 +114,13 @@ const CHECK_TRIES = 10;
           // Mark the check as suspicious, if the expected number of instances is 0.
           logCheck(pageEvaluation.result);
 
-          const errObj = {
-            path: permalink,
-            expected: pageEvaluation.expected,
-            received: pageEvaluation.received,
-            emptyExampleContainers: pageEvaluation.emptyExampleContainers
-          };
-
           if (!pageEvaluation.result) {
-            brokenExamplePaths.push(errObj);
+            brokenExamplePaths.push({
+              path: permalink,
+              expected: pageEvaluation.expected,
+              received: pageEvaluation.received,
+              emptyExampleContainers: pageEvaluation.emptyExampleContainers
+            });
           }
         }
       }

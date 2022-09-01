@@ -25,6 +25,9 @@ const testCases = [
       // The column-summary example on the page of the each framework shows an error being thrown - the Handsontable instance is never rendered.
       '/next/react-data-grid/column-summary': -1,
       '/next/javascript-data-grid/column-summary': -1,
+      // The events-and-hooks page contains a rendered Handsontable instance which is not a part of any example.
+      '/next/javascript-data-grid/events-and-hooks': 1,
+      '/next/react-data-grid/events-and-hooks': 1,
     };
 
     /**
@@ -119,7 +122,12 @@ const testCases = [
     });
 
     // Modify the number of possible not-yet-rendered instances, if there are any exceptions to the given page.
-    elementsNotYetRenderedCount += (INSTANCE_NUMBER_EXCEPTIONS[permalink] || 0);
+    if (INSTANCE_NUMBER_EXCEPTIONS[permalink] < 0) {
+      elementsNotYetRenderedCount += (INSTANCE_NUMBER_EXCEPTIONS[permalink] || 0);
+
+    } else {
+      hotInstancesCount += (INSTANCE_NUMBER_EXCEPTIONS[permalink] || 0);
+    }
 
     return {
       result: (hotInstancesCount === htMasterElements.length) && emptyExampleContainers.length === 0,

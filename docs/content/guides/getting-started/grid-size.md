@@ -34,21 +34,45 @@ Handsontable doesn't observe CSS changes for containers out of the box.
 If you'd like to observe it, you can define the dimensions in the configuration object or create your own observer.
 :::
 
-### Pass the size in the configuration object
+### Pass the size in the configuration
 
+You can pass width and height values to Handsontable as numbers or possible CSS values for the "width"/"height" properties:
+::: only-for javascript
 ```js
 {
-    width: '100px',
-    width: '75%',
-    width: 100 // For a better compatibility we convert number into pixels
-}
-...
-{
-    height: '100px',
-    height: '75%',
-    height: 100 // For a better compatibility we convert number into pixels
+  width: '100px',
+  height: '100px',
 }
 ```
+or
+```js
+{
+  width: '75%',
+  height: '75%',
+}
+```
+or
+```js 
+{
+  width: 100,
+  height: 100,
+}
+```
+:::
+
+::: only-for react
+```jsx
+  <HotTable height={100} width={100} />
+```
+or
+```jsx
+  <HotTable height="75%" width="75%" />
+```
+or
+```jsx
+  <HotTable height="100px" width="100px" /> 
+```
+:::
 
 These dimensions will be set as inline styles in a container element, and `overflow: hidden` will be added automatically.
 
@@ -68,19 +92,33 @@ Handsontable observes window resizing. If the window's dimensions have changed, 
 
 You can easily overwrite this behaviour by returning `false` in the [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) hook.
 
+::: only-for javascript
 ```js
 {
   beforeRefreshDimensions() { return false; }
 }
 ```
+:::
+
+::: only-for react
+```jsx
+  <HotTable beforeRefreshDimensions={() => false} /> 
+```
+:::
 
 ## Manual resizing
 
 The Handsontable instance exposes the [`refreshDimensions()`](@/api/core.md#refreshdimensions) method, which helps you to resize grid elements properly.
 
-```js
-const hot = new Handsontable(...);
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+:::
+
+```js
 hot.refreshDimensions();
 ```
 
@@ -141,7 +179,7 @@ triggerBtn.addEventListener('click', () => {
 }
 ```
 ```jsx
-import React, { Fragment, useEffect } from 'react';
+import { useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -152,17 +190,7 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = React.createRef();
-
-  const hotSettings = {
-    data: Handsontable.helper.createSpreadsheetData(100, 50),
-    rowHeaders: true,
-    colHeaders: true,
-    width: '100%',
-    height: '100%',
-    rowHeights: 23,
-    colWidths: 100,
-    licenseKey: 'non-commercial-and-evaluation'
-  };
+  
   let triggerBtnClickCallback;
 
   useEffect(() => {
@@ -182,17 +210,25 @@ const ExampleComponent = () => {
   });
 
   return (
-    <Fragment>
+    <>
       <div id="exampleParent">
-        <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
+        <HotTable
+          data={Handsontable.helper.createSpreadsheetData(100, 50)}
+          rowHeaders={true}
+          colHeaders={true}
+          width="100%"
+          height="100%"
+          rowHeights={23}
+          colWidths={100}
+          licenseKey="non-commercial-and-evaluation"  
+          ref={hotRef}
+        />
       </div>
       
       <div className="controls">
         <button id="triggerBtn" className="button button--primary" onClick={(...args) => triggerBtnClickCallback(...args)}>Expand container</button>
       </div>
-      
-    </Fragment>
+    </>
   );
 };
 
