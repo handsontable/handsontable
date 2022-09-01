@@ -1,10 +1,13 @@
 ---
 title: Modules
-metaTitle: Modules - Guide - Handsontable Documentation
+metaTitle: Modules - JavaScript Data Grid | Handsontable
+description: Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
 permalink: /modules
 canonicalUrl: /modules
 tags:
   - tree shaking
+react:
+  metaTitle: Modules - React Data Grid | Handsontable
 ---
 
 # Modules
@@ -46,7 +49,13 @@ No matter which of the optional modules you use, you always need to import the b
 
 ### Import the base module
 
+::: only-for javascript
 To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the [full distribution package](@/guides/tools-and-building/packages.md)):
+:::
+
+::: only-for react
+To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the full distribution package):
+:::
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -147,6 +156,7 @@ For the full list of those modules, see the [List of all modules](#list-of-all-m
 
 For example, you can import the `numeric` cell type as a whole:
 
+::: only-for javascript
 ```js
 import Handsontable from 'handsontable/base';
 import {
@@ -166,9 +176,33 @@ new Handsontable(container, {
   ]
 });
 ```
+:::
+
+::: only-for react
+```jsx
+import Handsontable from 'handsontable/base';
+import {
+  registerCellType,
+  NumericCellType,
+} from 'handsontable/cellTypes';
+
+registerCellType(NumericCellType);
+
+const container = document.querySelector('#example1');
+
+<HotTable
+  columns={[
+    {
+      type: 'numeric'
+    }
+  ]}
+/>
+```
+:::
 
 Or, you can import the `numeric` cell type's renderer, editor, and validator individually (the effect is the same as above):
 
+::: only-for javascript
 ```js
 import Handsontable from 'handsontable/base';
 import {
@@ -188,8 +222,6 @@ registerRenderer(numericRenderer);
 registerEditor(NumericEditor);
 registerValidator(numericValidator);
 
-const container = document.querySelector('#example1');
-
 new Handsontable(container, {
   columns: [
     {
@@ -197,10 +229,47 @@ new Handsontable(container, {
       editor: 'numeric',
       validator: 'numeric',
       dataType: 'number',
+      type: 'numeric',
     }
   ]
 });
 ```
+:::
+
+::: only-for react
+```jsx
+import Handsontable from 'handsontable/base';
+import {
+  registerRenderer,
+  numericRenderer,
+} from 'handsontable/renderers';
+import {
+  registerEditor,
+  NumericEditor,
+} from 'handsontable/editors';
+import {
+  registerValidator,
+  numericValidator,
+} from 'handsontable/validators';
+
+registerRenderer(numericRenderer);
+registerEditor(NumericEditor);
+registerValidator(numericValidator);
+
+<HotTable
+  columns={[
+    {
+      renderer: 'numeric',
+      editor: 'numeric',
+      validator: 'numeric',
+      dataType: 'number',
+      type: 'numeric',
+    }
+  ]}
+/>
+
+```
+:::
 
 ### Plugin modules
 

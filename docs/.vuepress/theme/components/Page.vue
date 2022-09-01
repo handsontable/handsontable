@@ -63,7 +63,7 @@ export default {
 
     .header-framework {
       position: absolute;
-      top: 48px;
+      top: -24px;
       font-size: 16px;
       opacity: .8;
     }

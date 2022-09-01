@@ -1,6 +1,7 @@
 ---
 title: Release notes
-metaTitle: Release notes - Guide - Handsontable Documentation
+metaTitle: Release notes - JavaScript Data Grid | Handsontable
+description: See the full history of changes made to Handsontable in each major, minor, and patch release.
 permalink: /release-notes
 canonicalUrl: /release-notes
 tags:
@@ -9,6 +10,8 @@ tags:
   - update
   - upgrade
   - breaking change
+react:
+  metaTitle: Release notes - React Data Grid | Handsontable
 ---
 
 # Release notes
@@ -170,7 +173,7 @@ Released on 17th of November, 2021
 - Replaced the license files with updated versions. [#8877](https://github.com/handsontable/handsontable/issues/8877)
 
 **Fixed**
-- Fixed an issue with incorrect filtering of locale-based data while using search input from a drop-down menu. [#6095](https://github.com/handsontable/handsontable/issues/6095)
+- Fixed an issue with incorrect filtering of locale-based data while using search input from a dropdown menu. [#6095](https://github.com/handsontable/handsontable/issues/6095)
 - Fixed an error thrown when using the `populateFromArray()` method with its `method` argument set to `shift_right`. [#6929](https://github.com/handsontable/handsontable/issues/6929)
 - Fixed an issue with the `beforeOnCellMouseDown` and `afterOnCellMouseDown` hooks using wrong coordinates. [#8498](https://github.com/handsontable/handsontable/issues/8498)
 - Fixed a `TypeError` thrown when calling the [`updateSettings()`](@/api/core.md#updatesettings) method in Handsontable's modularized version. [#8830](https://github.com/handsontable/handsontable/issues/8830)

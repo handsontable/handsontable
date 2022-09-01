@@ -1,12 +1,15 @@
 ---
 title: Column freezing
-metaTitle: Column freezing - Guide - Handsontable Documentation
+metaTitle: Column freezing - JavaScript Data Grid | Handsontable
+description: Lock (freeze) the position of specified columns, keeping them visible while scrolling to another area of the grid.
 permalink: /column-freezing
 canonicalUrl: /column-freezing
 tags:
   - fixing columns
   - snapping columns
   - pinning columns
+react:
+  metaTitle: Column freezing - React Data Grid | Handsontable
 ---
 
 # Column freezing

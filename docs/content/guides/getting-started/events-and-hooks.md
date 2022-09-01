@@ -1,6 +1,7 @@
 ---
 title: Events and hooks
-metaTitle: Events and hooks - Guide - Handsontable Documentation
+metaTitle: Events and hooks - JavaScript Data Grid | Handsontable
+description: Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
 permalink: /events-and-hooks
 canonicalUrl: /events-and-hooks
 tags:
@@ -13,6 +14,8 @@ tags:
 - before
 - events
 - hooks
+react:
+  metaTitle: Events and hooks - React Data Grid | Handsontable
 ---
 
 # Events and hooks
@@ -20,6 +23,7 @@ tags:
 [[toc]]
 
 ## Overview
+
 Callbacks are used to react before or after actions occur. We refer to them as hooks. Handsontable's hooks share some characteristics with events and middleware, combining them both in a unique structure.
 
 ## Events
@@ -33,11 +37,14 @@ If you only react to emitted hooks and forget about all their other features, yo
 }}/>
 ```
 :::
+
+::: only-for javascript
 ```js
 hot.addHook('afterCreateRow', (row, amount) => {
   console.log(`${amount} row(s) were created, starting at index ${row}`);
 })
 ```
+:::
 
 ## Middleware
 
@@ -53,6 +60,8 @@ Middleware is a concept known in the JavaScript world from Node.js frameworks su
 }}/>
 ```
 :::
+
+::: only-for javascript
 ```js
 hot.addHook('modifyColWidth', (width, column) => {
   if (column > 10) {
@@ -60,6 +69,7 @@ hot.addHook('modifyColWidth', (width, column) => {
   }
 })
 ```
+:::
 
 Note that the first argument is the current width that we're going to modify. Later arguments are immutable, and additional information can be used to decide whether the data should be modified.
 
@@ -82,6 +92,8 @@ A great example for this is our integration with HyperFormula engine where creat
 }}/>
 ```
 :::
+
+::: only-for javascript
 ```js
 hot.addHook('beforeCreateRow', (row, amount) => {
   if (!hyperFormula.isItPossibleToAddRows(0, [row, amount])) {
@@ -89,6 +101,7 @@ hot.addHook('beforeCreateRow', (row, amount) => {
   }
 })
 ```
+:::
 
 The first argument may be modified and passed on through the Handsontable hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application.
 
