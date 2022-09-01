@@ -17,7 +17,7 @@ const integrateWithAngularItems = [
   { path: 'guides/integrate-with-angular/angular-simple-example' },
   { path: 'guides/integrate-with-angular/angular-modules' },
   { path: 'guides/integrate-with-angular/angular-custom-id' },
-  { path: 'guides/integrate-with-angular/angular-setting-up-a-language' },
+  { path: 'guides/integrate-with-angular/angular-setting-up-a-translation' },
   { path: 'guides/integrate-with-angular/angular-custom-context-menu-example' },
   { path: 'guides/integrate-with-angular/angular-custom-editor-example' },
   { path: 'guides/integrate-with-angular/angular-custom-renderer-example' },
