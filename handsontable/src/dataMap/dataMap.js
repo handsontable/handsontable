@@ -605,8 +605,11 @@ class DataMap {
     if (continueSplicing !== false) {
       const newData = [...this.dataSource.slice(0, index), ...elements, ...this.dataSource.slice(index)];
 
+      // We try not to change the reference.
       this.dataSource.length = 0;
 
+      // Pushing to array instead of using `splice`, because Babel changes the code to one that uses the `apply` method.
+      // The used method was cause of the problem described within #7840.
       newData.forEach(row => this.dataSource.push(row));
     }
   }

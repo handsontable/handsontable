@@ -1281,6 +1281,16 @@ describe('Core_alter', () => {
       expect(getDataAtCol(0)).toEqual([null, 'A5', null, 'A4', 'A3', 'A2', 'A1', null]);
       expect(getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', null, 'A4', null, 'A5', null]);
     });
+
+    it('should not throw an exception while adding lot of rows', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5)
+      });
+
+      expect(() => {
+        alter('insert_row', 0, 100000);
+      }).not.toThrowError();
+    });
   });
 
   describe('insert column', () => {
@@ -1519,6 +1529,16 @@ describe('Core_alter', () => {
 
       expect(getDataAtRow(0)).toEqual([null, 'E1', null, 'D1', 'C1', 'B1', 'A1', null]);
       expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', null, 'D1', null, 'E1', null]);
+    });
+
+    it('should not throw an exception while adding lot of columns', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5)
+      });
+
+      expect(() => {
+        alter('insert_col', 0, 100000);
+      }).not.toThrowError();
     });
   });
 });
