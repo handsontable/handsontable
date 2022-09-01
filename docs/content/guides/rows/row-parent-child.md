@@ -6,6 +6,7 @@ permalink: /row-parent-child
 canonicalUrl: /row-parent-child
 tags:
   - nested rows
+  - nestedRows
   - parent child
   - tree grid
   - grouping rows
