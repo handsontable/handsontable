@@ -1,8 +1,11 @@
 ---
 title: Cell validator
-metaTitle: Cell validator - Guide - Handsontable Documentation
+metaTitle: Cell validator - JavaScript Data Grid | Handsontable
+description: Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 permalink: /cell-validator
 canonicalUrl: /cell-validator
+react:
+  metaTitle: Cell validator - React Data Grid | Handsontable
 ---
 
 # Cell validator

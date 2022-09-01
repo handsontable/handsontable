@@ -1,12 +1,15 @@
 ---
 title: Migrating from 8.4 to 9.0
-metaTitle: Migrating from 8.4 to 9.0 - Guide - Handsontable Documentation
+metaTitle: Migrate from 8.4 to 9.0 - JavaScript Data Grid | Handsontable
+description: Migrate from Handsontable 8.4 to Handsontable 9.0, released on June 1, 2021.
 permalink: /migration-from-8.4-to-9.0
 canonicalUrl: /migration-from-8.4-to-9.0
 pageClass: migration-guide
+react:
+  metaTitle: Migrate from 8.4 to 9.0 - React Data Grid | Handsontable
 ---
 
-# Migrating from 8.4 to 9.0
+# Migrate from 8.4 to 9.0
 
 [[toc]]
 

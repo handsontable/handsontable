@@ -1,11 +1,15 @@
 ---
 title: Saving data
-metaTitle: Saving data - Guide - Handsontable Documentation
+metaTitle: Saving data - JavaScript Data Grid | Handsontable
+description: Save data after each change to the data set, using Handsontable's API hooks. Preserve the table state by saving data to local storage.
 permalink: /saving-data
 canonicalUrl: /saving-data
 tags:
   - load and save
   - server
+  - ajax
+react:
+  metaTitle: Saving data - React Data Grid | Handsontable
 ---
 
 # Saving data
@@ -19,7 +23,7 @@ Persistent state storage is particularly useful when running multiple instances 
 
 To track changes made in your data grid, use Handsontable's [`afterChange`](@/api/hooks.md#afterchange) hook.
 
-The example below handles data by using Ajax. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
+The example below handles data by using `fetch`. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
 
 ::: only-for javascript
 ::: example #example1 --html 1 --js 2
@@ -61,9 +65,16 @@ const hot = new Handsontable(container, {
       return;
     }
 
-    fetch('{{$basePath}}/scripts/json/save.json')
+    fetch('{{$basePath}}/scripts/json/save.json', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ data: change })
+    })
       .then(response => {
-        exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
+        exampleConsole.innerText = `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`;
+        console.log('The POST request is only used here for the demo purposes');
       });
   }
 });
@@ -80,13 +91,16 @@ load.addEventListener('click', () => {
 });
 save.addEventListener('click', () => {
   // save all cell's data
-  fetch('{{$basePath}}/scripts/json/save.json')
+  fetch('{{$basePath}}/scripts/json/save.json', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ data: hot.getData() })
+  })
     .then(response => {
-      if (response.statusText === 'OK') {
-        exampleConsole.innerText = 'Data saved';
-      } else {
-        exampleConsole.innerText = 'Save error';
-      }
+      exampleConsole.innerText = 'Data saved';
+      console.log('The POST request is only used here for the demo purposes');
     });
 });
 
@@ -97,36 +111,6 @@ autosave.addEventListener('click', () => {
     exampleConsole.innerText ='Changes will not be autosaved';
   }
 });
-
-function ajax(url, method, params, callback) {
-  let obj;
-
-  try {
-    obj = new XMLHttpRequest();
-  } catch (e) {
-    try {
-      obj = new ActiveXObject('Msxml2.XMLHTTP');
-    } catch (e) {
-      try {
-        obj = new ActiveXObject('Microsoft.XMLHTTP');
-      } catch (e) {
-        alert('Your browser does not support Ajax.');
-        return false;
-      }
-    }
-  }
-  obj.onreadystatechange = () => {
-    if (obj.readyState == 4) {
-      callback(obj);
-    }
-  };
-  obj.open(method, url, true);
-  obj.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-  obj.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-  obj.send(params);
-
-  return obj;
-}
 ```
 :::
 :::
@@ -172,13 +156,16 @@ const ExampleComponent = () => {
     };
     saveClickCallback = () => {
       // save all cell's data
-      fetch('{{$basePath}}/scripts/json/save.json')
+      fetch('{{$basePath}}/scripts/json/save.json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ data: hot.getData() })
+      })
         .then(response => {
-          if (response.statusText === 'OK') {
-            setOutput('Data saved');
-          } else {
-            setOutput('Save error');
-          }
+          setOutput('Data saved');
+          console.log('The POST request is only used here for the demo purposes');
         });
     };
   });
@@ -202,9 +189,16 @@ const ExampleComponent = () => {
             return;
           }
 
-          fetch('{{$basePath}}/scripts/json/save.json')
+          fetch('{{$basePath}}/scripts/json/save.json', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ data: change })
+          })
             .then(response => {
-              setOutput('Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')');
+              setOutput(`Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`);
+              console.log('The POST request is only used here for the demo purposes');
             });
         }}
       />

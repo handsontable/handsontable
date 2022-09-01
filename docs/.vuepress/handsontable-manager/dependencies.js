@@ -28,7 +28,10 @@ const getCommonScript = (scriptName, version) => {
     ];
   }
 
-  return [`https://handsontable.com/docs/${version}/scripts/${scriptName}.js`, ['require', 'exports']];
+  // eslint-disable-next-line global-require
+  const { getDocsBaseFullUrl } = require('../helpers');
+
+  return [`${getDocsBaseFullUrl()}/scripts/${scriptName}.js`, ['require', 'exports']];
 };
 
 /**

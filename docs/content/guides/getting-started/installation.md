@@ -1,14 +1,13 @@
 ---
 title: Installation
-metaTitle: Installation - Guide - Handsontable Documentation
-description: Easily install the data grid using your preferred package manager or import Handsontable assets directly from the CDN.
-react:
-  metaTitle: Installation - Guide - Handsontable Documentation for React
-  description: Install the wrapper for React via npm, import stylesheets, and use it to get up and running your application.
+metaTitle: Installation - JavaScript Data Grid | Handsontable
+description: Install Handsontable using your preferred package manager, or import Handsontable's assets directly from a CDN.
 permalink: /installation
 canonicalUrl: /installation
 tags:
   - quick start
+react:
+  metaTitle: Installation - React Data Grid | Handsontable
 ---
 
 # Installation
@@ -220,7 +219,6 @@ const hot = new Handsontable(container, {
 
 ## Preview the result
 
-::: only-for javascript
 ::: example #example
 ```js
 const data = [
@@ -240,12 +238,10 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
-:::
 
 :::
 
 ::: only-for react
-<br/>
 ## HotTable component
 
 The main Handsontable component is called `HotTable`.

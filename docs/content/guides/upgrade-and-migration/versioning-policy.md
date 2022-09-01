@@ -1,8 +1,11 @@
 ---
 title: Versioning policy
-metaTitle: Versioning policy - Guide - Handsontable Documentation
+metaTitle: Versioning policy - JavaScript Data Grid | Handsontable
+description: Handsontable follows the principles of Semantic Versioning (SemVer). Each version is numbered in the X.Y.Z (Major.Minor.Patch) format.
 permalink: /versioning-policy
 canonicalUrl: /versioning-policy
+react:
+  metaTitle: Versioning policy - React Data Grid | Handsontable
 ---
 
 # Versioning policy

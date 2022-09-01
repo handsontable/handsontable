@@ -89,7 +89,7 @@ export class MultiColumnSorting extends ColumnSorting {
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link MultiColumnSorting#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link MultiColumnSorting#enablePlugin} method is called.
    *
    * @returns {boolean}
    */

@@ -1,12 +1,15 @@
 ---
 title: Migrating from 9.0 to 10.0
-metaTitle: Migrating from 9.0 to 10.0 - Guide - Handsontable Documentation
+metaTitle: Migrate from 9.0 to 10.0 - JavaScript Data Grid | Handsontable
+description: Migrate from Handsontable 9.0 to Handsontable 10.0, released on September 29, 2021.
 permalink: /migration-from-9.0-to-10.0
 canonicalUrl: /migration-from-9.0-to-10.0
 pageClass: migration-guide
+react:
+  metaTitle: Migrate from 9.0 to 10.0 - React Data Grid | Handsontable
 ---
 
-# Migrating from 9.0 to 10.0
+# Migrate from 9.0 to 10.0
 
 [[toc]]
 
@@ -35,7 +38,7 @@ For more details on the breaking changes between HyperFormula 0.6.x and HyperFor
 
 ## Step 3: Adapt to the configuration options' new default values
 
-In Handsontable 10.0.0, we changed the default values of the [`autoWrapCol`](@/api/options.md#autowrapcol) and [`autoWrapRow`](@/api/options.md#autowraprow) [configuration options](@/guides/getting-started/setting-options.md), from `true` to `false` ([#8662](https://github.com/handsontable/handsontable/pull/8662)):
+In Handsontable 10.0.0, we changed the default values of the [`autoWrapCol`](@/api/options.md#autowrapcol) and [`autoWrapRow`](@/api/options.md#autowraprow) [configuration options](@/guides/getting-started/configuration-options.md), from `true` to `false` ([#8662](https://github.com/handsontable/handsontable/pull/8662)):
 
 ::: only-for javascript
 | Before                                              | After                                                |

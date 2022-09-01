@@ -1,8 +1,11 @@
 ---
 title: Autocomplete cell type
-metaTitle: Autocomplete cell type - Guide - Handsontable Documentation
+metaTitle: Autocomplete cell type - JavaScript Data Grid | Handsontable
+description: Use the autocomplete cell type to collect user input with a menu that lets the user choose a suggested option while typing.
 permalink: /autocomplete-cell-type
 canonicalUrl: /autocomplete-cell-type
+react:
+  metaTitle: Autocomplete cell type - React Data Grid | Handsontable
 ---
 
 # Autocomplete cell type

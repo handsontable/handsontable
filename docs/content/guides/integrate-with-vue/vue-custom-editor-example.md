@@ -1,6 +1,7 @@
 ---
-title: 'Custom editor in Vue 2'
-metaTitle: 'Custom editor in Vue 2 - Guide - Handsontable Documentation'
+title: Custom editor in Vue 2
+metaTitle: Custom cell editor - Vue 2 Data Grid | Handsontable
+description: Create a custom cell editor, and use it in your Vue 2 data grid by declaring it as a class.
 permalink: /vue-custom-editor-example
 canonicalUrl: /vue-custom-editor-example
 ---

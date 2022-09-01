@@ -1,6 +1,7 @@
 ---
 title: Events and hooks
-metaTitle: Events and hooks - Guide - Handsontable Documentation
+metaTitle: Events and hooks - JavaScript Data Grid | Handsontable
+description: Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
 permalink: /events-and-hooks
 canonicalUrl: /events-and-hooks
 tags:
@@ -13,6 +14,8 @@ tags:
 - before
 - events
 - hooks
+react:
+  metaTitle: Events and hooks - React Data Grid | Handsontable
 ---
 
 # Events and hooks
@@ -20,6 +23,7 @@ tags:
 [[toc]]
 
 ## Overview
+
 Callbacks are used to react before or after actions occur. We refer to them as hooks. Handsontable's hooks share some characteristics with events and middleware, combining them both in a unique structure.
 
 ## Events

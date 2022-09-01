@@ -4,8 +4,7 @@
       <template #page-top>
         <div v-if="show" class="page-top">
           <div class="version-alert">
-            <p v-if="isNext">This page covers a next version of Handsontable, and is not published yet.</p>
-            <p v-else-if="!isLatest">This page covers a non-latest version of Handsontable.</p>
+            <p>This page covers a non-latest version of Handsontable.</p>
           </div>
         </div>
       </template>
@@ -28,16 +27,13 @@ export default {
     Sidebar
   },
   computed: {
-    isLatest() {
-      return this.$page.currentVersion === this.$page.latestVersion;
-    },
-
-    isNext() {
-      return this.$page.currentVersion === 'next';
-    },
-
     show() {
-      return this.$page.latestVersion && !this.isLatest || this.isNext;
+      return this.$page.currentVersion !== this.$page.latestVersion && this.$page.currentVersion !== 'next';
+    }
+  },
+  created() {
+    if (this.$ssrContext) {
+      this.$ssrContext.docsGenStamp = this.$page.docsGenStamp ?? '';
     }
   }
 };

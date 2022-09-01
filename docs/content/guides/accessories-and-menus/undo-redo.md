@@ -1,6 +1,7 @@
 ---
 title: Undo and redo
-metaTitle: Undo and redo - Guide - Handsontable Documentation
+metaTitle: Undo and redo - JavaScript Data Grid | Handsontable
+description: Revert and restore your changes, using the undo and redo features.
 permalink: /undo-redo
 canonicalUrl: /undo-redo
 tags:
@@ -11,6 +12,8 @@ tags:
   - reverse
   - erase last change
   - roll back changes
+react:
+  metaTitle: Undo and redo - React Data Grid | Handsontable
 ---
 
 # Undo and redo

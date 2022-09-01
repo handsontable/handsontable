@@ -38,6 +38,7 @@ export const PLUGIN_PRIORITY = 280;
  * other words, headers cannot overlap each other.
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -49,6 +50,21 @@ export const PLUGIN_PRIORITY = 280;
  *     ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
  *  ],
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={getData()}
+ *   nestedHeaders={[
+ *     ['A', {label: 'B', colspan: 8}, 'C'],
+ *     ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
+ *     ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
+ *     ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+ *  ]}
+ * />
+ * ```
+ * :::
  */
 export class NestedHeaders extends BasePlugin {
   static get PLUGIN_KEY() {

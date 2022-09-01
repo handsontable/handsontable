@@ -1,6 +1,7 @@
 ---
 title: Column summary
-metaTitle: Column summary - Guide - Handsontable Documentation
+metaTitle: Column summary - JavaScript Data Grid | Handsontable
+description: Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
 permalink: /column-summary
 canonicalUrl: /column-summary
 tags:
@@ -8,6 +9,8 @@ tags:
   - calculations
   - formulas
   - functions
+react:
+  metaTitle: Column summary - React Data Grid | Handsontable
 ---
 
 # Column summary
@@ -1238,7 +1241,7 @@ You can throw a data type error whenever a non-numeric value is passed to your c
 To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummary.md) option to `false` (by default, [`suppressDataTypeErrors`](@/api/columnSummary.md) is set to `true`). For example:
 
 ::: only-for javascript
-::: example #example11
+::: example #example11 --tab code
 ```js
 const container = document.querySelector('#example11');
 
@@ -1275,7 +1278,7 @@ const hot = new Handsontable(container, {
 :::
 
 ::: only-for react
-::: example #example11 :react
+::: example #example11 :react --tab code
 ```jsx
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';

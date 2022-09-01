@@ -1,8 +1,9 @@
 ---
-title: 'Basic example in Angular'
-metaTitle: 'Basic example in Angular - Guide - Handsontable Documentation'
-permalink: /angular-simple-example
-canonicalUrl: /angular-simple-example
+title: Basic example in Angular
+metaTitle: Basic example - Angular Data Grid | Handsontable
+description: Start with the Angular data grid basic configuration examples, using component properties for configuration and external control.
+permalink: /angular-basic-example
+canonicalUrl: /angular-basic-example
 ---
 
 # Basic example in Angular

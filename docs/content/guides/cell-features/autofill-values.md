@@ -1,6 +1,7 @@
 ---
 title: Autofill values
-metaTitle: Autofill - Guide - Handsontable Documentation
+metaTitle: Autofill values - JavaScript Data Grid | Handsontable
+description: Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable's API.
 permalink: /autofill-values
 canonicalUrl: /autofill-values
 tags:
@@ -11,6 +12,8 @@ tags:
   - square
   - auto-fill
   - auto fill
+react:
+  metaTitle: Autofill values - React Data Grid | Handsontable
 ---
 
 # Autofill values
