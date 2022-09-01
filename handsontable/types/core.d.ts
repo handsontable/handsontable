@@ -139,7 +139,7 @@ export default class Core {
   setDataAtCell(row: number, col: number, value: CellValue, source?: string): void;
   setDataAtRowProp(changes: Array<[number, string | number, CellValue]>, source?: string): void;
   setDataAtRowProp(row: number, prop: string, value: CellValue, source?: string): void;
-  setSourceDataAtCell(changes: Array<[number, string | number, CellValue]>): void;
+  setSourceDataAtCell(changes: Array<[number, string | number, CellValue]>, source?: string): void;
   setSourceDataAtCell(row: number, column: number | string, value: CellValue, source?: string): void;
   spliceCol(col: number, index: number, amount: number, ...elements: CellValue[]): void;
   spliceRow(row: number, index: number, amount: number, ...elements: CellValue[]): void;
