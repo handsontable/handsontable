@@ -47,6 +47,8 @@ const tab = (tabName, token, id) => {
 };
 
 const getPreviewTab = (id, cssContent, htmlContent, code) => {
+  const renderElement = `$parent.$parent.isScriptLoaderActivated('${id}')`;
+
   return {
     type: 'html_block',
     tag: '',
@@ -58,8 +60,10 @@ const getPreviewTab = (id, cssContent, htmlContent, code) => {
     content: `
       <tab name="Preview" id="preview-tab-${id}">
         <style v-pre>${cssContent}</style>
-        <div v-pre>${htmlContent}</div>
-        <ScriptLoader v-if="$parent.$parent.isScriptLoaderActivated('${id}')" code="${code}"></ScriptLoader>
+        <template v-if="${renderElement}">
+          <div v-pre>${htmlContent}</div>
+        </template>
+        <ScriptLoader v-if="${renderElement}" code="${code}"></ScriptLoader>
       </tab>
     `,
     markup: '',
@@ -91,7 +95,7 @@ module.exports = function(docsVersion, base) {
         const htmlContent = htmlToken
           ? htmlToken.content
           : `<div id="${id}" class="hot ${klass}"></div>`;
-        const htmlContentRoot = `<div data-preset-type="${preset}">${htmlContent}</div>`;
+        const htmlContentRoot = `<div data-preset-type="${preset}" data-example-id="${id}" >${htmlContent}</div>`;
 
         const cssPos = args.match(/--css (\d*)/)?.[1];
         const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;
