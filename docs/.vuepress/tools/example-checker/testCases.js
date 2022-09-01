@@ -34,8 +34,14 @@ const testCases = [
      * @returns {string}
      */
     function fetchContainerFramework(parentNode) {
-      let containerFramework = parentNode
-        .querySelector('[data-preset-type]')
+      const presetHoldingElement = parentNode
+        .querySelector('[data-preset-type]');
+
+      if (!presetHoldingElement) {
+        return false;
+      }
+
+      let containerFramework = presetHoldingElement
         .getAttribute('data-preset-type')
         // Replace any digits with an empty string (vue3 -> vue)
         .replace(/\d/g, '')
@@ -86,12 +92,20 @@ const testCases = [
       angular: '<hot-table'
     };
     const emptyExampleContainers = [];
+    let elementsNotYetRenderedCount = 0;
     let hotInstancesCount = 0;
 
     codeTabs.forEach((codeTab) => {
       const exampleId = codeTab.id.split('-').at(-1);
       const codeTabParentElement = codeTab.parentElement;
       const containerFramework = fetchContainerFramework(codeTabParentElement);
+
+      if (containerFramework === false) {
+        elementsNotYetRenderedCount += 1;
+
+        return;
+      }
+
       const tabContent = fetchTabContent(codeTabParentElement, containerFramework);
       const prefixRegex = new RegExp(hotInitPrefixes[containerFramework], 'g');
       const foundInits = tabContent.match(prefixRegex)?.length;
@@ -104,14 +118,15 @@ const testCases = [
       }
     });
 
-    // Modify the number of expected instances, if there are any exceptions to the given page.
-    hotInstancesCount += (INSTANCE_NUMBER_EXCEPTIONS[permalink] || 0);
+    // Modify the number of possible not-yet-rendered instances, if there are any exceptions to the given page.
+    elementsNotYetRenderedCount += (INSTANCE_NUMBER_EXCEPTIONS[permalink] || 0);
 
     return {
       result: (hotInstancesCount === htMasterElements.length) && emptyExampleContainers.length === 0,
       emptyExampleContainers,
       expected: hotInstancesCount,
       received: htMasterElements.length,
+      elementsNotYetRendered: !!elementsNotYetRenderedCount,
       error: (!document.body.innerHTML ? 'Page not accessible.' : null),
     };
   }
