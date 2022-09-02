@@ -56,7 +56,6 @@ module.exports = (options, context) => {
       $page.frameworkName = getPrettyFrameworkName($page.currentFramework);
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
-      $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.buildMode = buildMode;
       $page.isSearchable = notSearchableLinks[$page.currentFramework]?.every(
         notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);
@@ -66,6 +65,11 @@ module.exports = (options, context) => {
 Generated at ${now}
 SHA: ${getDocsRepoSHA()}
 -->`;
+        // The `$page.lastUpdated` date is taken from `git log`. For Docs "next" it's impossible to take
+        // the last change date for API files (for "next" they are added to gitignore).
+        $page.lastUpdatedFormat = formatDate(new Date());
+      } else {
+        $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       }
 
       const frontmatter = $page.frontmatter;
