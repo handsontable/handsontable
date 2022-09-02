@@ -5,7 +5,7 @@
 
       <blockquote>{{ getMsg() }}</blockquote>
 
-      <RouterLink to="/">
+      <RouterLink :to="homeUrl">
         Take me home.
       </RouterLink>
     </div>
@@ -21,14 +21,32 @@ const msgs = [
 ];
 
 export default {
+  data() {
+    return {
+      homeUrl: '/'
+    };
+  },
   methods: {
+    /**
+     * Returns the new homepage URL of the previously selected framework. For example for
+     * `/docs/10.1/javascript-data-grid/ble-ble` it's `/docs/10.1/javascript-data-grid/`.
+     *
+     * The $page object is not available within the component so read the state from
+     * the "window.location".
+     */
+    getFrameworkHomePage() {
+      return '/' + window.location.pathname.replace(/^\/docs\/(?:next|\d+\.\d\/)?(.+\-data-grid\/).*/, '$1');
+    },
     getMsg() {
       return msgs[Math.floor(Math.random() * msgs.length)];
     }
   },
+  mounted() {
+    this.homeUrl = this.getFrameworkHomePage();
+  },
   created() {
     if (this.$ssrContext) {
-      this.$ssrContext.docsGenStamp = this.$page.docsGenStamp ?? '';
+      this.$ssrContext.docsGenStamp = '';
     }
   }
 };
