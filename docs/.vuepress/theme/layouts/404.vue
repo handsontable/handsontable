@@ -2,12 +2,8 @@
   <div class="theme-container">
     <div class="theme-default-content">
       <h1>404</h1>
-
       <blockquote>{{ getMsg() }}</blockquote>
-
-      <RouterLink :to="homeUrl">
-        Take me home.
-      </RouterLink>
+      <a :href="homeUrl">Take me home.</a>
     </div>
   </div>
 </template>
@@ -29,13 +25,15 @@ export default {
   methods: {
     /**
      * Returns the new homepage URL of the previously selected framework. For example for
-     * `/docs/10.1/javascript-data-grid/ble-ble` it's `/docs/10.1/javascript-data-grid/`.
+     * `/docs/10.1/react-data-grid/foo/bar` it's `/docs/10.1/react-data-grid/`.
      *
      * The $page object is not available within the component so read the state from
      * the "window.location".
+     *
+     * @returns {string}
      */
     getFrameworkHomePage() {
-      return '/' + window.location.pathname.replace(/^\/docs\/(?:next|\d+\.\d\/)?(.+\-data-grid\/).*/, '$1');
+      return window.location.pathname.replace(/^(\/docs\/(?:(?:next|\d+\.\d)\/)?.+-data-grid\/).*/, '$1');
     },
     getMsg() {
       return msgs[Math.floor(Math.random() * msgs.length)];
