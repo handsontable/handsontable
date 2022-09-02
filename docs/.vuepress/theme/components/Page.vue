@@ -32,6 +32,13 @@ export default {
       activatedExamples: [],
     };
   },
+  mounted() {
+    // console.log(document.querySelector('.tabs-component-panels'));
+    // setTimeout(() => {
+    //   document.querySelector('.tabs-component-panels').classList.add('selected-preview');
+    // }, 0);
+    // console.log(document.querySelector('.tabs-component-panels').classList);
+  },
   computed: {
     isApi() {
       return this.$route.fullPath.match(/([^/]*\/)?api\//);
@@ -47,7 +54,10 @@ export default {
 
       if (selectedTab.tab.computedId.startsWith('preview-tab')) {
         this.activatedExamples.push(exampleId);
-        parentContainer.className += ` ${changedClass}`; // Adding class by method compatible with IE
+
+        setTimeout(() => {
+          parentContainer.className += ` ${changedClass}`; // Adding class by method compatible with IE
+        }, 0);
 
       } else {
         instanceRegister.destroyExample(exampleId);
