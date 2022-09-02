@@ -249,7 +249,7 @@ The main Handsontable component is called `HotTable`.
 import { HotTable } from '@handsontable/react';
 ```
 
-To set Handsontable's [configuration options](@/guides/getting-started/setting-options.md), use `HotTable`'s props. For example:
+To set Handsontable's [configuration options](@/guides/getting-started/configuration-options.md), use `HotTable`'s props. For example:
 
 ```jsx
 <HotTable
