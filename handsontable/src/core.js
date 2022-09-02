@@ -1002,6 +1002,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               } else if (orgValue !== null && typeof orgValue === 'object') {
                 pushData = false;
+                throw new Error('here it fails');
               }
               if (pushData) {
                 setData.push([current.row, current.col, value]);
