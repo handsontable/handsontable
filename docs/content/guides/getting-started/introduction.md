@@ -10,6 +10,8 @@ react:
 
 # Handsontable documentation
 
+[[toc]]
+
 ::: only-for javascript
 ::: tip
 Using React? [Switch to the React version of this documentation](../react-data-grid).
@@ -25,11 +27,18 @@ Thousands of business apps depend on Handsontable for entering, editing, validat
 ## Get started with Handsontable
 
 To jump straight into the sample code, open Handsontable's demo app at CodeSandbox. Get your data grid up and running in just a few minutes:
-- [JavaScript](https://codesandbox.io/s/handsontable-javascript-data-grid-hello-world-app-forked-zee1jw)
-- [React](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-forked-16c9gw)
-- [Angular](https://codesandbox.io/s/handsontable-angular-data-grid-hello-world-app-forked-fz9zrz)
-- [Vue 2](https://codesandbox.io/s/handsontable-vue-data-grid-hello-world-app-forked-6z4395)
-- [TypeScript](https://codesandbox.io/s/handsontable-typescript-data-grid-hello-world-app-forked-xd6xek)
+
+::: only-for javascript
+- [JavaScript demo](https://codesandbox.io/s/handsontable-javascript-data-grid-hello-world-app-forked-zee1jw)
+- [React demo](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-forked-16c9gw)
+- [Angular demo](https://codesandbox.io/s/handsontable-angular-data-grid-hello-world-app-forked-fz9zrz)
+- [Vue 2 demo](https://codesandbox.io/s/handsontable-vue-data-grid-hello-world-app-forked-6z4395)
+- [TypeScript demo](https://codesandbox.io/s/handsontable-typescript-data-grid-hello-world-app-forked-xd6xek)
+:::
+
+::: only-for react
+- [React demo](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-forked-16c9gw)
+:::
 
 Then, move on to [connecting](@/guides/getting-started/binding-to-data.md) your data and [configuring](@/guides/getting-started/configuration-options.md) Handsontable's built-in features. For more complex implementations, use Handsontable's [API](@/api/introduction.md).
 
@@ -59,11 +68,13 @@ Then, move on to [connecting](@/guides/getting-started/binding-to-data.md) your 
 - [Create a custom plugin](@/guides/tools-and-building/custom-plugins.md)
 - [Translate the UI](@/guides/internationalization/language.md)
 
+::: only-for javascript
 ## Supported frameworks
 
 Handsontable supports popular JavaScript frameworks through wrappers. It also features a TypeScript declaration file that standardizes the API [methods](@/api/core.md), [hooks](@/api/hooks.md), and [options](@/api/options.md).
 
 Explore Handsontable's documentation for [React](../react-data-grid), [Angular](@/guides/integrate-with-angular/angular-installation.md), [Vue 2](@/guides/integrate-with-vue/vue-installation.md), and [Vue 3](@/guides/integrate-with-vue3/vue3-installation.md).
+:::
 
 ## What can I use Handsontable for?
 
