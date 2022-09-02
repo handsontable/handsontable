@@ -66,7 +66,7 @@ Generated at ${now}
 SHA: ${getDocsRepoSHA()}
 -->`;
         // The `$page.lastUpdated` date is taken from `git log`. For Docs "next" it's impossible to take
-        // the last change date for API files (for "next" they are added to gitignore).
+        // the last change date for API files as they are added to gitignore.
         $page.lastUpdatedFormat = formatDate(new Date());
       } else {
         $page.lastUpdatedFormat = formatDate($page.lastUpdated);
