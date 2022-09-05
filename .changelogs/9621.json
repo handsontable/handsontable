@@ -1,0 +1,7 @@
+{
+  "title": "Fixed cells desynchronization that could happen on mobile devices when the edge cells are selected.",
+  "type": "fixed",
+  "issue": 9621,
+  "breaking": false,
+  "framework": "none"
+}
