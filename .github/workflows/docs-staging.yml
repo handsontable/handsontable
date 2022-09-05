@@ -42,6 +42,35 @@ jobs:
       - name: Test examples
         run: |
           npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
+          npm run docs:test:example-checker
 
       - name: Docker tags
         run: |
