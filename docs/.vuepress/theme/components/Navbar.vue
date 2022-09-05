@@ -3,7 +3,7 @@
     <SidebarButton @toggle-sidebar="$emit('toggle-sidebar')" />
 
     <RouterLink
-        :to="`${this.frameworkUrlPrefix}/`"
+        :to="frameworkUrlPrefix"
         class="home-link"
     >
 
@@ -61,7 +61,7 @@ export default {
   },
   computed: {
     frameworkUrlPrefix() {
-      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
+      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
     },
     algolia() {
       return this.$themeLocaleConfig.algolia || this.$site.themeConfig.algolia || {};
