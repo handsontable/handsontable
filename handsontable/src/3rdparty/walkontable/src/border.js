@@ -318,7 +318,8 @@ class Border {
       bottomHitArea: bottomHitAreaStyles,
     } = this.selectionHandles.styles;
 
-    const handleSize = parseInt(topStyles.width, 10) + (parseInt(topStyles.borderWidth, 10) * 2);
+    const handleBorderSize = parseInt(topStyles.borderWidth, 10);
+    const handleSize = parseInt(topStyles.width, 10);
     const hitAreaSize = parseInt(topHitAreaStyles.width, 10);
     const totalTableWidth = this.wot.wtTable.getWidth();
     const totalTableHeight = this.wot.wtTable.getHeight();
@@ -331,11 +332,11 @@ class Border {
 
     const bottomHandlerInline = Math.min(
       parseInt(left + width, 10),
-      totalTableWidth - handleSize,
+      totalTableWidth - handleSize - (handleBorderSize * 2),
     );
     const bottomHandlerAreaInline = Math.min(
       parseInt(left + width - (hitAreaSize / 4), 10),
-      totalTableWidth - hitAreaSize,
+      totalTableWidth - hitAreaSize - (handleBorderSize * 2),
     );
 
     bottomStyles[inlinePosProperty] = `${bottomHandlerInline}px`;
@@ -343,11 +344,11 @@ class Border {
 
     const bottomHandlerTop = Math.min(
       parseInt(top + height, 10),
-      totalTableHeight - handleSize,
+      totalTableHeight - handleSize - (handleBorderSize * 2),
     );
     const bottomHandlerAreaTop = Math.min(
       parseInt(top + height - (hitAreaSize / 4), 10),
-      totalTableHeight - hitAreaSize,
+      totalTableHeight - hitAreaSize - (handleBorderSize * 2),
     );
 
     bottomStyles.top = `${bottomHandlerTop}px`;
@@ -567,8 +568,8 @@ class Border {
         trimmingContainer = rootDocument.documentElement;
       }
 
-      const cornerHalfWidth = parseInt(this.cornerDefaultStyle.width, 10);
-      const cornerHalfHeight = parseInt(this.cornerDefaultStyle.height, 10);
+      const cornerHalfWidth = parseInt(this.cornerDefaultStyle.width, 10) / 2;
+      const cornerHalfHeight = parseInt(this.cornerDefaultStyle.height, 10) / 2;
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
         const toTdOffsetLeft = trimToWindow ? toTD.getBoundingClientRect().left : toTD.offsetLeft;
