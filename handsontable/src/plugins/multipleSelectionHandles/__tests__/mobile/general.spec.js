@@ -52,4 +52,33 @@ describe('MultipleSelectionHandles', () => {
     expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
     expect(getMaster().find('.wtHolder').scrollTop()).toBe(0);
   });
+
+  it('should hide all selection handlers when the cell\'s selection disappears', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 8),
+    });
+
+    selectCell(0, 0);
+
+    const topSelectionHandle = spec().$container
+      .find('.ht_master .htBorders div:first-child .topSelectionHandle');
+    const topSelectionHandleHitArea = spec().$container
+      .find('.ht_master .htBorders div:first-child .topSelectionHandle-HitArea');
+    const bottomSelectionHandle = spec().$container
+      .find('.ht_master .htBorders div:first-child .bottomSelectionHandle');
+    const bottomSelectionHandleHitArea = spec().$container
+      .find('.ht_master .htBorders div:first-child .bottomSelectionHandle-HitArea');
+
+    expect(topSelectionHandle.is(':visible')).toBe(true);
+    expect(topSelectionHandleHitArea.is(':visible')).toBe(true);
+    expect(bottomSelectionHandle.is(':visible')).toBe(true);
+    expect(bottomSelectionHandleHitArea.is(':visible')).toBe(true);
+
+    deselectCell();
+
+    expect(topSelectionHandle.is(':visible')).toBe(false);
+    expect(topSelectionHandleHitArea.is(':visible')).toBe(false);
+    expect(bottomSelectionHandle.is(':visible')).toBe(false);
+    expect(bottomSelectionHandleHitArea.is(':visible')).toBe(false);
+  });
 });
