@@ -32,13 +32,6 @@ export default {
       activatedExamples: [],
     };
   },
-  mounted() {
-    // console.log(document.querySelector('.tabs-component-panels'));
-    // setTimeout(() => {
-    //   document.querySelector('.tabs-component-panels').classList.add('selected-preview');
-    // }, 0);
-    // console.log(document.querySelector('.tabs-component-panels').classList);
-  },
   computed: {
     isApi() {
       return this.$route.fullPath.match(/([^/]*\/)?api\//);
@@ -55,6 +48,7 @@ export default {
       if (selectedTab.tab.computedId.startsWith('preview-tab')) {
         this.activatedExamples.push(exampleId);
 
+        // Extra timeout as there is some problem related to not adding class properly (#9856).
         setTimeout(() => {
           parentContainer.className += ` ${changedClass}`; // Adding class by method compatible with IE
         }, 0);
