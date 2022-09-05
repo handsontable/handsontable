@@ -39,10 +39,9 @@ jobs:
         run: |
           npm run docs:docker:build
 
-      # Temporary disabled on September 2
-      # - name: Test examples
-      #   run: |
-      #     npm run docs:test:example-checker
+      - name: Test examples
+        run: |
+          npm run docs:test:example-checker
 
       - name: Docker tags
         run: |
