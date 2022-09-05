@@ -308,7 +308,7 @@ class Border {
    * @param {number} width The width of the handler.
    * @param {number} height The height of the handler.
    */
-  updateMultipleSelectionHandlesPosition(row, col, top, left, width, height, td) {
+  updateMultipleSelectionHandlesPosition(row, col, top, left, width, height) {
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
     const inlinePosProperty = isRtl ? 'right' : 'left';
     const {
@@ -318,8 +318,10 @@ class Border {
       bottomHitArea: bottomHitAreaStyles,
     } = this.selectionHandles.styles;
 
-    const handleSize = parseInt(topStyles.width, 10) + parseInt(topStyles.borderWidth, 10);
+    const handleSize = parseInt(topStyles.width, 10) + (parseInt(topStyles.borderWidth, 10) * 2);
     const hitAreaSize = parseInt(topHitAreaStyles.width, 10);
+    const totalTableWidth = this.wot.wtTable.getWidth();
+    const totalTableHeight = this.wot.wtTable.getHeight();
 
     topStyles.top = `${parseInt(top - handleSize - 1, 10)}px`;
     topStyles[inlinePosProperty] = `${parseInt(left - handleSize - 1, 10)}px`;
@@ -327,30 +329,29 @@ class Border {
     topHitAreaStyles.top = `${parseInt(top - ((hitAreaSize / 4) * 3), 10)}px`;
     topHitAreaStyles[inlinePosProperty] = `${parseInt(left - ((hitAreaSize / 4) * 3), 10)}px`;
 
-    if (this.isHandlerOverlapsContainerHorizontally(col, td, handleSize)) {
-      bottomStyles[inlinePosProperty] = `${parseInt(left + width, 10) - handleSize}px`;
-      bottomHitAreaStyles[inlinePosProperty] = `${parseInt(left + width, 10) - hitAreaSize}px`;
-    } else {
-      bottomStyles[inlinePosProperty] = `${parseInt(left + width, 10)}px`;
-      bottomHitAreaStyles[inlinePosProperty] = `${parseInt(left + width - (hitAreaSize / 4), 10)}px`;
-    }
+    const bottomHandlerInline = Math.min(
+      parseInt(left + width, 10),
+      totalTableWidth - handleSize,
+    );
+    const bottomHandlerAreaInline = Math.min(
+      parseInt(left + width - (hitAreaSize / 4), 10),
+      totalTableWidth - hitAreaSize,
+    );
 
-    if (this.isHandlerOverlapsContainerVertically(row, td, handleSize)) {
-      bottomStyles.top = `${parseInt(top + height, 10) - handleSize}px`;
-      bottomHitAreaStyles.top = `${parseInt(top + height, 10) - hitAreaSize}px`;
-    } else {
-      bottomStyles.top = `${parseInt(top + height, 10)}px`;
-      bottomHitAreaStyles.top = `${parseInt(top + height - (hitAreaSize / 4), 10)}px`;
+    bottomStyles[inlinePosProperty] = `${bottomHandlerInline}px`;
+    bottomHitAreaStyles[inlinePosProperty] = `${bottomHandlerAreaInline}px`;
 
-      const top = parseInt(bottomHitAreaStyles.top, 10);
+    const bottomHandlerTop = Math.min(
+      parseInt(top + height, 10),
+      totalTableHeight - handleSize,
+    );
+    const bottomHandlerAreaTop = Math.min(
+      parseInt(top + height - (hitAreaSize / 4), 10),
+      totalTableHeight - hitAreaSize,
+    );
 
-      const cornerBottomEdge = top + hitAreaSize;
-      const cornerOverlappingContainer = cornerBottomEdge >= this.wot.wtTable.getTotalHeight();
-
-      if (cornerOverlappingContainer) {
-        bottomHitAreaStyles.height = `${40 - Math.min(cornerBottomEdge - this.wot.wtTable.getTotalHeight())}px`;
-      }
-    }
+    bottomStyles.top = `${bottomHandlerTop}px`;
+    bottomHitAreaStyles.top = `${bottomHandlerAreaTop}px`;
 
     if (this.settings.border.cornerVisible && this.settings.border.cornerVisible()) {
       topStyles.display = 'block';
@@ -390,7 +391,7 @@ class Border {
       return;
     }
 
-    const { wtTable, rootWindow } = this.wot; // todo refactoring: consider about using internal facade (it is given by external code)
+    const { wtTable, rootDocument, rootWindow } = this.wot; // todo refactoring: consider about using internal facade (it is given by external code)
     let fromRow;
     let toRow;
     let fromColumn;
@@ -559,76 +560,53 @@ class Border {
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
       this.cornerStyle.display = 'none';
 
+      let trimmingContainer = getTrimmingContainer(wtTable.TABLE);
+      const trimToWindow = trimmingContainer === rootWindow;
+
+      if (trimToWindow) {
+        trimmingContainer = rootDocument.documentElement;
+      }
+
       const cornerHalfWidth = parseInt(this.cornerDefaultStyle.width, 10);
       const cornerHalfHeight = parseInt(this.cornerDefaultStyle.height, 10);
 
-      if (this.isHandlerOverlapsContainerHorizontally(toColumn, toTD, cornerHalfWidth)) {
-        this.cornerStyle[inlinePosProperty] = `${Math.floor(inlineStartPos + width +
-          this.cornerCenterPointOffset - (cornerHalfWidth / 2))}px`;
-        this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
+      if (toColumn === this.wot.getSetting('totalColumns') - 1) {
+        const toTdOffsetLeft = trimToWindow ? toTD.getBoundingClientRect().left : toTD.offsetLeft;
+        let cornerOverlappingContainer = false;
+        let cornerEdge = 0;
+
+        if (isRtl) {
+          cornerEdge = toTdOffsetLeft - (parseInt(this.cornerDefaultStyle.width, 10) / 2);
+          cornerOverlappingContainer = cornerEdge < 0;
+
+        } else {
+          cornerEdge = toTdOffsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2);
+          cornerOverlappingContainer = cornerEdge >= innerWidth(trimmingContainer);
+        }
+
+        if (cornerOverlappingContainer) {
+          this.cornerStyle[inlinePosProperty] = `${Math
+            .floor(inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth)}px`;
+          this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
+        }
       }
 
-      if (this.isHandlerOverlapsContainerVertically(toRow, toTD, cornerHalfHeight)) {
-        this.cornerStyle.top = `${Math.floor(top + height + this.cornerCenterPointOffset - (cornerHalfHeight / 2))}px`;
-        this.cornerStyle.borderBottomWidth = 0;
+      if (toRow === this.wot.getSetting('totalRows') - 1) {
+        const toTdOffsetTop = trimToWindow ? toTD.getBoundingClientRect().top : toTD.offsetTop;
+        const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2);
+        const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
+
+        if (cornerOverlappingContainer) {
+          this.cornerStyle.top = `${Math.floor(top + height + this.cornerCenterPointOffset - cornerHalfHeight)}px`;
+          this.cornerStyle.borderBottomWidth = 0;
+        }
       }
 
       this.cornerStyle.display = 'block';
     }
 
     if (isMobileBrowser()) {
-      this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, inlineStartPos, width, height, toTD);
-    }
-  }
-
-  isHandlerOverlapsContainerHorizontally(column, td, handlerWidth) {
-    if (column !== this.wot.getSetting('totalColumns') - 1) {
-      return false;
-    }
-
-    const { trimmingContainer, trimToWindow } = this.getTrimmingContainer();
-    const isRtl = this.wot.wtSettings.getSetting('rtlMode');
-    const toTdOffsetLeft = trimToWindow ? td.getBoundingClientRect().left : td.offsetLeft;
-    let cornerOverlappingContainer = false;
-    let cornerEdge = 0;
-
-    if (isRtl) {
-      cornerEdge = toTdOffsetLeft - (handlerWidth / 2);
-      cornerOverlappingContainer = cornerEdge < 0;
-
-    } else {
-      cornerEdge = toTdOffsetLeft + outerWidth(td) + (handlerWidth / 2);
-      cornerOverlappingContainer = cornerEdge >= innerWidth(trimmingContainer);
-    }
-
-    return cornerOverlappingContainer;
-  }
-
-  isHandlerOverlapsContainerVertically(toRow, td, handlerHeight) {
-    if (toRow !== this.wot.getSetting('totalRows') - 1) {
-      return false;
-    }
-
-    const { trimmingContainer, trimToWindow } = this.getTrimmingContainer();
-    const toTdOffsetTop = trimToWindow ? td.getBoundingClientRect().top : td.offsetTop;
-    const cornerBottomEdge = toTdOffsetTop + outerHeight(td) + handlerHeight;
-    const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
-
-    return cornerOverlappingContainer;
-  }
-
-  getTrimmingContainer() {
-    const { wtTable, rootWindow } = this.wot;
-    let trimmingContainer = getTrimmingContainer(wtTable.TABLE);
-    const trimToWindow = trimmingContainer === rootWindow;
-
-    if (trimToWindow) {
-      trimmingContainer = rootDocument.documentElement;
-    }
-
-    return {
-      trimmingContainer,
-      trimToWindow,
+      this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, inlineStartPos, width, height);
     }
   }
 
@@ -801,7 +779,9 @@ class Border {
 
     if (isMobileBrowser()) {
       this.selectionHandles.styles.top.display = 'none';
+      this.selectionHandles.styles.topHitArea.display = 'none';
       this.selectionHandles.styles.bottom.display = 'none';
+      this.selectionHandles.styles.bottomHitArea.display = 'none';
     }
   }
 
