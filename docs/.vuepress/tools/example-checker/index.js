@@ -155,9 +155,7 @@ ${brokenExamplePaths.map(
     })
     .join('\n')}`
     );
-    // process.exit(1);
-    // Temporarily don't end with an error
-    process.exit(0);
+    process.exit(1);
   }
 
   if (brokenExamplePaths.length === 0) {
