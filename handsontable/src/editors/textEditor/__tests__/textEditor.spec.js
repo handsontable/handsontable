@@ -1603,21 +1603,6 @@ describe('TextEditor', () => {
 
   });
 
-  it('should render the text without trimming out the whitespace, if trimWhitespace is set to false', () => {
-    spec().$container.css('overflow', '');
-    const hot = handsontable({
-      data: createSpreadsheetData(3, 9),
-      trimWhitespace: false
-    });
-
-    selectCell(0, 2);
-    keyDownUp('enter');
-    hot.getActiveEditor().TEXTAREA.value = '       test    of    whitespace      ';
-    keyDownUp('enter');
-
-    expect(getDataAtCell(0, 2).length).toEqual(37);
-  });
-
   it('should insert new line on caret position when pressing ALT + ENTER, CTRL + ENTER or META + ENTER', () => {
     const data = [
       ['Maserati', 'Mazda'],
