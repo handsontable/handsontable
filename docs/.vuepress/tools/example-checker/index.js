@@ -54,7 +54,7 @@ const EXAMPLE_INIT_TIMEOUT = 100;
  *
  * @type {number}
  */
-const CHECK_TRIES = 10;
+const CHECK_TRIES = 15;
 
 (async() => {
   const FRAMEWORKS_TO_CHECK = getFrameworks();
@@ -88,7 +88,9 @@ const CHECK_TRIES = 10;
 
       const permalink = extendPermalink(permalinks[i].permalink, framework);
 
-      await page.goto(`http://localhost:${PORT}/docs${permalink}`, {});
+      await page.goto(`http://localhost:${PORT}/docs${permalink}`, {
+        waitUntil: 'networkidle0'
+      });
 
       for (let testIndex = 0; testIndex < testCases.length; testIndex++) {
         let pageEvaluation = await page.evaluate(testCases[testIndex], permalink);
