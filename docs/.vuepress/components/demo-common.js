@@ -1,4 +1,4 @@
-/** .........
+/**
  * Given a base URL, transform a URL in a DOM node's attribute from a relative to an absolute value.
  *
  * @param {Node} sourceNode The DOM node from which to get the attribute value.
