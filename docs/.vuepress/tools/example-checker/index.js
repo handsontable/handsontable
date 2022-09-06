@@ -163,3 +163,5 @@ ${brokenExamplePaths.map(
     process.exit(0);
   }
 })();
+
+// TODO: remove this comment
