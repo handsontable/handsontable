@@ -165,5 +165,3 @@ ${brokenExamplePaths.map(
     process.exit(0);
   }
 })();
-
-// TODO: Testing, remove this.
