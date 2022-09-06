@@ -1,12 +1,15 @@
 ---
 title: Clipboard
-metaTitle: Clipboard - Guide - Handsontable Documentation
+metaTitle: Clipboard - JavaScript Data Grid | Handsontable
+description: Copy data from selected cells to the clipboard, using the "Ctrl/Cmd + C" shortcut or the right-click context menu. Control the clipboard with Handsontable's API.
 permalink: /basic-clipboard
 canonicalUrl: /basic-clipboard
 tags:
   - copy
   - cut
   - paste
+react:
+  metaTitle: Clipboard - React Data Grid | Handsontable
 ---
 
 # Clipboard

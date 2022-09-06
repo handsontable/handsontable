@@ -1,6 +1,7 @@
 ---
 title: Row pre-populating
-metaTitle: Row pre-populating - Guide - Handsontable Documentation
+metaTitle: Row pre-populating - JavaScript Data Grid | Handsontable
+description: Populate newly-added rows with predefined template values, using cell renderers.
 permalink: /row-prepopulating
 canonicalUrl: /row-prepopulating
 tags:
@@ -8,6 +9,8 @@ tags:
   - extra rows
   - bottom rows
   - placeholder
+react:
+  metaTitle: Row pre-populating - React Data Grid | Handsontable
 ---
 
 # Row pre-populating

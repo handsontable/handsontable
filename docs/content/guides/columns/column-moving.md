@@ -1,8 +1,11 @@
 ---
 title: Column moving
-metaTitle: Column moving - Guide - Handsontable Documentation
+metaTitle: Column moving - JavaScript Data Grid | Handsontable
+description: Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 permalink: /column-moving
 canonicalUrl: /column-moving
+react:
+  metaTitle: Column moving - React Data Grid | Handsontable
 ---
 
 # Column moving

@@ -1,11 +1,15 @@
 ---
 title: Saving data
-metaTitle: Saving data - Guide - Handsontable Documentation
+metaTitle: Saving data - JavaScript Data Grid | Handsontable
+description: Save data after each change to the data set, using Handsontable's API hooks. Preserve the table state by saving data to local storage.
 permalink: /saving-data
 canonicalUrl: /saving-data
 tags:
   - load and save
   - server
+  - ajax
+react:
+  metaTitle: Saving data - React Data Grid | Handsontable
 ---
 
 # Saving data
@@ -17,8 +21,9 @@ Persistent state storage is particularly useful when running multiple instances 
 
 ## Saving changes using a callback
 
-Use the [`afterChange`](@/api/hooks.md#afterchange) callback to track changes made in the data grid. In the example below, Ajax is used to load and save the data. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
+To track changes made in your data grid, use Handsontable's [`afterChange`](@/api/hooks.md#afterchange) hook.
 
+The example below handles data by using `fetch`. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
 
 ::: only-for javascript
 ::: example #example1 --html 1 --js 2
@@ -44,8 +49,6 @@ const autosave = document.querySelector('#autosave');
 const load = document.querySelector('#load');
 const save = document.querySelector('#save');
 
-let autosaveNotification;
-
 const hot = new Handsontable(container, {
   startRows: 8,
   startCols: 6,
@@ -62,38 +65,43 @@ const hot = new Handsontable(container, {
       return;
     }
 
-    clearTimeout(autosaveNotification);
-
-    ajax('{{$basePath}}/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
-      exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
-      autosaveNotification = setTimeout(() => {
-        exampleConsole.innerText ='Changes will be autosaved';
-      }, 1000);
-    });
+    fetch('{{$basePath}}/scripts/json/save.json', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ data: change })
+    })
+      .then(response => {
+        exampleConsole.innerText = `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`;
+        console.log('The POST request is only used here for the demo purposes');
+      });
   }
 });
 
 load.addEventListener('click', () => {
-  ajax('{{$basePath}}/scripts/json/load.json', 'GET', '', res => {
-    const data = JSON.parse(res.response);
-
-    hot.loadData(data.data);
-    // or, use `updateData()` to replace `data` without resetting states
-
-    exampleConsole.innerText = 'Data loaded';
-  });
+  fetch('{{$basePath}}/scripts/json/load.json')
+    .then(response => {
+      response.json().then(data => {
+        hot.loadData(data.data);
+        // or, use `updateData()` to replace `data` without resetting states
+        exampleConsole.innerText = 'Data loaded';
+      });
+    });
 });
 save.addEventListener('click', () => {
   // save all cell's data
-  ajax('{{$basePath}}/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
-    const response = JSON.parse(res.response);
-
-    if (response.result === 'ok') {
+  fetch('{{$basePath}}/scripts/json/save.json', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ data: hot.getData() })
+  })
+    .then(response => {
       exampleConsole.innerText = 'Data saved';
-    } else {
-      exampleConsole.innerText = 'Save error';
-    }
-  });
+      console.log('The POST request is only used here for the demo purposes');
+    });
 });
 
 autosave.addEventListener('click', () => {
@@ -103,36 +111,6 @@ autosave.addEventListener('click', () => {
     exampleConsole.innerText ='Changes will not be autosaved';
   }
 });
-
-function ajax(url, method, params, callback) {
-  let obj;
-
-  try {
-    obj = new XMLHttpRequest();
-  } catch (e) {
-    try {
-      obj = new ActiveXObject('Msxml2.XMLHTTP');
-    } catch (e) {
-      try {
-        obj = new ActiveXObject('Microsoft.XMLHTTP');
-      } catch (e) {
-        alert('Your browser does not support Ajax.');
-        return false;
-      }
-    }
-  }
-  obj.onreadystatechange = () => {
-    if (obj.readyState == 4) {
-      callback(obj);
-    }
-  };
-  obj.open(method, url, true);
-  obj.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-  obj.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-  obj.send(params);
-
-  return obj;
-}
 ```
 :::
 :::
@@ -140,7 +118,7 @@ function ajax(url, method, params, callback) {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import React, { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -150,107 +128,81 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = React.createRef();
-  const [output, setOutput] = useState('');
+  const [output, setOutput] = useState('Click "Load" to load data from server');
 
   let autosaveNotification;
-  const hotSettings = {
-    startRows: 8,
-    startCols: 6,
-    rowHeaders: true,
-    colHeaders: true,
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
-    afterChange: function(change, source) {
-      if (source === 'loadData') {
-        return; //don't save this change
-      }
-
-      if (!autosave.checked) {
-        return;
-      }
-
-      clearTimeout(autosaveNotification);
-
-      ajax('{{$basePath}}/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
-        setOutput('Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')');
-        autosaveNotification = setTimeout(() => {
-          exampleConsole.innerText = 'Changes will be autosaved';
-        }, 1000);
-      });
-    }
-  };
   let loadClickCallback;
   let saveClickCallback;
   const autosaveClickCallback = () => {
     if (autosave.checked) {
       setOutput('Changes will be autosaved');
     } else {
-      exampleConsole.innerText = 'Changes will not be autosaved';
+      setOutput('Changes will not be autosaved');
     }
   };
-
-  function ajax(url, method, params, callback) {
-    let obj;
-
-    try {
-      obj = new XMLHttpRequest();
-    } catch (e) {
-      try {
-        obj = new ActiveXObject('Msxml2.XMLHTTP');
-      } catch (e) {
-        try {
-          obj = new ActiveXObject('Microsoft.XMLHTTP');
-        } catch (e) {
-          alert('Your browser does not support Ajax.');
-          return false;
-        }
-      }
-    }
-    obj.onreadystatechange = () => {
-      if (obj.readyState == 4) {
-        callback(obj);
-      }
-    };
-    obj.open(method, url, true);
-    obj.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-    obj.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-    obj.send(params);
-
-    return obj;
-  }
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
 
     loadClickCallback = () => {
-      ajax('{{$basePath}}/scripts/json/load.json', 'GET', '', res => {
-        const data = JSON.parse(res.response);
-
-        hot.loadData(data.data);
-        // or, use `updateData()` to replace `data` without resetting states
-
-        setOutput('Data loaded');
-      });
+      fetch('{{$basePath}}/scripts/json/load.json')
+        .then(response => {
+          response.json().then(data => {
+            hot.loadData(data.data);
+            // or, use `updateData()` to replace `data` without resetting states
+            setOutput('Data loaded');
+          });
+        });
     };
     saveClickCallback = () => {
       // save all cell's data
-      ajax('{{$basePath}}/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
-        const response = JSON.parse(res.response);
-
-        if (response.result === 'ok') {
+      fetch('{{$basePath}}/scripts/json/save.json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ data: hot.getData() })
+      })
+        .then(response => {
           setOutput('Data saved');
-        } else {
-          setOutput('Save error');
-        }
-      });
+          console.log('The POST request is only used here for the demo purposes');
+        });
     };
   });
 
   return (
-    <Fragment>
-      <HotTable ref={hotRef} settings={hotSettings}>
-      </HotTable>
+    <>
+      <HotTable
+        ref={hotRef}
+        startRows={8}
+        startCols={6}
+        rowHeaders={true}
+        colHeaders={true}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+        afterChange={function(change, source) {
+          if (source === 'loadData') {
+            return; //don't save this change
+          }
 
+          if (!autosave.checked) {
+            return;
+          }
+
+          fetch('{{$basePath}}/scripts/json/save.json', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ data: change })
+          })
+            .then(response => {
+              setOutput(`Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`);
+              console.log('The POST request is only used here for the demo purposes');
+            });
+        }}
+      />
+  
       <div className="controls">
         <button id="load" className="button button--primary button--blue" onClick={(...args) => loadClickCallback(...args)}>Load data</button>&nbsp;
         <button id="save" className="button button--primary button--blue" onClick={(...args) => saveClickCallback(...args)}>Save data</button>
@@ -261,7 +213,7 @@ const ExampleComponent = () => {
       </div>
 
       <output className="console" id="output">{output}</output>
-    </Fragment>
+    </>
   );
 };
 
@@ -269,8 +221,6 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
 :::
 :::
-
-[//]: # (// TODO: [react-docs] An error appears when using autosave in the above example "Uncaught ReferenceError: exampleConsole is not defined")
 
 ## Saving data locally
 

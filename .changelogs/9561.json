@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue where dropdown menu with enabled Filters plugin throws an error after open.",
+  "type": "fixed",
+  "issue": 9561,
+  "breaking": false,
+  "framework": "none"
+}

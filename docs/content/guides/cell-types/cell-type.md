@@ -1,8 +1,11 @@
 ---
 title: Cell type
-metaTitle: Cell type - Guide - Handsontable Documentation
+metaTitle: Cell type - JavaScript Data Grid | Handsontable
+description: Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
 permalink: /cell-type
 canonicalUrl: /cell-type
+react:
+  metaTitle: Cell type - React Data Grid | Handsontable
 ---
 
 # Cell type
@@ -334,7 +337,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-Using [cascade configuration](@/guides/getting-started/setting-options.md#cascading-configuration) we define a table with two columns, with [`validator`](@/api/options.md#validator) set to `customValidator` function. The s[`type`](@/api/options.md#type) of the first column is set to `password`. The `Password` cell type does not define a validator function:
+Using [cascade configuration](@/guides/getting-started/configuration-options.md#cascading-configuration) we define a table with two columns, with [`validator`](@/api/options.md#validator) set to `customValidator` function. The s[`type`](@/api/options.md#type) of the first column is set to `password`. The `Password` cell type does not define a validator function:
 
 ```js
 {

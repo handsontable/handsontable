@@ -142,8 +142,13 @@ describe('ColumnSummarySpec', () => {
 
   describe('calculateMinMax', () => {
     it('should calculate the minimum from the provided range', () => {
+      const dataset = createNumericData(15, 15);
+
+      dataset[0][1] = 0;
+      dataset[0][2] = 0;
+
       handsontable({
-        data: createNumericData(15, 15),
+        data: dataset,
         height: 200,
         width: 200,
         columnSummary: [
@@ -155,16 +160,32 @@ describe('ColumnSummarySpec', () => {
               [5, 6], [8], [10, 13]
             ],
             type: 'min'
+          },
+          {
+            destinationColumn: 1,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            ranges: [
+              [0, 13]
+            ],
+            type: 'min'
           }
         ]
       });
 
       expect(getDataAtCell(14, 0)).toEqual(6);
+      expect(getDataAtCell(14, 1)).toEqual(0);
     });
 
-    it('should calculate the minimum from the provided range', () => {
+    it('should calculate the maximum from the provided range', () => {
+      const dataset = createNumericData(15, 15);
+
+      dataset.forEach((rowArr) => {
+        rowArr[1] = 0;
+      });
+
       handsontable({
-        data: createNumericData(15, 15),
+        data: dataset,
         height: 200,
         width: 200,
         columnSummary: [
@@ -176,19 +197,34 @@ describe('ColumnSummarySpec', () => {
               [5, 6], [8], [10, 13]
             ],
             type: 'max'
+          },
+          {
+            destinationColumn: 1,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            ranges: [
+              [0, 13]
+            ],
+            type: 'max'
           }
         ]
       });
 
       expect(getDataAtCell(14, 0)).toEqual(14);
+      expect(getDataAtCell(14, 1)).toEqual(0);
     });
-
   });
 
   describe('countEntries', () => {
     it('should count non-empty entries from the provided range', () => {
+      const dataset = createNumericData(15, 15);
+
+      dataset.forEach((rowArr) => {
+        rowArr[1] = 0;
+      });
+
       handsontable({
-        data: createNumericData(15, 15),
+        data: dataset,
         height: 200,
         width: 200,
         columnSummary: [
@@ -200,11 +236,21 @@ describe('ColumnSummarySpec', () => {
               [0, 3], [5, 6], [8], [10, 13]
             ],
             type: 'count'
+          },
+          {
+            destinationColumn: 1,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            ranges: [
+              [0, 13]
+            ],
+            type: 'count'
           }
         ]
       });
 
       expect(getDataAtCell(14, 0)).toEqual(11);
+      expect(getDataAtCell(14, 1)).toEqual(14);
     });
   });
 

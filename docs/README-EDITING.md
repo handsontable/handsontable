@@ -250,6 +250,22 @@ The `example` Markdown container offers the following options:
 | `--no-edit`    | No       | `--no-edit`     | `--no-edit`                                                                                                                                                                                                                                                 | Removes the **Edit** button.                                                                          |
 | `--tab <tab>`  | No       | `--tab preview` | `code` \| `html` \| `css` \| `preview`                                                                                                                                                                                                                      | Sets a tab as open by default.                                                                        |
 
+### Non-editable examples
+You can also embed an example without the tabbed container.
+To display just the result of the code you want to present, use the `<HandsontablePreview>` component. The code wrapped in this component and a markdown code block will be rendered with the context of the current Handsontable version.
+````js
+<HandsontablePreview>
+```js
+  // enter the Handsontable-related code here.
+  const containerElement = document.querySelector('#hot');
+
+  new Handsontable(containerElement, {});
+```
+</HandsontablePreview>
+````
+
+**Note: Remember to place all the needed HTML and `<style>` elements in the markdown file as well.**
+
 ### Finding the broken examples
 
 The `example-checker` script checks if:

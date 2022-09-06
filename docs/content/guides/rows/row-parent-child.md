@@ -1,14 +1,18 @@
 ---
 title: Row parent-child
-metaTitle: Row parent-child - Guide - Handsontable Documentation
+metaTitle: Row parent-child - JavaScript Data Grid | Handsontable
+description: Reflect the parent-child relationship of your data, using Handsontable's interactive UI elements such as expand and collapse buttons or extended context menu.
 permalink: /row-parent-child
 canonicalUrl: /row-parent-child
 tags:
   - nested rows
+  - nestedRows
   - parent child
   - tree grid
   - grouping rows
   - master detail
+react:
+  metaTitle: Row parent-child - React Data Grid | Handsontable
 ---
 
 # Row parent-child
