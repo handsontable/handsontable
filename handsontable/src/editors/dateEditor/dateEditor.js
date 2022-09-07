@@ -9,6 +9,7 @@ import { isFunctionKey } from '../../helpers/unicode';
 import 'pikaday/css/pikaday.css';
 
 export const EDITOR_TYPE = 'date';
+const group = 'closingDateEditor';
 
 /**
  * @private
@@ -109,8 +110,21 @@ export class DateEditor extends TextEditor {
    * @param {Event} [event=null] The event object.
    */
   open(event = null) {
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+
     super.open();
     this.showDatepicker(event);
+
+    editorContext.addShortcut({
+      keys: [['Enter']],
+      callback: (keyboardEvent) => {
+        // Extra Pikaday's `onchange` listener captures events and performing extra `setDate` method call which causes
+        // flickering quite often.
+        keyboardEvent.stopPropagation();
+      },
+      group,
+    });
   }
 
   /**
@@ -127,6 +141,11 @@ export class DateEditor extends TextEditor {
     this.instance._registerTimeout(() => {
       this.instance._refreshBorders();
     });
+
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+
+    editorContext.removeShortcutsByGroup(group);
 
     super.close();
   }
