@@ -56,6 +56,11 @@ The dependencies below apply only if you use the [`Formulas`](@/api/formulas.md)
     License: Apache v2.0<br>
     [https://github.com/SAP/chevrotain](https://github.com/SAP/chevrotain)
 
+- **core-js**<br>
+    Author: Denis Pushkarev<br>
+    License: Open source (MIT)<br>
+    [https://github.com/zloirock/core-js](https://github.com/zloirock/core-js)
+
 - **jStat**<br>
     Author: jStat<br>
     License: Open source (MIT)<br>
