@@ -1,0 +1,7 @@
+{
+  "title": "Adding a large number of rows won't break the table",
+  "type": "fixed",
+  "issue": 7840,
+  "breaking": false,
+  "framework": "none"
+}
