@@ -284,20 +284,30 @@ export function range(start, end) {
 export function createSelectionController({ current, area, fill, custom, activeHeader, header } = {}) {
   const currentCtrl = current || createSelection({
     className: 'current',
+    selectionType: 'cell',
     border: {
       width: 2,
       color: '#4b89ff',
     },
   });
   const areaCtrl = area || createSelection({
+    markIntersections: true,
+    layerLevel: 1,
     className: 'area',
+    selectionType: 'area',
     border: {
       width: 1,
       color: '#4b89ff',
     },
   });
+
+  const areaControllers = new Map([
+    [areaCtrl.layerLevel || 1, areaCtrl]
+  ]);
+
   const fillCtrl = fill || createSelection({
     className: 'fill',
+    selectionType: 'fill',
     border: {
       width: 1,
       color: '#ff0000',
@@ -305,9 +315,11 @@ export function createSelectionController({ current, area, fill, custom, activeH
   });
   const activeHeaderCtrl = activeHeader || createSelection({
     highlightHeaderClassName: 'active_highlight',
+    selectionType: 'active-header',
   });
   const headerCtrl = header || createSelection({
     highlightHeaderClassName: 'highlight',
+    selectionType: 'header',
   });
   const customCtrl = custom || [];
 
@@ -321,11 +333,31 @@ export function createSelectionController({ current, area, fill, custom, activeH
     getActiveHeader() {
       return activeHeaderCtrl;
     },
-    createOrGetArea() {
-      return areaCtrl;
+    createOrGetArea(options = {}) {
+      const optionsWithDefaults = {
+        markIntersections: true,
+        layerLevel: 1,
+        border: {
+          width: 1,
+          color: '#4b89ff',
+        },
+        ...options,
+        className: 'area',
+        selectionType: 'area',
+      };
+
+      if (areaControllers.has(optionsWithDefaults.layerLevel)) {
+        return areaControllers.get(optionsWithDefaults.layerLevel);
+      }
+
+      const newArea = createSelection(optionsWithDefaults);
+
+      areaControllers.set(optionsWithDefaults.layerLevel, newArea);
+
+      return newArea;
     },
     getAreas() {
-      return [areaCtrl];
+      return Array.from(areaControllers.values());
     },
     getFill() {
       return fillCtrl;
@@ -334,7 +366,7 @@ export function createSelectionController({ current, area, fill, custom, activeH
       return [
         currentCtrl,
         fillCtrl,
-        areaCtrl,
+        ...this.getAreas(),
         headerCtrl,
         activeHeaderCtrl,
         ...customCtrl,
