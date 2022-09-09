@@ -80,6 +80,14 @@ export class MergeCells extends BasePlugin {
      * @type {SelectionCalculations}
      */
     this.selectionCalculations = null;
+    /**
+     * Flag determining whether data modification done by `modifyData` hook should be stopped. It is used for
+     * obtaining current data, without their modifications.
+     *
+     * @private
+     * @type {boolean}
+     */
+    this.ignoreDataModification = false;
   }
 
   /**
@@ -103,6 +111,12 @@ export class MergeCells extends BasePlugin {
     this.mergedCellsCollection = new MergedCellsCollection(this);
     this.autofillCalculations = new AutofillCalculations(this);
     this.selectionCalculations = new SelectionCalculations(this);
+
+    this.addHook('modifyData', () => {
+      if (this.ignoreDataModification === true) {
+        return false; // Stops data modification.
+      }
+    });
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
@@ -246,7 +260,14 @@ export class MergeCells extends BasePlugin {
    */
   getBulkCollectionData(populationArgumentsList) {
     const populationDataRange = this.getBulkCollectionDataRange(populationArgumentsList);
+
+    this.ignoreDataModification = true;
+
+    // We gets data without their modification, ie. done by Formulas plugins.
     const dataAtRange = this.hot.getData(...populationDataRange);
+
+    this.ignoreDataModification = false;
+
     const newDataAtRange = dataAtRange.splice(0);
 
     arrayEach(populationArgumentsList, (mergedCellArguments) => {
