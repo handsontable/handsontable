@@ -4295,7 +4295,7 @@ export default () => {
      * | `true` (default) | Remove whitespace at the beginning and at the end of each cell |
      * | `false`          | Don't remove whitespace                                         |
      *
-     * @memberof Options#tr
+     * @memberof Options#
      * @type {boolean}
      * @default true
      * @category Core
