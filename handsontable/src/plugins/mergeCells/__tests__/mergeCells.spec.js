@@ -1,3 +1,5 @@
+import HyperFormula from "hyperformula";
+
 describe('MergeCells', () => {
   const id = 'testContainer';
 
@@ -24,6 +26,30 @@ describe('MergeCells', () => {
 
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
+    });
+
+    it('should merge cells on startup respecting indexes changes', () => {
+      handsontable({
+        data: [
+          ['A1', 'B1', null, null],
+          ['A2', 'B2', null, null]
+        ],
+        mergeCells: [{
+          row: 0,
+          col: 2,
+          rowspan: 1,
+          colspan: 2
+        }, {
+          row: 1,
+          col: 2,
+          rowspan: 1,
+          colspan: 2
+        }],
+        manualColumnMove: [1, 0, 2, 3],
+      });
+
+      expect(getSourceData()).toEqual([['A1', 'B1', null, null], ['A2', 'B2', null, null]]);
+      expect(getData()).toEqual([['B1', 'A1', null, null], ['B2', 'A2', null, null]]);
     });
   });
 
