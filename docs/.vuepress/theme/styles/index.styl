@@ -186,6 +186,23 @@ h5 {
   font-size: 1em;
 }
 
+h1 a.header-anchor::before,
+h2 a.header-anchor::before,
+h3 a.header-anchor::before,
+h4 a.header-anchor::before,
+h5 a.header-anchor::before {
+  content: '#';
+  visibility: 'hidden';
+}
+
+h1:hover a.header-anchor::before,
+h2:hover a.header-anchor::before,
+h3:hover a.header-anchor::before,
+h4:hover a.header-anchor::before,
+h5:hover a.header-anchor::before {
+  visibility: 'visible';
+}
+
 .page {
   ul, ol {
       padding-left: 2.2em;
