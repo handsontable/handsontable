@@ -145,7 +145,7 @@ export class DateEditor extends TextEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutsByGroup(group);
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
 
     super.close();
   }
