@@ -9,7 +9,7 @@ import { isFunctionKey } from '../../helpers/unicode';
 import 'pikaday/css/pikaday.css';
 
 export const EDITOR_TYPE = 'date';
-const group = 'closingDateEditor';
+const SHORTCUTS_GROUP_EDITOR = 'dateEditor';
 
 /**
  * @private
@@ -123,7 +123,7 @@ export class DateEditor extends TextEditor {
         // flickering quite often.
         keyboardEvent.stopPropagation();
       },
-      group,
+      group: SHORTCUTS_GROUP_EDITOR,
     });
   }
 
