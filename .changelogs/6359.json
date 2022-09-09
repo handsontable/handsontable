@@ -1,0 +1,7 @@
+{
+  "title": "Fixed problem with overwriting merged cell value when there are some merged cells",
+  "type": "fixed",
+  "issue": 6359,
+  "breaking": false,
+  "framework": "none"
+}
