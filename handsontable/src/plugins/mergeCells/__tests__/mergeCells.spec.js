@@ -26,7 +26,7 @@ describe('MergeCells', () => {
       expect(TD.getAttribute('colspan')).toBe('2');
     });
 
-    it('should merge cells on startup respecting indexes changes', () => {
+    it('should merge cells on startup respecting indexes sequence changes', () => {
       handsontable({
         data: [
           ['A1', 'B1', null, null],
