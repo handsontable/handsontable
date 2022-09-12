@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [12.1.3] - 2022-09-19
+
+### Removed
+- Removed merge sort in favoir of build-in sort algorithm [#6091](https://github.com/handsontable/handsontable/issues/6091)
+
+### Fixed
+- Fixed an issue with "0" values being unrecognized by the Column Summary plugin. [#6385](https://github.com/handsontable/handsontable/issues/6385)
+- Fixed an issue where the `trimWhitespace` option can no be used in the columns and cells meta option layers. [#7387](https://github.com/handsontable/handsontable/issues/7387)
+- Adding a large number of rows won't break the table [#7840](https://github.com/handsontable/handsontable/issues/7840)
+- Fixed selection flickering of the edge of the table. [#8317](https://github.com/handsontable/handsontable/issues/8317)
+- Fixed an issue where the cell editor did not open when the cell was rendered outside the table's viewport. [#9022](https://github.com/handsontable/handsontable/issues/9022)
+- Fixed an issue where dropdown menu with enabled Filters plugin throws an error after open. [#9561](https://github.com/handsontable/handsontable/issues/9561)
+- Fix an issue that breaks the IME. [#9586](https://github.com/handsontable/handsontable/issues/9586)
+- Fixed cells desynchronization that could happen on mobile devices when the edge cells are selected. [#9621](https://github.com/handsontable/handsontable/issues/9621)
+- Fixed incorrect date format conversion on input (DateEditor) [#9681](https://github.com/handsontable/handsontable/issues/9681)
+
+### Changed
+- Split the Documentation versions into separate branches and Docker images. [#9570](https://github.com/handsontable/handsontable/issues/9570)
+
 ## [12.1.2] - 2022-07-08
 
 For more information on this release, see:
