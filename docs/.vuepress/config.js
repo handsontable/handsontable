@@ -76,6 +76,7 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
     anchor: {
+      permalinkSymbol: '',
       callback(token, slugInfo) {
         if (['h1', 'h2', 'h3'].includes(token.tag)) {
           // Remove the `-[number]` suffix from the slugs and header IDs
