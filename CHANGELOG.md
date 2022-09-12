@@ -24,9 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed cells desynchronization that could happen on mobile devices when the edge cells are selected. [#9621](https://github.com/handsontable/handsontable/issues/9621)
 - Fixed incorrect date format conversion on input (DateEditor) [#9681](https://github.com/handsontable/handsontable/issues/9681)
 
-### Changed
-- Split the Documentation versions into separate branches and Docker images. [#9570](https://github.com/handsontable/handsontable/issues/9570)
-
 ## [12.1.2] - 2022-07-08
 
 For more information on this release, see:
