@@ -1,12 +1,15 @@
 ---
 title: Custom builds
-metaTitle: Custom builds - Guide - Handsontable Documentation
+metaTitle: Custom builds - JavaScript Data Grid | Handsontable
+description: Handsontable's building process transforms the source files located in the code repository into dedicated packages.
 permalink: /custom-builds
 canonicalUrl: /custom-builds
 tags:
   - building
   - bundling
   - contributing
+react:
+  metaTitle: Custom builds - React Data Grid | Handsontable
 ---
 
 # Custom builds

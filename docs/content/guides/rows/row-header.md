@@ -1,12 +1,15 @@
 ---
-title: Row header
-metaTitle: Row header - Guide - Handsontable Documentation
+title: Row headers
+metaTitle: Row headers - JavaScript Data Grid | Handsontable
+description: Use row headers with consecutive numbers (like in Excel), or set them to custom values provided by an array or a function.
 permalink: /row-header
 canonicalUrl: /row-header
 tags:
   - custom headers
   - bind rows with headers
   - row id
+react:
+  metaTitle: Row headers - React Data Grid | Handsontable
 ---
 
 # Row header

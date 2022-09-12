@@ -1,0 +1,7 @@
+{
+  "title": "Fix an issue that breaks the IME.",
+  "type": "fixed",
+  "issue": 9586,
+  "breaking": false,
+  "framework": "none"
+}

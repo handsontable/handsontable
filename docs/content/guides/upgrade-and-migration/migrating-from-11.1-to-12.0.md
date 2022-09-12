@@ -1,12 +1,15 @@
 ---
 title: Migrating from 11.1 to 12.0
-metaTitle: Migrating from 11.1 to 12.0 - Guide - Handsontable Documentation
+metaTitle: Migrate from 11.1 to 12.0 - JavaScript Data Grid | Handsontable
+description: Migrate from Handsontable 11.1 to Handsontable 12.0, released on April 28, 2022.
 permalink: /migration-from-11.1-to-12.0
 canonicalUrl: /migration-from-11.1-to-12.0
 pageClass: migration-guide
+react:
+  metaTitle: Migrate from 11.1 to 12.0 - React Data Grid | Handsontable
 ---
 
-# Migrating from 11.1 to 12.0
+# Migrate from 11.1 to 12.0
 
 [[toc]]
 
@@ -44,7 +47,7 @@ hotInstance.loadData(newDataset);
 :::
 
 ::: only-for react
-Updating your [`data`](@/api/options.md#data) through a component's property no longer resets your [index mapper](@/api/indexMapper.md) information and [configuration options](@/guides/getting-started/setting-options.md).
+Updating your [`data`](@/api/options.md#data) through a component's property no longer resets your [index mapper](@/api/indexMapper.md) information and [configuration options](@/guides/getting-started/configuration-options.md).
 
 If you still want to reset the states when replacing [`data`](@/api/options.md#data), call the [`loadData()`](@/api/core.md#loadData) method, referencing the Handsontable instance from the component:
 

@@ -1,11 +1,14 @@
 ---
 title: Searching values
-metaTitle: Searching values - Guide - Handsontable Documentation
+metaTitle: Searching values - JavaScript Data Grid | Handsontable
+description: Type the text you are looking for in the search bar to highlight the desired values. Use API methods to implement the search bar outside of the data grid.
 permalink: /searching-values
 canonicalUrl: /searching-values
 tags:
   - find values
   - highlight values
+react:
+  metaTitle: Searching values - React Data Grid | Handsontable
 ---
 
 # Searching values

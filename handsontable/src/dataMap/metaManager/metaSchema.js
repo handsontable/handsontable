@@ -7,7 +7,7 @@ import { isObjectEqual } from '../../helpers/object';
  * @class Options
  * @description
  *
- * [Configuration options](@/guides/getting-started/setting-options.md) let you heavily customize your Handsontable instance. For example, you can:
+ * [Configuration options](@/guides/getting-started/configuration-options.md) let you heavily customize your Handsontable instance. For example, you can:
  *
  * - Enable and disable built-in features
  * - Enable and configure additional [plugins](@/guides/tools-and-building/custom-plugins.md)
@@ -15,7 +15,7 @@ import { isObjectEqual } from '../../helpers/object';
  * - Adjust Handsontable's behavior
  * - Implement your own custom features
  *
- * To apply [configuration options](@/guides/getting-started/setting-options.md), pass them as
+ * To apply [configuration options](@/guides/getting-started/configuration-options.md), pass them as
  * a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-handsontable),
  * using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
  *
@@ -60,14 +60,14 @@ import { isObjectEqual } from '../../helpers/object';
  * :::
  *
  * Depending on your needs, you can apply [configuration options](@/api/options.md) to different elements of your grid:
- * - [The entire grid](@/guides/getting-started/setting-options.md#setting-grid-options)
- * - [Individual columns](@/guides/getting-started/setting-options.md#setting-column-options)
- * - [Individual rows](@/guides/getting-started/setting-options.md#setting-row-options)
- * - [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options)
- * - [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic)
+ * - [The entire grid](@/guides/getting-started/configuration-options.md#setting-grid-options)
+ * - [Individual columns](@/guides/getting-started/configuration-options.md#setting-column-options)
+ * - [Individual rows](@/guides/getting-started/configuration-options.md#setting-row-options)
+ * - [Individual cells](@/guides/getting-started/configuration-options.md#setting-cell-options)
+ * - [Individual grid elements, based on any logic you implement](@/guides/getting-started/configuration-options.md#implementing-custom-logic)
  *
  * Read more:
- * - [Configuration options](@/guides/getting-started/setting-options.md)
+ * - [Configuration options](@/guides/getting-started/configuration-options.md)
  */
 export default () => {
   return {
@@ -112,10 +112,14 @@ export default () => {
      *
      * You can set the `allowEmpty` option to one of the following:
      *
-     * | Setting          | Description                                                                                                                           |
-     * | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default) | - Accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` and `''` values as `valid`              |
-     * | `false`          | - Don't accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` and `''` values with as `invalid` |
+     * | Setting          | Description                                                                                                                          |
+     * | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `true` (default) | - Accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` or `''` values as `valid`              |
+     * | `false`          | - Don't accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` or `''` values with as `invalid` |
+     *
+     * ::: tip
+     * To use the [`allowEmpty`](#allowempty) option, you need to set the [`validator`](#validator) option (or the [`type`](#type) option).
+     * :::
      *
      * @memberof Options#
      * @type {boolean}
@@ -130,7 +134,7 @@ export default () => {
      * // or
      * columns: [
      *   {
-     *     data: 'date',
+     *     type: 'date',
      *     dateFormat: 'DD/MM/YYYY',
      *     // allow empty values in each cell of the 'date' column
      *     allowEmpty: true
@@ -454,13 +458,13 @@ export default () => {
     bindRowsWithHeaders: void 0,
 
     /**
-     * The `cell` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to individual cells.
+     * The `cell` option lets you apply [configuration options](@/guides/getting-started/configuration-options.md) to individual cells.
      *
-     * The `cell` option overwrites the [top-level grid options](@/guides/getting-started/setting-options.md#setting-grid-options),
+     * The `cell` option overwrites the [top-level grid options](@/guides/getting-started/configuration-options.md#setting-grid-options),
      * and the [`columns`](#columns) options.
      *
      * Read more:
-     * - [Configuration options: Setting cell options](@/guides/getting-started/setting-options.md#setting-cell-options)
+     * - [Configuration options: Setting cell options](@/guides/getting-started/configuration-options.md#setting-cell-options)
      * - [`columns`](#columns)
      *
      * @memberof Options#
@@ -485,7 +489,7 @@ export default () => {
 
     /**
      * @description
-     * The `cells` option lets you apply any other [configuration options](@/guides/getting-started/setting-options.md) to
+     * The `cells` option lets you apply any other [configuration options](@/guides/getting-started/configuration-options.md) to
      * individual grid elements (columns, rows, cells), based on any logic you implement.
      *
      * The `cells` option overwrites all other options (including options set by [`columns`](#columns) and [`cell`](#cell)).
@@ -498,8 +502,8 @@ export default () => {
      * | `prop`    | No       | String \| Number | If [`data`](#data) is set to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same number as `column`.<br><br>If [`data`](#data) is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for the column's data object. |
      *
      * Read more:
-     * - [Configuration options: Implementing custom logic](@/guides/getting-started/setting-options.md#implementing-custom-logic)
-     * - [Configuration options: Setting row options](@/guides/getting-started/setting-options.md#setting-row-options)
+     * - [Configuration options: Implementing custom logic](@/guides/getting-started/configuration-options.md#implementing-custom-logic)
+     * - [Configuration options: Setting row options](@/guides/getting-started/configuration-options.md#setting-row-options)
      * - [`columns`](#columns)
      * - [`cell`](#cell)
      *
@@ -579,10 +583,10 @@ export default () => {
      * | A string            | Add a single CSS class name to every currently-selected element  |
      * | An array of strings | Add multiple CSS class names to every currently-selected element |
      *
-     * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/setting-options.md#cascading-configuration).
+     * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration).
      *
      * Read more:
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      * - [`currentRowClassName`](#currentRowClassName)
      * - [`currentColClassName`](#currentColClassName)
      * - [`currentHeaderClassName`](#currentHeaderClassName)
@@ -711,18 +715,18 @@ export default () => {
 
     /**
      * @description
-     * The `columns` option lets you apply any other [configuration options](@/guides/getting-started/setting-options.md) to individual columns (or ranges of columns).
+     * The `columns` option lets you apply any other [configuration options](@/guides/getting-started/configuration-options.md) to individual columns (or ranges of columns).
      *
      * You can set the `columns` option to one of the following:
      * - An array of objects (each object represents one column)
      * - A function that returns an array of objects
      *
-     * The `columns` option overwrites the [top-level grid options](@/guides/getting-started/setting-options.md#setting-grid-options).
+     * The `columns` option overwrites the [top-level grid options](@/guides/getting-started/configuration-options.md#setting-grid-options).
      *
      * When you use `columns`, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) option are ignored.
      *
      * Read more:
-     * - [Configuration options: Setting column options](@/guides/getting-started/setting-options.md#setting-column-options)
+     * - [Configuration options: Setting column options](@/guides/getting-started/configuration-options.md#setting-column-options)
      * - [`startCols`](#startCols)
      * - [`minCols`](#minCols)
      * - [`maxCols`](#maxCols)
@@ -1109,7 +1113,7 @@ export default () => {
      *
      * Read more:
      * - [Clipboard](@/guides/cell-features/clipboard.md)
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      * - [Password cell type](@/guides/cell-types/password-cell-type.md)
      *
      * @memberof Options#
@@ -1791,7 +1795,7 @@ export default () => {
      * Read more:
      * - [Cell editor](@/guides/cell-functions/cell-editor.md)
      * - [Cell type](@/guides/cell-types/cell-type.md)
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      * - [`type`](#type)
      *
      * @memberof Options#
@@ -2580,7 +2584,7 @@ export default () => {
      *
      * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-handsontable). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
      *
-     * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/setting-options.md#setting-grid-options).
+     * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/configuration-options.md#setting-grid-options).
      * You can't set it for individual columns, rows, or cells.
      *
      * You can set the `layoutDirection` option to one of the following strings:
@@ -3479,7 +3483,7 @@ export default () => {
      * `readOnly` cells can't be changed by the [`populateFromArray()`](@/api/core.md#populatefromarray) method.
      *
      * Read more:
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3588,7 +3592,7 @@ export default () => {
      * Read more:
      * - [Cell renderer](@/guides/cell-functions/cell-renderer.md)
      * - [Cell type](@/guides/cell-types/cell-type.md)
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      * - [`type`](#type)
      *
      * @memberof Options#
@@ -3890,7 +3894,7 @@ export default () => {
      * | `true`            | - Disable pasting data into this column<br>- On pasting, paste data into the next column to the right |
      *
      * Read more:
-     * - [Configuration options: Setting column options](@/guides/getting-started/setting-options.md#setting-column-options)
+     * - [Configuration options: Setting column options](@/guides/getting-started/configuration-options.md#setting-column-options)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3924,7 +3928,7 @@ export default () => {
      * | `true`            | - Disable pasting data into this row<br>- On pasting, paste data into the row below |
      *
      * Read more:
-     * - [Configuration options: Setting row options](@/guides/getting-started/setting-options.md#setting-row-options)
+     * - [Configuration options: Setting row options](@/guides/getting-started/configuration-options.md#setting-row-options)
      *
      * @memberof Options#
      * @type {boolean}
@@ -4374,7 +4378,7 @@ export default () => {
      * - [Cell renderer](@/guides/cell-functions/cell-renderer.md)
      * - [Cell editor](@/guides/cell-functions/cell-editor.md)
      * - [Cell validator](@/guides/cell-functions/cell-validator.md)
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      * - [`renderer`](#renderer)
      * - [`editor`](#editor)
      * - [`validator`](#validator)
@@ -4519,7 +4523,7 @@ export default () => {
      * Read more:
      * - [Cell validator](@/guides/cell-functions/cell-validator.md)
      * - [Cell type](@/guides/cell-types/cell-type.md)
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      * - [`type`](#type)
      *
      * @memberof Options#

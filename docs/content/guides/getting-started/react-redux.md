@@ -1,13 +1,20 @@
 ---
-title: 'Redux'
-metaTitle: 'Redux - Guide - Handsontable Documentation'
+title: Integration with Redux
+metaTitle: Integration with Redux - JavaScript Data Grid | Handsontable
+description: Use the Redux state container to maintain the data and configuration options of your React data grid.
 permalink: /redux
 canonicalUrl: /redux
+react:
+  metaTitle: Integration with Redux - React Data Grid | Handsontable
 ---
 
-# Redux
+# Integration with Redux
 
 [[toc]]
+
+You can integrate Handsontable with Redux or a similar state management library.
+
+Before using any state management library, make sure you know how Handsontable handles data: see the [Binding to data](@/guides/getting-started/binding-to-data.md#understand-binding-as-a-reference) page.
 
 ## Overview
 
@@ -17,7 +24,7 @@ The following example implements the `@handsontable/react` component with a [`re
 
 ::: example #example1 :react-redux
 ```jsx
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { createStore } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
@@ -67,7 +74,7 @@ const ExampleComponent = () => {
           <HotTable
             ref={hotTableComponent}
             beforeChange={onBeforeHotChange}
-            settings={hotSettings}
+            {...hotSettings}
           />
         </div>
 
@@ -144,7 +151,7 @@ const reduxStore = createStore(updatesReducer);
 
 ReactDOM.render(
   <Provider store={reduxStore}>
-    <ExampleComponent/>
+    <ExampleComponent />
   </Provider>,
   document.getElementById('example1')
 );

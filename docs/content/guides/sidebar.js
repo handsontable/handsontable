@@ -3,13 +3,13 @@ const gettingStartedItems = [
   // { path: 'guides/getting-started/demo' }, (temporarily hidden, till the demo is fixed)
   { path: 'guides/getting-started/installation' },
   { path: 'guides/getting-started/binding-to-data' },
-  { path: 'guides/getting-started/react-redux', onlyFor: ['react'] },
   { path: 'guides/getting-started/saving-data' },
-  { path: 'guides/getting-started/setting-options' },
+  { path: 'guides/getting-started/configuration-options' },
   { path: 'guides/getting-started/grid-size' },
   { path: 'guides/getting-started/react-methods', onlyFor: ['react'] },
   { path: 'guides/getting-started/events-and-hooks' },
   { path: 'guides/getting-started/license-key' },
+  { path: 'guides/getting-started/react-redux', onlyFor: ['react'] },
 ];
 
 const integrateWithAngularItems = [
@@ -17,7 +17,7 @@ const integrateWithAngularItems = [
   { path: 'guides/integrate-with-angular/angular-simple-example' },
   { path: 'guides/integrate-with-angular/angular-modules' },
   { path: 'guides/integrate-with-angular/angular-custom-id' },
-  { path: 'guides/integrate-with-angular/angular-setting-up-a-language' },
+  { path: 'guides/integrate-with-angular/angular-setting-up-a-translation' },
   { path: 'guides/integrate-with-angular/angular-custom-context-menu-example' },
   { path: 'guides/integrate-with-angular/angular-custom-editor-example' },
   { path: 'guides/integrate-with-angular/angular-custom-renderer-example' },

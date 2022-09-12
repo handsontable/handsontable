@@ -47,14 +47,14 @@ const FILE_SERVE_TIMEOUT = 300;
  *
  * @type {number}
  */
-const EXAMPLE_INIT_TIMEOUT = 500;
+const EXAMPLE_INIT_TIMEOUT = 100;
 
 /**
  * Number of tries to perform if the number of the rendered examples differs from the expected count.
  *
  * @type {number}
  */
-const CHECK_TRIES = 7;
+const CHECK_TRIES = 15;
 
 (async() => {
   const FRAMEWORKS_TO_CHECK = getFrameworks();
@@ -88,14 +88,19 @@ const CHECK_TRIES = 7;
 
       const permalink = extendPermalink(permalinks[i].permalink, framework);
 
-      await page.goto(`http://localhost:${PORT}/docs${permalink}`, {});
+      await page.goto(`http://localhost:${PORT}/docs${permalink}`, {
+        waitUntil: 'networkidle0'
+      });
 
       for (let testIndex = 0; testIndex < testCases.length; testIndex++) {
         let pageEvaluation = await page.evaluate(testCases[testIndex], permalink);
         let tryCount = 0;
 
         // If the test fails, do another try after a timeout (some instances might have not been initialized yet).
-        while (!pageEvaluation.result && tryCount < CHECK_TRIES) {
+        while (
+          (!pageEvaluation.result && tryCount < CHECK_TRIES) ||
+          pageEvaluation.elementsNotYetRendered
+        ) {
           tryCount += 1;
 
           // Wait for the HOT instances to initialize.
@@ -111,15 +116,13 @@ const CHECK_TRIES = 7;
           // Mark the check as suspicious, if the expected number of instances is 0.
           logCheck(pageEvaluation.result);
 
-          const errObj = {
-            path: permalink,
-            expected: pageEvaluation.expected,
-            received: pageEvaluation.received,
-            emptyExampleContainers: pageEvaluation.emptyExampleContainers
-          };
-
           if (!pageEvaluation.result) {
-            brokenExamplePaths.push(errObj);
+            brokenExamplePaths.push({
+              path: permalink,
+              expected: pageEvaluation.expected,
+              received: pageEvaluation.received,
+              emptyExampleContainers: pageEvaluation.emptyExampleContainers
+            });
           }
         }
       }

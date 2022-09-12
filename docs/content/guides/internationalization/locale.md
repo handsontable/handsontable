@@ -1,6 +1,7 @@
 ---
 title: Locale
-metaTitle: Locale - Guide - Handsontable Documentation
+metaTitle: Locale - JavaScript Data Grid | Handsontable
+description: Configure Handsontable's locale settings, to properly handle locale-related data and actions such as filtering, searching, or sorting.
 permalink: /locale
 canonicalUrl: /locale
 tags:
@@ -8,6 +9,8 @@ tags:
   - localization
   - L10n
   - i18n
+react:
+  metaTitle: Locale - React Data Grid | Handsontable
 ---
 
 # Locale

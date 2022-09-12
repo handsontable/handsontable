@@ -1,6 +1,7 @@
 ---
 title: Layout direction
-metaTitle: Layout direction - Guide - Handsontable Documentation
+metaTitle: Layout direction - JavaScript Data Grid | Handsontable
+description: Set the layout direction for right-to-left languages. Automatically inherit your HTML file's "dir" property, or set the layout direction manually.
 permalink: /layout-direction
 canonicalUrl: /layout-direction
 tags:
@@ -14,6 +15,8 @@ tags:
   - localization
   - L10n
   - i18n
+react:
+  metaTitle: Layout direction - React Data Grid | Handsontable
 ---
 
 # Layout direction
@@ -473,11 +476,11 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
 
 
 You can apply the horizontal text alignment settings to:
-- [The entire grid](@/guides/getting-started/setting-options.md#setting-grid-options), by setting [`className`](@/api/options.md#classname) on the global level
-- [Individual columns](@/guides/getting-started/setting-options.md#setting-column-options), by setting [`className`](@/api/options.md#classname) on the column level
-- [Individual rows](@/guides/getting-started/setting-options.md#setting-row-options), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
-- [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options), by setting [`className`](@/api/options.md#classname) on the cell level
-- [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
+- [The entire grid](@/guides/getting-started/configuration-options.md#setting-grid-options), by setting [`className`](@/api/options.md#classname) on the global level
+- [Individual columns](@/guides/getting-started/configuration-options.md#setting-column-options), by setting [`className`](@/api/options.md#classname) on the column level
+- [Individual rows](@/guides/getting-started/configuration-options.md#setting-row-options), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
+- [Individual cells](@/guides/getting-started/configuration-options.md#setting-cell-options), by setting [`className`](@/api/options.md#classname) on the cell level
+- [Individual grid elements, based on any logic you implement](@/guides/getting-started/configuration-options.md#implementing-custom-logic), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
 
 ## Related articles
 
