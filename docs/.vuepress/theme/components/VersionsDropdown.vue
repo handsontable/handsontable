@@ -29,7 +29,7 @@ export default {
       return version;
     },
     getLink(version) {
-      let framework = '';
+      const framework = '';
 
       if (version === this.$page.latestVersion) {
         return `/docs/${framework}`;
