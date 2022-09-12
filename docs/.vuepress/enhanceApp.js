@@ -64,8 +64,22 @@ export default async({ router, siteData, isServer }) => {
 
   let pathVersion = '';
 
+  /**
+   * Depends on the Docs image environment, build or the domain under the Docs runs, the path
+   * may change according to:
+   * 1. For non-production Docs images fetch JSON file from the versioned docs version
+   *  - For localhost development e.g {HOST}/docs/next/data/common.json
+   *  - For localhost development of the production Docs version branch (prod-docs/{MAJOR}.{MINOR}) e.g {HOST}/docs/9.0/data/common.json
+   *  - For staging environment ("development") e.g {HOST}/docs/next/data/common.json
+   * 2. For production Docs image that runs under the official domain (https://handsontable.com) use
+   * URL without defining docs version e.g {HOST}/docs/data/common.json
+   * 3. For production Docs image that runs under the staging domain (https://dev.handsontable.com) use
+   * URL that points to the "next" version e.g {HOST}/docs/next/data/common.json
+   */
   if (buildMode !== 'production') {
     pathVersion = `${currentVersion}/`;
+  } else if (window.location.host === 'dev.handsontable.com') {
+    pathVersion = 'next/';
   }
 
   const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
