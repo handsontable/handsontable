@@ -78,8 +78,8 @@ Each Handsontable [project](#about-building) has its own building processes defi
 ## Running your first build
 
 To run your first build:
-1. Install [Node.js](https://nodejs.org/) (version **16.14**+).
-2. Install [npm](https://www.npmjs.com/) (version **8.5**+).
+1. Install [Node.js](https://nodejs.org/) (version **16.15**+).
+2. Install [npm](https://www.npmjs.com/) (version **8.11**+).
 3. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
 4. From the root directory, run `npm install`.<br>All the required dependencies get installed.
 5. From the root directory, run `npm run build`.<br>All the Handsontable packages get built.

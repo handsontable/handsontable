@@ -109,7 +109,7 @@ registerCellType(DateCellType);
 const App = () => {
   return (
     <HotTable
-      type={'date'}
+      type="date"
     />
   );
 };

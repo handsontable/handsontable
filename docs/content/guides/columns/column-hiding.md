@@ -307,7 +307,7 @@ const ExampleComponent = () => {
       data={Handsontable.helper.createSpreadsheetData(5, 12)}
       colHeaders={true}
       rowHeaders={true}
-      contextMenu={[`hidden_columns_show`, `hidden_columns_hide`]}
+      contextMenu={['hidden_columns_show', 'hidden_columns_hide']}
       hiddenColumns={{
         columns: [3, 5, 9],
         indicators: true

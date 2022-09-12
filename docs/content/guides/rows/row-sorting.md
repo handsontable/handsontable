@@ -14,7 +14,7 @@ react:
 
 ## Overview
 
-The column sorting plugin works as a proxy between the datasource and the Handsontable rendering module.
+The column sorting plugin works as a middleware between the datasource and the Handsontable rendering module.
 It can:
 * Map indices of displayed rows `visual indices` to the indices of corresponding rows in the datasource `physical indices` and vice versa
 * Alter the order of rows presented to a user without changing the datasource’s internal structure
