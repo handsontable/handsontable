@@ -226,12 +226,14 @@ function getDocsBaseFullUrl() {
 /**
  * Gets docs hostname (eq: https://handsontable.com).
  *
+ * @param {boolean} [allowLocalhost=true] Returns localhost URL for local testing or official Docs domains as
+ *                                        a source of truth for further "fetch" requests.
  * @returns {string}
  */
-function getDocsHostname() {
+function getDocsHostname(allowLocalhost = true) {
   const buildMode = process.env.BUILD_MODE;
 
-  if (!buildMode) {
+  if (!buildMode && allowLocalhost) {
     return 'http://localhost:8080';
   }
 
