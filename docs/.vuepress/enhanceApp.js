@@ -61,7 +61,7 @@ export default async({ router, siteData, isServer }) => {
      * 3. For production Docs image that runs under the staging domain (https://dev.handsontable.com) use
      * URL that points to the "next" version e.g {HOST}/docs/next/data/common.json
      */
-     if (buildMode !== 'production') {
+    if (buildMode !== 'production') {
       pathVersion = `${currentVersion}/`;
     } else if (window.location.host === 'dev.handsontable.com') {
       pathVersion = 'next/';
