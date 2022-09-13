@@ -15,7 +15,6 @@ import {
 import { BasePlugin } from '../base';
 import StateManager from './stateManager';
 import GhostTable from './utils/ghostTable';
-import EventManager from '../../eventManager';
 
 import './nestedHeaders.css';
 
@@ -75,13 +74,6 @@ export class NestedHeaders extends BasePlugin {
    * @type {ChangesObservable}
    */
   #hidingIndexMapObserver = null;
-  /**
-   * Instance of {@link EventManager}.
-   *
-   * @private
-   * @type {EventManager}
-   */
-  #eventManager = new EventManager(this);
   /**
    * Custom helper for getting widths of the nested headers.
    *
@@ -461,22 +453,8 @@ export class NestedHeaders extends BasePlugin {
       columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
     }
 
-    // If there are no rendered rows, selecting columns causes a full headers redraw, blocking all the
-    // `click` events callbacks.
-    // In that case -> wait with the selecting action until all the other callbacks had been called by adding it at
-    // the top of the `click` event stack.
-    if (this.hot.countRenderedRows() === 0) {
-      const removeTempClickCallback = this.#eventManager.addEventListener(this.hot.rootElement, 'click', () => {
-        // The plugin takes control of how the columns are selected.
-        selection.selectColumns(...columnsToSelect);
-      });
-
-      setTimeout(removeTempClickCallback, 0);
-
-    } else {
-      // The plugin takes control of how the columns are selected.
-      selection.selectColumns(...columnsToSelect);
-    }
+    // The plugin takes control of how the columns are selected.
+    selection.selectColumns(...columnsToSelect);
   }
 
   /**

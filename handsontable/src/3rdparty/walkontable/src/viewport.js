@@ -9,6 +9,7 @@ import { objectEach } from '../../../helpers/object';
 import {
   RENDER_TYPE,
   FULLY_VISIBLE_TYPE,
+  PARTIALLY_VISIBLE_TYPE,
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 } from './calculator';
@@ -405,9 +406,19 @@ class Viewport {
     if (runFastDraw) {
       const proposedRowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
       const proposedColumnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
+      const proposedRowsPartiallyVisibleCalculator = this.createRowsCalculator(PARTIALLY_VISIBLE_TYPE);
+      const proposedColumnsPartiallyVisibleCalculator = this.createColumnsCalculator(PARTIALLY_VISIBLE_TYPE);
 
-      if (!(this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) &&
-          this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator))) {
+      if (!(
+        this.areAllProposedVisibleRowsAlreadyRendered(
+          proposedRowsVisibleCalculator,
+          proposedRowsPartiallyVisibleCalculator
+        ) &&
+        this.areAllProposedVisibleColumnsAlreadyRendered(
+          proposedColumnsVisibleCalculator,
+          proposedColumnsPartiallyVisibleCalculator
+        )
+      )) {
         runFastDraw = false;
       }
     }
@@ -436,19 +447,27 @@ class Viewport {
    * Returns information whether proposedRowsVisibleCalculator viewport
    * is contained inside rows rendered in previous draw (cached in rowsRenderCalculator).
    *
-   * @param {ViewportRowsCalculator} proposedRowsVisibleCalculator The instance of the viewport calculator to compare with.
+   * @param {ViewportRowsCalculator} proposedRowsVisibleCalculator The instance of the viewport calculator
+   * (counting the fully visible rows) to compare with.
+   * @param {ViewportRowsCalculator} proposedRowsPartiallyVisibleCalculator The instance of the viewport calculator
+   * (counting the partially visible rows) to compare with.
    * @returns {boolean} Returns `true` if all proposed visible rows are already rendered (meaning: redraw is not needed).
    *                    Returns `false` if at least one proposed visible row is not already rendered (meaning: redraw is needed).
    */
-  areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) {
+  areAllProposedVisibleRowsAlreadyRendered(
+    proposedRowsVisibleCalculator,
+    proposedRowsPartiallyVisibleCalculator
+  ) {
     if (!this.rowsVisibleCalculator) {
       return false;
     }
 
     const { startRow, endRow } = proposedRowsVisibleCalculator;
+    const { count: partialCount } = proposedRowsPartiallyVisibleCalculator;
 
-    // if there are no fully visible rows at all, return false
-    if (startRow === null && endRow === null) {
+    // If there are some rows which are not fully visible, return false. For oversized rows,
+    // full render cycle needs to be performed.
+    if (partialCount > 0 && startRow === null && endRow === null) {
       return false;
     }
 
@@ -469,19 +488,27 @@ class Viewport {
    * Returns information whether proposedColumnsVisibleCalculator viewport
    * is contained inside column rendered in previous draw (cached in columnsRenderCalculator).
    *
-   * @param {ViewportRowsCalculator} proposedColumnsVisibleCalculator The instance of the viewport calculator to compare with.
+   * @param {ViewportColumnsCalculator} proposedColumnsVisibleCalculator The instance of the viewport calculator to
+   * compare with.
+   * @param {ViewportColumnsCalculator} proposedColumnsPartiallyVisibleCalculator The instance of the viewport calculator
+   * (counting the partially visible columns) to compare with.
    * @returns {boolean} Returns `true` if all proposed visible columns are already rendered (meaning: redraw is not needed).
    *                    Returns `false` if at least one proposed visible column is not already rendered (meaning: redraw is needed).
    */
-  areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator) {
+  areAllProposedVisibleColumnsAlreadyRendered(
+    proposedColumnsVisibleCalculator,
+    proposedColumnsPartiallyVisibleCalculator
+  ) {
     if (!this.columnsVisibleCalculator) {
       return false;
     }
 
     const { startColumn, endColumn } = proposedColumnsVisibleCalculator;
+    const { count: partialCount } = proposedColumnsPartiallyVisibleCalculator;
 
-    // if there are no fully visible columns at all, return false
-    if (startColumn === null && endColumn === null) {
+    // If there are some columns which are not fully visible, return false. For oversized columns,
+    // full render cycle needs to be performed.
+    if (partialCount > 0 && startColumn === null && endColumn === null) {
       return false;
     }
 
