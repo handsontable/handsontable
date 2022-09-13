@@ -16,8 +16,6 @@
     "docs:scripts:generate-legacy-docs-versions": "node .vuepress/tools/generate-legacy-docs-versions.mjs",
     "docs:start": "npm run docs:scripts:link-assets && node --experimental-fetch ./node_modules/.bin/vuepress dev ./",
     "docs:start:no-cache": "npm run docs:scripts:link-assets && node --experimental-fetch ./node_modules/.bin/vuepress dev --no-cache ./",
-    "docs:start:win": "set NODE_OPTIONS=--openssl-legacy-provider && npm run docs:scripts:link-assets && npx vuepress dev ./",
-    "docs:start:no-cache:win": "set NODE_OPTIONS=--openssl-legacy-provider && npm run docs:scripts:link-assets && npx vuepress dev --no-cache ./",
     "docs:build": "node .vuepress/tools/build.mjs -- --no-cache",
     "docs:docker:build": "npm run docs:docker:build:staging",
     "docs:docker:build:staging": "npm run docs:scripts:link-assets && cross-env BUILD_MODE=staging npm run docs:build && docker build -f docker/Dockerfile -t docs-md ./",
