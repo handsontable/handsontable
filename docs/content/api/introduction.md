@@ -19,8 +19,8 @@ However, data grids are rather complex libraries, so we assume that you possess 
 The API enables you to control the data grid programmatically. With this API, you can:
 
 -   Configure options
--   Use methods to integrate it with your app
--   Use hooks to interact with what's happening in the grid
+-   Use methods to programmatically control the grid
+-   Use Handsontable hooks to react to what's happening with the grid or change built-in behavior
 -   Introduce new integrations
 -   and more
 
@@ -32,7 +32,7 @@ The `Handsontable` class controls the essential aspects of the data grid.
 
 ### [Hooks](@/api/hooks.md)
 
-Hooks are two-directional events that fire whenever a specific action occurs within the instance of Handsontable.
+Handsontable hooks are events that fire whenever a specific action occurs within the instance of Handsontable.
 
 ### [Options](@/api/options.md)
 
