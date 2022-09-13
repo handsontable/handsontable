@@ -29,13 +29,11 @@ export default {
       return version;
     },
     getLink(version) {
-      const framework = '';
-
       if (version === this.$page.latestVersion) {
-        return `/docs/${framework}`;
+        return '/docs/';
       }
 
-      return `/docs/${version}/${framework}`;
+      return `/docs/${version}/`;
     },
     getLegacyVersions() {
       return [

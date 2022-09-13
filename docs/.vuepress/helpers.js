@@ -207,7 +207,7 @@ function getDocsBase() {
   const docsBase = process.env.DOCS_BASE ?? getThisDocsVersion();
   let base = '/docs/';
 
-  if (docsBase !== 'latest') {
+  if (docsBase !== 'latest' && docsBase !== 'next') {
     base += `${docsBase}/`;
   }
 
