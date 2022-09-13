@@ -1,0 +1,7 @@
+{
+  "title": "Improve example requiring editing React imports",
+  "type": "fixed",
+  "issue": 9876,
+  "breaking": false,
+  "framework": "React"
+}
