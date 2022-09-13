@@ -19,7 +19,7 @@ react:
 ## Overview
 Persistent state storage is particularly useful when running multiple instances of Handsontable on one page as it allows data separation per each instance.
 
-## Saving changes using a callback
+## Saving changes using a callbacks
 
 To track changes made in your data grid, use Handsontable's [`afterChange`](@/api/hooks.md#afterchange) hook.
 
@@ -130,14 +130,14 @@ registerAllModules();
 const ExampleComponent = () => {
   const hotRef = useRef();
   const [output, setOutput] = useState('Click "Load" to load data from server');
+  const [isAutosave, setIsAutosave] = useState(false);
 
   let loadClickCallback;
   let saveClickCallback;
   
-  const autosave = {checked: false};
   const autosaveClickCallback = (event) => {
-    autosave.checked = event.target.checked;
-    if (autosave.checked) {
+    setIsAutosave(event.target.checked);
+    if (event.target.checked) {
       setOutput("Changes will be autosaved");
     } else {
       setOutput("Changes will not be autosaved");
@@ -188,7 +188,7 @@ const ExampleComponent = () => {
             return; //don't save this change
           }
 
-          if (!autosave.checked) {
+          if (!isAutosave) {
             return;
           }
 
@@ -210,7 +210,7 @@ const ExampleComponent = () => {
         <button id="load" className="button button--primary button--blue" onClick={(...args) => loadClickCallback(...args)}>Load data</button>&nbsp;
         <button id="save" className="button button--primary button--blue" onClick={(...args) => saveClickCallback(...args)}>Save data</button>
         <label>
-          <input type="checkbox" name="autosave" id="autosave" onClick={(...args) => autosaveClickCallback(...args)}/>
+          <input type="checkbox" name="autosave" id="autosave" checked={isAutosave} onClick={(...args) => autosaveClickCallback(...args)}/>
           Autosave
         </label>
       </div>
