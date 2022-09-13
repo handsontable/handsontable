@@ -220,7 +220,7 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Generates the merged cells from thereDataModification = true; settings provided to the plugin.
+   * Generates the merged cells from the settings provided to the plugin.
    *
    * @private
    * @param {Array|boolean} settings The settings provided to the plugin.
