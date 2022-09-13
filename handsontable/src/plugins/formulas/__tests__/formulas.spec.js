@@ -2691,8 +2691,8 @@ describe('Formulas general', () => {
   it('should not overwrite source data by formula calculation values when there are some merge cells', () => {
     handsontable({
       data: [
-        [null, null, null],
-        [null, 3, '=SUM(B2*2)']
+        [null, null, '=SUM(B2*2)'],
+        [null, 3, null]
       ],
       formulas: {
         engine: HyperFormula
@@ -2711,8 +2711,8 @@ describe('Formulas general', () => {
       manualColumnMove: [1, 0, 2, 3, 4],
     });
 
-    expect(getSourceData()).toEqual([[null, null, null], [null, 3, '=SUM(B2*2)']]);
-    expect(getData()).toEqual([[null, null, null], [null, 3, 6]]);
+    expect(getSourceData()).toEqual([[null, null, '=SUM(B2*2)'], [null, 3, null]]);
+    expect(getData()).toEqual([[null, null, 6], [null, 3, null]]);
   });
 
   it('should not crash when declaring a named expression with a sheet name that contains a `-` (#8057)', () => {

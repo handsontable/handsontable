@@ -229,6 +229,8 @@ export class MergeCells extends BasePlugin {
     if (Array.isArray(settings)) {
       let populationArgumentsList = [];
 
+      this.ignoreDataModification = true;
+
       arrayEach(settings, (setting) => {
         if (!this.validateSetting(setting)) {
           return;
@@ -246,6 +248,8 @@ export class MergeCells extends BasePlugin {
       populationArgumentsList = populationArgumentsList.filter(value => value !== true);
 
       const bulkPopulationData = this.getBulkCollectionData(populationArgumentsList);
+
+      this.ignoreDataModification = false;
 
       this.hot.populateFromArray(...bulkPopulationData);
     }
