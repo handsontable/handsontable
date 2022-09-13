@@ -44,7 +44,15 @@ let isFirstPageLoaded = true;
 
 export default async({ router, siteData, isServer }) => {
   if (!isServer) {
-    const response = await fetch(`${window.location.origin}/docs/data/common.json`);
+    const currentVersion = siteData.pages[0].currentVersion;
+    const buildMode = siteData.pages[0].buildMode;
+    let pathVersion = '';
+
+    if (buildMode !== 'production' && currentVersion !== 'next') {
+      pathVersion = `${currentVersion}/`;
+    }
+
+    const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
     const docsData = await response.json();
     const canonicalURLs = new Map(docsData.urls);
 
