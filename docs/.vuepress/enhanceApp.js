@@ -64,6 +64,7 @@ export default async({ router, siteData, isServer }) => {
 
   let pathVersion = '';
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Depends on the Docs image environment, build or the domain under the Docs runs, the path
    * may change according to:
@@ -81,6 +82,7 @@ export default async({ router, siteData, isServer }) => {
   } else if (window.location.host === 'dev.handsontable.com') {
     pathVersion = 'next/';
   }
+  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
   const docsData = await response.json();
