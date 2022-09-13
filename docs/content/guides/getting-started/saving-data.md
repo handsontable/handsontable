@@ -118,26 +118,29 @@ autosave.addEventListener('click', () => {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from "react";
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import "handsontable/dist/handsontable.full.css";
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef();
   const [output, setOutput] = useState('Click "Load" to load data from server');
 
-  let autosaveNotification;
   let loadClickCallback;
   let saveClickCallback;
-  const autosaveClickCallback = () => {
+  
+  const autosave = {checked: false};
+  const autosaveClickCallback = (event) => {
+    autosave.checked = event.target.checked;
     if (autosave.checked) {
-      setOutput('Changes will be autosaved');
+      setOutput("Changes will be autosaved");
     } else {
-      setOutput('Changes will not be autosaved');
+      setOutput("Changes will not be autosaved");
     }
   };
 
