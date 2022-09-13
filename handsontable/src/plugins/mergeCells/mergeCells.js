@@ -220,7 +220,7 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Generates the merged cells from the settings provided to the plugin.
+   * Generates the merged cells from thereDataModification = true; settings provided to the plugin.
    *
    * @private
    * @param {Array|boolean} settings The settings provided to the plugin.
@@ -265,12 +265,8 @@ export class MergeCells extends BasePlugin {
   getBulkCollectionData(populationArgumentsList) {
     const populationDataRange = this.getBulkCollectionDataRange(populationArgumentsList);
 
-    this.ignoreDataModification = true;
-
-    // We gets data without their modification, ie. done by Formulas plugins.
+    // We gets data without their modification, ie. done by Formulas plugins (`ignoreDataModification` flag should be set to `true`).
     const dataAtRange = this.hot.getData(...populationDataRange);
-
-    this.ignoreDataModification = false;
 
     const newDataAtRange = dataAtRange.splice(0);
 
@@ -427,6 +423,7 @@ export class MergeCells extends BasePlugin {
         }
 
         if (i === 0 && j === 0) {
+          // We gets data without their modification, ie. done by Formulas plugins (`ignoreDataModification` flag should be set to `true`).
           clearedValue = this.hot.getDataAtCell(mergeParent.row, mergeParent.col);
 
         } else {
