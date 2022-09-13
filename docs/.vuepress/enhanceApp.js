@@ -44,31 +44,7 @@ let isFirstPageLoaded = true;
 
 export default async({ router, siteData, isServer }) => {
   if (!isServer) {
-    const currentVersion = siteData.pages[0].currentVersion;
-    const buildMode = siteData.pages[0].buildMode;
-    let pathVersion = '';
-
-    /* eslint-disable jsdoc/require-description-complete-sentence */
-    /**
-     * Depends on the Docs image environment, build or the domain under the Docs runs, the path
-     * may change according to:
-     * 1. For non-production Docs images fetch JSON file from the versioned docs version
-     *  - For localhost development e.g {HOST}/docs/next/data/common.json
-     *  - For localhost development of the production Docs version branch (prod-docs/{MAJOR}.{MINOR}) e.g {HOST}/docs/9.0/data/common.json
-     *  - For staging environment ("development") e.g {HOST}/docs/next/data/common.json
-     * 2. For production Docs image that runs under the official domain (https://handsontable.com) use
-     * URL without defining docs version e.g {HOST}/docs/data/common.json
-     * 3. For production Docs image that runs under the staging domain (https://dev.handsontable.com) use
-     * URL that points to the "next" version e.g {HOST}/docs/next/data/common.json
-     */
-    if (buildMode !== 'production') {
-      pathVersion = `${currentVersion}/`;
-    } else if (window.location.host === 'dev.handsontable.com') {
-      pathVersion = 'next/';
-    }
-    /* eslint-enable jsdoc/require-description-complete-sentence */
-
-    const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
+    const response = await fetch(`${window.location.origin}/docs/data/common.json`);
     const docsData = await response.json();
     const canonicalURLs = new Map(docsData.urls);
 
