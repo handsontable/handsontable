@@ -1,0 +1,7 @@
+{
+  "title": "Fixed incorrect date format conversion on input (DateEditor)",
+  "type": "fixed",
+  "issue": 9681,
+  "breaking": false,
+  "framework": "none"
+}
