@@ -38,13 +38,13 @@ To start a local Handsontable documentation server:
    ```bash
    npm run docs:start
    ```
-4. In your browser, go to: http://localhost:8080/docs/next/.
+4. In your browser, go to: http://localhost:8080/docs/.
 
 ## Documentation npm scripts:
 
 From the `docs` directory, you can run the following npm scripts:
 
-* `npm run docs:start` – Starts a local documentation server at `localhost:8080/docs/next/`.
+* `npm run docs:start` – Starts a local documentation server at `localhost:8080/docs/`.
 * `npm run docs:start:no-cache` – Starts a local documentation server without cache.
 * `npm run docs:api` – Generates the Handsontable API reference into `/content/api`.
 * `npm run docs:build` – Builds the documentation output into `/.vuepress/dist`.
