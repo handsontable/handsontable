@@ -39,7 +39,6 @@ export const PLUGIN_PRIORITY = 250;
  * See [the filtering demo](@/guides/columns/column-filter.md) for examples.
  *
  * @example
- * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -50,19 +49,6 @@ export const PLUGIN_PRIORITY = 250;
  *   filters: true
  * });
  * ```
- * :::
- *
- * ::: only-for react
- * ```jsx
- * <HotTable
- *   data={getData()}
- *   colHeaders={true}
- *   rowHeaders={true}
- *   dropdownMenu={true}
- *   filters={true}
- * />
- * ```
- * :::
  */
 export class Filters extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -140,23 +126,18 @@ export class Filters extends BasePlugin {
      */
     this.filtersRowsMap = null;
 
-    console.log('aaa')
-    
-    return;
-
     // One listener for the enable/disable functionality
     this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
   }
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` then the {@link Filters#enablePlugin} method is called.
+   * hook and if it returns `true` than the {@link Filters#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
   isEnabled() {
     /* eslint-disable no-unneeded-ternary */
-    return false;
     return this.hot.getSettings()[PLUGIN_KEY] ? true : false;
   }
 
@@ -168,98 +149,98 @@ export class Filters extends BasePlugin {
       return;
     }
 
-    // this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
-    // this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
+    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
+    this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
-    // const dropdownSettings = this.hot.getSettings().dropdownMenu;
-    // const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
-    // const addConfirmationHooks = (component) => {
-    //   component.addLocalHook('accept', () => this.onActionBarSubmit('accept'));
-    //   component.addLocalHook('cancel', () => this.onActionBarSubmit('cancel'));
-    //   component.addLocalHook('change', command => this.onComponentChange(component, command));
-    //
-    //   return component;
-    // };
-    //
-    // const filterByConditionLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_CONDITION)}:`;
-    // const filterValueLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_VALUE)}:`;
-    //
-    // if (!this.components.get('filter_by_condition')) {
-    //   const conditionComponent = new ConditionComponent(this.hot, {
-    //     id: 'filter_by_condition',
-    //     name: filterByConditionLabel,
-    //     addSeparator: false,
-    //     menuContainer
-    //   });
-    //
-    //   conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
-    //
-    //   this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
-    // }
-    //
-    // if (!this.components.get('filter_operators')) {
-    //   this.components.set('filter_operators', new OperatorsComponent(this.hot, {
-    //     id: 'filter_operators',
-    //     name: 'Operators'
-    //   }));
-    // }
-    //
-    // if (!this.components.get('filter_by_condition2')) {
-    //   const conditionComponent = new ConditionComponent(this.hot, {
-    //     id: 'filter_by_condition2',
-    //     name: '',
-    //     addSeparator: true,
-    //     menuContainer
-    //   });
-    //
-    //   conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
-    //
-    //   this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));
-    // }
-    //
-    // if (!this.components.get('filter_by_value')) {
-    //   this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {
-    //     id: 'filter_by_value',
-    //     name: filterValueLabel
-    //   })));
-    // }
-    //
-    // if (!this.components.get('filter_action_bar')) {
-    //   this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, {
-    //     id: 'filter_action_bar',
-    //     name: 'Action bar'
-    //   })));
-    // }
-    //
-    // if (!this.conditionCollection) {
-    //   this.conditionCollection = new ConditionCollection(this.hot);
-    // }
-    //
-    // if (!this.conditionUpdateObserver) {
-    //   this.conditionUpdateObserver = new ConditionUpdateObserver(
-    //     this.hot,
-    //     this.conditionCollection,
-    //     physicalColumn => this.getDataMapAtColumn(physicalColumn),
-    //   );
-    //   this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
-    // }
-    //
-    // this.components.forEach(component => component.show());
+    const dropdownSettings = this.hot.getSettings().dropdownMenu;
+    const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
+    const addConfirmationHooks = (component) => {
+      component.addLocalHook('accept', () => this.onActionBarSubmit('accept'));
+      component.addLocalHook('cancel', () => this.onActionBarSubmit('cancel'));
+      component.addLocalHook('change', command => this.onComponentChange(component, command));
 
-    // this.addHook('beforeDropdownMenuSetItems', items => this.onBeforeDropdownMenuSetItems(items));
-    // this.addHook('afterDropdownMenuDefaultOptions',
-    //   defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
-    // this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
-    // this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
-    // this.addHook('afterChange', changes => this.onAfterChange(changes));
+      return component;
+    };
+
+    const filterByConditionLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_CONDITION)}:`;
+    const filterValueLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_VALUE)}:`;
+
+    if (!this.components.get('filter_by_condition')) {
+      const conditionComponent = new ConditionComponent(this.hot, {
+        id: 'filter_by_condition',
+        name: filterByConditionLabel,
+        addSeparator: false,
+        menuContainer
+      });
+
+      conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
+
+      this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
+    }
+
+    if (!this.components.get('filter_operators')) {
+      this.components.set('filter_operators', new OperatorsComponent(this.hot, {
+        id: 'filter_operators',
+        name: 'Operators'
+      }));
+    }
+
+    if (!this.components.get('filter_by_condition2')) {
+      const conditionComponent = new ConditionComponent(this.hot, {
+        id: 'filter_by_condition2',
+        name: '',
+        addSeparator: true,
+        menuContainer
+      });
+
+      conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
+
+      this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));
+    }
+
+    if (!this.components.get('filter_by_value')) {
+      this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {
+        id: 'filter_by_value',
+        name: filterValueLabel
+      })));
+    }
+
+    if (!this.components.get('filter_action_bar')) {
+      this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, {
+        id: 'filter_action_bar',
+        name: 'Action bar'
+      })));
+    }
+
+    if (!this.conditionCollection) {
+      this.conditionCollection = new ConditionCollection(this.hot);
+    }
+
+    if (!this.conditionUpdateObserver) {
+      this.conditionUpdateObserver = new ConditionUpdateObserver(
+        this.hot,
+        this.conditionCollection,
+        physicalColumn => this.getDataMapAtColumn(physicalColumn),
+      );
+      this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
+    }
+
+    this.components.forEach(component => component.show());
+
+    this.addHook('beforeDropdownMenuSetItems', items => this.onBeforeDropdownMenuSetItems(items));
+    this.addHook('afterDropdownMenuDefaultOptions',
+      defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
+    this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
+    this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
+    this.addHook('afterChange', changes => this.onAfterChange(changes));
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
-    // if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
-    //   this.dropdownMenuPlugin.disablePlugin();
-    //   this.dropdownMenuPlugin.enablePlugin();
-    // }
+    if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
+      this.dropdownMenuPlugin.disablePlugin();
+      this.dropdownMenuPlugin.enablePlugin();
+    }
 
-    // super.enablePlugin();
+    super.enablePlugin();
   }
 
   /**
@@ -318,7 +299,6 @@ export class Filters extends BasePlugin {
    * **Note**: Mind that you cannot mix different types of operations (for instance, if you use `conjunction`, use it consequently for a particular column).
    *
    * @example
-   * ::: only-for javascript
    * ```js
    * const container = document.getElementById('example');
    * const hot = new Handsontable(container, {
@@ -348,45 +328,6 @@ export class Filters extends BasePlugin {
    * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'disjunction');
    * filtersPlugin.filter();
    * ```
-   * :::
-   *
-   * ::: only-for react
-   * ```jsx
-   * const hotRef = useRef();
-   *
-   * ...
-   *
-   * <HotTable
-   *   ref={hotRef}
-   *   data={getData()}
-   *   filters={true}
-   * />
-   *
-   * // access to filters plugin instance
-   * const hot = hotRef.current.hotInstance;
-   * const filtersPlugin = hot.getPlugin('filters');
-   *
-   * // add filter "Greater than" 95 to column at index 1
-   * filtersPlugin.addCondition(1, 'gt', [95]);
-   * filtersPlugin.filter();
-   *
-   * // add filter "By value" to column at index 1
-   * // in this case all value's that don't match will be filtered.
-   * filtersPlugin.addCondition(1, 'by_value', [['ing', 'ed', 'as', 'on']]);
-   * filtersPlugin.filter();
-   *
-   * // add filter "Begins with" with value "de" AND "Not contains" with value "ing"
-   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'conjunction');
-   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'conjunction');
-   * filtersPlugin.filter();
-   *
-   * // add filter "Begins with" with value "de" OR "Not contains" with value "ing"
-   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'disjunction');
-   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'disjunction');
-   * filtersPlugin.filter();
-   * ```
-   * :::
-   *
    * @param {number} column Visual column index.
    * @param {string} name Condition short name.
    * @param {Array} args Condition arguments.
