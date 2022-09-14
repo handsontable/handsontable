@@ -824,7 +824,7 @@ const REGISTERED_HOOKS = [
    *
    * `row` is a visual row index.
    *
-   * Note: Nullified array items or `false` return value can be used to disregard changes, as presented in the code snippet below
+   * __Note:__: Nullified array items or `false` return value can be used to disregard changes, as presented in the code snippet below.
    *
    * @event Hooks#beforeChange
    * @param {Array[]} changes 2D array containing information about each of the edited cells.
