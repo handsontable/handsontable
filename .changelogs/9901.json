@@ -1,5 +1,5 @@
 {
-  "title": "API reference and type definitions for `beforeChange` hook has been made more precise",
+  "title": "API reference and type definitions for hooks and methods has been made more precise",
   "type": "changed",
   "issue": 9901,
   "breaking": false,
