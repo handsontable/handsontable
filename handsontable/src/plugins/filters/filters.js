@@ -140,6 +140,10 @@ export class Filters extends BasePlugin {
      */
     this.filtersRowsMap = null;
 
+    console.log('aaa')
+    
+    return;
+
     // One listener for the enable/disable functionality
     this.hot.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
   }
@@ -152,6 +156,7 @@ export class Filters extends BasePlugin {
    */
   isEnabled() {
     /* eslint-disable no-unneeded-ternary */
+    return false;
     return this.hot.getSettings()[PLUGIN_KEY] ? true : false;
   }
 
@@ -163,98 +168,98 @@ export class Filters extends BasePlugin {
       return;
     }
 
-    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
-    this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
+    // this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
+    // this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
-    const dropdownSettings = this.hot.getSettings().dropdownMenu;
-    const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
-    const addConfirmationHooks = (component) => {
-      component.addLocalHook('accept', () => this.onActionBarSubmit('accept'));
-      component.addLocalHook('cancel', () => this.onActionBarSubmit('cancel'));
-      component.addLocalHook('change', command => this.onComponentChange(component, command));
+    // const dropdownSettings = this.hot.getSettings().dropdownMenu;
+    // const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
+    // const addConfirmationHooks = (component) => {
+    //   component.addLocalHook('accept', () => this.onActionBarSubmit('accept'));
+    //   component.addLocalHook('cancel', () => this.onActionBarSubmit('cancel'));
+    //   component.addLocalHook('change', command => this.onComponentChange(component, command));
+    //
+    //   return component;
+    // };
+    //
+    // const filterByConditionLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_CONDITION)}:`;
+    // const filterValueLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_VALUE)}:`;
+    //
+    // if (!this.components.get('filter_by_condition')) {
+    //   const conditionComponent = new ConditionComponent(this.hot, {
+    //     id: 'filter_by_condition',
+    //     name: filterByConditionLabel,
+    //     addSeparator: false,
+    //     menuContainer
+    //   });
+    //
+    //   conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
+    //
+    //   this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
+    // }
+    //
+    // if (!this.components.get('filter_operators')) {
+    //   this.components.set('filter_operators', new OperatorsComponent(this.hot, {
+    //     id: 'filter_operators',
+    //     name: 'Operators'
+    //   }));
+    // }
+    //
+    // if (!this.components.get('filter_by_condition2')) {
+    //   const conditionComponent = new ConditionComponent(this.hot, {
+    //     id: 'filter_by_condition2',
+    //     name: '',
+    //     addSeparator: true,
+    //     menuContainer
+    //   });
+    //
+    //   conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
+    //
+    //   this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));
+    // }
+    //
+    // if (!this.components.get('filter_by_value')) {
+    //   this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {
+    //     id: 'filter_by_value',
+    //     name: filterValueLabel
+    //   })));
+    // }
+    //
+    // if (!this.components.get('filter_action_bar')) {
+    //   this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, {
+    //     id: 'filter_action_bar',
+    //     name: 'Action bar'
+    //   })));
+    // }
+    //
+    // if (!this.conditionCollection) {
+    //   this.conditionCollection = new ConditionCollection(this.hot);
+    // }
+    //
+    // if (!this.conditionUpdateObserver) {
+    //   this.conditionUpdateObserver = new ConditionUpdateObserver(
+    //     this.hot,
+    //     this.conditionCollection,
+    //     physicalColumn => this.getDataMapAtColumn(physicalColumn),
+    //   );
+    //   this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
+    // }
+    //
+    // this.components.forEach(component => component.show());
 
-      return component;
-    };
-
-    const filterByConditionLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_CONDITION)}:`;
-    const filterValueLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_VALUE)}:`;
-
-    if (!this.components.get('filter_by_condition')) {
-      const conditionComponent = new ConditionComponent(this.hot, {
-        id: 'filter_by_condition',
-        name: filterByConditionLabel,
-        addSeparator: false,
-        menuContainer
-      });
-
-      conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
-
-      this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
-    }
-
-    if (!this.components.get('filter_operators')) {
-      this.components.set('filter_operators', new OperatorsComponent(this.hot, {
-        id: 'filter_operators',
-        name: 'Operators'
-      }));
-    }
-
-    if (!this.components.get('filter_by_condition2')) {
-      const conditionComponent = new ConditionComponent(this.hot, {
-        id: 'filter_by_condition2',
-        name: '',
-        addSeparator: true,
-        menuContainer
-      });
-
-      conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
-
-      this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));
-    }
-
-    if (!this.components.get('filter_by_value')) {
-      this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {
-        id: 'filter_by_value',
-        name: filterValueLabel
-      })));
-    }
-
-    if (!this.components.get('filter_action_bar')) {
-      this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, {
-        id: 'filter_action_bar',
-        name: 'Action bar'
-      })));
-    }
-
-    if (!this.conditionCollection) {
-      this.conditionCollection = new ConditionCollection(this.hot);
-    }
-
-    if (!this.conditionUpdateObserver) {
-      this.conditionUpdateObserver = new ConditionUpdateObserver(
-        this.hot,
-        this.conditionCollection,
-        physicalColumn => this.getDataMapAtColumn(physicalColumn),
-      );
-      this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
-    }
-
-    this.components.forEach(component => component.show());
-
-    this.addHook('beforeDropdownMenuSetItems', items => this.onBeforeDropdownMenuSetItems(items));
-    this.addHook('afterDropdownMenuDefaultOptions',
-      defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
-    this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
-    this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
-    this.addHook('afterChange', changes => this.onAfterChange(changes));
+    // this.addHook('beforeDropdownMenuSetItems', items => this.onBeforeDropdownMenuSetItems(items));
+    // this.addHook('afterDropdownMenuDefaultOptions',
+    //   defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
+    // this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
+    // this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
+    // this.addHook('afterChange', changes => this.onAfterChange(changes));
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
-    if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
-      this.dropdownMenuPlugin.disablePlugin();
-      this.dropdownMenuPlugin.enablePlugin();
-    }
+    // if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
+    //   this.dropdownMenuPlugin.disablePlugin();
+    //   this.dropdownMenuPlugin.enablePlugin();
+    // }
 
-    super.enablePlugin();
+    // super.enablePlugin();
   }
 
   /**
