@@ -138,9 +138,9 @@ const ExampleComponent = () => {
   const autosaveClickCallback = (event) => {
     autosave.checked = event.target.checked;
     if (autosave.checked) {
-      setOutput("Changes will be autosaved");
+      setOutput('Changes will be autosaved');
     } else {
-      setOutput("Changes will not be autosaved");
+      setOutput('Changes will not be autosaved');
     }
   };
 
