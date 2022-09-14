@@ -2,7 +2,7 @@
   <div class="layout-container">
     <ParentLayout>
       <template #page-top>
-        <div v-if="show" class="page-top">
+        <div v-show="show" class="page-top">
           <div class="version-alert">
             <p>This page covers a non-latest version of Handsontable.</p>
           </div>
