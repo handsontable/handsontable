@@ -23,11 +23,11 @@ const testCases = [
   (permalink) => {
     const INSTANCE_NUMBER_EXCEPTIONS = {
       // The column-summary example on the page of the each framework shows an error being thrown - the Handsontable instance is never rendered.
-      '/next/react-data-grid/column-summary': -1,
-      '/next/javascript-data-grid/column-summary': -1,
+      '/react-data-grid/column-summary': -1,
+      '/javascript-data-grid/column-summary': -1,
       // The events-and-hooks page contains a rendered Handsontable instance which is not a part of any example.
-      '/next/javascript-data-grid/events-and-hooks': 1,
-      '/next/react-data-grid/events-and-hooks': 1,
+      '/javascript-data-grid/events-and-hooks': 1,
+      '/react-data-grid/events-and-hooks': 1,
     };
 
     /**

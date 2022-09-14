@@ -80,7 +80,7 @@ The `next` version of the documentation is available only locally and on the sta
 
 To display the `next` version in a browser:
 1. Start a [local Handsontable documentation server](./README.md#getting-started-with-handsontable-documentation).
-2. In your browser, go to http://localhost:8080/docs/next/.
+2. In your browser, go to http://localhost:8080/docs/.
 
 ### Editing a published documentation version
 
@@ -122,7 +122,7 @@ To deploy the documentation locally at a `[COMMIT_HASH]` commit:
    ```bash
    npm run docs:review [COMMIT_HASH]
    ```
-3. In your browser, go to: http://localhost:8000/docs/next/.
+3. In your browser, go to: http://localhost:8000/docs/.
 
 ## Documentation versioning
 
@@ -255,7 +255,7 @@ The `example-checker` script checks if:
 - The number of Handsontable instances implemented in the example containers corresponds to the number of Handsontable instance DOM containers being rendered on the page.
 
 To use the `example-checker` script: (all the commands need to be run from the `docs` directory)
-1. Build the documentation. 
+1. Build the documentation.
   ```bash
   npm run docs:build
   ```

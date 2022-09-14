@@ -56,7 +56,7 @@ export default async({ router, siteData, isServer }) => {
   } = siteData.pages[0];
 
   // in watch mode redirect to page with default framework
-  if (location.pathname === '/docs/next/' && !buildMode) {
+  if (location.pathname === '/docs/' && currentVersion === 'next' && !buildMode) {
     location.replace(`${location.href}${defaultFramework}${frameworkSuffix}`);
 
     return;
@@ -64,7 +64,8 @@ export default async({ router, siteData, isServer }) => {
 
   let pathVersion = '';
 
-  if (buildMode !== 'production') {
+  // Change path for `/data/common.json` file for developing released docs versions locally.
+  if (buildMode !== 'production' && currentVersion !== 'next') {
     pathVersion = `${currentVersion}/`;
   }
 

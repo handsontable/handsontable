@@ -10,8 +10,6 @@
 <script>
 import DropdownLink from '@theme/components/DropdownLink.vue';
 
-const MIN_FRAMEWORKED_DOCS_VERSION = 12.1;
-
 export default {
   name: 'VersionsDropdown',
   components: {
@@ -31,17 +29,11 @@ export default {
       return version;
     },
     getLink(version) {
-      let framework = '';
-
-      if (parseFloat(version) >= MIN_FRAMEWORKED_DOCS_VERSION || version === 'next') {
-        framework = `${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
-      }
-
       if (version === this.$page.latestVersion) {
-        return `/docs/${framework}`;
+        return '/docs/';
       }
 
-      return `/docs/${version}/${framework}`;
+      return `/docs/${version}/`;
     },
     getLegacyVersions() {
       return [
