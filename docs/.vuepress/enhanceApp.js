@@ -62,7 +62,14 @@ export default async({ router, siteData, isServer }) => {
     return;
   }
 
-  const response = await fetch(`${window.location.origin}/docs/data/common.json`);
+  let pathVersion = '';
+
+  // Change path for `/data/common.json` file for developing released docs versions locally.
+  if (buildMode !== 'production' && currentVersion !== 'next') {
+    pathVersion = `${currentVersion}/`;
+  }
+
+  const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
   const docsData = await response.json();
   const canonicalURLs = new Map(docsData.urls);
 
