@@ -77,9 +77,19 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
     },
     anchor: {
       permalinkSymbol: '',
+      permalinkHref(slug) {
+        // Remove the `-[number]` suffix from the permalink href attribute.
+        const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(slug);
+
+        if (duplicatedSlugsMatch) {
+          slug = duplicatedSlugsMatch[1];
+        }
+
+        return `#${slug}`;
+      },
       callback(token, slugInfo) {
         if (['h1', 'h2', 'h3'].includes(token.tag)) {
-          // Remove the `-[number]` suffix from the slugs and header IDs
+          // Remove the `-[number]` suffix from the slugs and header IDs.
           const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrs[0][1]);
 
           if (duplicatedSlugsMatch) {
