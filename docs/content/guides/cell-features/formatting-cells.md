@@ -105,7 +105,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ## Apply inline styles
 
-You can apply inline styles directly to the DOM element using its `style` attribute. You can use the [`renderer`](@/api/options.md#renderer) option to do that.
+You can apply inline styles directly to the DOM element using its `style` property. You can use the [`renderer`](@/api/options.md#renderer) option to do that.
 
 ::: only-for javascript
 ::: example #example2
