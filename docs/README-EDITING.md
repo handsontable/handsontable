@@ -131,7 +131,7 @@ takes care to create a Documentation production branch, generate API content fro
 
 ## Markdown links
 
-When linking to other documentation pages, *avoid using absolute links or relative URLs*.
+When linking to other documentation pages, **avoid using absolute links or relative URLs**.
 
 To link to another page in the same documentation version, use the following syntax:
 
