@@ -16,6 +16,7 @@ For more information on this release, see:
 
 ### Removed
 - Removed a custom stable sorting implementation in favor of the built-in sorting algorithm [#6091](https://github.com/handsontable/handsontable/issues/6091)
+- Removed type definitions for non-existing methods `rowOffset` and `colOffset` and a non-existing hook `modifyRowSourceData`. [#8659](https://github.com/handsontable/handsontable/issues/8659), [#7317](https://github.com/handsontable/handsontable/issues/7317)
 
 ### Fixed
 - Fixed an issue with "0" values being ignored by the Column Summary plugin. [#6385](https://github.com/handsontable/handsontable/issues/6385)
@@ -27,6 +28,7 @@ For more information on this release, see:
 - Fixed IME text input in the editors. [#9586](https://github.com/handsontable/handsontable/issues/9586)
 - Fixed misalignment on mobile devices when the edge cells were selected. [#9621](https://github.com/handsontable/handsontable/issues/9621)
 - Fixed incorrect date format conversion on input in the date editor. [#9681](https://github.com/handsontable/handsontable/issues/9681)
+- Fixed type definitions for the method `setSourceDataAtCell`. [#8599](https://github.com/handsontable/handsontable/issues/8599)
 
 ## [12.1.2] - 2022-07-08
 
