@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [12.1.3] - 2022-09-19
 
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-1-3)
+- [Blog post](https://handsontable.com/blog/)
+
 ### Removed
 - Removed a custom stable sorting implementation in favor of the built-in sorting algorithm [#6091](https://github.com/handsontable/handsontable/issues/6091)
 
