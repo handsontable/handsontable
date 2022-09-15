@@ -341,7 +341,7 @@ class DataMap {
 
     this.instance.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
 
-    this.spliceData(physicalRowIndex, 0, ...rowsToAdd);
+    this.spliceData(physicalRowIndex, 0, rowsToAdd);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -599,7 +599,7 @@ class DataMap {
    * @param {number} deleteCount Number of rows to remove.
    * @param {...object} elements Row elements to be added.
    */
-  spliceData(index, deleteCount, ...elements) {
+  spliceData(index, deleteCount, elements) {
     const continueSplicing = this.instance.runHooks('beforeDataSplice', index, deleteCount, elements);
 
     if (continueSplicing !== false) {

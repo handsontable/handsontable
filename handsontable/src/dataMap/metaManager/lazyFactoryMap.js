@@ -207,7 +207,9 @@ export default class LazyFactoryMap {
       this.data.push(void 0);
     }
 
-    this.index.splice(isNullish(key) ? this.index.length : key, 0, ...newIndexes);
+    const sliceIndex = isNullish(key) ? this.index.length : key;
+
+    this.index = [...this.index.slice(0, sliceIndex), ...newIndexes, ...this.index.slice(sliceIndex)];
   }
 
   /**
