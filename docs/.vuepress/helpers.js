@@ -116,7 +116,9 @@ function getSidebars() {
  * @returns {string}
  */
 function getNormalizedPath(normalizedPath) {
-  return normalizedPath.replace(new RegExp(`^/?${MULTI_FRAMEWORKED_CONTENT_DIR}`), '');
+  return normalizedPath
+    .replace(new RegExp(`^/?${MULTI_FRAMEWORKED_CONTENT_DIR}`), '')
+    .replace(/\.(html|md)$/, '');
 }
 
 /**
@@ -124,9 +126,8 @@ function getNormalizedPath(normalizedPath) {
  *
  * @returns {object}
  */
-function getNotSearchableLinks() {
+function getIgnorePagesPatternList() {
   const frameworks = getFrameworks();
-  const notSearchableLinks = {};
 
   const filterLinks = (guides, framework) => {
     const links = [];
@@ -152,12 +153,16 @@ function getNotSearchableLinks() {
 
   // eslint-disable-next-line
   const sidebarConfig = require(path.join(__dirname, `../content/sidebars.js`));
+  const pages = [];
 
   frameworks.forEach((framework) => {
-    notSearchableLinks[framework] = filterLinks(sidebarConfig.guides, framework);
+    const linksWithFramework = filterLinks(sidebarConfig.guides, framework)
+      .map(link => `!${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/${link}.md`);
+
+    pages.push(...linksWithFramework);
   });
 
-  return notSearchableLinks;
+  return pages;
 }
 
 /**
@@ -247,7 +252,7 @@ module.exports = {
   getFrameworks,
   getPrettyFrameworkName,
   getSidebars,
-  getNotSearchableLinks,
+  getIgnorePagesPatternList,
   parseFramework,
   getDefaultFramework,
   createSymlinks,
