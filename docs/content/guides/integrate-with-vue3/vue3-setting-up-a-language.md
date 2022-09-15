@@ -52,8 +52,7 @@ import { HotTable, HotColumn } from '@handsontable/vue3';
 import numbro from 'numbro';
 import languages from 'numbro/dist/languages.min.js';
 import { registerAllModules } from 'handsontable/registry';
-
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

@@ -49,7 +49,7 @@ Note that in case of React 16 and older, it wouldn't work out of the box because
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // an editor component
 class EditorComponent extends BaseEditorComponent {
@@ -193,6 +193,7 @@ import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
