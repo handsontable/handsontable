@@ -3193,7 +3193,8 @@ export default () => {
 
     /**
      * The `numericFormat` option configures the number format and the currency format
-     * of [`numeric`](@/guides/cell-types/numeric-cell-type.md) cells` displayed output.
+     * of [`numeric`](@/guides/cell-types/numeric-cell-type.md) cells` displayed output
+     * in the numeric cell renderer.
      *
      * You can set the `numericFormat` option to an object with the following properties:
      *
@@ -3202,10 +3203,7 @@ export default () => {
      * | `pattern`   | All [`numbro.js` number formats](https://numbrojs.com/format.html#numbers)    | Number format   |
      * | `culture`   | All [`numbro.js` currency formats](https://numbrojs.com/format.html#currency) | Currency format |
      *
-     * The `numericFormat` option as no effect on cells' input data.
-     * To enter numeric data into Handsontable, use:
-     * - Either floats (separated by a dot, or a comma)
-     * - Or integers
+     * The `numericFormat` option as no effect on the numeric cell editor.
      *
      * In the source data, numeric data is stored as JavaScript numbers.
      *
