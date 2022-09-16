@@ -1,6 +1,7 @@
 const {
   FRAMEWORK_SUFFIX,
   getDefaultFramework,
+  getDocsBase,
   getDocsRepoSHA,
   getPrettyFrameworkName,
   getSidebars,
@@ -76,7 +77,8 @@ SHA: ${getDocsRepoSHA()}
       const frameworkPath = currentFramework + FRAMEWORK_SUFFIX;
 
       if ($page.frontmatter.canonicalUrl) {
-        $page.frontmatter.canonicalUrl = dedupeSlashes(`/docs/${frameworkPath}${$page.frontmatter.canonicalUrl}/`);
+        $page.frontmatter
+          .canonicalUrl = dedupeSlashes(`${getDocsBase()}/${frameworkPath}${$page.frontmatter.canonicalUrl}/`);
       }
 
       if ($page.frontmatter.permalink) {
