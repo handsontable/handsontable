@@ -216,7 +216,15 @@ function getDocsBase() {
   const docsBase = process.env.DOCS_BASE ?? getThisDocsVersion();
   let base = '/docs/';
 
-  if ((docsBase !== 'latest' && docsBase !== 'next') || buildMode === 'staging') {
+  // For staging:
+  //   * `docsBase` === 'next' generate docs with Docs base set as `/docs/next`;
+  //   * `docsBase` === 'latest' generate docs with Docs base set as `/docs`;
+  // For other environments (prod, local build, local watch):
+  //   * `docsBase` === 'next' (happens locally) generate docs with Docs base set as `/docs`;
+  //   * `docsBase` === 'latest' generate docs with Docs base set as `/docs`;
+  //   * `docsBase` === '12.1' (happens while testing production branch) generate docs with Docs base set as `/docs/12.1`;
+  if ((buildMode === 'staging' && docsBase !== 'latest') ||
+      (buildMode !== 'staging' && docsBase !== 'next' && docsBase !== 'latest')) {
     base += `${docsBase}/`;
   }
 
