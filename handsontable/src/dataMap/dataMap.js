@@ -597,7 +597,7 @@ class DataMap {
    *
    * @param {number} index Physical index of the element to add/remove.
    * @param {number} deleteCount Number of rows to remove.
-   * @param {...object} elements Row elements to be added.
+   * @param {Array<object>} elements Row elements to be added.
    */
   spliceData(index, deleteCount, elements) {
     const continueSplicing = this.instance.runHooks('beforeDataSplice', index, deleteCount, elements);
