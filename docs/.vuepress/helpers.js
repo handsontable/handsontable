@@ -67,9 +67,7 @@ function getThisDocsVersion() {
  * @returns {object}
  */
 function getSidebars() {
-  const sidebars = { };
-  const frameworks = getFrameworks();
-  const getTransformedGuides = (guides, currentFramework) => {
+  const filterByFramework = (guides, currentFramework) => {
     const filterElementsForFramework = element =>
       (Array.isArray(element.onlyFor) && element.onlyFor.includes(currentFramework)) ||
       (typeof element.onlyFor === 'string' && element.onlyFor === currentFramework) ||
@@ -92,18 +90,23 @@ function getSidebars() {
 
   // eslint-disable-next-line
   const sidebarConfig = require(path.join(__dirname, '../content/sidebars.js'));
+  const sidebars = {};
 
-  frameworks.forEach((framework) => {
-    const apiTransformed = JSON.parse(JSON.stringify(sidebarConfig.api)); // Copy sidebar definition
-    const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
+  getFrameworks().forEach((framework) => {
+    for (const [parentPath, subjectChildren] of Object.entries(sidebarConfig)) {
+      const childrenClone = JSON.parse(JSON.stringify(subjectChildren));
+      const isGuidesPage = parentPath === 'guides';
+      const sidebarChildren = isGuidesPage ? filterByFramework(childrenClone, framework) : childrenClone;
+      const fullPath = `/${framework}${FRAMEWORK_SUFFIX}/${isGuidesPage ? '' : `${parentPath}/`}`;
 
-    // We store path in sidebars.js files in form <VERSION>/api/plugins.
-    plugins.path = `/${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/api/plugins`;
+      sidebars[`/${MULTI_FRAMEWORKED_CONTENT_DIR}${fullPath}`] = sidebarChildren.map((child) => {
+        if (typeof child === 'object' && child.path) {
+          child.path = `${fullPath}${child.path}/`;
+        }
 
-    sidebars[`/${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/examples/`] = sidebarConfig.examples;
-    sidebars[`/${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/api/`] = apiTransformed;
-    sidebars[`/${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/`] =
-      getTransformedGuides(sidebarConfig.guides, framework);
+        return child;
+      });
+    }
   });
 
   return sidebars;
