@@ -108,14 +108,7 @@ module.exports = function(docsVersion, base) {
 
         jsToken.content = jsToken.content.replaceAll('{{$basePath}}', base);
 
-        const activeTab = [args.match(/--tab (code|html|css|preview)/)?.[1]].map((entry) => {
-          if (!entry || entry === 'preview') {
-            return `preview-tab-${id}`;
-
-          } else {
-            return entry;
-          }
-        }).join('');
+        const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
         const noEdit = !!args.match(/--no-edit/)?.[0];
 
         const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), jsToken.content, env.relativePath);
