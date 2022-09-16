@@ -41,7 +41,7 @@ export default {
         framework: 'javascript'
       };
 
-      return `/docs/${framework}-data-grid`;
+      return `/docs/${framework}-data-grid/`;
     },
     getMsg() {
       return msgs[Math.floor(Math.random() * msgs.length)];
