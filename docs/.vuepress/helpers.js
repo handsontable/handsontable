@@ -212,10 +212,11 @@ function getDocsRepoSHA() {
  * @returns {string}
  */
 function getDocsBase() {
+  const buildMode = process.env.BUILD_MODE;
   const docsBase = process.env.DOCS_BASE ?? getThisDocsVersion();
   let base = '/docs/';
 
-  if (docsBase !== 'latest' && docsBase !== 'next') {
+  if ((docsBase !== 'latest' && docsBase !== 'next') || buildMode === 'staging') {
     base += `${docsBase}/`;
   }
 
