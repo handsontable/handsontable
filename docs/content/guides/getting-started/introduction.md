@@ -14,7 +14,7 @@ react:
 
 ::: only-for javascript
 ::: tip
-Using React? [Switch to the React version of this documentation](../../react-data-grid).
+Using React? [Switch to the React version of this documentation](@/react/guides/getting-started/introduction.md).
 :::
 :::
 
@@ -73,7 +73,7 @@ Then, move on to [connecting](@/guides/getting-started/binding-to-data.md) your 
 
 Handsontable supports popular JavaScript frameworks through wrappers. It also features a TypeScript declaration file that standardizes the API [methods](@/api/core.md), [hooks](@/api/hooks.md), and [options](@/api/options.md).
 
-Explore Handsontable's documentation for [React](../../react-data-grid), [Angular](@/guides/integrate-with-angular/angular-installation.md), [Vue 2](@/guides/integrate-with-vue/vue-installation.md), and [Vue 3](@/guides/integrate-with-vue3/vue3-installation.md).
+Explore Handsontable's documentation for [React](@/react/guides/getting-started/introduction.md), [Angular](@/guides/integrate-with-angular/angular-installation.md), [Vue 2](@/guides/integrate-with-vue/vue-installation.md), and [Vue 3](@/guides/integrate-with-vue3/vue3-installation.md).
 :::
 
 ## What can I use Handsontable for?

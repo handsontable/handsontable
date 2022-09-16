@@ -217,7 +217,7 @@ const ExampleComponent = () => {
             }
           }
         }}
-        licenseKey="non-commercial-and-evaluation" 
+        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   )
@@ -448,7 +448,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 - [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
 ::: only-for javascript
-- [Custom context menu in React](../../react-data-grid)
+- [Custom context menu in React](@/react/guides/accessories-and-menus/context-menu.md)
 - [Custom context menu in Angular](@/guides/integrate-with-angular/angular-custom-context-menu-example.md)
 - [Custom context menu in Vue 2](@/guides/integrate-with-vue/vue-custom-context-menu-example.md)
 - [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example.md)

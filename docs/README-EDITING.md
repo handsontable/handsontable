@@ -131,7 +131,7 @@ takes care to create a Documentation production branch, generate API content fro
 
 ## Markdown links
 
-When linking to other documentation pages, avoid using absolute links or relative URLs.
+When linking to other documentation pages, **avoid using absolute links or relative URLs**.
 
 To link to another page in the same documentation version, use the following syntax:
 
@@ -142,8 +142,24 @@ To link to another page in the same documentation version, use the following syn
 For example, to link to a file called `core.md`, from anywhere in the same documentation version:
 
 ```markdown
-[Core](@/api/core.md)
+[Core](@/api/core.md#updatesettings)
 ```
+
+To link to another page but for other framework (and still for the same documentation version), use the following syntax:
+
+```markdown
+[link_text](@/{FRAMEWORK}/relative_file_path_from_this_version's_root/file_name.md#some-anchor)
+```
+
+For example, to link to a file called `./content/guides/getting-started/react-methods.md` that should be accessible only for React framework, use:
+
+```markdown
+[React methods](@/react/guides/getting-started/react-methods.md)
+```
+
+When there is no framework defined in the link URL, the generated link will be pointed to the currently viewed framework. For example, link `[Core](@/api/core.md)` for Javascript will point to `/docs/javascript-data-grid/api/core` and for chosen React framework to `/docs/react-data-grid/api/core`.
+
+List of available frameworks: `javascript`, `react`.
 
 Follow these rules:
 * After the `@` character, provide the target's relative file path (from the current version's root directory).<br>

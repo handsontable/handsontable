@@ -31,7 +31,7 @@ async function buildVersion(version) {
   const cwd = path.resolve(__dirname, '../../');
   const versionEscaped = version.replace('.', '-');
 
-  if (version !== 'next') {
+  if (version !== 'next' || buildMode === 'staging') {
     await spawnProcess(
       'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-' +
         `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
@@ -56,7 +56,7 @@ async function buildVersion(version) {
 async function concatenate(version) {
   const versionEscaped = version.replace('.', '-');
 
-  if (version !== 'next') {
+  if (version !== 'next' || buildMode === 'staging') {
     const prebuildVersioned = path.resolve(
       __dirname,
       '../../', `.vuepress/dist/pre-${versionEscaped}`

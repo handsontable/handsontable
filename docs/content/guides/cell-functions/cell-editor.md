@@ -163,7 +163,7 @@ const data = [
 
 const ExampleComponent = () => {
   return (
-    <HotTable 
+    <HotTable
       data={data}
       rowHeaders={true}
       licenseKey="non-commercial-and-evaluation"
@@ -1252,7 +1252,7 @@ const hot = new Handsontable(container, {
 ## Related articles
 
 ### Related guides
-- [Custom editor in React](../../react-data-grid/cell-editor)
+- [Custom editor in React](@/react/guides/cell-functions/cell-editor.md)
 - [Custom editor in Angular](@/guides/integrate-with-angular/angular-custom-editor-example.md)
 - [Custom editor in Vue 2](@/guides/integrate-with-vue/vue-custom-editor-example.md)
 - [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example.md)

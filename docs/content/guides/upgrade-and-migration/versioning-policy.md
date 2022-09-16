@@ -29,7 +29,7 @@ The following table outlines which number would change when a Major, Minor, or P
 
 Up to Handsontable 8.3.2, each framework variant of Handsontable was versioned separately:
 - [Vanilla JavaScript](@/guides/getting-started/introduction.md)
-- [React wrapper](../../react-data-grid)
+- [React wrapper](@/react/guides/getting-started/introduction.md)
 - [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md)
 - [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation.md)
 - [Vue 3 wrapper](@/guides/integrate-with-vue3/vue3-installation.md)
@@ -41,7 +41,7 @@ Starting with version 8.4.0 (released in May 2021), all framework variants of Ha
 ## Versioning of framework variants
 
 Up to Handsontable 8.3.2, the JavaScript variant and the React variant of Handsontable were versioned separately:
-- [Vanilla JavaScript](../../javascript-data-grid)
+- [Vanilla JavaScript](@/javascript/guides/getting-started/introduction.md)
 - [React wrapper](@/guides/getting-started/introduction.md)
 
 Starting with version 8.4.0 (released in May 2021), both the JavaScript variant and the React variant of Handsontable have the same version number.

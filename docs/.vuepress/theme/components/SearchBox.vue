@@ -287,10 +287,7 @@ export default {
     },
 
     isSearchable(page) {
-      const isSelectedFramework = page.normalizedPath
-        .startsWith(`/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`);
-
-      return page.isSearchable === true && isSelectedFramework;
+      return this.$page.currentFramework === page.currentFramework;
     },
 
     onHotkey(event) {
