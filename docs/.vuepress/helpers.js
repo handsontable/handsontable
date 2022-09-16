@@ -93,7 +93,7 @@ function getSidebars() {
   const sidebars = {};
 
   getFrameworks().forEach((framework) => {
-    for (const [parentPath, subjectChildren] of Object.entries(sidebarConfig)) {
+    Object.entries(sidebarConfig).forEach(([parentPath, subjectChildren]) => {
       const childrenClone = JSON.parse(JSON.stringify(subjectChildren));
       const isGuidesPage = parentPath === 'guides';
       const sidebarChildren = isGuidesPage ? filterByFramework(childrenClone, framework) : childrenClone;
@@ -106,7 +106,7 @@ function getSidebars() {
 
         return child;
       });
-    }
+    });
   });
 
   return sidebars;
