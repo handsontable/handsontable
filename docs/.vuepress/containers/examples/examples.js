@@ -126,10 +126,10 @@ module.exports = function(docsVersion, base) {
         });
 
         const newTokens = [
+          getPreviewTab(id, cssContent, htmlContentRoot, encodedCode),
           ...tab('Code', jsToken, id),
           ...tab('HTML', htmlToken, id),
           ...tab('CSS', cssToken, id),
-          getPreviewTab(id, cssContent, htmlContentRoot, encodedCode)
         ];
 
         tokens.splice(index + 1, 0, ...newTokens);
