@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.1.3
- * Release date: 19/09/2022 (built at 12/09/2022 12:06:41)
+ * Release date: 19/09/2022 (built at 16/09/2022 15:29:37)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -34344,13 +34344,13 @@ __webpack_require__(61);
 
 __webpack_require__(62);
 
-__webpack_require__(19);
-
 __webpack_require__(44);
 
 __webpack_require__(76);
 
 __webpack_require__(35);
+
+__webpack_require__(19);
 
 __webpack_require__(24);
 
@@ -34717,7 +34717,7 @@ var DataMap = /*#__PURE__*/function () {
       }
 
       this.instance.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
-      this.spliceData.apply(this, [physicalRowIndex, 0].concat(rowsToAdd));
+      this.spliceData(physicalRowIndex, 0, rowsToAdd);
       this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
       this.instance.forceFullRender = true; // used when data was changed
 
@@ -34985,22 +34985,18 @@ var DataMap = /*#__PURE__*/function () {
      *
      * @param {number} index Physical index of the element to add/remove.
      * @param {number} deleteCount Number of rows to remove.
-     * @param {...object} elements Row elements to be added.
+     * @param {Array<object>} elements Row elements to be added.
      */
 
   }, {
     key: "spliceData",
-    value: function spliceData(index, deleteCount) {
+    value: function spliceData(index, deleteCount, elements) {
       var _this3 = this;
-
-      for (var _len3 = arguments.length, elements = new Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
-        elements[_key3 - 2] = arguments[_key3];
-      }
 
       var continueSplicing = this.instance.runHooks('beforeDataSplice', index, deleteCount, elements);
 
       if (continueSplicing !== false) {
-        var newData = [].concat((0, _toConsumableArray2.default)(this.dataSource.slice(0, index)), elements, (0, _toConsumableArray2.default)(this.dataSource.slice(index))); // We try not to change the reference.
+        var newData = [].concat((0, _toConsumableArray2.default)(this.dataSource.slice(0, index)), (0, _toConsumableArray2.default)(elements), (0, _toConsumableArray2.default)(this.dataSource.slice(index))); // We try not to change the reference.
 
         this.dataSource.length = 0; // Pushing to array instead of using `splice`, because Babel changes the code to one that uses the `apply` method.
         // The used method was cause of the problem described within #7840.
@@ -40143,9 +40139,11 @@ __webpack_require__(5);
 
 __webpack_require__(6);
 
-__webpack_require__(44);
-
 __webpack_require__(19);
+
+__webpack_require__(35);
+
+__webpack_require__(44);
 
 __webpack_require__(219);
 
@@ -40154,6 +40152,8 @@ __webpack_require__(52);
 __webpack_require__(151);
 
 __webpack_require__(21);
+
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(29));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(2));
 
@@ -40372,8 +40372,6 @@ var LazyFactoryMap = /*#__PURE__*/function (_Symbol$iterator) {
   }, {
     key: "insert",
     value: function insert(key) {
-      var _this$index;
-
       var amount = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
       (0, _utils.assert)(function () {
         return (0, _utils.isUnsignedNumber)(key) || (0, _utils.isNullish)(key);
@@ -40386,7 +40384,8 @@ var LazyFactoryMap = /*#__PURE__*/function (_Symbol$iterator) {
         this.data.push(void 0);
       }
 
-      (_this$index = this.index).splice.apply(_this$index, [(0, _utils.isNullish)(key) ? this.index.length : key, 0].concat(newIndexes));
+      var insertionIndex = (0, _utils.isNullish)(key) ? this.index.length : key;
+      this.index = [].concat((0, _toConsumableArray2.default)(this.index.slice(0, insertionIndex)), newIndexes, (0, _toConsumableArray2.default)(this.index.slice(insertionIndex)));
     }
     /**
      * Removes (soft remove) data from "index" and according to the amount of data.
@@ -45133,7 +45132,7 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "12/09/2022 12:06:41";
+Handsontable.buildDate = "16/09/2022 15:29:37";
 Handsontable.version = "12.1.3";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
