@@ -702,7 +702,7 @@ export default () => {
      *
      * The `columns` option overwrites the [top-level grid options](@/guides/getting-started/setting-options.md#setting-grid-options).
      *
-     * When you use `columns`, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) option are ignored.
+     * When you use `columns`, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) options are ignored.
      *
      * Read more:
      * - [Configuration options: Setting column options](@/guides/getting-started/setting-options.md#setting-column-options)
