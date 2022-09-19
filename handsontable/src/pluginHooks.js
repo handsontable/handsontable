@@ -66,12 +66,10 @@ const REGISTERED_HOOKS = [
    * Fired after one or more cells has been changed. The changes are triggered in any situation when the
    * value is entered using an editor or changed using API (e.q setDataAtCell).
    *
-   * `row` is a visual row index.
-   *
    * __Note:__ For performance reasons, the `changes` array is null for `"loadData"` source.
    *
    * @event Hooks#afterChange
-   * @param {Array} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`.
+   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
    * @param {string} [source] String that identifies source of hook call ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @example
    * ```js
@@ -711,10 +709,8 @@ const REGISTERED_HOOKS = [
    * Fired before one or more cells is changed. Its main purpose is to alter changes silently after input and before
    * table rendering.
    *
-   * `row` is a visual row index.
-   *
    * @event Hooks#beforeChange
-   * @param {Array[]} changes 2D array containing information about each of the edited cells.
+   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {void | boolean} If `false` all changes were cancelled, `true` otherwise.
