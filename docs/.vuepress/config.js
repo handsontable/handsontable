@@ -10,12 +10,13 @@ const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
 const activeHeaderLinksPlugin = require('./plugins/active-header-links');
 const {
-  getDocsBaseFullUrl,
+  createSymlinks,
   getDocsBase,
+  getDocsBaseFullUrl,
   getDocsHostname,
+  getIgnorePagesPatternList,
   getThisDocsVersion,
   MULTI_FRAMEWORKED_CONTENT_DIR,
-  createSymlinks,
 } = require('./helpers');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 
@@ -44,6 +45,7 @@ module.exports = {
   },
   patterns: [
     `${MULTI_FRAMEWORKED_CONTENT_DIR}/**/*.md`,
+    ...getIgnorePagesPatternList(),
   ],
   description: 'Handsontable',
   base: `${getDocsBase()}/`,

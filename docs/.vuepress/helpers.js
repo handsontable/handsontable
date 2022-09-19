@@ -67,9 +67,7 @@ function getThisDocsVersion() {
  * @returns {object}
  */
 function getSidebars() {
-  const sidebars = { };
-  const frameworks = getFrameworks();
-  const getTransformedGuides = (guides, currentFramework) => {
+  const filterByFramework = (guides, currentFramework) => {
     const filterElementsForFramework = element =>
       (Array.isArray(element.onlyFor) && element.onlyFor.includes(currentFramework)) ||
       (typeof element.onlyFor === 'string' && element.onlyFor === currentFramework) ||
@@ -92,18 +90,23 @@ function getSidebars() {
 
   // eslint-disable-next-line
   const sidebarConfig = require(path.join(__dirname, '../content/sidebars.js'));
+  const sidebars = {};
 
-  frameworks.forEach((framework) => {
-    const apiTransformed = JSON.parse(JSON.stringify(sidebarConfig.api)); // Copy sidebar definition
-    const plugins = apiTransformed.find(arrayElement => typeof arrayElement === 'object');
+  getFrameworks().forEach((framework) => {
+    Object.entries(sidebarConfig).forEach(([parentPath, subjectChildren]) => {
+      const childrenClone = JSON.parse(JSON.stringify(subjectChildren));
+      const isGuidesPage = parentPath === 'guides';
+      const sidebarChildren = isGuidesPage ? filterByFramework(childrenClone, framework) : childrenClone;
+      const fullPath = `/${framework}${FRAMEWORK_SUFFIX}/${isGuidesPage ? '' : `${parentPath}/`}`;
 
-    // We store path in sidebars.js files in form <VERSION>/api/plugins.
-    plugins.path = `/${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/api/plugins`;
+      sidebars[`/${MULTI_FRAMEWORKED_CONTENT_DIR}${fullPath}`] = sidebarChildren.map((child) => {
+        if (typeof child === 'object' && child.path) {
+          child.path = `${fullPath}${child.path}/`;
+        }
 
-    sidebars[`/${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/examples/`] = sidebarConfig.examples;
-    sidebars[`/${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/api/`] = apiTransformed;
-    sidebars[`/${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/`] =
-      getTransformedGuides(sidebarConfig.guides, framework);
+        return child;
+      });
+    });
   });
 
   return sidebars;
@@ -116,7 +119,9 @@ function getSidebars() {
  * @returns {string}
  */
 function getNormalizedPath(normalizedPath) {
-  return normalizedPath.replace(new RegExp(`^/?${MULTI_FRAMEWORKED_CONTENT_DIR}`), '');
+  return normalizedPath
+    .replace(new RegExp(`^/?${MULTI_FRAMEWORKED_CONTENT_DIR}`), '')
+    .replace(/\.(html|md)$/, '');
 }
 
 /**
@@ -124,9 +129,8 @@ function getNormalizedPath(normalizedPath) {
  *
  * @returns {object}
  */
-function getNotSearchableLinks() {
+function getIgnorePagesPatternList() {
   const frameworks = getFrameworks();
-  const notSearchableLinks = {};
 
   const filterLinks = (guides, framework) => {
     const links = [];
@@ -152,12 +156,16 @@ function getNotSearchableLinks() {
 
   // eslint-disable-next-line
   const sidebarConfig = require(path.join(__dirname, `../content/sidebars.js`));
+  const pages = [];
 
   frameworks.forEach((framework) => {
-    notSearchableLinks[framework] = filterLinks(sidebarConfig.guides, framework);
+    const linksWithFramework = filterLinks(sidebarConfig.guides, framework)
+      .map(link => `!${MULTI_FRAMEWORKED_CONTENT_DIR}/${framework}${FRAMEWORK_SUFFIX}/${link}.md`);
+
+    pages.push(...linksWithFramework);
   });
 
-  return notSearchableLinks;
+  return pages;
 }
 
 /**
@@ -204,10 +212,19 @@ function getDocsRepoSHA() {
  * @returns {string}
  */
 function getDocsBase() {
+  const buildMode = process.env.BUILD_MODE;
   const docsBase = process.env.DOCS_BASE ?? getThisDocsVersion();
   let base = '/docs/';
 
-  if (docsBase !== 'latest' && docsBase !== 'next') {
+  // For staging:
+  //   * `docsBase` === 'next' generate docs with Docs base set as `/docs/next`;
+  //   * `docsBase` === 'latest' generate docs with Docs base set as `/docs`;
+  // For other environments (prod, local build, local watch):
+  //   * `docsBase` === 'next' (happens locally) generate docs with Docs base set as `/docs`;
+  //   * `docsBase` === 'latest' generate docs with Docs base set as `/docs`;
+  //   * `docsBase` === '12.1' (happens while testing production branch) generate docs with Docs base set as `/docs/12.1`;
+  if ((buildMode === 'staging' && docsBase !== 'latest') ||
+      (buildMode !== 'staging' && docsBase !== 'next' && docsBase !== 'latest')) {
     base += `${docsBase}/`;
   }
 
@@ -247,7 +264,7 @@ module.exports = {
   getFrameworks,
   getPrettyFrameworkName,
   getSidebars,
-  getNotSearchableLinks,
+  getIgnorePagesPatternList,
   parseFramework,
   getDefaultFramework,
   createSymlinks,

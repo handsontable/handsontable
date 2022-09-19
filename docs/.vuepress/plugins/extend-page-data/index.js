@@ -1,13 +1,12 @@
 const {
-  getSidebars,
-  getNormalizedPath,
-  parseFramework,
-  getThisDocsVersion,
-  getPrettyFrameworkName,
-  getDefaultFramework,
   FRAMEWORK_SUFFIX,
-  getNotSearchableLinks,
+  getDefaultFramework,
+  getDocsBase,
   getDocsRepoSHA,
+  getPrettyFrameworkName,
+  getSidebars,
+  getThisDocsVersion,
+  parseFramework,
 } = require('../../helpers');
 
 const buildMode = process.env.BUILD_MODE;
@@ -24,7 +23,6 @@ function dedupeSlashes(string) {
   return string.replace(/(\/)+/g, '$1');
 }
 
-const notSearchableLinks = getNotSearchableLinks();
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const twoDigitDay = date.getDate();
@@ -47,18 +45,14 @@ module.exports = (options, context) => {
      * @param {object} $page The $page value of the page you’re currently reading.
      */
     extendPageData($page) {
-      const normalizedPath = getNormalizedPath($page.path);
-      const currentFramework = parseFramework(normalizedPath);
+      const currentFramework = parseFramework($page.path);
 
-      $page.normalizedPath = normalizedPath;
       $page.currentVersion = getThisDocsVersion();
       $page.currentFramework = currentFramework;
-      $page.frameworkName = getPrettyFrameworkName($page.currentFramework);
+      $page.frameworkName = getPrettyFrameworkName(currentFramework);
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.buildMode = buildMode;
-      $page.isSearchable = notSearchableLinks[$page.currentFramework]?.every(
-        notSearchableLink => $page.normalizedPath.includes(notSearchableLink) === false);
 
       if ($page.currentVersion === 'next') {
         $page.docsGenStamp = `<!--
@@ -80,10 +74,11 @@ SHA: ${getDocsRepoSHA()}
         });
       }
 
-      const frameworkPath = $page.currentFramework + FRAMEWORK_SUFFIX;
+      const frameworkPath = currentFramework + FRAMEWORK_SUFFIX;
 
       if ($page.frontmatter.canonicalUrl) {
-        $page.frontmatter.canonicalUrl = dedupeSlashes(`/docs/${frameworkPath}${$page.frontmatter.canonicalUrl}/`);
+        $page.frontmatter
+          .canonicalUrl = dedupeSlashes(`${getDocsBase()}/${frameworkPath}${$page.frontmatter.canonicalUrl}/`);
       }
 
       if ($page.frontmatter.permalink) {

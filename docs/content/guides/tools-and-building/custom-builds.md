@@ -26,13 +26,13 @@ Get an overview of Handsontable's building processes.
 
 The Handsontable repository is a monorepo that contains the following projects:
 
-| Project                 | Location            | Description                                                        |
-| ----------------------- | ------------------- | ------------------------------------------------------------------ |
-| `handsontable`          | `/handsontable`     | Main Handsontable project                                          |
-| `@handsontable/react`   | `/wrappers/react`   | [React wrapper](../../react-data-grid)                             |
-| `@handsontable/angular` | `/wrappers/angular` | [Angular wrapper](../../javascript-data-grid/angular-installation) |
-| `@handsontable/vue`     | `/wrappers/vue`     | [Vue 2 wrapper](../../javascript-data-grid/vue-simple-example)     |
-| `@handsontable/vue3`    | `/wrappers/vue3`    | [Vue 3 wrapper](../../javascript-data-grid/vue3-installation)      |
+| Project                 | Location            | Description                                                                           |
+| ----------------------- | ------------------- | ------------------------------------------------------------------------------------- |
+| `handsontable`          | `/handsontable`     | Main Handsontable project                                                             |
+| `@handsontable/react`   | `/wrappers/react`   | [React wrapper](@/react/guides/getting-started/introduction.md)                       |
+| `@handsontable/angular` | `/wrappers/angular` | [Angular wrapper](@/javascript/guides/integrate-with-angular/angular-installation.md) |
+| `@handsontable/vue`     | `/wrappers/vue`     | [Vue 2 wrapper](@/javascript/guides/integrate-with-vue/vue-installation.md)           |
+| `@handsontable/vue3`    | `/wrappers/vue3`    | [Vue 3 wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation.md)         |
 
 All the projects are released together, under the same version number.
 But each project has its own [building](#building-processes) and [testing](@/guides/tools-and-building/testing.md) processes.

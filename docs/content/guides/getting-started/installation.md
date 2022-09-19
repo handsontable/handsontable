@@ -41,7 +41,7 @@ To install Handsontable locally using a package manager, run one of these comman
 ::: tip
 To install Handsontable using a framework, see:
 
- - [Installation in React](../../react-data-grid/installation)
+ - [Installation in React](@/react/guides/getting-started/installation.md)
  - [Installation in Angular](@/guides/integrate-with-angular/angular-installation.md)
  - [Installation in Vue 2](@/guides/integrate-with-vue/vue-installation.md)
  - [Installation in Vue 3](@/guides/integrate-with-vue3/vue3-installation.md)
