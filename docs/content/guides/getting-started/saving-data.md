@@ -67,6 +67,7 @@ const hot = new Handsontable(container, {
 
     fetch('{{$basePath}}/scripts/json/save.json', {
       method: 'POST',
+      mode: 'no-cors',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -93,6 +94,7 @@ save.addEventListener('click', () => {
   // save all cell's data
   fetch('{{$basePath}}/scripts/json/save.json', {
     method: 'POST',
+    mode: 'no-cors',
     headers: {
       'Content-Type': 'application/json'
     },
@@ -158,6 +160,7 @@ const ExampleComponent = () => {
       // save all cell's data
       fetch('{{$basePath}}/scripts/json/save.json', {
         method: 'POST',
+        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -191,6 +194,7 @@ const ExampleComponent = () => {
 
           fetch('{{$basePath}}/scripts/json/save.json', {
             method: 'POST',
+            mode: 'no-cors',
             headers: {
               'Content-Type': 'application/json'
             },
@@ -202,7 +206,7 @@ const ExampleComponent = () => {
             });
         }}
       />
-  
+
       <div className="controls">
         <button id="load" className="button button--primary button--blue" onClick={(...args) => loadClickCallback(...args)}>Load data</button>&nbsp;
         <button id="save" className="button button--primary button--blue" onClick={(...args) => saveClickCallback(...args)}>Save data</button>
