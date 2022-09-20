@@ -3,13 +3,29 @@
     <img :src="imageUrl"/>
     <!-- user links -->
     <nav class="nav-item" >
-      <DropdownLink :item="item"></DropdownLink>
+      <DropdownLink @item-click="onFrameworkClick" :item="item"></DropdownLink>
     </nav>
   </nav>
 </template>
 
 <script>
 import DropdownLink from '@theme/components/DropdownLink.vue';
+
+/**
+ * Sets cookie bound to the docs URL domain and path.
+ *
+ * @param {string} name Cookie name.
+ * @param {string} value Cookie value.
+ */
+function setCookie(name, value) {
+  let str = `${name}=${value}`;
+
+  str += `; Domain=${window.location.hostname}`;
+  str += '; Path=/docs';
+  str += `; Expires=${new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString()}`; // 1 year
+
+  document.cookie = str;
+}
 
 const frameworkIdToFullName = new Map([
   ['javascript', { name: 'JavaScript' }],
@@ -35,6 +51,9 @@ export default {
     };
   },
   methods: {
+    onFrameworkClick(item) {
+      setCookie('docs_fw', item.id === 'react' ? 'react' : 'javascript');
+    },
     detectLegacyFramework(path) {
       const frameworkMatch = path.match(/javascript-data-grid\/(vue3|vue|angular)?/);
 
@@ -57,6 +76,7 @@ export default {
     getFrameworkItems() {
       return Array.from(frameworkIdToFullName.entries()).map(([id, { name }]) => {
         return {
+          id,
           text: name,
           link: this.getLink(id),
           target: '_self',
