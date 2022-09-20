@@ -123,7 +123,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   const templateValues = ['one', 'two', 'three'];
   const data = [

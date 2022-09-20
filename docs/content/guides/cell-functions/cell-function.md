@@ -99,7 +99,7 @@ cellProperties.type; // "numeric"
 ::: only-for react
 ```jsx
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;

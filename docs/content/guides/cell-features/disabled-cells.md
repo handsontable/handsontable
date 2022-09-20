@@ -163,7 +163,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
@@ -348,7 +348,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;

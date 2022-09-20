@@ -54,7 +54,7 @@ If you still want to reset the states when replacing [`data`](@/api/options.md#d
 ```jsx
 import { useRef } from 'react';
 
-const hotTableComponentRef = useRef();
+const hotTableComponentRef = useRef(null);
 
 // Handsontable 12.0: this doesn't reset your configuration options and index mapper information
 hotTableComponentRef.current.hotInstance.updateSettings({

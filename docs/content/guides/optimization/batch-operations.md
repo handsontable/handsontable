@@ -283,7 +283,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
   const [counter, setCounter] = useState(0);
   const [output, setOutput] = useState('');
 
