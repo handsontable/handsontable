@@ -33,7 +33,7 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pikaday@1.8.2/pikaday.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/numbro@2.1.2/dist/numbro.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@2.3.8/dist/purify.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.js"></script>
 
 <!-- Handsontable bare files -->
 <script src="dist/handsontable.js"></script>

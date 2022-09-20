@@ -1544,16 +1544,16 @@ export default () => {
     dateFormat: 'DD/MM/YYYY',
 
     /**
-     * The `datePickerConfig` option configures the `date` [cell editor](@/guides/cell-functions/cell-editor.md)'s date picker, which uses an external dependency: [Pikaday](https://github.com/Pikaday/Pikaday/tree/1.8.0).
+     * The `datePickerConfig` option configures the `date` [cell editor](@/guides/cell-functions/cell-editor.md)'s date picker, which uses an external dependency: [Pikaday](https://github.com/Pikaday/Pikaday/tree/1.8.2).
      *
-     * You can set the `datePickerConfig` option to an object with any of the available [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration),
+     * You can set the `datePickerConfig` option to an object with any of the available [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration),
      * except for the following, which are always overwritten by the `date` [cell editor](@/guides/cell-functions/cell-editor.md):
      * - `bound`
      * - `container`
      * - `field`
      * - `trigger`
      *
-     * If the `datePickerConfig` option is not defined, the `date` [cell editor](@/guides/cell-functions/cell-editor.md) overwrites the following [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration) as well:
+     * If the `datePickerConfig` option is not defined, the `date` [cell editor](@/guides/cell-functions/cell-editor.md) overwrites the following [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration) as well:
      *
      * | Pikaday option       | Handsontable's setting |
      * | -------------------- | ---------------------- |
@@ -1564,7 +1564,7 @@ export default () => {
      * - [`editor`](#editor)
      * - [`dateFormat`](#dateFormat)
      * - [Cell editor](@/guides/cell-functions/cell-editor.md)
-     * - [All Pikaday options &#8594;](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration)
+     * - [All Pikaday options &#8594;](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration)
      *
      * @memberof Options#
      * @type {object}
