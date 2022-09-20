@@ -1,6 +1,5 @@
 <template>
     <nav class="nav-versions nav-links" >
-      <!-- user links -->
       <nav class="nav-item" >
         <DropdownLink :item="item"></DropdownLink>
       </nav>
@@ -85,10 +84,10 @@ export default {
   position relative
   top -1px
   text-transform capitalize
+  z-index 100
 
-  .dropdown-title {
+  .dropdown-title, .mobile-dropdown-title
     text-transform capitalize
-  }
 
   .icon.outbound
     display none
