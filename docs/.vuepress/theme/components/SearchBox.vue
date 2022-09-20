@@ -430,10 +430,11 @@ export default {
     input
       cursor pointer
       width 0
-      background-color transparent
+      background-color #fff
       border-color transparent
       position relative
       font-size 16px
+      z-index 200
       &:focus
         cursor text
         left 0
