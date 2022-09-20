@@ -23,7 +23,7 @@ To declare column-specific settings, pass the settings as `HotColumn` props, eit
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/dist/handsontable.full.min.css';
 
 const hotData = Handsontable.helper.createSpreadsheetData(10, 5);
 const secondColumnSettings = {
@@ -53,7 +53,7 @@ When you use object data binding for `<HotColumn/>`, you need to provide precise
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // a renderer component
 const ScoreRenderer = (props) => {
@@ -151,7 +151,7 @@ import StarRatingComponent from 'react-star-rating-component';
 import { Provider, connect } from 'react-redux';
 import { createStore, combineReducers } from 'redux';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // a component
 class UnconnectedColorPicker extends BaseEditorComponent {
