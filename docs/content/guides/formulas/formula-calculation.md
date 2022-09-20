@@ -900,13 +900,13 @@ const ExampleComponent = () => {
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <input 
-          id="named-expressions-input" 
-          type="text" 
-          defaultValue={namedExpressionValue} 
+        <input
+          id="named-expressions-input"
+          type="text"
+          defaultValue={namedExpressionValue}
           onChange={(...args) => inputChangeCallback(...args)}/>
-        <button 
-          id="named-expressions-button" 
+        <button
+          id="named-expressions-button"
           onClick={(...args) => buttonClickCallback(...args)}
         >
           Calculate price

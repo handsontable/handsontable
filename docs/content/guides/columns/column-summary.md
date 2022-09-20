@@ -116,7 +116,7 @@ const ExampleComponent = () => {
           destinationRow: 3,
           destinationColumn: 0
         },
-        { 
+        {
           sourceColumn: 1,
           type: 'min',
           destinationRow: 3,
@@ -333,7 +333,7 @@ columnSummary: [
     // set this column summary to return the sum all values in the summarized column
     type: 'sum',
   },
-  { 
+  {
     sourceColumn: 1,
     // set this column summary to return the lowest value in the summarized column
     type: 'min',
@@ -350,7 +350,7 @@ columnSummary={[
     // set this column summary to return the sum all values in the summarized column
     type: 'sum',
   },
-  { 
+  {
     sourceColumn: 1,
     // set this column summary to return the lowest value in the summarized column
     type: 'min',
@@ -767,7 +767,7 @@ const ExampleComponent = () => {
 
         if (nestedRowsPlugin.isEnabled()) {
           nestedRowsCache = this.hot.getPlugin('nestedRows').dataManager.cache;
-          
+
         } else {
           return;
         }
@@ -778,18 +778,18 @@ const ExampleComponent = () => {
           if (!nestedRowsCache.levels[0][i].__children || nestedRowsCache.levels[0][i].__children.length === 0) {
             continue;
           }
-          
+
           tempEndpoint.destinationColumn = resultColumn;
           tempEndpoint.destinationRow = getRowIndex(nestedRowsCache.levels[0][i]);
           tempEndpoint.type = 'sum';
           tempEndpoint.forceNumeric = true;
           tempEndpoint.ranges = [];
-          
+
           tempEndpoint.ranges.push([
             getRowIndex(nestedRowsCache.levels[0][i].__children[0]),
             getRowIndex(nestedRowsCache.levels[0][i].__children[nestedRowsCache.levels[0][i].__children.length - 1])
           ]);
-          
+
           endpoints.push(tempEndpoint);
           tempEndpoint = null;
         }
@@ -823,7 +823,7 @@ columnSummary: [{
   type: 'custom',
   destinationRow: 0,
   destinationColumn: 5,
-  reversedRowCoords: true 
+  reversedRowCoords: true
 }]
 ```
 :::
@@ -1207,7 +1207,7 @@ const ExampleComponent = () => {
       colHeaders={true}
       rowHeaders={true}
       columnSummary={
-        [{ 
+        [{
           type: 'sum',
           destinationRow: 0,
           destinationColumn: 0,

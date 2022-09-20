@@ -13,8 +13,8 @@ import DropdownLink from '@theme/components/DropdownLink.vue';
 
 const frameworkIdToFullName = new Map([
   ['javascript', { name: 'JavaScript' }],
-  ['angular', { name: 'Angular', homepage: '/javascript-data-grid/angular-installation/' }],
   ['react', { name: 'React' }],
+  ['angular', { name: 'Angular', homepage: '/javascript-data-grid/angular-installation/' }],
   ['vue', { name: 'Vue 2', homepage: '/javascript-data-grid/vue-installation/' }],
   ['vue3', { name: 'Vue 3', homepage: '/javascript-data-grid/vue3-installation/' }],
 ]);
