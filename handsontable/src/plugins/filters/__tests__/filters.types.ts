@@ -14,6 +14,12 @@ filters.addCondition(1, 'eq', [2], 'conjunction');
 filters.removeConditions(1);
 filters.clearConditions(1);
 filters.filter();
-filters.getSelectedColumn();
 filters.getDataMapAtColumn(1);
 filters.destroy();
+
+const selectedColumn = filters.getSelectedColumn();
+
+if (selectedColumn !== null) {
+  const selectedColumnPhysicalIndex: number = selectedColumn.physicalIndex;
+  const selectedColumnVisualIndex: number = selectedColumn.visualIndex;
+}
