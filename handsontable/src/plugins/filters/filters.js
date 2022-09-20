@@ -422,8 +422,9 @@ export class Filters extends BasePlugin {
   /**
    * Gets last selected column index.
    *
-   * @returns {{visualIndex: number | null, physicalIndex: number | null}} Return `null` when column isn't selected
-   * otherwise object containing information about selected column with keys `visualIndex` and `physicalIndex`.
+   * @returns {{visualIndex: number | null, physicalIndex: number | null}} Returns an object with `visualIndex` and
+   * `physicalIndex` properties. If no columns are selected, the properties take `null`. Otherwise, the returned object
+   * contains the visual and physical index of the column.
    */
   getSelectedColumn() {
     const highlight = this.hot.getSelectedRangeLast()?.highlight;
