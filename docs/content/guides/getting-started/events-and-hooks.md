@@ -454,7 +454,7 @@ hot.updateSettings({
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -464,7 +464,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef(null);
   let lastChange = null;
 
   useEffect(() => {

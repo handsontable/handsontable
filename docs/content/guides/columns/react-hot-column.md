@@ -144,7 +144,7 @@ In this example, the custom editor component is created with an external depende
 
 ::: example #example6 :react-advanced --tab preview
 ```jsx
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HexColorPicker } from 'react-colorful';
 import StarRatingComponent from 'react-star-rating-component';
@@ -158,7 +158,7 @@ class UnconnectedColorPicker extends BaseEditorComponent {
   constructor(props) {
     super(props);
 
-    this.editorRef = React.createRef();
+    this.editorRef = useRef(null);
 
     this.editorContainerStyle = {
       display: 'none',
