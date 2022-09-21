@@ -51,6 +51,6 @@ export declare class Filters extends BasePlugin {
   removeConditions(column: number): void;
   clearConditions(column?: number): void;
   filter(): void;
-  getSelectedColumn(): number;
+  getSelectedColumn(): { physicalIndex: number, visualIndex: number } | null;
   getDataMapAtColumn(column?: number): CellLikeData[];
 }
