@@ -16,7 +16,7 @@ By default, Handsontable treats all cell values as `string` type. This is becaus
 ## Usage
 
 ::: tip
-Ensure your numeric cell values are stored numbers and not strings in the data source, as Handsontable doesn't parse strings to numbers.
+Ensure your numeric cell values are stored as numbers and not strings in the data source, as Handsontable doesn't parse strings to numbers.
 :::
 
 To use the `numeric` cell type, set the [`type`](@/api/options.md#type) option to `'numeric'`:
