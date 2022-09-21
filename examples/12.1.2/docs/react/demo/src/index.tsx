@@ -54,13 +54,13 @@ const App = () => {
       <HotColumn data="sellDate" type="date" allowInvalid={false} />
       <HotColumn data="inStock" type="checkbox" className="htCenter" />
       <HotColumn data="quantity" type="numeric" />
-      <HotColumn data="progress" readOnly={true} className="htMiddle">
+      <HotColumn data="progress" className="htMiddle" type="numeric">
         {/* @ts-ignore Element inherits some props. It's hard to type it. */}
-        <ProgressBarRenderer hot-renderer />
+        <ProgressBarRenderer hot-renderer hot-editor />
       </HotColumn>
-      <HotColumn data="rating" readOnly={true} className="htCenter">
+      <HotColumn data="rating" className="htCenter" type="numeric">
         {/* @ts-ignore Element inherits some props. It's hard to type it. */}
-        <StarsRenderer hot-renderer />
+        <StarsRenderer hot-renderer hot-editor />
       </HotColumn>
       <HotColumn data="orderId" />
       <HotColumn data="country" />

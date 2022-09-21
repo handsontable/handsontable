@@ -7,7 +7,7 @@ export const data = [{
   orderId: "01-2331942",
   inStock: true,
   quantity: "172",
-  progress: 2,
+  progress: 20,
   rating: 2
 }, {
   0: true,
@@ -18,7 +18,7 @@ export const data = [{
   orderId: "88-2768633",
   inStock: true,
   quantity: "188",
-  progress: 6,
+  progress: 60,
   rating: 2
 }, {
   0: true,
@@ -29,7 +29,7 @@ export const data = [{
   orderId: "51-6775945",
   inStock: true,
   quantity: "162",
-  progress: 1,
+  progress: 10,
   rating: 3
 }, {
   0: false,
@@ -40,7 +40,7 @@ export const data = [{
   orderId: "44-4028109",
   inStock: true,
   quantity: "133",
-  progress: 7,
+  progress: 70,
   rating: 1
 }, {
   0: true,
@@ -51,7 +51,7 @@ export const data = [{
   orderId: "08-2758492",
   inStock: true,
   quantity: "87",
-  progress: 1,
+  progress: 10,
   rating: 3
 }, {
   0: false,
@@ -62,7 +62,7 @@ export const data = [{
   orderId: "84-3557705",
   inStock: false,
   quantity: "26",
-  progress: 8,
+  progress: 80,
   rating: 1
 }, {
   0: false,
@@ -73,7 +73,7 @@ export const data = [{
   orderId: "20-9397637",
   inStock: false,
   quantity: "110",
-  progress: 4,
+  progress: 40,
   rating: 1
 }, {
   0: false,
@@ -84,7 +84,7 @@ export const data = [{
   orderId: "36-0079556",
   inStock: true,
   quantity: "50",
-  progress: 4,
+  progress: 40,
   rating: 4
 }, {
   0: false,
@@ -95,7 +95,7 @@ export const data = [{
   orderId: "41-1489542",
   inStock: false,
   quantity: "160",
-  progress: 6,
+  progress: 60,
   rating: 1
 }, {
   0: false,
@@ -106,7 +106,7 @@ export const data = [{
   orderId: "37-1531629",
   inStock: true,
   quantity: "30",
-  progress: 8,
+  progress: 80,
   rating: 5
 }, {
   0: false,
@@ -117,7 +117,7 @@ export const data = [{
   orderId: "25-5083429",
   inStock: true,
   quantity: "39",
-  progress: 7,
+  progress: 70,
   rating: 2
 }, {
   0: false,
@@ -128,7 +128,7 @@ export const data = [{
   orderId: "04-4281278",
   inStock: false,
   quantity: "96",
-  progress: 6,
+  progress: 60,
   rating: 1
 }, {
   0: false,
@@ -139,7 +139,7 @@ export const data = [{
   orderId: "55-1711908",
   inStock: true,
   quantity: "108",
-  progress: 10,
+  progress: 100,
   rating: 3
 }, {
   0: false,
@@ -150,7 +150,7 @@ export const data = [{
   orderId: "58-8360815",
   inStock: false,
   quantity: "46",
-  progress: 1,
+  progress: 10,
   rating: 1
 }, {
   0: false,
@@ -161,7 +161,7 @@ export const data = [{
   orderId: "10-3786104",
   inStock: true,
   quantity: "97",
-  progress: 8,
+  progress: 80,
   rating: 3
 }, {
   0: false,
@@ -172,7 +172,7 @@ export const data = [{
   orderId: "45-1186054",
   inStock: true,
   quantity: "161",
-  progress: 1,
+  progress: 10,
   rating: 4
 }, {
   0: false,
@@ -183,7 +183,7 @@ export const data = [{
   orderId: "62-6202742",
   inStock: true,
   quantity: "58",
-  progress: 4,
+  progress: 40,
   rating: 3
 }, {
   0: false,
@@ -194,7 +194,7 @@ export const data = [{
   orderId: "88-9646223",
   inStock: true,
   quantity: "92",
-  progress: 8,
+  progress: 80,
   rating: 3
 }, {
   0: false,
@@ -205,7 +205,7 @@ export const data = [{
   orderId: "45-5588112",
   inStock: true,
   quantity: "5",
-  progress: 6,
+  progress: 60,
   rating: 5
 }, {
   0: false,
@@ -216,7 +216,7 @@ export const data = [{
   orderId: "66-6271819",
   inStock: true,
   quantity: "158",
-  progress: 4,
+  progress: 40,
   rating: 1
 }, {
   0: false,
@@ -227,7 +227,7 @@ export const data = [{
   orderId: "38-9245023",
   inStock: false,
   quantity: "121",
-  progress: 5,
+  progress: 50,
   rating: 4
 }, {
   0: false,
@@ -238,7 +238,7 @@ export const data = [{
   orderId: "44-5916927",
   inStock: false,
   quantity: "61",
-  progress: 5,
+  progress: 50,
   rating: 4
 }, {
   0: false,
@@ -249,7 +249,7 @@ export const data = [{
   orderId: "31-5449914",
   inStock: true,
   quantity: "155",
-  progress: 2,
+  progress: 20,
   rating: 2
 }, {
   0: false,
@@ -260,7 +260,7 @@ export const data = [{
   orderId: "19-9413869",
   inStock: true,
   quantity: "162",
-  progress: 2,
+  progress: 20,
   rating: 4
 }, {
   0: false,
@@ -271,7 +271,7 @@ export const data = [{
   orderId: "25-9807605",
   inStock: false,
   quantity: "46",
-  progress: 7,
+  progress: 70,
   rating: 1
 }, {
   0: false,
@@ -282,7 +282,7 @@ export const data = [{
   orderId: "74-4291983",
   inStock: true,
   quantity: "47",
-  progress: 4,
+  progress: 40,
   rating: 4
 }, {
   0: false,
@@ -293,7 +293,7 @@ export const data = [{
   orderId: "83-0980643",
   inStock: true,
   quantity: "104",
-  progress: 2,
+  progress: 20,
   rating: 3
 }, {
   0: false,
@@ -304,7 +304,7 @@ export const data = [{
   orderId: "19-2878430",
   inStock: true,
   quantity: "101",
-  progress: 6,
+  progress: 60,
   rating: 4
 }, {
   0: false,
@@ -315,7 +315,7 @@ export const data = [{
   orderId: "19-1838230",
   inStock: true,
   quantity: "150",
-  progress: 10,
+  progress: 100,
   rating: 3
 }, {
   0: false,
@@ -326,7 +326,7 @@ export const data = [{
   orderId: "32-2267938",
   inStock: true,
   quantity: "42",
-  progress: 4,
+  progress: 40,
   rating: 2
 }, {
   0: false,
@@ -337,7 +337,7 @@ export const data = [{
   orderId: "79-2821972",
   inStock: true,
   quantity: "144",
-  progress: 9,
+  progress: 90,
   rating: 3
 }, {
   0: false,
@@ -348,7 +348,7 @@ export const data = [{
   orderId: "46-6597557",
   inStock: true,
   quantity: "195",
-  progress: 4,
+  progress: 40,
   rating: 1
 }, {
   0: false,
@@ -359,7 +359,7 @@ export const data = [{
   orderId: "15-1793960",
   inStock: true,
   quantity: "199",
-  progress: 4,
+  progress: 40,
   rating: 4
 }, {
   0: false,
@@ -370,7 +370,7 @@ export const data = [{
   orderId: "86-0811003",
   inStock: true,
   quantity: "110",
-  progress: 4,
+  progress: 40,
   rating: 5
 }, {
   0: false,
@@ -381,7 +381,7 @@ export const data = [{
   orderId: "95-3068680",
   inStock: true,
   quantity: "51",
-  progress: 4,
+  progress: 40,
   rating: 4
 }, {
   0: false,
@@ -392,7 +392,7 @@ export const data = [{
   orderId: "35-3085360",
   inStock: false,
   quantity: "69",
-  progress: 2,
+  progress: 20,
   rating: 5
 }, {
   0: false,
@@ -403,7 +403,7 @@ export const data = [{
   orderId: "56-8673088",
   inStock: false,
   quantity: "53",
-  progress: 2,
+  progress: 20,
   rating: 3
 }, {
   0: false,
@@ -414,7 +414,7 @@ export const data = [{
   orderId: "76-0085918",
   inStock: true,
   quantity: "168",
-  progress: 1,
+  progress: 10,
   rating: 1
 }, {
   0: false,
@@ -425,7 +425,7 @@ export const data = [{
   orderId: "03-0893276",
   inStock: false,
   quantity: "58",
-  progress: 1,
+  progress: 10,
   rating: 4
 }, {
   0: false,
@@ -436,7 +436,7 @@ export const data = [{
   orderId: "79-9013306",
   inStock: true,
   quantity: "152",
-  progress: 9,
+  progress: 90,
   rating: 3
 }, {
   0: false,
@@ -447,7 +447,7 @@ export const data = [{
   orderId: "55-7799920",
   inStock: true,
   quantity: "66",
-  progress: 4,
+  progress: 40,
   rating: 2
 }, {
   0: false,
@@ -458,7 +458,7 @@ export const data = [{
   orderId: "07-0881122",
   inStock: false,
   quantity: "112",
-  progress: 9,
+  progress: 90,
   rating: 2
 }, {
   0: false,
@@ -469,7 +469,7 @@ export const data = [{
   orderId: "58-6157387",
   inStock: true,
   quantity: "50",
-  progress: 10,
+  progress: 100,
   rating: 4
 }, {
   0: false,
@@ -480,7 +480,7 @@ export const data = [{
   orderId: "12-2810010",
   inStock: false,
   quantity: "31",
-  progress: 3,
+  progress: 30,
   rating: 5
 }, {
   0: false,
@@ -491,7 +491,7 @@ export const data = [{
   orderId: "64-9249984",
   inStock: true,
   quantity: "132",
-  progress: 5,
+  progress: 50,
   rating: 5
 }, {
   0: false,
@@ -502,7 +502,7 @@ export const data = [{
   orderId: "45-0739652",
   inStock: true,
   quantity: "45",
-  progress: 1,
+  progress: 10,
   rating: 5
 }, {
   0: false,
@@ -513,7 +513,7 @@ export const data = [{
   orderId: "09-5712761",
   inStock: true,
   quantity: "197",
-  progress: 4,
+  progress: 40,
   rating: 2
 }, {
   0: false,
@@ -524,7 +524,7 @@ export const data = [{
   orderId: "01-7345008",
   inStock: true,
   quantity: "190",
-  progress: 4,
+  progress: 40,
   rating: 3
 }, {
   0: false,
@@ -535,7 +535,7 @@ export const data = [{
   orderId: "62-1065350",
   inStock: true,
   quantity: "184",
-  progress: 3,
+  progress: 30,
   rating: 4
 }, {
   0: false,
@@ -546,7 +546,7 @@ export const data = [{
   orderId: "44-7241323",
   inStock: true,
   quantity: "169",
-  progress: 3,
+  progress: 30,
   rating: 4
 }, {
   0: false,
@@ -557,7 +557,7 @@ export const data = [{
   orderId: "52-0295699",
   inStock: false,
   quantity: "152",
-  progress: 4,
+  progress: 40,
   rating: 4
 }, {
   0: false,
@@ -568,7 +568,7 @@ export const data = [{
   orderId: "52-2650922",
   inStock: false,
   quantity: "182",
-  progress: 6,
+  progress: 60,
   rating: 4
 }, {
   0: false,
@@ -579,7 +579,7 @@ export const data = [{
   orderId: "48-3618525",
   inStock: true,
   quantity: "141",
-  progress: 6,
+  progress: 60,
   rating: 1
 }, {
   0: false,
@@ -590,7 +590,7 @@ export const data = [{
   orderId: "51-8893923",
   inStock: true,
   quantity: "169",
-  progress: 7,
+  progress: 70,
   rating: 1
 }, {
   0: false,
@@ -601,7 +601,7 @@ export const data = [{
   orderId: "68-5911361",
   inStock: false,
   quantity: "39",
-  progress: 7,
+  progress: 70,
   rating: 1
 }, {
   0: false,
@@ -612,7 +612,7 @@ export const data = [{
   orderId: "41-5880042",
   inStock: true,
   quantity: "71",
-  progress: 8,
+  progress: 80,
   rating: 3
 }, {
   0: false,
@@ -623,7 +623,7 @@ export const data = [{
   orderId: "90-5913983",
   inStock: true,
   quantity: "148",
-  progress: 10,
+  progress: 100,
   rating: 3
 }, {
   0: false,
@@ -634,7 +634,7 @@ export const data = [{
   orderId: "92-0960699",
   inStock: true,
   quantity: "116",
-  progress: 8,
+  progress: 80,
   rating: 1
 }, {
   0: false,
@@ -645,7 +645,7 @@ export const data = [{
   orderId: "06-9493898",
   inStock: true,
   quantity: "96",
-  progress: 10,
+  progress: 100,
   rating: 1
 }, {
   0: false,
@@ -656,7 +656,7 @@ export const data = [{
   orderId: "69-5878565",
   inStock: true,
   quantity: "35",
-  progress: 4,
+  progress: 40,
   rating: 2
 }, {
   0: false,
@@ -667,7 +667,7 @@ export const data = [{
   orderId: "13-1133017",
   inStock: true,
   quantity: "16",
-  progress: 8,
+  progress: 80,
   rating: 2
 }, {
   0: false,
@@ -678,7 +678,7 @@ export const data = [{
   orderId: "39-6530433",
   inStock: true,
   quantity: "194",
-  progress: 2,
+  progress: 20,
   rating: 5
 }, {
   0: false,
@@ -689,7 +689,7 @@ export const data = [{
   orderId: "96-6860388",
   inStock: true,
   quantity: "24",
-  progress: 1,
+  progress: 10,
   rating: 3
 }, {
   0: false,
@@ -700,7 +700,7 @@ export const data = [{
   orderId: "30-0356137",
   inStock: true,
   quantity: "170",
-  progress: 4,
+  progress: 40,
   rating: 4
 }, {
   0: false,
@@ -711,7 +711,7 @@ export const data = [{
   orderId: "93-9058255",
   inStock: true,
   quantity: "184",
-  progress: 9,
+  progress: 90,
   rating: 5
 }, {
   0: false,
@@ -722,7 +722,7 @@ export const data = [{
   orderId: "82-9268909",
   inStock: false,
   quantity: "153",
-  progress: 10,
+  progress: 100,
   rating: 4
 }, {
   0: false,
@@ -733,7 +733,7 @@ export const data = [{
   orderId: "20-6913815",
   inStock: false,
   quantity: "88",
-  progress: 10,
+  progress: 100,
   rating: 1
 }, {
   0: false,
@@ -744,7 +744,7 @@ export const data = [{
   orderId: "08-8238817",
   inStock: true,
   quantity: "57",
-  progress: 9,
+  progress: 90,
   rating: 2
 }, {
   0: false,
@@ -755,7 +755,7 @@ export const data = [{
   orderId: "44-7370350",
   inStock: false,
   quantity: "62",
-  progress: 4,
+  progress: 40,
   rating: 1
 }, {
   0: false,
@@ -766,7 +766,7 @@ export const data = [{
   orderId: "01-3525949",
   inStock: true,
   quantity: "123",
-  progress: 2,
+  progress: 20,
   rating: 4
 }, {
   0: false,
@@ -777,7 +777,7 @@ export const data = [{
   orderId: "04-2414623",
   inStock: true,
   quantity: "77",
-  progress: 10,
+  progress: 100,
   rating: 5
 }, {
   0: false,
@@ -788,7 +788,7 @@ export const data = [{
   orderId: "15-1917509",
   inStock: false,
   quantity: "199",
-  progress: 9,
+  progress: 90,
   rating: 4
 }, {
   0: false,
@@ -799,7 +799,7 @@ export const data = [{
   orderId: "06-2526845",
   inStock: true,
   quantity: "149",
-  progress: 8,
+  progress: 80,
   rating: 2
 }, {
   0: false,
@@ -810,7 +810,7 @@ export const data = [{
   orderId: "83-1713558",
   inStock: false,
   quantity: "191",
-  progress: 9,
+  progress: 90,
   rating: 5
 }, {
   0: false,
@@ -821,7 +821,7 @@ export const data = [{
   orderId: "00-8892524",
   inStock: true,
   quantity: "150",
-  progress: 10,
+  progress: 100,
   rating: 2
 }, {
   0: false,
@@ -832,7 +832,7 @@ export const data = [{
   orderId: "39-5538991",
   inStock: true,
   quantity: "130",
-  progress: 7,
+  progress: 70,
   rating: 3
 }, {
   0: false,
@@ -843,7 +843,7 @@ export const data = [{
   orderId: "06-9002973",
   inStock: true,
   quantity: "179",
-  progress: 1,
+  progress: 10,
   rating: 2
 }, {
   0: false,
@@ -854,7 +854,7 @@ export const data = [{
   orderId: "73-6104901",
   inStock: true,
   quantity: "98",
-  progress: 5,
+  progress: 50,
   rating: 3
 }, {
   0: false,
@@ -865,7 +865,7 @@ export const data = [{
   orderId: "68-7384479",
   inStock: true,
   quantity: "175",
-  progress: 2,
+  progress: 20,
   rating: 3
 }, {
   0: false,
@@ -876,7 +876,7 @@ export const data = [{
   orderId: "26-7757763",
   inStock: true,
   quantity: "11",
-  progress: 1,
+  progress: 10,
   rating: 3
 }, {
   0: false,
@@ -887,7 +887,7 @@ export const data = [{
   orderId: "07-4873562",
   inStock: false,
   quantity: "184",
-  progress: 7,
+  progress: 70,
   rating: 4
 }, {
   0: false,
@@ -898,7 +898,7 @@ export const data = [{
   orderId: "46-5819554",
   inStock: false,
   quantity: "27",
-  progress: 9,
+  progress: 90,
   rating: 3
 }, {
   0: false,
@@ -909,7 +909,7 @@ export const data = [{
   orderId: "01-2666826",
   inStock: true,
   quantity: "186",
-  progress: 3,
+  progress: 30,
   rating: 2
 }, {
   0: false,
@@ -920,7 +920,7 @@ export const data = [{
   orderId: "54-7090503",
   inStock: true,
   quantity: "20",
-  progress: 3,
+  progress: 30,
   rating: 3
 }, {
   0: false,
@@ -931,7 +931,7 @@ export const data = [{
   orderId: "78-7658520",
   inStock: false,
   quantity: "153",
-  progress: 2,
+  progress: 20,
   rating: 1
 }, {
   0: false,
@@ -942,7 +942,7 @@ export const data = [{
   orderId: "23-9926318",
   inStock: true,
   quantity: "161",
-  progress: 8,
+  progress: 80,
   rating: 5
 }, {
   0: false,
@@ -953,7 +953,7 @@ export const data = [{
   orderId: "20-0179517",
   inStock: true,
   quantity: "98",
-  progress: 10,
+  progress: 100,
   rating: 5
 }, {
   0: false,
@@ -964,7 +964,7 @@ export const data = [{
   orderId: "02-9543343",
   inStock: true,
   quantity: "30",
-  progress: 7,
+  progress: 70,
   rating: 3
 }, {
   0: false,
@@ -975,7 +975,7 @@ export const data = [{
   orderId: "98-3938169",
   inStock: true,
   quantity: "73",
-  progress: 10,
+  progress: 100,
   rating: 2
 }, {
   0: false,
@@ -986,7 +986,7 @@ export const data = [{
   orderId: "68-5197934",
   inStock: true,
   quantity: "158",
-  progress: 9,
+  progress: 90,
   rating: 1
 }, {
   0: false,
@@ -997,7 +997,7 @@ export const data = [{
   orderId: "39-8260460",
   inStock: true,
   quantity: "122",
-  progress: 5,
+  progress: 50,
   rating: 2
 }, {
   0: false,
@@ -1008,7 +1008,7 @@ export const data = [{
   orderId: "45-9776170",
   inStock: true,
   quantity: "33",
-  progress: 2,
+  progress: 20,
   rating: 4
 }, {
   0: false,
@@ -1019,7 +1019,7 @@ export const data = [{
   orderId: "45-0858451",
   inStock: true,
   quantity: "107",
-  progress: 6,
+  progress: 60,
   rating: 2
 }, {
   0: false,
@@ -1030,7 +1030,7 @@ export const data = [{
   orderId: "15-4247305",
   inStock: true,
   quantity: "15",
-  progress: 1,
+  progress: 10,
   rating: 2
 }, {
   0: false,
@@ -1041,7 +1041,7 @@ export const data = [{
   orderId: "15-8534931",
   inStock: true,
   quantity: "168",
-  progress: 5,
+  progress: 50,
   rating: 2
 }, {
   0: false,
@@ -1052,7 +1052,7 @@ export const data = [{
   orderId: "23-1251557",
   inStock: true,
   quantity: "135",
-  progress: 4,
+  progress: 40,
   rating: 2
 }, {
   0: false,
@@ -1063,7 +1063,7 @@ export const data = [{
   orderId: "86-5920601",
   inStock: true,
   quantity: "11",
-  progress: 1,
+  progress: 10,
   rating: 4
 }, {
   0: false,
@@ -1074,7 +1074,7 @@ export const data = [{
   orderId: "48-1055459",
   inStock: true,
   quantity: "41",
-  progress: 6,
+  progress: 60,
   rating: 4
 }, {
   0: false,
@@ -1085,7 +1085,7 @@ export const data = [{
   orderId: "12-7842022",
   inStock: true,
   quantity: "144",
-  progress: 6,
+  progress: 60,
   rating: 1
 }, {
   0: false,
@@ -1096,7 +1096,7 @@ export const data = [{
   orderId: "94-5088099",
   inStock: true,
   quantity: "106",
-  progress: 1,
+  progress: 10,
   rating: 4
 }];
 

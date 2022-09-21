@@ -3,6 +3,7 @@ import {
   SELECTED_CLASS,
   ODD_ROW_CLASS
 } from "./constants";
+import { RefObject } from "react";
 
 const headerAlignments = new Map([
   ["9", "htCenter"],
@@ -111,3 +112,42 @@ export const changeCheckboxCell: ChangeCheckboxCell = function changeCheckboxCel
     this.setDataAtRowProp(coords.row, "0", !target.checked);
   }
 };
+
+export type EditorInstance = {
+  getEditedCellRect: (...args: any[]) => any;
+  editorRef: RefObject<HTMLDivElement>;
+  hotInstance: Handsontable;
+};
+
+type PositionVertically = (editorInstance: EditorInstance) => void;
+
+export const positionVertically: PositionVertically = function positionVertically(editorInstance) {
+  const editedCellRect = editorInstance.getEditedCellRect();
+  if (editedCellRect) {
+    if (editedCellRect.maxHeight < editedCellRect.height) {
+      editorInstance.editorRef.current!.style.top = 9 + 'px';
+      return;
+    }
+    if (editedCellRect.top > 0) {
+      editorInstance.editorRef.current!.style.top = editedCellRect.top + window.pageYOffset + 9 + 'px';
+      return;
+    }
+  }
+}
+
+type PositionHorizontally = (editorInstance: EditorInstance) => void;
+
+export const positionHorizontally: PositionHorizontally = function positionHorizontally(editorInstance) {
+  const editedCellRect = editorInstance.getEditedCellRect();
+  if (editedCellRect) {
+      if (editedCellRect.start < 1) {
+        editorInstance.editorRef.current!.style.display = 'none';
+        return;
+      }
+      if (editedCellRect.start > 1 && editorInstance.editorRef.current!.style.display === 'none') {
+        editorInstance.editorRef.current!.style.display = 'block';
+        return;
+      }
+      editorInstance.editorRef.current!.style.left = editedCellRect.start + window.pageYOffset + 9 + 'px';
+    }
+}
