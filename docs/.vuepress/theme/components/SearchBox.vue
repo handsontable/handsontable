@@ -434,7 +434,6 @@ export default {
       border-color transparent
       position relative
       font-size 16px
-      z-index 200
       &:focus
         cursor text
         left 0
