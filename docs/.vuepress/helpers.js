@@ -258,8 +258,8 @@ function getDocsHostname(allowLocalhost = true) {
 }
 
 module.exports = {
-  MULTI_FRAMEWORKED_CONTENT_DIR,
   FRAMEWORK_SUFFIX,
+  MULTI_FRAMEWORKED_CONTENT_DIR,
   getNormalizedPath,
   getFrameworks,
   getPrettyFrameworkName,

@@ -149,5 +149,8 @@ $navbar-horizontal-padding = 1.5rem
 @media (max-width: $MQNarrow)
   .navbar .nav-frameworks
     display none
+@media (max-width: $MQMobileNarrow)
+  .navbar .nav-versions
+    display none
 
 </style>

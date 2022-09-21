@@ -177,7 +177,7 @@ Import Handsontable's CSS into your application.
 If your bundler allows it, you can import Handsontable's full distribution CSS file, using an `import` statement.
 
 ```js
-import 'handsontable/dist/handsontable.full.css';
+import 'handsontable/dist/handsontable.full.min.css';
 ```
 
 ### Using the `link` tag
@@ -266,7 +266,7 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 Import Handsontable's CSS into your application.
 
 ```jsx
-import 'handsontable/dist/handsontable.full.css';
+import 'handsontable/dist/handsontable.full.min.css';
 ```
 
 ## Basic example
@@ -274,9 +274,9 @@ import 'handsontable/dist/handsontable.full.css';
 
 ```jsx
 import ReactDOM from 'react-dom';
-import 'handsontable/dist/handsontable.full.css';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

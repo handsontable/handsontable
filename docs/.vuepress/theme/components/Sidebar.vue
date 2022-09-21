@@ -1,5 +1,8 @@
 <template>
   <aside class="sidebar">
+    <div class="version-switcher-item">
+      Version: <VersionsDropdown class="sidebar-mode"/>
+    </div>
     <div class="framework-switcher-item">
       Framework: <FrameworksDropdown class="sidebar-mode"/>
     </div>
@@ -22,11 +25,18 @@ import SidebarLinks from '@theme/components/SidebarLinks.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
+import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
 
 export default {
   name: 'Sidebar',
 
-  components: { SidebarLinks, NavLinks, ThemeSwitcher, FrameworksDropdown },
+  components: {
+    SidebarLinks,
+    NavLinks,
+    ThemeSwitcher,
+    FrameworksDropdown,
+    VersionsDropdown,
+  },
 
   props: ['items']
 };
@@ -45,6 +55,29 @@ export default {
       display none
     }
 }
+
+.version-switcher-item
+  width 235px
+  position relative
+  display inline-block
+  margin-left 1.5rem
+  line-height 2rem
+  font-weight 600
+  margin-top 10px
+
+  .nav-versions
+    float right
+    margin-left 0
+
+    .nav-dropdown
+      left unset
+
+      @media (max-width: $MQMobile) {
+        right -35px
+      }
+
+  @media (min-width: $MQMobileNarrow)
+    display none
 
 .framework-switcher-item
   width 235px
@@ -133,16 +166,5 @@ export default {
 
 .sidebar > .sidebar-links > li:not(:first-child)
   margin-top 0
-
-@media (max-width: $MQMobile)
-  .sidebar
-    .nav-links
-      .mobile-dropdown-title
-        font-size 15px
-      display block
-      .dropdown-wrapper .nav-dropdown .dropdown-item a.router-link-active::after
-        top calc(1rem - 2px)
-    & > .sidebar-links
-      padding 1rem 0
 
 </style>

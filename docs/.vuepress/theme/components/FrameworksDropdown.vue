@@ -3,7 +3,7 @@
     <img :src="imageUrl"/>
     <!-- user links -->
     <nav class="nav-item" >
-      <DropdownLink :item="item"></DropdownLink>
+      <DropdownLink @item-click="onFrameworkClick" :item="item"></DropdownLink>
     </nav>
   </nav>
 </template>
@@ -11,10 +11,26 @@
 <script>
 import DropdownLink from '@theme/components/DropdownLink.vue';
 
+/**
+ * Sets cookie bound to the docs URL domain and path.
+ *
+ * @param {string} name Cookie name.
+ * @param {string} value Cookie value.
+ */
+function setCookie(name, value) {
+  let str = `${name}=${value}`;
+
+  str += `; Domain=${window.location.hostname}`;
+  str += '; Path=/docs';
+  str += `; Expires=${new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString()}`; // 1 year
+
+  document.cookie = str;
+}
+
 const frameworkIdToFullName = new Map([
   ['javascript', { name: 'JavaScript' }],
-  ['angular', { name: 'Angular', homepage: '/javascript-data-grid/angular-installation/' }],
   ['react', { name: 'React' }],
+  ['angular', { name: 'Angular', homepage: '/javascript-data-grid/angular-installation/' }],
   ['vue', { name: 'Vue 2', homepage: '/javascript-data-grid/vue-installation/' }],
   ['vue3', { name: 'Vue 3', homepage: '/javascript-data-grid/vue3-installation/' }],
 ]);
@@ -35,6 +51,9 @@ export default {
     };
   },
   methods: {
+    onFrameworkClick(item) {
+      setCookie('docs_fw', item.id === 'react' ? 'react' : 'javascript');
+    },
     detectLegacyFramework(path) {
       const frameworkMatch = path.match(/javascript-data-grid\/(vue3|vue|angular)?/);
 
@@ -57,6 +76,7 @@ export default {
     getFrameworkItems() {
       return Array.from(frameworkIdToFullName.entries()).map(([id, { name }]) => {
         return {
+          id,
           text: name,
           link: this.getLink(id),
           target: '_self',
@@ -103,9 +123,6 @@ export default {
     text-transform capitalize
   }
 
-  .nav-dropdown
-    z-index 100
-
   .icon.outbound
     display none
 
@@ -129,6 +146,7 @@ export default {
     border-radius 0.25rem
     white-space nowrap
     margin 0
+    z-index 100
 .dropdown-wrapper .dropdown-title .arrow, .dropdown-wrapper .mobile-dropdown-title .arrow
   margin-left 0.1rem
 

@@ -1,6 +1,5 @@
 <template>
     <nav class="nav-versions nav-links" >
-      <!-- user links -->
       <nav class="nav-item" >
         <DropdownLink :item="item"></DropdownLink>
       </nav>
@@ -86,9 +85,8 @@ export default {
   top -1px
   text-transform capitalize
 
-  .dropdown-title {
+  .dropdown-title, .mobile-dropdown-title
     text-transform capitalize
-  }
 
   .icon.outbound
     display none
@@ -113,6 +111,7 @@ export default {
     border-radius 0.25rem
     white-space nowrap
     margin 0
+    z-index 100
 .dropdown-wrapper .dropdown-title .arrow, .dropdown-wrapper .mobile-dropdown-title .arrow
   margin-left 0.1rem
 

@@ -170,6 +170,7 @@ import { HyperFormula } from 'hyperformula';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -367,6 +368,7 @@ import { HyperFormula } from 'hyperformula';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -852,6 +854,7 @@ import { HyperFormula } from 'hyperformula';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -900,13 +903,13 @@ const ExampleComponent = () => {
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <input 
-          id="named-expressions-input" 
-          type="text" 
-          defaultValue={namedExpressionValue} 
+        <input
+          id="named-expressions-input"
+          type="text"
+          defaultValue={namedExpressionValue}
           onChange={(...args) => inputChangeCallback(...args)}/>
-        <button 
-          id="named-expressions-button" 
+        <button
+          id="named-expressions-button"
           onClick={(...args) => buttonClickCallback(...args)}
         >
           Calculate price

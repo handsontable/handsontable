@@ -67,6 +67,7 @@ const hot = new Handsontable(container, {
 
     fetch('{{$basePath}}/scripts/json/save.json', {
       method: 'POST',
+      mode: 'no-cors',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -93,6 +94,7 @@ save.addEventListener('click', () => {
   // save all cell's data
   fetch('{{$basePath}}/scripts/json/save.json', {
     method: 'POST',
+    mode: 'no-cors',
     headers: {
       'Content-Type': 'application/json'
     },
@@ -118,23 +120,26 @@ autosave.addEventListener('click', () => {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef();
   const [output, setOutput] = useState('Click "Load" to load data from server');
+  const [isAutosave, setIsAutosave] = useState(false);
 
-  let autosaveNotification;
   let loadClickCallback;
   let saveClickCallback;
-  const autosaveClickCallback = () => {
-    if (autosave.checked) {
+  
+  const autosaveClickCallback = (event) => {
+    setIsAutosave(event.target.checked);
+    if (event.target.checked) {
       setOutput('Changes will be autosaved');
     } else {
       setOutput('Changes will not be autosaved');
@@ -158,6 +163,7 @@ const ExampleComponent = () => {
       // save all cell's data
       fetch('{{$basePath}}/scripts/json/save.json', {
         method: 'POST',
+        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -185,12 +191,13 @@ const ExampleComponent = () => {
             return; //don't save this change
           }
 
-          if (!autosave.checked) {
+          if (!isAutosave) {
             return;
           }
 
           fetch('{{$basePath}}/scripts/json/save.json', {
             method: 'POST',
+            mode: 'no-cors',
             headers: {
               'Content-Type': 'application/json'
             },
@@ -202,12 +209,12 @@ const ExampleComponent = () => {
             });
         }}
       />
-  
+
       <div className="controls">
         <button id="load" className="button button--primary button--blue" onClick={(...args) => loadClickCallback(...args)}>Load data</button>&nbsp;
         <button id="save" className="button button--primary button--blue" onClick={(...args) => saveClickCallback(...args)}>Save data</button>
         <label>
-          <input type="checkbox" name="autosave" id="autosave" onClick={(...args) => autosaveClickCallback(...args)}/>
+          <input type="checkbox" name="autosave" id="autosave" checked={isAutosave} onClick={(...args) => autosaveClickCallback(...args)}/>
           Autosave
         </label>
       </div>
