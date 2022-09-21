@@ -181,6 +181,7 @@ new Handsontable(container, {
 ::: only-for react
 ```jsx
 import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/react';
 import {
   registerCellType,
   NumericCellType,
@@ -239,6 +240,7 @@ new Handsontable(container, {
 ::: only-for react
 ```jsx
 import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/react';
 import {
   registerRenderer,
   numericRenderer,
