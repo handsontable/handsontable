@@ -8,21 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
-## [12.1.3] - 2022-09-19
+## [12.1.3] - 2022-09-22
 
-### Removed
-- Removed merge sort in favoir of build-in sort algorithm [#6091](https://github.com/handsontable/handsontable/issues/6091)
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-1-3)
+- [Blog post](https://handsontable.com/blog/)
 
 ### Fixed
-- Fixed an issue with "0" values being unrecognized by the Column Summary plugin. [#6385](https://github.com/handsontable/handsontable/issues/6385)
-- Fixed an issue where the `trimWhitespace` option can no be used in the columns and cells meta option layers. [#7387](https://github.com/handsontable/handsontable/issues/7387)
-- Adding a large number of rows won't break the table [#7840](https://github.com/handsontable/handsontable/issues/7840)
-- Fixed selection flickering of the edge of the table. [#8317](https://github.com/handsontable/handsontable/issues/8317)
-- Fixed an issue where the cell editor did not open when the cell was rendered outside the table's viewport. [#9022](https://github.com/handsontable/handsontable/issues/9022)
-- Fixed an issue where dropdown menu with enabled Filters plugin throws an error after open. [#9561](https://github.com/handsontable/handsontable/issues/9561)
-- Fix an issue that breaks the IME. [#9586](https://github.com/handsontable/handsontable/issues/9586)
-- Fixed cells desynchronization that could happen on mobile devices when the edge cells are selected. [#9621](https://github.com/handsontable/handsontable/issues/9621)
-- Fixed incorrect date format conversion on input (DateEditor) [#9681](https://github.com/handsontable/handsontable/issues/9681)
+- Fixed incorrect date format conversion on input in the date editor. [#9681](https://github.com/handsontable/handsontable/issues/9681)
+- Fixed an error when adding a large number of rows using the `alter` method. [#7840](https://github.com/handsontable/handsontable/issues/7840)
+- Fixed IME text input in the editors. [#9586](https://github.com/handsontable/handsontable/issues/9586)
+- Fixed an issue where the editor did not open on key events when the cell was outside the viewport. [#9022](https://github.com/handsontable/handsontable/issues/9022)
+- Fixed an issue with "0" values being ignored by the Column Summary plugin. [#6385](https://github.com/handsontable/handsontable/issues/6385)
+- Fixed an error when opening the column dropdown menu with the Filters plugin enabled. [#9561](https://github.com/handsontable/handsontable/issues/9561)
+- Fixed an issue where the `trimWhitespace` option could not be used in the column and cell levels of the cascading configuration. [#7387](https://github.com/handsontable/handsontable/issues/7387)
+- Fixed the flickering of the selection area at the edge of the table while scrolling. [#8317](https://github.com/handsontable/handsontable/issues/8317)
+- Fixed misalignment on mobile devices when the edge cells were selected. [#9621](https://github.com/handsontable/handsontable/issues/9621)
+- Fixed type definitions for the method `setSourceDataAtCell`. [#8599](https://github.com/handsontable/handsontable/issues/8599)
+
+### Removed
+- Removed a custom stable sorting implementation in favor of the built-in sorting algorithm [#6091](https://github.com/handsontable/handsontable/issues/6091)
+- Removed type definitions for non-existing methods `rowOffset` and `colOffset` and a non-existing hook `modifyRowSourceData`. [#8659](https://github.com/handsontable/handsontable/issues/8659), [#7317](https://github.com/handsontable/handsontable/issues/7317)
 
 ## [12.1.2] - 2022-07-08
 
