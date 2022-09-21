@@ -34,6 +34,7 @@ const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(12, 5),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   // enable the `HiddenRows` plugin
@@ -60,6 +61,7 @@ const ExampleComponent = () => {
     <HotTable
       licenseKey="non-commercial-and-evaluation"
       data={Handsontable.helper.createSpreadsheetData(12, 5)}
+      height="auto"
       colHeaders={true}
       rowHeaders={true}
       hiddenRows={true}
@@ -93,6 +95,7 @@ const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(12, 5),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   // enable the `HiddenRows` plugin
@@ -122,6 +125,7 @@ const ExampleComponent = () => {
     <HotTable
       licenseKey="non-commercial-and-evaluation"
       data={Handsontable.helper.createSpreadsheetData(12, 5)}
+      height="auto"
       colHeaders={true}
       rowHeaders={true}
       hiddenRows={{
@@ -156,6 +160,7 @@ const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(12, 5),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   hiddenRows: {
@@ -185,6 +190,7 @@ const ExampleComponent = () => {
     <HotTable
       licenseKey="non-commercial-and-evaluation"
       data={Handsontable.helper.createSpreadsheetData(12, 5)}
+      height="auto"
       colHeaders={true}
       rowHeaders={true}
       hiddenRows={{
@@ -216,6 +222,7 @@ const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(12, 5),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   // enable the context menu
@@ -248,6 +255,7 @@ const ExampleComponent = () => {
     <HotTable
       licenseKey="non-commercial-and-evaluation"
       data={Handsontable.helper.createSpreadsheetData(12, 5)}
+      height="auto"
       colHeaders={true}
       rowHeaders={true}
       contextMenu={true}
@@ -275,6 +283,7 @@ const container = document.querySelector('#example5');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(12, 5),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   // individually add row hiding context menu items
@@ -305,6 +314,7 @@ const ExampleComponent = () => {
     <HotTable
       licenseKey="non-commercial-and-evaluation"
       data={Handsontable.helper.createSpreadsheetData(12, 5)}
+      height="auto"
       colHeaders={true}
       rowHeaders={true}
       contextMenu={[`hidden_rows_show`, `hidden_rows_hide`]}
@@ -336,6 +346,7 @@ const container = document.querySelector('#example6');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(12, 5),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   contextMenu: [`hidden_rows_show`, `hidden_rows_hide`],
@@ -367,6 +378,7 @@ const ExampleComponent = () => {
     <HotTable
       licenseKey="non-commercial-and-evaluation"
       data={Handsontable.helper.createSpreadsheetData(12, 5)}
+      height="auto"
       colHeaders={true}
       rowHeaders={true}
       contextMenu={[`hidden_rows_show`, `hidden_rows_hide`]}
