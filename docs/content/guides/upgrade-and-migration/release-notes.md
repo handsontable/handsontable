@@ -32,7 +32,7 @@ Released on 22nd of September, 2022
 - Fixed type definitions for the method `setSourceDataAtCell`. [#8599](https://github.com/handsontable/handsontable/issues/8599)
 
 ### Removed
-- Removed a custom stable sorting implementation in favor of the stable sorting algorithm provided by the ECMAScript 2019 standard library [#6091](https://github.com/handsontable/handsontable/issues/6091)
+- Removed a custom stable sorting implementation in favor of the stable sorting algorithm guaranteed by ECMAScript 2019 [#6091](https://github.com/handsontable/handsontable/issues/6091)
 - Removed type definitions for non-existing methods `rowOffset` and `colOffset` and a non-existing hook `modifyRowSourceData`. [#8659](https://github.com/handsontable/handsontable/issues/8659), [#7317](https://github.com/handsontable/handsontable/issues/7317)
 
 ## 12.1.2
