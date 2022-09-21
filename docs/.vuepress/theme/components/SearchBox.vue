@@ -430,7 +430,7 @@ export default {
     input
       cursor pointer
       width 0
-      background-color #fff
+      background-color transparent
       border-color transparent
       position relative
       font-size 16px

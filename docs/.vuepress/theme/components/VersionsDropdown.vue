@@ -84,7 +84,6 @@ export default {
   position relative
   top -1px
   text-transform capitalize
-  z-index 100
 
   .dropdown-title, .mobile-dropdown-title
     text-transform capitalize
@@ -112,6 +111,7 @@ export default {
     border-radius 0.25rem
     white-space nowrap
     margin 0
+    z-index 100
 .dropdown-wrapper .dropdown-title .arrow, .dropdown-wrapper .mobile-dropdown-title .arrow
   margin-left 0.1rem
 
