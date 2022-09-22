@@ -2712,7 +2712,7 @@ describe('Formulas general', () => {
     });
 
     expect(getSourceData()).toEqual([[null, null, '=SUM(B2*2)'], [null, 3, null]]);
-    expect(getData()).toEqual([[null, null, 6], [null, 3, null]]);
+    expect(getData()).toEqual([[null, null, 6], [3, null, null]]);
   });
 
   it('should not crash when declaring a named expression with a sheet name that contains a `-` (#8057)', () => {
