@@ -148,7 +148,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 
 ## Custom hash symbol
 
-By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to set a custom hash symbol. You can use any character, entity, or event HTML. Note that you can't change the symbol used by the input field due to browser limitations.
+By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to set a custom hash symbol. You can use any character, entity, or even HTML. Note that you can't change the symbol used by the input field due to browser limitations.
 
 ::: only-for javascript
 ::: example #example3

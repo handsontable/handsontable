@@ -1,6 +1,7 @@
 import { createKeysObserver } from './keyObserver';
 import { normalizeEventKey } from './utils';
 import { isImmediatePropagationStopped } from '../helpers/dom/event';
+import { getParentWindow } from '../helpers/dom/element';
 import { isMacOS } from '../helpers/browser';
 
 const MODIFIER_KEYS = ['meta', 'alt', 'shift', 'control'];
@@ -146,11 +147,11 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
     let eventTarget = ownerWindow;
 
     while (eventTarget) {
-      eventTarget.addEventListener('keydown', onkeydown);
-      eventTarget.addEventListener('keyup', onkeyup);
-      eventTarget.addEventListener('blur', onblur);
+      eventTarget.document.documentElement.addEventListener('keydown', onkeydown);
+      eventTarget.document.documentElement.addEventListener('keyup', onkeyup);
+      eventTarget.document.documentElement.addEventListener('blur', onblur);
 
-      eventTarget = eventTarget.frameElement;
+      eventTarget = getParentWindow(eventTarget);
     }
   };
 
@@ -161,11 +162,11 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
     let eventTarget = ownerWindow;
 
     while (eventTarget) {
-      eventTarget.removeEventListener('keydown', onkeydown);
-      eventTarget.removeEventListener('keyup', onkeyup);
-      eventTarget.removeEventListener('blur', onblur);
+      eventTarget.document.documentElement.removeEventListener('keydown', onkeydown);
+      eventTarget.document.documentElement.removeEventListener('keyup', onkeyup);
+      eventTarget.document.documentElement.removeEventListener('blur', onblur);
 
-      eventTarget = eventTarget.frameElement;
+      eventTarget = getParentWindow(eventTarget);
     }
   };
 

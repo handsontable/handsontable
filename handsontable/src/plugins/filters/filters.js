@@ -476,22 +476,21 @@ export class Filters extends BasePlugin {
   /**
    * Gets last selected column index.
    *
-   * @returns {{visualIndex: number | null, physicalIndex: number | null}} Return `null` when column isn't selected
-   * otherwise object containing information about selected column with keys `visualIndex` and `physicalIndex`.
+   * @returns {{visualIndex: number, physicalIndex: number} | null} Returns `null` when a column is
+   * not selected. Otherwise, returns an object with `visualIndex` and `physicalIndex` properties containing
+   * the index of the column.
    */
   getSelectedColumn() {
     const highlight = this.hot.getSelectedRangeLast()?.highlight;
-    const selectedColumn = {
-      visualIndex: null,
-      physicalIndex: null,
-    };
 
-    if (highlight) {
-      selectedColumn.visualIndex = highlight.col;
-      selectedColumn.physicalIndex = this.hot.toPhysicalColumn(selectedColumn.visualIndex);
+    if (!highlight) {
+      return null;
     }
 
-    return selectedColumn;
+    return {
+      visualIndex: highlight.col,
+      physicalIndex: this.hot.toPhysicalColumn(highlight.col),
+    };
   }
 
   /**
@@ -500,10 +499,10 @@ export class Filters extends BasePlugin {
    * @private
    */
   clearColumnSelection() {
-    const { visualIndex } = this.getSelectedColumn();
+    const selectedColumn = this.getSelectedColumn();
 
-    if (visualIndex !== null) {
-      this.hot.selectCell(0, visualIndex);
+    if (selectedColumn !== null) {
+      this.hot.selectCell(0, selectedColumn.visualIndex);
     }
   }
 
@@ -663,14 +662,15 @@ export class Filters extends BasePlugin {
    */
   onActionBarSubmit(submitType) {
     if (submitType === 'accept') {
-      const physicalIndex = this.getSelectedColumn()?.physicalIndex;
+      const selectedColumn = this.getSelectedColumn();
 
-      if (physicalIndex === null) {
+      if (selectedColumn === null) {
         this.dropdownMenuPlugin?.close();
 
         return;
       }
 
+      const { physicalIndex } = selectedColumn;
       const byConditionState1 = this.components.get('filter_by_condition').getState();
       const byConditionState2 = this.components.get('filter_by_condition2').getState();
       const byValueState = this.components.get('filter_by_value').getState();

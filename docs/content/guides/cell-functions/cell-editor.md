@@ -18,16 +18,6 @@ Handsontable separates the process of displaying the cell value from the process
 
 This tutorial will give you a comprehensive understanding of how the whole process of cell editing works, how Handsontable Core manages editors, how editor life cycle looks like and finally - how to create your own editors.
 
-::: tip
-You can set a cell's [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator) individually, but you still need to set that cell's [`type`](@/api/options.md#type). For example:
-
-```js
-renderer: Handsontable.NumericRenderer,
-editor: Handsontable.editors.NumericEditor,
-validator: Handsontable.NumericValidator,
-type: 'numeric'
-```
-:::
 
 ::: only-for react
 

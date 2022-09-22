@@ -14,9 +14,13 @@ react:
 
 ## Overview
 
-By default, Handsontable treats all cell values as `string` type. This is because the `<textarea>` returns a string as its value. There are many cases where you need cell values to be treated as a `number` type. The numeric cell type allows you to format displayed numbers nicely and sort them correctly.
+The default cell type in Handsontable is text. The data of a text cell is processed as a `string` type that corresponds to the value of the text editor's internal `<textarea>` element. However, there are many cases where you need cell values to be treated as a `number` type. The numeric cell type allows you to format displayed numbers nicely and sort them correctly.
 
 ## Usage
+
+::: tip
+Ensure your numeric cell values are stored as numbers and not strings in the data source, as Handsontable doesn't parse strings to numbers.
+:::
 
 To use the `numeric` cell type, set the [`type`](@/api/options.md#type) option to `'numeric'`:
 
@@ -62,22 +66,22 @@ cell={[{
 ```
 :::
 
-### Edit numeric values
+### Numeric values in the editor
 
-When editing values in a `numeric` cell:
-- Make sure that your values are numbers (not strings), as Handsontable doesn't parse strings to numbers.
-- As a decimal separator, use the dot (`50.5`). You can also use the comma (`50,5`), but not at Handosntable's [initialization](@/guides/getting-started/installation.md#initialize-handsontable).
-- Don't use any thousands separators.
+In the cell editor of a `numeric` cell:
+- The number is initially presented with a dot (`50.5`) as the decimal separator and without the thousands separator.
+- A dot (`50.5`) or a comma (`50,5`) can be entered as the decimal separator.
+- No character can be used as the thousands separator.
 
 ::: tip
 All the positive and negative integers whose magnitude is no greater than 253 (+/- 9007199254740991) are representable in the `Number` type, i.e., safe integer. Any calculations that are performed on bigger numbers won't be calculated precisely due to JavaScript limitations.
 :::
 
-### Display numeric values
+### Numeric values in the renderer
 
-To format the look of numeric values, use the [`numericFormat`](@/api/options.md#numericformat) option.
+To format the look of numeric values in cell renderers, use the [`numericFormat`](@/api/options.md#numericformat) option.
 
-Note that the [`numericFormat`](@/api/options.md#numericformat) option doesn't change the way you [edit](#edit-numeric-values) numeric data.
+Note that the [`numericFormat`](@/api/options.md#numericformat) option doesn't change the way numbers are presented or parsed by the [cell editor](#numeric-values-in-the-editor).
 
 ## Basic example
 

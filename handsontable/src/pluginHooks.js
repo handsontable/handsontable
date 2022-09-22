@@ -121,12 +121,10 @@ const REGISTERED_HOOKS = [
    * Fired after one or more cells has been changed. The changes are triggered in any situation when the
    * value is entered using an editor or changed using API (e.q setDataAtCell).
    *
-   * `row` is a visual row index.
-   *
    * __Note:__ For performance reasons, the `changes` array is null for `"loadData"` source.
    *
    * @event Hooks#afterChange
-   * @param {Array} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`.
+   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
    * @param {string} [source] String that identifies source of hook call ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @example
    * ::: only-for javascript
@@ -747,7 +745,7 @@ const REGISTERED_HOOKS = [
    * @param {string|number} prop Property name / visual column index.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
-   * @returns {void | boolean} If `false` the cell will be marked as invalid, `true` otherwise.
+   * @returns {undefined | boolean} If `false` the cell will be marked as invalid, `true` otherwise.
    */
   'afterValidate',
 
@@ -822,15 +820,13 @@ const REGISTERED_HOOKS = [
    * Fired before one or more cells is changed. Its main purpose is to alter changes silently after input and before
    * table rendering.
    *
-   * `row` is a visual row index.
-   *
    * __Note:__: Nullified array items or `false` return value can be used to disregard changes, as presented in the code snippet below.
    *
    * @event Hooks#beforeChange
-   * @param {Array[]} changes 2D array containing information about each of the edited cells.
+   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
-   * @returns {void | boolean} If `false` all changes were cancelled, `true` otherwise.
+   * @returns {undefined | boolean} If `false` all changes were cancelled, `true` otherwise.
    * @example
    * ::: only-for javascript
    * ```js
@@ -1129,7 +1125,7 @@ const REGISTERED_HOOKS = [
    * @param {number} column Visual column index.
    * @param {string} key The updated meta key.
    * @param {*} value The updated meta value.
-   * @returns {boolean|void} If false is returned the action is canceled.
+   * @returns {boolean|undefined} If false is returned the action is canceled.
    */
   'beforeSetCellMeta',
 
@@ -1279,7 +1275,7 @@ const REGISTERED_HOOKS = [
    * @param {boolean} topmost If set to `true`, it returns the TD element from the topmost overlay. For example,
    *                          if the wanted cell is in the range of fixed rows, it will return a TD element
    *                          from the `top` overlay.
-   * @returns {void|number[]}
+   * @returns {undefined|number[]}
    */
   'modifyGetCellCoords',
 
@@ -1353,7 +1349,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeColumnSort
    * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
    * @param {Array} destinationSortConfigs Destination sort configuration (for all sorted columns).
-   * @returns {boolean | void} If `false` the column will not be sorted, `true` otherwise.
+   * @returns {boolean | undefined} If `false` the column will not be sorted, `true` otherwise.
    */
   'beforeColumnSort',
 
@@ -1621,7 +1617,7 @@ const REGISTERED_HOOKS = [
    *                                     [documentation](@/guides/columns/column-moving.md).
    *                                     It's `undefined` when `dragColumns` function wasn't called.
    * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
-   * @returns {void | boolean} If `false` the column will not be moved, `true` otherwise.
+   * @returns {undefined | boolean} If `false` the column will not be moved, `true` otherwise.
    */
   'beforeColumnMove',
 
@@ -1774,7 +1770,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeStretchingColumnWidth
    * @param {number} stretchedWidth Calculated width.
    * @param {number} column Visual column index.
-   * @returns {number|void} Returns new width which will be applied to the column element.
+   * @returns {number|undefined} Returns new width which will be applied to the column element.
    */
   'beforeStretchingColumnWidth',
 
