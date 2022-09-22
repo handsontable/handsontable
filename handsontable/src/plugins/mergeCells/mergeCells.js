@@ -270,8 +270,10 @@ export class MergeCells extends BasePlugin {
    * @returns {Array[]} Start and end coordinates of the merged cell range. (in a form of [rowIndex, columnIndex]).
    */
   getBulkCollectionDataRange(populationArgumentsList) {
-    const start = [0, 0];
-    const end = [0, 0];
+    const firstMergedRow = populationArgumentsList[0][0];
+    const firstMergedColumn = populationArgumentsList[0][1];
+    const start = [];
+    const end = [];
     let mergedCellRow = null;
     let mergedCellColumn = null;
     let mergedCellData = null;
@@ -281,10 +283,10 @@ export class MergeCells extends BasePlugin {
       mergedCellColumn = mergedCellArguments[1];
       mergedCellData = mergedCellArguments[2];
 
-      start[0] = Math.min(mergedCellRow, start[0]);
-      start[1] = Math.min(mergedCellColumn, start[1]);
-      end[0] = Math.max(mergedCellRow + mergedCellData.length - 1, end[0]);
-      end[1] = Math.max(mergedCellColumn + mergedCellData[0].length - 1, end[1]);
+      start[0] = Math.min(mergedCellRow, start[0] ?? firstMergedRow);
+      start[1] = Math.min(mergedCellColumn, start[1] ?? firstMergedColumn);
+      end[0] = Math.max(mergedCellRow + mergedCellData.length - 1, end[0] ?? firstMergedRow);
+      end[1] = Math.max(mergedCellColumn + mergedCellData[0].length - 1, end[1] ?? firstMergedColumn);
     });
 
     return [...start, ...end];
