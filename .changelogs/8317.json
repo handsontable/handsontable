@@ -1,7 +1,0 @@
-{
-  "title": "Fixed selection flickering of the edge of the table.",
-  "type": "fixed",
-  "issue": 8317,
-  "breaking": false,
-  "framework": "none"
-}

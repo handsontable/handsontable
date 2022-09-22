@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue where the cell editor did not open when the cell was rendered outside the table's viewport.",
-  "type": "fixed",
-  "issue": 9022,
-  "breaking": false,
-  "framework": "none"
-}
