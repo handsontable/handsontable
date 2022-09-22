@@ -16,7 +16,7 @@ To start local development server call `npm run start`. Now you can visit http:/
 
 ### Testing
 
-In order to run tests for this project call `npm run start` which will launch the development server and after the server is running, call `npm run test` to run test specs.
+In order to run tests for this project call `npm run build` which will build the project, then call `npm run test` to run test specs.
 
 ### Forking
 
