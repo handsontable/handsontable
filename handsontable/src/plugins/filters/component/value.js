@@ -197,10 +197,10 @@ class ValueComponent extends BaseComponent {
     super.reset();
     this.getMultipleSelectElement().setValue(values);
 
-    const { visualIndex } = this.hot.getPlugin('filters').getSelectedColumn();
+    const selectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
 
-    if (visualIndex !== null) {
-      this.getMultipleSelectElement().setLocale(this.hot.getCellMeta(0, visualIndex).locale);
+    if (selectedColumn !== null) {
+      this.getMultipleSelectElement().setLocale(this.hot.getCellMeta(0, selectedColumn.visualIndex).locale);
     }
   }
 
@@ -224,13 +224,13 @@ class ValueComponent extends BaseComponent {
    * @private
    */
   _getColumnVisibleValues() {
-    const { visualIndex } = this.hot.getPlugin('filters').getSelectedColumn();
+    const selectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
 
-    if (visualIndex === null) {
+    if (selectedColumn === null) {
       return [];
     }
 
-    return arrayMap(this.hot.getDataAtCol(visualIndex), v => toEmptyString(v));
+    return arrayMap(this.hot.getDataAtCol(selectedColumn.visualIndex), v => toEmptyString(v));
   }
 }
 
