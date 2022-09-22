@@ -1,0 +1,7 @@
+{
+  "title": "Removed type definition for non-existing method translateRowsToColumns.",
+  "type": "removed",
+  "issue": 9919,
+  "breaking": false,
+  "framework": "none"
+}
