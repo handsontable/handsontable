@@ -153,39 +153,5 @@ describe('Core_getDataAt*', () => {
       expect(getDataAtCell(1, 2)).toBe('foo');
       expect(getSourceDataAtCell(1, 2)).toBe('foo');
     });
-
-    it('should not modify data using `setDataAtCell` when some callback to `modifyData` hook return `false` value', () => {
-      const hot = handsontable({
-        modifyData(row, column, valueHolder, ioMode) {
-          if (ioMode === 'set') {
-            valueHolder.value = 'foo';
-          }
-        },
-      });
-
-      hot.addHookOnce('modifyData', () => false);
-
-      setDataAtCell(0, 0, 'bar');
-      setDataAtCell(0, 1, 'bar');
-
-      expect(getDataAtCell(0, 0)).toBe('bar');
-      expect(getDataAtCell(0, 1)).toBe('foo');
-    });
-
-    it('should not modify data using `getDataAtCell` when some callback to `modifyData` hook return `false` value', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
-        modifyData(row, column, valueHolder, ioMode) {
-          if (ioMode === 'get') {
-            valueHolder.value = 'foo';
-          }
-        },
-      });
-
-      hot.addHookOnce('modifyData', () => false);
-
-      expect(getDataAtCell(0, 0)).toBe('A1');
-      expect(getDataAtCell(0, 0)).toBe('foo');
-    });
   });
 });

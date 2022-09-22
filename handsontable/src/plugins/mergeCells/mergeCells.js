@@ -80,14 +80,6 @@ export class MergeCells extends BasePlugin {
      * @type {SelectionCalculations}
      */
     this.selectionCalculations = null;
-    /**
-     * Flag determining whether data modification done by `modifyData` hook should be stopped. It is used for
-     * obtaining current data, without their modifications.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.ignoreDataModification = false;
   }
 
   /**
@@ -111,12 +103,6 @@ export class MergeCells extends BasePlugin {
     this.mergedCellsCollection = new MergedCellsCollection(this);
     this.autofillCalculations = new AutofillCalculations(this);
     this.selectionCalculations = new SelectionCalculations(this);
-
-    this.addHook('modifyData', () => {
-      if (this.ignoreDataModification === true) {
-        return false; // Stops data modification.
-      }
-    });
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
@@ -229,8 +215,6 @@ export class MergeCells extends BasePlugin {
     if (Array.isArray(settings)) {
       let populationArgumentsList = [];
 
-      this.ignoreDataModification = true;
-
       arrayEach(settings, (setting) => {
         if (!this.validateSetting(setting)) {
           return;
@@ -249,8 +233,6 @@ export class MergeCells extends BasePlugin {
 
       const bulkPopulationData = this.getBulkCollectionData(populationArgumentsList);
 
-      this.ignoreDataModification = false;
-
       this.hot.populateFromArray(...bulkPopulationData);
     }
   }
@@ -264,8 +246,6 @@ export class MergeCells extends BasePlugin {
    */
   getBulkCollectionData(populationArgumentsList) {
     const populationDataRange = this.getBulkCollectionDataRange(populationArgumentsList);
-
-    // We gets data without their modification, ie. done by Formulas plugins (`ignoreDataModification` flag should be set to `true`).
     const dataAtRange = this.hot.getData(...populationDataRange);
 
     const newDataAtRange = dataAtRange.splice(0);
@@ -423,8 +403,8 @@ export class MergeCells extends BasePlugin {
         }
 
         if (i === 0 && j === 0) {
-          // We gets data without their modification, ie. done by Formulas plugins (`ignoreDataModification` flag should be set to `true`).
-          clearedValue = this.hot.getDataAtCell(mergeParent.row, mergeParent.col);
+          clearedValue = this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(mergeParent.row),
+            this.hot.toPhysicalColumn(mergeParent.col));
 
         } else {
           this.hot.setCellMeta(mergeParent.row + i, mergeParent.col + j, 'hidden', true);
