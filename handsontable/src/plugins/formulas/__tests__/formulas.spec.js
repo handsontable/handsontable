@@ -2708,7 +2708,7 @@ describe('Formulas general', () => {
         rowspan: 2,
         colspan: 1
       }],
-      manualColumnMove: [1, 0, 2, 3, 4],
+      manualColumnMove: [1, 0, 2],
     });
 
     expect(getSourceData()).toEqual([[null, null, '=SUM(B2*2)'], [null, 3, null]]);
