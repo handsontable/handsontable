@@ -680,12 +680,7 @@ class DataMap {
     if (this.instance.hasHook('modifyData')) {
       const valueHolder = createObjectPropListener(value);
 
-      const hookResult = this.instance.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'get');
-
-      // The `false` value stops value modification.
-      if (hookResult === false) {
-        return value;
-      }
+      this.instance.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         value = valueHolder.value;
@@ -730,10 +725,9 @@ class DataMap {
     if (this.instance.hasHook('modifyData')) {
       const valueHolder = createObjectPropListener(newValue);
 
-      const hookResult = this.instance.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'set');
+      this.instance.runHooks('modifyData', physicalRow, this.propToCol(prop), valueHolder, 'set');
 
-      // The `false` value stops value modification.
-      if (hookResult !== false && valueHolder.isTouched()) {
+      if (valueHolder.isTouched()) {
         newValue = valueHolder.value;
       }
     }

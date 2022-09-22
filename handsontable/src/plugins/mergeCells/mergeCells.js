@@ -247,7 +247,6 @@ export class MergeCells extends BasePlugin {
   getBulkCollectionData(populationArgumentsList) {
     const populationDataRange = this.getBulkCollectionDataRange(populationArgumentsList);
     const dataAtRange = this.hot.getData(...populationDataRange);
-
     const newDataAtRange = dataAtRange.splice(0);
 
     arrayEach(populationArgumentsList, (mergedCellArguments) => {

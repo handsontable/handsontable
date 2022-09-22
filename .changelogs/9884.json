@@ -1,7 +1,0 @@
-{
-  "title": "Added possibility for stopping `modifyData` hook propagation (by returning false from some callback)",
-  "type": "added",
-  "issue": 9884,
-  "breaking": false,
-  "framework": "none"
-}
