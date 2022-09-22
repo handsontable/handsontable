@@ -347,7 +347,7 @@ export class BaseEditor {
 
       const value = this.getValue();
 
-      if (this.hot.getSettings().trimWhitespace) {
+      if (this.cellProperties.trimWhitespace) {
         // We trim only string values
         val = [
           [typeof value === 'string' ? String.prototype.trim.call(value || '') : value]

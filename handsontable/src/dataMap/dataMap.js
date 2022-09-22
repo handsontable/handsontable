@@ -341,7 +341,7 @@ class DataMap {
 
     this.instance.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
 
-    this.spliceData(physicalRowIndex, 0, ...rowsToAdd);
+    this.spliceData(physicalRowIndex, 0, rowsToAdd);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -596,14 +596,21 @@ class DataMap {
    * Add/remove row(s) to/from the data source.
    *
    * @param {number} index Physical index of the element to add/remove.
-   * @param {number} amount Number of rows to add/remove.
-   * @param {...object} elements Row elements to be added.
+   * @param {number} deleteCount Number of rows to remove.
+   * @param {Array<object>} elements Row elements to be added.
    */
-  spliceData(index, amount, ...elements) {
-    const continueSplicing = this.instance.runHooks('beforeDataSplice', index, amount, elements);
+  spliceData(index, deleteCount, elements) {
+    const continueSplicing = this.instance.runHooks('beforeDataSplice', index, deleteCount, elements);
 
     if (continueSplicing !== false) {
-      this.dataSource.splice(index, amount, ...elements);
+      const newData = [...this.dataSource.slice(0, index), ...elements, ...this.dataSource.slice(index)];
+
+      // We try not to change the reference.
+      this.dataSource.length = 0;
+
+      // Pushing to array instead of using `splice`, because Babel changes the code to one that uses the `apply` method.
+      // The used method was cause of the problem described within #7840.
+      newData.forEach(row => this.dataSource.push(row));
     }
   }
 

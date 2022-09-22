@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import { objectEach } from '../../helpers/object';
 import Endpoints from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { isNullishOrNaN } from './utils';
 
 export const PLUGIN_KEY = 'columnSummary';
 export const PLUGIN_PRIORITY = 220;
@@ -193,11 +194,15 @@ export class ColumnSummary extends BasePlugin {
     let biggestDecimalPlacesCount = 0;
 
     do {
-      cellValue = this.getCellValue(i, col) || 0;
-      const decimalPlaces = (((`${cellValue}`).split('.')[1] || []).length) || 1;
+      cellValue = this.getCellValue(i, col);
+      cellValue = isNullishOrNaN(cellValue) ? null : cellValue;
 
-      if (decimalPlaces > biggestDecimalPlacesCount) {
-        biggestDecimalPlacesCount = decimalPlaces;
+      if (cellValue !== null) {
+        const decimalPlaces = (((`${cellValue}`).split('.')[1] || []).length) || 1;
+
+        if (decimalPlaces > biggestDecimalPlacesCount) {
+          biggestDecimalPlacesCount = decimalPlaces;
+        }
       }
 
       sum += cellValue || 0;
@@ -250,7 +255,7 @@ export class ColumnSummary extends BasePlugin {
    * @param {Array} rowRange Range for the calculation.
    * @param {number} col Column index.
    * @param {string} type `'min'` or `'max'`.
-   * @returns {number} Min or max value.
+   * @returns {number|null} Min or max value.
    */
   getPartialMinMax(rowRange, col, type) {
     let result = null;
@@ -258,7 +263,8 @@ export class ColumnSummary extends BasePlugin {
     let cellValue;
 
     do {
-      cellValue = this.getCellValue(i, col) || null;
+      cellValue = this.getCellValue(i, col);
+      cellValue = isNullishOrNaN(cellValue) ? null : cellValue;
 
       if (result === null) {
         result = cellValue;
@@ -297,8 +303,9 @@ export class ColumnSummary extends BasePlugin {
 
     do {
       cellValue = this.getCellValue(i, col);
+      cellValue = isNullishOrNaN(cellValue) ? null : cellValue;
 
-      if (!cellValue) {
+      if (cellValue === null) {
         counter += 1;
       }
 

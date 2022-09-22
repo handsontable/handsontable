@@ -27,7 +27,6 @@ export default class Core {
   batchRender<R>(wrappedOperations: () => R): R;
   clear(): void;
   clearUndo(): void;
-  colOffset(): number;
   colToProp(col: number): string | number;
   columnIndexMapper: IndexMapper;
   constructor(element: Element, options: GridSettings);
@@ -125,7 +124,6 @@ export default class Core {
   rootElement: HTMLElement;
   rootWindow: Window;
   rowIndexMapper: IndexMapper;
-  rowOffset(): number;
   runHooks(key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
   scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean, considerHiddenIndexes?: boolean): boolean;
   selectAll(): void;
@@ -141,7 +139,7 @@ export default class Core {
   setDataAtCell(row: number, col: number, value: CellValue, source?: string): void;
   setDataAtRowProp(changes: Array<[number, string | number, CellValue]>, source?: string): void;
   setDataAtRowProp(row: number, prop: string, value: CellValue, source?: string): void;
-  setSourceDataAtCell(changes: Array<[number, string | number, CellValue]>): void;
+  setSourceDataAtCell(changes: Array<[number, string | number, CellValue]>, source?: string): void;
   setSourceDataAtCell(row: number, column: number | string, value: CellValue, source?: string): void;
   spliceCol(col: number, index: number, amount: number, ...elements: CellValue[]): void;
   spliceRow(row: number, index: number, amount: number, ...elements: CellValue[]): void;

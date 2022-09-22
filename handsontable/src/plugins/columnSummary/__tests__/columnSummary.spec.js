@@ -118,7 +118,7 @@ describe('ColumnSummarySpec', () => {
   });
 
   describe('calculateSum', () => {
-    it('should calculate sum  of values from the provided range', () => {
+    it('should calculate sum of values from the provided range', () => {
       handsontable({
         data: createNumericData(15, 15),
         height: 200,
@@ -142,8 +142,13 @@ describe('ColumnSummarySpec', () => {
 
   describe('calculateMinMax', () => {
     it('should calculate the minimum from the provided range', () => {
+      const dataset = createNumericData(15, 15);
+
+      dataset[0][1] = 0;
+      dataset[0][2] = 0;
+
       handsontable({
-        data: createNumericData(15, 15),
+        data: dataset,
         height: 200,
         width: 200,
         columnSummary: [
@@ -155,16 +160,55 @@ describe('ColumnSummarySpec', () => {
               [5, 6], [8], [10, 13]
             ],
             type: 'min'
+          },
+          {
+            destinationColumn: 1,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            ranges: [
+              [0, 13]
+            ],
+            type: 'min'
           }
         ]
       });
 
       expect(getDataAtCell(14, 0)).toEqual(6);
+      expect(getDataAtCell(14, 1)).toEqual(0);
     });
 
-    it('should calculate the minimum from the provided range', () => {
+    it('should calculate the minimum from the column when the destination row is empty and `forceNumeric` is enabled', () => {
       handsontable({
-        data: createNumericData(15, 15),
+        data: [
+          [0],
+          [1],
+          [5],
+          [],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            forceNumeric: true,
+            type: 'min'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(3, 0)).toBe(0);
+    });
+
+    it('should calculate the maximum from the provided range', () => {
+      const dataset = createNumericData(15, 15);
+
+      dataset.forEach((rowArr) => {
+        rowArr[1] = 0;
+      });
+
+      handsontable({
+        data: dataset,
         height: 200,
         width: 200,
         columnSummary: [
@@ -176,19 +220,57 @@ describe('ColumnSummarySpec', () => {
               [5, 6], [8], [10, 13]
             ],
             type: 'max'
+          },
+          {
+            destinationColumn: 1,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            ranges: [
+              [0, 13]
+            ],
+            type: 'max'
           }
         ]
       });
 
       expect(getDataAtCell(14, 0)).toEqual(14);
+      expect(getDataAtCell(14, 1)).toEqual(0);
     });
 
+    it('should calculate the maximum from the column when the destination row is empty and `forceNumeric` is enabled', () => {
+      handsontable({
+        data: [
+          [0],
+          [1],
+          [5],
+          [],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            forceNumeric: true,
+            type: 'max'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(3, 0)).toBe(5);
+    });
   });
 
   describe('countEntries', () => {
     it('should count non-empty entries from the provided range', () => {
+      const dataset = createNumericData(15, 15);
+
+      dataset.forEach((rowArr) => {
+        rowArr[1] = 0;
+      });
+
       handsontable({
-        data: createNumericData(15, 15),
+        data: dataset,
         height: 200,
         width: 200,
         columnSummary: [
@@ -200,11 +282,44 @@ describe('ColumnSummarySpec', () => {
               [0, 3], [5, 6], [8], [10, 13]
             ],
             type: 'count'
+          },
+          {
+            destinationColumn: 1,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            ranges: [
+              [0, 13]
+            ],
+            type: 'count'
           }
         ]
       });
 
       expect(getDataAtCell(14, 0)).toEqual(11);
+      expect(getDataAtCell(14, 1)).toEqual(14);
+    });
+
+    it('should count non-empty entries from the column when the destination row is empty and `forceNumeric` is enabled', () => {
+      handsontable({
+        data: [
+          [4],
+          [1],
+          [5],
+          [],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            forceNumeric: true,
+            type: 'count'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(3, 0)).toBe(3);
     });
   });
 
@@ -228,6 +343,29 @@ describe('ColumnSummarySpec', () => {
       });
 
       expect(getDataAtCell(14, 0).toFixed(4)).toEqual((7.45454545454545).toFixed(4));
+    });
+
+    it('should count average value from the column when the destination row is empty and `forceNumeric` is enabled', () => {
+      handsontable({
+        data: [
+          [4],
+          [2],
+          [5],
+          [],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            forceNumeric: true,
+            type: 'average'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(3, 0)).toBe(3.6666666666666665);
     });
   });
 

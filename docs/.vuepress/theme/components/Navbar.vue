@@ -3,7 +3,7 @@
     <SidebarButton @toggle-sidebar="$emit('toggle-sidebar')" />
 
     <RouterLink
-        :to="versionedUrl($localePath)"
+        :to="'/'"
         class="home-link"
     >
 
@@ -39,7 +39,6 @@ import SidebarButton from '@theme/components/SidebarButton.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import Versions from '@theme/components/Versions.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
-import { ensureExt } from '@vuepress/theme-default/util';
 import Logo from './Logo.vue';
 
 export default {
@@ -52,15 +51,6 @@ export default {
     Versions,
     ThemeSwitcher,
     Logo
-  },
-  methods: {
-    versionedUrl(url) {
-      if (this.$page.currentVersion === this.$page.latestVersion || this.$page.DOCS_VERSION) {
-        return ensureExt(url);
-      } else {
-        return ensureExt(`/${this.$page.currentVersion}${url}`);
-      }
-    }
   },
   data() {
     return {

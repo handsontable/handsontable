@@ -91,10 +91,14 @@ export default () => {
      *
      * You can set the `allowEmpty` option to one of the following:
      *
-     * | Setting          | Description                                                                                                                           |
-     * | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default) | - Accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` and `''` values as `valid`              |
-     * | `false`          | - Don't accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` and `''` values with as `invalid` |
+     * | Setting          | Description                                                                                                                          |
+     * | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `true` (default) | - Accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` or `''` values as `valid`              |
+     * | `false`          | - Don't accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` or `''` values with as `invalid` |
+     *
+     * ::: tip
+     * To use the [`allowEmpty`](#allowempty) option, you need to set the [`validator`](#validator) option (or the [`type`](#type) option).
+     * :::
      *
      * @memberof Options#
      * @type {boolean}
@@ -103,15 +107,15 @@ export default () => {
      *
      * @example
      * ```js
-     * // allow empty values in every cell of the entire grid
+     * // allow empty values in each cell of the entire grid
      * allowEmpty: true,
      *
      * // or
      * columns: [
      *   {
-     *     data: 'date',
+     *     type: 'date',
      *     dateFormat: 'DD/MM/YYYY',
-     *     // allow empty values in every cell of the 'date' column
+     *     // allow empty values in each cell of the 'date' column
      *     allowEmpty: true
      *   }
      * ],
@@ -147,7 +151,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['<strong>foo</strong>', '<strong>bar</strong>']
@@ -464,7 +468,7 @@ export default () => {
 
     /**
      * @description
-     * The `cells` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to
+     * The `cells` option lets you apply any other [configuration options](@/guides/getting-started/setting-options.md) to
      * individual grid elements (columns, rows, cells), based on any logic you implement.
      *
      * The `cells` option overwrites all other options (including options set by [`columns`](#columns) and [`cell`](#cell)).
@@ -530,13 +534,13 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `checkbox`
+     *     // set the `type` of each cell in this column to `checkbox`
      *     // when checked, the cell's value is `true`
      *     // when unchecked, the cell's value is `false`
      *     type: 'checkbox',
      *   },
      *   {
-     *     // set the `type` of every cell in this column to `checkbox`
+     *     // set the `type` of each cell in this column to `checkbox`
      *     type: 'checkbox',
      *     // when checked, the cell's value is `'Yes'`
      *     checkedTemplate: 'Yes',
@@ -690,7 +694,7 @@ export default () => {
 
     /**
      * @description
-     * The `columns` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to individual columns (or ranges of columns).
+     * The `columns` option lets you apply any other [configuration options](@/guides/getting-started/setting-options.md) to individual columns (or ranges of columns).
      *
      * You can set the `columns` option to one of the following:
      * - An array of objects (each object represents one column)
@@ -698,13 +702,14 @@ export default () => {
      *
      * The `columns` option overwrites the [top-level grid options](@/guides/getting-started/setting-options.md#setting-grid-options).
      *
-     * When you use the `columns` option, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) are ignored.
+     * When you use `columns`, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) options are ignored.
      *
      * Read more:
      * - [Configuration options: Setting column options](@/guides/getting-started/setting-options.md#setting-column-options)
      * - [`startCols`](#startCols)
      * - [`minCols`](#minCols)
      * - [`maxCols`](#maxCols)
+     * - [`data`](#data)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -950,7 +955,7 @@ export default () => {
      * @example
      * ```js
      * // add a `has-comment` CSS class name
-     * // to every cell that has a comment
+     * // to each cell that has a comment
      * commentedCellClassName: 'has-comment',
      * ```
      */
@@ -1080,10 +1085,10 @@ export default () => {
      *
      * You can set the `copyable` option to one of the following:
      *
-     * | Setting                                                                                                        | Description                                                                                                                        |
-     * | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add the cell's value to the clipboard |
-     * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - Disable copying for this cell                                                                                                    |
+     * | Setting                                                                                                        | Description                                                                                                            |
+     * | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default)                                                                                               | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add the cell's value to the clipboard         |
+     * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add an empty string (`""`) to the clipboard   |
      *
      * Read more:
      * - [Clipboard](@/guides/cell-features/clipboard.md)
@@ -1097,17 +1102,17 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable copying for every cell of the entire grid
+     * // enable copying for each cell of the entire grid
      * copyable: true,
      *
      * // enable copying for individual columns
      * columns: [
      *   {
-     *     // enable copying for every cell of this column
+     *     // enable copying for each cell of this column
      *     copyable: true
      *   },
      *   {
-     *     // disable copying for every cell of this column
+     *     // disable copying for each cell of this column
      *     copyable: false
      *   }
      * ]
@@ -1175,15 +1180,21 @@ export default () => {
     copyPaste: true,
 
     /**
-     * The `correctFormat` option configures what happens when the format of a date entered into a [`date`](@/guides/cell-types/date-cell-type.md) cell doesn't match the format specified by the [`dateFormat`](#dateFormat) option:
+     * The `correctFormat` option configures whether incorrectly-formatted times and dates are amended or not.
      *
-     * | Setting           | Description                                                                        |
-     * | ----------------- | ---------------------------------------------------------------------------------- |
-     * | `false` (default) | Don't correct the entered date's format (treat the entered date as invalid)        |
-     * | `true`            | Correct the entered date's format to match the [`dateFormat`](#dateFormat) setting |
+     * When the user enters dates and times, Handsontable can automatically adjust their format
+     * to match the [`dateFormat`](#dateFormat) and [`timeFormat`](@/guides/cell-types/time-cell-type.md) settings.
+     *
+     * You can set the `correctFormat` option to one of the following:
+     *
+     * | Setting           | Description                                                                                                                                               |
+     * | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Don't correct the format of the entered date or time (treat the entered date or time as invalid)                                                          |
+     * | `true`            | Correct the format of the entered date or time to match the [`dateFormat`](#dateFormat) or [`timeFormat`](@/guides/cell-types/time-cell-type.md) settings |
      *
      * Read more:
      * - [Date cell type](@/guides/cell-types/date-cell-type.md)
+     * - [Time cell type](@/guides/cell-types/time-cell-type.md)
      * - [`dateFormat`](#dateFormat)
      *
      * @memberof Options#
@@ -1195,11 +1206,20 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *   // set the `type` of every cell in this column to `date`
+     *   // set the `type` of each cell in this column to `date`
      *   type: 'date',
      *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
      *   dateFormat: 'YYYY-MM-DD',
      *   // enforce the `YYYY-MM-DD` date format
+     *   correctFormat: true
+     *   },
+     *
+     *   {
+     *   // set the `type` of each cell in this column to `time`
+     *   type: 'time',
+     *   // for every `time` cell of this column, set the time format to `h:mm:ss a`
+     *   timeFormat: 'h:mm:ss a',
+     *   // enforce the `h:mm:ss a` time format
      *   correctFormat: true
      *   },
      * ],
@@ -1209,7 +1229,7 @@ export default () => {
 
     /**
      * The `currentColClassName` option lets you add a CSS class name
-     * to every cell of the currently-visible, currently-selected columns.
+     * to each cell of the currently-visible, currently-selected columns.
      *
      * Read more:
      * - [`currentRowClassName`](#currentRowClassName)
@@ -1231,7 +1251,7 @@ export default () => {
      * @example
      * ```js
      * // add a `your-class-name` CSS class name
-     * // to every cell of the currently-visible, currently-selected columns
+     * // to each cell of the currently-visible, currently-selected columns
      * currentColClassName: 'your-class-name',
      * ```
      */
@@ -1268,7 +1288,7 @@ export default () => {
 
     /**
      * The `currentRowClassName` option lets you add a CSS class name
-     * to every cell of the currently-visible, currently-selected rows.
+     * to each cell of the currently-visible, currently-selected rows.
      *
      * Read more:
      * - [`currentColClassName`](#currentColClassName)
@@ -1290,7 +1310,7 @@ export default () => {
      * @example
      * ```js
      * // add a `your-class-name` CSS class name
-     * // to every cell of the currently-visible, currently-selected rows
+     * // to each cell of the currently-visible, currently-selected rows
      * currentRowClassName: 'your-class-name',
      * ```
      */
@@ -1419,9 +1439,13 @@ export default () => {
      * - Either to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
      * - Or to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects).
      *
+     * If you don't set the `data` option (or set it to `null`), Handsontable renders as an empty 5x5 grid by default.
+     *
      * Read more:
      * - [Binding to data](@/guides/getting-started/binding-to-data.md)
      * - [`dataSchema`](#dataSchema)
+     * - [`startRows`](#startRows)
+     * - [`startCols`](#startCols)
      *
      * @memberof Options#
      * @type {Array[]|object[]}
@@ -1451,15 +1475,22 @@ export default () => {
 
     /**
      * @description
-     * If the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
+     * When the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
      * (or is empty), the `dataSchema` option defines the structure of new rows.
+     *
+     * Using the `dataSchema` option, you can start out with an empty grid.
+     *
+     * You can set the `dataSchema` option to one of the following:
+     * - An object
+     * - A function
      *
      * Read more:
      * - [Binding to data: Array of objects with custom data schema](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
+     * - [Binding to data: Function data source and schema](@/guides/getting-started/binding-to-data.md#function-data-source-and-schema)
      * - [`data`](#data)
      *
      * @memberof Options#
-     * @type {object}
+     * @type {object|Function}
      * @default undefined
      * @category Core
      *
@@ -1502,7 +1533,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *   // set the `type` of every cell in this column to `date`
+     *   // set the `type` of each cell in this column to `date`
      *   type: 'date',
      *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
      *   dateFormat: 'YYYY-MM-DD',
@@ -1513,16 +1544,16 @@ export default () => {
     dateFormat: 'DD/MM/YYYY',
 
     /**
-     * The `datePickerConfig` option configures the `date` [cell editor](@/guides/cell-functions/cell-editor.md)'s date picker, which uses an external dependency: [Pikaday](https://github.com/Pikaday/Pikaday/tree/1.8.0).
+     * The `datePickerConfig` option configures the `date` [cell editor](@/guides/cell-functions/cell-editor.md)'s date picker, which uses an external dependency: [Pikaday](https://github.com/Pikaday/Pikaday/tree/1.8.2).
      *
-     * You can set the `datePickerConfig` option to an object with any of the available [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration),
+     * You can set the `datePickerConfig` option to an object with any of the available [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration),
      * except for the following, which are always overwritten by the `date` [cell editor](@/guides/cell-functions/cell-editor.md):
      * - `bound`
      * - `container`
      * - `field`
      * - `trigger`
      *
-     * If the `datePickerConfig` option is not defined, the `date` [cell editor](@/guides/cell-functions/cell-editor.md) overwrites the following [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration) as well:
+     * If the `datePickerConfig` option is not defined, the `date` [cell editor](@/guides/cell-functions/cell-editor.md) overwrites the following [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration) as well:
      *
      * | Pikaday option       | Handsontable's setting |
      * | -------------------- | ---------------------- |
@@ -1533,7 +1564,7 @@ export default () => {
      * - [`editor`](#editor)
      * - [`dateFormat`](#dateFormat)
      * - [Cell editor](@/guides/cell-functions/cell-editor.md)
-     * - [All Pikaday options &#8594;](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration)
+     * - [All Pikaday options &#8594;](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration)
      *
      * @memberof Options#
      * @type {object}
@@ -1561,7 +1592,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `date`
+     *     // set the `type` of each cell in this column to `date`
      *     type: 'date',
      *     // in every empty `date` cell of this column, display `2015-02-02`
      *     defaultDate: '2015-02-02'
@@ -1742,17 +1773,17 @@ export default () => {
      *
      * @example
      * ```js
-     * // use the `numeric` editor for every cell of the entire grid
+     * // use the `numeric` editor for each cell of the entire grid
      * editor: 'numeric',
      *
      * // apply the `editor` option to individual columns
      * columns: [
      *   {
-     *     // use the `autocomplete` editor for every cell of this column
+     *     // use the `autocomplete` editor for each cell of this column
      *     editor: 'autocomplete'
      *   },
      *   {
-     *     // disable editing cells through cell editors for every cell of this column
+     *     // disable editing cells through cell editors for each cell of this column
      *     editor: false
      *   }
      * ]
@@ -1915,7 +1946,7 @@ export default () => {
      * @example
      * ```js
      * columns: [{
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C'],
@@ -3121,7 +3152,7 @@ export default () => {
 
     /**
      * The `noWordWrapClassName` option lets you add a CSS class name
-     * to every cell that has the [`wordWrap`](#wordWrap) option set to `false`.
+     * to each cell that has the [`wordWrap`](#wordWrap) option set to `false`.
      *
      * Read more:
      * - [`wordWrap`](#wordWrap)
@@ -3143,7 +3174,7 @@ export default () => {
      * @example
      * ```js
      * // add an `is-noWrapCell` CSS class name
-     * // to every cell that doesn't wrap content
+     * // to each cell that doesn't wrap content
      * noWordWrapClassName: 'is-noWrapCell',
      * ```
      */
@@ -3151,7 +3182,8 @@ export default () => {
 
     /**
      * The `numericFormat` option configures the number format and the currency format
-     * of [`numeric`](@/guides/cell-types/numeric-cell-type.md) cells` displayed output.
+     * of [`numeric`](@/guides/cell-types/numeric-cell-type.md) cells` displayed output
+     * in the numeric cell renderer.
      *
      * You can set the `numericFormat` option to an object with the following properties:
      *
@@ -3160,10 +3192,7 @@ export default () => {
      * | `pattern`   | All [`numbro.js` number formats](https://numbrojs.com/format.html#numbers)    | Number format   |
      * | `culture`   | All [`numbro.js` currency formats](https://numbrojs.com/format.html#currency) | Currency format |
      *
-     * The `numericFormat` option as no effect on cells' input data.
-     * To enter numeric data into Handsontable, use:
-     * - Either floats (separated by a dot, or a comma)
-     * - Or integers
+     * The `numericFormat` option as no effect on the numeric cell editor.
      *
      * In the source data, numeric data is stored as JavaScript numbers.
      *
@@ -3181,7 +3210,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `numeric`
+     *     // set the `type` of each cell in this column to `numeric`
      *     type: 'numeric',
      *     // set the `numericFormat` option for every `numeric` cell of this column
      *     numericFormat: {
@@ -3342,7 +3371,7 @@ export default () => {
      * @example
      * ```js
      * // add a `has-placeholder` CSS class name
-     * // to every cell that contains `placeholder` text
+     * // to each cell that contains `placeholder` text
      * placeholderCellClassName: 'has-placeholder',
      * ```
      */
@@ -3408,6 +3437,8 @@ export default () => {
      * | ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
      * | `false` (default) | Set as editable                                                                                                           |
      * | `true`            | - Set as read-only<br>- Add the [`readOnlyCellClassName`](#readOnlyCellClassName) CSS class name (by default: `htDimmed`) |
+     *
+     * `readOnly` cells can't be changed by the [`populateFromArray()`](@/api/core.md#populatefromarray) method.
      *
      * Read more:
      * - [Configuration options: Cascading configuration](@/guides/getting-started/setting-options.md#cascading-configuration)
@@ -3518,7 +3549,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // use the `numeric` renderer for every cell of the entire grid
+     * // use the `numeric` renderer for each cell of the entire grid
      * renderer: `'numeric'`,
      *
      * // add a custom renderer function
@@ -3530,11 +3561,11 @@ export default () => {
      * // apply the `renderer` option to individual columns
      * columns: [
      *   {
-     *     // use the `autocomplete` renderer for every cell of this column
+     *     // use the `autocomplete` renderer for each cell of this column
      *     renderer: 'autocomplete'
      *   },
      *   {
-     *     // use the `myCustomRenderer` renderer for every cell of this column
+     *     // use the `myCustomRenderer` renderer for each cell of this column
      *     renderer: 'myCustomRenderer'
      *   }
      * ]
@@ -3761,7 +3792,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `select`
+     *     // set the `type` of each cell in this column to `select`
      *     type: 'select',
      *     // set the first option's value and label to `A`
      *     // set the second option's value and label to `B`
@@ -3769,7 +3800,7 @@ export default () => {
      *     selectOptions: ['A', 'B', 'C'],
      *   },
      *   {
-     *     // set the `type` of every cell in this column to `select`
+     *     // set the `type` of each cell in this column to `select`
      *     type: 'select',
      *     selectOptions: {
      *       // set the first option's value to `value1` and label to `Label 1`
@@ -3781,7 +3812,7 @@ export default () => {
      *     },
      *   },
      *   {
-     *     // set the `type` of every cell in this column to `select`
+     *     // set the `type` of each cell in this column to `select`
      *     type: 'select',
      *     // set `selectOption` to a function that returns available options as an object
      *     selectOptions(visualRow, visualColumn, prop) {
@@ -3890,7 +3921,7 @@ export default () => {
      * @example
      * ```js
      * columns: [{
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['D', 'C', 'B', 'A'],
@@ -3927,7 +3958,7 @@ export default () => {
      * ```js
      * // set `source` to an array
      * columns: [{
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C', 'D']
@@ -3935,7 +3966,7 @@ export default () => {
      *
      * // set `source` to a function
      * columns: [{
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // for every `autocomplete` cell in this column, fetch data from an external source
      *   source(query, callback) {
@@ -4039,7 +4070,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C'],
@@ -4182,13 +4213,13 @@ export default () => {
      * columns: [
      *   {
      *     type: 'autocomplete',
-     *     // for every cell of this column
+     *     // for each cell of this column
      *     // make the `autocomplete` list's width the same as the edited cell's width
      *     trimDropdown: true,
      *   },
      *   {
      *     type: 'dropdown',
-     *     // for every cell of this column
+     *     // for each cell of this column
      *     // scale the `dropdown` list's width to the list's content
      *     trimDropdown: false,
      *   }
@@ -4203,11 +4234,11 @@ export default () => {
      *
      * You can set the `trimRows` option to one of the following:
      *
-     * | Setting  | Description                                                                                   |
-     * | -------- | --------------------------------------------------------------------------------------------- |
-     * | `false`  | Disable the [`TrimRows`](@/api/trimRows.md) plugin                                            |
-     * | `true`   | Enable the [`TrimRows`](@/api/trimRows.md) plugin                                             |
-     * | An array | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
+     * | Setting                          | Description                                                                                   |
+     * | -------------------------------- | --------------------------------------------------------------------------------------------- |
+     * | `false`                          | Disable the [`TrimRows`](@/api/trimRows.md) plugin                                            |
+     * | `true`                           | Enable the [`TrimRows`](@/api/trimRows.md) plugin                                             |
+     * | An array of physical row indexes | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
      *
      * Read more:
      * - [Plugins: `TrimRows`](@/api/trimRows.md)
@@ -4224,23 +4255,24 @@ export default () => {
      * trimRows: true,
      *
      * // enable the `TrimRows` plugin
-     * // trim rows 5, 10, and 15 at Handsontable's initialization
+     * // at Handsontable's initialization, trim rows 5, 10, and 15
      * trimRows: [5, 10, 15],
      * ```
      */
     trimRows: void 0,
 
     /**
-     * The `trimWhitespace` option configures automatic whitespace removal.
+     * The `trimWhitespace` option configures automatic whitespace removal. This option
+     * affects the cell renderer and the cell editor.
      *
      * You can set the `trimWhitespace` option to one of the following:
      *
      * | Setting          | Description                                                     |
      * | ---------------- | --------------------------------------------------------------- |
-     * | `true` (default) | Remove whitespace at the beginning and at the end of every cell |
+     * | `true` (default) | Remove whitespace at the beginning and at the end of each cell |
      * | `false`          | Don't remove whitespace                                         |
      *
-     * @memberof Options#tr
+     * @memberof Options#
      * @type {boolean}
      * @default true
      * @category Core
@@ -4295,17 +4327,17 @@ export default () => {
      *
      * @example
      * ```js
-     * // use the `numeric` cell type for every cell of the entire grid
+     * // set the `numeric` cell type for each cell of the entire grid
      * type: `'numeric'`,
      *
      * // apply the `type` option to individual columns
      * columns: [
      *   {
-     *     // use the `autocomplete` cell type for every cell of this column
+     *     // set the `autocomplete` cell type for each cell of this column
      *     type: 'autocomplete'
      *   },
      *   {
-     *     // use the `myCustomCellType` cell type for every cell of this column
+     *     // set the `myCustomCellType` cell type for each cell of this column
      *     type: 'myCustomCellType'
      *   }
      * ]
@@ -4338,13 +4370,13 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `checkbox`
+     *     // set the `type` of each cell in this column to `checkbox`
      *     // when unchecked, the cell's value is `false`
      *     // when checked, the cell's value is `true`
      *     type: 'checkbox',
      *   },
      *   {
-     *     // set the `type` of every cell in this column to `checkbox`
+     *     // set the `type` of each cell in this column to `checkbox`
      *     // when unchecked, the cell's value is `'No'`
      *     // when checked, the cell's value is `'Yes'`
      *     type: 'checkbox',
@@ -4525,13 +4557,13 @@ export default () => {
      *   {
      *     type: 'autocomplete',
      *     // set the `autocomplete` list's height to 15 options
-     *     // for every cell of this column
+     *     // for each cell of this column
      *     visibleRows: 15,
      *   },
      *   {
      *     type: 'dropdown',
      *     // set the `dropdown` list's height to 5 options
-     *     // for every cell of this column
+     *     // for each cell of this column
      *     visibleRows: 5,
      *   }
      * ],
