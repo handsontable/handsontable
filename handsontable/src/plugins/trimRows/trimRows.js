@@ -54,7 +54,7 @@ export const PLUGIN_PRIORITY = 330;
  *
  * ::: only-for react
  * ```jsx
- * const hotRef = useRef();
+ * const hotRef = useRef(null);
  *
  * ...
  *

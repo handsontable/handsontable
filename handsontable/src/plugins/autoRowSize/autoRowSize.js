@@ -71,7 +71,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *
  * ::: only-for react
  * ```jsx
- * const hotRef = useRef();
+ * const hotRef = useRef(null);
  *
  * ...
  *

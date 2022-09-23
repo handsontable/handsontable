@@ -142,7 +142,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   const data = [
     ['Tesla', 2017, 'black', 'black'],
@@ -267,7 +267,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   const data = [
     ['Tesla', 2017, 'black', 'black'],
@@ -387,7 +387,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   const data = [
     ['Tesla', 2017, 'black', 'black'],
@@ -527,7 +527,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hot4Ref = useRef();
+  const hot4Ref = useRef(null);
   const [output, setOutput] = useState('');
   
   const data = [

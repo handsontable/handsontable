@@ -72,8 +72,8 @@ import { fastCall } from './helpers/function';
  *
  * ::: only-for react
  * ```jsx
- * const hotRef1 = useRef();
- * const hotRef2 = useRef();
+ * const hotRef1 = useRef(null);
+ * const hotRef2 = useRef(null);
  *
  * // Using events as plugin hooks:
  * ...

@@ -89,7 +89,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *
  * ::: only-for react
  * ```jsx
- * const hotRef = useRef();
+ * const hotRef = useRef(null);
  *
  * ...
  *

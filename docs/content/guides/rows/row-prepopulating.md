@@ -124,7 +124,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   const templateValues = ['one', 'two', 'three'];
   const data = [

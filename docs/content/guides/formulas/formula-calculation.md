@@ -860,7 +860,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotNamedExpressionsRef = useRef();
+  const hotNamedExpressionsRef = useRef(null);
   const [namedExpressionValue, setNamedExpressionValue] = useState('=10 * Sheet1!$A$2');
 
   const data = [

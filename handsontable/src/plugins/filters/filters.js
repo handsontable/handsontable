@@ -347,7 +347,7 @@ export class Filters extends BasePlugin {
    *
    * ::: only-for react
    * ```jsx
-   * const hotRef = useRef();
+   * const hotRef = useRef(null);
    *
    * ...
    *
