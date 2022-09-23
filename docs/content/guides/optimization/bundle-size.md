@@ -38,6 +38,7 @@ new Handsontable(container, {
 ::: only-for react
 ```js
 import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/react';
 import { registerPlugin, ContextMenu } from 'handsontable/plugins';
 
 registerPlugin(ContextMenu);
@@ -95,6 +96,7 @@ new Handsontable(container, {
 ::: only-for react
 ```js
 import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/react';
 import { registerCellType, DateCellType } from 'handsontable/cellTypes';
 
 // explicitly import Moment.js
