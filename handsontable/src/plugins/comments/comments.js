@@ -83,7 +83,7 @@ const META_READONLY = 'readOnly';
  *
  * ::: only-for react
  * ```jsx
- * const hotRef = useRef();
+ * const hotRef = useRef(null);
  *
  * ...
  *
