@@ -231,6 +231,11 @@ export class MergeCells extends BasePlugin {
       // remove 'empty' setting objects, caused by improper merge range declarations
       populationArgumentsList = populationArgumentsList.filter(value => value !== true);
 
+      // There are no merged cells. Thus, no data population is needed.
+      if (populationArgumentsList.length === 0) {
+        return;
+      }
+
       const bulkPopulationData = this.getBulkCollectionData(populationArgumentsList);
 
       this.hot.populateFromArray(...bulkPopulationData);
