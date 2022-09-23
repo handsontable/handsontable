@@ -175,7 +175,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
   
   const copyBtnClickCallback = function() {
     document.execCommand('copy');
