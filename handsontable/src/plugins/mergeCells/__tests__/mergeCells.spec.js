@@ -1,3 +1,5 @@
+import HyperFormula from "hyperformula";
+
 describe('MergeCells', () => {
   const id = 'testContainer';
 
@@ -24,6 +26,37 @@ describe('MergeCells', () => {
 
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
+    });
+
+    it('should overwrite proper range while creating new dataset (with nulls in place of merge areas)', () => {
+      const data = [
+        [null, null, 3, 4, null],
+        [null, null, null, null, null],
+        [null, 5, null, null, null],
+      ];
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data,
+        mergeCells: [{
+          row: 0,
+          col: 3,
+          rowspan: 2,
+          colspan: 2
+        }, {
+          row: 2,
+          col: 1,
+          rowspan: 1,
+          colspan: 2
+        }],
+        afterChange,
+      });
+
+      expect(afterChange.calls.mostRecent().args[0]).toEqual([
+        [0, 1, null, null], [0, 2, 3, 3], [0, 3, 4, 4], [0, 4, null, null],
+        [1, 1, null, null], [1, 2, null, null], [1, 3, null, null], [1, 4, null, null],
+        [2, 1, 5, 5], [2, 2, null, null], [2, 3, null, null], [2, 4, null, null],
+      ]);
     });
 
     it('should merge cells on startup respecting indexes sequence changes', () => {
