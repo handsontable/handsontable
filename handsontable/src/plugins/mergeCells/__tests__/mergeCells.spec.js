@@ -1,5 +1,3 @@
-import HyperFormula from "hyperformula";
-
 describe('MergeCells', () => {
   const id = 'testContainer';
 
