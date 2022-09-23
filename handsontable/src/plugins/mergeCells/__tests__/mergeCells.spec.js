@@ -52,11 +52,10 @@ describe('MergeCells', () => {
         afterChange,
       });
 
-      expect(afterChange.calls.mostRecent().args[0]).toEqual([
-        [0, 1, null, null], [0, 2, 3, 3], [0, 3, 4, 4], [0, 4, null, null],
-        [1, 1, null, null], [1, 2, null, null], [1, 3, null, null], [1, 4, null, null],
-        [2, 1, 5, 5], [2, 2, null, null], [2, 3, null, null], [2, 4, null, null],
-      ]);
+      // Not updating the first column. Data overwriting from the second column.
+      expect(afterChange.calls.mostRecent().args[0].length).toBe(12); // 4 columns x 3 rows
+      expect(getSourceData()).toEqual(data);
+      expect(getData()).toEqual(data);
     });
 
     it('should merge cells on startup respecting indexes sequence changes', () => {
