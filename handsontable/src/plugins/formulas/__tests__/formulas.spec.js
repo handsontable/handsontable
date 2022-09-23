@@ -2689,30 +2689,38 @@ describe('Formulas general', () => {
   });
 
   it('should not overwrite source data by formula calculation values when there are some merge cells', () => {
+    const data = [
+      [null, null, 3, '=SUM(C1*2)', null],
+      [null, null, null, null, null],
+      [null, null, null, null, null],
+      [null, '=SUM(D1*3)', null, null, null],
+    ];
+
     handsontable({
-      data: [
-        [null, null, '=SUM(B2*2)'],
-        [null, 3, null]
-      ],
+      data,
       formulas: {
         engine: HyperFormula
       },
       mergeCells: [{
         row: 0,
         col: 3,
-        rowspan: 1,
+        rowspan: 2,
         colspan: 2
       }, {
-        row: 0,
-        col: 2,
-        rowspan: 2,
-        colspan: 1
+        row: 3,
+        col: 1,
+        rowspan: 1,
+        colspan: 2
       }],
-      manualColumnMove: [1, 0, 2],
     });
 
-    expect(getSourceData()).toEqual([[null, null, '=SUM(B2*2)'], [null, 3, null]]);
-    expect(getData()).toEqual([[null, null, 6], [3, null, null]]);
+    expect(getSourceData()).toEqual(data);
+    expect(getData()).toEqual([
+      [null, null, 3, 6, null],
+      [null, null, null, null, null],
+      [null, null, null, null, null],
+      [null, 18, null, null, null]
+    ]);
   });
 
   it('should not crash when declaring a named expression with a sheet name that contains a `-` (#8057)', () => {
