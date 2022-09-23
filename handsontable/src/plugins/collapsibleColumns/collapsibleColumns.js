@@ -427,20 +427,19 @@ export class CollapsibleColumns extends BasePlugin {
    * Adds the indicator to the headers.
    *
    * @private
-   * @param {number} visualColumnsIndex Column index.
+   * @param {number} column Column index.
    * @param {HTMLElement} TH TH element.
    * @param {number} headerLevel The index of header level counting from the top (positive
    *                             values counting from 0 to N).
    */
-  onAfterGetColHeader(visualColumnsIndex, TH, headerLevel) {
+  onAfterGetColHeader(column, TH, headerLevel) {
     const {
       collapsible,
       origColspan,
       isCollapsed,
-    } = this.headerStateManager.getHeaderSettings(headerLevel, visualColumnsIndex) ?? {};
+    } = this.headerStateManager.getHeaderSettings(headerLevel, column) ?? {};
 
-    const isNodeCollapsible = collapsible && origColspan > 1 &&
-      visualColumnsIndex >= this.hot.getSettings().fixedColumnsStart;
+    const isNodeCollapsible = collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsStart;
     let collapsibleElement = TH.querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
     if (isNodeCollapsible) {
