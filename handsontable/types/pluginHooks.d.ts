@@ -87,7 +87,7 @@ export interface Events {
   afterFilter?: (conditionsStack: FiltersColumnConditions[]) => void;
   afterFormulasValuesUpdate?: (changes: object[]) => void;
   afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
-  afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement) => void;
+  afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement, headerLevel: number) => void;
   afterGetColumnHeaderRenderers?: (renderers: Array<(col: number, TH: HTMLTableHeaderCellElement) => void>) => void;
   afterGetRowHeader?: (row: number, TH: HTMLTableHeaderCellElement) => void;
   afterGetRowHeaderRenderers?: (renderers: Array<(row: number, TH: HTMLTableHeaderCellElement) => void>) => void;

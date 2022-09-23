@@ -439,8 +439,8 @@ export class CollapsibleColumns extends BasePlugin {
       isCollapsed,
     } = this.headerStateManager.getHeaderSettings(headerLevel, visualColumnsIndex) ?? {};
 
-    // const isNodeCollapsible = collapsible && origColspan > 1 && visualColumnsIndex >= this.hot.getSettings().fixedColumnsStart;
-    const isNodeCollapsible = collapsible && origColspan > 1;
+    const isNodeCollapsible = collapsible && origColspan > 1 &&
+      visualColumnsIndex >= this.hot.getSettings().fixedColumnsStart;
     let collapsibleElement = TH.querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
     if (isNodeCollapsible) {
