@@ -390,7 +390,7 @@ export default {
       a
         color $accentColor
 
-@media (max-width: $MQNavbarNarrow)
+@media (max-width: $extraLarge)
   .search-box.search-box
     margin-right 0
     input
@@ -419,7 +419,7 @@ export default {
   .search-box input
     height 2rem
 
-@media (max-width: $MQNavbarNarrow) and (min-width: $MQMobile)
+@media (max-width: $extraLarge) and (min-width: $MQMobile)
   .search-box
     .suggestions
       left 0

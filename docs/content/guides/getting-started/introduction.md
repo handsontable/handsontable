@@ -15,21 +15,20 @@ searchCategory: Guides
 
 ::: only-for javascript
 ::: tip
-Using React? [Switch to the React version of this documentation](@/react/guides/getting-started/introduction.md).
+Are you using React? [Explore the React version](@/react/guides/getting-started/introduction.md) of this documentation.
 :::
 :::
 
 ## What is Handsontable?
 
-Handsontable (pronounced "hands-on-table") is a JavaScript data grid component that provides the well-known look and feel of spreadsheet applications.
+Handsontable (pronounced "hands-on-table") is a JavaScript data grid component that brings the well-known look and feel of spreadsheets to your application.
 
 Thousands of business apps depend on Handsontable for entering, editing, validating, and cleansing data that comes from remote sources such as databases and APIs, or from HTML documents, Excel files, Google Sheets, and manual input.
 
 ## Get started with Handsontable
-
-To jump straight into the sample code, open Handsontable's demo app at CodeSandbox. Get your data grid up and running in just a few minutes:
-
 ::: only-for javascript
+To jump straight into the sample code, open the demo app at CodeSandbox: 
+
 - [JavaScript demo](https://codesandbox.io/s/handsontable-javascript-data-grid-hello-world-app-forked-zee1jw)
 - [React demo](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-forked-16c9gw)
 - [Angular demo](https://codesandbox.io/s/handsontable-angular-data-grid-hello-world-app-forked-fz9zrz)
@@ -38,10 +37,10 @@ To jump straight into the sample code, open Handsontable's demo app at CodeSandb
 :::
 
 ::: only-for react
-- [React demo](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-forked-16c9gw)
+To jump straight into the sample code, [open the demo app at CodeSandbox](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-forked-16c9gw). 
 :::
 
-Then, move on to [connecting](@/guides/getting-started/binding-to-data.md) your data and [configuring](@/guides/getting-started/configuration-options.md) Handsontable's built-in features. For more complex implementations, use Handsontable's [API](@/api/introduction.md).
+Then, move on to [connecting](@/guides/getting-started/binding-to-data.md) your data and [configuring](@/guides/getting-started/configuration-options.md) Handsontable's built-in features. For more advanced implementations, use Handsontable's [API](@/api/introduction.md).
 
 ### Quickstart
 
@@ -79,13 +78,7 @@ Explore Handsontable's documentation for [React](@/react/guides/getting-started/
 
 ## What can I use Handsontable for?
 
-Think of Handsontable as an extensible framework that lets you quickly build tabular, data-oriented user interfaces.
-
-Choose those of the built-in features that you need, and customize the rest through your own [cell types](@/guides/cell-types/cell-type.md), [plugins](@/guides/tools-and-building/custom-plugins.md), and the comprehensive [API](@/api/introduction.md). Provide your users with a highly personalized experience, tailor-made for your business case and unmatched by off-the-shelf software.
-
-### Real-life use cases
-
-Handsontable helps developers solve real-life problems. A few examples:
+Think of Handsontable as an extensible framework that lets you quickly build tabular, data-oriented user interfaces. Handsontable helps developers solve real-life problems. A few examples:
 
 - In an internal financial application, an editable, Handsontable-based grid simplifies the process of importing hand-picked data from Excel and Google Sheets.
 - In a construction company's software, an interactive data table built with Handsontable helps users modify codes and standards tables.
@@ -95,7 +88,7 @@ Handsontable helps developers solve real-life problems. A few examples:
 
 ### Types of software
 
-Handsontable's vast set of built-in features and its near-infinite customizability keep it present across different industries and types of software, for example:
+Handsontable's built-in features and customizability keep it present across different industries and types of software, for example:
 
 - Data modeling applications
 - Resource planning software
@@ -121,6 +114,7 @@ Contribute to the development of Handsontable:
 
 ## Stay in the loop
 
-- [Release notes](@/guides/upgrade-and-migration/release-notes.md)
+- [Changelog](@/guides/upgrade-and-migration/release-notes.md)
+- [Roadmap](https://github.com/handsontable/handsontable/milestones)
 - [Blog](https://handsontable.com/blog)
 - [Twitter](https://twitter.com/handsontable)

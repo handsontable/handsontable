@@ -75,7 +75,7 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
   markdown: {
     toc: {
       includeLevel: [2, 3],
-      containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
+      containerHeaderHtml: '<div class="toc-container-header">In this article</div>'
     },
     anchor: {
       permalinkSymbol: '',
