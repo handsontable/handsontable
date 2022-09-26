@@ -14,13 +14,18 @@
 .controls {
   margin-top: 10px;
   margin-bottom: 10px;
+  padding: 6px 16px 16px 0;
 }
 
 // select all <button>s that are not descendants of .handsontable container elements
+.tabs-component ul.tabs-component-tabs {
+  position: relative;
+}
 .page button:not(.theme-code-group__nav-tab, .handsontable *) {
   padding: 8px 14px;
   font-size: 14px;
   display: inline-block;
+  position: static;
   cursor: pointer;
   text-decoration: none;
   border-radius: 4px;
