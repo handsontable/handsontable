@@ -36,7 +36,7 @@ html.theme-dark {
 
   /* Navbar */
   header.navbar, aside.sidebar {
-    border-color $sectionBorderColor
+    border none
 
     /* Navbar links */
     & .nav-link {
@@ -59,7 +59,7 @@ html.theme-dark {
         border-color $accentColor
       }
 
-      @media (max-width: $MQNavbarNarrow) {
+      @media (max-width: $extraLarge) {
         border-color transparent
         background-color transparent
 
@@ -128,7 +128,7 @@ html.theme-dark {
       color $fontColor
 
       &:hover {
-        background $sidebarSelectedBackgroundColor
+        background $sidebarHoverBackgroundColor
       }
 
       &.active {
@@ -147,7 +147,7 @@ html.theme-dark {
   /* Table of contents */
   .table-of-contents {
     scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
-    border-left-color $sectionBorderColor
+    border none
 
     .toc-container-header {
       color $fontColor
@@ -157,12 +157,15 @@ html.theme-dark {
       color $fontColor
 
       &.active {
-        color: $fontColor
-        font-weight bold
+        color: $linkFontColor;
+        
+        &:hover {
+          color: $linkFontColor;
+        }
       }
 
       &:hover {
-        color $fontColor
+        color: $fontColor;
       }
     }
   }
@@ -175,7 +178,6 @@ html.theme-dark {
       .tabs-component-panels {
         color-scheme light
         color $tabsComponentBackgroundColor /* Related to issue #8355 */
-        background-color white; /* Related to issue #8355 */
       }
     }
 
@@ -313,11 +315,6 @@ html.theme-dark {
 
   /* Footer */
   footer.page-edit {
-    .edit-link {
-      a {
-        color $fontColor
-      }
-    }
 
     .last-updated {
       color $fontColor

@@ -1,17 +1,15 @@
-/* VuePress Tabs */
-@import '~vuepress-plugin-tabs/dist/themes/default.styl'
+/* VuePress tabs */
+@import '~vuepress-plugin-tabs/dist/themes/default'
 @import 'vuepress-tabs-custom'
 
-@import 'utils'
+/* Scrollbar styles */
+@import 'scrollbar'
 
 /* Code group tabs */
 @import 'code-group'
 
-/* Table of contents */
+/* Table of contents (menu) */
 @import 'table-of-contents'
-
-/* Temporary stylesheet for various elements */
-@import 'quirks'
 
 /* Handsontable styles */
 @import 'handsontable'
@@ -21,6 +19,12 @@
 
 /* Examples */
 @import 'examples'
+
+/* Sidebar */
+@import 'sidebar'
+
+/* Navbar */
+@import 'navbar'
 
 /* Themes */
 @import 'theme-dark'
@@ -35,7 +39,7 @@ html {
 }
 
 body {
-  font-size 15px
+  font-size 16px
 }
 
 body, html, #app {
@@ -49,6 +53,29 @@ body div {
 .hidden {
   display none
 }
+  
+/* Layout */
+
+.page {
+  // limit the width for enormously big screens, this way it looks good
+  max-width: $homePageWidth; 
+  padding: 7rem 20rem 0;
+
+  @media (max-width: $large) {
+    padding-right: 3rem;
+  }
+
+  // floating sidebar should be inline on mobile, and float on wider screens
+  @media (max-width: $medium) {
+    padding: 7rem 2rem 1rem;
+    margin: 0;
+  }
+
+  // fix for layout overlapping. Works for IE10+
+  @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+    float: left;
+  }
+}
 
 a.source-code-link {
   font-size 12px
@@ -57,7 +84,7 @@ a.source-code-link {
   position relative
   color #444
 
-  @media (max-width: $MQMobile) {
+  @media (max-width: $medium) {
     float none
     top 0
   }
@@ -69,43 +96,26 @@ a.source-code-link {
   margin-top: -2.8rem;
 }
 
-/* Layout */
-
-.page {
-  padding-top: 3.6rem;
-}
-
-// Fix for layout overlapping. Works for IE10+
-@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
-  .page {
-    float: left;
-  }
-}
+/* Page elements */
 
 .page-top, .page-edit, .page-nav {
-  max-width: 740px;
   margin: 0 auto;
-  padding: 0 2rem 0;
-
-  @media (min-width: $MQNarrow) {
-    padding: 0 2.5rem 0 4rem !important;
-  }
+  padding: 0;
 }
 
 .page-nav {
-  margin-top: 1rem !important;
+  margin-top: 0 !important;
 }
 
 .page-edit {
-  margin-top: 20px !important;
+  margin-top: 60px !important;
 }
 
 .theme-default-content:not(.custom) {
-  padding: 2rem;
-
-  @media (min-width: $MQNarrow) {
-    padding: 2rem 2.5rem 2rem 4rem;
-  }
+  width: 100%;
+  min-width: 200px;
+  max-width: $contentWidth;
+  padding: 0;
 }
 
 .theme-default-content > h1:first-child {
@@ -159,15 +169,23 @@ h1 {
   margin-bottom: 2rem !important;
   padding-top: 0 !important;
   margin-top: 0.7rem !important;
+  position: relative;
+  
+  .header-framework {
+    position: absolute;
+    top: -24px;
+    font-size: 16px;
+    opacity: .8;
+  }
 }
 
 h2 {
   margin-bottom: 1rem !important;
   padding-bottom: 6px;
   font-size: 1.55rem;
-  border-color: #e9eef2;
   padding-top: 0.5rem !important;
   margin-top: 1.3rem !important;
+  border: none;
 }
 
 h3 {
@@ -187,6 +205,7 @@ h5 {
 }
 
 h1, h2, h3, h4, h5 {
+  
   a.header-anchor::before {
     content: '#';
     visibility: 'hidden';
@@ -237,68 +256,14 @@ table {
 .migration-guide table {
   word-break: break-word;
 }
-
-// floating sidebar should be inline on mobile, and float on wider screens
-
-@media (max-width: $MQNarrow) {
-  .page {
-    padding-left: 17rem;
-  }
-}
-
-@media (max-width: $MQMobile) {
-  .page {
-    padding-left: 0;
-  }
-}
-
-@media (min-width: 1080px) {
-  .page {
-      .page-edit
-      .page-nav
-      .page-top
-      .theme-default-content {
-          margin: 0;
-          max-width: calc(100% - 370px);
-      }
-  }
-}
-@media (min-width: 1200px) {
-.page {
-  .page-edit
-  .page-nav
-  .page-top
-  .theme-default-content {
-    max-width: calc(100% - 370px);
-
-    .table-of-contents {
-      right: 0;
-    }
-  }
-}
-}
-@media (min-width: 1500px) {
-.page {
-  .page-edit
-  .page-nav
-  .page-top
-  .theme-default-content {
-    max-width: 900px;
-
-    .table-of-contents {
-      left: calc(900px + 416px);
-    }
-  }
-}
-}
-div.js-fiddle-link {
-  position: relative;
+  
+.tabs-component-tab.js-fiddle-tab {
+  position: absolute;
   top: 6px;
-  z-index: 10;
-  float: right;
-  right: 130px;
-  width: 0;
-  white-space: nowrap;
+  right: 5px;
+}
+
+div.js-fiddle-link {
 
   button {
     padding: 6px 14px!important;
@@ -306,11 +271,6 @@ div.js-fiddle-link {
   button:hover{
     background: #454554;
   }
-}
-
-.page-edit .edit-link a, .page-edit .last-updated .prefix,
-.page-edit .last-updated .time {
-//color: #2c3e50!important;
 }
 
 .page-nav .inner {
@@ -338,7 +298,7 @@ div.js-fiddle-link {
     border-radius: 8px;
     transition: all .15s ease;
 
-    @media(max-width: $MQNarrow) {
+    @media(max-width: $large) {
       width: calc(50% - 28px);
       margin-bottom: 10px;
     }
@@ -417,13 +377,12 @@ kbd {
   background: #fafbff;
 }
 
-@media (max-width: $MQMobileNarrow) {
+@media (max-width: $extraLarge) {
   kbd {
     white-space: pre-wrap;
     display: inline-block;
   }
 }
-
 
 /* Styles for the icon-pack page */
 
@@ -454,7 +413,7 @@ kbd {
   }
 }
 
-@media (max-width: $MQMobileNarrow) {
+@media (max-width: $extraLarge) {
   .icons-wrapper {
     > div {
       width: 49%;
@@ -469,7 +428,7 @@ kbd {
 
 /* Code field styling */
 
-@media (max-width: $MQMobileNarrow) {
+@media (max-width: $extraLarge) {
   .theme-default-content div[class*="language-"] {
     margin initial
   }
