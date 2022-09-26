@@ -27,15 +27,14 @@ describe('MergeCells', () => {
     });
 
     it('should overwrite proper cells while creating new dataset (with nulls in place of merge areas)', () => {
-      const data = [
-        [null, null, 3, 4, null],
-        [null, null, null, null, null],
-        [null, 5, null, null, null],
-      ];
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
-        data,
+        data: [
+          [null, null, 3, 4, null],
+          [null, null, null, null, null],
+          [null, 5, null, null, null],
+        ],
         mergeCells: [{
           row: 0,
           col: 3,
@@ -50,10 +49,22 @@ describe('MergeCells', () => {
         afterChange,
       });
 
-      // 2 rows x 2 columns - 1 cell + 1 rows x 2 columns - 1 cell.
-      expect(afterChange.calls.mostRecent().args[0].length).toBe(4);
-      expect(getSourceData()).toEqual(data);
-      expect(getData()).toEqual(data);
+      expect(afterChange.calls.mostRecent().args[0]).toEqual([
+        [0, 4, null, null],
+        [1, 3, null, null],
+        [1, 4, null, null],
+        [2, 2, null, null],
+      ]);
+      expect(getSourceData()).toEqual([
+        [null, null, 3, 4, null],
+        [null, null, null, null, null],
+        [null, 5, null, null, null],
+      ]);
+      expect(getData()).toEqual([
+        [null, null, 3, 4, null],
+        [null, null, null, null, null],
+        [null, 5, null, null, null],
+      ]);
     });
 
     it('should merge cells on startup respecting indexes sequence changes', () => {

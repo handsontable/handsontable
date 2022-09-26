@@ -2689,15 +2689,13 @@ describe('Formulas general', () => {
   });
 
   it('should not overwrite source data by formula calculation values when there are some merge cells', () => {
-    const data = [
-      [null, '=SUM(C1*2)', 3, '=SUM(C1*2)', null],
-      [null, null, null, null, null],
-      [null, null, null, null, null],
-      [null, '=SUM(D1*3)', null, null, null],
-    ];
-
     handsontable({
-      data,
+      data: [
+        [null, '=SUM(C1*2)', 3, '=SUM(C1*2)', null],
+        [null, null, null, null, null],
+        [null, null, null, null, null],
+        [null, '=SUM(D1*3)', null, null, null],
+      ],
       formulas: {
         engine: HyperFormula
       },
@@ -2714,7 +2712,12 @@ describe('Formulas general', () => {
       }],
     });
 
-    expect(getSourceData()).toEqual(data);
+    expect(getSourceData()).toEqual([
+      [null, '=SUM(C1*2)', 3, '=SUM(C1*2)', null],
+      [null, null, null, null, null],
+      [null, null, null, null, null],
+      [null, '=SUM(D1*3)', null, null, null],
+    ]);
     expect(getData()).toEqual([
       [null, 6, 3, 6, null],
       [null, null, null, null, null],
