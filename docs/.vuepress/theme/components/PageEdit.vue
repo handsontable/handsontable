@@ -42,7 +42,7 @@ export default {
         return this.$site.themeConfig.lastUpdated;
       }
 
-      return 'Last Updated';
+      return 'Last edit';
     },
 
     editLink() {
@@ -135,7 +135,6 @@ export default {
   .edit-link
     display inline-block
     a
-      color $textColor
       margin-right 0.25rem
       font-size 0.9rem
       font-weight 400

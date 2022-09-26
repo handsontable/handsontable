@@ -47,7 +47,7 @@ export default {
     guideLink() {
       return {
         link: `${this.frameworkUrlPrefix}/`,
-        text: 'Guides'
+        text: 'Docs'
       };
     },
     apiLink() {
@@ -138,8 +138,6 @@ export default {
     &:hover, &.router-link-active
       color $textColor
   .nav-item > a
-    &.external > span
-      display none
     &.router-link-active
       margin-bottom -2px
       border-bottom 2px solid lighten($accentColor, 8%)

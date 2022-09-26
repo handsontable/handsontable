@@ -164,7 +164,6 @@ export default {
   .mobile-dropdown-title
     @extends .dropdown-title
     display none
-    font-weight 600
     font-size inherit
       &:hover
         color $accentColor
