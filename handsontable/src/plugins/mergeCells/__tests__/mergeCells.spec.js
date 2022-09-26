@@ -26,7 +26,7 @@ describe('MergeCells', () => {
       expect(TD.getAttribute('colspan')).toBe('2');
     });
 
-    it('should overwrite proper range while creating new dataset (with nulls in place of merge areas)', () => {
+    it('should overwrite proper cells while creating new dataset (with nulls in place of merge areas)', () => {
       const data = [
         [null, null, 3, 4, null],
         [null, null, null, null, null],
@@ -50,8 +50,8 @@ describe('MergeCells', () => {
         afterChange,
       });
 
-      // Not updating the first column. Data overwriting from the second column.
-      expect(afterChange.calls.mostRecent().args[0].length).toBe(12); // 4 columns x 3 rows
+      // 2 rows x 2 columns - 1 cell + 1 rows x 2 columns - 1 cell.
+      expect(afterChange.calls.mostRecent().args[0].length).toBe(4);
       expect(getSourceData()).toEqual(data);
       expect(getData()).toEqual(data);
     });
