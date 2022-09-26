@@ -24,6 +24,7 @@ Play around with a demo of Handsontable, in your favorite framework.
       midi; payment; usb; vr; xr-spatial-tracking"
     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
   ></iframe></div>
+
 ## Find the code on GitHub
 
 - [JavaScript demo app](https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/js/demo/)
