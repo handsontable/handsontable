@@ -12,7 +12,7 @@ Hooks.getSingleton().register('afterAutofill');
 export const PLUGIN_KEY = 'autofill';
 export const PLUGIN_PRIORITY = 20;
 const SETTING_KEYS = ['fillHandle'];
-const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
+const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row_above';
 const INTERVAL_FOR_ADDING_ROW = 200;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */

@@ -386,10 +386,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterDeselect');
   });
   this.selection.addLocalHook('insertRowRequire', (totalRows) => {
-    this.alter('insert_row', totalRows, 1, 'auto');
+    this.alter('insert_row_above', totalRows, 1, 'auto');
   });
   this.selection.addLocalHook('insertColRequire', (totalCols) => {
-    this.alter('insert_col', totalCols, 1, 'auto');
+    this.alter('insert_col_start', totalCols, 1, 'auto');
   });
 
   grid = {
@@ -1806,8 +1806,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @example
    * ```js
    * hot.suspendRender();
-   * hot.alter('insert_row', 5, 45);
-   * hot.alter('insert_col', 10, 40);
+   * hot.alter('insert_row_above', 5, 45);
+   * hot.alter('insert_col_start', 10, 40);
    * hot.setDataAtCell(1, 1, 'John');
    * hot.setDataAtCell(2, 2, 'Mark');
    * hot.setDataAtCell(3, 3, 'Ann');
@@ -1840,8 +1840,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @example
    * ```js
    * hot.suspendRender();
-   * hot.alter('insert_row', 5, 45);
-   * hot.alter('insert_col', 10, 40);
+   * hot.alter('insert_row_above', 5, 45);
+   * hot.alter('insert_col_start', 10, 40);
    * hot.setDataAtCell(1, 1, 'John');
    * hot.setDataAtCell(2, 2, 'Mark');
    * hot.setDataAtCell(3, 3, 'Ann');
@@ -1902,8 +1902,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @example
    * ```js
    * hot.batchRender(() => {
-   *   hot.alter('insert_row', 5, 45);
-   *   hot.alter('insert_col', 10, 40);
+   *   hot.alter('insert_row_above', 5, 45);
+   *   hot.alter('insert_col_start', 10, 40);
    *   hot.setDataAtCell(1, 1, 'John');
    *   hot.setDataAtCell(2, 2, 'Mark');
    *   hot.setDataAtCell(3, 3, 'Ann');
@@ -2054,8 +2054,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @example
    * ```js
    * hot.batch(() => {
-   *   hot.alter('insert_row', 5, 45);
-   *   hot.alter('insert_col', 10, 40);
+   *   hot.alter('insert_row_above', 5, 45);
+   *   hot.alter('insert_col_start', 10, 40);
    *   hot.setDataAtCell(1, 1, 'x');
    *   hot.setDataAtCell(2, 2, 'c');
    *   hot.setDataAtCell(3, 3, 'v');
@@ -2589,8 +2589,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function alter
    * @param {string} action Possible alter operations:
    *  <ul>
-   *    <li> `'insert_row'` </li>
-   *    <li> `'insert_col'` </li>
+   *    <li> `'insert_row'` (alias for `'insert_row_above'`) </li>
+   *    <li> `'insert_row_above'` </li>
+   *    <li> `'insert_row_below'` </li>
+   *    <li> `'insert_col'` (alias for `'insert_col_start'`) </li>
+   *    <li> `'insert_col_start'` (inserts column at the left in LTR and at the right in RTL [layout direction](@/guides/internationalization/layout-direction.md) mode) </li>
+   *    <li> `'insert_col_end'` (inserts column at the right in LTR and at the left in RTL [layout direction](@/guides/internationalization/layout-direction.md) mode) </li>
    *    <li> `'remove_row'` </li>
    *    <li> `'remove_col'` </li>
    * </ul>.
@@ -2602,9 +2606,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @example
    * ```js
    * // Insert new row above the row at given visual index.
-   * hot.alter('insert_row', 10);
+   * hot.alter('insert_row_above', 10);
+   * // Insert new row below the row at given visual index.
+   * hot.alter('insert_row_below', 5);
    * // Insert 3 new columns before 10th column.
-   * hot.alter('insert_col', 10, 3);
+   * hot.alter('insert_col_start', 10, 3);
    * // Remove 2 rows starting from 10th row.
    * hot.alter('remove_row', 10, 2);
    * // Remove 5 non-contiquous rows (it removes 3 rows from visual index 1 and 2 rows from visual index 5).
