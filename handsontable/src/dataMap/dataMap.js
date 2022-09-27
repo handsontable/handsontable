@@ -344,12 +344,14 @@ class DataMap {
     this.instance.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
 
     if (mode === 'below') {
-      physicalRowIndex = physicalRowIndex + 1;
+      physicalRowIndex = Math.min(physicalRowIndex + 1, sourceRowsCount);
     }
 
     this.spliceData(physicalRowIndex, 0, rowsToAdd);
 
-    this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
+    const newVisualRowIndex = this.instance.toVisualRow(physicalRowIndex);
+
+    this.instance.runHooks('afterCreateRow', newVisualRowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
 
     return {
@@ -379,10 +381,11 @@ class DataMap {
 
     const dataSource = this.dataSource;
     const maxCols = this.tableMeta.maxCols;
+    const countSourceCols = this.instance.countSourceCols();
     let columnIndex = index;
 
-    if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countSourceCols()) {
-      columnIndex = this.instance.countSourceCols();
+    if (typeof columnIndex !== 'number' || columnIndex >= countSourceCols) {
+      columnIndex = countSourceCols;
     }
 
     const continueProcess = this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
@@ -391,7 +394,7 @@ class DataMap {
       return 0;
     }
 
-    let physicalColumnIndex = this.instance.countSourceCols();
+    let physicalColumnIndex = countSourceCols;
 
     if (columnIndex < this.instance.countCols()) {
       physicalColumnIndex = this.instance.toPhysicalColumn(columnIndex);
@@ -403,7 +406,7 @@ class DataMap {
     let currentIndex = physicalColumnIndex;
 
     if (mode === 'end') {
-      currentIndex = currentIndex + 1;
+      currentIndex = Math.min(currentIndex + 1, countSourceCols);
     }
 
     const startPhysicalIndex = currentIndex;
@@ -435,7 +438,9 @@ class DataMap {
 
     this.instance.columnIndexMapper.insertIndexes(columnIndex, numberOfCreatedCols);
 
-    this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
+    const newVisualColumnIndex = this.instance.toVisualColumn(startPhysicalIndex);
+
+    this.instance.runHooks('afterCreateCol', newVisualColumnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
 
     return {
