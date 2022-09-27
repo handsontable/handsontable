@@ -460,7 +460,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           const insertRowMode = action === 'insert_row_below' ? 'below' : 'above';
 
           // eslint-disable-next-line no-param-reassign
-          index = (isDefined(index)) ? index : numberOfSourceRows;
+          index = index ?? (action === 'insert_row' || insertRowMode === 'below' ? numberOfSourceRows : 0);
           const {
             delta: rowDelta,
             startPhysicalIndex: startRowPhysicalIndex,
@@ -475,7 +475,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
             // Moving down the selection (when it exist). It should be present on the "old" row.
             // TODO: The logic here should be handled by selection module.
-            if (insertRowMode === 'above' && isDefined(currentFromRow) && currentFromRow >= index) {
+            if (isDefined(currentFromRow) && currentFromRow >= instance.toVisualRow(startRowPhysicalIndex)) {
               const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
               let currentFromColumn = currentFromRange.col;
 
@@ -525,7 +525,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
             // Moving right the selection (when it exist). It should be present on the "old" row.
             // TODO: The logic here should be handled by selection module.
-            if (insertColumnMode === 'start' && isDefined(currentFromColumn) && currentFromColumn >= index) {
+            if (isDefined(currentFromColumn) && currentFromColumn >= instance.toVisualCol(startColumnPhysicalIndex)) {
               const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
               let currentFromRow = currentFromRange.row;
 
