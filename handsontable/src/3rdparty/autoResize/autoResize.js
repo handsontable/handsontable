@@ -37,8 +37,8 @@ export function autoResize() {
       else {
         text.data = el.value + newChar; //IE8
       }
-      // Won't expand the element size for displaying body as `grid`, `inline-grid` or `flex` with `flex-direction`
-      // set as `column`.
+      // Won't expand the element size for displaying body as for example, `grid`, `inline-grid` or `flex` with 
+      // `flex-direction` set as `column`.
       span.style.position = 'absolute';
       span.style.fontSize = getComputedStyle(el).fontSize;
       span.style.fontFamily = getComputedStyle(el).fontFamily;

@@ -31,6 +31,65 @@ describe('TextEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
 
+  it('should render an editor with proper width when body is a grid element', () => {
+    document.body.style.display = 'grid';
+
+    const hot = handsontable({
+      columns: [
+        {
+          type: 'text',
+        }
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+
+    document.body.style.display = '';
+  });
+
+  it('should render an editor with proper width when body is an inline-grid element', () => {
+    document.body.style.display = 'inline-grid';
+
+    const hot = handsontable({
+      columns: [
+        {
+          type: 'text',
+        }
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+
+    document.body.style.display = '';
+  });
+
+  it('should render an editor with proper width when body is a flex element', () => {
+    document.body.style.display = 'flex';
+    document.body.style.flexDirection = 'column';
+
+    const hot = handsontable({
+      columns: [
+        {
+          type: 'text',
+        }
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+
+    document.body.style.display = '';
+    document.body.style.flexDirection = '';
+  });
+
   it('should render an editor in specified position at cell 0, 0 when all headers are selected', () => {
     handsontable({
       rowHeaders: true,
