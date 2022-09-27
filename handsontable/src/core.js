@@ -459,6 +459,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           // "above" is a default behavior for creating new rows
           const insertRowMode = action === 'insert_row_below' ? 'below' : 'above';
 
+          // The line below adds support for backward compatibility "insert_row" alter action. Calling
+          // "insert_row" action without arguments adds new row in the end of the dataset. For "insert_row_above"
+          // action the row is added in the beginning of the dataset.
           // eslint-disable-next-line no-param-reassign
           index = index ?? (action === 'insert_row' || insertRowMode === 'below' ? numberOfSourceRows : 0);
           const {
@@ -472,10 +475,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             const currentSelectedRange = selection.selectedRange.current();
             const currentFromRange = currentSelectedRange?.from;
             const currentFromRow = currentFromRange?.row;
+            const startVisualRowIndex = instance.toVisualRow(startRowPhysicalIndex);
 
             // Moving down the selection (when it exist). It should be present on the "old" row.
             // TODO: The logic here should be handled by selection module.
-            if (isDefined(currentFromRow) && currentFromRow >= instance.toVisualRow(startRowPhysicalIndex)) {
+            if (isDefined(currentFromRow) && currentFromRow >= startVisualRowIndex) {
               const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
               let currentFromColumn = currentFromRange.col;
 
@@ -522,10 +526,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             const currentSelectedRange = selection.selectedRange.current();
             const currentFromRange = currentSelectedRange?.from;
             const currentFromColumn = currentFromRange?.col;
+            const startVisualColumnIndex = instance.toVisualColumn(startColumnPhysicalIndex);
 
             // Moving right the selection (when it exist). It should be present on the "old" row.
             // TODO: The logic here should be handled by selection module.
-            if (isDefined(currentFromColumn) && currentFromColumn >= instance.toVisualCol(startColumnPhysicalIndex)) {
+            if (isDefined(currentFromColumn) && currentFromColumn >= startVisualColumnIndex) {
               const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
               let currentFromRow = currentFromRange.row;
 
