@@ -37,6 +37,9 @@ export function autoResize() {
       else {
         text.data = el.value + newChar; //IE8
       }
+      // Won't expand the element size for displaying body as `grid`, `inline-grid` or `flex` with `flex-direction`
+      // set as `column`.
+      span.style.position = 'absolute';
       span.style.fontSize = getComputedStyle(el).fontSize;
       span.style.fontFamily = getComputedStyle(el).fontFamily;
       span.style.whiteSpace = "pre";
@@ -136,6 +139,9 @@ export function autoResize() {
         el.style.maxWidth = defaults.maxWidth + 'px';
         el.style.overflowY = 'hidden';
       }
+
+      console.log(el.style.minWidth = defaults.minWidth + 'px', 
+      el.style.maxWidth = defaults.maxWidth + 'px');
 
       if (doObserve) {
         observe(el, 'change', resize);
