@@ -355,7 +355,7 @@ describe('DropdownMenu', () => {
         .simulate('mouseup');
 
       expect(afterCreateColCallback)
-        .toHaveBeenCalledWith(3, 1, 'ContextMenu.columnRight');
+        .toHaveBeenCalledWith(2, 1, 'ContextMenu.columnRight');
       expect(countCols()).toEqual(5);
     });
 

@@ -284,11 +284,13 @@ class DataMap {
    *
    * @param {number} [index] Physical index of the row before which the new row will be inserted.
    * @param {number} [amount=1] An amount of rows to add.
-   * @param {string} [source] Source of method call.
+   * @param {object} [options] Additional options for created rows.
+   * @param {string} [options.source] Source of method call.
+   * @param {'above'|'below'} [options.mode] Sets where the row will be inserted. Above or below the passed index.
    * @fires Hooks#afterCreateRow
    * @returns {number} Returns number of created rows.
    */
-  createRow(index, amount = 1, source) {
+  createRow(index, amount = 1, { source, mode = 'above' } = {}) {
     const sourceRowsCount = this.instance.countSourceRows();
     let physicalRowIndex = sourceRowsCount;
     let numberOfCreatedRows = 0;
@@ -341,12 +343,19 @@ class DataMap {
 
     this.instance.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
 
+    if (mode === 'below') {
+      physicalRowIndex = physicalRowIndex + 1;
+    }
+
     this.spliceData(physicalRowIndex, 0, rowsToAdd);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
 
-    return numberOfCreatedRows;
+    return {
+      delta: numberOfCreatedRows,
+      startPhysicalIndex: physicalRowIndex,
+    };
   }
 
   /**
@@ -354,11 +363,14 @@ class DataMap {
    *
    * @param {number} [index] Visual index of the column before which the new column will be inserted.
    * @param {number} [amount=1] An amount of columns to add.
-   * @param {string} [source] Source of method call.
+   * @param {object} [options] Additional options for created columns.
+   * @param {string} [options.source] Source of method call.
+   * @param {'start'|'end'} [options.mode] Sets where the column will be inserted. Start (left in LTR) or end (right in LTR)
+   * the passed index.
    * @fires Hooks#afterCreateCol
    * @returns {number} Returns number of created columns.
    */
-  createCol(index, amount = 1, source) {
+  createCol(index, amount = 1, { source, mode = 'start' } = {}) {
     if (!this.instance.isColumnModificationAllowed()) {
       throw new Error('Cannot create new column. When data source in an object, ' +
         'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
@@ -390,6 +402,12 @@ class DataMap {
     let numberOfCreatedCols = 0;
     let currentIndex = physicalColumnIndex;
 
+    if (mode === 'end') {
+      currentIndex = currentIndex + 1;
+    }
+
+    const startPhysicalIndex = currentIndex;
+
     while (numberOfCreatedCols < amount && nrOfColumns < maxCols) {
       if (typeof columnIndex !== 'number' || columnIndex >= nrOfColumns) {
         if (numberOfSourceRows > 0) {
@@ -420,7 +438,10 @@ class DataMap {
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
 
-    return numberOfCreatedCols;
+    return {
+      delta: numberOfCreatedCols,
+      startPhysicalIndex,
+    };
   }
 
   /**
