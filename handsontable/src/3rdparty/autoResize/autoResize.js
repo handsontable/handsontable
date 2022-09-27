@@ -140,9 +140,6 @@ export function autoResize() {
         el.style.overflowY = 'hidden';
       }
 
-      console.log(el.style.minWidth = defaults.minWidth + 'px', 
-      el.style.maxWidth = defaults.maxWidth + 'px');
-
       if (doObserve) {
         observe(el, 'change', resize);
         observe(el, 'cut', delayedResize);
