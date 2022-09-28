@@ -396,6 +396,110 @@ describe('Core.alter', () => {
       `).toBeMatchToSelectionPattern();
     });
 
+    it('should shift down the selected row when it selects the row below the inserted one', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectRows(2, 3);
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      alter('insert_row_below', 1, 1);
+
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not shift down the selected row when it selects the row above the inserted one', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectRows(2, 3);
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      alter('insert_row_below', 2, 1);
+
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should keep the whole table selection when the row is added', () => {
+      handsontable({
+        data: createSpreadsheetData(3, 5),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectAll();
+      expect(`
+        |   ║ * : * : * : * : * |
+        |===:===:===:===:===:===|
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+
+      alter('insert_row_below', 0);
+
+      expect(`
+        |   ║ * : * : * : * : * |
+        |===:===:===:===:===:===|
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+
+      alter('insert_row_below', 100); // add to the end of the table
+
+      expect(`
+        |   ║ * : * : * : * : * |
+        |===:===:===:===:===:===|
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+    });
+
     it('should insert row at proper position when there were some row sequence changes', () => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5)
