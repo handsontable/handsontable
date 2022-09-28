@@ -1,0 +1,7 @@
+{
+  "title": "Added a feature that allows adding row and column in the specified position. Above or Below the given index.",
+  "type": "added",
+  "issue": 9471,
+  "breaking": false,
+  "framework": "none"
+}
