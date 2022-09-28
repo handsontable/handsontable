@@ -172,12 +172,7 @@ triggerBtn.addEventListener('click', () => {
 :::
 
 ::: only-for react
-::: example #example :react --css 1 --js 2
-```css
-.exampleParent {
-  height: 150px;
-}
-```
+::: example #example :react --js 1
 ```jsx
 import { useRef, useState, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -198,12 +193,8 @@ const ExampleComponent = () => {
   };
 
   useEffect(() => {
-    if (isContainerExpanded) {
-      document.getElementById('exampleParent').style.height = '400px';
-    } else {
-      document.getElementById('exampleParent').style.height = ''; // reset to initial 150px;
-    }
-
+    // simulate layout change outside of React lifecycle
+    document.getElementById('exampleParent').style.height = isContainerExpanded ? '400px' : '150px';
     hotRef.current.hotInstance.refreshDimensions();
   });
 
