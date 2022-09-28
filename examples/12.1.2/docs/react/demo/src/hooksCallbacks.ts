@@ -4,6 +4,7 @@ import {
   ODD_ROW_CLASS
 } from "./constants";
 import { RefObject } from "react";
+import { CellValue, RangeType } from "handsontable/common";
 
 const headerAlignments = new Map([
   ["9", "htCenter"],
@@ -150,4 +151,13 @@ export const positionHorizontally: PositionHorizontally = function positionHoriz
       }
       editorInstance.editorRef.current!.style.left = editedCellRect.start + window.pageYOffset + 9 + 'px';
     }
+}
+
+type OmitNonNumericPaste = (data: CellValue[], coords: RangeType[]) => void | boolean;
+
+export const omitNonNumericPaste: OmitNonNumericPaste = function omitNonNumericPaste(data, coords) {
+  const { startCol } = coords[0];
+  if ((startCol === 5 || startCol === 6) && isNaN(data[0] as any)) {
+    return false
+  }
 }

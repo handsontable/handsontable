@@ -12,7 +12,8 @@ import {
   drawCheckboxInRowHeaders,
   addClassesToRows,
   changeCheckboxCell,
-  alignHeaders
+  alignHeaders,
+  omitNonNumericPaste
 } from "./hooksCallbacks";
 
 import "handsontable/dist/handsontable.min.css";
@@ -46,12 +47,7 @@ const App = () => {
       beforeRenderer={addClassesToRows}
       afterGetRowHeader={drawCheckboxInRowHeaders}
       afterOnCellMouseDown={changeCheckboxCell}
-      beforePaste={(data, coords) => {
-        const {startCol} = coords[0];
-        if ((startCol === 5 || startCol === 6) && isNaN(data[0] as any)) {
-          return false
-        } 
-      }}
+      beforePaste={omitNonNumericPaste}
       manualRowMove={true}
       licenseKey="non-commercial-and-evaluation"
     >
