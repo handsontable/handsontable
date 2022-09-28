@@ -172,14 +172,9 @@ triggerBtn.addEventListener('click', () => {
 :::
 
 ::: only-for react
-::: example #example :react --css 1 --js 2
-```css
-#exampleParent {
-  height: 150px;
-}
-```
+::: example #example :react --js 1
 ```jsx
-import { useEffect, useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -190,29 +185,22 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
+  const [isContainerExpanded, setIsContainerExpanded] = useState(false);
   const hotRef = useRef(null);
-  
-  let triggerBtnClickCallback;
+
+  const triggerBtnClickCallback = () => {
+    setIsContainerExpanded(!isContainerExpanded);
+  };
 
   useEffect(() => {
-    const hot = hotRef.current.hotInstance;
-
-    triggerBtnClickCallback = () => {
-      if (triggerBtn.textContent === 'Collapse container') {
-        exampleParent.style.height = ''; // reset to initial 150px;
-        hot.refreshDimensions();
-        triggerBtn.textContent = 'Expand container';
-      } else {
-        exampleParent.style.height = '400px';
-        hot.refreshDimensions();
-        triggerBtn.textContent = 'Collapse container';
-      }
-    };
+    // simulate layout change outside of React lifecycle
+    document.getElementById('exampleParent').style.height = isContainerExpanded ? '400px' : '150px';
+    hotRef.current.hotInstance.refreshDimensions();
   });
 
   return (
     <>
-      <div id="exampleParent">
+      <div id="exampleParent" className="exampleParent">
         <HotTable
           data={Handsontable.helper.createSpreadsheetData(100, 50)}
           rowHeaders={true}
@@ -221,13 +209,19 @@ const ExampleComponent = () => {
           height="100%"
           rowHeights={23}
           colWidths={100}
-          licenseKey="non-commercial-and-evaluation"  
+          licenseKey="non-commercial-and-evaluation"
           ref={hotRef}
         />
       </div>
-      
+
       <div className="controls">
-        <button id="triggerBtn" className="button button--primary" onClick={(...args) => triggerBtnClickCallback(...args)}>Expand container</button>
+        <button
+          id="triggerBtn"
+          className="button button--primary"
+          onClick={(...args) => triggerBtnClickCallback(...args)}
+        >
+          {isContainerExpanded ? 'Collapse container' : 'Expand container'}
+        </button>
       </div>
     </>
   );
