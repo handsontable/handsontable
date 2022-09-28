@@ -199,38 +199,7 @@ describe('Core.alter', () => {
       expect(getCellMeta(3, 0)._test).toBeUndefined();
     });
 
-    it('should not mess cell meta objects after calling the action without parameters (#3581, #3989, #2114)', () => {
-      const greenRenderer = function(instance, td, ...args) {
-        Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
-        td.style.backgroundColor = 'green';
-      };
-
-      handsontable({
-        data: [
-          [0, 'a', true],
-          [1, 'b', false],
-          [2, 'c', true],
-          [3, 'd', true]
-        ],
-        cell: [
-          { row: 0, col: 0, renderer: greenRenderer, type: 'text', readOnly: true }
-        ],
-        columns: [
-          { type: 'numeric' },
-          { type: 'text' },
-          { type: 'checkbox' }
-        ]
-      });
-
-      alter('insert_row'); // without arguments works like `insert_row_below`
-
-      expect(getCellMeta(0, 0).renderer).toBe(greenRenderer);
-      expect(getCellMeta(0, 0).readOnly).toBe(true);
-
-      expect(getCellMeta(4, 0).renderer).not.toBe(greenRenderer);
-      expect(getCellMeta(4, 0).readOnly).toBe(false);
-    });
-
+    // #3581, #3989, #2114
     it('should add new row with cells type defined by cell meta options', () => {
       handsontable({
         data: [
@@ -264,6 +233,7 @@ describe('Core.alter', () => {
         startRows: 5,
         maxRows: 7
       });
+
       alter('insert_row', 1);
       alter('insert_row', 1);
       alter('insert_row', 1);
@@ -282,6 +252,7 @@ describe('Core.alter', () => {
         ],
         maxRows: 10
       });
+
       alter('insert_row', 1, 10);
 
       expect(countRows()).toBe(10);
@@ -296,6 +267,7 @@ describe('Core.alter', () => {
         beforeCreateRow,
         afterCreateRow,
       });
+
       alter('insert_row'); // without arguments works like `insert_row_below`
 
       expect(beforeCreateRow).toHaveBeenCalledTimes(1);
@@ -311,7 +283,7 @@ describe('Core.alter', () => {
       expect(afterCreateRow).toHaveBeenCalledWith(3, 2, 'customSource');
     });
 
-    it('should shift down only the last selection layer when it selects the cells below the inserted row', () => {
+    it('should shift down only the last selection layer when the row is inserted above that selection', () => {
       handsontable({
         data: createSpreadsheetData(8, 8),
         rowHeaders: true,
@@ -323,6 +295,7 @@ describe('Core.alter', () => {
         [1, 5, 4, 7],
         [5, 1, 7, 3],
       ]);
+
       expect(`
         |   ║   : - : - : - :   : - : - : - |
         |===:===:===:===:===:===:===:===:===|
@@ -336,7 +309,7 @@ describe('Core.alter', () => {
         | - ║   : 0 : 0 : 0 :   : 0 : 0 :   |
       `).toBeMatchToSelectionPattern();
 
-      alter('insert_row', 5, 2);
+      alter('insert_row_above', 5, 2);
 
       expect(`
         |   ║   : - : - : - :   : - : - : - |
@@ -354,7 +327,7 @@ describe('Core.alter', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should not shift the selection layers when they selects the cells above the inserted row', () => {
+    it('should not shift down the selection layers when the row is inserted below that selection', () => {
       handsontable({
         data: createSpreadsheetData(8, 8),
         rowHeaders: true,
@@ -365,21 +338,6 @@ describe('Core.alter', () => {
         [1, 5, 4, 7],
         [5, 1, 5, 4],
       ]);
-      keyUp('control/meta');
-      expect(`
-        |   ║   : - : - : - : - : - : - : - |
-        |===:===:===:===:===:===:===:===:===|
-        |   ║   :   :   :   :   :   :   :   |
-        | - ║   :   :   :   :   : 0 : 0 : 0 |
-        | - ║   :   :   :   :   : 0 : 0 : 0 |
-        | - ║   :   :   :   :   : 0 : 0 : 0 |
-        | - ║   :   :   :   :   : 0 : 0 : 0 |
-        | - ║   : A : 0 : 0 : 0 :   :   :   |
-        |   ║   :   :   :   :   :   :   :   |
-        |   ║   :   :   :   :   :   :   :   |
-      `).toBeMatchToSelectionPattern();
-
-      alter('insert_row', 6, 2);
 
       expect(`
         |   ║   : - : - : - : - : - : - : - |
@@ -392,12 +350,27 @@ describe('Core.alter', () => {
         | - ║   : A : 0 : 0 : 0 :   :   :   |
         |   ║   :   :   :   :   :   :   :   |
         |   ║   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      alter('insert_row_above', 6, 2);
+
+      expect(`
+        |   ║   : - : - : - : - : - : - : - |
+        |===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   |
+        | - ║   :   :   :   :   : 0 : 0 : 0 |
+        | - ║   :   :   :   :   : 0 : 0 : 0 |
+        | - ║   :   :   :   :   : 0 : 0 : 0 |
+        | - ║   :   :   :   :   : 0 : 0 : 0 |
+        | - ║   : A : 0 : 0 : 0 :   :   :   |
+        |   ║   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   |
         |   ║   :   :   :   :   :   :   :   |
         |   ║   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should shift down the selected row when it selects the row below the inserted one', () => {
+    it('should shift down the selected row when the new row is inserted above that selection', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -405,6 +378,7 @@ describe('Core.alter', () => {
       });
 
       selectRows(2, 3);
+
       expect(`
         |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
@@ -415,7 +389,7 @@ describe('Core.alter', () => {
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      alter('insert_row', 2, 1);
+      alter('insert_row_above', 2, 1);
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -429,7 +403,7 @@ describe('Core.alter', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should not shift down the selected row when it selects the row above the inserted one', () => {
+    it('should not shift down the selected row when the new row is inserted below that selection', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -437,6 +411,7 @@ describe('Core.alter', () => {
       });
 
       selectRows(2, 3);
+
       expect(`
         |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
@@ -447,7 +422,7 @@ describe('Core.alter', () => {
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      alter('insert_row', 3, 1);
+      alter('insert_row_above', 3, 1);
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -461,7 +436,7 @@ describe('Core.alter', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should keep the whole table selection when the row is added', () => {
+    it('should keep the whole table selected when the new row is added', () => {
       handsontable({
         data: createSpreadsheetData(3, 5),
         rowHeaders: true,
@@ -469,6 +444,7 @@ describe('Core.alter', () => {
       });
 
       selectAll();
+
       expect(`
         |   ║ * : * : * : * : * |
         |===:===:===:===:===:===|
@@ -477,7 +453,7 @@ describe('Core.alter', () => {
         | * ║ 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
 
-      alter('insert_row', 0); // add to the beginning of the table
+      alter('insert_row_above', 0); // add to the beginning of the table
 
       expect(`
         |   ║ * : * : * : * : * |
@@ -488,7 +464,7 @@ describe('Core.alter', () => {
         | * ║ 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
 
-      alter('insert_row', 100); // add to the end of the table
+      alter('insert_row_above', 100); // add to the end of the table
 
       expect(`
         |   ║ * : * : * : * : * |

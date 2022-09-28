@@ -511,6 +511,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           // "start" is a default behavior for creating new columns
           const insertColumnMode = action === 'insert_col_end' ? 'end' : 'start';
 
+          // The line below adds support for backward compatibility "insert_col" alter action. Calling
+          // "insert_col" action without arguments adds new column on the right of the dataset. For "insert_col_start"
+          // action the column is added on the left of the dataset.
+          // eslint-disable-next-line no-param-reassign
+          index = index ?? (action === 'insert_col' || insertColumnMode === 'end' ? instance.countSourceCols() : 0);
+
           const {
             delta: colDelta,
             startPhysicalIndex: startColumnPhysicalIndex,
