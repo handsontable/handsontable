@@ -17,10 +17,6 @@ export default function columnRightItem() {
       const alterAction = this.isRtl() ? 'insert_col_start' : 'insert_col_end';
 
       this.alter(alterAction, latestSelection.col, 1, 'ContextMenu.columnRight');
-
-      if (this.selection.isSelectedByCorner()) {
-        this.selectAll();
-      }
     },
     disabled() {
       if (!this.isColumnModificationAllowed()) {

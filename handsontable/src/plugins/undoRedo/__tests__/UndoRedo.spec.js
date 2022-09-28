@@ -428,7 +428,7 @@ describe('UndoRedo', () => {
           expect(getData()).toEqual([['A1', null, null]]);
         });
 
-        it('should unde removal of multiple columns with minSpareCols', () => {
+        it('should undo removal of multiple columns with minSpareCols', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(1, 2),
             minSpareCols: 1,

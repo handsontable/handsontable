@@ -477,9 +477,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             const currentFromRow = currentFromRange?.row;
             const startVisualRowIndex = instance.toVisualRow(startRowPhysicalIndex);
 
-            // Moving down the selection (when it exist). It should be present on the "old" row.
-            // TODO: The logic here should be handled by selection module.
-            if (isDefined(currentFromRow) && currentFromRow >= startVisualRowIndex) {
+            if (selection.isSelectedByCorner()) {
+              instance.selectAll();
+
+            } else if (isDefined(currentFromRow) && currentFromRow >= startVisualRowIndex) {
+              // Moving down the selection (when it exist). It should be present on the "old" row.
+              // TODO: The logic here should be handled by selection module.
               const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
               let currentFromColumn = currentFromRange.col;
 
@@ -528,9 +531,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             const currentFromColumn = currentFromRange?.col;
             const startVisualColumnIndex = instance.toVisualColumn(startColumnPhysicalIndex);
 
-            // Moving right the selection (when it exist). It should be present on the "old" row.
-            // TODO: The logic here should be handled by selection module.
-            if (isDefined(currentFromColumn) && currentFromColumn >= startVisualColumnIndex) {
+            if (selection.isSelectedByCorner()) {
+              instance.selectAll();
+
+            } else if (isDefined(currentFromColumn) && currentFromColumn >= startVisualColumnIndex) {
+              // Moving right the selection (when it exist). It should be present on the "old" row.
+              // TODO: The logic here should be handled by selection module.
               const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
               let currentFromRow = currentFromRange.row;
 
@@ -681,6 +687,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       const minCols = tableMeta.minCols;
       const minSpareCols = tableMeta.minSpareCols;
 
+      if (instance.countRows() === 0 && instance.countCols() === 0) {
+        selection.deselect();
+      }
+
       if (minRows) {
         // should I add empty rows to data source to meet minRows?
         const nrOfRows = instance.countRows();
@@ -736,14 +746,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
         }
       }
-      const rowCount = instance.countRows();
-      const colCount = instance.countCols();
-
-      if (rowCount === 0 || colCount === 0) {
-        selection.deselect();
-      }
 
       if (selection.isSelected()) {
+        const rowCount = instance.countRows();
+        const colCount = instance.countCols();
+
         arrayEach(selection.selectedRange, (range) => {
           let selectionChanged = false;
           let fromRow = range.from.row;
@@ -3821,10 +3828,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Count empty cols.
    */
   this.countEmptyCols = function(ending = false) {
-    if (instance.countRows() < 1) {
-      return 0;
-    }
-
     let emptyColumns = 0;
 
     rangeEachReverse(instance.countCols() - 1, (visualIndex) => {

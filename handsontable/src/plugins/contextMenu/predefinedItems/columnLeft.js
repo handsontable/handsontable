@@ -17,10 +17,6 @@ export default function columnLeftItem() {
       const alterAction = this.isRtl() ? 'insert_col_end' : 'insert_col_start';
 
       this.alter(alterAction, latestSelection.col, 1, 'ContextMenu.columnLeft');
-
-      if (this.selection.isSelectedByCorner()) {
-        this.selectAll();
-      }
     },
     disabled() {
       if (!this.isColumnModificationAllowed()) {

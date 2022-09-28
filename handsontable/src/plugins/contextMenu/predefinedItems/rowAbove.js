@@ -16,10 +16,6 @@ export default function rowAboveItem() {
       const latestSelection = this.getSelectedRangeLast().getTopLeftCorner();
 
       this.alter('insert_row_above', latestSelection.row, 1, 'ContextMenu.rowAbove');
-
-      if (this.selection.isSelectedByCorner()) {
-        this.selectAll();
-      }
     },
     disabled() {
       const selected = getValidSelection(this);
