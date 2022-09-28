@@ -104,7 +104,7 @@ export class StarsRenderer extends BaseEditorComponent {
     }
 
     return (
-      <div className="star htCenter">{"★".repeat(parseInt(this.props.value))}</div>
+      <div className="star htCenter">{"★".repeat(parseInt(this.getRangeValue(this.props.value)))}</div>
     );
   }
 }

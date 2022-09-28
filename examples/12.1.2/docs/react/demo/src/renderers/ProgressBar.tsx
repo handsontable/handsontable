@@ -76,7 +76,7 @@ export class ProgressBarRenderer extends BaseEditorComponent {
 
   getRangeValue(value: string): string {
     const numberValue = parseInt(value);
-    if (numberValue < 0 || !numberValue) {
+    if (numberValue < 0 || !numberValue ) {
       return '0';
     }
     if (numberValue > 100) {
