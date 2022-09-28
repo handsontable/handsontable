@@ -75,10 +75,11 @@ export class ProgressBarRenderer extends BaseEditorComponent {
   }
 
   getRangeValue(value: string): string {
-    if (parseInt(value) < 0) {
+    const numberValue = parseInt(value);
+    if (numberValue < 0 || !numberValue) {
       return '0';
     }
-    if (parseInt(value) > 100) {
+    if (numberValue > 100) {
       return '100';
     }
     return value;
@@ -105,7 +106,7 @@ export class ProgressBarRenderer extends BaseEditorComponent {
 
     return (
       <div style={{marginTop: 6}}>
-        <div className="progressBar" style={{ width: `${this.props.value}px` }} />
+        <div className="progressBar" style={{ width: `${this.getRangeValue(this.props.value)}px` }} />
       </div>
     );
   }
