@@ -172,9 +172,14 @@ triggerBtn.addEventListener('click', () => {
 :::
 
 ::: only-for react
-::: example #example :react --js 1
+::: example #example :react --css 1 --js 2
+```css
+.exampleParent {
+  height: 150px;
+}
+```
 ```jsx
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -190,15 +195,21 @@ const ExampleComponent = () => {
 
   const triggerBtnClickCallback = () => {
     setIsContainerExpanded(!isContainerExpanded);
-    hotRef.current.hotInstance.refreshDimensions();
   };
+
+  useEffect(() => {
+    if (isContainerExpanded) {
+      document.getElementById('exampleParent').style.height = '400px';
+    } else {
+      document.getElementById('exampleParent').style.height = ''; // reset to initial 150px;
+    }
+
+    hotRef.current.hotInstance.refreshDimensions();
+  });
 
   return (
     <>
-      <div
-        id="exampleParent"
-        style={{ height: isContainerExpanded ? '400px' : '150px' }}
-      >
+      <div id="exampleParent" className="exampleParent">
         <HotTable
           data={Handsontable.helper.createSpreadsheetData(100, 50)}
           rowHeaders={true}
