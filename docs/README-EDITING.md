@@ -16,15 +16,16 @@ When adding new documentation files, check the documentation [directory structur
 
 Each Markdown file can start with the following frontmatter tags:
 
-| Tag            | Meaning                                       | Default value                                              |
-| -------------- | --------------------------------------------- | ---------------------------------------------------------- |
-| `title`        | The page's header.                            | If not set, gets generated from the page's parent's title. |
-| `permalink`    | The page's **unique** URL.                    | If not set, gets generated from the Markdown file name.    |
-| `canonicalUrl` | A canonical URL of the page's latest version. | None (not required)                                        |
-| `metaTitle`    | The page's SEO meta title.                    | None (not required)                                        |
-| `description`  | The page's SEO meta description.              | None (not required)                                        |
-| `tags`         | Search tags used by the documentation search engine. | None (not required)                                        |
-| `react`        | Holds an alternative set of frontmatter tags (applied only to the React version of the page) | None (not required)                                        |
+| Tag              | Meaning                                              | Default value                                              |
+| ---------------- | ---------------------------------------------------- | ---------------------------------------------------------- |
+| `title`          | The page's header.                                   | If not set, gets generated from the page's parent's title. |
+| `permalink`      | The page's **unique** URL.                           | If not set, gets generated from the Markdown file name.    |
+| `canonicalUrl`   | A canonical URL of the page's latest version.        | None (not required)                                        |
+| `metaTitle`      | The page's SEO meta title.                           | None (not required)                                        |
+| `description`    | The page's SEO meta description.                     | None (not required)                                        |
+| `tags`           | Search tags used by the documentation search engine. | None (not required)                                 |
+| `react`          | Holds an alternative set of frontmatter tags (applied only to the React version of the page) | None (not required)                                             |
+| `searchCategory` | Search category used by the search engine to categorize the search results. | If not set, the search result will be listed under the default "Guides" section. |
 
 You can set different frontmatter tags for different framework versions of the page. For example, you can set `metaTitle` to say either `JS data grid` or `React data table`, depending on the framework:
 
@@ -53,6 +54,10 @@ react:
   metaTitle: Installation - Guide - Handsontable Documentation for React
   description: Install the wrapper for React via npm, import stylesheets, and use it to get up and running your application.
   customValue: Custom # Custom value that can be used within template and will be available only for React framework
+tags:
+  - api
+  - api ref
+searchCategory: API Reference # The list of categories can be found here ./docs/.vuepress/config.js#L258
 ---
 ```
 

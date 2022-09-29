@@ -170,8 +170,9 @@ export default {
 
         for (let i = 0; i < pages.length; i++) {
           const p = pages[i];
+          const searchCategory = p.frontmatter.searchCategory;
 
-          if (!isSearchable(p) || p.frontmatter.searchCategory !== name) {
+          if (!isSearchable(p) || searchCategory && searchCategory !== name) {
             continue; // eslint-disable-line
           }
 
