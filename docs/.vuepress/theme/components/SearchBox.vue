@@ -163,6 +163,10 @@ export default {
         return this.isSearchable(page);
       };
 
+      const getShortPageTitle = ({ title }) => {
+        return title === 'Configuration options' ? 'Options' : title;
+      }
+
       const duplicatePagesGuard = [];
       const searchResults = new Map(categoryPriorityList.map(({ name, domainPriority }) => {
         const priorityList = [...domainPriority].reverse();
@@ -181,6 +185,7 @@ export default {
           if (matchQuery(query, p, null, fuzzySearchDomains)) {
             categorySearchResults.push({
               ...p,
+              title: getShortPageTitle(p),
               category: name,
               priority,
             });
@@ -196,6 +201,7 @@ export default {
                 duplicatePagesGuard.push(path);
                 categorySearchResults.push({
                   ...p,
+                  title: getShortPageTitle(p),
                   path,
                   header: h,
                   category: name,
