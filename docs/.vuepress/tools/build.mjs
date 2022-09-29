@@ -57,14 +57,8 @@ async function concatenate(version) {
   const versionEscaped = version.replace('.', '-');
 
   if (version !== 'next' || buildMode === 'staging') {
-    const prebuildVersioned = path.resolve(
-      __dirname,
-      '../../', `.vuepress/dist/pre-${versionEscaped}`
-    );
-    const distVersioned = path.resolve(
-      __dirname,
-      '../../', `.vuepress/dist/docs/${version}`
-    );
+    const prebuildVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/pre-${versionEscaped}`);
+    const distVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/docs/${version}`);
 
     await fs.cp(prebuildVersioned, distVersioned, { force: true, recursive: true });
     await fs.rm(prebuildVersioned, { recursive: true });

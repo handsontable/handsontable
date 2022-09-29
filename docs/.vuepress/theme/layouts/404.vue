@@ -16,7 +16,7 @@ const msgs = [
   'Looks like we\'ve got some broken links.'
 ];
 
-const frameworkRegExp = new RegExp('^/docs/((next|\\d+.\\d+)/)?(?<framework>react|javascript)-data-grid/.*');
+const frameworkRegExp = /^\/docs\/((next|\d+.\d+)\/)?(?<framework>react|javascript)-data-grid\/.*/;
 
 export default {
   data() {

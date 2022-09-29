@@ -51,7 +51,7 @@
 </template>
 
 <script>
-/* global SEARCH_MAX_SUGGESTIONS, SEARCH_HOTKEYS */
+/* global SEARCH_HOTKEYS */
 import get from 'lodash/get';
 
 const ALLOWED_TAGS = ['BODY', 'A', 'BUTTON'];
@@ -71,7 +71,7 @@ const matchTest = (query, domain, isFuzzySearch = false) => {
   const escapeRegExp = str => str.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
 
   // eslint-disable-next-line no-control-regex
-  const nonASCIIRegExp = new RegExp('[^\x00-\x7F]');
+  const nonASCIIRegExp = /[^\x00-\x7F]/;
 
   const words = query
     .split(/\s+/g)
