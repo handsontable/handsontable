@@ -238,14 +238,15 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
     lastUpdated: true,
     smoothScroll: false,
     nav: [
-      // Guide & API Reference has defined in: theme/components/NavLinks.vue
+      // Guide & API Reference has been defined in theme/components/NavLinks.vue
       { text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
-      { text: 'Blog', link: 'https://handsontable.com/blog' },
       { text: 'Support',
         items: [
           { text: 'Contact support', link: 'https://handsontable.com/contact?category=technical_support' },
           { text: 'Report an issue', link: 'https://github.com/handsontable/handsontable/issues/new/choose' },
-          { text: 'Forum', link: 'https://forum.handsontable.com' },
+          { text: 'Developers Forum', link: 'https://forum.handsontable.com' },
+          { text: 'Ask on StackOverflow', link: 'https://stackoverflow.com/questions/tagged/handsontable' },
+          { text: 'Blog', link: 'https://handsontable.com/blog' }
         ]
       },
     ],
