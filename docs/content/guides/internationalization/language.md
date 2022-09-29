@@ -31,7 +31,7 @@ To properly display RTL languages, configure Handsontable's [layout direction](@
 
 ## Loading the prepared language files
 
-To properly use the internationalization feature, you'll need to load the language sets. It's important that they're included after the Handsontable files. You can do it by getting the necessary files created with the UMD standard:
+To properly use the internationalization feature, you need to load the language sets. It's important that they're included after the Handsontable files. You can do it by getting the necessary files created with the UMD standard:
 
 ::: only-for javascript
 1. **ES modules (ESM)**
@@ -232,7 +232,7 @@ ReactDOM.render(<ExampleComponent/>, document.getElementById('example2'));
 
 ## List of translatable features
 
-Below you'll find a list of features which can be translated:
+Below is a list of features which can be translated:
 
 * Dropdown menu
 * Filtering
@@ -293,7 +293,7 @@ You can see a full template of a sample language at the bottom of this paragraph
     */
     ```
 
-2. After that, you'll need to import the dictionary keys to be used in the translation.
+2. Now, import the dictionary keys to be used in the translation.
 
     ```js
     import * as C from '../constants';
