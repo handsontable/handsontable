@@ -6,6 +6,7 @@ permalink: /conditional-formatting
 canonicalUrl: /conditional-formatting
 react:
   metaTitle: Conditional formatting - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Conditional formatting
@@ -181,10 +182,10 @@ const ExampleComponent = () => {
         if (row === 0 || data[row] && data[row][col] === 'readOnly') {
         cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
         }
-    
+
         if (row === 0) {
           cellProperties.renderer = firstRowRenderer; // uses function directly
-    
+
         } else {
           cellProperties.renderer = 'negativeValueRenderer'; // uses lookup map
         }

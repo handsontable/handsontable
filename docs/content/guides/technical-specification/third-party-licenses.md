@@ -6,6 +6,7 @@ permalink: /third-party-licenses
 canonicalUrl: /third-party-licenses
 react:
   metaTitle: Third-party licenses - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Third-party licenses

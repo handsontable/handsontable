@@ -6,6 +6,7 @@ permalink: /row-trimming
 canonicalUrl: /row-trimming
 react:
   metaTitle: Row trimming - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row trimming

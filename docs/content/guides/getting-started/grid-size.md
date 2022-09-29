@@ -11,6 +11,7 @@ tags:
   - dimensions
 react:
   metaTitle: Grid size - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Grid size
@@ -52,7 +53,7 @@ or
 }
 ```
 or
-```js 
+```js
 {
   width: 100,
   height: 100,
@@ -70,7 +71,7 @@ or
 ```
 or
 ```jsx
-  <HotTable height="100px" width="100px" /> 
+  <HotTable height="100px" width="100px" />
 ```
 :::
 
@@ -102,7 +103,7 @@ You can easily overwrite this behaviour by returning `false` in the [`beforeRefr
 
 ::: only-for react
 ```jsx
-  <HotTable beforeRefreshDimensions={() => false} /> 
+  <HotTable beforeRefreshDimensions={() => false} />
 ```
 :::
 

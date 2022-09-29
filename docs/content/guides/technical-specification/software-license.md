@@ -6,6 +6,7 @@ permalink: /software-license
 canonicalUrl: /software-license
 react:
   metaTitle: Software license - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Software license

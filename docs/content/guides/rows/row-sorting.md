@@ -6,6 +6,7 @@ permalink: /row-sorting
 canonicalUrl: /row-sorting
 react:
   metaTitle: Row sorting - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row sorting

@@ -6,6 +6,7 @@ permalink: /password-cell-type
 canonicalUrl: /password-cell-type
 react:
   metaTitle: Password cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Password cell type

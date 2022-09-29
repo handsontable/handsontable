@@ -6,6 +6,7 @@ permalink: /cell-validator
 canonicalUrl: /cell-validator
 react:
   metaTitle: Cell validator - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Cell validator

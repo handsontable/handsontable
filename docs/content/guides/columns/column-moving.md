@@ -6,6 +6,7 @@ permalink: /column-moving
 canonicalUrl: /column-moving
 react:
   metaTitle: Column moving - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column moving

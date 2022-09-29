@@ -32,6 +32,7 @@ export const buildHeaderWriter = ({ seo, urlPrefix }) => {
       metaTitle: genSeoMetaTitle(file, isPlugin),
       permalink: genSeoPermalink(file),
       canonicalUrl: genSeoPermalink(file),
+      searchCategory: 'API Reference',
       hotPlugin: isPlugin,
       editLink: false,
       ...seo[file],

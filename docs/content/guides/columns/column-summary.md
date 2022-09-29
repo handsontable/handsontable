@@ -11,6 +11,7 @@ tags:
   - functions
 react:
   metaTitle: Column summary - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column summary

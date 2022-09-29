@@ -6,6 +6,7 @@ permalink: /cell-type
 canonicalUrl: /cell-type
 react:
   metaTitle: Cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Cell type

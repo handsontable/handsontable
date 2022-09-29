@@ -4,6 +4,7 @@ metaTitle: Basic example - Angular Data Grid | Handsontable
 description: Start with the Angular data grid basic configuration examples, using component properties for configuration and external control.
 permalink: /angular-basic-example
 canonicalUrl: /angular-basic-example
+searchCategory: Guides
 ---
 
 # Basic example in Angular

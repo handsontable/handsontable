@@ -8,6 +8,7 @@ tags:
   - filtering data
 react:
   metaTitle: Column filter - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column filter
@@ -285,7 +286,7 @@ const ExampleComponent = () => {
       debounceFn(colIndex, event);
     });
   };
-  
+
   //  Build elements which will be displayed in header.
   const getInitializedElements = colIndex => {
     const div = document.createElement('div');
@@ -299,7 +300,7 @@ const ExampleComponent = () => {
 
     return div;
   };
-  
+
   //  Add elements to header on `afterGetColHeader` hook.
   const addInput = (col, TH) => {
     // Hooks can return a value other than number (for example `columnSorting` plugin uses this).
@@ -324,7 +325,7 @@ const ExampleComponent = () => {
       filtersPlugin.filter();
     }, 100);
   });
-  
+
   return (
     <HotTable
       ref={hotRef}
@@ -776,7 +777,7 @@ const ExampleComponent = () => {
             )}
           </select>
         </div>
-    
+
         <div id="filterSelect">
           <div className="controllers">
             <div>
@@ -787,19 +788,19 @@ const ExampleComponent = () => {
           <div className="items">
             {rowEntries.map(
               (rowEntry, index) => <React.Fragment key={`${rowEntry}-${index}`}>
-                <label><input type="checkbox" onChange={() => selectEntry(rowEntry)} 
+                <label><input type="checkbox" onChange={() => selectEntry(rowEntry)}
                   checked={selectedRowEntries.includes(rowEntry)}/>{rowEntry}</label><br/>
               </React.Fragment>
             )}
           </div>
         </div>
-    
+
         <div className="buttons controls">
           <button onClick={() => applyFilter()} className="apply">Apply filter</button>
           <button onClick={() => clearFilter()} className="clear">Clear filter</button>
         </div>
       </div>
-    
+
     </>
   );
 };

@@ -10,6 +10,7 @@ tags:
   - data sources
 react:
   metaTitle: Binding to data - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Binding to data
@@ -85,7 +86,7 @@ const ExampleComponent = () => {
       colHeaders={true}
       minSpareRows={1}
       licenseKey="non-commercial-and-evaluation"
-    />  
+    />
   );
 };
 
@@ -154,7 +155,7 @@ const ExampleComponent = () => {
     ['2020', 10, 11, 12, 13, 15, 16],
     ['2021', 10, 11, 12, 13, 15, 16]
   ];
-  
+
   return (
     <HotTable
       data={data}
@@ -230,7 +231,7 @@ const ExampleComponent = () => {
     { id: 4, name: 'Gail Polite', address: '' },
     { id: 5, name: 'Michael Fair', address: '' }
   ];
-  
+
   return (
     <HotTable
       data={data}
@@ -310,7 +311,7 @@ const ExampleComponent = () => {
     { id: 2, address: '' }, // Handsontable will create missing properties on demand
     { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
   ];
-      
+
   return (
     <HotTable
       data={data}
@@ -396,7 +397,7 @@ const ExampleComponent = () => {
     { id: 2, address: '' }, // Handsontable will create missing properties on demand
     { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
   ];
-  
+
   return (
     <HotTable
       data={data}
@@ -468,7 +469,7 @@ const ExampleComponent = () => {
   return (
     <HotTable
       data={[]}
-      dataSchema={{ 
+      dataSchema={{
         id: null,
         name: {
           first: null,
@@ -768,7 +769,7 @@ const ExampleComponent = () => {
   ];
 
   return (
-      <HotTable 
+      <HotTable
         ref={hotRef}
         data={data}
         height="auto"

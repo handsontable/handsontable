@@ -10,6 +10,7 @@ tags:
   - paste
 react:
   metaTitle: Clipboard - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Clipboard
@@ -176,7 +177,7 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-  
+
   const copyBtnClickCallback = function() {
     document.execCommand('copy');
   };
@@ -209,16 +210,16 @@ const ExampleComponent = () => {
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button 
-          id="copy" 
-          onMouseDown={(...args) => copyBtnMousedownCallback(...args)} 
+        <button
+          id="copy"
+          onMouseDown={(...args) => copyBtnMousedownCallback(...args)}
           onClick={(...args) => copyBtnClickCallback(...args)}
         >
           Select and copy cell B2
         </button>
-        <button 
-          id="cut" 
-          onMouseDown={(...args) => cutBtnMousedownCallback(...args)} 
+        <button
+          id="cut"
+          onMouseDown={(...args) => cutBtnMousedownCallback(...args)}
           onClick={(...args) => cutBtnClickCallback(...args)}
         >
           Select and cut cell B2

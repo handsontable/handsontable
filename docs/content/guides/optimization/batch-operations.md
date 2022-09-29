@@ -8,6 +8,7 @@ tags:
   - suspend rendering
 react:
   metaTitle: Batch operations - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Batch operations

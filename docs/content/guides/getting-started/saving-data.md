@@ -10,6 +10,7 @@ tags:
   - ajax
 react:
   metaTitle: Saving data - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Saving data
@@ -136,7 +137,7 @@ const ExampleComponent = () => {
 
   let loadClickCallback;
   let saveClickCallback;
-  
+
   const autosaveClickCallback = (event) => {
     setIsAutosave(event.target.checked);
     if (event.target.checked) {

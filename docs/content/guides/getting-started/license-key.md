@@ -6,6 +6,7 @@ permalink: /license-key
 canonicalUrl: /license-key
 react:
   metaTitle: License key - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # License key

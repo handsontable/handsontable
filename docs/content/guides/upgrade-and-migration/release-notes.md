@@ -12,6 +12,7 @@ tags:
   - breaking change
 react:
   metaTitle: Release notes - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Release notes

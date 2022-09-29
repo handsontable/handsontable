@@ -6,6 +6,7 @@ permalink: /formatting-cells
 canonicalUrl: /formatting-cells
 react:
   metaTitle: Formatting cells - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Formatting cells
@@ -159,7 +160,7 @@ const ExampleComponent = () => {
     .renderers
     .registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
       Handsontable.renderers.getRenderer('text')(hotInstance, TD, ...rest);
-  
+
       TD.style.fontWeight = 'bold';
       TD.style.color = 'green';
       TD.style.background = '#d7f1e1';

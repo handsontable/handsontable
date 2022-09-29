@@ -4,6 +4,7 @@ metaTitle: Basic example - Vue 3 Data Grid | Handsontable
 description: Start with a basic example of the Vue 3 data grid, using component props for configuration and external control.
 permalink: /vue3-basic-example
 canonicalUrl: /vue3-basic-example
+searchCategory: Guides
 ---
 
 # Basic example in Vue 3

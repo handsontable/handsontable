@@ -16,6 +16,7 @@ tags:
 - hooks
 react:
   metaTitle: Events and hooks - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Events and hooks
@@ -513,7 +514,7 @@ const ExampleComponent = () => {
       beforeChange={(changes, source) => {
         lastChange = changes;
       }}
-      licenseKey="non-commercial-and-evaluation"  
+      licenseKey="non-commercial-and-evaluation"
       ref={hotRef}
     />
   );

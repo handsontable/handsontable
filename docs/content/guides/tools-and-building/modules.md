@@ -8,6 +8,7 @@ tags:
   - tree shaking
 react:
   metaTitle: Modules - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Modules

@@ -4,6 +4,7 @@ metaTitle: Custom cell renderer - Angular Data Grid | Handsontable
 description: Create a custom cell renderer, and use it in your Angular data grid by declaring it as a function.
 permalink: /angular-custom-renderer-example
 canonicalUrl: /angular-custom-renderer-example
+searchCategory: Guides
 ---
 
 # Custom renderer in Angular

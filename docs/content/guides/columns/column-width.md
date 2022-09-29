@@ -15,6 +15,7 @@ tags:
   - manual resize
 react:
   metaTitle: Column width - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column width

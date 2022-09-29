@@ -4,6 +4,7 @@ metaTitle: Basic example - Vue 2 Data Grid | Handsontable
 description: Start with a basic example of the Vue 2 data grid, using component props for configuration and external control.
 permalink: /vue-basic-example
 canonicalUrl: /vue-basic-example
+searchCategory: Guides
 ---
 
 # Basic example in Vue 2

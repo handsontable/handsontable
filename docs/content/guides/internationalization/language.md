@@ -12,6 +12,7 @@ tags:
   - i18n
 react:
   metaTitle: Language - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Language

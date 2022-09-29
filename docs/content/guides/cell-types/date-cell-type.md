@@ -6,6 +6,7 @@ permalink: /date-cell-type
 canonicalUrl: /date-cell-type
 react:
   metaTitle: Date cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Date cell type

@@ -7,6 +7,7 @@ canonicalUrl: /migration-from-11.1-to-12.0
 pageClass: migration-guide
 react:
   metaTitle: Migrate from 11.1 to 12.0 - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Migrate from 11.1 to 12.0

@@ -10,6 +10,7 @@ tags:
   - contributing
 react:
   metaTitle: Custom builds - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Custom builds

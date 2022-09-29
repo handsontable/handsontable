@@ -255,14 +255,22 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
     search: true,
     searchOptions: {
       placeholder: 'Search...',
-      guidesMaxSuggestions: 5,
-      apiMaxSuggestions: 10,
-      fuzzySearchDomains: ['Core', 'Hooks', 'Options'],
-      // The list modifies the search results position. When the search phrase matches the pages
-      // below, the search suggestions are placed before the rest results. The pages declared in
-      // the array at the beginning have the highest display priority.
-      apiSearchDomainPriorityList: ['Options'],
-      guidesSearchDomainPriorityList: [],
+      categoryPriorityList: [
+        {
+          name: 'Guides',
+          domainPriority: [],
+          maxSuggestions: 5,
+        },
+        {
+          name: 'API Reference',
+          // The "domainPriority" list modifies the search results position. When the search phrase matches
+          // the page titles, the search suggestions are placed before the rest results. The pages declared
+          // in the array at the beginning have the highest display priority.
+          domainPriority: ['Configuration options', 'Core', 'Hooks'],
+          maxSuggestions: 10,
+        },
+      ],
+      fuzzySearchDomains: ['Core', 'Hooks', 'Configuration options'],
     }
   }
 };

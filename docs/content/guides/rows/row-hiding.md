@@ -6,6 +6,7 @@ permalink: /row-hiding
 canonicalUrl: /row-hiding
 react:
   metaTitle: Row hiding - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row hiding

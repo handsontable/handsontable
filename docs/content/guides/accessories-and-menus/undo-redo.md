@@ -14,6 +14,7 @@ tags:
   - roll back changes
 react:
   metaTitle: Undo and redo - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Undo and redo

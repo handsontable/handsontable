@@ -6,6 +6,7 @@ permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
   metaTitle: Time cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Time cell type

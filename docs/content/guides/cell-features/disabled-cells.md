@@ -12,6 +12,7 @@ tags:
   - locked
 react:
   metaTitle: Disabled cells - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Disabled cells

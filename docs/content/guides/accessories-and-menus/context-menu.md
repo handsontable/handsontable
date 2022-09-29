@@ -11,6 +11,7 @@ tags:
   - right-click menu
 react:
   metaTitle: Context menu - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Context menu

@@ -6,6 +6,7 @@ permalink: /
 canonicalUrl: /
 react:
   metaTitle: Introduction - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Handsontable documentation

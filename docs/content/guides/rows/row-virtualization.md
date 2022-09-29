@@ -10,6 +10,7 @@ tags:
   - offset
 react:
   metaTitle: Row virtualization - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row virtualization

@@ -9,6 +9,7 @@ tags:
   - save file
 react:
   metaTitle: Export to CSV - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Export to CSV
@@ -197,7 +198,7 @@ const ExampleComponent = () => {
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
     const exportPlugin = hot.getPlugin('exportFile');
-    
+
     buttonClickCallback = () => {
       const exportedBlob = exportPlugin.exportAsBlob('csv', {
         bom: false,
@@ -300,7 +301,7 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-  
+
   let buttonClickCallback;
 
   useEffect(() => {

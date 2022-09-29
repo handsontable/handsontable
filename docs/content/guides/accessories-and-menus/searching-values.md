@@ -9,6 +9,7 @@ tags:
   - highlight values
 react:
   metaTitle: Searching values - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Searching values
@@ -529,7 +530,7 @@ registerAllModules();
 const ExampleComponent = () => {
   const hot4Ref = useRef(null);
   const [output, setOutput] = useState('');
-  
+
   const data = [
     ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],

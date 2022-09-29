@@ -8,6 +8,7 @@ tags:
   - size
 react:
   metaTitle: Bundle size - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Bundle size

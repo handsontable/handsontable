@@ -8,6 +8,7 @@ tags:
   - dropdown menu
 react:
   metaTitle: Column menu - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column menu
