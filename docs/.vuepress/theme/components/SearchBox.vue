@@ -179,7 +179,6 @@ export default {
           const priority = priorityList.indexOf(get(p, 'title', ''));
 
           if (matchQuery(query, p, null, fuzzySearchDomains)) {
-            duplicatePagesGuard.push(p.key);
             categorySearchResults.push({
               ...p,
               category: name,
@@ -190,13 +189,14 @@ export default {
           if (p.headers) {
             for (let j = 0; j < p.headers.length; j++) {
               const h = p.headers[j];
+              const path = `${p.path}#${h.slug}`;
 
               if (h.title && matchQuery(query, p, h.title, fuzzySearchDomains) &&
-                  !duplicatePagesGuard.includes(p.key)) {
-                duplicatePagesGuard.push(p.key);
+                  !duplicatePagesGuard.includes(path)) {
+                duplicatePagesGuard.push(path);
                 categorySearchResults.push({
                   ...p,
-                  path: `${p.path}#${h.slug}`,
+                  path,
                   header: h,
                   category: name,
                   priority,
