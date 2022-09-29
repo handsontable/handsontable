@@ -165,7 +165,7 @@ export default {
 
       const getShortPageTitle = ({ title }) => {
         return title === 'Configuration options' ? 'Options' : title;
-      }
+      };
 
       const duplicatePagesGuard = [];
       const searchResults = new Map(categoryPriorityList.map(({ name, domainPriority }) => {
