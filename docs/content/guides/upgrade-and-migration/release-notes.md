@@ -1,6 +1,7 @@
 ---
 title: Release notes
-metaTitle: Release notes - Guide - Handsontable Documentation
+metaTitle: Release notes - JavaScript Data Grid | Handsontable
+description: See the full history of changes made to Handsontable in each major, minor, and patch release.
 permalink: /release-notes
 canonicalUrl: /release-notes
 tags:
@@ -9,6 +10,9 @@ tags:
   - update
   - upgrade
   - breaking change
+react:
+  metaTitle: Release notes - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Release notes
@@ -142,7 +146,7 @@ Released on 13th of January, 2022
 
 **Added**
 - Added [`updateData()`](@/api/core.md#updatedata), a new method that lets you replace Handsontable's [`data`](@/api/options.md#data) without resetting the states of cells, rows and columns. [#7263](https://github.com/handsontable/handsontable/issues/7263)
-- *Vue:* Added [Vue 3](https://v3.vuejs.org/guide/migration/introduction.html#overview) support, by introducing a [new wrapper](@/guides/integrate-with-vue3/vue3-simple-example.md). [#7545](https://github.com/handsontable/handsontable/issues/7545)
+- *Vue:* Added [Vue 3](https://v3.vuejs.org/guide/migration/introduction.html#overview) support, by introducing a [new wrapper](@/javascript/guides/integrate-with-vue3/vue3-simple-example.md). [#7545](https://github.com/handsontable/handsontable/issues/7545)
 
 **Changed**
 - Updated the TypeScript definition of the [`setDataAtCell()`](@/api/core.md#setdataatcell) method. [#8601](https://github.com/handsontable/handsontable/issues/8601)
@@ -190,7 +194,7 @@ Released on 17th of November, 2021
 - Replaced the license files with updated versions. [#8877](https://github.com/handsontable/handsontable/issues/8877)
 
 **Fixed**
-- Fixed an issue with incorrect filtering of locale-based data while using search input from a drop-down menu. [#6095](https://github.com/handsontable/handsontable/issues/6095)
+- Fixed an issue with incorrect filtering of locale-based data while using search input from a dropdown menu. [#6095](https://github.com/handsontable/handsontable/issues/6095)
 - Fixed an error thrown when using the `populateFromArray()` method with its `method` argument set to `shift_right`. [#6929](https://github.com/handsontable/handsontable/issues/6929)
 - Fixed an issue with the `beforeOnCellMouseDown` and `afterOnCellMouseDown` hooks using wrong coordinates. [#8498](https://github.com/handsontable/handsontable/issues/8498)
 - Fixed a `TypeError` thrown when calling the [`updateSettings()`](@/api/core.md#updatesettings) method in Handsontable's modularized version. [#8830](https://github.com/handsontable/handsontable/issues/8830)

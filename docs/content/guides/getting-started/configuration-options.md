@@ -1,11 +1,15 @@
 ---
 title: Configuration options
-metaTitle: Configuration options - Guide - Handsontable documentation
-permalink: /setting-options
-canonicalUrl: /setting-options
+metaTitle: Configuration options - JavaScript Data Grid | Handsontable
+description: Configure the data grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
+permalink: /configuration-options
+canonicalUrl: /configuration-options
 tags:
   - properties
   - config
+react:
+  metaTitle: Configuration options - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Configuration options
@@ -18,6 +22,7 @@ Customize Handsontable with configuration options.
 
 Configuration options let you customize your Handsontable instance.
 
+::: only-for javascript
 To apply configuration options, pass them as a second argument of the Handsontable constructor, using the object literal notation:
 
 ```js
@@ -38,6 +43,48 @@ const hot = new Handsontable(container, {
   manualRowMove: true,
 });
 ```
+:::
+
+::: only-for react
+
+To apply configuration options, pass them as individual props of the [`HotTable`](@/guides/getting-started/installation.md##hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
+
+```jsx
+<HotTable
+  licenseKey="non-commercial-and-evaluation"
+  data={Handsontable.helper.createSpreadsheetData(5, 10)}
+  width={400}
+  height={300}
+  colHeaders={true}
+  rowHeaders={true}
+  customBorders={true}
+  dropdownMenu={true}
+  multiColumnSorting={true}
+  filters={true}
+  manualRowMove={true}
+/>
+```
+You can also pass your options as an object, using the `settings` prop.
+
+```jsx
+<HotTable
+  settings={{
+    // configuration options, in the object literal notation
+    licenseKey: 'non-commercial-and-evaluation',
+    data: Handsontable.helper.createSpreadsheetData(5, 10),
+    width: 400,
+    height: 300,
+    colHeaders: true,
+    rowHeaders: true,
+    customBorders: true,
+    dropdownMenu: true,
+    multiColumnSorting: true,
+    filters: true,
+    manualRowMove: true,
+  }}
+/>
+```
+:::
 
 Depending on your needs, you can apply configuration options to different elements of your grid, such as:
 - [The entire grid](#setting-grid-options)
@@ -87,9 +134,18 @@ To find out if an option comes from a plugin, check the `Category` label in the 
 
 To apply configuration options to the entire grid:
 
+::: only-for javascript
 - Pass your options as a second argument of the Handsontable constructor, using the object literal notation.
+:::
+
+::: only-for react
+- Pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation.md##hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
+- You can also pass your options as an object, using the `settings` prop.
+:::
 
 For example, to set the entire grid's [width](@/api/options.md#width) and [height](@/api/options.md#height):
+
+::: only-for javascript
 ```js
 const hot = new Handsontable(container, {
   // top-level grid options that apply to the entire grid
@@ -97,6 +153,13 @@ const hot = new Handsontable(container, {
   height: 300
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable width={400} height={300} />
+```
+:::
 
 ::: tip
 If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
@@ -112,9 +175,10 @@ The top-level grid options cascade down:
 
 As a result, each cell in the grid is read-only:
 
+::: only-for javascript
 ::: example #example1 --html 1 --js 2
 ```html
-<div id="example1" class="hot"></div>
+<div id="example1"></div>
 ```
 ```js
 const container = document.querySelector('#example1');
@@ -136,47 +200,77 @@ const hot = new Handsontable(container, {
 hot.getCellMeta(0, 0).readOnly;
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(5, 10)}
+      readOnly={true}
+      width="auto"
+      height="auto"
+      rowHeaders={true}
+      colHeaders={true}
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Setting column options
 
 To apply configuration options to an individual column (or a range of columns), use the [`columns`](@/api/options.md#columns) option.
+::: only-for javascript
+  ```js
+  const hot = new Handsontable(container, {
+    columns: [
+      {},
+      {},
+      // column options, apply to each cell of the third (by physical index) column
+      {
+        readOnly: true,
+      },
+    ],
+  });
+```
+:::
 
-1. Within Handsontable constructor's second argument, add an option called [`columns`](@/api/options.md#columns).
-    ```js
-    const hot = new Handsontable(container, {
-      // top-level grid options that apply to the entire grid
-      width: 400,
-      height: 300,
-      // the `columns` option
-      columns: []
-    });
-    ```
-2. Set the [`columns`](@/api/options.md#columns) option to an array of objects.<br>
-   Each object represents one column.<br>
-   The objects' order represents the columns' order (i.e. the columns' physical indexes).
-    ```js
-    const hot = new Handsontable(container, {
-      columns: [
-        {}, // column options for the first (by physical index) column
-        {}, // column options for the second (by physical index) column
-        {}, // column options for the third (by physical index) column
-      ],
-    });
-    ```
-3. In the object that represents your required column, add your column options.<br>
-   For example, to make each cell of the third column read-only:
-    ```js
-    const hot = new Handsontable(container, {
-      columns: [
-        {},
-        {},
-        // column options, apply to each cell of the third (by physical index) column
-        {
-          readOnly: true,
-        },
-      ],
-    });
-    ```
+::: only-for react
+```jsx
+<HotTable
+  columns={[
+    {width: 100}, // column options for the first (by physical index) column
+    {width: 100}, // column options for the second (by physical index) column
+    {width: 100}, // column options for the third (by physical index) column
+  ]}
+/>
+```
+Alternatively, you can use the [`HotColumn`](@/guides/columns/react-hot-column.md) component to configure columns declaratively:
+```jsx
+<HotTable>
+  <HotColumn width={100}/>
+  <HotColumn width={100}/>
+  <HotColumn width={100}/>
+</HotTable>
+```
+:::
 
 ::: tip
 If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
@@ -194,9 +288,10 @@ The modified mid-level column options:
 
 As a result, each cell in the third and ninth columns is read-only:
 
+::: only-for javascript
 ::: example #example2 --html 1 --js 2
 ```html
-<div id="example2" class="hot"></div>
+<div id="example2"></div>
 ```
 ```js
 const container = document.querySelector('#example2');
@@ -227,6 +322,44 @@ hot.getCellMeta(0, 0).readOnly;
 hot.getCellMeta(0, 2).readOnly;
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(5, 10)}
+      width="auto"
+      height="auto"
+      rowHeaders={true}
+      colHeaders={true}
+      readOnly={false}
+      columns={(index) => {
+        return {
+          type: index > 0 ? 'numeric' : 'text',
+          readOnly: index === 2 || index === 8
+        }
+      }}
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
 
 ## Setting row options
 
@@ -238,47 +371,53 @@ Any options modified through [`cells`](@/api/options.md#cells) overwrite all oth
 The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
 :::
 
-1. Within Handsontable constructor's second argument, add an option called [`cells`](@/api/options.md#cells), and set it to a function.
-    ```js
-    const hot = new Handsontable(container, {
-      // top-level grid options that apply to the entire grid
-      width: 400,
-      height: 300,
-      // the `cells` option
-      cells() {
+::: only-for javascript
+ The function can take three arguments:<br>
+- `row`: a row coordinate (a **physical** index)
+- `col`: a column coordinate (a **physical** index)
+- `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
+If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
 
+```js
+const hot = new Handsontable(container, {
+  // the `cells` options overwrite all other options
+  cells(row, col, prop) {
+    if (row === 1 || row === 4) {
+      return {
+        // row options, apply to each cell of the first row
+        // and to each cell of the fourth row
+        readOnly: true,
       };
-    });
-    ```
-2. The function can take three arguments:<br>
-   - `row`: a row coordinate (a **physical** index)
-   - `col`: a column coordinate (a **physical** index)
-   - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
-   If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
-    ```js
-    const hot = new Handsontable(container, {
-      // the `cells` option set to a function
-      cells(row, col, prop) {
-        // the `cells` function's body
-      }
-    });
-    ```
-3. In the [`cells`](@/api/options.md#cells) function's body, implement a logic that selects your required row(s).<br>
-   For example, to make each cell of the first row and each cell of the fourth row read-only:
-    ```js
-    const hot = new Handsontable(container, {
-      // the `cells` options overwrite all other options
-      cells(row, col, prop) {
-        if (row === 1 || row === 4) {
-          return {
-            // row options, apply to each cell of the first row
-            // and to each cell of the fourth row
-            readOnly: true,
-          };
-        }
-      }
-    });
-    ```
+    }
+  }
+});
+```
+:::
+
+::: only-for react
+
+The function can take three arguments:<br>
+
+- `row`: a row coordinate (a **physical** index)
+- `col`: a column coordinate (a **physical** index)
+- `prop`: if your [`data`](@/api/options.md#data) is
+  an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for a
+  column's data source object.<br>
+  If your [`data`](@/api/options.md#data) is
+  an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
+```jsx
+<HotTable cells={(row, col, prop) => {
+  if (row === 1 || row === 4) {
+    return {
+      // row options, apply to each cell of the first row
+      // and to each cell of the fourth row
+      readOnly: true,
+    };
+  }
+}}/>
+```
+
+:::
 
 ::: tip
 If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
@@ -290,9 +429,10 @@ In the example below, the [`cells`](@/api/options.md#cells) option sets each cel
 
 Options modified through [`cells`](@/api/options.md#cells) overwrite all other options.
 
+::: only-for javascript
 ::: example #example3 --html 1 --js 2
 ```html
-<div id="example3" class="hot"></div>
+<div id="example3"></div>
 ```
 ```js
 const container = document.querySelector('#example3');
@@ -324,52 +464,87 @@ hot.getCellMeta(0, 0).readOnly;
 hot.getCellMeta(0, 1).readOnly;
 ```
 :::
+:::
+
+::: only-for react
+::: example #example3 :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(5, 10)}
+      width="auto"
+      height="auto"
+      rowHeaders={true}
+      colHeaders={true}
+      cells={(row) => {
+        if (row === 1 || row === 4) {
+          return {
+            readOnly: true,
+          };
+        }
+      }}
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
 
 ## Setting cell options
 
 To apply configuration options to individual cells, use the [`cell`](@/api/options.md#cell) option.
+::: only-for javascript
+```js
+const hot = new Handsontable(container, {
+  cell: [
+    {
+      // cell options, apply only to a cell with coordinates (0, 0)
+      row: 0,
+      col: 0,
+      readOnly: true,
+    },
+    {
+      // cell options, apply only to a cell with coordinates (1, 1)
+      row: 1,
+      col: 1,
+      readOnly: true,
+    }
+  ],
+});
+```
+:::
 
-1. Within Handsontable constructor's second argument, add an option called [`cell`](@/api/options.md#cell).
-    ```js
-    const hot = new Handsontable(container, {
-      // top-level grid options that apply to the entire grid
-      width: 400,
-      height: 300,
-      // the `cell` option
-      cell: []
-    });
-    ```
-2. Set the [`cell`](@/api/options.md#cell) option to an array of objects.<br>
-    ```js
-    const hot = new Handsontable(container, {
-      // the `cell` option set to an array of objects
-      cell: [
-        {},
-        {}
-      ],
-    });
-    ```
-3. In each object, set your configuration options for one particular cell.<br>
-   To select a cell, use the `row` and `col` coordinates.<br>
-   For example, to make cells `A1` (`0, 0`) and `B2` (`1, 1`) read-only:
-    ```js
-    const hot = new Handsontable(container, {
-      cell: [
-        {
-          // cell options, apply only to a cell with coordinates (0, 0)
-          row: 0,
-          col: 0,
-          readOnly: true,
-        },
-        {
-          // cell options, apply only to a cell with coordinates (1, 1)
-          row: 1,
-          col: 1,
-          readOnly: true,
-        }
-      ],
-    });
-    ```
+::: only-for react
+```jsx
+<HotTable cell={[
+  { // bottom-level cell options overwrite the top-level grid options
+    // apply only to a cell with coordinates (0, 0)
+    row: 0,
+    col: 0,
+  },
+  {
+    // bottom-level cell options overwrite the top-level grid options
+    // apply only to a cell with coordinates (1, 1)
+    row: 1,
+    col: 1,
+  }
+]}/>
+```
+:::
 
 ::: tip
 If you use Handsontable through [modules](@/guides/tools-and-building/modules.md): to use an option that comes from a Handsontable plugin, import and register that plugin when initializing your Handsontable instance.
@@ -383,9 +558,10 @@ The modified [`cell`](@/api/options.md#cell) options:
 - Overwrite the top-level grid options
 - Overwrite mid-level column options
 
+::: only-for javascript
 ::: example #example4 --html 1 --js 2
 ```html
-<div id="example4" class="hot"></div>
+<div id="example4"></div>
 ```
 ```js
 const container = document.querySelector('#example4');
@@ -425,6 +601,54 @@ hot.getCellMeta(0, 0).readOnly;
 hot.getCellMeta(0, 1).readOnly;
 ```
 :::
+:::
+
+::: only-for react
+::: example #example4 :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 10)}
+      licenseKey="non-commercial-and-evaluation"
+      width="auto"
+      height="auto"
+      rowHeaders={true}
+      colHeaders={true}
+      readOnly={false}
+      cell={[{
+          // bottom-level cell options overwrite the top-level grid options
+          // apply only to a cell with coordinates (0, 0)
+          row: 0,
+          col: 0,
+          readOnly: true,
+        },
+        {
+          // bottom-level cell options overwrite the top-level grid options
+          // apply only to a cell with coordinates (1, 1)
+          row: 1,
+          col: 1,
+          readOnly: true,
+        }]
+      }
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+```
+:::
+:::
+
 
 ### Reading cell options
 
@@ -435,7 +659,7 @@ The [`getCellMeta()`](@/api/core.md#getcellmeta) method returns an object with:
 - Any options you add
 
 For example:
-
+::: only-for javascript
 ```js
 const container = document.querySelector('example');
 
@@ -468,6 +692,30 @@ hot.getCellMeta(0, 0).readOnly;
 // returns `true`
 hot.getCellMeta(1, 1).readOnly;
 ```
+:::
+
+::: only-for react
+```jsx
+// Consider the HotTable component with the `cell` option declared:
+<HotTable
+  cell={[
+    {
+      row: 1,
+      col: 1,
+      readOnly: true
+    }
+  ]}
+/>
+
+// for cell (0, 0), the `readOnly` option is the default (`false`)
+// returns `false`
+hot.getCellMeta(0, 0).readOnly;
+
+// for cell (1, 1), the `cell` option overwrote the default `readOnly` value
+// returns `true`
+hot.getCellMeta(1, 1).readOnly;
+```
+:::
 
 ### Changing cell options
 
@@ -475,6 +723,7 @@ When Handsontable is running, you can change the initial cell options, using the
 
 For example:
 
+::: only-for javascript
 ```js
 const container = document.querySelector('example');
 
@@ -506,13 +755,18 @@ hot.getCellMeta(0, 0).readOnly;
 // for cell (1, 1), the `cell` option overwrote the default `readOnly` value
 // returns `true`
 hot.getCellMeta(1, 1).readOnly;
+```
+:::
 
+::: only-for react
+```jsx
 // change the `readOnly` option of cell (1, 1) back to `false`
 hot.setCellMeta(1, 1, 'readOnly', false);
 
 // returns `false`
 hot.getCellMeta(1, 1).readOnly;
 ```
+:::
 
 ## Implementing custom logic
 
@@ -524,52 +778,56 @@ The [`cells`](@/api/options.md#cells) option overwrites all other options.
 The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
 :::
 
-1. Within Handsontable constructor's second argument, add an option called [`cells`](@/api/options.md#cells), and set it to a function.
-    ```js
-    const hot = new Handsontable(container, {
-      // top-level grid options that apply to the entire grid
-      width: 400,
-      height: 300,
-      // the `cells` option
-      cells() {
-
-      };
-    });
-    ```
-2. The function can take three arguments:<br>
+::: only-for javascript
+The function can take three arguments:<br>
    - `row`: a row coordinate (a **physical** index)
    - `col`: a column coordinate (a **physical** index)
    - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
    If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
-    ```js
-    const hot = new Handsontable(container, {
-      // the `cells` option set to a function
-      cells(row, col, prop) {
-        // the `cells` function's body
-      }
-    });
-    ```
-3. In the [`cells`](@/api/options.md#cells) function's body, implement a logic that selects your required columns, rows, or cells (as combinations of `row` and `col` coordinates).<br>
-   For example:
-    ```js
-    const hot = new Handsontable(container, {
-      cells(row, col) {
-        if ((row === 1 || row === 5) && col === 1) {
-          return {
-            readOnly: true,
-          };
-        }
-      }
-    });
-    ```
 
+```js
+const hot = new Handsontable(container, {
+  cells(row, col) {
+    if ((row === 1 || row === 5) && col === 1) {
+      return {
+        readOnly: true,
+      };
+    }
+  }
+});
+```
+:::
+
+::: only-for react
+The function can take three arguments:<br>
+
+- `row`: a row coordinate (a **physical** index)
+- `col`: a column coordinate (a **physical** index)
+- `prop`: if your [`data`](@/api/options.md#data) is
+  an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for a
+  column's data source object.<br>
+  If your [`data`](@/api/options.md#data) is
+  an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
+```jsx
+<HotTable
+  cells={(row, col) => {
+    if ((row === 1 || row === 5) && col === 1) {
+      return {
+        readOnly: true,
+      };
+    }
+  }}
+/>
+```
+:::
 #### Example
 
 In the example below, the modified [`cells`](@/api/options.md#cells) options overwrite the top-level grid options.
 
+::: only-for javascript
 ::: example #example5 --html 1 --js 2
 ```html
-<div id="example5" class="hot"></div>
+<div id="example5"></div>
 ```
 ```js
 const container = document.querySelector('#example5');
@@ -594,6 +852,25 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+```jsx
+// for cell (0, 0), the `readOnly` option is the default (`false`)
+// returns `false`
+hot.getCellMeta(0, 0).readOnly;
+
+// for cell (1, 1), the `cell` option overwrote the default `readOnly` value
+// returns `true`
+hot.getCellMeta(1, 1).readOnly;
+
+// change the `readOnly` option of cell (1, 1) back to `false`
+hot.setCellMeta(1, 1, 'readOnly', false);
+
+// returns `false`
+hot.getCellMeta(1, 1).readOnly;
+```
+:::
 
 ## Configuration example
 
@@ -606,9 +883,10 @@ In the example below, some cells are read-only, and some cells are editable:
 - For cell `C3` (`3, 3`), the [`cells`](@/api/options.md#cells) option overwrites all other options.<br>
   As a result, cell `C3` (`3, 3`) is editable, despite not being part of the editable first column.
 
+::: only-for javascript
 ::: example #example6 --html 1 --js 2
 ```html
-<div id="example6" class="hot"></div>
+<div id="example6"></div>
 ```
 ```js
 const container = document.querySelector('#example6');
@@ -663,6 +941,70 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example6 :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={Handsontable.helper.createSpreadsheetData(5, 10)}
+      readOnly={true}
+      width="auto"
+      height="auto"
+      rowHeaders={true}
+      colHeaders={true}
+      columns={[
+        // each cell in the first (by physical index) column is editable
+        {
+          readOnly: false,
+          className: '',
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      ]}
+      cell={[{
+        // cell (0, 0) is read-only
+        row: 0,
+        col: 0,
+        readOnly: true,
+      }]}
+      cells={(row, col) => {
+        // cell (2, 2) is editable
+        if (row === 2 && col === 2) {
+          return {
+            readOnly: false,
+            className: '',
+          }
+        }
+      }}
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
+```
+:::
+:::
+
 
 ## Related API reference
 

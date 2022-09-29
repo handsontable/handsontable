@@ -50,7 +50,7 @@ html.theme-dark {
   /* Searchbox */
   .search-box.search-box {
     input {
-      background $searchBoxBackground versionedUrl('/docs/{docsVersion}/img/search.svg') 0.6rem 0.5rem no-repeat
+      background $searchBoxBackground url('{{$basePath}}/img/search.svg') 0.6rem 0.5rem no-repeat
       background-size 1rem
       border-color $searchBoxInputBorderColor
       color $fontColor
@@ -171,6 +171,14 @@ html.theme-dark {
   .tabs-component {
     border-color $tabsComponentBorderColor
 
+    &.selected-preview {
+      .tabs-component-panels {
+        color-scheme light
+        color $tabsComponentBackgroundColor /* Related to issue #8355 */
+        background-color white; /* Related to issue #8355 */
+      }
+    }
+
     ul.tabs-component-tabs {
       border-bottom-color $tabsComponentBorderColor
       background $tabsComponentBackgroundColor
@@ -193,12 +201,6 @@ html.theme-dark {
     .tabs-component-panels {
       background-color $tabsComponentPanels
       border-radius 0
-
-      &.selected-preview {
-        color-scheme light
-        color $tabsComponentBackgroundColor /* Related to issue #8355 */
-        background-color white; /* Related to issue #8355 */
-      }
 
       section {
         &[id*="preview-"] {

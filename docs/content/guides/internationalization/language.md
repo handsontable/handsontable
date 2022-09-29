@@ -1,6 +1,7 @@
 ---
 title: Language
-metaTitle: Language - Guide - Handsontable Documentation
+metaTitle: Language - JavaScript Data Grid | Handsontable
+description: Set Handsontable's UI language to one of the built-in translations, or create your own language set using our templates.
 permalink: /language
 canonicalUrl: /language
 tags:
@@ -9,6 +10,9 @@ tags:
   - translation
   - L10n
   - i18n
+react:
+  metaTitle: Language - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Language
@@ -29,6 +33,7 @@ To properly display RTL languages, configure Handsontable's [layout direction](@
 
 To properly use the internationalization feature, you'll need to load the language sets. It's important that they're included after the Handsontable files. You can do it by getting the necessary files created with the UMD standard:
 
+::: only-for javascript
 1. **ES modules (ESM)**
   ```js
   import Handsontable from 'handsontable/base';
@@ -65,11 +70,48 @@ To properly use the internationalization feature, you'll need to load the langua
     });
   </script>
   ```
+:::
+
+::: only-for react
+1. **ES modules (ESM)**
+  ```js
+  import Handsontable from 'handsontable/base';
+  import { HotTable } from '@handsontable/react';
+  import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
+
+  registerLanguageDictionary(deDE);
+
+  const App = () => {
+    return (
+      <HotTable
+        language={deDE.languageCode}
+      />
+    );
+  };
+  ```
+
+2. **CommonJS (CJS)**
+  ```js
+  const Handsontable = require('handsontable/base').default;
+  const { registerLanguageDictionary, deDE } = require('handsontable/i18n');
+
+  registerLanguageDictionary(deDE);
+
+  const App = () => {
+    return (
+      <HotTable
+        language={deDE.languageCode}
+      />
+    );
+  };
+  ```
+:::
 
 ### Demo
 
 Please right click on a cell to see the translated context menu. Language files were loaded after loading Handsontable.
 
+::: only-for javascript
 ::: example #example1 :hot-lang
 ```js
 const container = document.querySelector('#example1');
@@ -90,6 +132,102 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+:::
+:::
+
+::: only-for react
+::: example #example1 :react-languages
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
+        ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
+        ['Pellentesque', 'vulputate', 'leo', 'semper', '10/23/2015', 26],
+        ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
+        ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
+      ]}
+      contextMenu={true}
+      height="auto"
+      language="de-DE"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
+::: only-for react
+::: tip
+Note that the `language` property is bound to the component separately using `language={language}`, but it could be included in the `settings` property just as well.
+:::
+
+::: example #example2 :react-languages
+```jsx
+import { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { getLanguagesDictionaries } from 'handsontable/i18n';
+import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const [language, setLanguage] = useState('en-US');
+  const [languageList, setLanguageList] = useState([]);
+
+  useEffect(() => {
+    setLanguageList(getLanguagesDictionaries());
+  }, []);
+
+  const updateHotLanguage = event => {
+    setLanguage(event.target.value);
+  };
+
+  return (
+    <div>
+      <div className="controls"><label>Select language:
+        {' '}
+        <select value={language} onChange={updateHotLanguage}>
+          {languageList.map(({ languageCode }) => (
+            <option key={languageCode} value={languageCode}>
+              {languageCode}
+            </option>
+          ))}
+        </select>
+      </label></div>
+
+      <HotTable
+        data={createSpreadsheetData(5, 10)}
+        colHeaders={true}
+        rowHeaders={true}
+        contextMenu={true}
+        height="auto"
+        language={language}
+        licenseKey="non-commercial-and-evaluation"
+      />
+    </div>
+  );
+}
+
+ReactDOM.render(<ExampleComponent/>, document.getElementById('example2'));
+```
+:::
 :::
 
 ## List of translatable features
@@ -133,7 +271,7 @@ By default, Handsontable uses the **English - United States** language-country s
 
 ### Creating custom languages
 
-You can create custom language sets for your implementations, or share them, as they're easily appliable to any Handsontable implementation.
+You can create custom language sets for your implementations, or share them, as they're easily applicable to any Handsontable implementation.
 
 ## Language file
 
@@ -141,7 +279,7 @@ It's really important for us, that the community is a important part of the grow
 
 Additional languages files should be placed in the `src/i18n/languages` folder of the Handsontable repository with name corresponding to the chosen language code (described below, for example: `es-VE.js`). You can incorporate your translations to the Handsontable library by sending us a [pull request](@/guides/tools-and-building/custom-builds.md). It's important, that your changes are not made to the `/languages` and `/dist/languages` directories! Our release master will generate files which will be placed there in the building process. After that, you will be able to use the languages in `Handsontable`.
 
-You can see a full template of a sample language at the bottom of this paragraph. We're basing it on our [default language pack](https://github.com/handsontable/handsontable/tree/master/src/i18n/languages/en-US.js). Parts of the file creation process are described below.
+You can see a full template of a sample language at the bottom of this paragraph. We're basing it on our [default language pack](https://github.com/handsontable/handsontable/blob/master/handsontable/src/i18n/languages/en-US.js). Parts of the file creation process are described below.
 
 1. The file should start with a comment containing the translation **authors** (separated by commas, for example: _Authors: Chris Wick, John Kyle_), **"last updated" date** (in format: _mmm dd, yyyy_, for example: _Last updated: Jan 01, 2017_) and a **description.**
 

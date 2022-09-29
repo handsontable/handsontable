@@ -26,14 +26,18 @@ export default {
       return ensureExt(this.item.link);
     },
     versionedLink() {
+      const link = this.item.link;
+      const framework = `/${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
+
       if (this.$page.currentVersion === this.$page.latestVersion) {
-        return ensureExt(this.item.link);
+        return ensureExt(link);
+
       } else {
-        return ensureExt(`/${this.$page.currentVersion}${this.item.link}`);
+        return ensureExt(`/${this.$page.currentVersion}${framework}${link}`);
       }
     },
     exact() {
-      if (this.link === '/' && this.$route.fullPath.match(/([^/]*\/)?(api|examples)\//)) {
+      if (this.link === '/' && this.$route.fullPath.match(/([^/]*\/)?(api)\//)) {
         return true;
       }
 

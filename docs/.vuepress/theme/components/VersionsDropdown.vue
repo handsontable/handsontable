@@ -1,6 +1,5 @@
 <template>
     <nav class="nav-versions nav-links" >
-      <!-- user links -->
       <nav class="nav-item" >
         <DropdownLink :item="item"></DropdownLink>
       </nav>
@@ -11,7 +10,7 @@
 import DropdownLink from '@theme/components/DropdownLink.vue';
 
 export default {
-  name: 'Versions',
+  name: 'VersionsDropdown',
   components: {
     DropdownLink
   },
@@ -54,7 +53,9 @@ export default {
         '4.0.0',
       ].map(version => ({
         text: version.replace(/\.\d+$/, ''),
-        link: `${this.$page.baseUrl}/docs/${version}/`
+        link: `/docs/${version}/`,
+        target: '_blank',
+        isHtmlLink: true,
       }));
     }
   },
@@ -84,9 +85,8 @@ export default {
   top -1px
   text-transform capitalize
 
-  .dropdown-title {
+  .dropdown-title, .mobile-dropdown-title
     text-transform capitalize
-  }
 
   .icon.outbound
     display none
@@ -111,6 +111,7 @@ export default {
     border-radius 0.25rem
     white-space nowrap
     margin 0
+    z-index 100
 .dropdown-wrapper .dropdown-title .arrow, .dropdown-wrapper .mobile-dropdown-title .arrow
   margin-left 0.1rem
 

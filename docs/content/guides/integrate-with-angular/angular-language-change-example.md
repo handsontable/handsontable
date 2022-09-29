@@ -1,8 +1,10 @@
 ---
-title: 'Language change in Angular'
-metaTitle: 'Language change in Angular - Guide - Handsontable Documentation'
+title: Language change in Angular
+metaTitle: Language change - Angular Data Grid | Handsontable
+description: Change the default language of the right-click context menu from English to any of the built-in translations, using the "language" property.
 permalink: /angular-language-change-example
 canonicalUrl: /angular-language-change-example
+searchCategory: Guides
 ---
 
 # Language change in Angular
@@ -30,10 +32,10 @@ import { createSpreadsheetData } from './helpers';
 @Component({
   selector: 'app-root',
   template: `
-  <label for="languages">Select language:</label>
+  <div class="controls"><label>Select language:
   <select [(ngModel)]="language">
     <option *ngFor="let l of languages" [value]="l.languageCode">{{l.languageCode}}</option>
-  </select><br/><br/>
+  </select></label></div>
   <div>
     <hot-table [language]="language" [settings]="hotSettings"></hot-table>
   </div>

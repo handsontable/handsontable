@@ -124,7 +124,7 @@ export class ColumnSorting extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link ColumnSorting#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link ColumnSorting#enablePlugin} method is called.
    *
    * @returns {boolean}
    */

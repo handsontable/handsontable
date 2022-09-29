@@ -1,8 +1,10 @@
 ---
-title: 'Using the `HotColumn` component in Vue 2'
-metaTitle: 'Using the HotColumn component in Vue 2 - Guide - Handsontable Documentation'
+title: Using the `HotColumn` component in Vue 2
+metaTitle: HotColumn component - Vue 2 Data Grid | Handsontable
+description: Configure the Vue 2 data grid's columns, using the props of the "HotColumn" component. Define a custom cell editor or a custom cell renderer.
 permalink: /vue-hot-column
 canonicalUrl: /vue-hot-column
+searchCategory: Guides
 ---
 
 # Using the `HotColumn` component in Vue 2
@@ -333,7 +335,7 @@ List of row indexes (starting from 0):
 ```html
 <div id="v-model-example">
   <label for="mainInput">List of row indexes (starting from 0):</label><br>
-    <input id="mainInput" maxlength="1" v-model="highlightedRows"/>
+    <input id="mainInput" v-model="highlightedRows"/>
 
     <br><br>
 
@@ -402,7 +404,7 @@ In this example, several capabilities of the wrapper are combined:
 
 ::: example #advanced-editor-example :vue-advanced --html 1 --css 2 --js 3
 ```html
-<div id="advanced-editor-example" class="hot">
+<div id="advanced-editor-example">
   <hot-table :settings="hotSettings">
     <hot-column :width="100">
       <stars-renderer hot-renderer></stars-renderer>

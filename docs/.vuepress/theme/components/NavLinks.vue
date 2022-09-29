@@ -7,9 +7,6 @@
       <NavLink :item="guideLink"/>
     </div>
     <div class="nav-item">
-      <NavLink :item="examplesLink"/>
-    </div>
-    <div class="nav-item">
       <NavLink :item="apiLink"/>
     </div>
     <div
@@ -44,22 +41,19 @@ export default {
     ThemeSwitcher
   },
   computed: {
+    frameworkUrlPrefix() {
+      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
+    },
     guideLink() {
       return {
-        link: '/',
+        link: `${this.frameworkUrlPrefix}/`,
         text: 'Guides'
-      };
-    },
-    examplesLink() {
-      return {
-        link: '/examples/',
-        text: 'Examples'
       };
     },
     apiLink() {
       return {
-        link: '/api/',
-        text: 'API Reference'
+        link: `${this.frameworkUrlPrefix}/api/`,
+        text: 'API reference'
       };
     },
     userNav() {

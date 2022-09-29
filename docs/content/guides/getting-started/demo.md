@@ -1,11 +1,16 @@
 ---
 title: Demo
-metaTitle: Demo - Guide - Handsontable Documentation
+metaTitle: Demo - JavaScript Data Grid | Handsontable
+description: Play around with a demo of Handsontable, in your favorite framework.
 permalink: /demo
 canonicalUrl: /demo
 tags:
   - demo
   - hello world
+react:
+  metaTitle: Demo - React Data Grid | Handsontable
+  description: Play around with a demo of Handsontable in React.
+searchCategory: Guides
 ---
 
 # Demo
@@ -37,7 +42,7 @@ Explore the demo and discover Handsontable's most popular features:
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type.md)
 - [Column groups](@/guides/columns/column-groups.md)
 - [Column menu](@/guides/columns/column-menu.md)
-- [Column filter](@/guides/columns/column-filter.md)-
+- [Column filter](@/guides/columns/column-filter.md)
 - [Column hiding](@/guides/columns/column-hiding.md)
 - [Row sorting](@/guides/rows/row-sorting.md)
 - And more!
