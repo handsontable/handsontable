@@ -270,7 +270,7 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
           maxSuggestions: 10,
         },
       ],
-      fuzzySearchDomains: ['Core', 'Hooks', 'Options'],
+      fuzzySearchDomains: ['Core', 'Hooks', 'Configuration options'],
     }
   }
 };

@@ -113,7 +113,7 @@ const matchQuery = (query, page, additionalStr = null, fuzzySearchDomains = []) 
     domain += ` ${additionalStr}`;
   }
 
-  const isFuzzySearch = fuzzySearchDomains.includes(get(page, 'frontmatter.searchCategory'));
+  const isFuzzySearch = fuzzySearchDomains.includes(get(page, 'title', ''));
 
   return matchTest(query, domain, isFuzzySearch);
 };
