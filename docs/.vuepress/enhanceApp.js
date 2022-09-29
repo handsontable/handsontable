@@ -17,6 +17,7 @@ const buildRegisterCleaner = register => (to, from) => {
   register.destroyAll();
 };
 
+// temporary disabled September 29 (#9963)
 // const buildActiveHeaderLinkHandler = () => {
 //   let activeLink = null;
 
