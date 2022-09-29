@@ -3,15 +3,15 @@
     <SidebarButton @toggle-sidebar="$emit('toggle-sidebar')" />
 
     <RouterLink
-        :to="'/'"
+        :to="frameworkUrlPrefix"
         class="home-link"
     >
 
     <Logo />
 
     </RouterLink>
-    <Versions></Versions>
-
+    <VersionsDropdown></VersionsDropdown>
+    <FrameworksDropdown></FrameworksDropdown>
     <ThemeSwitcher />
 
     <div
@@ -37,18 +37,20 @@ import AlgoliaSearchBox from '@AlgoliaSearchBox';
 import SearchBox from '@theme/components/SearchBox';
 import SidebarButton from '@theme/components/SidebarButton.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
-import Versions from '@theme/components/Versions.vue';
+import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
+import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
 import Logo from './Logo.vue';
 
 export default {
   name: 'Navbar',
   components: {
+    FrameworksDropdown,
     SidebarButton,
     NavLinks,
     SearchBox,
     AlgoliaSearchBox,
-    Versions,
+    VersionsDropdown,
     ThemeSwitcher,
     Logo
   },
@@ -58,6 +60,9 @@ export default {
     };
   },
   computed: {
+    frameworkUrlPrefix() {
+      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
+    },
     algolia() {
       return this.$themeLocaleConfig.algolia || this.$site.themeConfig.algolia || {};
     },
@@ -141,5 +146,11 @@ $navbar-horizontal-padding = 1.5rem
     padding-left 4rem
     .can-hide
       display none
+@media (max-width: $MQNarrow)
+  .navbar .nav-frameworks
+    display none
+@media (max-width: $MQMobileNarrow)
+  .navbar .nav-versions
+    display none
 
 </style>

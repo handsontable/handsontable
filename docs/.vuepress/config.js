@@ -6,10 +6,20 @@ const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
+const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
+const conditionalContainer = require('./plugins/markdown-it-conditional-container');
+const activeHeaderLinksPlugin = require('./plugins/active-header-links');
+const {
+  createSymlinks,
+  getDocsBase,
+  getDocsBaseFullUrl,
+  getDocsHostname,
+  getIgnorePagesPatternList,
+  getThisDocsVersion,
+  MULTI_FRAMEWORKED_CONTENT_DIR,
+} = require('./helpers');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
-const { getThisDocsVersion, getDocsBaseUrl } = require('./helpers');
 
-const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction ?
@@ -25,23 +35,28 @@ const environmentHead = isProduction ?
   ]
   : [];
 
+// The `vuepress dev` command needs placing directories in proper place. It's done by creating temporary directories
+// which are watched by the script. It's done before a compilation is starting.
+createSymlinks();
+
 module.exports = {
   define: {
     GA_ID: 'UA-33932793-7',
   },
   patterns: [
-    'content/**/*.md'
+    `${MULTI_FRAMEWORKED_CONTENT_DIR}/**/*.md`,
+    ...getIgnorePagesPatternList(),
   ],
   description: 'Handsontable',
-  base: `/docs/${docsBase === 'latest' ? '' : `${docsBase}/`}`,
+  base: `${getDocsBase()}/`,
   head: [
     ['link', {
       rel: 'icon',
-      href: `${getDocsBaseUrl()}/static/images/template/ModCommon/favicon-32x32.png`
+      href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png'
     }],
     ['link', {
       rel: 'preload',
-      href: isProduction ? `${getDocsBaseUrl()}/docs/data/common.json` : '/data/common.json',
+      href: `${getDocsBaseFullUrl()}/data/common.json`,
       as: 'fetch',
       crossorigin: ''
     }],
@@ -52,6 +67,9 @@ module.exports = {
       src: 'https://consent.cookiebot.com/uc.js',
       'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646'
     }],
+    ['script', {}, `\
+var DOCS_VERSION = '${getThisDocsVersion()}';
+`],
     ...environmentHead
   ],
   markdown: {
@@ -59,17 +77,49 @@ module.exports = {
       includeLevel: [2, 3],
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
+    anchor: {
+      permalinkSymbol: '',
+      permalinkHref(slug) {
+        // Remove the `-[number]` suffix from the permalink href attribute.
+        const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(slug);
+
+        if (duplicatedSlugsMatch) {
+          slug = duplicatedSlugsMatch[1];
+        }
+
+        return `#${slug}`;
+      },
+      callback(token, slugInfo) {
+        if (['h1', 'h2', 'h3'].includes(token.tag)) {
+          // Remove the `-[number]` suffix from the slugs and header IDs.
+          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrs[0][1]);
+
+          if (duplicatedSlugsMatch) {
+            token.attrs[0][1] = duplicatedSlugsMatch[1];
+            slugInfo.slug = duplicatedSlugsMatch[1];
+          }
+        }
+      }
+    },
     externalLinks: {
       target: '_blank',
       rel: 'nofollow noopener noreferrer'
     },
+    extendMarkdown(md) {
+      md.use(conditionalContainer).use(firstHeaderInjection);
+    }
+  },
+  configureWebpack: {
+    resolve: {
+      symlinks: false,
+    }
   },
   stylus: {
     preferPathResolver: 'webpack',
     define: {
-      versionedUrl: (expression) => {
+      url: (expression) => {
         return new stylusNodes
-          .Literal(`url("${expression.string.replace('{docsVersion}', getThisDocsVersion())}")`);
+          .Literal(`url("${expression.string.replace('{{$basePath}}', getDocsBaseFullUrl())}")`);
       },
     }
   },
@@ -77,14 +127,15 @@ module.exports = {
     extendPageDataPlugin,
     'tabs',
     ['sitemap', {
-      hostname: getDocsBaseUrl(),
+      hostname: getDocsHostname(),
       exclude: ['/404.html']
     }],
-    ['@vuepress/active-header-links', {
+    [activeHeaderLinksPlugin, {
       sidebarLinkSelector: '.table-of-contents a',
-      headerAnchorSelector: '.header-anchor'
+      headerAnchorSelector: '.header-anchor',
+      anchorTopOffset: 75,
     }],
-    ['container', examples(getThisDocsVersion())],
+    ['container', examples(getThisDocsVersion(), getDocsBaseFullUrl())],
     ['container', sourceCodeLink],
     {
       extendMarkdown(md) {
@@ -97,7 +148,7 @@ module.exports = {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'src') {
                 token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                  decodeURIComponent(value).replace('{{$basePath}}', getDocsBaseFullUrl())
                 );
               }
             });
@@ -117,7 +168,7 @@ module.exports = {
             token.attrs.forEach(([name, value], index) => {
               if (name === 'href') {
                 token.attrs[index][1] = (
-                  decodeURIComponent(value).replace('{{$page.currentVersion}}', getThisDocsVersion())
+                  decodeURIComponent(value).replace('{{$basePath}}', getDocsBaseFullUrl())
                 );
               }
             });
@@ -204,14 +255,22 @@ module.exports = {
     search: true,
     searchOptions: {
       placeholder: 'Search...',
-      guidesMaxSuggestions: 5,
-      apiMaxSuggestions: 10,
-      fuzzySearchDomains: ['Core', 'Hooks', 'Options'],
-      // The list modifies the search results position. When the search phrase matches the pages
-      // below, the search suggestions are placed before the rest results. The pages declared in
-      // the array at the beginning have the highest display priority.
-      apiSearchDomainPriorityList: ['Options'],
-      guidesSearchDomainPriorityList: [],
+      categoryPriorityList: [
+        {
+          name: 'Guides',
+          domainPriority: [],
+          maxSuggestions: 5,
+        },
+        {
+          name: 'API Reference',
+          // The "domainPriority" list modifies the search results position. When the search phrase matches
+          // the page titles, the search suggestions are placed before the rest results. The pages declared
+          // in the array at the beginning have the highest display priority.
+          domainPriority: ['Configuration options', 'Core', 'Hooks'],
+          maxSuggestions: 10,
+        },
+      ],
+      fuzzySearchDomains: ['Core', 'Hooks', 'Configuration options'],
     }
   }
 };

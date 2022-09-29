@@ -1,8 +1,10 @@
 ---
-title: 'Custom editor in Angular'
-metaTitle: 'Custom editor in Angular - Guide - Handsontable Documentation'
+title: Custom editor in Angular
+metaTitle: Custom cell editor - Angular Data Grid | Handsontable
+description: Create a custom cell editor, and use it in your Angular data grid by declaring it as a class.
 permalink: /angular-custom-editor-example
 canonicalUrl: /angular-custom-editor-example
+searchCategory: Guides
 ---
 
 # Custom editor example in Angular

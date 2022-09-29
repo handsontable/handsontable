@@ -35,9 +35,19 @@ jobs:
         run: |
           npm run docs:api
 
-      - name: Docker build
+      - name: Docker build (for staging deployment)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
-          npm run docs:docker:build
+          npm run docs:docker:build:staging
+
+      - name: Docker build (for local testing)
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        run: |
+          npm run docs:docker:build:testing
+
+      - name: Test examples
+        run: |
+          npm run docs:test:example-checker
 
       - name: Docker tags
         run: |

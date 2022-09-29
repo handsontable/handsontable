@@ -1,12 +1,15 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fse from 'fs-extra';
+import fs from 'fs/promises';
 import utils from './utils.js';
 import { getThisDocsVersion } from '../helpers.js';
 
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const buildMode = process.env.BUILD_MODE;
+const [...cliArgs] = process.argv.slice(2);
+const NO_CACHE = cliArgs.some(opt => opt.includes('--no-cache'));
 
 /**
  * Cleans the dist.
@@ -23,45 +26,51 @@ async function cleanUp() {
  * @param {string} version The docs version to build.
  */
 async function buildVersion(version) {
-  logger.info(`Version ${version} build started at`, new Date().toString());
+  logger.info(`Version "${version}" build started at`, new Date().toString());
 
   const cwd = path.resolve(__dirname, '../../');
   const versionEscaped = version.replace('.', '-');
 
-  await spawnProcess(
-    `node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-${versionEscaped}`,
-    { cwd, env: { DOCS_BASE: version }, }
-  );
-
-  if (version !== 'next') {
+  if (version !== 'next' || buildMode === 'staging') {
     await spawnProcess(
-      `node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-${versionEscaped}`,
-      { cwd, env: { DOCS_BASE: 'latest' }, }
+      'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-' +
+        `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
+      { cwd, env: { DOCS_BASE: version }, }
     );
   }
 
-  logger.success('Version build finished at', new Date().toString());
+  await spawnProcess(
+    'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
+      `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
+    { cwd, env: { DOCS_BASE: 'latest' }, }
+  );
+
+  logger.success(`Version "${version}" build finished at`, new Date().toString());
 }
 
 /**
  * Concatenates the dist's.
  *
- * @param {version} version The docs version to concatenate.
+ * @param {string} version The docs version to concatenate.
  */
 async function concatenate(version) {
-  if (version !== 'next') {
-    const prebuildLatest = path.resolve(__dirname, '../../', `.vuepress/dist/pre-latest-${version.replace('.', '-')}`);
-    const distLatest = path.resolve(__dirname, '../../', '.vuepress/dist/docs');
+  const versionEscaped = version.replace('.', '-');
 
-    await fse.move(prebuildLatest, distLatest);
+  if (version !== 'next' || buildMode === 'staging') {
+    const prebuildVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/pre-${versionEscaped}`);
+    const distVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/docs/${version}`);
+
+    await fs.cp(prebuildVersioned, distVersioned, { force: true, recursive: true });
+    await fs.rm(prebuildVersioned, { recursive: true });
   }
 
-  const prebuildVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/pre-${version.replace('.', '-')}`);
-  const distVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/docs/${version}`);
+  const prebuildLatest = path.resolve(__dirname, '../../', `.vuepress/dist/pre-latest-${versionEscaped}`);
+  const distLatest = path.resolve(__dirname, '../../', '.vuepress/dist/docs');
 
-  logger.info('Apply built version to the `docs/`', version);
+  await fs.cp(prebuildLatest, distLatest, { force: true, recursive: true });
+  await fs.rm(prebuildLatest, { recursive: true });
 
-  await fse.move(prebuildVersioned, distVersioned);
+  logger.info(`Apply built version "${version}" to the "docs/"`);
 }
 
 const startedAt = new Date().toString();
@@ -76,5 +85,4 @@ await cleanUp();
 await buildVersion(getThisDocsVersion());
 await concatenate(getThisDocsVersion());
 
-logger.log('Build has started at', startedAt);
 logger.success('Build finished at', new Date().toString());

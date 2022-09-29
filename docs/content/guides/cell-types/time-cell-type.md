@@ -1,8 +1,12 @@
 ---
 title: Time cell type
-metaTitle: Time cell type - Guide - Handsontable Documentation
+metaTitle: Time cell type - JavaScript Data Grid | Handsontable
+description: Use the time cell type to display, format, and validate values as times. The time cell type uses Moment.js as a time formatter.
 permalink: /time-cell-type
 canonicalUrl: /time-cell-type
+react:
+  metaTitle: Time cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Time cell type
@@ -29,6 +33,7 @@ By default, the values entered into the time-type column are **not** validated, 
 
 ## Basic example
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -69,6 +74,70 @@ const hot = new Handsontable(container, {
 hot.validateCells();
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import { useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = useRef(null);
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    hot.validateCells();
+  });
+
+  return (
+    <HotTable
+      ref={hotRef}
+      data={[
+        ['Mercedes', 'A 160', 1332284400000, 6999.95],
+        ['Citroen', 'C4 Coupe', '10 30', 8330],
+        ['Audi', 'A4 Avant', '8:00 PM', 33900],
+        ['Opel', 'Astra', 1332284400000, 7000],
+        ['BMW', '320i Coupe', 1332284400000, 30500]
+      ]}
+      colHeaders={['Car', 'Model', 'Registration time', 'Price']}
+      columnSorting={true}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+      columns={[{
+          type: 'text',
+        },
+        {
+          // 2nd cell is simple text, no special options here
+        },
+        {
+          type: 'time',
+          timeFormat: 'h:mm:ss a',
+          correctFormat: true
+        },
+        {
+          type: 'numeric',
+          numericFormat: {
+            pattern: '$ 0,0.00'
+          }
+        }
+      ]}
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Related articles
 

@@ -1,8 +1,10 @@
 ---
-title: 'Custom ID in Angular'
-metaTitle: 'Custom ID in Angular - Guide - Handsontable Documentation'
+title: Custom ID in Angular
+metaTitle: Custom ID - Angular Data Grid | Handsontable
+description: Pass a custom ID to the "HotTable" component to further customize your Angular data grid.
 permalink: /angular-custom-id
 canonicalUrl: /angular-custom-id
+searchCategory: Guides
 ---
 
 # Custom ID in Angular

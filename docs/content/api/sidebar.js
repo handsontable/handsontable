@@ -20,7 +20,7 @@ module.exports = {
     ...apiHighLevelPages,
     {
       title: 'Plugins',
-      path: '/api/plugins',
+      path: 'plugins',
       collapsable: false,
       children: plugins
     },
