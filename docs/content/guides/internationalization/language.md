@@ -109,7 +109,9 @@ To properly use the internationalization feature, you need to load the language 
 
 ### Demo
 
-Please right click on a cell to see the translated context menu. Language files were loaded after loading Handsontable.
+To see the translated context menu, right-click on a cell.
+
+Language files were loaded after loading Handsontable.
 
 ::: only-for javascript
 ::: example #example1 :hot-lang
@@ -277,7 +279,7 @@ You can create custom language sets for your implementations, or share them, as 
 
 It's really important for us, that the community is a important part of the growth of our library. We encourage you to create and share your translations!
 
-Additional languages files should be placed in the `src/i18n/languages` folder of the Handsontable repository with name corresponding to the chosen language code (described below, for example: `es-VE.js`). You can incorporate your translations to the Handsontable library by sending us a [pull request](@/guides/tools-and-building/custom-builds.md). It's important, that your changes are not made to the `/languages` and `/dist/languages` directories! Our release master will generate files which will be placed there in the building process. After that, you will be able to use the languages in `Handsontable`.
+Additional languages files should be placed in the `src/i18n/languages` folder of the Handsontable repository with name corresponding to the chosen language code (described below, for example: `es-VE.js`). You can incorporate your translations to the Handsontable library by sending us a [pull request](@/guides/tools-and-building/custom-builds.md). It's important, that your changes are not made to the `/languages` and `/dist/languages` directories! We will generate the final files to be placed there. After that, you'll be able to use the languages in Handsontable.
 
 You can see a full template of a sample language at the bottom of this paragraph. We're basing it on our [default language pack](https://github.com/handsontable/handsontable/blob/master/handsontable/src/i18n/languages/en-US.js). Parts of the file creation process are described below.
 
