@@ -152,5 +152,6 @@ export default async({ router, siteData, isServer }) => {
   }
 
   router.afterEach(buildRegisterCleaner(instanceRegister));
-  router.afterEach(buildActiveHeaderLinkHandler());
+  // temporary disabled September 29 (#9963)
+  // router.afterEach(buildActiveHeaderLinkHandler());
 };
