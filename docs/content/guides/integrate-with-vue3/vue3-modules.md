@@ -4,6 +4,7 @@ metaTitle: Modules - Vue 3 Data Grid | Handsontable
 description: Reduce the size of your Vue 3 app by importing only the modules that you need and use.
 permalink: /vue3-modules
 canonicalUrl: /vue3-modules
+searchCategory: Guides
 ---
 
 # Modules in Vue 3

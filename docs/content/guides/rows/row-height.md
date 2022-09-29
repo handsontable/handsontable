@@ -17,6 +17,7 @@ tags:
   - manual resize
 react:
   metaTitle: Row height - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row height

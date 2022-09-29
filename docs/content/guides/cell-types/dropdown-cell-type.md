@@ -6,6 +6,7 @@ permalink: /dropdown-cell-type
 canonicalUrl: /dropdown-cell-type
 react:
   metaTitle: Dropdown cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Dropdown cell type

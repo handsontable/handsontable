@@ -6,6 +6,7 @@ permalink: /row-moving
 canonicalUrl: /row-moving
 react:
   metaTitle: Row moving - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row moving

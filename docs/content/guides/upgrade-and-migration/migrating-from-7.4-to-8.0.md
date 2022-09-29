@@ -7,6 +7,7 @@ canonicalUrl: /migration-from-7.4-to-8.0
 pageClass: migration-guide
 react:
   metaTitle: Migrate from 7.4 to 8.0 - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Migrate from 7.4 to 8.0
@@ -468,7 +469,7 @@ const hot = new Handsontable(container, {
 });
 
 hot.setDataAtRowProp(0, 'available', true) // in 8.0.0, this throws an error
-hot.setSourceDataAtCell(0, 'available', true) // in 8.0.0, this sets a new property 
+hot.setSourceDataAtCell(0, 'available', true) // in 8.0.0, this sets a new property
 ```
 :::
 
@@ -482,7 +483,7 @@ hot.setSourceDataAtCell(0, 'available', true) // in 8.0.0, this sets a new prope
 />
 
 hotTableComponentRef.current.hotInstance.setDataAtRowProp(0, 'available', true) // in 8.0.0, this throws an error
-hotTableComponentRef.current.hotInstance.setSourceDataAtCell(0, 'available', true) // in 8.0.0, this sets a new property 
+hotTableComponentRef.current.hotInstance.setSourceDataAtCell(0, 'available', true) // in 8.0.0, this sets a new property
 ```
 :::
 

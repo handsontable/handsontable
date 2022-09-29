@@ -16,6 +16,7 @@ tags:
 - commands
 react:
   metaTitle: Keyboard shortcuts - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Keyboard shortcuts
@@ -212,7 +213,7 @@ For more information, see the [`Instance Methods`](@/guides/getting-started/reac
     ```js
     const gridContext = hot.getShortcutManager().getContext('grid');
     ```
-3. Use the selected context's [methods](@/api/shortcutContext.md). 
+3. Use the selected context's [methods](@/api/shortcutContext.md).
     For example, to use the [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method in the `grid` context:
     ```js
     const gridContext = hot.getShortcutManager().getContext('grid');
@@ -248,7 +249,7 @@ Using the [`ShortcutManager`](@/api/shortcutManager.md) API methods, you can:
 - Get an already-registered context: [`getContext()`](@/api/shortcutManager.md#getcontext)
 - Create and register a new context: [`addContext()`](@/api/shortcutManager.md#addcontext)
 
-For example: if you're using a complex [custom editor](@/guides/cell-functions/cell-editor.md#how-to-create-a-custom-editor), 
+For example: if you're using a complex [custom editor](@/guides/cell-functions/cell-editor.md#how-to-create-a-custom-editor),
 you can create a new shortcut context to navigate your editor's UI with the arrow keys (normally, the arrow keys would navigate the grid instead).
 
 ### Adding a custom keyboard shortcut

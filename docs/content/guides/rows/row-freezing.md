@@ -9,6 +9,7 @@ tags:
   - pinning rows
 react:
   metaTitle: Row freezing - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row freezing

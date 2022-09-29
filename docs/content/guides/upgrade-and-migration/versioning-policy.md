@@ -6,6 +6,7 @@ permalink: /versioning-policy
 canonicalUrl: /versioning-policy
 react:
   metaTitle: Versioning policy - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Versioning policy

@@ -6,6 +6,7 @@ permalink: /checkbox-cell-type
 canonicalUrl: /checkbox-cell-type
 react:
   metaTitle: Checkbox cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Checkbox cell type

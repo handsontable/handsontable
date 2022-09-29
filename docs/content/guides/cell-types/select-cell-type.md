@@ -6,6 +6,7 @@ permalink: /select-cell-type
 canonicalUrl: /select-cell-type
 react:
   metaTitle: Select cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Select cell type

@@ -6,6 +6,7 @@ permalink: /cell-renderer
 canonicalUrl: /cell-renderer
 react:
   metaTitle: Cell renderer - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Cell renderer

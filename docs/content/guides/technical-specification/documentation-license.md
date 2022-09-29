@@ -6,6 +6,7 @@ permalink: /documentation-license
 canonicalUrl: /documentation-license
 react:
   metaTitle: Documentation license - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Documentation license

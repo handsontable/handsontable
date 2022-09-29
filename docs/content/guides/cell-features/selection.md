@@ -9,6 +9,7 @@ tags:
   - cell selection
 react:
   metaTitle: Selection - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Selection
@@ -90,7 +91,7 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-  
+
   let selectOptionChangeCallback;
 
   useEffect(() => {
@@ -108,7 +109,7 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <HotTable 
+      <HotTable
         ref={hotRef}
         data={Handsontable.helper.createSpreadsheetData(10, 10)}
         width="auto"
@@ -121,10 +122,10 @@ const ExampleComponent = () => {
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <select 
-          id="selectOption" 
-          style={{width: 'auto', marginTop: 16}} 
-          onChange={(...args) => selectOptionChangeCallback(...args)} 
+        <select
+          id="selectOption"
+          style={{width: 'auto', marginTop: 16}}
+          onChange={(...args) => selectOptionChangeCallback(...args)}
           defaultValue="multiple"
         >
           <option value="single">Single selection</option>
@@ -205,7 +206,7 @@ registerAllModules();
 const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [output, setOutput] = useState('');
-  
+
   let getButtonClickCallback;
 
   useEffect(() => {
@@ -242,8 +243,8 @@ const ExampleComponent = () => {
       />
       <output className="console" id="output">{output}</output>
       <div className="controls">
-        <button 
-          id="getButton" 
+        <button
+          id="getButton"
           onClick={(...args) => getButtonClickCallback(...args)}
         >
           Get data
@@ -342,7 +343,7 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-  
+
   let buttonClickCallback;
 
   useEffect(() => {

@@ -10,6 +10,7 @@ tags:
   - offset
 react:
   metaTitle: Column virtualization - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column virtualization

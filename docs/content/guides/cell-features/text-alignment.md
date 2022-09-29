@@ -6,6 +6,7 @@ permalink: /text-alignment
 canonicalUrl: /text-alignment
 react:
   metaTitle: Text alignment - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Text alignment

@@ -6,6 +6,7 @@ permalink: /redux
 canonicalUrl: /redux
 react:
   metaTitle: Integration with Redux - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Integration with Redux

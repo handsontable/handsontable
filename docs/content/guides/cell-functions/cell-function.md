@@ -6,6 +6,7 @@ permalink: /cell-function
 canonicalUrl: /cell-function
 react:
   metaTitle: Cell functions - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Cell function

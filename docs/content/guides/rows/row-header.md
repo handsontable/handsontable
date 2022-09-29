@@ -10,6 +10,7 @@ tags:
   - row id
 react:
   metaTitle: Row headers - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row header

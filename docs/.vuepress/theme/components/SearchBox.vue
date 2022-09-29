@@ -113,12 +113,10 @@ const matchQuery = (query, page, additionalStr = null, fuzzySearchDomains = []) 
     domain += ` ${additionalStr}`;
   }
 
-  const isFuzzySearch = fuzzySearchDomains.includes(domain.split(' ')[0]);
+  const isFuzzySearch = fuzzySearchDomains.includes(get(page, 'frontmatter.searchCategory'));
 
   return matchTest(query, domain, isFuzzySearch);
 };
-
-const apiRegex = /^\/api\//;
 
 export default {
   name: 'SearchBox',
@@ -151,17 +149,10 @@ export default {
       const { pages } = this.$site;
 
       const {
-        apiMaxSuggestions = SEARCH_MAX_SUGGESTIONS,
-        guidesMaxSuggestions = SEARCH_MAX_SUGGESTIONS,
         fuzzySearchDomains = [],
-        apiSearchDomainPriorityList = [],
-        guidesSearchDomainPriorityList = [],
+        categoryPriorityList = [],
       } = this.$site.themeConfig.searchOptions;
 
-      const apiPriorityList = [...apiSearchDomainPriorityList].reverse();
-      const guidesPriorityList = [...guidesSearchDomainPriorityList].reverse();
-      const resAPI = [];
-      const resGuides = [];
       const isSearchable = (page) => {
         // filter out results that do not match current locale
         if (this.getPageLocalePath(page) !== this.$localePath) {
@@ -172,86 +163,54 @@ export default {
         return this.isSearchable(page);
       };
 
-      // At first, search for the phrase in the API reference main categories
-      for (let i = 0; i < pages.length; i++) {
-        const p = pages[i];
+      const duplicatePagesGuard = [];
+      const searchResults = new Map(categoryPriorityList.map(({ name, domainPriority }) => {
+        const priorityList = [...domainPriority].reverse();
+        const categorySearchResults = [];
 
-        if (!isSearchable(p) || !apiRegex.test(p.path)) {
-          continue; // eslint-disable-line
-        }
+        for (let i = 0; i < pages.length; i++) {
+          const p = pages[i];
 
-        const category = 'API Reference';
-        const priority = apiPriorityList.indexOf(get(p, 'title', ''));
+          if (!isSearchable(p) || p.frontmatter.searchCategory !== name) {
+            continue; // eslint-disable-line
+          }
 
-        if (matchQuery(query, p, null, fuzzySearchDomains)) {
-          resAPI.push({
-            ...p,
-            category,
-            priority,
-          });
-        }
+          const priority = priorityList.indexOf(get(p, 'title', ''));
 
-        if (p.headers) {
-          for (let j = 0; j < p.headers.length; j++) {
-            const h = p.headers[j];
+          if (matchQuery(query, p, null, fuzzySearchDomains)) {
+            duplicatePagesGuard.push(p.key);
+            categorySearchResults.push({
+              ...p,
+              category: name,
+              priority,
+            });
+          }
 
-            if (h.title && matchQuery(query, p, h.title, fuzzySearchDomains)) {
-              resAPI.push({
-                ...p,
-                path: `${p.path}#${h.slug}`,
-                header: h,
-                category,
-                priority,
-              });
+          if (p.headers) {
+            for (let j = 0; j < p.headers.length; j++) {
+              const h = p.headers[j];
+
+              if (h.title && matchQuery(query, p, h.title, fuzzySearchDomains) &&
+                  !duplicatePagesGuard.includes(p.key)) {
+                duplicatePagesGuard.push(p.key);
+                categorySearchResults.push({
+                  ...p,
+                  path: `${p.path}#${h.slug}`,
+                  header: h,
+                  category: name,
+                  priority,
+                });
+              }
             }
           }
         }
-      }
 
-      // The same for non-API pages.
-      for (let i = 0; i < pages.length; i++) {
-        const p = pages[i];
+        return [name, categorySearchResults.sort(priorityCompare)];
+      }));
 
-        if (!isSearchable(p) || apiRegex.test(p.path)) {
-          continue; // eslint-disable-line
-        }
-
-        const category = 'Guides';
-        const priority = guidesPriorityList.indexOf(get(p, 'title', ''));
-
-        if (matchQuery(query, p, null, fuzzySearchDomains)) {
-          resGuides.push({
-            ...p,
-            category,
-            // Give the higher priority for the main pages as with a lot of results
-            // the main pages are more relevant to the query
-            priority: priority + 1,
-          });
-        }
-
-        if (p.headers) {
-          for (let j = 0; j < p.headers.length; j++) {
-            const h = p.headers[j];
-
-            if (h.title && matchQuery(query, p, h.title, fuzzySearchDomains)) {
-              resGuides.push({
-                ...p,
-                path: `${p.path}#${h.slug}`,
-                header: h,
-                category,
-                priority,
-              });
-            }
-          }
-        }
-      }
-
-      resAPI.sort(priorityCompare);
-      resGuides.sort(priorityCompare);
-
-      const res = [].concat(resAPI.splice(0, apiMaxSuggestions), resGuides.splice(0, guidesMaxSuggestions));
-
-      res.sort((a, b) => b.category.localeCompare(a.category));
+      const res = categoryPriorityList.reduce((results, { name, maxSuggestions }) => {
+        return results.concat(searchResults.get(name).splice(0, maxSuggestions));
+      }, []);
 
       return res;
     },

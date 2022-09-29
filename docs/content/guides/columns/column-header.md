@@ -6,6 +6,7 @@ permalink: /column-header
 canonicalUrl: /column-header
 react:
   metaTitle: Column headers - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column header
@@ -52,7 +53,7 @@ registerAllModules();
 
 const ExampleComponent = () => {
   return (
-    <HotTable 
+    <HotTable
       data={Handsontable.helper.createSpreadsheetData(3, 11)}
       colHeaders={true}
       rowHeaders={true}

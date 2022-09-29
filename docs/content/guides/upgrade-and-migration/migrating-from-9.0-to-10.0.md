@@ -7,6 +7,7 @@ canonicalUrl: /migration-from-9.0-to-10.0
 pageClass: migration-guide
 react:
   metaTitle: Migrate from 9.0 to 10.0 - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Migrate from 9.0 to 10.0

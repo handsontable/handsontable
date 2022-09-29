@@ -6,6 +6,7 @@ permalink: /numeric-cell-type
 canonicalUrl: /numeric-cell-type
 react:
   metaTitle: Numeric cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Numeric cell type

@@ -11,6 +11,7 @@ tags:
   - placeholder
 react:
   metaTitle: Row pre-populating - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row pre-populating

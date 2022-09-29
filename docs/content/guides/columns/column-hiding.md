@@ -6,6 +6,7 @@ permalink: /column-hiding
 canonicalUrl: /column-hiding
 react:
   metaTitle: Column hiding - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column hiding

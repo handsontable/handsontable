@@ -4,8 +4,9 @@ metaTitle: Column component - React Data Grid | Handsontable
 description: Configure the React data grid's columns, using the props of the "HotColumn" component. Pass your component as a custom cell editor or a custom cell renderer.
 permalink: /hot-column
 canonicalUrl: /hot-column
-tags: 
-- hotcolumn
+tags:
+  - hotcolumn
+searchCategory: Guides
 ---
 
 # Column component
@@ -45,7 +46,7 @@ const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
 :::
- 
+
 ## Object data source
 
 When you use object data binding for `<HotColumn/>`, you need to provide precise information about the data structure for columns. To do so, refer to your object-based data property in `HotColumn`'s `data` prop, for example, `<HotColumn data='id' />`:
@@ -115,7 +116,7 @@ const data = [
 
 const ExampleComponent = () => {
   return (
-    <HotTable 
+    <HotTable
         data={data}
         licenseKey="non-commercial-and-evaluation"
         autoRowSize={false}

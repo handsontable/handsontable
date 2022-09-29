@@ -10,6 +10,7 @@ tags:
   - pinning columns
 react:
   metaTitle: Column freezing - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column freezing

@@ -17,6 +17,7 @@ tags:
   - i18n
 react:
   metaTitle: Layout direction - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Layout direction

@@ -6,6 +6,7 @@ permalink: /cell-editor
 canonicalUrl: /cell-editor
 react:
   metaTitle: Cell editor - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Cell editor

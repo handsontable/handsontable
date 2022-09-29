@@ -10,6 +10,7 @@ tags:
   - collapsing columns
 react:
   metaTitle: Column groups - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column groups
@@ -209,7 +210,7 @@ const ExampleComponent = () => {
         { row: -2, col: 1, collapsible: true },
         { row: -2, col: 3, collapsible: true }
       ]}
-      licenseKey="non-commercial-and-evaluation"        
+      licenseKey="non-commercial-and-evaluation"
     >
     </HotTable>
   );

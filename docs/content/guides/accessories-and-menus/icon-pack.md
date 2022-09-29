@@ -9,6 +9,7 @@ tags:
   - toolbar icons
 react:
   metaTitle: Icon pack - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Icon pack

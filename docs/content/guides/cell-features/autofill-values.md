@@ -14,6 +14,7 @@ tags:
   - auto fill
 react:
   metaTitle: Autofill values - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Autofill values

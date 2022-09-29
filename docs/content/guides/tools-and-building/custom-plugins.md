@@ -10,6 +10,7 @@ tags:
   - extend
 react:
   metaTitle: Custom plugins - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Custom plugins

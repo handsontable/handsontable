@@ -6,6 +6,7 @@ permalink: /column-sorting
 canonicalUrl: /column-sorting
 react:
   metaTitle: Column sorting - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column sorting

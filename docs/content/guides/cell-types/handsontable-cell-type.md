@@ -6,6 +6,7 @@ permalink: /handsontable-cell-type
 canonicalUrl: /handsontable-cell-type
 react:
   metaTitle: Handsontable cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Handsontable cell type

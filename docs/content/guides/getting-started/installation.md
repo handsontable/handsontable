@@ -8,6 +8,7 @@ tags:
   - quick start
 react:
   metaTitle: Installation - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Installation

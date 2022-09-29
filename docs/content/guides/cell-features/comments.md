@@ -8,6 +8,7 @@ tags:
   - notes
 react:
   metaTitle: Comments - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Comments

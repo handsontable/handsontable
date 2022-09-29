@@ -6,6 +6,7 @@ permalink: /autocomplete-cell-type
 canonicalUrl: /autocomplete-cell-type
 react:
   metaTitle: Autocomplete cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Autocomplete cell type
