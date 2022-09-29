@@ -17,23 +17,24 @@ const buildRegisterCleaner = register => (to, from) => {
   register.destroyAll();
 };
 
-const buildActiveHeaderLinkHandler = () => {
-  let activeLink = null;
+// TODO: temporary disabled on September 29 (#9963)
+// const buildActiveHeaderLinkHandler = () => {
+//   let activeLink = null;
 
-  return (to, from) => {
-    if (to.hash !== from.hash) {
-      if (activeLink) {
-        activeLink.classList.remove('active');
-      }
-      // eslint-disable-next-line
-      activeLink = document.querySelector(`.table-of-contents a[href="${to.hash}"]`);
+//   return (to, from) => {
+//     if (to.hash !== from.hash) {
+//       if (activeLink) {
+//         activeLink.classList.remove('active');
+//       }
+//       // eslint-disable-next-line
+//       activeLink = document.querySelector(`.table-of-contents a[href="${to.hash}"]`);
 
-      if (activeLink) {
-        activeLink.classList.add('active');
-      }
-    }
-  };
-};
+//       if (activeLink) {
+//         activeLink.classList.add('active');
+//       }
+//     }
+//   };
+// };
 
 /**
  * The variable prevents collect double page views for the initial page load.
@@ -152,5 +153,6 @@ export default async({ router, siteData, isServer }) => {
   }
 
   router.afterEach(buildRegisterCleaner(instanceRegister));
-  router.afterEach(buildActiveHeaderLinkHandler());
+  // TODO: temporary disabled on September 29 (#9963)
+  // router.afterEach(buildActiveHeaderLinkHandler());
 };
