@@ -3,12 +3,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const sha = childProcess
+  .execSync('git rev-parse HEAD')
+  .toString().trim();
 
 export const applyLinkToSource = (data) => {
-  const sha = childProcess
-    .execSync('git rev-parse HEAD')
-    .toString().trim();
-
   return data.map((x) => {
     if (x.meta && x.meta.path && x.meta.filename && x.meta.lineno) {
       const filepath = path.relative(path.join(__dirname, '../../../../../../'), x.meta.path);

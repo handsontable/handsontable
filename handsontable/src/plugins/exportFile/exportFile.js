@@ -10,12 +10,12 @@ export const PLUGIN_PRIORITY = 240;
  * @class ExportFile
  *
  * @description
- * The plugin enables exporting table data to file. It allows to export data as a string, blob or a downloadable file in
- * CSV format.
+ * The `ExportFile` plugin lets you export table data as a string, blob, or downloadable CSV file.
  *
  * See [the export file demo](@/guides/accessories-and-menus/export-to-csv.md) for examples.
  *
  * @example
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -44,6 +44,43 @@ export const PLUGIN_PRIORITY = 240;
  *   range: [1, 1, 6, 6]         // [startRow, endRow, startColumn, endColumn]
  * });
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * const hotRef = useRef(null);
+ *
+ * ...
+ *
+ * <HotTable
+ *   ref={hotRef}
+ *   data={getData()}
+ * />
+ *
+ * const hot = hotRef.current.hotInstance;
+ * // access to exportFile plugin instance
+ * const exportPlugin = hot.getPlugin('exportFile');
+ *
+ * // export as a string
+ * exportPlugin.exportAsString('csv');
+ *
+ * // export as a blob object
+ * exportPlugin.exportAsBlob('csv');
+ *
+ * // export to downloadable file (named: MyFile.csv)
+ * exportPlugin.downloadFile('csv', {filename: 'MyFile'});
+ *
+ * // export as a string (with specified data range):
+ * exportPlugin.exportAsString('csv', {
+ *   exportHiddenRows: true,     // default false
+ *   exportHiddenColumns: true,  // default false
+ *   columnHeaders: true,        // default false
+ *   rowHeaders: true,           // default false
+ *   columnDelimiter: ';',       // default ','
+ *   range: [1, 1, 6, 6]         // [startRow, endRow, startColumn, endColumn]
+ * });
+ * ```
+ * :::
  */
 export class ExportFile extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -56,7 +93,7 @@ export class ExportFile extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link ExportFile#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link ExportFile#enablePlugin} method is called.
    *
    * @returns {boolean}
    */

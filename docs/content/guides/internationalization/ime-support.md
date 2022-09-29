@@ -1,6 +1,7 @@
 ---
 title: IME support
-metaTitle: IME support - Guide - Handsontable Documentation
+metaTitle: IME support - JavaScript Data Grid | Handsontable
+description: Convert keystrokes to characters not available on the keyboard, using the Input Method Editor. This feature is always enabled and available for cell editors.
 permalink: /ime-support
 canonicalUrl: /ime-support
 tags:
@@ -9,6 +10,9 @@ tags:
   - japanese
   - chinese
   - latin
+react:
+  metaTitle: IME support - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # IME support

@@ -1,8 +1,10 @@
 ---
-title: 'Using the `HotColumn` component in Vue 3'
-metaTitle: 'Using the HotColumn component in Vue 3 - Guide - Handsontable Documentation'
+title: Using the `HotColumn` component in Vue 3
+metaTitle: HotColumn component - Vue 3 Data Grid | Handsontable
+description: Configure the Vue 3 data grid's columns, using the props of the "HotColumn" component. Define a custom cell editor or a custom cell renderer.
 permalink: /vue3-hot-column
 canonicalUrl: /vue3-hot-column
+searchCategory: Guides
 ---
 
 # Using the `HotColumn` component in Vue 3
