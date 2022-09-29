@@ -266,7 +266,7 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
           // The "domainPriority" list modifies the search results position. When the search phrase matches
           // the page titles, the search suggestions are placed before the rest results. The pages declared
           // in the array at the beginning have the highest display priority.
-          domainPriority: ['Configuration options', 'Core'],
+          domainPriority: ['Configuration options', 'Core', 'Hooks'],
           maxSuggestions: 10,
         },
       ],
