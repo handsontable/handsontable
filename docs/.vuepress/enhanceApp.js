@@ -14,10 +14,10 @@ const buildRegisterCleaner = register => (to, from) => {
 
     return;
   }
-  register.destroyAll();
+  register.destroyAll();``
 };
 
-// temporary disabled September 29 (#9963)
+// TODO: temporary disabled on September 29 (#9963)
 // const buildActiveHeaderLinkHandler = () => {
 //   let activeLink = null;
 
@@ -153,6 +153,6 @@ export default async({ router, siteData, isServer }) => {
   }
 
   router.afterEach(buildRegisterCleaner(instanceRegister));
-  // temporary disabled September 29 (#9963)
+  // TODO: temporary disabled on September 29 (#9963)
   // router.afterEach(buildActiveHeaderLinkHandler());
 };
