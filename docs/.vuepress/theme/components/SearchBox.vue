@@ -318,14 +318,14 @@ export default {
 .search-box.search-box
   display inline-block
   position relative
-  margin-right 2rem
+  margin-right 1.5rem
   input
     cursor text
-    width 12rem
+    width 14rem
     height: 2rem
     display inline-block
     border 1px solid #cfdbe4
-    border-radius 8px
+    border-radius 6px
     font-size 0.9rem
     line-height 2rem
     padding 0 0.5rem 0 2rem
@@ -355,10 +355,10 @@ export default {
   .suggestions
     background #fff
     max-width calc(100vw - 4rem)
-    width 26rem
+    width 22rem
     position absolute
     top 1.6rem
-    border 1px solid darken($borderColor, 10%)
+    border 1px solid #43464d
     border-radius 6px
     padding 0.4rem
     list-style-type none
@@ -374,7 +374,7 @@ export default {
   .suggestion
     line-height 1.4
     padding 0.4rem 0.6rem
-    border-radius 4px
+    border-radius 6px
     cursor pointer
     a
       white-space normal
@@ -403,7 +403,7 @@ export default {
       &:focus
         cursor text
         left 0
-        width 8rem
+        width 10rem
         margin-right 1rem
     .kbd-hint *
       display none

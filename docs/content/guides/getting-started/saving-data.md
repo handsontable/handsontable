@@ -18,9 +18,6 @@ searchCategory: Guides
 [[toc]]
 
 ## Overview
-Persistent state storage is particularly useful when running multiple instances of Handsontable on one page as it allows data separation per each instance.
-
-## Saving changes using a callback
 
 To track changes made in your data grid, use Handsontable's [`afterChange`](@/api/hooks.md#afterchange) hook.
 

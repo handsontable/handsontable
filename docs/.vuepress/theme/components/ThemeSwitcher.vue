@@ -92,6 +92,7 @@ export default {
 .switch {
   width: 60px;
   height: 32px;
+  margin-left: 9px;
   position relative
   display inline-block
   top: 1px;

@@ -7,14 +7,24 @@
           :to="frameworkUrlPrefix"
           class="home-link"
       >
-  
-      <Logo />
-  
+        <Logo />
       </RouterLink>
-      <VersionsDropdown></VersionsDropdown>
+
+      <NavLinks class="can-hide" />
+
       <FrameworksDropdown></FrameworksDropdown>
-      <ThemeSwitcher />
+      
+      <div class="nav-links-right">
+        <SearchBox />
   
+        <VersionsDropdown class="can-hide"></VersionsDropdown>
+        
+        <ExternalNavLinks class="can-hide" />
+  
+        <ThemeSwitcher />
+      </div>
+      
+      <!--
       <div
           class="links"
           :style="linksWrapMaxWidth ? {
@@ -25,11 +35,9 @@
             v-if="isAlgoliaSearch"
             :options="algolia"
         />
-  
-        <SearchBox />
-  
-        <NavLinks class="can-hide" />
       </div>
+      -->
+
     </div>
   </header>
 </template>
@@ -42,7 +50,8 @@ import NavLinks from '@theme/components/NavLinks.vue';
 import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
-import Logo from './Logo.vue';
+import Logo from '@theme/components/Logo.vue';
+import ExternalNavLinks from '@theme/components/ExternalNavLinks.vue';
 
 export default {
   name: 'Navbar',
@@ -54,7 +63,8 @@ export default {
     AlgoliaSearchBox,
     VersionsDropdown,
     ThemeSwitcher,
-    Logo
+    Logo,
+    ExternalNavLinks
   },
   data() {
     return {

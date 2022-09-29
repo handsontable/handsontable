@@ -4,7 +4,8 @@
       <template #page-top>
         <div v-show="show" class="page-top">
           <div class="version-alert">
-            <p>This page covers a non-latest version of Handsontable.</p>
+            <p>There is a newer version available.
+              <a href="/docs/latest/">Switch to the latest version</a>.</p>
           </div>
         </div>
       </template>
