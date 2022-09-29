@@ -1,8 +1,12 @@
 ---
 title: Formatting cells
-metaTitle: Formatting cells - Guide - Handsontable Documentation
+metaTitle: Formatting cells - JavaScript Data Grid | Handsontable
+description: Change the appearance of cells, using custom CSS classes, inline styles, or custom cell borders.
 permalink: /formatting-cells
 canonicalUrl: /formatting-cells
+react:
+  metaTitle: Formatting cells - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Formatting cells
@@ -19,6 +23,7 @@ A cell can be formatted either using a `CSS` class or with a style applied direc
 
 In this example, we add a custom class `custom-cell` to the cell in the top left corner and add a `custom-table` CSS class that highlights the table headers.
 
+::: only-for javascript
 ::: example #example1 --css 1 --js 2
 ```css
 td.custom-cell {
@@ -51,11 +56,60 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react --css 1 --js 2
+```css
+td.custom-cell {
+  color: #fff;
+  background-color: #37bc6c;
+}
+.custom-table thead th:nth-child(even),
+.custom-table tbody tr:nth-child(odd) th {
+  background-color: #d7f1e1;
+}
+```
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 5)}
+      rowHeaders={true}
+      colHeaders={true}
+      stretchH="all"
+      className="custom-table"
+      cell={[{
+        row: 0,
+        col: 0,
+        className: 'custom-cell',
+      }, ]}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Apply inline styles
 
-You can apply inline styles directly to the DOM element using its `style` attribute. You can use the [`renderer`](@/api/options.md#renderer) option to do that.
+You can apply inline styles directly to the DOM element using its `style` property. You can use the [`renderer`](@/api/options.md#renderer) option to do that.
 
+::: only-for javascript
 ::: example #example2
 ```javascript
 const container = document.querySelector('#example2');
@@ -87,6 +141,53 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  Handsontable
+    .renderers
+    .registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
+      Handsontable.renderers.getRenderer('text')(hotInstance, TD, ...rest);
+
+      TD.style.fontWeight = 'bold';
+      TD.style.color = 'green';
+      TD.style.background = '#d7f1e1';
+    });
+
+  return (
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 5)}
+      rowHeaders={true}
+      colHeaders={true}
+      stretchH="all"
+      cell={[{
+        row: 0,
+        col: 0,
+        renderer: 'customStylesRenderer',
+      }]}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 ## Custom cell borders
 
@@ -98,6 +199,7 @@ In the names of the API properties, the words `start` and `end` refer to the sta
 The `start` and `end` properties used to be called `left` and `right` before Handsontable 12.0.0. The old names `left` and `right` work in the LTR layout direction but throw an error when the layout direction is set to RTL.
 :::
 
+::: only-for javascript
 ::: example #example3
 ```js
 const container = document.getElementById('example3');
@@ -154,6 +256,79 @@ const hot = Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example3 :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(5, 6)}
+      rowHeaders={true}
+      colHeaders={true}
+      stretchH="all"
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+      customBorders={[{
+        range: {
+          from: {
+            row: 1,
+            col: 1
+          },
+          to: {
+            row: 3,
+            col: 4
+          }
+        },
+        top: {
+          width: 2,
+          color: '#5292F7'
+        },
+        bottom: {
+          width: 2,
+          color: 'red'
+        },
+        start: {
+          width: 2,
+          color: 'orange'
+        },
+        end: {
+          width: 2,
+          color: 'magenta'
+        }
+      },
+        {
+          row: 2,
+          col: 2,
+          start: {
+            width: 2,
+            color: 'red'
+          },
+          end: {
+            width: 1,
+            color: 'green'
+          }
+        }
+      ]}
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
 
 ## Related articles
 

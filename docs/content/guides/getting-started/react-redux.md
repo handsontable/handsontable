@@ -1,13 +1,21 @@
 ---
-title: 'Redux example'
-metaTitle: 'Redux example - Guide - Handsontable Documentation'
-permalink: /react-redux-example
-canonicalUrl: /react-redux-example
+title: Integration with Redux
+metaTitle: Integration with Redux - JavaScript Data Grid | Handsontable
+description: Use the Redux state container to maintain the data and configuration options of your React data grid.
+permalink: /redux
+canonicalUrl: /redux
+react:
+  metaTitle: Integration with Redux - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
-# Redux example
+# Integration with Redux
 
 [[toc]]
+
+You can integrate Handsontable with Redux or a similar state management library.
+
+Before using any state management library, make sure you know how Handsontable handles data: see the [Binding to data](@/guides/getting-started/binding-to-data.md#understand-binding-as-a-reference) page.
 
 ## Overview
 
@@ -17,18 +25,19 @@ The following example implements the `@handsontable/react` component with a [`re
 
 ::: example #example1 :react-redux
 ```jsx
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { createStore } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import { createSpreadsheetData } from './helpers';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const App = () => {
+const ExampleComponent = () => {
   const hotSettings = useSelector(state => state);
   const dispatch = useDispatch();
   const hotTableComponent = useRef(null);
@@ -57,19 +66,17 @@ const App = () => {
       <div id="example-container">
 
         <div id="example-preview">
-          <div id="toggle-boxes">
-            <br/>
-            <input onClick={toggleReadOnly} id="readOnlyCheck" type="checkbox"/>
-            <label htmlFor="readOnlyCheck">
+          <div className="controls">
+            <label>
+              <input onClick={toggleReadOnly} type="checkbox"/>
               Toggle <code>readOnly</code> for the entire table
             </label>
           </div>
-          <br/>
 
           <HotTable
             ref={hotTableComponent}
             beforeChange={onBeforeHotChange}
-            settings={hotSettings}
+            {...hotSettings}
           />
         </div>
 
@@ -146,7 +153,7 @@ const reduxStore = createStore(updatesReducer);
 
 ReactDOM.render(
   <Provider store={reduxStore}>
-    <App/>
+    <ExampleComponent />
   </Provider>,
   document.getElementById('example1')
 );

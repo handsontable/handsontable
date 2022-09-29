@@ -5,14 +5,13 @@ All configuration was moved into `configuration.js` file.
 ```js
 module.exports = {
   pathToSource: '../../../../src',
-  pathToDist: '../../../next/api',
-  urlPrefix: '/next/api/',
+  pathToDist: '../../../content/api',
+  urlPrefix: '/api/',
   whitelist: [ /* ... */ ], // todo it will be removed.
   seo: {
     'dataMap/metaManager/metaSchema.js': {
       title: 'Options',
       metaTitle: 'Options - API Reference - Handsontable Documentation',
-      permalink: '/next/api/options'
     },
     /* ... */
   },
@@ -46,27 +45,27 @@ package "jsdoc-convert" {
     [integrator.mjs]
     interface buildJsdocToMarkdownIntegrator
   }
-  
+
   package "renderer" {
     [preProcessor.mjs]
     [preProcessors/*]
-    
+
     [postProcessor.mjs]
     [postProcessors/*]
-    
+
     [seo.mjs]
-    
+
     [renderer.mjs]
-    
+
     interface buildRenderer
   }
   package "parser" {
     [parser.mjs]
-    
+
     interface buildParser
-  }  
- 
-  
+  }
+
+
   [configuration.js]
   [paths.mjs]
 

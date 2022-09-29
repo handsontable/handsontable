@@ -116,7 +116,7 @@ const siteChecker = new SiteChecker(
   }
 );
 
-const ARGUMENT_URL_DEFAULT = `http://127.0.0.1:${PORT}/docs/next/api`;
+const ARGUMENT_URL_DEFAULT = `http://127.0.0.1:${PORT}/docs/api`;
 
 let [urlArg] = process.argv.slice(2);
 

@@ -1,12 +1,16 @@
 ---
 title: Row virtualization
-metaTitle: Row virtualization - Guide - Handsontable Documentation
+metaTitle: Row virtualization - JavaScript Data Grid | Handsontable
+description: Render thousands of rows without freezing the browser, using row virtualization.
 permalink: /row-virtualization
 canonicalUrl: /row-virtualization
 tags:
   - dom
   - render all rows
   - offset
+react:
+  metaTitle: Row virtualization - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row virtualization
@@ -42,6 +46,7 @@ The scrolling performance depends mainly on four factors:
 
 The example below presents a data grid displaying 1 million cells (1000 rows x 1000 columns):
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -57,6 +62,39 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(1000, 1000)}
+      colWidths={100}
+      width="100%"
+      height={320}
+      rowHeaders={true}
+      colHeaders={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Related articles
 

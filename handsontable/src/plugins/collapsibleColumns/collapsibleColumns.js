@@ -45,6 +45,7 @@ const actionDictionary = new Map([
  * of objects, as in the example below.
  *
  * @example
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -69,6 +70,33 @@ const actionDictionary = new Map([
  *   ],
  * });
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={generateDataObj()}
+ *   colHeaders={true}
+ *   rowHeaders={true}
+ *   nestedHeaders={true}
+ *   // enable plugin
+ *   collapsibleColumns={true}
+ * />
+ *
+ * // or
+ * <HotTable
+ *   data={generateDataObj()}
+ *   colHeaders={true}
+ *   rowHeaders={true}
+ *   nestedHeaders={true}
+ *   // enable and configure which columns can be collapsed
+ *   collapsibleColumns={[
+ *     {row: -4, col: 1, collapsible: true},
+ *     {row: -3, col: 5, collapsible: true}
+ *   ]}
+ * />
+ * ```
+ * :::
  */
 export class CollapsibleColumns extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -123,7 +151,7 @@ export class CollapsibleColumns extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link CollapsibleColumns#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link CollapsibleColumns#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
