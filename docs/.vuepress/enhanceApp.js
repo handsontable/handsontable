@@ -14,7 +14,7 @@ const buildRegisterCleaner = register => (to, from) => {
 
     return;
   }
-  register.destroyAll();``
+  register.destroyAll();
 };
 
 // TODO: temporary disabled on September 29 (#9963)
