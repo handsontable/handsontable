@@ -57,13 +57,13 @@ export default {
         docsRepo = repo
       } = this.$site.themeConfig;
 
-      if (showEditLink && docsRepo && this.$page.relativePath) {
+      if (showEditLink && docsRepo && this.$page.originRelativePath) {
         return this.createEditLink(
           repo,
           docsRepo,
           docsDir,
           docsBranch,
-          this.$page.relativePath
+          this.$page.originRelativePath
         );
       }
 
