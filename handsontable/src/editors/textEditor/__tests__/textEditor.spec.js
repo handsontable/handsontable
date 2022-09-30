@@ -53,7 +53,7 @@ describe('TextEditor', () => {
   it('should render an editor with proper width when body is an inline-grid element', () => {
     document.body.style.display = 'inline-grid';
 
-    const hot = handsontable({
+    handsontable({
       columns: [
         {
           type: 'text',
