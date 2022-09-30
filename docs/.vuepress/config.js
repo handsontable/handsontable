@@ -231,7 +231,7 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
     prevLinks: true,
     repo: 'handsontable/handsontable',
     docsRepo: 'handsontable/handsontable',
-    docsDir: 'docs',
+    docsDir: 'docs/content',
     docsBranch: 'develop',
     editLinks: true,
     editLinkText: 'Suggest edits',
