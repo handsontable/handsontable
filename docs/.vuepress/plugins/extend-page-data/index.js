@@ -29,11 +29,11 @@ function dedupeSlashes(string) {
  * Returns the original (not symlinked) relative path of the MD file, which the page
  * are created from.
  *
- * @param {object} $page The $page value of the page you’re currently reading.
+ * @param {string} relativePath The relative path of the processed file (symlinked path).
  * @returns {string}
  */
-function getOriginPath($page) {
-  return $page.relativePath
+function getOriginRelativePath(relativePath) {
+  return relativePath
     .replace(new RegExp(`^/?${MULTI_FRAMEWORKED_CONTENT_DIR}`), '')
     .replace(new RegExp(`/(${getFrameworks().join('|')})${FRAMEWORK_SUFFIX}/`), '');
 }
@@ -68,7 +68,10 @@ module.exports = (options, context) => {
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.buildMode = buildMode;
-      $page.originRelativePath = getOriginPath($page);
+
+      if ($page.relativePath) {
+        $page.originRelativePath = getOriginRelativePath($page.relativePath);
+      }
 
       if ($page.currentVersion === 'next') {
         $page.docsGenStamp = `<!--
