@@ -45,7 +45,7 @@ describe('TextEditor', () => {
     selectCell(0, 0);
     keyDownUp('enter');
 
-    expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
 
     document.body.style.display = '';
   });
