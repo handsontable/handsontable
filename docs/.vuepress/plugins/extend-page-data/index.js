@@ -1,5 +1,6 @@
 const {
   FRAMEWORK_SUFFIX,
+  MULTI_FRAMEWORKED_CONTENT_DIR,
   getDefaultFramework,
   getDocsBase,
   getDocsRepoSHA,
@@ -7,6 +8,7 @@ const {
   getSidebars,
   getThisDocsVersion,
   parseFramework,
+  getFrameworks,
 } = require('../../helpers');
 
 const buildMode = process.env.BUILD_MODE;
@@ -21,6 +23,19 @@ const now = new Date();
  */
 function dedupeSlashes(string) {
   return string.replace(/(\/)+/g, '$1');
+}
+
+/**
+ * Returns the original (not symlinked) relative path of the MD file, which the page
+ * are created from.
+ *
+ * @param {string} relativePath The relative path of the processed file (symlinked path).
+ * @returns {string}
+ */
+function getOriginRelativePath(relativePath) {
+  return relativePath
+    .replace(new RegExp(`^/?${MULTI_FRAMEWORKED_CONTENT_DIR}`), '')
+    .replace(new RegExp(`/(${getFrameworks().join('|')})${FRAMEWORK_SUFFIX}/`), '');
 }
 
 const formatDate = (dateString) => {
@@ -53,6 +68,10 @@ module.exports = (options, context) => {
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.buildMode = buildMode;
+
+      if ($page.relativePath) {
+        $page.originRelativePath = getOriginRelativePath($page.relativePath);
+      }
 
       if ($page.currentVersion === 'next') {
         $page.docsGenStamp = `<!--
