@@ -73,7 +73,7 @@ html.theme-dark {
     // results
     ul.suggestions {
       background-color $backgroundColor
-      border-color #2d2d30
+      border-color #42464d
 
       li {
         &:not(.suggestion) {
@@ -396,4 +396,17 @@ html.theme-dark {
     }
   }
   /* Cookie Consent styling ends */
+
+  /* Handsontable drawing on the introduction page */
+
+  .handsontable-drawing {
+    p {
+      &:first-child {
+        display: none;
+      }
+      &:last-child {
+        display: inline;
+      }
+    }
+  }
 }

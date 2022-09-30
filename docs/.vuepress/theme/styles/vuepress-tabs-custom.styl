@@ -8,6 +8,7 @@
 .tabs-component {
   margin 1em 0;
   border: 1px solid #cfdbe4;
+  border-radius: 6px;
 
   ul.tabs-component-tabs {
     margin: 0;
@@ -23,7 +24,7 @@
     justify-content: flex-start;
     padding-inline-start: 0;
     width: 100%;
-    border-radius: 0!important;
+    border-radius: 6px 6px 0 0!important;
 
     li.tabs-component-tab {
       margin-right: 0;
@@ -45,7 +46,7 @@
       }
 
       &.is-active {
-        border-bottom: 2px solid #104bcd;
+        border-bottom: 3px solid #2556f2;
 
         &:hover a {
           color: $textColor;
@@ -55,15 +56,20 @@
   }
 
   .tabs-component-panels {
-    padding: 10px;
+    padding: 16px;
     box-shadow: none;
     border: none;
-    background: transparent;
+    border-radius: 0 0 6px 6px;
+    background: $tabsComponentBackgroundColor;
 
     pre {
       max-height: 392px;
       margin: 0;
       border-radius: 0;
     }
+  }
+  
+  &.selected-preview .tabs-component-panels {
+    background: transparent;
   }
 }
