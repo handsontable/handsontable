@@ -55,8 +55,9 @@ To find out which HyperFormula version to use, see the table below:
 :::
 
 ::: tip
-To use HyperFormula within Handsontable's default [Formulas](@/api/formulas.md) plugin, you only need your existing [Handsontable license key](@/guides/getting-started/license-key.md).<br><br>
-To use HyperFormula independently from Handsontable, you need a license key dedicated to HyperFormula. For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
+Your [Handsontable license key](@/guides/getting-started/license-key.md) lets you use HyperFormula for free in your Handsontable instance: just pass `'internal-use-in-handsontable'` as your HyperFormula license key .<br><br>
+
+To use HyperFormula outside of a Handsontable instance, though, (e.g., on a server), you need a dedicated [HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html). For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 :::
 
 ## Features
