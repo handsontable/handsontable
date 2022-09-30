@@ -2,7 +2,6 @@ const {
   FRAMEWORK_SUFFIX,
   MULTI_FRAMEWORKED_CONTENT_DIR,
   getDefaultFramework,
-  getDocsBase,
   getDocsRepoSHA,
   getPrettyFrameworkName,
   getSidebars,
@@ -14,6 +13,16 @@ const {
 const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/extend-page-data';
 const now = new Date();
+
+/**
+ * Remove the slash from the beginning and ending of the string.
+ *
+ * @param {string} string String to process.
+ * @returns {string}
+ */
+function removeEndingSlashes(string) {
+  return string.replace(/^\//, '').replace(/\/$/, '');
+}
 
 /**
  * Returns the original (not symlinked) relative path of the MD file, which the page
@@ -86,13 +95,11 @@ SHA: ${getDocsRepoSHA()}
       const frameworkPath = currentFramework + FRAMEWORK_SUFFIX;
 
       if ($page.frontmatter.canonicalUrl) {
+        const canonicalUrl = removeEndingSlashes(frameworkPath + $page.frontmatter.canonicalUrl);
+
         // The "canonicalShortUrl" property is used by "dump-docs-data" plugin. The property holds the
         // canonical URL without slashes at the beginning and ending of the URL path and without Docs base.
-        $page.frontmatter.canonicalShortUrl = $page.frontmatter.canonicalUrl
-          .replace(getDocsBase(), '')
-          .replace(/^\//, '')
-          .replace(/\/$/, '');
-        $page.frontmatter.canonicalUrl = `/${frameworkPath}${$page.frontmatter.canonicalUrl}/`;
+        $page.frontmatter.canonicalShortUrl = canonicalUrl;
       }
 
       if ($page.frontmatter.permalink) {
