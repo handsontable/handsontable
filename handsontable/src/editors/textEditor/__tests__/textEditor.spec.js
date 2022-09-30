@@ -34,7 +34,7 @@ describe('TextEditor', () => {
   it('should render an editor with proper width when body is a grid element', () => {
     document.body.style.display = 'grid';
 
-    const hot = handsontable({
+    handsontable({
       columns: [
         {
           type: 'text',
