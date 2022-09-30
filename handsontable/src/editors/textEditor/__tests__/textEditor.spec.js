@@ -73,7 +73,7 @@ describe('TextEditor', () => {
     document.body.style.display = 'flex';
     document.body.style.flexDirection = 'column';
 
-    const hot = handsontable({
+    handsontable({
       columns: [
         {
           type: 'text',
