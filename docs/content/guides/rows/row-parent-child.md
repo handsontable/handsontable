@@ -1,6 +1,7 @@
 ---
 title: Row parent-child
-metaTitle: Row parent-child - Guide - Handsontable Documentation
+metaTitle: Row parent-child - JavaScript Data Grid | Handsontable
+description: Reflect the parent-child relationship of your data, using Handsontable's interactive UI elements such as expand and collapse buttons or extended context menu.
 permalink: /row-parent-child
 canonicalUrl: /row-parent-child
 tags:
@@ -10,6 +11,9 @@ tags:
   - tree grid
   - grouping rows
   - master detail
+react:
+  metaTitle: Row parent-child - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row parent-child
@@ -28,11 +32,21 @@ The **Nested Rows** plugin extends Handsontable, adding new functionality that d
 
 To enable the plugin, simply set the [`nestedRows`](@/api/options.md#nestedrows) option to `true`.
 
+::: only-for javascript
 ```js
 const hot = new Handsontable(container, {
   nestedRows: true,
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  nestedRows={true}
+/>
+```
+:::
 
 Note that using all the functionalities provided by the plugin requires enabling the row headers and the Handsontable context menu. To do this set [`rowHeaders`](@/api/options.md#rowheaders) and [`contextMenu`](@/api/options.md#contextmenu) to `true`. The _collapse_ / _expand_ buttons are located in the row headers, and the row modification options _add row_, _insert child_, etc., are in the Context Menu.
 
@@ -45,6 +59,7 @@ If an entry has any child entries, they need to be declared again as an _array o
 
 Here's an example:
 
+::: only-for javascript
 ::: example #example1
 ```js
 const sourceDataObject = [
@@ -182,6 +197,154 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const sourceDataObject = [{
+    category: 'Best Rock Performance',
+    artist: null,
+    title: null,
+    label: null,
+    __children: [{
+      title: 'Don\'t Wanna Fight',
+      artist: 'Alabama Shakes',
+      label: 'ATO Records'
+    },
+      {
+        title: 'What Kind Of Man',
+        artist: 'Florence & The Machine',
+        label: 'Republic'
+      },
+      {
+        title: 'Something From Nothing',
+        artist: 'Foo Fighters',
+        label: 'RCA Records'
+      },
+      {
+        title: 'Ex\'s & Oh\'s',
+        artist: 'Elle King',
+        label: 'RCA Records'
+      },
+      {
+        title: 'Moaning Lisa Smile',
+        artist: 'Wolf Alice',
+        label: 'RCA Records/Dirty Hit'
+      }
+    ]
+  },
+    {
+      category: 'Best Metal Performance',
+      __children: [{
+        title: 'Cirice',
+        artist: 'Ghost',
+        label: 'Loma Vista Recordings'
+      },
+        {
+          title: 'Identity',
+          artist: 'August Burns Red',
+          label: 'Fearless Records'
+        },
+        {
+          title: '512',
+          artist: 'Lamb Of God',
+          label: 'Epic Records'
+        },
+        {
+          title: 'Thank You',
+          artist: 'Sevendust',
+          label: '7Bros Records'
+        },
+        {
+          title: 'Custer',
+          artist: 'Slipknot',
+          label: 'Roadrunner Records'
+        },
+      ]
+    },
+    {
+      category: 'Best Rock Song',
+      __children: [{
+        title: 'Don\'t Wanna Fight',
+        artist: 'Alabama Shakes',
+        label: 'ATO Records',
+      },
+        {
+          title: 'Ex\'s & Oh\'s',
+          artist: 'Elle King',
+          label: 'RCA Records',
+        },
+        {
+          title: 'Hold Back The River',
+          artist: 'James Bay',
+          label: 'Republic',
+        },
+        {
+          title: 'Lydia',
+          artist: 'Highly Suspect',
+          label: '300 Entertainment',
+        },
+        {
+          title: 'What Kind Of Man',
+          artist: 'Florence & The Machine',
+          label: 'Republic',
+        },
+      ]
+    },
+    {
+      category: 'Best Rock Album',
+      __children: [{
+        title: 'Drones',
+        artist: 'Muse',
+        label: 'Warner Bros. Records',
+      }, {
+        title: 'Chaos And The Calm',
+        artist: 'James Bay',
+        label: 'Republic',
+      }, {
+        title: 'Kintsugi',
+        artist: 'Death Cab For Cutie',
+        label: 'Atlantic',
+      }, {
+        title: 'Mister Asylum',
+        artist: 'Highly Suspect',
+        label: '300 Entertainment',
+      }, {
+        title: '.5: The Gray Chapter',
+        artist: 'Slipknot',
+        label: 'Roadrunner Records',
+      }]
+    }
+  ];
+
+  return (
+    <HotTable
+      data={sourceDataObject}
+      preventOverflow="horizontal"
+      rowHeaders={true}
+      colHeaders={['Category', 'Artist', 'Title', 'Album', 'Label']}
+      nestedRows={true}
+      contextMenu={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 In the example above, we’ve created a data object consisting of 2016’s Grammy nominees of the “Rock” genre. Each _0-level_ entry declares a category, while their children declare nominees - assigned under the `__children` properties.
 

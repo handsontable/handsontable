@@ -136,14 +136,14 @@ export default {
   height: 26px;
   width: 26px;
   left: 0px;
-  bottom: 4px;
   top: 0;
   bottom: 0;
   margin: auto 0;
   -webkit-transition: 0.4s;
   transition: 0.4s;
   box-shadow: 0 0px 3px #2020203d;
-  background: #ffffff versionedUrl('/docs/{docsVersion}/img/light-theme-icon.svg');
+  /* Fallback for IE, should work in production */
+  background: #ffffff url('{{$basePath}}/img/light-theme-icon.svg');
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;
@@ -161,7 +161,8 @@ input:checked + .slider:before {
   -webkit-transform: translateX(16px);
   -ms-transform: translateX(16px);
   transform: translateX(16px);
-  background: #ffffff versionedUrl('/docs/{docsVersion}/img/dark-theme-icon.svg');
+  /* Fallback for IE, should work in production */
+  background: #ffffff url('{{$basePath}}/img/dark-theme-icon.svg');
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;

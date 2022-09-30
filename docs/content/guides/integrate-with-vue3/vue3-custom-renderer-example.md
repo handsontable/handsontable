@@ -1,8 +1,10 @@
 ---
-title: 'Custom renderer in Vue 3'
-metaTitle: 'Custom renderer in Vue 3 - Guide - Handsontable Documentation'
+title: Custom renderer in Vue 3
+metaTitle: Custom cell renderer - Vue 3 Data Grid | Handsontable
+description: Create a custom cell renderer, and use it in your Vue 3 data grid by declaring it as a function.
 permalink: /vue3-custom-renderer-example
 canonicalUrl: /vue3-custom-renderer-example
+searchCategory: Guides
 ---
 
 # Custom renderer in Vue 3
@@ -40,28 +42,23 @@ const app = createApp({
       hotSettings: {
         data:
           [
-            ['A1', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-            ['A2', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/javascript-the-good-parts.jpg']],
+            ['A1', '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+            ['A2', '{{$basePath}}/img/examples/javascript-the-good-parts.jpg']
+          ],
         columns: [
           {},
           {
             renderer(instance, td, row, col, prop, value, cellProperties) {
-              const escaped = `${value}`;
+              const img = document.createElement('img');
 
-              if (escaped.indexOf('http') === 0) {
-                const img = document.createElement('IMG');
-                img.src = value;
+              img.src = value;
 
-                img.addEventListener('mousedown', event => {
-                  event.preventDefault();
-                });
+              img.addEventListener('mousedown', event => {
+                event.preventDefault();
+              });
 
-                td.innerText = '';
-                td.appendChild(img);
-
-              } else {
-                textRenderer.apply(this, arguments);
-              }
+              td.innerText = '';
+              td.appendChild(img);
 
               return td;
             }

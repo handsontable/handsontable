@@ -1,11 +1,19 @@
 const {
+  FRAMEWORK_SUFFIX,
+  MULTI_FRAMEWORKED_CONTENT_DIR,
+  getDefaultFramework,
+  getDocsBase,
+  getDocsRepoSHA,
+  getPrettyFrameworkName,
   getSidebars,
   getThisDocsVersion,
-  getDocsBaseUrl,
+  parseFramework,
+  getFrameworks,
 } = require('../../helpers');
 
 const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/extend-page-data';
+const now = new Date();
 
 /**
  * Dedupes the slashes in the string.
@@ -15,6 +23,19 @@ const pluginName = 'hot/extend-page-data';
  */
 function dedupeSlashes(string) {
   return string.replace(/(\/)+/g, '$1');
+}
+
+/**
+ * Returns the original (not symlinked) relative path of the MD file, which the page
+ * are created from.
+ *
+ * @param {string} relativePath The relative path of the processed file (symlinked path).
+ * @returns {string}
+ */
+function getOriginRelativePath(relativePath) {
+  return relativePath
+    .replace(new RegExp(`^/?${MULTI_FRAMEWORKED_CONTENT_DIR}`), '')
+    .replace(new RegExp(`/(${getFrameworks().join('|')})${FRAMEWORK_SUFFIX}/`), '');
 }
 
 const formatDate = (dateString) => {
@@ -39,11 +60,49 @@ module.exports = (options, context) => {
      * @param {object} $page The $page value of the page you’re currently reading.
      */
     extendPageData($page) {
+      const currentFramework = parseFramework($page.path);
+
       $page.currentVersion = getThisDocsVersion();
+      $page.currentFramework = currentFramework;
+      $page.frameworkName = getPrettyFrameworkName(currentFramework);
+      $page.defaultFramework = getDefaultFramework();
+      $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.buildMode = buildMode;
-      $page.baseUrl = getDocsBaseUrl();
-      $page.lastUpdatedFormat = formatDate($page.lastUpdated);
-      $page.frontmatter.canonicalUrl = dedupeSlashes(`/docs${$page.frontmatter.canonicalUrl}/`);
+
+      if ($page.relativePath) {
+        $page.originRelativePath = getOriginRelativePath($page.relativePath);
+      }
+
+      if ($page.currentVersion === 'next') {
+        $page.docsGenStamp = `<!--
+Generated at ${now}
+SHA: ${getDocsRepoSHA()}
+-->`;
+        // The `$page.lastUpdated` date is taken from `git log`. For Docs "next" it's impossible to take
+        // the last change date for API files as they are added to gitignore.
+        $page.lastUpdatedFormat = formatDate(new Date());
+      } else {
+        $page.lastUpdatedFormat = formatDate($page.lastUpdated);
+      }
+
+      const frontmatter = $page.frontmatter;
+
+      if (frontmatter[currentFramework]) {
+        Object.keys(frontmatter[currentFramework]).forEach((key) => {
+          frontmatter[key] = frontmatter[currentFramework][key] ?? frontmatter[key];
+        });
+      }
+
+      const frameworkPath = currentFramework + FRAMEWORK_SUFFIX;
+
+      if ($page.frontmatter.canonicalUrl) {
+        $page.frontmatter
+          .canonicalUrl = dedupeSlashes(`${getDocsBase()}/${frameworkPath}${$page.frontmatter.canonicalUrl}/`);
+      }
+
+      if ($page.frontmatter.permalink) {
+        $page.frontmatter.permalink = `/${frameworkPath}${$page.frontmatter.permalink}`;
+      }
     },
   };
 };

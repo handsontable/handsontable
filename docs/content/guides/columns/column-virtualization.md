@@ -1,12 +1,16 @@
 ---
 title: Column virtualization
-metaTitle: Column virtualization - Guide - Handsontable Documentation
+metaTitle: Column virtualization - JavaScript Data Grid | Handsontable
+description: Render hundreds of columns without freezing the browser, using column virtualization.
 permalink: /column-virtualization
 canonicalUrl: /column-virtualization
 tags:
   - dom
   - render all columns
   - offset
+react:
+  metaTitle: Column virtualization - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column virtualization
@@ -35,6 +39,7 @@ The scrolling performance depends mainly on four factors:
 
 The demo below presents a data grid displaying one million cells (1000 rows x 1000 columns).
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -50,6 +55,39 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(1000, 1000)}
+      colWidths={100}
+      width="100%"
+      height={320}
+      rowHeaders={true}
+      colHeaders={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Related articles
 

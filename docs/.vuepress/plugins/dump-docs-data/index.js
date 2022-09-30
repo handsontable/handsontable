@@ -5,6 +5,7 @@ const { generateCommonCanonicalURLs } = require('./canonicals');
 const { fetchDocsVersions } = require('./docs-versions');
 const {
   getThisDocsVersion,
+  getDocsBase,
 } = require('../../helpers');
 
 const pluginName = 'hot/dump-canonicals';
@@ -25,16 +26,20 @@ module.exports = (options, context) => {
     name: pluginName,
 
     /**
-     * Based on the permalink of the latest docs version generate nginx redirect rules.
+     * Collect the canonical URLs of the currently generated Docs version.
      *
      * @param {object} $page The $page value of the page you’re currently reading.
      */
     async extendPageData($page) {
       if ($page.frontmatter.permalink) {
-        // Remove the slash ('/') from the beginning and ending of the URL path to reduce
+        // Remove the slash ('/') from the beginning and ending of the URL path and Docs base to reduce
         // the resulting file size
-        rawCanonicalURLs.urls
-          .push($page.frontmatter.canonicalUrl.replace(/^\/docs\//, '').replace(/\/$/, ''));
+        rawCanonicalURLs.urls.push(
+          $page.frontmatter.canonicalUrl
+            .replace(getDocsBase(), '')
+            .replace(/^\//, '')
+            .replace(/\/$/, '')
+        );
       }
     },
 
