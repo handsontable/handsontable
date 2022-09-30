@@ -22,14 +22,9 @@ searchCategory: Guides
 
 [[toc]]
 
-::: tip
-To use HyperFormula within Handsontable's default [Formulas](@/api/formulas.md) plugin, you only need your existing [Handsontable license key](@/guides/getting-started/license-key.md).<br><br>
-To use HyperFormula independently from Handsontable, you need a license key dedicated to HyperFormula. For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
-:::
-
 ## Overview
 
-The _Formulas_ plugin provides you an extensive calculation capabilities based on formulas using the spreadsheet notation. Under the hood, it uses an engine called [HyperFormula](https://handsontable.github.io/hyperformula/) created by the Handsontable team as an independent library to help developers build complex data management apps.
+The _Formulas_ plugin provides you an extensive calculation capabilities based on formulas using the spreadsheet notation. Under the hood, it uses an engine called [HyperFormula](https://hyperformula.handsontable.com/) created by the Handsontable team as an independent library to help developers build complex data management apps.
 
 This plugin comes with a library of 386 functions grouped into categories, such as Math and trigonometry, Engineering, Statistical, Financial, and Logical. Using these, you can create complex data entry rules in business apps and much more. Below are some ideas on what you can do with it:
 
@@ -59,6 +54,11 @@ To find out which HyperFormula version to use, see the table below:
 
 :::
 
+::: tip
+To use HyperFormula within Handsontable's default [Formulas](@/api/formulas.md) plugin, you only need your existing [Handsontable license key](@/guides/getting-started/license-key.md).<br><br>
+To use HyperFormula independently from Handsontable, you need a license key dedicated to HyperFormula. For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
+:::
+
 ## Features
 
 *   High-speed formula calculations
@@ -72,8 +72,9 @@ To find out which HyperFormula version to use, see the table below:
 
 **Known limitations:**
 
-*   Doesn't work with nested rows
-*   Doesn't work with undo/redo
+*   Doesn't work with [nested rows](@/guides/rows/row-parent-child.md)
+*   Doesn't work with [undo/redo](@/guides/accessories-and-menus/undo-redo.md)
+*   Doesn't work with nested data (when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data.md#array-of-objects))
 
 ## Available options and methods
 
