@@ -7,6 +7,7 @@ canonicalUrl: /row-freezing
 tags:
   - fixing rows
   - pinning rows
+  - fixedRows
 react:
   metaTitle: Row freezing - React Data Grid | Handsontable
 searchCategory: Guides
