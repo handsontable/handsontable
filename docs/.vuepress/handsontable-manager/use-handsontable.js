@@ -1,11 +1,13 @@
 const { register } = require('./register');
-const { buildDependencyGetter, presetMap } = require('./dependencies');
+const {
+  buildDependencyGetter,
+  presetMap,
+} = require('./dependencies');
 
 const ATTR_VERSION = 'data-hot-version';
 
-const useHandsontable = (version, callback = () => {}, preset = 'hot') => {
-
-  const getDependency = buildDependencyGetter(version);
+const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode = 'production') => {
+  const getDependency = buildDependencyGetter(version, buildMode);
 
   const loadDependency = dep => new Promise((resolve) => {
     const id = `dependency-reloader_${dep}`;

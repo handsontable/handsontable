@@ -12,6 +12,7 @@
 </template>
 
 <script>
+/* global instanceRegister */
 import PageEdit from '@theme/components/PageEdit.vue';
 import PageNav from '@theme/components/PageNav.vue';
 
@@ -38,16 +39,15 @@ export default {
   },
   methods: {
     codePreviewTabChanged(selectedTab, exampleId) {
-      const changedClass = 'selected-preview';
-      const parentContainer = selectedTab.tab.$el.parentElement;
-
-      // Removing class by method compatible with IE
-      parentContainer.className = parentContainer.className.replace(new RegExp(` ?${changedClass}`), '');
-
       if (selectedTab.tab.computedId.startsWith('preview-tab')) {
         this.activatedExamples.push(exampleId);
-        parentContainer.className += ` ${changedClass}`; // Adding class by method compatible with IE
+      } else {
+        instanceRegister.destroyExample(exampleId);
+        this.activatedExamples = this.activatedExamples.filter(activatedExample => activatedExample !== exampleId);
       }
+    },
+    addClassIfPreviewTabIsSelected(exampleId, className) {
+      return this.activatedExamples.includes(exampleId) ? className : '';
     },
     isScriptLoaderActivated(exampleId) {
       return this.activatedExamples.includes(exampleId);
@@ -55,3 +55,17 @@ export default {
   },
 };
 </script>
+
+<style lang="stylus">
+  /* Absolute position of the span */
+  h1 {
+    position: relative;
+
+    .header-framework {
+      position: absolute;
+      top: -24px;
+      font-size: 16px;
+      opacity: .8;
+    }
+  }
+</style>

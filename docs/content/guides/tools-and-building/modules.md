@@ -1,10 +1,14 @@
 ---
 title: Modules
-metaTitle: Modules - Guide - Handsontable Documentation
+metaTitle: Modules - JavaScript Data Grid | Handsontable
+description: Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
 permalink: /modules
 canonicalUrl: /modules
 tags:
   - tree shaking
+react:
+  metaTitle: Modules - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Modules
@@ -26,14 +30,6 @@ To get the most out of using Handsontable's modules:
 2. Import [optional modules](#optional-modules) of your choice.
 3. Remove redundant code (so-called tree shaking).
 
-#### Use modules in frameworks
-
-To find out how to use modules with Handsontable's framework wrappers, see the following guides:
-- [Modules in React](@/guides/integrate-with-react/react-modules.md)
-- [Modules in Angular](@/guides/integrate-with-angular/angular-modules.md)
-- [Modules in Vue 2](@/guides/integrate-with-vue/vue-modules.md)
-- [Modules in Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)
-
 #### Bundler support
 
 To use Handsontable's modules, your environment needs to support the `import` syntax, which is typically provided by a bundler.
@@ -54,7 +50,13 @@ No matter which of the optional modules you use, you always need to import the b
 
 ### Import the base module
 
+::: only-for javascript
 To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the [full distribution package](@/guides/tools-and-building/packages.md)):
+:::
+
+::: only-for react
+To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the full distribution package):
+:::
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -155,6 +157,7 @@ For the full list of those modules, see the [List of all modules](#list-of-all-m
 
 For example, you can import the `numeric` cell type as a whole:
 
+::: only-for javascript
 ```js
 import Handsontable from 'handsontable/base';
 import {
@@ -174,9 +177,34 @@ new Handsontable(container, {
   ]
 });
 ```
+:::
+
+::: only-for react
+```jsx
+import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/react';
+import {
+  registerCellType,
+  NumericCellType,
+} from 'handsontable/cellTypes';
+
+registerCellType(NumericCellType);
+
+const container = document.querySelector('#example1');
+
+<HotTable
+  columns={[
+    {
+      type: 'numeric'
+    }
+  ]}
+/>
+```
+:::
 
 Or, you can import the `numeric` cell type's renderer, editor, and validator individually (the effect is the same as above):
 
+::: only-for javascript
 ```js
 import Handsontable from 'handsontable/base';
 import {
@@ -196,8 +224,6 @@ registerRenderer(numericRenderer);
 registerEditor(NumericEditor);
 registerValidator(numericValidator);
 
-const container = document.querySelector('#example1');
-
 new Handsontable(container, {
   columns: [
     {
@@ -205,10 +231,48 @@ new Handsontable(container, {
       editor: 'numeric',
       validator: 'numeric',
       dataType: 'number',
+      type: 'numeric',
     }
   ]
 });
 ```
+:::
+
+::: only-for react
+```jsx
+import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/react';
+import {
+  registerRenderer,
+  numericRenderer,
+} from 'handsontable/renderers';
+import {
+  registerEditor,
+  NumericEditor,
+} from 'handsontable/editors';
+import {
+  registerValidator,
+  numericValidator,
+} from 'handsontable/validators';
+
+registerRenderer(numericRenderer);
+registerEditor(NumericEditor);
+registerValidator(numericValidator);
+
+<HotTable
+  columns={[
+    {
+      renderer: 'numeric',
+      editor: 'numeric',
+      validator: 'numeric',
+      dataType: 'number',
+      type: 'numeric',
+    }
+  ]}
+/>
+
+```
+:::
 
 ### Plugin modules
 
@@ -887,16 +951,28 @@ import { registerLanguageDictionary } from 'handsontable/i18n/registry';
 ```
 :::
 
+::: only-for javascript
+## Using modules with frameworks
+
+You can also use modules with Handsontable's framework wrappers:
+- [Using modules with React](@/react/guides/tools-and-building/modules.md)
+- [Using modules with Angular](@/guides/integrate-with-angular/angular-modules.md)
+- [Using modules with Vue 2](@/guides/integrate-with-vue/vue-modules.md)
+- [Using modules with Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)
+:::
+
 ## Related articles
 
 ### Related guides
 
 - [Bundle size](@/guides/optimization/bundle-size.md)
 - [Installation](@/guides/getting-started/installation.md)
-- [Modules in React](@/guides/integrate-with-react/react-modules.md)
+::: only-for javascript
+- [Modules in React](@/react/guides/tools-and-building/modules.md)
 - [Modules in Angular](@/guides/integrate-with-angular/angular-modules.md)
 - [Modules in Vue 2](@/guides/integrate-with-vue/vue-modules.md)
 - [Modules in Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)
+:::
 
 ### Related blog articles
 

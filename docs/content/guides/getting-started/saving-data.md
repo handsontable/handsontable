@@ -1,11 +1,16 @@
 ---
 title: Saving data
-metaTitle: Saving data - Guide - Handsontable Documentation
+metaTitle: Saving data - JavaScript Data Grid | Handsontable
+description: Save data after each change to the data set, using Handsontable's API hooks. Preserve the table state by saving data to local storage.
 permalink: /saving-data
 canonicalUrl: /saving-data
 tags:
   - load and save
   - server
+  - ajax
+react:
+  metaTitle: Saving data - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Saving data
@@ -17,12 +22,14 @@ Persistent state storage is particularly useful when running multiple instances 
 
 ## Saving changes using a callback
 
-Use the [`afterChange`](@/api/hooks.md#afterchange) callback to track changes made in the data grid. In the example below, Ajax is used to load and save the data. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
+To track changes made in your data grid, use Handsontable's [`afterChange`](@/api/hooks.md#afterchange) hook.
 
+The example below handles data by using `fetch`. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
 
+::: only-for javascript
 ::: example #example1 --html 1 --js 2
 ```html
-<div id="example1" class="hot"></div>
+<div id="example1"></div>
 
 <div class="controls">
   <button id="load" class="button button--primary button--blue">Load data</button>&nbsp;
@@ -33,17 +40,15 @@ Use the [`afterChange`](@/api/hooks.md#afterchange) callback to track changes ma
   </label>
 </div>
 
-<pre id="example1console" class="console">Click "Load" to load data from server</pre>
+<output class="console" id="output">Click "Load" to load data from server</output>
 
 ```
 ```js
 const container = document.querySelector('#example1');
-const exampleConsole = document.querySelector('#example1console');
+const exampleConsole = document.querySelector('#output');
 const autosave = document.querySelector('#autosave');
 const load = document.querySelector('#load');
 const save = document.querySelector('#save');
-
-let autosaveNotification;
 
 const hot = new Handsontable(container, {
   startRows: 8,
@@ -61,78 +66,168 @@ const hot = new Handsontable(container, {
       return;
     }
 
-    clearTimeout(autosaveNotification);
-
-    ajax('/docs/{{$page.currentVersion}}/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
-      exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
-      autosaveNotification = setTimeout(() => {
-        exampleConsole.innerText ='Changes will be autosaved';
-      }, 1000);
-    });
+    fetch('{{$basePath}}/scripts/json/save.json', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ data: change })
+    })
+      .then(response => {
+        exampleConsole.innerText = `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`;
+        console.log('The POST request is only used here for the demo purposes');
+      });
   }
 });
 
-Handsontable.dom.addEvent(load, 'click', () => {
-  ajax('/docs/{{$page.currentVersion}}/scripts/json/load.json', 'GET', '', res => {
-    const data = JSON.parse(res.response);
-
-    hot.loadData(data.data);
-    // or, use `updateData()` to replace `data` without resetting states
-
-    exampleConsole.innerText = 'Data loaded';
-  });
+load.addEventListener('click', () => {
+  fetch('{{$basePath}}/scripts/json/load.json')
+    .then(response => {
+      response.json().then(data => {
+        hot.loadData(data.data);
+        // or, use `updateData()` to replace `data` without resetting states
+        exampleConsole.innerText = 'Data loaded';
+      });
+    });
 });
-Handsontable.dom.addEvent(save, 'click', () => {
+save.addEventListener('click', () => {
   // save all cell's data
-  ajax('/docs/{{$page.currentVersion}}/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
-    const response = JSON.parse(res.response);
-
-    if (response.result === 'ok') {
+  fetch('{{$basePath}}/scripts/json/save.json', {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ data: hot.getData() })
+  })
+    .then(response => {
       exampleConsole.innerText = 'Data saved';
-    } else {
-      exampleConsole.innerText = 'Save error';
-    }
-  });
+      console.log('The POST request is only used here for the demo purposes');
+    });
 });
 
-Handsontable.dom.addEvent(autosave, 'click', () => {
+autosave.addEventListener('click', () => {
   if (autosave.checked) {
     exampleConsole.innerText = 'Changes will be autosaved';
   } else {
     exampleConsole.innerText ='Changes will not be autosaved';
   }
 });
+```
+:::
+:::
 
-function ajax(url, method, params, callback) {
-  let obj;
+::: only-for react
+::: example #example1 :react
+```jsx
+import { useEffect, useState, useRef } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
-  try {
-    obj = new XMLHttpRequest();
-  } catch (e) {
-    try {
-      obj = new ActiveXObject('Msxml2.XMLHTTP');
-    } catch (e) {
-      try {
-        obj = new ActiveXObject('Microsoft.XMLHTTP');
-      } catch (e) {
-        alert('Your browser does not support Ajax.');
-        return false;
-      }
-    }
-  }
-  obj.onreadystatechange = () => {
-    if (obj.readyState == 4) {
-      callback(obj);
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = useRef(null);
+  const [output, setOutput] = useState('Click "Load" to load data from server');
+  const [isAutosave, setIsAutosave] = useState(false);
+
+  let loadClickCallback;
+  let saveClickCallback;
+
+  const autosaveClickCallback = (event) => {
+    setIsAutosave(event.target.checked);
+    if (event.target.checked) {
+      setOutput('Changes will be autosaved');
+    } else {
+      setOutput('Changes will not be autosaved');
     }
   };
-  obj.open(method, url, true);
-  obj.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-  obj.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-  obj.send(params);
 
-  return obj;
-}
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    loadClickCallback = () => {
+      fetch('{{$basePath}}/scripts/json/load.json')
+        .then(response => {
+          response.json().then(data => {
+            hot.loadData(data.data);
+            // or, use `updateData()` to replace `data` without resetting states
+            setOutput('Data loaded');
+          });
+        });
+    };
+    saveClickCallback = () => {
+      // save all cell's data
+      fetch('{{$basePath}}/scripts/json/save.json', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ data: hot.getData() })
+      })
+        .then(response => {
+          setOutput('Data saved');
+          console.log('The POST request is only used here for the demo purposes');
+        });
+    };
+  });
+
+  return (
+    <>
+      <HotTable
+        ref={hotRef}
+        startRows={8}
+        startCols={6}
+        rowHeaders={true}
+        colHeaders={true}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+        afterChange={function(change, source) {
+          if (source === 'loadData') {
+            return; //don't save this change
+          }
+
+          if (!isAutosave) {
+            return;
+          }
+
+          fetch('{{$basePath}}/scripts/json/save.json', {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ data: change })
+          })
+            .then(response => {
+              setOutput(`Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`);
+              console.log('The POST request is only used here for the demo purposes');
+            });
+        }}
+      />
+
+      <div className="controls">
+        <button id="load" className="button button--primary button--blue" onClick={(...args) => loadClickCallback(...args)}>Load data</button>&nbsp;
+        <button id="save" className="button button--primary button--blue" onClick={(...args) => saveClickCallback(...args)}>Save data</button>
+        <label>
+          <input type="checkbox" name="autosave" id="autosave" checked={isAutosave} onClick={(...args) => autosaveClickCallback(...args)}/>
+          Autosave
+        </label>
+      </div>
+
+      <output className="console" id="output">{output}</output>
+    </>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
+:::
 :::
 
 ## Saving data locally

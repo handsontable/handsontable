@@ -1,9 +1,14 @@
 <template>
   <aside class="sidebar">
+    <div class="version-switcher-item">
+      Version: <VersionsDropdown class="sidebar-mode"/>
+    </div>
+    <div class="framework-switcher-item">
+      Framework: <FrameworksDropdown class="sidebar-mode"/>
+    </div>
     <div class="theme-switcher-item">
       Choose a theme: <ThemeSwitcher />
     </div>
-    <NavLinks />
 
     <slot name="top" />
 
@@ -19,11 +24,19 @@
 import SidebarLinks from '@theme/components/SidebarLinks.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
+import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
+import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
 
 export default {
   name: 'Sidebar',
 
-  components: { SidebarLinks, NavLinks, ThemeSwitcher },
+  components: {
+    SidebarLinks,
+    NavLinks,
+    ThemeSwitcher,
+    FrameworksDropdown,
+    VersionsDropdown,
+  },
 
   props: ['items']
 };
@@ -43,6 +56,52 @@ export default {
     }
 }
 
+.version-switcher-item
+  width 235px
+  position relative
+  display inline-block
+  margin-left 1.5rem
+  line-height 2rem
+  font-weight 600
+  margin-top 10px
+
+  .nav-versions
+    float right
+    margin-left 0
+
+    .nav-dropdown
+      left unset
+
+      @media (max-width: $MQMobile) {
+        right -35px
+      }
+
+  @media (min-width: $MQMobileNarrow)
+    display none
+
+.framework-switcher-item
+  width 235px
+  position relative
+  display inline-block
+  margin-left 1.5rem
+  line-height 2rem
+  font-weight 600
+  margin-top 10px
+
+  .nav-frameworks
+    float right
+    margin-left 0
+
+    .nav-dropdown
+      left unset
+
+      @media (max-width: $MQMobile) {
+        right -35px
+      }
+
+  @media (min-width: $MQNarrow)
+    display none
+
 .sidebar
   width 17rem
   z-index 1000
@@ -59,20 +118,6 @@ export default {
     list-style-type none
   a
     display inline-block
-  .nav-links
-    display none
-    border-bottom 1px solid $borderColor
-    padding 8px 0 0.75rem 0
-    a
-      font-weight 600
-      @media (max-width: $MQMobile) {
-        font-size 15px
-      }
-    .nav-item, .repo-link
-      display block
-      line-height 1.25rem
-      font-size 1.1em
-      padding 0.5rem 0 0.5rem 1.5rem
   & > .sidebar-links
     padding 1.5rem 0
     @media (max-width: $MQNarrow) {
@@ -121,16 +166,5 @@ export default {
 
 .sidebar > .sidebar-links > li:not(:first-child)
   margin-top 0
-
-@media (max-width: $MQMobile)
-  .sidebar
-    .nav-links
-      .mobile-dropdown-title
-        font-size 15px
-      display block
-      .dropdown-wrapper .nav-dropdown .dropdown-item a.router-link-active::after
-        top calc(1rem - 2px)
-    & > .sidebar-links
-      padding 1rem 0
 
 </style>

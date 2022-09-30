@@ -34,6 +34,8 @@ export const PLUGIN_PRIORITY = 220;
  * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function) |
  *
  * @example
+ * ::: only-for javascript
+ * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
  *   data: getData(),
@@ -59,6 +61,37 @@ export const PLUGIN_PRIORITY = 220;
  *     }
  *   ]
  * });
+ * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={getData()}
+ *   colHeaders={true}
+ *   rowHeaders={true}
+ *   columnSummary={[
+ *     {
+ *       type: 'min',
+ *       destinationRow: 4,
+ *       destinationColumn: 1,
+ *     },
+ *     {
+ *       type: 'max',
+ *       destinationRow: 0,
+ *       destinationColumn: 3,
+ *       reversedRowCoords: true
+ *     },
+ *     {
+ *       type: 'sum',
+ *       destinationRow: 4,
+ *       destinationColumn: 5,
+ *       forceNumeric: true
+ *     }
+ *   ]}
+ * />
+ * ```
+ * :::
  */
 export class ColumnSummary extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -82,7 +115,7 @@ export class ColumnSummary extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link ColumnSummary#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link ColumnSummary#enablePlugin} method is called.
    *
    * @returns {boolean}
    */

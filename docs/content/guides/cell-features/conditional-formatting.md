@@ -1,8 +1,12 @@
 ---
 title: Conditional formatting
-metaTitle: Conditional formatting - Guide - Handsontable Documentation
+metaTitle: Conditional formatting - JavaScript Data Grid | Handsontable
+description: Format specified cells, based on dynamic conditions.
 permalink: /conditional-formatting
 canonicalUrl: /conditional-formatting
+react:
+  metaTitle: Conditional formatting - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Conditional formatting
@@ -29,6 +33,7 @@ This demo shows how to use the cell type renderer feature to make some condition
 4. Negative numbers are formatted as red text.
 
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.getElementById('example1');
@@ -104,6 +109,98 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const data = [
+    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+    ['2017', -5, '', 12, 13],
+    ['2018', '', -11, 14, 13],
+    ['2019', '', 15, -12, 'readOnly']
+  ];
+
+  function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    td.style.fontWeight = 'bold';
+    td.style.color = 'green';
+    td.style.background = '#CEC';
+  }
+
+  function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+    // if row contains negative number
+    if (parseInt(value, 10) < 0) {
+      // add class "negative"
+      td.className = 'make-me-red';
+    }
+
+    if (!value || value === '') {
+      td.style.background = '#EEE';
+
+    } else {
+      if (value === 'Nissan') {
+        td.style.fontStyle = 'italic';
+      }
+
+      td.style.background = '';
+    }
+  }
+  //  maps function to a lookup string
+  Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
+
+  return (
+    <HotTable
+      data={data}
+      licenseKey="non-commercial-and-evaluation"
+      height="auto"
+      afterSelection={function(row, col, row2, col2) {
+        const meta = this.getCellMeta(row2, col2);
+
+        if (meta.readOnly) {
+        this.updateSettings({ fillHandle: false });
+
+        } else {
+          this.updateSettings({ fillHandle: true });
+        }
+      }}
+      cells={function(row, col) {
+        const cellProperties = {};
+        const data = this.instance.getData();
+
+        if (row === 0 || data[row] && data[row][col] === 'readOnly') {
+        cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
+        }
+
+        if (row === 0) {
+          cellProperties.renderer = firstRowRenderer; // uses function directly
+
+        } else {
+          cellProperties.renderer = 'negativeValueRenderer'; // uses lookup map
+        }
+
+        return cellProperties;
+      }}
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Related articles
 

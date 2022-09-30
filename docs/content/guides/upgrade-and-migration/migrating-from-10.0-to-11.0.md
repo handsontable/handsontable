@@ -1,9 +1,13 @@
 ---
 title: Migrating from 10.0 to 11.0
-metaTitle: Migrating from 10.0 to 11.0 - Guide - Handsontable Documentation
+metaTitle: Migrate from 10.0 to 11.0 - JavaScript Data Grid | Handsontable
+description: Migrate from Handsontable 10.0 to Handsontable 11.0, released on November 17, 2021.
 permalink: /migration-from-10.0-to-11.0
 canonicalUrl: /migration-from-10.0-to-11.0
 pageClass: migration-guide
+react:
+  metaTitle: Migrate from 10.0 to 11.0 - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Migrating from 10.0 to 11.0
@@ -12,15 +16,16 @@ pageClass: migration-guide
 
 To upgrade your Handsontable version from 10.x.x to 11.x.x, follow this guide.
 
+::: only-for javascript
 ## Step 1: React, Angular, Vue – register your modules
 
-Starting with Handsontable 11.0.0, the [React wrapper](@/guides/integrate-with-react/react-installation.md), the [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md), and the [Vue wrapper](@/guides/integrate-with-vue/vue-installation.md) support [modularization](@/guides/tools-and-building/modules.md).
+Starting with Handsontable 11.0.0, the [React wrapper](@/react/guides/getting-started/introduction.md), the [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md), and the [Vue wrapper](@/guides/integrate-with-vue/vue-installation.md) support [modularization](@/guides/tools-and-building/modules.md).
 
 If you don't use any of the wrappers, you don't need to change anything.
 
 ### Using all modules
 
-To continue using all Handsontable modules with your wrapper, register all modules with the new `registerAllModules()` method.
+To continue using all Handsontable modules with your wrapper, register them with the new `registerAllModules()` method.
 
 In the entry point file of your application, add the following code:
 ```js
@@ -34,9 +39,33 @@ registerAllModules();
 ### Using individual modules
 
 To start using individual Handsontable modules with your wrapper, see the following guides:
-- [Using modules with React](@/guides/integrate-with-react/react-modules.md)
+- [Using modules with React](@/react/guides/tools-and-building/modules.md)
 - [Using modules with Angular](@/guides/integrate-with-angular/angular-modules.md)
 - [Using modules with Vue](@/guides/integrate-with-vue/vue-modules.md)
+:::
+
+::: only-for react
+## Step 1: Register your modules
+
+Starting with version 11.0.0, Handsontable's React wrapper supports [modularization](@/guides/tools-and-building/modules.md).
+
+### Using all modules
+
+To continue using all Handsontable modules, register them with the new `registerAllModules()` method.
+
+In the entry point file of your application, add the following code:
+```js
+// import the registerAllModules() method
+import { registerAllModules } from 'handsontable/registry';
+
+// register all Handsontable modules
+registerAllModules();
+```
+
+### Using individual modules
+
+To see how to benefit from using individual Handsontable modules, see the [Modules](@/guides/tools-and-building/modules.md) guide.
+:::
 
 ## Step 2: Adapt to the type definition changes
 
@@ -95,6 +124,7 @@ For more details, see [this pull request](https://github.com/handsontable/handso
 - The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered multiple times, separately for each populated row and column.
 - The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered by each [`spliceRow`](@/api/options.md#splicerow) and `spliceColumn` action, with the `source` argument defined as [`spliceRow`](@/api/options.md#splicerow) or [`spliceCol`](@/api/core.md#splicecol).
 
+::: only-for javascript
 ```js
 new Handsontable(element, {
   afterChange: (changes, source) => {
@@ -104,6 +134,19 @@ new Handsontable(element, {
   }
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  afterChange={(changes, source) => {
+    if (source === 'spliceRow' || source === 'spliceCol') {
+      handleChange(changes[0]);
+    }
+  }}
+/>
+```
+:::
 
 #### Now
 
@@ -111,6 +154,7 @@ new Handsontable(element, {
 - The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks are triggered only once, for all populated rows and columns.
 - The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks are triggered directly by the [`populateFromArray()`](@/api/core.md#populatefromarray) method, with the `source` argument defined as `populateFromArray`.
 
+::: only-for javascript
 ```js
 new Handsontable(element, {
   afterChange: (changes, source) => {
@@ -120,3 +164,16 @@ new Handsontable(element, {
   }
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  afterChange={(changes, source) => {
+    if (source === 'populateFromArray') {
+      changes.forEach(change =>  handleChange(change))
+    }
+  }}
+/>
+```
+:::
