@@ -15,7 +15,7 @@ searchCategory: Guides
 
 ::: only-for javascript
 ::: tip
-Are you using React? [Explore the React version](@/react/guides/getting-started/introduction.md) of this documentation.
+<img src="/img/pages/introduction/react.svg" class="tip-icon"> Are you using React? [Explore the React version](@/react/guides/getting-started/introduction.md) of this documentation.
 :::
 :::
 
@@ -25,8 +25,14 @@ Handsontable (pronounced "hands-on-table") is a JavaScript data grid component t
 
 Thousands of business apps depend on Handsontable for entering, editing, validating, and cleansing data that comes from remote sources such as databases and APIs, or from HTML documents, Excel files, Google Sheets, and manual input.
 
-<!-- The drawing of Handsontable in dark or light theme -->
-<div class="handsontable-drawing"></div>
+<!-- Depending on the theme, one of these two images is displayed -->
+<div class="handsontable-drawing">
+
+  ![A drawing of Handsontable data grid on the light background]({{$basePath}}/img/pages/introduction/introduction-drawing-light-min.png)
+  
+  ![A drawing of Handsontable data grid on the dark background]({{$basePath}}/img/pages/introduction/introduction-drawing-dark-min.png)
+    
+</div>
 
 ## Get started with Handsontable
 ::: only-for javascript
