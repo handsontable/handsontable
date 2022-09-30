@@ -76,14 +76,17 @@ export default async({ router, siteData, isServer }) => {
 
   siteData.pages.forEach((page) => {
     const frontmatter = page.frontmatter;
-    const canonicalUrl = frontmatter.canonicalUrl;
-    const canonicalUrlNorm = canonicalUrl.replace(/^\/docs\//, '').replace(/\/$/, '');
+    const canonicalShortUrl = frontmatter.canonicalShortUrl;
+    let canonicalUrl = '';
 
-    if (canonicalURLs.has(canonicalUrlNorm) && canonicalURLs.get(canonicalUrlNorm) !== '') {
-      const docsVersion = canonicalURLs.get(canonicalUrlNorm);
+    if (canonicalURLs.has(canonicalShortUrl)) {
+      const docsVersion = canonicalURLs.get(canonicalShortUrl);
+      const docsVersionPath = docsVersion === '' ? '' : `${docsVersion}/`;
 
-      frontmatter.canonicalUrl = canonicalUrl.replace(/^\/docs\//, `/docs/${docsVersion}/`);
+      canonicalUrl = docsVersionPath + canonicalUrl;
     }
+
+    frontmatter.canonicalUrl = `/docs/${canonicalUrl}/`;
 
     page.versions = docsData.versions;
     page.latestVersion = docsData.latestVersion;
