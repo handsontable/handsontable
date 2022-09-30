@@ -1,8 +1,12 @@
 ---
 title: Row moving
-metaTitle: Row moving - Guide - Handsontable Documentation
+metaTitle: Row moving - JavaScript Data Grid | Handsontable
+description: Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 permalink: /row-moving
 canonicalUrl: /row-moving
+react:
+  metaTitle: Row moving - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row moving
@@ -19,6 +23,7 @@ To enable row moving, set the [`manualRowMove`](@/api/options.md#manualrowmove) 
 
 A draggable move handle appears above the selected row header. You can click and drag it to any location in the row header body.
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -35,6 +40,40 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(200, 20)}
+      width="100%"
+      height={320}
+      rowHeaders={true}
+      colHeaders={true}
+      colWidths={100}
+      manualRowMove={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Drag and move actions of `manualRowMove` plugin
 
@@ -47,12 +86,12 @@ Both of these methods trigger the [beforeRowMove](@/api/hooks.md#beforerowmove) 
 
 The [dragRows](@/api/manualRowMove.md#dragrows) method has a `dropIndex` parameter, which points to where the elements are being dropped.
 
-![dragRows method](/docs/{{$page.currentVersion}}/img/drag_action.svg)
+![dragRows method]({{$basePath}}/img/drag_action.svg)
 
 
 The [moveRows](@/api/manualRowMove.md#moverows) method has a `finalIndex` parameter, which points to where the elements will be placed after the _moving_ action - `finalIndex` being the index of the first moved element.
 
-![moveRows method](/docs/{{$page.currentVersion}}/img/move_action.svg)
+![moveRows method]({{$basePath}}/img/move_action.svg)
 
 The [moveRows](@/api/manualRowMove.md#moverows) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [isMovePossible](@/api/manualRowMove.md#ismovepossible) API method and the `movePossible` parameters `beforeRowMove` and `afterRowMove` hooks help in determine such situations.
 

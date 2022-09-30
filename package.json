@@ -23,7 +23,7 @@
     "freeze": "node --experimental-json-modules scripts/freeze.mjs",
     "release": "node --experimental-json-modules scripts/release.mjs",
     "changelog": "bin/changelog",
-    "publish-all": "npm run all publish-package",
+    "publish-all": "npm run all publish-package -- -e=examples",
     "prein": "npm run swap-package-links",
     "preall": "npm run swap-package-links",
     "swap-package-links": "node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable",

@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue where release script exits with an error code.",
+  "type": "fixed",
+  "issue": 9941,
+  "breaking": false,
+  "framework": "none"
+}

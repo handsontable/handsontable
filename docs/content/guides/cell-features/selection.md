@@ -1,10 +1,15 @@
 ---
 title: Selection
-metaTitle: Selection - Guide - Handsontable Documentation
+metaTitle: Selection - JavaScript Data Grid | Handsontable
+description: Select a single cell, a range of adjacent cells, or multiple non-adjacent ranges of cells.
 permalink: /selection
 canonicalUrl: /selection
 tags:
   - selecting ranges
+  - cell selection
+react:
+  metaTitle: Selection - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Selection
@@ -31,10 +36,11 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 - [`range`](@/api/options.md#selectionmode) - Multiple cells within a single range can be selected.
 - [`multiple`](@/api/options.md#selectionmode) - Multiple non-contiguous ranges of cells can be selected.
 
+::: only-for javascript
 ::: example #example1 --html 1 --js 2
 ```html
-<div id="example1" class="hot"></div>
-<div>
+<div id="example1"></div>
+<div class="controls">
   <select id="selectOption" style="width: auto; margin-top: 16px">
     <option>Single selection</option>
     <option>Range selection</option>
@@ -68,30 +74,87 @@ selectOption.addEventListener('change', event => {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import { useRef, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = useRef(null);
+
+  let selectOptionChangeCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    selectOptionChangeCallback = event => {
+      const value = event.target.value;
+      const first = value.split(' ')[0].toLowerCase();
+
+      hot.updateSettings({
+        selectionMode: first
+      });
+    };
+  });
+
+  return (
+    <>
+      <HotTable
+        ref={hotRef}
+        data={Handsontable.helper.createSpreadsheetData(10, 10)}
+        width="auto"
+        height="auto"
+        colWidths={100}
+        rowHeights={23}
+        rowHeaders={true}
+        colHeaders={true}
+        selectionMode="multiple" // 'single', 'range' or 'multiple',
+        licenseKey="non-commercial-and-evaluation"
+      />
+      <div className="controls">
+        <select
+          id="selectOption"
+          style={{width: 'auto', marginTop: 16}}
+          onChange={(...args) => selectOptionChangeCallback(...args)}
+          defaultValue="multiple"
+        >
+          <option value="single">Single selection</option>
+          <option value="range">Range selection</option>
+          <option value="multiple">Multiple ranges selection</option>
+        </select>
+      </div>
+    </>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Getting data from the selected ranges
 
 To retrieve the selected cells as an array of arrays, you use the [`getSelected()`](@/api/core.md#getselected) or [`getSelectedRange()`](@/api/core.md#getselectedrange) methods.
 
-::: example #example2 --css 2 --html 1 --js 3
+::: only-for javascript
+::: example #example2 --html 1 --js 2
 ```html
-<div id="example2" class="hot"></div>
-<pre id="output"></pre>
+<div id="example2"></div>
+<output class="console" id="output">Here you will see the log</output>
 <div class="controls">
   <button id="getButton">Get data</button>
 </div>
-```
-```css
-#output {
-  margin: 16px 0 7px;
-  width: 100%;
-  height: 160px;
-  overflow:scroll;
-  border: 1px solid #ccc;
-  background: #fff;
-  color: #2c3e50;
-  box-sizing: border-box;
-}
 ```
 ```js
 const container = document.querySelector('#example2');
@@ -121,22 +184,93 @@ getButton.addEventListener('click', event => {
     data.push(hot.getData(...item));
   }
 
-  output.innerText = JSON.stringify(data, null, 2);
+  output.innerText = JSON.stringify(data);
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import { useRef, useEffect, useState } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = useRef(null);
+  const [output, setOutput] = useState('');
+
+  let getButtonClickCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    getButtonClickCallback = event => {
+      const selected = hot.getSelected() || [];
+      const data = [];
+
+      for (let i = 0; i < selected.length; i += 1) {
+        const item = selected[i];
+
+        data.push(hot.getData(...item));
+      }
+
+      setOutput(JSON.stringify(data));
+    };
+  });
+
+  return (
+    <>
+      <HotTable
+        ref={hotRef}
+        data={Handsontable.helper.createSpreadsheetData(10, 10)}
+        width="auto"
+        height="auto"
+        colWidths={100}
+        rowHeights={23}
+        rowHeaders={true}
+        colHeaders={true}
+        outsideClickDeselects={false}
+        selectionMode="multiple" // 'single', 'range' or 'multiple',
+        licenseKey="non-commercial-and-evaluation"
+      />
+      <output className="console" id="output">{output}</output>
+      <div className="controls">
+        <button
+          id="getButton"
+          onClick={(...args) => getButtonClickCallback(...args)}
+        >
+          Get data
+        </button>
+      </div>
+    </>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 ## Modifying the selected cells
 
 You may want to delete, format, or otherwise change the selected cells. For example, you can change a value or add CSS classes to the selected cells using the demo below.
 
+::: only-for javascript
 ::: example #example3 --html 1 --css 2 --js 3
 ```html
-<div id="example3" class="hot"></div>
+<div id="example3"></div>
 
-<div id="buttons" class="controls" style="margin-top: 10px">
-  <button id="set-data-action">Change selected data</button>
-  <button id="add-css-class-action">Make selected cells red</button>
+<div class="controls">
+  <button id="set-data-action">Change selected data and change the CSS class of the cell</button>
 </div>
 ```
 ```css
@@ -146,7 +280,7 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 ```
 ```js
 const container = document.querySelector('#example3');
-const buttons = document.querySelector('#buttons');
+const button = document.querySelector('#set-data-action');
 
 const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -161,7 +295,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-buttons.addEventListener('click', event => {
+button.addEventListener('click', event => {
   const selected = hot.getSelected() || [];
   const target = event.target.id;
 
@@ -176,13 +310,8 @@ buttons.addEventListener('click', event => {
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
       for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
-        if (target === 'set-data-action') {
-          hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
-        }
-
-        if (target === 'add-css-class-action') {
-          hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
-        }
+        hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
+        hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
       }
     }
   }
@@ -192,6 +321,87 @@ buttons.addEventListener('click', event => {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example3 :react --css 1 --js 2
+```css
+.c-red {
+  color: red;
+}
+```
+```jsx
+import { useRef, useEffect } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = useRef(null);
+
+  let buttonClickCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    buttonClickCallback = event => {
+      const selected = hot.getSelected() || [];
+      const target = event.target.id;
+
+      hot.suspendRender();
+
+      for (let index = 0; index < selected.length; index += 1) {
+        const [row1, column1, row2, column2] = selected[index];
+        const startRow = Math.max(Math.min(row1, row2), 0);
+        const endRow = Math.max(row1, row2);
+        const startCol = Math.max(Math.min(column1, column2), 0);
+        const endCol = Math.max(column1, column2);
+
+        for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
+          for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
+            hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
+            hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
+          }
+        }
+      }
+
+      hot.render();
+      hot.resumeRender();
+    };
+  });
+
+  return (
+    <>
+      <HotTable
+        ref={hotRef}
+        data={Handsontable.helper.createSpreadsheetData(10, 10)}
+        width="auto"
+        height={272}
+        colWidths={100}
+        rowHeights={23}
+        rowHeaders={true}
+        colHeaders={true}
+        outsideClickDeselects={false}
+        selectionMode="multiple" // 'single', 'range' or 'multiple',
+        licenseKey="non-commercial-and-evaluation"
+      />
+      <div className="controls">
+        <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Change selected data and change the CSS class of the cell</button>
+      </div>
+    </>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
 
 ## Styling the selection area
 
