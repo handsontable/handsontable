@@ -95,11 +95,11 @@ SHA: ${getDocsRepoSHA()}
       const frameworkPath = currentFramework + FRAMEWORK_SUFFIX;
 
       if ($page.frontmatter.canonicalUrl) {
-        const canonicalUrl = removeEndingSlashes(frameworkPath + $page.frontmatter.canonicalUrl);
+        const canonicalShortUrl = removeEndingSlashes(frameworkPath + $page.frontmatter.canonicalUrl);
 
         // The "canonicalShortUrl" property is used by "dump-docs-data" plugin. The property holds the
         // canonical URL without slashes at the beginning and ending of the URL path and without Docs base.
-        $page.frontmatter.canonicalShortUrl = canonicalUrl;
+        $page.frontmatter.canonicalShortUrl = canonicalShortUrl;
       }
 
       if ($page.frontmatter.permalink) {
