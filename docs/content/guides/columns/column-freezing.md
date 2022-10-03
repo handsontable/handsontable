@@ -8,6 +8,7 @@ tags:
   - fixing columns
   - snapping columns
   - pinning columns
+  - fixedColumns
 react:
   metaTitle: Column freezing - React Data Grid | Handsontable
 searchCategory: Guides
