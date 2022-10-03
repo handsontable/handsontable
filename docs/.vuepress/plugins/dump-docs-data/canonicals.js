@@ -10,7 +10,7 @@ const fetchCommonHeaders = new Headers({
   'User-Agent': 'HandsontableDocsBuilder'
 });
 
-logger.info(`Using "${BASE_URL}/docs/data/common.json" URL for fetching and building Docs data` +
+logger.info(`Using "${BASE_URL}/docs/data/common.json" URL for fetching and building Docs data ` +
   '(fetch docs versions and build canonical URLs).');
 
 /**
