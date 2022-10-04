@@ -9,7 +9,9 @@ const PRERELEASE_TEMP_FOLDER = 'handsontable/tmp';
 
 const exec = util.promisify(child_process.exec);
 
-const dataFromFile = JSON.parse(fs.readFileSync(`${PRERELEASE_TEMP_FOLDER}/${FILE_NAME}`));
+const dataFromFile = JSON.parse(
+  fs.readFileSync(`${PRERELEASE_TEMP_FOLDER}/${FILE_NAME}`)
+);
 const originalVersionNumber = dataFromFile.version;
 
 const hash = crypto
@@ -21,22 +23,22 @@ dataFromFile.version = `${originalVersionNumber}-dev.${hash}-${Math.random()}`;
 dataFromFile.name = PACKAGE_NAME;
 
 // fs.copy('.', `../${PRERELEASE_TEMP_FOLDER}`).then(() => {
-  fs.writeFileSync(
-    `${PRERELEASE_TEMP_FOLDER}/${FILE_NAME}`,
-    JSON.stringify(dataFromFile, null, 2)
-  );
+fs.writeFileSync(
+  `${PRERELEASE_TEMP_FOLDER}/${FILE_NAME}`,
+  JSON.stringify(dataFromFile, null, 2)
+);
 
-  process.chdir(`${PRERELEASE_TEMP_FOLDER}`);
+process.chdir(`${PRERELEASE_TEMP_FOLDER}`);
 
-  exec('npm publish').then(
-    () => {
-      //process.chdir(`../`);
-      //fs.rm(PRERELEASE_TEMP_FOLDER, { recursive: true }).then(() => {});
-    },
-    (error) => {
-      //process.chdir(`../`);
-      //fs.rm(PRERELEASE_TEMP_FOLDER, { recursive: true }).then(() => {});
-      throw new Error(error);
-    }
-  );
+exec('npm publish').then(
+  () => {
+    //process.chdir(`../`);
+    //fs.rm(PRERELEASE_TEMP_FOLDER, { recursive: true }).then(() => {});
+  },
+  (error) => {
+    //process.chdir(`../`);
+    //fs.rm(PRERELEASE_TEMP_FOLDER, { recursive: true }).then(() => {});
+    throw new Error(error);
+  }
+);
 // });
