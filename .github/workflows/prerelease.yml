@@ -5,9 +5,9 @@ name: Publish prerelease in NPM
 
 on:
   push:
-    branches: ['main']
+    branches: ["develop"]
   pull_request:
-    branches: ['main']
+    branches: ["develop"]
 
 jobs:
   build:
@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org/
-          cache: 'npm'
+          cache: "npm"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
       - run: npm install
