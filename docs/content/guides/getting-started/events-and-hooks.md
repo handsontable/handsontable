@@ -191,17 +191,13 @@ Note that some callbacks are checked on this page by default.
     <li><label><input type="checkbox" id="check_select_all">Select all</label></li>
   </ul>
   <style>
-    .example-table-container {
-      padding: 10px;
-      background-color: white;
-    }
     #example1_events {
       height: 166px;
-      padding: 5px;
+      padding: 6px;
       margin: 10px 0;
       overflow-y: scroll;
-      font-size: 11px;
-      border: 1px solid #CCC;
+      font-size: 13px;
+      border: 1px solid #ccc;
       box-sizing: border-box;
     }
     #example1_events div {
@@ -212,6 +208,17 @@ Note that some callbacks are checked on this page by default.
     }
     #example1 {
       margin-top: 0;
+    }
+    #example3 .controls {
+      margin: 0 0 16px;
+      padding: 0;
+    }
+    #example3 .controls label {
+      display: inline-block;
+      padding: 3px 0;
+    }
+    #example3 .controls label input {
+      margin-right: 6px;
     }
     #hooksList {
       padding: 0;

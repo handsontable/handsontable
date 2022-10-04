@@ -1,5 +1,8 @@
 <template>
   <aside class="sidebar">
+
+    <NavLinks class="sidebar-mode context-switcher" />
+    
     <div class="framework-switcher-item">
       <span>Framework</span> <FrameworksDropdown class="sidebar-mode"/>
     </div>

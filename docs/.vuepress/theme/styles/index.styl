@@ -11,9 +11,6 @@
 /* Table of contents (menu) */
 @import 'table-of-contents'
 
-/* Handsontable styles */
-@import 'handsontable'
-
 /* Forms */
 @import 'form'
 
@@ -34,6 +31,9 @@
 
 /* Code fields */
 @import 'code'
+
+/* Handsontable styles */
+@import 'handsontable'
 
 html {
   color-scheme light
@@ -162,17 +162,20 @@ a.source-code-link {
   TODO: It's workaround, and it should be removed. It seems that there is no option to disable title for a custom
   containers: https://v1.vuepress.vuejs.org/guide/markdown.html#custom-containers
 */
-.custom-block.tip {
-  border: 2px solid #2456f2;
+.custom-block {
   border-radius: 6px;
-  
-  .tip-icon {
-    width: 26px;
-    position: relative;
-    top: 3px;
-    left: -7px;
-    vertical-align: top;
-  }
+  &.tip {
+    border: 2px solid #2456f2;
+    border-radius: 6px;
+
+    .tip-icon {
+      width: 26px;
+      position: relative;
+      top: 3px;
+      left: -7px;
+      vertical-align: top;
+    }
+  }  
 }
 
 /* Larger bottom gap of H1, H2, H3 */
@@ -354,7 +357,11 @@ div.js-fiddle-link {
 
 /* Tabs component */
 .tabs-component {
+  .tabs-component-tab {
+    font-size: 15px;
+  }
   .tabs-component-panels {
+    padding: 16px 16px;
     section {
       &#code {
         pre {
@@ -454,7 +461,7 @@ kbd {
 /* Handsontable drawing on the introduction page */
 
 .handsontable-drawing {
-  width: 80%;
+  width: 90%;
   margin: 0 auto;
   
   p {

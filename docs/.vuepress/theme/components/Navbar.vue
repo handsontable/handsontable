@@ -83,7 +83,7 @@ export default {
     }
   },
   mounted() {
-    const MOBILE_DESKTOP_BREAKPOINT = 769; // refer to config.styl
+    const MOBILE_DESKTOP_BREAKPOINT = 992; // refer to config.styl
     const paddingLeft = css(this.$el, 'paddingLeft');
     const paddingRight = css(this.$el, 'paddingRight');
     const NAVBAR_VERTICAL_PADDING = parseInt(paddingLeft, 10) + parseInt(paddingRight, 10);

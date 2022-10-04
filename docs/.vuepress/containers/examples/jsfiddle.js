@@ -37,5 +37,5 @@ ${html}
 };
 
 module.exports = {
-  jsfiddle
+  tabs-component
 };
