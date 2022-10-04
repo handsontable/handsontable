@@ -181,11 +181,11 @@ Setting a different layout direction affects the behavior of the following areas
 
 The list above is not exhaustive. Setting a different layout direction might affect other areas of Handsontable as well.
 
-## Setting the layout direction
+## Set the layout direction
 
 You can set the layout direction only at Handsontable's initialization. Any change of the [`layoutDirection`](@/api/options.md#layoutdirection) option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
 
-### Setting the layout direction automatically
+### Set the layout direction automatically
 
 You can set Handsontable's layout direction automatically,
 based on on the value of your HTML document's `dir` attribute.
@@ -264,7 +264,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 :::
 
 
-### Setting the layout direction to RTL
+### Set the layout direction to RTL
 
 You can render Handsontable from the right to the left, regardless of your HTML document's `dir` attribute.
 
@@ -330,7 +330,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 :::
 
 
-### Setting the layout direction to LTR
+### Set the layout direction to LTR
 
 You can render Handsontable from the left to the right, regardless of your HTML document's `dir` attribute.
 
@@ -396,7 +396,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 :::
 
 
-## Setting the horizontal text alignment
+## Set the horizontal text alignment
 
 You can apply different horizontal [text alignment](@/guides/cell-features/text-alignment.md) settings, overwriting the horizontal text alignment resulting from your grid's layout direction.
 

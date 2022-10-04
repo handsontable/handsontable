@@ -531,7 +531,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```
 :::
 
-### Passing the HyperFormula class/instance to Handsontable
+### Pass the HyperFormula class/instance to Handsontable
 
 ::: only-for javascript
 ```js

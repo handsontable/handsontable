@@ -17,7 +17,7 @@ Add a comment (a note) to a cell, using the right-click context menu, just like 
 
 [[toc]]
 
-## Enabling the plugin
+## Enable the plugin
 
 Set the [`comments`](@/api/options.md#comments) configuration option to `true` to enable the feature and add all the needed context menu items. For example:
 
@@ -39,7 +39,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-## Adding comments via the context menu
+## Add comments via the context menu
 
 After you've enabled the plugin, the [Context Menu](@/guides/accessories-and-menus/context-menu.md) gains a few new items:
 
@@ -47,7 +47,7 @@ After you've enabled the plugin, the [Context Menu](@/guides/accessories-and-men
 * Delete comment
 * Read-only comment
 
-## Setting up pre-set comments
+## Set up pre-set comments
 
 You can also pre-define comments for your table. Comments are stored in the table's/column's/cell's metadata object and can be declared as any value of that type. For example:
 

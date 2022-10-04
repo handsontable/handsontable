@@ -145,7 +145,7 @@ columns={[{
 ```
 :::
 
-## Registering custom cell type
+## Register custom cell type
 
 When you create a custom cell type, best practice is to assign it as an alias that will refer to this particular type definition.
 

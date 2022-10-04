@@ -22,7 +22,7 @@ Run one or multiple tests, using Handsontable's ready-made commands for Jasmine 
 
 [[toc]]
 
-## Testing in browser
+## Test in browser
 
 To run the Jasmine tests in your browser, go to the following pages:
 
@@ -30,7 +30,7 @@ To run the Jasmine tests in your browser, go to the following pages:
 * **<YOUR\_LOCALHOST\_ADDRESS>/test/MobileRunner.html** - Handsontable mobile test suite
 * **<YOUR\_LOCALHOST\_ADDRESS>/src/3rdparty/walkontable/test/SpecRunner.html** - Walkontable test suite
 
-## Testing with NPM (CLI)
+## Test with NPM (CLI)
 
 To run Jasmine tests in your command line (using Puppeteer), first install all necessary dependencies by executing `npm install`. After the `NPM` finishes fetching required modules, your workspace is ready to test.
 
@@ -47,7 +47,7 @@ To run individual tests, go to to the `/handsontable` directory, and use the fol
 * `npm run test:e2e.dump` - generates the `test/E2ERunner.html` file which can by executed in the browser environment (Chrome, Firefox etc.) to check if tests passes.
 * `npm run test:e2e.dump -- --watch` - generates the `E2ERunner.html` file on every change detected in test files. It can be helpful for debugging proposes.
 
-## Testing the framework-specific wrappers.
+## Test the framework-specific wrappers.
 
 The wrappers contain their own framework-specific testing environments. You can either run the `npm run test` script inside of the wrapper directory, or utilize the `npm run in`/`npm run all` scripts to run the tests from the root.
 

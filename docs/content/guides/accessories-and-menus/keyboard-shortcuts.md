@@ -240,7 +240,7 @@ When the user interacts with the keyboard, only actions registered for the curre
 
 Only one context is active at a time.
 
-#### Managing keyboard shortcut contexts
+#### Manage keyboard shortcut contexts
 
 Using the [`ShortcutManager`](@/api/shortcutManager.md) API methods, you can:
 
@@ -252,7 +252,7 @@ Using the [`ShortcutManager`](@/api/shortcutManager.md) API methods, you can:
 For example: if you're using a complex [custom editor](@/guides/cell-functions/cell-editor.md#how-to-create-a-custom-editor),
 you can create a new shortcut context to navigate your editor's UI with the arrow keys (normally, the arrow keys would navigate the grid instead).
 
-### Adding a custom keyboard shortcut
+### Add a custom keyboard shortcut
 
 To add a custom keyboard shortcut:
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to add a shortcut, for example:
@@ -283,7 +283,7 @@ To add a custom keyboard shortcut:
     To properly use <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) in your shortcut, you may need to pass language-specific signs (such as `à` or `ś`) to the [`keys`](@/api/shortcutContext.md#addshortcut) parameter.
     :::
 
-#### Adding a conditional keyboard action
+#### Add a conditional keyboard action
 
 To make a keyboard action run on a certain condition, set the [`runOnlyIf`](@/api/shortcutContext.md#addshortcut) parameter to a function:
 
@@ -298,7 +298,7 @@ gridContext.addShortcut({
 });
 ```
 
-#### Setting the order of keyboard actions
+#### Set the order of keyboard actions
 
 You can assign multiple actions to a single keyboard shortcut.
 
@@ -323,7 +323,7 @@ gridContext.addShortcut({
 });
 ```
 
-### Removing a keyboard shortcut
+### Remove a keyboard shortcut
 
 To remove a keyboard shortcut (e.g., one of the [default](#default-keyboard-shortcuts) keyboard shortcuts):
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to remove a keyboard shortcut.
@@ -343,7 +343,7 @@ const gridContext = hot.getShortcutManager().getContext('grid');
 gridContext.removeShortcutsByGroup('group_ID');
 ```
 
-### Replacing a keyboard shortcut
+### Replace a keyboard shortcut
 
 To replace a keyboard shortcut:
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to replace a keyboard shortcut.
@@ -364,7 +364,7 @@ undoShortcut.map((shortcut) => {
 gridContext.addShortcuts(undoShortcut);
 ```
 
-### Blocking a keyboard shortcut's actions
+### Block a keyboard shortcut's actions
 
 To block a keyboard shortcut's actions, return `false` in the [`beforeKeyDown`](@/api/hooks.md#beforekeydown) hook's callback:
 

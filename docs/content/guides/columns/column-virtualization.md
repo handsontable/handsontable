@@ -23,7 +23,8 @@ Render hundreds of columns without freezing the browser, using column virtualiza
 
 To process a large number of columns in a browser Handsontable utilizes the virtualization process to display only the visible part of the grid with a small offset for a better scrolling experience. This feature is turned on by default and can be turned off only for rows, not columns.
 
-## Configuring the column virtualization
+## Configure the column virtualization
+
 You can experiment with the [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset) config option, which determines the number of columns being displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, the virtualization will be practically turned off.
 
 ::: warning

@@ -201,7 +201,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 
 ::: only-for react
-## Formatting numbers
+## Format numbers
 
 ::: example #example3 :react-numbro
 ```jsx

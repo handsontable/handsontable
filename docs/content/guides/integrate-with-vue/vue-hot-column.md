@@ -1,5 +1,5 @@
 ---
-title: Using the `HotColumn` component in Vue 2
+title: Use the `HotColumn` component in Vue 2
 metaTitle: HotColumn component - Vue 2 Data Grid | Handsontable
 description: Configure the Vue 2 data grid's columns, using the props of the "HotColumn" component. Define a custom cell editor or a custom cell renderer.
 permalink: /vue-hot-column
@@ -7,13 +7,13 @@ canonicalUrl: /vue-hot-column
 searchCategory: Guides
 ---
 
-# Using the `HotColumn` component in Vue 2
+# Use the `HotColumn` component in Vue 2
 
 Configure the Vue 2 data grid's columns, using the props of the `HotColumn` component. Define a custom cell editor or a custom cell renderer.
 
 [[toc]]
 
-## Declaring column settings
+## Declare column settings
 
 To declare column-specific settings, pass the settings as `hot-column` properties, either separately or wrapped as a `settings` property, exactly as you would for `hot-table`.
 
@@ -109,7 +109,7 @@ new Vue({
 ```
 :::
 
-## Declaring a custom renderer as a component
+## Declare a custom renderer as a component
 
 The wrapper allows creating custom renderers using Vue 2 components. The data you would normally get as arguments of the rendering function will be injected into the rendering component's `$data` object.
 
@@ -188,7 +188,7 @@ By default, the number of entries available for the cache is set to `3000`, whic
 
 To prevent this problem, it is possible to pass the `wrapperRendererCacheSize` option to the `HotTable` component and set it to a number of entries available in the renderer cache.
 
-## Declaring a custom editor as a component
+## Declare a custom editor as a component
 
 You can also utilize the Vue 2 components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/vue`.
 
@@ -321,7 +321,7 @@ const App = new Vue({
 ```
 :::
 
-## Using the renderer/editor components with `v-model`
+## Use the renderer/editor components with `v-model`
 
 You can also use Vue 2's `v-model` with the renderer and editor components.
 
@@ -646,7 +646,7 @@ Finally, modify the component template to be used as a renderer _and_ editor. We
 
 This component contains some Vuex state logic. Ignore it for now. We'll cover this in the third step.
 
-### 2. Using `v-for` for column declaration
+### 2. Use `v-for` for column declaration
 
 `v-for` is used to declare the second and third columns in a loop. You can bind the loop to your data and retrieve the settings from there.
 
@@ -661,6 +661,6 @@ This component contains some Vuex state logic. Ignore it for now. We'll cover th
 </hot-table>
 ```
 
-### 3. Binding the state between components.
+### 3. Bind the state between components.
 
 As you can see in our first editor/renderer component, we're already committing all of the changes into the applications `$store`. This way, we can easily bind the state of our new component (based on a star-rating component dependency) to the data in the second and third columns.

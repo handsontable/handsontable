@@ -30,7 +30,7 @@ By default, the column width adjusts to the width of the content. However, if th
 
 The content inside a cell will be wrapped if it doesn't fit the cell's width.
 
-## Setting the column width as a constant
+## Set the column width as a constant
 
 In this example we set the same width of `100px` for all columns across the entire grid.
 
@@ -86,7 +86,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 
 
-## Setting the column width in an array
+## Set the column width in an array
 
 In this example, the width is only set for the first four columns. Each additional column would automatically adjust to the content.
 
@@ -142,7 +142,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 :::
 
 
-## Setting the column width using a function
+## Set the column width using a function
 
 In this example, the size of all columns is set using a function by taking a column `index` (1, 2 ...) and multiplying it by `40px` for each consecutive column.
 

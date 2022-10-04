@@ -37,7 +37,7 @@ You can configure the locale setting:
 - [For the entire grid](#setting-the-grid-s-locale)
 - [For individual columns](#setting-a-column-s-locale)
 
-## Setting the grid's locale
+## Set the grid's locale
 
 To configure the locale of the entire grid, set the [`locale`](@/api/options.md#locale) configuration option as a top-level grid option:
 
@@ -61,7 +61,7 @@ const hot = new Handsontable(container, {
 
 You can set the [`locale`](@/api/options.md#locale) option to any valid and canonicalized Unicode BCP 47 locale tag.
 
-## Setting a column's locale
+## Set a column's locale
 
 To configure the locale of an individual column, set the [`locale`](@/api/options.md#locale) configuration option as a mid-level column option:
 

@@ -15,7 +15,7 @@ Change the order of rows, either manually (dragging them to another location), o
 
 [[toc]]
 
-## Enabling the `ManualRowMove` plugin
+## Enable the `ManualRowMove` plugin
 
 To enable row moving, set the [`manualRowMove`](@/api/options.md#manualrowmove) option to `true`.
 

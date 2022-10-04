@@ -23,7 +23,7 @@ When you're hiding a row:
 - The source data doesn't get modified.
 - The [`HiddenRows`](@/api/hiddenRows.md) plugin doesn't participate in data transformation<br>(the shape of the data returned by the [`getData*()` methods](@/api/core.md#getdata) stays intact).
 
-## Enabling row hiding
+## Enable row hiding
 
 To simply enable row hiding (without further configuration), set the [`hiddenRows`](@/api/options.md#hiddenrows) configuration option to `true`:
 
@@ -76,7 +76,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 
 
-## Setting up row hiding
+## Set up row hiding
 
 To set up your row hiding configuration, follow the steps below.
 
@@ -413,7 +413,7 @@ For the most popular row hiding tasks, use the API methods below.
 
 To see your changes, re-render your Handsontable instance with the [`render()`](@/api/core.md#render) method.
 
-### Accessing the `HiddenRows` plugin instance
+### Access the `HiddenRows` plugin instance
 
 To access the [`HiddenRows`](@/api/hiddenRows.md) plugin instance, use the [`getPlugin()`](@/api/core.md#getplugin) method:
 
@@ -421,7 +421,7 @@ To access the [`HiddenRows`](@/api/hiddenRows.md) plugin instance, use the [`get
 const plugin = hot.getPlugin('hiddenRows');
 ```
 
-### Hiding a single row
+### Hide a single row
 
 To hide a single row, use the [`hideRow()`](@/api/hiddenRows.md#hiderow) method:
 
@@ -431,7 +431,7 @@ const plugin = hot.getPlugin('hiddenRows');
 plugin.hideRow(4);
 ```
 
-### Hiding multiple rows
+### Hide multiple rows
 
 To hide multiple rows:
 - Either pass row indexes as arguments to the `hideRow()` method
@@ -445,7 +445,7 @@ plugin.hideRow(0, 4, 6);
 plugin.hideRows([0, 4, 6]);
 ```
 
-### Unhiding a single row
+### Unhide a single row
 
 To unhide a single row, use the `showRow()` method:
 
@@ -455,7 +455,7 @@ const plugin = hot.getPlugin('hiddenRows');
 plugin.showRow(4);
 ```
 
-### Unhiding multiple rows
+### Unhide multiple rows
 
 To unhide multiple rows:
 - Either pass row indexes as arguments to the `showRow()` method

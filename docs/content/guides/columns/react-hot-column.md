@@ -15,7 +15,7 @@ Configure your grid's columns, using the props of the `HotColumn` component. Pas
 
 [[toc]]
 
-## Declaring column settings
+## Declare column settings
 
 To declare column-specific settings, pass the settings as `HotColumn` props, either separately or wrapped as a `settings` prop, exactly as you would with `HotTable`.
 

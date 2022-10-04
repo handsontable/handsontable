@@ -15,7 +15,7 @@ Change the order of columns, either manually (dragging them to another location)
 
 [[toc]]
 
-## Enabling plugin
+## Enable the plugin
 
 To enable column moving, set the [`manualColumnMove`](@/api/options.md#manualcolumnmove) configuration option to `true`.
 

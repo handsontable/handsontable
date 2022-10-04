@@ -29,7 +29,7 @@ You can easily change the text of the UI for the purpose of translating it to sp
 To properly display RTL languages, configure Handsontable's [layout direction](@/guides/internationalization/layout-direction.md).
 :::
 
-## Loading the prepared language files
+## Load the prepared language files
 
 To properly use the internationalization feature, you need to load the language sets. It's important that they're included after the Handsontable files. You can do it by getting the necessary files created with the UMD standard:
 
@@ -271,7 +271,7 @@ By default, Handsontable uses the **English - United States** language-country s
 * `zh-CN.js` for **Chinese - China** (`zh-CN` code).
 * `zh-TW.js` for **Chinese - Taiwan** (`zh-TW` code).
 
-### Creating custom languages
+### Create custom languages
 
 You can create custom language sets for your implementations, or share them, as they're easily applicable to any Handsontable implementation.
 
@@ -371,7 +371,7 @@ Handsontable.languages.registerLanguageDictionary({
 });
 ```
 
-## Using custom keys in the translation
+## Use custom keys in the translation
 
 You can register a language dictionary containing custom keys. These entries can be used like any other keys, so you're not limited to using our pre-defined constants (the ones that are present within `src/i18n/constants.js` file and may be accessed by `Handsontable.languages.dictionaryKeys` alias).
 

@@ -172,7 +172,7 @@ You can customize each of your column summaries with configuration options.
 
 For the full list of available options, see the [API reference](@/api/columnSummary.md#options).
 
-## Setting up a column summary
+## Set up a column summary
 
 To set up a column summary, follow the steps below.
 
@@ -519,7 +519,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 :::
 :::
 
-## Setting up column summaries, using a function
+## Set up column summaries, using a function
 
 Instead of [setting up the column summary options manually](#setting-up-a-column-summary), you can provide the whole column summary configuration as a function that returns a required array of objects.
 
@@ -812,7 +812,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example8'));
 :::
 
 
-## Implementing a custom summary function
+## Implement a custom summary function
 
 Apart from using the [built-in summary functions](#built-in-summary-functions), you can also implement your own custom function that performs any summary calculation you want.
 
@@ -1044,7 +1044,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
 :::
 
 
-## Rounding a column summary result
+## Round a column summary result
 
 You can round a column summary result to a specific number of digits after the decimal point.
 
@@ -1135,7 +1135,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example12'));
 :::
 
 
-## Dealing with non-numeric values
+## Deal with non-numeric values
 
 To summarize a column that contains non-numeric data, you can:
 
@@ -1143,7 +1143,7 @@ To summarize a column that contains non-numeric data, you can:
 - Or throw an error whenever a non-numeric value is passed to your column summary
 - Or make your column summary skip any non-numeric values
 
-### Forcing numeric values
+### Force numeric values
 
 You can force your column summary to treat non-numeric values as numeric values.
 
@@ -1243,7 +1243,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example10'));
 :::
 
 
-### Throwing data type errors
+### Throw data type errors
 
 You can throw a data type error whenever a non-numeric value is passed to your column summary.
 

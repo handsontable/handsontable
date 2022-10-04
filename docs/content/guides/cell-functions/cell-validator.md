@@ -27,7 +27,7 @@ When you create a validator, a good idea is to assign it as an alias that will r
 
 It gives users a convenient way for defining which validator should be used when table validation was triggered. User doesn't need to know which validator function is responsible for checking the cell value, he does not even need to know that there is any function at all. What is more, you can change the validator function associated with an alias without a need to change code that defines a table.
 
-## Registering custom cell validator
+## Register custom cell validator
 
 To register your own alias use `Handsontable.validators.registerValidator()` function. It takes two arguments:
 

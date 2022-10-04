@@ -35,7 +35,7 @@ The default date format is `'DD/MM/YYYY'`.
 
 Handsontable doesn't support JavaScript's `Date` object.
 
-### Changing the date format
+### Change the date format
 
 To change the date format accepted by `date` cells, set the [`dateFormat`](@/api/options.md#dateformat) configuration option to a string with your preferred format. For example:
 
@@ -51,7 +51,7 @@ dateFormat={'YYYY-MM-DD'}
 ```
 :::
 
-### Autocorrecting invalid dates
+### Autocorrect invalid dates
 
 By default, when the user enters a date in a format that doesn't match the [`dateFormat`](@/api/options.md#dateformat) setting, the date is treated as invalid.
 

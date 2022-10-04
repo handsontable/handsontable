@@ -32,7 +32,7 @@ By default, the height of a row adjusts to the height of the content. The minimu
 
 The content inside a cell gets wrapped if it doesn't fit the cell's size.
 
-## Setting the row height as a constant
+## Set the row height as a constant
 
 We set the same height of `40px` for all rows across the entire grid in this example.
 
@@ -86,7 +86,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 
 
-## Setting the row height in an array
+## Set the row height in an array
 
 In this example, the height is only set for the first rows. Each additional row would be automatically adjusted to the content.
 
@@ -142,7 +142,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 :::
 
 
-## Setting the row height using a function
+## Set the row height using a function
 
 The row height can be set using a function. In this example, the size of all rows is set using a function that takes a row `index` (1, 2 ...) and multiplies it by `20px` for each consecutive row.
 
