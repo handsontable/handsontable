@@ -208,8 +208,8 @@ const ExampleComponent = () => {
       />
 
       <div className="controls">
-        <button id="load" className="button button--primary button--blue" onClick={(...args) => loadClickCallback(...args)}>Load data</button>&nbsp;
-        <button id="save" className="button button--primary button--blue" onClick={(...args) => saveClickCallback(...args)}>Save data</button>
+        <button id="load" className="button button--primary" onClick={(...args) => loadClickCallback(...args)}>Load data</button>&nbsp;
+        <button id="save" className="button button--primary" onClick={(...args) => saveClickCallback(...args)}>Save data</button>
         <label>
           <input type="checkbox" name="autosave" id="autosave" checked={isAutosave} onClick={(...args) => autosaveClickCallback(...args)}/>
           Autosave

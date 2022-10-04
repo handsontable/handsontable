@@ -73,6 +73,7 @@
   a.sidebar-link
     padding 0.3rem 1rem 0.3rem 2rem
     font-size 14px
+    border none
 
   a.sidebar-link.active, a.sidebar-link:hover
     color #104bcd
@@ -103,11 +104,26 @@
     &.down
       transform rotate(45deg)
       -webkit-transform rotate(45deg)
+      
+  /* Switch between API and Guides in the mobile mode */
+  .context-switcher
+    display none
+    .nav-item
+      margin 10px!important
+      padding-left 1.5rem!important
+      display block
+      border 1px solid #cfdbe4
+      border-radius 6px
+      
+      a 
+        color $textColor
+    @media (max-width: $medium)
+      display block
 
-.sidebar > .sidebar-links > li:not(:first-child)
-  margin-top 0
-
-@media (max-width: $medium)
+  & > .sidebar-links > li:not(:first-child)
+    margin-top 0
+  
+@media (max-width: $small)
   .sidebar
     .nav-links
       .mobile-dropdown-title

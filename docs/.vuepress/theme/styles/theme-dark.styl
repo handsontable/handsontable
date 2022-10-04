@@ -151,25 +151,21 @@ html.theme-dark {
   /* Table of contents */
   .table-of-contents {
     scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
-    border none
+    border: none
 
     .toc-container-header {
-      color $fontColor
+      color: $fontColor
     }
 
     a {
       color $fontColor
 
       &.active {
-        color: $linkFontColor;
-        
-        &:hover {
-          color: $linkFontColor;
-        }
+        color: $fontColor
       }
 
       &:hover {
-        color: $fontColor;
+        color: $linkFontColor
       }
     }
   }
@@ -206,24 +202,27 @@ html.theme-dark {
 
     .tabs-component-panels {
       background-color $tabsComponentPanels
-      border-radius 0
 
       section {
-        &[id*="preview-"] {
-          color $tabsComponentBackgroundColor /* Related to issue #8355 */
-          background-color white; /* Related to issue #8355 */
+        
+        /* Avoid the blinking effect during scrolling in the dark theme */
+        .hot.example-scrollable {
+          background-color: #fff
         }
-
-        &#code {
-          pre {
-            scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
-          }
+        
+        pre {
+          scrollbar($tabsScrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
         }
-
-        &#html {
-          pre {
-            scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
-          }
+      }
+    }
+    
+    .controls {
+      label {
+        color $fontColor
+        
+        input {
+          margin 5px
+          color-scheme dark
         }
       }
     }
@@ -258,6 +257,15 @@ html.theme-dark {
   /* Every custom block component */
   .custom-block {
     color $fontColor
+  }
+  
+  /* Every custom block component of type warning */
+  .custom-block.warning {
+    background-color $customBlockWarningBackgroundColor
+    
+    a {
+      color $fontColor
+    }
   }
 
   /* Details markdown component */

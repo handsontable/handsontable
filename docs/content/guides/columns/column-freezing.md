@@ -29,7 +29,7 @@ The [`fixedColumnsStart`](@/api/options.md#fixedcolumnstart) property used to be
 :::
 
 ::: only-for javascript
-::: example #example1
+::: example #example1 .example-scrollable
 ```js
 const container = document.querySelector('#example1');
 
@@ -48,7 +48,7 @@ const hot = new Handsontable(container, {
 :::
 
 ::: only-for react
-::: example #example1 :react
+::: example #example1 .example-scrollable :react
 ```jsx
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';

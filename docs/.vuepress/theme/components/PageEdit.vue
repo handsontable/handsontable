@@ -42,7 +42,7 @@ export default {
         return this.$site.themeConfig.lastUpdated;
       }
 
-      return 'Last edit';
+      return 'Last update';
     },
 
     editLink() {

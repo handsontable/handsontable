@@ -106,7 +106,7 @@ export default {
 
 <style lang="stylus">
 .nav-frameworks
-  margin-left 1.25rem
+  margin-left 1.4rem
   margin-right 1.5rem
   display inline-block
   position relative
