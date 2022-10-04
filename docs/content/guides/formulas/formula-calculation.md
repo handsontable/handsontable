@@ -13,6 +13,7 @@ tags:
   - workbook
   - sheet
   - function
+  - hyperformula
 react:
   metaTitle: Formula calculation - React Data Grid | Handsontable
 searchCategory: Guides
