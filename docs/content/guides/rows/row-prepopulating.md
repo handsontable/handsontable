@@ -16,9 +16,9 @@ searchCategory: Guides
 
 # Row pre-populating
 
-## Overview
+Populate newly-added rows with predefined template values, using cell renderers.
 
-Rows can be pre-populated with template values using cell renderers.
+[[toc]]
 
 ## Example
 

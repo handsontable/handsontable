@@ -11,7 +11,11 @@ searchCategory: Guides
 
 # Cell validator
 
+Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
+
 [[toc]]
+
+## Overview
 
 When you create a validator, a good idea is to assign it as an alias that will refer to this particular validator function. Handsontable defines 5 aliases by default:
 

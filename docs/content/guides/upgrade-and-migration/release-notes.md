@@ -17,6 +17,8 @@ searchCategory: Guides
 
 # Release notes
 
+See the full history of changes made to Handsontable in each major, minor, and patch release.
+
 [[toc]]
 
 ## 12.1.3

@@ -14,6 +14,8 @@ searchCategory: Guides
 
 # Selection
 
+Select a single cell, a range of adjacent cells, or multiple non-adjacent ranges of cells.
+
 [[toc]]
 
 ## Overview

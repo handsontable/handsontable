@@ -12,6 +12,8 @@ searchCategory: Guides
 
 # Migrate from 7.4 to 8.0
 
+Migrate from Handsontable 7.4 to Handsontable 8.0, released on August 5, 2020.
+
 [[toc]]
 
 ## Overview

@@ -11,11 +11,9 @@ searchCategory: Guides
 
 # Column component
 
+Configure your grid's columns, using the props of the `HotColumn` component. Pass your component as a custom cell editor or a custom cell renderer.
+
 [[toc]]
-
-## Overview
-
-You can configure the column-related settings using the `HotColumn` component's props. You can also create custom renderers and editors using React components.
 
 ## Declaring column settings
 

@@ -11,9 +11,12 @@ searchCategory: Guides
 
 # Checkbox cell type
 
+Use the checkbox cell type to create interactive elements that can be checked or unchecked, having either "true" or "false" values.
+
 [[toc]]
 
 ## Overview
+
 Data in these cells will be rendered as a checkbox and can be easily changed by checking/unchecking the checkbox.
 
 Checking the box can be performed using a mouse, or by pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd>.

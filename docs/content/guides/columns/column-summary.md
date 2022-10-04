@@ -16,11 +16,11 @@ searchCategory: Guides
 
 # Column summary
 
+Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
+
 [[toc]]
 
-Summarize your columns' data, using the [`ColumnSummary`](@/api/columnSummary.md) plugin.
-
-## About column summary
+## Overview
 
 The [`ColumnSummary`](@/api/columnSummary.md) plugin lets you quickly calculate and display a column summary.
 

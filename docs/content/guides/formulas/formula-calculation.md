@@ -21,6 +21,8 @@ searchCategory: Guides
 
 # Formula calculation
 
+Perform calculations on cells' values, using a powerful calculation engine that handles 380+ functions, custom functions, named expressions, and more.
+
 [[toc]]
 
 ## Overview

@@ -11,10 +11,9 @@ searchCategory: Guides
 
 # Column moving
 
-[[toc]]
+Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 
-## Overview
-This page shows you how to move columns in Handsontable.
+[[toc]]
 
 ## Enabling plugin
 

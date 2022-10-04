@@ -9,13 +9,14 @@ searchCategory: Guides
 
 # Setting up a translation in Angular
 
+Configure your Angular data grid with different number formats, depending on the specified language and culture.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following example shows a Handsontable instance with translations set up in Angular.
 
-## Example
 ::: example :angular-numbro --html 1 --js 2
 ```html
 <app-root></app-root>

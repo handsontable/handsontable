@@ -17,11 +17,11 @@ searchCategory: Guides
 
 # Language
 
+Set Handsontable's UI language to one of the built-in translations, or create your own language set using our templates.
+
 [[toc]]
 
-Display Handsontable's UI text in other languages, and add your own translations.
-
-## About language settings
+## Overview
 
 You can easily change the text of the UI for the purpose of translating it to specific languages. We provide the developer with predefined languages, which can be applied by loading the language set and changing just one setting, and an ability to use their own language sets, created using templates of existing language files.
 

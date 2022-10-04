@@ -1,7 +1,7 @@
 ---
 title: Saving data
 metaTitle: Saving data - JavaScript Data Grid | Handsontable
-description: Save data after each change to the data set, using Handsontable's API hooks. Preserve the table state by saving data to local storage.
+description: Save data after each change to the data set, using Handsontable's API hooks. Preserve the table's state by saving data to the local storage.
 permalink: /saving-data
 canonicalUrl: /saving-data
 tags:
@@ -15,10 +15,9 @@ searchCategory: Guides
 
 # Saving data
 
-[[toc]]
+Save data after each change to the data set, using Handsontable's API hooks. Preserve the table's state by saving data to the local storage.
 
-## Overview
-Persistent state storage is particularly useful when running multiple instances of Handsontable on one page as it allows data separation per each instance.
+[[toc]]
 
 ## Saving changes using a callback
 
@@ -233,6 +232,8 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ## Saving data locally
 
 You can save any type of data in local storage to preserve the table state after page reloads. The [`persistentState`](@/api/options.md#persistentstate) option must be set to `true` to enable the data storage mechanism. You can set it either during the Handsontable initialization or using the [`updateSettings()`](@/api/core.md#updatesettings) method.
+
+Persistent state storage is particularly useful when running multiple instances of Handsontable on one page as it allows data separation per each instance.
 
 When the [`persistentState`](@/api/options.md#persistentstate) option is enabled, the [`PersistentState`](@/api/persistentState.md) plugin exposes hooks listed below:
 

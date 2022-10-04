@@ -11,10 +11,16 @@ searchCategory: Guides
 
 # Autocomplete cell type
 
+Use the autocomplete cell type to collect user input with a menu that lets the user choose a suggested option while typing.
+
 [[toc]]
 
 ## Overview
-The `autocomplete` cell type enables the user to choose a suggested option while typing. Autocomplete can be configured in three different ways, flexible mode, strict mode, and strict mode using Ajax.
+
+Autocomplete can be configured in three different ways:
+- Flexible mode
+- Strict mode
+- Strict mode using Ajax
 
 ## Autocomplete flexible mode
 

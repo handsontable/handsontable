@@ -18,6 +18,8 @@ searchCategory: Guides
 
 # Testing
 
+Run one or multiple tests, using Handsontable's ready-made commands for Jasmine and Puppeteer.
+
 [[toc]]
 
 ## Testing in browser

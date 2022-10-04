@@ -11,6 +11,8 @@ searchCategory: Guides
 
 # Conditional formatting
 
+Format specified cells, based on dynamic conditions.
+
 [[toc]]
 
 ## Overview

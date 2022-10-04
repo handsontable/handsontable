@@ -11,12 +11,16 @@ searchCategory: Guides
 
 # Dropdown cell type
 
+Use the dropdown cell type to collect user input with a searchable menu that lets the user choose a suggested option while typing.
+
 [[toc]]
 
 ## Overview
+
 The dropdown cell type is based on an autocomplete cell type and can also be searchable.
 
 ## Usage
+
 This example shows the usage of the dropdown feature. Dropdown is based on [Autocomplete](@/guides/cell-types/autocomplete-cell-type.md) cell type. All options used by `autocomplete` cell type apply to `dropdown` as well.
 
 ::: only-for javascript

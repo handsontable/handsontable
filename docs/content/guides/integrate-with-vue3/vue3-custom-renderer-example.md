@@ -9,6 +9,8 @@ searchCategory: Guides
 
 # Custom renderer in Vue 3
 
+Create a custom cell renderer, and use it in your Vue 3 data grid by declaring it as a function.
+
 [[toc]]
 
 ## Overview

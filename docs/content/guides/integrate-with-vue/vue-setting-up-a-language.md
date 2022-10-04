@@ -9,13 +9,13 @@ searchCategory: Guides
 
 # Setting up a translation in Vue 2
 
+Configure your Vue 2 data grid with different number formats, depending on the specified language and culture.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following example shows a Handsontable instance with translations set up in Vue 2.
-
-## Example
 
 ::: example #example1 :vue-numbro --html 1 --js 2
 ```html

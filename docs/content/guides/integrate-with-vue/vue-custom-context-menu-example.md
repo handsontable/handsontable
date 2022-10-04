@@ -9,13 +9,13 @@ searchCategory: Guides
 
 # Custom context menu in Vue 2
 
+Customize the right-click context menu of your Vue 2 data grid, by a creating a custom function for each menu item.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following example implements the `@handsontable/vue` component, adding a custom Context Menu.
-
-## Example
 
 ::: example #example1 :vue --html 1 --js 2
 ```html

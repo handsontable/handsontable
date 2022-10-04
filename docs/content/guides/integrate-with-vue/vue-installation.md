@@ -9,11 +9,9 @@ searchCategory: Guides
 
 # Installation in Vue 2
 
+Install Handsontable's Vue 2 wrapper via npm, import the stylesheets, and get your application up and running.
+
 [[toc]]
-
-## Overview
-
-Vue 2 installation and basic usage guide.
 
 ## Install with npm
 

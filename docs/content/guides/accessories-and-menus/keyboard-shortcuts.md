@@ -21,13 +21,13 @@ searchCategory: Guides
 
 # Keyboard shortcuts
 
-Use and manage Handsontable's keyboard shortcuts.
+Navigate Handsontable similarly to Google Sheets or Microsoft Excel, using the built-in keyboard shortcuts. Create your own shortcuts.
 
 [[toc]]
 
 ## Overview
 
-You can navigate Handsontable similarly to Google Sheets or Microsoft Excel, using the [default](#default-keyboard-shortcuts) keyboard shortcuts.
+To navigate Handsontable similarly to Google Sheets or Microsoft Excel, use the [default](#default-keyboard-shortcuts) keyboard shortcuts.
 
 You can also completely [customize](#custom-keyboard-shortcuts) your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutManager.md) API:
 - [Add custom keyboard shortcuts](#adding-a-custom-keyboard-shortcut)

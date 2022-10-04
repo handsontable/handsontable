@@ -11,11 +11,11 @@ searchCategory: Guides
 
 # Row hiding
 
+Hide individual rows to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.
+
 [[toc]]
 
-Hide your rows, using the [`HiddenRows`](@/api/hiddenRows.md) plugin.
-
-## About row hiding
+## Overview
 
 "Hiding a row" means that the hidden row doesn't get rendered as a DOM element.
 

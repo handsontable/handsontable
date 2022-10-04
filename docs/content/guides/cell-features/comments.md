@@ -13,11 +13,9 @@ searchCategory: Guides
 
 # Comments
 
+Add a comment (a note) to a cell, using the right-click context menu, just like in Excel. Edit and delete comments. Make comments read-only.
+
 [[toc]]
-
-## Overview
-
-This feature makes it possible to add, edit and remove comments in Handsontable easily.
 
 ## Enabling the plugin
 

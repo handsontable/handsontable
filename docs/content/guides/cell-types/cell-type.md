@@ -11,12 +11,11 @@ searchCategory: Guides
 
 # Cell type
 
+Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
+
 [[toc]]
 
 ## Overview
-The cell type functionality enables you to customize the appearance and validate the cell(s) when applied.
-
-## Usage
 
 There are three functions associated with every table cell: [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor), and optionally [`validator`](@/api/options.md#validator). These functions are mostly used all together as they are strongly connected.
 

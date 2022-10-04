@@ -11,11 +11,9 @@ searchCategory: Guides
 
 # Handsontable cell type
 
+Use the Handsontable cell type to collect user input with an interactive spreadsheet editor in a popup.
+
 [[toc]]
-
-## Overview
-
-This page describes how to use Handsontable as a cell editor in Handsontable.
 
 ## Usage
 

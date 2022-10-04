@@ -9,11 +9,9 @@ searchCategory: Guides
 
 # Using the `HotColumn` component in Vue 2
 
+Configure the Vue 2 data grid's columns, using the props of the `HotColumn` component. Define a custom cell editor or a custom cell renderer.
+
 [[toc]]
-
-## Overview
-
-You can configure the column-related settings using the `HotColumn` component's attributes. You can also create custom renderers and editors using Vue components.
 
 ## Declaring column settings
 

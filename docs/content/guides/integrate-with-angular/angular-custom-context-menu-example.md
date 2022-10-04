@@ -9,13 +9,14 @@ searchCategory: Guides
 
 # Custom context menu in Angular
 
+Customize the right-click context menu of your Angular data grid, by a creating a custom function for each menu item.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following is an implementation of the `@handsontable/angular` component with a custom context menu added.
 
-## Example
 ::: example :angular --html 1 --js 2
 ```html
 <app-root></app-root>

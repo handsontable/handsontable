@@ -11,6 +11,8 @@ searchCategory: Guides
 
 # Cell editor
 
+Create a custom cell editor function, to have full control over how editing works in the cells of your data grid.
+
 [[toc]]
 
 ## Overview

@@ -9,13 +9,13 @@ searchCategory: Guides
 
 # Referencing the Handsontable instance in Vue 2
 
+Reference the Handsontable instance from a Vue 2 component to programmatically perform actions such as reloading the data in your data grid.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following example implements the `@handsontable/vue`, showing how to reference the Handsontable instance from the wrapper component.
-
-## Example
 
 ::: example #example1 :vue --html 1 --js 2
 ```html

@@ -16,11 +16,11 @@ searchCategory: Guides
 
 # Locale
 
+Configure Handsontable's locale settings, to properly handle locale-related data and actions such as filtering, searching, or sorting.
+
 [[toc]]
 
-Configure Handsontable's locale settings, to properly handle locale-related data.
-
-## About locale settings
+## Overview
 
 Handsontable's locale settings affect certain actions performed on your data, such as:
 - [Filtering](@/guides/columns/column-filter.md)

@@ -15,13 +15,11 @@ searchCategory: Guides
 
 # Custom builds
 
-Create your own build of Handsontable, using the available npm tasks.
+Handsontable's building process transforms the source files located in the code repository into dedicated packages.
 
 [[toc]]
 
-## About building
-
-Get an overview of Handsontable's building processes.
+## Overview
 
 ### Monorepo
 

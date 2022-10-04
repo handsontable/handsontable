@@ -11,11 +11,11 @@ searchCategory: Guides
 
 # Column hiding
 
+Hide individual columns to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.
+
 [[toc]]
 
-Hide your columns, using the [`HiddenColumns`](@/api/hiddenColumns.md) plugin.
-
-## About column hiding
+## Overview
 
 "Hiding a column" means that the hidden column doesn't get rendered as a DOM element.
 

@@ -1,6 +1,6 @@
 ---
-title: Row height
-metaTitle: Row height - JavaScript Data Grid | Handsontable
+title: Row heights
+metaTitle: Row heights - JavaScript Data Grid | Handsontable
 description: Configure row heights, using an array or a function. Let your users manually change row heights using Handsontable's interface.
 permalink: /row-height
 canonicalUrl: /row-height
@@ -16,17 +16,19 @@ tags:
   - row dimmensions
   - manual resize
 react:
-  metaTitle: Row height - React Data Grid | Handsontable
+  metaTitle: Row heights - React Data Grid | Handsontable
 searchCategory: Guides
 ---
 
-# Row height
+# Row heights
+
+Configure row heights, using an array or a function. Let your users manually change row heights using Handsontable's interface.
 
 [[toc]]
 
 ## Overview
 
-By default, the row height adjusts to the height of the content. The minimum height is `23px`. The row height can be passed as a `constant`, an `array`, or a `function`.
+By default, the height of a row adjusts to the height of the content. The minimum height is `23px`. The row height can be passed as a `constant`, an `array`, or a `function`.
 
 The content inside a cell gets wrapped if it doesn't fit the cell's size.
 

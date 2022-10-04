@@ -11,6 +11,8 @@ searchCategory: Guides
 
 # Cell renderer
 
+Create a custom cell renderer function, to have full control over how a cell looks.
+
 [[toc]]
 
 ::: only-for javascript
