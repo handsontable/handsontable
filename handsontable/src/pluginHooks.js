@@ -5,16 +5,25 @@ import { warn } from './helpers/console';
 import { toSingleLine } from './helpers/templateLiteralTag';
 import { fastCall } from './helpers/function';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
  *
+ * ::: only-for javascript
  * Handsontable events are the common interface that function in 2 ways: as __callbacks__ and as __hooks__.
+ * :::
+ *
+ * ::: only-for react
+ * This page lists all the **Handsontable hooks** – callbacks that let you react before or after an action occurs.
+ *
+ * Read more on the [Events and hooks](@/guides/getting-started/events-and-hooks.md) page.
+ * :::
  *
  * @example
  *
  * ::: only-for javascript
  * ```js
- * // Using events as callbacks:
+ * // using events as callbacks
  * ...
  * const hot1 = new Handsontable(document.getElementById('example1'), {
  *   afterChange: function(changes, source) {
@@ -46,7 +55,7 @@ import { fastCall } from './helpers/function';
  *
  * ::: only-for javascript
  * ```js
- * // Using events as plugin hooks:
+ * // using events as plugin hooks
  * ...
  * const hot1 = new Handsontable(document.getElementById('example1'), {
  *   myPlugin: true

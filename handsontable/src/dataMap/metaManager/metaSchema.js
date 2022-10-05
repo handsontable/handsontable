@@ -23,7 +23,7 @@ import { isObjectEqual } from '../../helpers/object';
  *
  * Read more at the [Configuration options](@/guides/getting-started/configuration-options.md) page.
  *
- * ```js{5-15}
+ * ```js
  * const container = document.getElementById('example');
  *
  * const hot = new Handsontable(container, {
@@ -51,7 +51,7 @@ import { isObjectEqual } from '../../helpers/object';
  *
  * Read more on the [Configuration options](@/guides/getting-started/configuration-options.md) page.
  *
- * ```jsx{3-11}
+ * ```jsx
  * <HotTable
  *   // configuration options, in the object literal notation
  *   licenseKey='non-commercial-and-evaluation'
