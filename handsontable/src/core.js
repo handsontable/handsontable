@@ -46,37 +46,41 @@ let activeGuid = null;
  * @class Core
  * @description
  *
- * The `Handsontable` class to which we refer as to `Core`, allows you to modify the grid's behavior by using one of the available public methods.
+ * The `Handsontable` class (known as the `Core`) lets you modify the grid's behavior by using Handsontable's public API methods.
+ *
+ * ::: only-for react
+ * To use these methods, associate a Handsontable instance with your instance
+ * of the [`HotTable` component](@/guides/getting-started/installation.md#hottable-component),
+ * by using React's `ref` feature (for details, see the [Instance methods](@/guides/getting-started/react-methods.md) page).
+ * :::
  *
  * ## How to call a method
  *
  * ::: only-for javascript
  * ```js
- * // First, let's contruct Handsontable
+ * // create a Handsontable instance
  * const hot = new Handsontable(document.getElementById('example'), options);
  *
- * // Then, let's use the setDataAtCell method
+ * // call a method
  * hot.setDataAtCell(0, 0, 'new value');
  * ```
  * :::
  *
  * ::: only-for react
- * ```jsx
- * const hotRef = useRef(null);
+ * ```jsx{3,7,13}
+ * import { useRef } from 'react';
  *
- * ...
+ * const hotTableComponent = useRef(null);
  *
- * // First, let's contruct Handsontable
  * <HotTable
- *   ref={hotRef}
+ *   // associate your `HotTable` component with a Handsontable instance
+ *   ref={hotTableComponent}
  *   settings={options}
  * />
  *
- * ...
- *
- * const hot = hotRef.current.hotInstance;
- * // Then, let's use the setDataAtCell method
- * hot.setDataAtCell(0, 0, 'new value');
+ * // access the Handsontable instance, under the `.current.hotInstance` property
+ * // call a method
+ * hotTableComponent.current.hotInstance.setDataAtCell(0, 0, 'new value');
  * ```
  * :::
  *
