@@ -21,7 +21,7 @@ import { isObjectEqual } from '../../helpers/object';
  * a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-handsontable),
  * using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
  *
- * Read more at the [Configuration options](@/guides/getting-started/configuration-options.md) page.
+ * Read more on the [Configuration options](@/guides/getting-started/configuration-options.md) page.
  *
  * ```js
  * const container = document.getElementById('example');
