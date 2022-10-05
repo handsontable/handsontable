@@ -51,7 +51,7 @@ let activeGuid = null;
  * ::: only-for react
  * To use these methods, associate a Handsontable instance with your instance
  * of the [`HotTable` component](@/guides/getting-started/installation.md#hottable-component),
- * by using React's `ref` feature (for details, see the [Instance methods](@/guides/getting-started/react-methods.md) page).
+ * by using React's `ref` feature (read more on the [Instance methods](@/guides/getting-started/react-methods.md) page).
  * :::
  *
  * ## How to call a method

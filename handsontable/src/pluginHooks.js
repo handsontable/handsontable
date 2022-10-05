@@ -7,6 +7,7 @@ import { fastCall } from './helpers/function';
 
 /**
  * @description
+ *
  * Handsontable events are the common interface that function in 2 ways: as __callbacks__ and as __hooks__.
  *
  * @example
