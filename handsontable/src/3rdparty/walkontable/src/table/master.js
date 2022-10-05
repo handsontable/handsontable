@@ -53,12 +53,9 @@ class MasterTable extends Table {
         // An issue occurred on Firefox, where an empty element with overflow: scroll returns an element height higher than 0px
         // despite an empty content within.
         cloneNode.style.overflow = 'auto';
+        cloneNode.style.position = 'absolute';
 
-        if (trimmingElement.nextElementSibling) {
-          trimmingElementParent.insertBefore(cloneNode, trimmingElement.nextElementSibling);
-        } else {
-          trimmingElementParent.appendChild(cloneNode);
-        }
+        trimmingElementParent.appendChild(cloneNode);
 
         const cloneHeight = parseInt(getComputedStyle(cloneNode, rootWindow).height, 10);
 
