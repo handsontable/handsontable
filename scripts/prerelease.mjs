@@ -1,44 +1,66 @@
 import fs from 'fs-extra';
 import crypto from 'crypto';
 import util from 'util';
-import child_process from 'child_process';
+import ChildProcess from 'child_process';
+import hotConfig from '../hot.config.js';
 
-const PACKAGE_NAME = 'tmp-hot';
+const exec = util.promisify(ChildProcess.exec);
+const PACKAGES_SETTINGS = {
+  MAIN: {
+    NAME: 'tmp-hot',
+    PATH: 'handsontable/tmp',
+  },
+  REACT: {
+    NAME: 'tmp-hot-react',
+    PATH: 'wrappers/react',
+  },
+  ANGULAR: {
+    NAME: 'tmp-hot-angular',
+    PATH: 'wrappers/angular',
+  },
+  VUE: {
+    NAME: 'tmp-hot-vue',
+    PATH: 'wrappers/vue',
+  },
+  VUE3: {
+    NAME: 'tmp-hot-vue3',
+    PATH: 'wrappers/vue3',
+  },
+};
+
 const FILE_NAME = 'package.json';
-const PRERELEASE_TEMP_FOLDER = 'handsontable/tmp';
-
-const exec = util.promisify(child_process.exec);
-
-const dataFromFile = JSON.parse(
-  fs.readFileSync(`${PRERELEASE_TEMP_FOLDER}/${FILE_NAME}`)
-);
-const originalVersionNumber = dataFromFile.version;
+const MAIN_PATH = process.cwd();
 
 const hash = crypto
   .createHash('shake256', { outputLength: 4 })
-  .update(originalVersionNumber, 'utf8')
+  .update(hotConfig.HOT_VERSION, 'utf8')
   .digest('hex');
 
-dataFromFile.version = `${originalVersionNumber}-dev.${hash}-${Math.random()}`;
-dataFromFile.name = PACKAGE_NAME;
+const newVersionNumber = `${hotConfig.HOT_VERSION}-dev.${hash}-${Date.now()}`;
 
-// fs.copy('.', `../${PRERELEASE_TEMP_FOLDER}`).then(() => {
-fs.writeFileSync(
-  `${PRERELEASE_TEMP_FOLDER}/${FILE_NAME}`,
-  JSON.stringify(dataFromFile, null, 2)
-);
+Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
+  const dataFromFile = JSON.parse(fs.readFileSync(`${item.PATH}/${FILE_NAME}`));
 
-process.chdir(`${PRERELEASE_TEMP_FOLDER}`);
+  dataFromFile.version = newVersionNumber;
+  dataFromFile.name = item.NAME;
 
-exec('npm publish').then(
-  () => {
-    //process.chdir(`../`);
-    //fs.rm(PRERELEASE_TEMP_FOLDER, { recursive: true }).then(() => {});
-  },
-  (error) => {
-    //process.chdir(`../`);
-    //fs.rm(PRERELEASE_TEMP_FOLDER, { recursive: true }).then(() => {});
-    throw new Error(error);
-  }
-);
-// });
+  fs.writeFileSync(
+    `${item.PATH}/${FILE_NAME}`,
+    JSON.stringify(dataFromFile, null, 2)
+  );
+});
+
+Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
+  process.chdir(MAIN_PATH);
+  process.chdir(`${item.PATH}`);
+
+  exec('npm publish').then(
+    () => {
+      console.log(`%c${key} - success`, 'color: green;');
+    },
+    (error) => {
+      console.log(`%c${key} - error`, 'color: red;');
+      throw new Error(error);
+    }
+  );
+});
