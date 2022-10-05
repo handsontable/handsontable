@@ -26,7 +26,7 @@
     "publish-all": "npm run all publish-package -- -e=examples",
     "prein": "npm run swap-package-links",
     "preall": "npm run swap-package-links",
-    "prerelease": "node scripts/prerelease.mjs",
+    "prerelease-to-npm": "node scripts/prerelease-to-npm.mjs",
     "swap-package-links": "node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable",
     "examples:version": "node examples/scripts/code-examples.mjs version",
     "examples:install": "node examples/scripts/code-examples.mjs install",

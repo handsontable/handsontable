@@ -30,4 +30,4 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
       - run: npm install
       - run: npm run all build
-      - run: npm run prerelease
+      - run: npm run prerelease-to-npm
