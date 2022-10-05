@@ -38,7 +38,7 @@ const hash = crypto
 
 const newVersionNumber = `${hotConfig.HOT_VERSION}-dev.${hash}-${Date.now()}`;
 
-Object.entries(PACKAGES_SETTINGS).forEach((item) => {
+Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   const dataFromFile = JSON.parse(fs.readFileSync(`${item.PATH}/${FILE_NAME}`));
 
   dataFromFile.version = newVersionNumber;
