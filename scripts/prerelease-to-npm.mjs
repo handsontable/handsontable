@@ -56,10 +56,10 @@ Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
 
   exec('npm publish').then(
     () => {
-      console.log(`%c${key} - success`, 'color: green;');
+      console.log('\x1b[32m%s\x1b[0m', `${key} - success`);
     },
     (error) => {
-      console.log(`%c${key} - error`, 'color: red;');
+      console.log('\x1b[31m%s\x1b[0m', `${key} - something went wrong`);
       throw new Error(error);
     }
   );
