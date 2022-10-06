@@ -21,7 +21,7 @@ Before using any state management library, make sure you know how Handsontable h
 
 The following example implements the `@handsontable/react` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Redux state manager.
 
-## Example
+## Simple example
 
 ::: example #example1 :react-redux
 ```jsx
@@ -160,9 +160,13 @@ ReactDOM.render(
 ```
 :::
 
-## An advanced example
+## Advanced example
 
-In this example, the custom editor component is created with an external dependency. This acts as both renderer and editor. The renderer uses information from that component in the first column to change the way it behaves. Information is passed using Redux and `react-redux`'s `connect` method.
+This example shows:
+- A [custom editor](@/guides/cell-functions/cell-editor.md#component-based-editors) component (built with an external dependency, `HexColorPicker`). This component acts both as an editor and as a renderer.
+- A [custom renderer](@/guides/cell-functions/cell-renderer.md#declaring-a-custom-renderer-as-a-component) component, built with an external dependency (`StarRatingComponent`).
+
+The editor component changes the behavior of the renderer component, by passing information through Redux (and the `connect()` method of `react-redux`).
 
 ::: example #example6 :react-advanced --tab preview
 ```jsx
@@ -175,7 +179,7 @@ import { createStore, combineReducers } from 'redux';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// a component
+// a custom editor component
 class UnconnectedColorPicker extends BaseEditorComponent {
   constructor(props) {
     super(props);
