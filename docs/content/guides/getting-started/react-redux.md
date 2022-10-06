@@ -307,7 +307,7 @@ const ColorPicker = connect(function(state) {
   };
 })(UnconnectedColorPicker);
 
-// a component
+// a Redux component
 const initialReduxStoreState = {
   activeColors: [],
   inactiveColors: []
@@ -363,7 +363,7 @@ const appReducer = (state = initialReduxStoreState, action) => {
 const actionReducers = combineReducers({ appReducer });
 const reduxStore = createStore(actionReducers);
 
-// a component
+// a custom renderer component
 const UnconnectedStarRatingRenderer = ({
   row,
   col,
