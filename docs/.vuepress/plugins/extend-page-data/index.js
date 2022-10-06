@@ -1,12 +1,13 @@
 const {
   FRAMEWORK_SUFFIX,
+  MULTI_FRAMEWORKED_CONTENT_DIR,
   getDefaultFramework,
-  getDocsBase,
   getDocsRepoSHA,
   getPrettyFrameworkName,
   getSidebars,
   getThisDocsVersion,
   parseFramework,
+  getFrameworks,
 } = require('../../helpers');
 
 const buildMode = process.env.BUILD_MODE;
@@ -14,13 +15,26 @@ const pluginName = 'hot/extend-page-data';
 const now = new Date();
 
 /**
- * Dedupes the slashes in the string.
+ * Remove the slash from the beginning and ending of the string.
  *
  * @param {string} string String to process.
  * @returns {string}
  */
-function dedupeSlashes(string) {
-  return string.replace(/(\/)+/g, '$1');
+function removeEndingSlashes(string) {
+  return string.replace(/^\//, '').replace(/\/$/, '');
+}
+
+/**
+ * Returns the original (not symlinked) relative path of the MD file, which the page
+ * are created from.
+ *
+ * @param {string} relativePath The relative path of the processed file (symlinked path).
+ * @returns {string}
+ */
+function getOriginRelativePath(relativePath) {
+  return relativePath
+    .replace(new RegExp(`^/?${MULTI_FRAMEWORKED_CONTENT_DIR}`), '')
+    .replace(new RegExp(`/(${getFrameworks().join('|')})${FRAMEWORK_SUFFIX}/`), '');
 }
 
 const formatDate = (dateString) => {
@@ -54,6 +68,10 @@ module.exports = (options, context) => {
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.buildMode = buildMode;
 
+      if ($page.relativePath) {
+        $page.originRelativePath = getOriginRelativePath($page.relativePath);
+      }
+
       if ($page.currentVersion === 'next') {
         $page.docsGenStamp = `<!--
 Generated at ${now}
@@ -77,8 +95,11 @@ SHA: ${getDocsRepoSHA()}
       const frameworkPath = currentFramework + FRAMEWORK_SUFFIX;
 
       if ($page.frontmatter.canonicalUrl) {
-        $page.frontmatter
-          .canonicalUrl = dedupeSlashes(`${getDocsBase()}/${frameworkPath}${$page.frontmatter.canonicalUrl}/`);
+        const canonicalShortUrl = removeEndingSlashes(frameworkPath + $page.frontmatter.canonicalUrl);
+
+        // The "canonicalShortUrl" property is used by "dump-docs-data" plugin. The property holds the
+        // canonical URL without slashes at the beginning and ending of the URL path and without Docs base.
+        $page.frontmatter.canonicalShortUrl = canonicalShortUrl;
       }
 
       if ($page.frontmatter.permalink) {

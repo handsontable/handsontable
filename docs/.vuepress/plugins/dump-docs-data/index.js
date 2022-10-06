@@ -30,11 +30,8 @@ module.exports = (options, context) => {
      * @param {object} $page The $page value of the page you’re currently reading.
      */
     async extendPageData($page) {
-      if ($page.frontmatter.permalink) {
-        // Remove the slash ('/') from the beginning and ending of the URL path to reduce
-        // the resulting file size
-        rawCanonicalURLs.urls
-          .push($page.frontmatter.canonicalUrl.replace(/^\/docs\//, '').replace(/\/$/, ''));
+      if ($page.frontmatter.canonicalShortUrl) {
+        rawCanonicalURLs.urls.push($page.frontmatter.canonicalShortUrl);
       }
     },
 
