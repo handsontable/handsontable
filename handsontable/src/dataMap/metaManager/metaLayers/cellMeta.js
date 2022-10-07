@@ -62,7 +62,8 @@ export default class CellMeta {
     const meta = this.getMeta(physicalRow, physicalColumn);
 
     extend(meta, settings);
-    extend(meta, expandMetaType(settings.type, meta));
+    // TODO: Early WIP, testing if extending the prototype would fix the problem.
+    extend(meta.__proto__, expandMetaType(settings.type, meta));
   }
 
   /**

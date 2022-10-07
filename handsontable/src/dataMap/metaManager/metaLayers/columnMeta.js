@@ -64,7 +64,8 @@ export default class ColumnMeta {
     const meta = this.getMeta(physicalColumn);
 
     extend(meta, settings);
-    extend(meta, expandMetaType(settings.type, meta));
+    // TODO: Early WIP, testing if extending the prototype would fix the problem.
+    extend(meta.__proto__, expandMetaType(settings.type, meta));
   }
 
   /**
