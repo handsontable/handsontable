@@ -5,9 +5,11 @@ name: Publish prerelease in NPM
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Tests"]
+    types:
+      - completed
     branches: ["develop"]
-#  pull_request:
-#    branches: ["develop"]
 
 jobs:
   build:
