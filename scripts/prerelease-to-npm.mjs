@@ -32,11 +32,18 @@ const FILE_NAME = 'package.json';
 const MAIN_PATH = process.cwd();
 
 const hash = crypto
-  .createHash('shake256', { outputLength: 4 })
+  .createHash('sha256')
   .update(hotConfig.HOT_VERSION, 'utf8')
-  .digest('hex');
+  .digest('hex')
+  .substring(0, 8);
 
-const newVersionNumber = `${hotConfig.HOT_VERSION}-dev.${hash}-${Date.now()}`;
+const date = new Date();
+const year = date.getFullYear();
+const month = date.getMonth() < 10 ? `0${date.getMonth()}` : date.getMonth();
+const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
+
+// const newVersionNumber = `${hotConfig.HOT_VERSION}-dev.${hash}`;
+const newVersionNumber = `${hotConfig.HOT_VERSION}-next-dev.${hash}-${year}${month}${day}`;
 
 Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   const dataFromFile = JSON.parse(fs.readFileSync(`${item.PATH}/${FILE_NAME}`));
