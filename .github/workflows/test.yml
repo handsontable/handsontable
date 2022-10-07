@@ -36,6 +36,7 @@ jobs:
       test-react: ${{ steps.path-filter.outputs.test-react }}
       test-vue: ${{ steps.path-filter.outputs.test-vue }}
       test-vue3: ${{ steps.path-filter.outputs.test-vue3 }}
+      publish-in-npm: ${{ steps.path-filter.outputs.publish-in-npm }}
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
