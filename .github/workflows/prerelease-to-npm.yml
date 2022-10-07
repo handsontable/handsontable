@@ -3,11 +3,11 @@
 
 name: Publish prerelease in NPM
 
-on:
-  push:
-    branches: ["develop"]
-  pull_request:
-    branches: ["develop"]
+# on:
+#  push:
+#    branches: ["develop"]
+#  pull_request:
+#    branches: ["develop"]
 
 jobs:
   build:
