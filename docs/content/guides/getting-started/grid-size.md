@@ -137,7 +137,7 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 ```
 ```css
 #exampleParent {
-  height: 150px;
+  height: 157px;
 }
 ```
 ```js
@@ -162,7 +162,7 @@ triggerBtn.addEventListener('click', () => {
     hot.refreshDimensions();
     triggerBtn.textContent = 'Expand container';
   } else {
-    exampleParent.style.height = '400px';
+    exampleParent.style.height = '410px';
     hot.refreshDimensions();
     triggerBtn.textContent = 'Collapse container';
   }
@@ -175,7 +175,7 @@ triggerBtn.addEventListener('click', () => {
 ::: example #example :react --css 1 --js 2
 ```css
 #exampleParent {
-  height: 150px;
+  height: 157px;
 }
 ```
 ```jsx
@@ -203,7 +203,7 @@ const ExampleComponent = () => {
         hot.refreshDimensions();
         triggerBtn.textContent = 'Expand container';
       } else {
-        exampleParent.style.height = '400px';
+        exampleParent.style.height = '410px';
         hot.refreshDimensions();
         triggerBtn.textContent = 'Collapse container';
       }

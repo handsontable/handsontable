@@ -61,7 +61,7 @@ const ExampleComponent = () => {
   }
 
   return (
-    <div className="redux-example-container">
+    <div className="dump-example-container">
       <div id="example-container">
 
         <div id="example-preview">

@@ -586,7 +586,8 @@ const hot = new Handsontable(container, {
       case 1:
         return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
     }
-  }
+  },
+  licenseKey: 'non-commercial-and-evaluation'
 });
 
 exampleContainer3.addEventListener('mousedown', event => {
@@ -668,6 +669,7 @@ const ExampleComponent = () => {
             return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
           }
         }}
+        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );

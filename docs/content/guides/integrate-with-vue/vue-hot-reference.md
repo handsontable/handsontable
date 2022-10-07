@@ -20,7 +20,7 @@ The following example implements the `@handsontable/vue`, showing how to referen
 ```html
 <div id="example1">
   <hot-table ref="hotTableComponent" :settings="hotSettings"></hot-table><br/>
-  <button v-on:click="swapHotData" class="controls">Load new data!</button>
+  <button v-on:click="swapHotData" class="controls">Load new data</button>
 </div>
 ```
 ```js

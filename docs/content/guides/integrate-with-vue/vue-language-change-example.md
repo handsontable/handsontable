@@ -22,8 +22,8 @@ Note that the `language` property is bound to the component separately using `la
 
 ::: example #example1 :vue-languages --html 1 --js 2
 ```html
-<div id="example1">
-  <label for="languages">Select language:</label>
+<div id="example1" class="controls select-language">
+  <label for="languages">Select language of the context menu:</label>
   <select v-on:change="updateHotLanguage" id="languages"></select><br/>
   <br/>
   <hot-table :language="language" :settings="hotSettings"></hot-table>

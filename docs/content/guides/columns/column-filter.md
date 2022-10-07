@@ -372,7 +372,8 @@ Note that selecting a column in the Filter component resets the state of the tab
 <style lang="stylus">
 #externalFilter {
   width: 240px;
-
+  margin-top: 20px;
+  
   .columnChoose {
     margin-bottom: 5px;
 
