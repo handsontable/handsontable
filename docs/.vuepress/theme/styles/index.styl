@@ -23,17 +23,20 @@
 /* Navbar */
 @import 'navbar'
 
-/* Themes */
-@import 'theme-dark'
-
 /* Cookiebot */
 @import 'cookiebot'
 
 /* Code fields */
 @import 'code'
 
+/* JSFiddle form and button */
+@import 'jsfiddle'
+
 /* Handsontable styles */
 @import 'handsontable'
+
+/* Themes */
+@import 'theme-dark'
 
 html {
   color-scheme light
@@ -164,6 +167,7 @@ a.source-code-link {
 */
 .custom-block {
   border-radius: 6px;
+  
   &.tip {
     border: 2px solid #2456f2;
     border-radius: 6px;
@@ -175,7 +179,11 @@ a.source-code-link {
       left: -7px;
       vertical-align: top;
     }
-  }  
+  }
+  
+  code {
+    white-space: nowrap;
+  }
 }
 
 /* Larger bottom gap of H1, H2, H3 */

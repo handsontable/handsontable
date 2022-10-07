@@ -805,7 +805,7 @@ You can use custom-named expressions in your formula expressions. A named expres
 <div id="example-named-expressions1"></div>
 <div class="controls">
   <input id="named-expressions-input" type="text" value="=10 * Sheet1!$A$2">
-  <button id="named-expressions-button">Calculate price</button>
+  <button id="named-expressions-button">Calculate the price</button>
 </div>
 ```
 ```js
@@ -914,7 +914,7 @@ const ExampleComponent = () => {
           id="named-expressions-button"
           onClick={(...args) => buttonClickCallback(...args)}
         >
-          Calculate price
+          Calculate the price
         </button>
       </div>
     </>

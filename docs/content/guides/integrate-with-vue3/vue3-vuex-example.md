@@ -23,7 +23,7 @@ Toggle [`readOnly`](@/api/options.md#readonly) for the entire table.
 
 ::: example #example1 :vue3-vuex --html 1 --js 2
 ```html
-<div id="example1">
+<div id="example1" class="dump-example-container">
   <div id="example-preview">
     <div id="toggle-boxes">
       <br/>

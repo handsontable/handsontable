@@ -204,12 +204,6 @@ html.theme-dark {
       background-color $tabsComponentPanels
 
       section {
-        
-        /* Avoid the blinking effect during scrolling in the dark theme */
-        .hot.example-scrollable {
-          background-color: #fff
-        }
-        
         pre {
           scrollbar($tabsScrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
         }
@@ -415,6 +409,70 @@ html.theme-dark {
       &:last-child {
         display: inline;
       }
+    }
+  }
+  
+  /* A custom demo at getting-started/react-redux.md */
+  .dump-example-container {
+    color: $fontColor;
+    
+    table {
+      border-color: $tabsComponentBorderColor;
+      
+      tr:nth-child(2n) {
+        background-color: $backgroundColor;
+      }
+      td {
+        border-bottom: none;
+      }
+    }
+
+    .controls {
+      margin: 0 0 20px;
+      padding-top: 0;
+    }
+  }
+  
+  /* A custom demo at columns/column-filter */
+  #externalFilter {
+    color-scheme: dark;
+    color: $fontColor;
+    
+    input[type="checkbox"] {
+      color-scheme: dark;
+    }
+  }
+  
+  /* A custom demo at cell-features/selection */
+  #selectOption {
+    color-scheme: dark;
+  }
+  
+  /* A custom demo at formulas/formula-calculation */
+  #example-named-expressions1 {
+    input[type="text"] {
+      color-scheme: dark;
+    }
+  }
+  
+  /* A custom demo at formulas/formula-calculation */
+  h3.demo-preview {
+    color: $fontColor;
+  }
+  
+  /* A custom demo at internationalization/language */
+  .controls.select-language {
+    select {
+      color-scheme: dark;
+    }
+  }
+  
+  /* Fix for the license info under the table */
+  #hot-display-license-info {
+    color: #fff;
+    
+    a {
+      color: $linkFontColor;
     }
   }
 }

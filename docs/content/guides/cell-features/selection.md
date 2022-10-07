@@ -41,7 +41,7 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 ```html
 <div id="example1"></div>
 <div class="controls">
-  <select id="selectOption" style="width: auto; margin-top: 16px">
+  <select id="selectOption">
     <option>Single selection</option>
     <option>Range selection</option>
     <option selected="selected">Multiple ranges selection</option>
@@ -124,7 +124,6 @@ const ExampleComponent = () => {
       <div className="controls">
         <select
           id="selectOption"
-          style={{width: 'auto', marginTop: 16}}
           onChange={(...args) => selectOptionChangeCallback(...args)}
           defaultValue="multiple"
         >
@@ -270,7 +269,7 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 <div id="example3"></div>
 
 <div class="controls">
-  <button id="set-data-action">Change selected data and change the CSS class of the cell</button>
+  <button id="set-data-action">Click to modify the selected cells</button>
 </div>
 ```
 ```css
@@ -391,7 +390,7 @@ const ExampleComponent = () => {
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Change selected data and change the CSS class of the cell</button>
+        <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Click to modify the selected cells</button>
       </div>
     </>
   );

@@ -417,9 +417,9 @@ The [`ColumnSummary`](@/api/columnSummary.md) plugin doesn't automatically add n
 So, if you always want to display your column summary result below your existing rows, you need to:
 1. Add an empty row to the bottom of your grid (to avoid overwriting your existing rows).
 2. Reverse row coordinates for your column summary (to always display your summary result at the bottom).
-    ::: tip
-    To reverse row coordinates for your column summary, set the [`reversedRowCoords`](@/api/columnSummary.md#options) option to `true`, and adjust the [`destinationRow`](@/api/columnSummary.md#options) coordinate.
-    :::
+::: tip
+To reverse row coordinates for your column summary, set the [`reversedRowCoords`](@/api/columnSummary.md#options) option to `true`, and adjust the [`destinationRow`](@/api/columnSummary.md#options) coordinate.
+:::
 
 ::: only-for javascript
 ::: example #example2
