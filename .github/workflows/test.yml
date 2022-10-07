@@ -372,4 +372,6 @@ jobs:
       - run: npm run in vue3 build
       - run: npm run in vue3 test
   publish-in-npm:
-    run: prerelease-to-npm
+    steps:
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+      - run: prerelease-to-npm
