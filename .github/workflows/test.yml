@@ -371,7 +371,5 @@ jobs:
       - run: npm run swap-package-links
       - run: npm run in vue3 build
       - run: npm run in vue3 test
-  on:
-    push:
-      branches: ["develop"]
-        run: prerelease-to-npm
+  publish-in-npm:
+    run: prerelease-to-npm
