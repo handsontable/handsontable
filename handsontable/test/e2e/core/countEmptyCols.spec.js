@@ -1,4 +1,4 @@
-fdescribe('Core.countEmptyCols', () => {
+describe('Core.countEmptyCols', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -102,6 +102,7 @@ fdescribe('Core.countEmptyCols', () => {
     });
 
     expect(countEmptyCols()).toBe(2);
+    expect(countEmptyCols(true)).toBe(0);
   });
 
   it('should count all columns that have `undefined`', () => {
@@ -114,6 +115,7 @@ fdescribe('Core.countEmptyCols', () => {
     });
 
     expect(countEmptyCols()).toBe(2);
+    expect(countEmptyCols(true)).toBe(0);
   });
 
   it('should count all columns that have an empty string', () => {
@@ -126,6 +128,7 @@ fdescribe('Core.countEmptyCols', () => {
     });
 
     expect(countEmptyCols()).toBe(2);
+    expect(countEmptyCols(true)).toBe(0);
   });
 
   it('should not count all columns as empty when the all rows are hidden', () => {
@@ -141,6 +144,7 @@ fdescribe('Core.countEmptyCols', () => {
     render();
 
     expect(countEmptyCols()).toBe(0);
+    expect(countEmptyCols(true)).toBe(0);
   });
 
   it('should count all columns as empty when the all rows are trimmed', () => {
@@ -156,5 +160,6 @@ fdescribe('Core.countEmptyCols', () => {
     render();
 
     expect(countEmptyCols()).toBe(5);
+    expect(countEmptyCols(true)).toBe(5);
   });
 });
