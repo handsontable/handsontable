@@ -580,6 +580,108 @@ describe('CollapsibleColumns', () => {
         </tbody>
         `);
     });
+
+    it('should ignore creating collapsible headers when they are belongs to the start overlay', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', { label: 'I1', colspan: 2 }],
+          ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ],
+        collapsibleColumns: true,
+        fixedColumnsStart: 2,
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="" colspan="4">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">F1</th>
+            <th class="">G1</th>
+            <th class="">H1</th>
+            <th class="collapsibleIndicator expanded" colspan="2">I1</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="" colspan="2">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">D2</th>
+            <th class="hiddenHeader"></th>
+            <th class="">F2</th>
+            <th class="">G2</th>
+            <th class="">H2</th>
+            <th class="">I2</th>
+            <th class="">J2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+            <td class="">G1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+            <td class="">J1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it('should make collapsible headers only when they have colspan greater than 0', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 6),
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 4 }],
+          ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }],
+        ],
+        collapsibleColumns: [
+          { row: -2, col: 0, collapsible: true }, // A1
+          { row: -2, col: 1, collapsible: true }, // B1
+          { row: -1, col: 0, collapsible: true }, // A2
+          { row: -1, col: 1, collapsible: true }, // B2
+        ],
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="collapsibleIndicator expanded" colspan="4">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="collapsibleIndicator expanded" colspan="2">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">D2</th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+          </tr>
+        </tbody>
+        `);
+    });
   });
 
   describe('collapsing headers functionality', () => {

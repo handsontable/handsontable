@@ -356,9 +356,13 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after retrieving information about a column header and appending it to the table header.
    *
+   * Since the 12.2 the hook is triggered with the 3rd `headerLevel` argument.
+   *
    * @event Hooks#afterGetColHeader
    * @param {number} column Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
+   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
+   *                                 values counting from 0 to N).
    */
   'afterGetColHeader',
 

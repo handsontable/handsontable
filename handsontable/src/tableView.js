@@ -1129,18 +1129,21 @@ class TableView {
    *
    * @private
    * @param {number} visualColumnIndex Visual column index.
-   * @param {HTMLTableHeaderCellElement} TH The table header element.
+   * @param {HTMLTableCellElement} TH The table header element.
+   * @param {Function} label The function that returns the header label.
+   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
+   *                                 values counting from 0 to N).
    */
-  appendColHeader(visualColumnIndex, TH) {
+  appendColHeader(visualColumnIndex, TH, label = this.instance.getColHeader, headerLevel = 0) {
     if (TH.firstChild) {
       const container = TH.firstChild;
 
       if (hasClass(container, 'relative')) {
-        this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, this.instance.getColHeader);
+        this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, label);
 
       } else {
         empty(TH);
-        this.appendColHeader(visualColumnIndex, TH);
+        this.appendColHeader(visualColumnIndex, TH, headerLevel);
       }
 
     } else {
@@ -1150,13 +1153,13 @@ class TableView {
 
       div.className = 'relative';
       span.className = 'colHeader';
-      this.updateCellHeader(span, visualColumnIndex, this.instance.getColHeader);
+      this.updateCellHeader(span, visualColumnIndex, label);
 
       div.appendChild(span);
       TH.appendChild(div);
     }
 
-    this.instance.runHooks('afterGetColHeader', visualColumnIndex, TH);
+    this.instance.runHooks('afterGetColHeader', visualColumnIndex, TH, headerLevel);
   }
 
   /**
