@@ -294,6 +294,24 @@ export default () => {
     allowRemoveRow: true,
 
     /**
+     * Information on which of the meta properties were added automatically.
+     * For example: setting the `renderer` property directly won't extend the `automaticallyAssignedMetaProps`
+     * entry, but setting a `type` will modify it to:
+     * ```
+     * automaticallyAssignedMetaProps: {
+     *   renderer: true,
+     *   editor: true,
+     *   validator: true
+     * }
+     * ```
+     *
+     * @private
+     * @type {Object}
+     * @default {}
+     */
+    automaticallyAssignedMetaProps: {},
+
+    /**
      * The `autoColumnSize` option configures the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
      * You can set the `autoColumnSize` option to one of the following:

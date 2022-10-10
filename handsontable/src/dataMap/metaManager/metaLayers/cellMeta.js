@@ -62,8 +62,7 @@ export default class CellMeta {
     const meta = this.getMeta(physicalRow, physicalColumn);
 
     extend(meta, settings);
-    // TODO: Early WIP, testing if extending the prototype would fix the problem.
-    extend(meta.__proto__, expandMetaType(settings.type, meta));
+    extend(meta, expandMetaType(settings.type, meta));
   }
 
   /**
@@ -140,6 +139,10 @@ export default class CellMeta {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
     cellMeta[key] = value;
+
+    if (cellMeta.automaticallyAssignedMetaProps[key] === true) {
+      cellMeta.automaticallyAssignedMetaProps[key] = void 0;
+    }
   }
 
   /**
