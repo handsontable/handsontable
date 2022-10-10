@@ -306,7 +306,7 @@ export default () => {
      * ```
      *
      * @private
-     * @type {Object}
+     * @type {object}
      * @default {}
      */
     automaticallyAssignedMetaProps: {},
