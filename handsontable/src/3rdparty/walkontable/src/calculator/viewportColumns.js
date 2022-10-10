@@ -113,7 +113,10 @@ class ViewportColumnsCalculator {
       // +1 pixel for row header width compensation for horizontal scroll > 0
       const compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
 
-      if (sum >= scrollOffset && sum + (calculationType === FULLY_VISIBLE_TYPE ? columnWidth : 0) <= scrollOffset + compensatedViewportWidth) { // eslint-disable-line max-len
+      if (
+        sum >= scrollOffset &&
+        sum + (calculationType === FULLY_VISIBLE_TYPE ? columnWidth : 0) <= scrollOffset + compensatedViewportWidth
+      ) {
         if (this.startColumn === null || this.startColumn === void 0) {
           this.startColumn = i;
         }
