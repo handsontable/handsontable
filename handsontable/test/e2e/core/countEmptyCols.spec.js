@@ -162,4 +162,17 @@ describe('Core.countEmptyCols', () => {
     expect(countEmptyCols()).toBe(5);
     expect(countEmptyCols(true)).toBe(5);
   });
+
+  it('should count all empty columns when there is some columns index translation', () => {
+    const hot = handsontable({
+      data: [
+        ['', 'a', 'b', '', 'd'],
+      ],
+    });
+
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+
+    expect(countEmptyCols()).toBe(2);
+    expect(countEmptyCols(true)).toBe(1);
+  });
 });
