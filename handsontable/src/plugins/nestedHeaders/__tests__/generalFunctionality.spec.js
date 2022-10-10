@@ -786,5 +786,57 @@ describe('NestedHeaders', () => {
       expect(afterOnCellMouseDown.calls.argsFor(0)[1]).toEqual(jasmine.objectContaining({ row: -4, col: -1 }));
       expect(afterOnCellMouseDown.calls.argsFor(0)[2]).toBe(corner);
     });
+
+    describe('`afterGetColHeader` hook', () => {
+      it('should be fired for all displayed columns on init', () => {
+        const afterGetColHeader = jasmine.createSpy('afterGetColHeader');
+
+        handsontable({
+          startRows: 2,
+          startCols: 4,
+          colHeaders: true,
+          autoRowSize: false,
+          autoColumnSize: false,
+          nestedHeaders: [
+            ['a', { label: 'b', colspan: 3 }],
+            ['a', { label: 'b', colspan: 2 }, 'c'],
+            ['a', 'Long column header', 'c', 'd']
+          ],
+          afterGetColHeader,
+        });
+
+        expect(afterGetColHeader.calls.count()).toBe(24);
+
+        const calls = afterGetColHeader.calls;
+
+        // initial render
+        expect(calls.argsFor(0)).toEqual([0, getCell(-3, 0), 0]);
+        expect(calls.argsFor(1)).toEqual([1, getCell(-3, 1), 0]);
+        expect(calls.argsFor(2)).toEqual([2, getCell(-3, 2), 0]);
+        expect(calls.argsFor(3)).toEqual([3, getCell(-3, 3), 0]);
+        expect(calls.argsFor(4)).toEqual([0, getCell(-2, 0), 1]);
+        expect(calls.argsFor(5)).toEqual([1, getCell(-2, 1), 1]);
+        expect(calls.argsFor(6)).toEqual([2, getCell(-2, 2), 1]);
+        expect(calls.argsFor(7)).toEqual([3, getCell(-2, 3), 1]);
+        expect(calls.argsFor(8)).toEqual([0, getCell(-1, 0), 2]);
+        expect(calls.argsFor(9)).toEqual([1, getCell(-1, 1), 2]);
+        expect(calls.argsFor(10)).toEqual([2, getCell(-1, 2), 2]);
+        expect(calls.argsFor(11)).toEqual([3, getCell(-1, 3), 2]);
+
+        // the second render triggered by some other module
+        expect(calls.argsFor(12)).toEqual([0, getCell(-3, 0), 0]);
+        expect(calls.argsFor(13)).toEqual([1, getCell(-3, 1), 0]);
+        expect(calls.argsFor(14)).toEqual([2, getCell(-3, 2), 0]);
+        expect(calls.argsFor(15)).toEqual([3, getCell(-3, 3), 0]);
+        expect(calls.argsFor(16)).toEqual([0, getCell(-2, 0), 1]);
+        expect(calls.argsFor(17)).toEqual([1, getCell(-2, 1), 1]);
+        expect(calls.argsFor(18)).toEqual([2, getCell(-2, 2), 1]);
+        expect(calls.argsFor(19)).toEqual([3, getCell(-2, 3), 1]);
+        expect(calls.argsFor(20)).toEqual([0, getCell(-1, 0), 2]);
+        expect(calls.argsFor(21)).toEqual([1, getCell(-1, 1), 2]);
+        expect(calls.argsFor(22)).toEqual([2, getCell(-1, 2), 2]);
+        expect(calls.argsFor(23)).toEqual([3, getCell(-1, 3), 2]);
+      });
+    });
   });
 });

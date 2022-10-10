@@ -6,6 +6,8 @@ permalink: /batch-operations
 canonicalUrl: /batch-operations
 tags:
   - suspend rendering
+  - batching
+  - performance
 react:
   metaTitle: Batch operations - React Data Grid | Handsontable
 searchCategory: Guides

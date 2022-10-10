@@ -873,6 +873,7 @@ registerLanguageDictionary(zhTW);
 
 ::: tip
 Parcel, webpack 3 (and older), and a few other bundlers require you to import modules one by one, from their respective files of origin. See the full list of such imports:
+:::
 
 ::: details All imports
 ```js

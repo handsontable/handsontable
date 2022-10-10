@@ -1,8 +1,6 @@
 import {
   addClass,
   removeClass,
-  fastInnerHTML,
-  empty,
 } from '../../helpers/dom/element';
 import { isNumeric } from '../../helpers/number';
 import { isLeftClick, isRightClick } from '../../helpers/dom/event';
@@ -313,7 +311,7 @@ export class NestedHeaders extends BasePlugin {
     const fixedColumnsStart = this.hot.view._wt.getSetting('fixedColumnsStart');
 
     return (renderedColumnIndex, TH) => {
-      const { rootDocument, columnIndexMapper, view } = this.hot;
+      const { columnIndexMapper, view } = this.hot;
 
       let visualColumnsIndex = columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
 
@@ -348,19 +346,7 @@ export class NestedHeaders extends BasePlugin {
         }
       }
 
-      const divEl = rootDocument.createElement('div');
-      const spanEl = rootDocument.createElement('span');
-
-      addClass(divEl, 'relative');
-      addClass(spanEl, 'colHeader');
-      fastInnerHTML(spanEl, label);
-
-      divEl.appendChild(spanEl);
-
-      empty(TH);
-      TH.appendChild(divEl);
-
-      this.hot.runHooks('afterGetColHeader', visualColumnsIndex, TH);
+      this.hot.view.appendColHeader(visualColumnsIndex, TH, () => label, headerLevel);
     };
   }
 
@@ -469,7 +455,7 @@ export class NestedHeaders extends BasePlugin {
       columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
     }
 
-    // The plugin takes control of the how the columns are selected.
+    // The plugin takes control of how the columns are selected.
     selection.selectColumns(...columnsToSelect);
   }
 
@@ -531,12 +517,10 @@ export class NestedHeaders extends BasePlugin {
    * @param {Array} renderersArray Array of renderers.
    */
   onAfterGetColumnHeaderRenderers(renderersArray) {
-    if (renderersArray) {
-      renderersArray.length = 0;
+    renderersArray.length = 0;
 
-      for (let headerLayer = 0; headerLayer < this.#stateManager.getLayersCount(); headerLayer++) {
-        renderersArray.push(this.headerRendererFactory(headerLayer));
-      }
+    for (let headerLayer = 0; headerLayer < this.#stateManager.getLayersCount(); headerLayer++) {
+      renderersArray.push(this.headerRendererFactory(headerLayer));
     }
   }
 

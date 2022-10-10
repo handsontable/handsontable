@@ -7,6 +7,7 @@ canonicalUrl: /searching-values
 tags:
   - find values
   - highlight values
+  - search values
 react:
   metaTitle: Searching values - React Data Grid | Handsontable
 searchCategory: Guides
