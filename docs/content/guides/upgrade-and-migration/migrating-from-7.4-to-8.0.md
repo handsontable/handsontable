@@ -811,4 +811,4 @@ Public methods `colOffset()` and `rowOffset()` were removed and their functional
 
 Also, an experimental feature called `ganttChart` was removed and is no longer supported.
 
-If you use these features in your project and need backward compatibility, please contact our Suppport Team ([support@handsontable.com](mailto:support@handsontable.com)).
+If you use these features in your project and need backward compatibility, please contact our Support Team ([support@handsontable.com](mailto:support@handsontable.com)).
