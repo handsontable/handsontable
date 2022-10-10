@@ -18,11 +18,13 @@ import DropdownLink from '@theme/components/DropdownLink.vue';
  * @param {string} value Cookie value.
  */
 function setCookie(name, value) {
-  const urlParts = window.location.hostname.split('.');
-  const domainWithoutSubdomain = urlParts
-    .slice(0)
-    .slice(-(urlParts.length === 4 ? 3 : 2))
-    .join('.');
+  const hostname = window.location.hostname;
+  const urlParts = hostname.split('.');
+  let domainWithoutSubdomain = hostname;
+
+  if (urlParts.length > 2) {
+    domainWithoutSubdomain = urlParts.slice(1).join('.');
+  }
   let str = `${name}=${value}`;
 
   str += `; Domain=${domainWithoutSubdomain}`;
