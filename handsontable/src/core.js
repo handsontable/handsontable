@@ -2,6 +2,8 @@ import { addClass, empty, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
+import { warn } from './helpers/console';
+import { toSingleLine } from './helpers/templateLiteralTag';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {
@@ -37,6 +39,7 @@ import { createShortcutManager } from './shortcuts';
 
 const SHORTCUTS_GROUP = 'gridDefault';
 let activeGuid = null;
+const deprecationWarns = new Set();
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -472,6 +475,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'insert_row_below':
         case 'insert_row_above':
 
+          if (!deprecationWarns.has('insert_row')) {
+            deprecationWarns.add(action);
+            warn(toSingleLine`The alter action "insert_row" is deprecated and will be removed in the next\x20
+                              major release. Please use "insert_row_above" instead.`);
+          }
+
           const numberOfSourceRows = instance.countSourceRows();
 
           if (tableMeta.maxRows === numberOfSourceRows) {
@@ -530,6 +539,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'insert_col': // backward compatibility
         case 'insert_col_start':
         case 'insert_col_end':
+
+          if (!deprecationWarns.has('insert_col')) {
+            deprecationWarns.add(action);
+            warn(toSingleLine`The alter action "insert_col" is deprecated and will be removed in the next\x20
+                              major release. Please use "insert_col_start" instead.`);
+          }
+
           // "start" is a default behavior for creating new columns
           const insertColumnMode = action === 'insert_col_end' ? 'end' : 'start';
 
@@ -2629,10 +2645,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function alter
    * @param {string} action Possible alter operations:
    *  <ul>
-   *    <li> `'insert_row'` (alias for `'insert_row_above'`) </li>
+   *    <li> `'insert_row'` (alias for `'insert_row_above'` - deprecated) </li>
    *    <li> `'insert_row_above'` </li>
    *    <li> `'insert_row_below'` </li>
-   *    <li> `'insert_col'` (alias for `'insert_col_start'`) </li>
+   *    <li> `'insert_col'` (alias for `'insert_col_start'` - deprecated) </li>
    *    <li> `'insert_col_start'` (inserts column at the left in LTR and at the right in RTL [layout direction](@/guides/internationalization/layout-direction.md) mode) </li>
    *    <li> `'insert_col_end'` (inserts column at the right in LTR and at the left in RTL [layout direction](@/guides/internationalization/layout-direction.md) mode) </li>
    *    <li> `'remove_row'` </li>
