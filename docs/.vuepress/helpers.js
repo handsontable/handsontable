@@ -14,6 +14,12 @@ const frameworkToPrettyName = new Map([
   ['react', 'React'],
 ]);
 
+const partialFrameworkPrettyName = new Map([
+  ['angular', 'Angular'],
+  ['vue', 'Vue 2'],
+  ['vue3', 'Vue 3']
+]);
+
 /**
  * Gets all available frameworks.
  *
@@ -36,10 +42,20 @@ function getDefaultFramework() {
  * Get pretty framework name.
  *
  * @param {string} framework Framework ID.
- * @returns {string}
+ * @returns {string|undefined}
  */
 function getPrettyFrameworkName(framework) {
   return frameworkToPrettyName.get(framework);
+}
+
+/**
+ * Get the full version of a "partial" framework name.
+ *
+ * @param {string} partialFramework The "partial" framework name in lowercase format.
+ * @returns {string|undefined}
+ */
+function getPrettyPartialFrameworkName(partialFramework) {
+  return partialFrameworkPrettyName.get(partialFramework);
 }
 
 /**
@@ -183,6 +199,18 @@ function parseFramework(url) {
 }
 
 /**
+ * Parses the provided file path to find the "partial" framework name.
+ *
+ * @param {string} filePath The file path.
+ * @returns {string|null}
+ */
+function parsePartialFramework(filePath) {
+  const frameworkMatch = filePath.match(/guides\/integrate-with-(vue3|vue|angular)?/);
+
+  return frameworkMatch ? frameworkMatch[1] : null;
+}
+
+/**
  * Create symlinks needed for multi-frameworked content.
  */
 function createSymlinks() {
@@ -263,9 +291,11 @@ module.exports = {
   getNormalizedPath,
   getFrameworks,
   getPrettyFrameworkName,
+  getPrettyPartialFrameworkName,
   getSidebars,
   getIgnorePagesPatternList,
   parseFramework,
+  parsePartialFramework,
   getDefaultFramework,
   createSymlinks,
   getThisDocsVersion,

@@ -1,4 +1,9 @@
-const { getPrettyFrameworkName, parseFramework } = require('../../helpers');
+const {
+  getPrettyFrameworkName,
+  getPrettyPartialFrameworkName,
+  parseFramework,
+  parsePartialFramework
+} = require('../../helpers');
 
 module.exports = function firstHeaderInjection(markdown) {
   const insertedTokenTag = 'span';
@@ -27,11 +32,12 @@ module.exports = function firstHeaderInjection(markdown) {
     state.tokens.every((token) => {
       // Next token represents a place where new HTML tag can be injected.
       if (insertSpan && token.type === 'inline') {
+        const partialFrameworkPrettyName = getPrettyPartialFrameworkName(parsePartialFramework(relativePath));
         const spanOpen = new Token(insertedOpenTokenType, insertedTokenTag, 1);
         const spanClose = new Token(insertedCloseTokenType, insertedTokenTag, -1);
         const text = new Token('html_block', '', 0);
 
-        text.content = `${getPrettyFrameworkName(frameworkId)} Data Grid`;
+        text.content = `${partialFrameworkPrettyName ?? getPrettyFrameworkName(frameworkId)} Data Grid`;
 
         spanOpen.attrSet('class', 'header-framework');
         token.children.unshift(spanOpen, text, spanClose); // Add HTML element right after first `h1` tag on the site.
