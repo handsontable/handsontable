@@ -472,15 +472,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       /* eslint-disable no-case-declarations */
       switch (action) {
         case 'insert_row': // backward compatibility
-        case 'insert_row_below':
-        case 'insert_row_above':
-
-          if (!deprecationWarns.has('insert_row')) {
+          if (!deprecationWarns.has(action)) {
             deprecationWarns.add(action);
-            warn(toSingleLine`The alter action "insert_row" is deprecated and will be removed in the next\x20
+            warn(toSingleLine`The alter action "${action}" is deprecated and will be removed in the next\x20
                               major release. Please use "insert_row_above" instead.`);
           }
-
+          // falls through
+        case 'insert_row_below':
+        case 'insert_row_above':
           const numberOfSourceRows = instance.countSourceRows();
 
           if (tableMeta.maxRows === numberOfSourceRows) {
@@ -537,15 +536,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           break;
 
         case 'insert_col': // backward compatibility
-        case 'insert_col_start':
-        case 'insert_col_end':
-
-          if (!deprecationWarns.has('insert_col')) {
+          if (!deprecationWarns.has(action)) {
             deprecationWarns.add(action);
-            warn(toSingleLine`The alter action "insert_col" is deprecated and will be removed in the next\x20
+            warn(toSingleLine`The alter action "${action}" is deprecated and will be removed in the next\x20
                               major release. Please use "insert_col_start" instead.`);
           }
-
+          // falls through
+        case 'insert_col_start':
+        case 'insert_col_end':
           // "start" is a default behavior for creating new columns
           const insertColumnMode = action === 'insert_col_end' ? 'end' : 'start';
 
