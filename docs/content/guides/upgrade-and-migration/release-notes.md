@@ -41,7 +41,7 @@ Released on 22nd of September, 2022
 
 ## 12.1.2
 
-Released on 8th of July, 2022 - [view docs](/12.1/)
+Released on 8th of July, 2022 - [view docs](docs/12.1/)
 
 **Changed**
 - Changed the version of the Moment.js dependency from 2.29.3 to 2.29.4, in reaction to a recently-found Moment.js security vulnerability. The vulnerability did not affect a correct configuration of Handsontable. [#9638](https://github.com/handsontable/handsontable/issues/9638)
@@ -49,14 +49,14 @@ Released on 8th of July, 2022 - [view docs](/12.1/)
 
 ## 12.1.1
 
-Released on 5th of July, 2022 - [view docs](/12.1/)
+Released on 5th of July, 2022 - [view docs](docs/12.1/)
 
 **Fixed**
 - *Angular:* Fixed an issue where the installation of `@handsontable/angular` package failed for versions of Angular other than 9 [#9622](https://github.com/handsontable/handsontable/issues/9622)
 
 ## 12.1.0
 
-Released on 28th of June, 2022 - [view docs](/12.1/)
+Released on 28th of June, 2022 - [view docs](docs/12.1/)
 
 **Added**
 - Added smoother row and column moving when some row or columns are hidden. [#7613](https://github.com/handsontable/handsontable/issues/7613)
@@ -85,7 +85,7 @@ Released on 28th of June, 2022 - [view docs](/12.1/)
 
 ## 12.0.1
 
-Released on 16th of May, 2022 - [view docs](/12.0/)
+Released on 16th of May, 2022 - [view docs](docs/12.0/)
 
 **Fixed**
 - Fixed an issue where checking or unchecking a checkbox in a row with [`autoRowSize: true`](@/api/options.md#autorowsize) and multi-line cell values caused rows to align incorrectly. [#7102](https://github.com/handsontable/handsontable/issues/7102)
@@ -96,7 +96,7 @@ Released on 16th of May, 2022 - [view docs](/12.0/)
 
 ## 12.0.0
 
-Released on 28th of April, 2022 - [view docs](/12.0/)
+Released on 28th of April, 2022 - [view docs](docs/12.0/)
 
 **Added**
 - Added [`ShortcutManager`](@/api/shortcutManager.md), a new API for customizing keyboard shortcuts. [#8942](https://github.com/handsontable/handsontable/issues/8942)
@@ -142,7 +142,7 @@ Released on 28th of April, 2022 - [view docs](/12.0/)
 
 ## 11.1.0
 
-Released on 13th of January, 2022 - [view docs](/11.1/)
+Released on 13th of January, 2022 - [view docs](docs/11.1/)
 
 **Added**
 - Added [`updateData()`](@/api/core.md#updatedata), a new method that lets you replace Handsontable's [`data`](@/api/options.md#data) without resetting the states of cells, rows and columns. [#7263](https://github.com/handsontable/handsontable/issues/7263)
@@ -169,14 +169,14 @@ Released on 13th of January, 2022 - [view docs](/11.1/)
 
 ## 11.0.1
 
-Released on 17th of November, 2021 - [view docs](/11.0/)
+Released on 17th of November, 2021 - [view docs](docs/11.0/)
 
 **Fixed**
 - Fixed the UMD build of `@handsontable/angular`, which was not working properly in `11.0.0`. [#8946](https://github.com/handsontable/handsontable/pull/8946)
 
 ## 11.0.0
 
-Released on 17th of November, 2021 - [view docs](/11.0/)
+Released on 17th of November, 2021 - [view docs](docs/11.0/)
 
 **Added**
 - **Breaking change**: Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489)
@@ -204,7 +204,7 @@ Released on 17th of November, 2021 - [view docs](/11.0/)
 
 ## 10.0.0
 
-Released on 29th of September, 2021 - [view docs](/10.0/)
+Released on 29th of September, 2021 - [view docs](docs/10.0/)
 
 **Changed**
 - **Breaking change**: Unified the naming and description of the fourth argument, `controller`, for selection manipulation in the [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) and [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996)
@@ -234,7 +234,7 @@ Released on 29th of September, 2021 - [view docs](/10.0/)
 
 ## 9.0.2
 
-Released on 28th of July, 2021 - [view docs](/9.0/)
+Released on 28th of July, 2021 - [view docs](docs/9.0/)
 
 **Fixed**
 - Fixed an issue with an error being thrown when lazy loading columns on a setup with Nested Headers + Hidden Columns. [#7160](https://github.com/handsontable/handsontable/issues/7160)
@@ -253,7 +253,7 @@ Released on 28th of July, 2021 - [view docs](/9.0/)
 
 ## 9.0.1
 
-Released on 17th of June, 2021 - [view docs](/9.0/)
+Released on 17th of June, 2021 - [view docs](docs/9.0/)
 
 **Fixed**
 
@@ -266,7 +266,7 @@ Released on 17th of June, 2021 - [view docs](/9.0/)
 
 ## 9.0.0
 
-Released on 1st of June, 2021 - [view docs](/9.0/)
+Released on 1st of June, 2021 - [view docs](docs/9.0/)
 
 **Changed**
 
@@ -294,7 +294,7 @@ Released on 1st of June, 2021 - [view docs](/9.0/)
 *   Deprecated the `beforeAutofillInsidePopulate` hook. It will be removed in the next major release. ([#8095](https://github.com/handsontable/handsontable/issues/8095))
 
 ## 8.4.0
-Released on 11th of May, 2021 - [view docs](/8.4/)
+Released on 11th of May, 2021 - [view docs](docs/8.4/)
 
 **Added**
 
@@ -330,7 +330,7 @@ Released on 11th of May, 2021 - [view docs](/8.4/)
 
 ## 8.3.2
 
-Released on 16th of March, 2021 - [view docs](/8.3/)
+Released on 16th of March, 2021 - [view docs](docs/8.3/)
 
 **Added**
 
@@ -358,7 +358,7 @@ Released on 16th of March, 2021 - [view docs](/8.3/)
 
 ## 8.3.1
 
-Released on 10th of February, 2021 - [view docs](/8.3/)
+Released on 10th of February, 2021 - [view docs](docs/8.3/)
 
 **Fixed**
 
@@ -366,7 +366,7 @@ Released on 10th of February, 2021 - [view docs](/8.3/)
 
 ## 8.3.0
 
-Released on 28th of January, 2021 - [view docs](/8.3/)
+Released on 28th of January, 2021 - [view docs](docs/8.3/)
 
 **Added**
 
@@ -396,7 +396,7 @@ Released on 28th of January, 2021 - [view docs](/8.3/)
 
 ## 8.2.0
 
-Released on 12th of November, 2020 - [view docs](/8.2/)
+Released on 12th of November, 2020 - [view docs](docs/8.2/)
 
 **Added**
 
@@ -418,7 +418,7 @@ Released on 12th of November, 2020 - [view docs](/8.2/)
 
 ## 8.1.0
 
-Released on 1st of October, 2020 - [view docs](/8.1/)
+Released on 1st of October, 2020 - [view docs](docs/8.1/)
 
 **Added**
 
@@ -449,7 +449,7 @@ Released on 1st of October, 2020 - [view docs](/8.1/)
 
 ## 8.0.0
 
-Released on 5th of August, 2020 - [view docs](/8.0/)
+Released on 5th of August, 2020 - [view docs](docs/8.0/)
 
 **Major changes**
 
@@ -743,7 +743,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 
 ## 7.4.2
 
-Released on 19th of February, 2020 - [view docs](/7.4/)
+Released on 19th of February, 2020 - [view docs](docs/7.4/)
 
 **Changes**
 
@@ -753,7 +753,7 @@ Released on 19th of February, 2020 - [view docs](/7.4/)
 
 ## 7.4.1
 
-Released on 19th of February, 2020 - [view docs](/7.4/)
+Released on 19th of February, 2020 - [view docs](docs/7.4/)
 
 Due to technical issues, version 7.4.2 patch needed to be released.
 
@@ -761,7 +761,7 @@ Due to technical issues, version 7.4.2 patch needed to be released.
 
 ## 7.4.0
 
-Released on 12th of February, 2020 - [view docs](/7.4/)
+Released on 12th of February, 2020 - [view docs](docs/7.4/)
 
 **Changes**
 

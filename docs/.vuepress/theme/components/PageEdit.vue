@@ -124,9 +124,9 @@ export default {
   max-width $contentWidth
   margin 0 auto
   padding 2rem 2.5rem
-  @media (max-width: $MQNarrow)
+  @media (max-width: $large)
     padding 2rem
-  @media (max-width: $MQMobileNarrow)
+  @media (max-width: $small)
     padding 1.5rem  padding-top 1rem
 
   padding-bottom 1rem
@@ -142,7 +142,7 @@ export default {
     float right
     font-size 0.9em
 
-@media (max-width: $MQMobile)
+@media (max-width: $medium)
   .page-edit
     .edit-link
       margin-bottom 0.5rem

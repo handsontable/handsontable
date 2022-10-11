@@ -14,6 +14,10 @@
       :items="items"
     />
     <slot name="bottom" />
+
+    <div class="theme-switcher-item">
+      Dark mode <ThemeSwitcher />
+    </div>
   </aside>
 </template>
 

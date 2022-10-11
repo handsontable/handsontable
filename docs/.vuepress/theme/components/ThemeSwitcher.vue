@@ -72,14 +72,14 @@ export default {
   display: none;
   margin-bottom: 0;
 
-  @media (max-width: $MQNarrow) {
+  @media (max-width: $large) {
     & {
       display: inline-block;
       left: 50px;
     }
   }
 
-  @media (max-width: $MQMobile) {
+  @media (max-width: $medium) {
     & {
       left: 10px;
     }
@@ -98,7 +98,7 @@ export default {
   top: 1px;
 
   /* Hide the theme switcher on narrow screen */
-  @media (max-width: $MQNarrow) {
+  @media (max-width: $large) {
     display none
   }
 }

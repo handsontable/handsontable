@@ -408,7 +408,7 @@ export default {
     .kbd-hint *
       display none
 
-@media (max-width: $MQMobile)
+@media (max-width: $medium)
   .search-box.search-box
     input
       left 1rem
@@ -419,19 +419,19 @@ export default {
   .search-box input
     height 2rem
 
-@media (max-width: $extraLarge) and (min-width: $MQMobile)
+@media (max-width: $extraLarge) and (min-width: $medium)
   .search-box
     .suggestions
       left 0
 
-@media (max-width: $MQMobile)
+@media (max-width: $medium)
   .search-box
     margin-right 0
     input
     .suggestions
       right 0
 
-@media (max-width: $MQMobileNarrow)
+@media (max-width: $small)
   .search-box
     .suggestions
       width calc(100vw - 4rem)

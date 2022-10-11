@@ -15,6 +15,7 @@
       <FrameworksDropdown></FrameworksDropdown>
       
       <div class="nav-links-right">
+        
         <SearchBox />
   
         <VersionsDropdown class="can-hide"></VersionsDropdown>
@@ -22,22 +23,8 @@
         <ExternalNavLinks class="can-hide" />
   
         <ThemeSwitcher />
+        
       </div>
-      
-      <!--
-      <div
-          class="links"
-          :style="linksWrapMaxWidth ? {
-          'max-width': linksWrapMaxWidth + 'px'
-        } : {}"
-      >
-        <AlgoliaSearchBox
-            v-if="isAlgoliaSearch"
-            :options="algolia"
-        />
-      </div>
-      -->
-
     </div>
   </header>
 </template>
@@ -60,7 +47,6 @@ export default {
     SidebarButton,
     NavLinks,
     SearchBox,
-    AlgoliaSearchBox,
     VersionsDropdown,
     ThemeSwitcher,
     Logo,
@@ -81,23 +67,6 @@ export default {
     isAlgoliaSearch() {
       return this.algolia && this.algolia.apiKey && this.algolia.indexName;
     }
-  },
-  mounted() {
-    const MOBILE_DESKTOP_BREAKPOINT = 992; // refer to config.styl
-    const paddingLeft = css(this.$el, 'paddingLeft');
-    const paddingRight = css(this.$el, 'paddingRight');
-    const NAVBAR_VERTICAL_PADDING = parseInt(paddingLeft, 10) + parseInt(paddingRight, 10);
-    const handleLinksWrapWidth = () => {
-      if (document.documentElement.clientWidth < MOBILE_DESKTOP_BREAKPOINT) {
-        this.linksWrapMaxWidth = null;
-      } else {
-        this.linksWrapMaxWidth = this.$el.offsetWidth - NAVBAR_VERTICAL_PADDING
-            - (this.$refs.siteName && this.$refs.siteName.offsetWidth || 0);
-      }
-    };
-
-    handleLinksWrapWidth();
-    window.addEventListener('resize', handleLinksWrapWidth, false);
   }
 };
 /**
