@@ -106,8 +106,7 @@ In this example, React's `Context` passes information available in the main app 
 }
 ```
 ```jsx
-import { useState, useContext } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useState, useContext } from 'react';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
