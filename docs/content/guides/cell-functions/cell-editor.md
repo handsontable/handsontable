@@ -37,6 +37,7 @@ Note that in case of React 16 and older, it wouldn't work out of the box because
 
 ::: example #example1 :react --tab preview
 ```jsx
+import React from 'react';
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
