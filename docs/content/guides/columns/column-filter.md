@@ -369,36 +369,8 @@ The external Filter component is controlling the main table by passing values fo
 Note that selecting a column in the Filter component resets the state of the table. This implementation can filter only one column at a time.
 :::
 
-<!-- Begin: CSS for example4 -->
-<style lang="stylus">
-#externalFilter {
-  width: 240px;
-  margin-top: 20px;
-  
-  .columnChoose {
-    margin-bottom: 5px;
-
-    select {
-      width: 100%;
-      margin-top: 5px;
-      padding: 3px 6px;
-      display: block;
-      border-radius: 4px;
-      border: 1px solid #cfdbe4;
-    }
-  }
-  
-  #filterSelect {
-    margin-bottom: 5px;
-    padding: 0 10px 8px;
-    border-radius: 4px;
-    border: 1px solid #cfdbe4;
-  }
-}
-</style>
-<!-- End: CSS for example4 -->
 ::: only-for javascript
-::: example #example4 --html 1 --js 2
+::: example #example4 --html 1 --css 2 --js 3
 ```html
 <div id="example4"></div>
 <div id="externalFilter">
@@ -421,6 +393,32 @@ Note that selecting a column in the Filter component resets the state of the tab
     <button class="clear">Clear filter</button>
   </div>
 </div>
+```
+```css
+#externalFilter {
+  width: 240px;
+  margin-top: 20px;
+}
+
+#externalFilter .columnChoose {
+  margin-bottom: 5px;
+}
+
+#externalFilter .columnChoose select {
+  width: 100%;
+  margin-top: 5px;
+  padding: 3px 6px;
+  display: block;
+  border-radius: 4px;
+  border: 1px solid #cfdbe4;
+}
+
+#externalFilter #filterSelect {
+  margin-bottom: 5px;
+  padding: 0 10px 8px;
+  border-radius: 4px;
+  border: 1px solid #cfdbe4;
+}
 ```
 ```js
 const arrayEach = Handsontable.helper.arrayEach;
@@ -837,7 +835,6 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 ```
 :::
 :::
-
 
 ## Related API reference
 

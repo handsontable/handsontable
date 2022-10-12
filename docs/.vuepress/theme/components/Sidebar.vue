@@ -15,9 +15,9 @@
     />
     <slot name="bottom" />
 
-    <VersionsDropdown class="can-hide additional-menu"></VersionsDropdown>
-
     <ExternalNavLinks class="can-hide additional-menu" />
+
+    <VersionsDropdown class="can-hide additional-menu"></VersionsDropdown>
 
     <div class="theme-switcher-item">
       Dark mode <ThemeSwitcher />
