@@ -3,9 +3,12 @@ describe('Comments', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    $('.jasmine_html-reporter').hide(); // a workaround for making the test more predictable
   });
 
   afterEach(function() {
+    $('.jasmine_html-reporter').show(); // a workaround for making the test more predictable
+
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -187,9 +190,7 @@ describe('Comments', () => {
         expect(editorOffset.left).toBeCloseTo(cellOffset.left, 0);
       });
 
-      // TODO: The test is marked as pending as it behaves very unstable. It passes when the tests ale
-      // narrowed to run only Comments tests and fails when all E2E are performed.
-      xit('should display the comment editor on the right of the cell when the viewport is scrolled (the Window object is not a scrollable element)', async() => {
+      it('should display the comment editor on the right of the cell when the viewport is scrolled (the Window object is not a scrollable element)', async() => {
         handsontable({
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(30, 20),
