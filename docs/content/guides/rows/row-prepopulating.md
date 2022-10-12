@@ -116,6 +116,7 @@ hot.loadData(data);
 ::: example #example1 :react
 ```jsx
 import { useEffect, useRef } from 'react';
+import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
