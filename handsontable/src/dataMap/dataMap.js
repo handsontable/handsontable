@@ -286,7 +286,7 @@ class DataMap {
    * @param {number} [amount=1] An amount of rows to add.
    * @param {object} [options] Additional options for created rows.
    * @param {string} [options.source] Source of method call.
-   * @param {'above'|'below'} [options.mode] Sets where the row will be inserted. Above or below the passed index.
+   * @param {'above'|'below'} [options.mode] Sets where the row is inserted: above or below the passed index.
    * @fires Hooks#afterCreateRow
    * @returns {number} Returns number of created rows.
    */
@@ -367,7 +367,7 @@ class DataMap {
    * @param {number} [amount=1] An amount of columns to add.
    * @param {object} [options] Additional options for created columns.
    * @param {string} [options.source] Source of method call.
-   * @param {'start'|'end'} [options.mode] Sets where the column will be inserted. Start (left in LTR) or end (right in LTR)
+   * @param {'start'|'end'} [options.mode] Sets where the column is inserted: at the start (left in [LTR](@/api/options.md#layoutdirection), right in [RTL](@/api/options.md#layoutdirection)) or at the end (right in LTR, left in LTR)
    * the passed index.
    * @fires Hooks#afterCreateCol
    * @returns {number} Returns number of created columns.

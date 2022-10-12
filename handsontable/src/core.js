@@ -428,7 +428,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      *                             Alter actions such as "remove_row" and "remove_col" support array indexes in the
      *                             format `[[index, amount], [index, amount]...]` this can be used to remove
      *                             non-consecutive columns or rows in one call.
-     * @param {number} [amount=1] Amount rows or columns to remove.
+     * @param {number} [amount=1] Amount of rows or columns to remove.
      * @param {string} [source] Optional. Source of hook runner.
      * @param {boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
@@ -474,8 +474,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'insert_row': // backward compatibility
           if (!deprecationWarns.has(action)) {
             deprecationWarns.add(action);
-            warn(toSingleLine`The alter action "${action}" is deprecated and will be removed in the next\x20
-                              major release. Please use "insert_row_above" instead.`);
+            warn(toSingleLine`The \`${action}\` action of the \`alter()\` method is deprecated and will be removed in the next\x20
+                              major release of Handsontable. Use the \`insert_row_above\` action instead.`);
           }
           // falls through
         case 'insert_row_below':
@@ -486,12 +486,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             return;
           }
 
-          // "above" is a default behavior for creating new rows
+          // `above` is the default behavior for creating new rows
           const insertRowMode = action === 'insert_row_below' ? 'below' : 'above';
 
-          // The line below adds support for backward compatibility "insert_row" alter action. Calling
-          // "insert_row" action without arguments adds new row in the end of the dataset. For "insert_row_above"
-          // action the row is added in the beginning of the dataset.
+          // The line below ensures backward compatibility of the `alter()` method's `insert_row` action.
+          // Calling the `insert_row` action with no arguments adds a new row at the end of the data set.
+          // Calling the `insert_row_above` action adds a new row at the beginning of the data set.
           // eslint-disable-next-line no-param-reassign
           index = index ?? (action === 'insert_row' || insertRowMode === 'below' ? numberOfSourceRows : 0);
           const {
@@ -511,7 +511,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               instance.selectAll();
 
             } else if (isDefined(currentFromRow) && currentFromRow >= startVisualRowIndex) {
-              // Moving down the selection (when it exist). It should be present on the "old" row.
+              // Moving the selection (if it exists) downward – it should be applied to the "old" row.
               // TODO: The logic here should be handled by selection module.
               const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
               let currentFromColumn = currentFromRange.col;
@@ -547,9 +547,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           // "start" is a default behavior for creating new columns
           const insertColumnMode = action === 'insert_col_end' ? 'end' : 'start';
 
-          // The line below adds support for backward compatibility "insert_col" alter action. Calling
-          // "insert_col" action without arguments adds new column on the right of the dataset. For "insert_col_start"
-          // action the column is added on the left of the dataset.
+          // The line below ensures backward compatibility of the `alter()` method's `insert_col` action.
+          // Calling the `insert_col` action with no arguments adds a new column to the right of the data set.
+          // Calling the `insert_col_start` action adds a new column to the left of the data set.
           // eslint-disable-next-line no-param-reassign
           index = index ?? (action === 'insert_col' || insertColumnMode === 'end' ? instance.countSourceCols() : 0);
 
@@ -577,7 +577,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               instance.selectAll();
 
             } else if (isDefined(currentFromColumn) && currentFromColumn >= startVisualColumnIndex) {
-              // Moving right the selection (when it exist). It should be present on the "old" row.
+              // Moving the selection (if it exists) rightward – it should be applied to the "old" column.
               // TODO: The logic here should be handled by selection module.
               const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
               let currentFromRow = currentFromRange.row;
@@ -2643,12 +2643,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function alter
    * @param {string} action Possible alter operations:
    *  <ul>
-   *    <li> `'insert_row'` (alias for `'insert_row_above'` - deprecated) </li>
+   *    <li> `'insert_row'` (<b>deprecated</b>, an alias for `'insert_row_above'`) </li>
    *    <li> `'insert_row_above'` </li>
    *    <li> `'insert_row_below'` </li>
-   *    <li> `'insert_col'` (alias for `'insert_col_start'` - deprecated) </li>
-   *    <li> `'insert_col_start'` (inserts column at the left in LTR and at the right in RTL [layout direction](@/guides/internationalization/layout-direction.md) mode) </li>
-   *    <li> `'insert_col_end'` (inserts column at the right in LTR and at the left in RTL [layout direction](@/guides/internationalization/layout-direction.md) mode) </li>
+   *    <li> `'insert_col'` (<b>deprecated</b>, an alias for `'insert_col_start'`) </li>
+   *    <li> `'insert_col_start'` (depending on the [`layoutDirection`](@/api/options.md#layoutdirection), inserts a column to the left (in LTR) or to the right (in RTL) </li>
+   *    <li> `'insert_col_end'` (depending on the [`layoutDirection`](@/api/options.md#layoutdirection), inserts a column to the right (in LTR) or to the left (in RTL) </li>
    *    <li> `'remove_row'` </li>
    *    <li> `'remove_col'` </li>
    * </ul>.
@@ -2661,7 +2661,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```js
    * // Insert new row above the row at given visual index.
    * hot.alter('insert_row_above', 10);
-   * // Insert new row below the row at given visual index.
+   * // below the row with the given visual index, insert a new row
    * hot.alter('insert_row_below', 5);
    * // Insert 3 new columns before 10th column.
    * hot.alter('insert_col_start', 10, 3);
