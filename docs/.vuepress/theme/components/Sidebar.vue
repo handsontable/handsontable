@@ -2,7 +2,7 @@
   <aside class="sidebar">
 
     <NavLinks class="sidebar-mode additional-menu" />
-    
+
     <div class="framework-switcher-item">
       <span>Framework</span> <FrameworksDropdown class="sidebar-mode"/>
     </div>
@@ -36,10 +36,10 @@ import ExternalNavLinks from '@theme/components/ExternalNavLinks.vue';
 export default {
   name: 'Sidebar',
 
-  components: { 
-    SidebarLinks, 
-    NavLinks, 
-    ThemeSwitcher, 
+  components: {
+    SidebarLinks,
+    NavLinks,
+    ThemeSwitcher,
     FrameworksDropdown,
     VersionsDropdown,
     ExternalNavLinks
