@@ -1,11 +1,11 @@
 <template>
   <aside class="sidebar">
 
-    <NavLinks class="sidebar-mode additional-menu" />
-
     <div class="framework-switcher-item">
       <span>Framework</span> <FrameworksDropdown class="sidebar-mode"/>
     </div>
+
+    <NavLinks class="sidebar-mode additional-menu" />
 
     <slot name="top" />
 

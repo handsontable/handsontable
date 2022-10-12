@@ -21,7 +21,7 @@ searchCategory: Guides
 
 ## 12.1.3
 
-Released on 22nd of September, 2022
+Released on 22nd of September, 2022 - [view docs](docs/12.1/)
 
 ### Fixed
 - Fixed incorrect date format conversion on input in the date editor. [#9681](https://github.com/handsontable/handsontable/issues/9681)

@@ -403,7 +403,7 @@ export default {
       &:focus
         cursor text
         left 0
-        width 10rem
+        width 6rem
         margin-right 1rem
     .kbd-hint *
       display none
