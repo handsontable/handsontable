@@ -474,8 +474,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'insert_row': // backward compatibility
           if (!deprecationWarns.has(action)) {
             deprecationWarns.add(action);
-            warn(toSingleLine`The \`${action}\` action of the \`alter()\` method is deprecated and will be removed in the next\x20
-                              major release of Handsontable. Use the \`insert_row_above\` action instead.`);
+            warn(toSingleLine`The \`${action}\` action of the \`alter()\` method is deprecated and will be removed\x20
+                              in the next major release of Handsontable. Use the \`insert_row_above\` action instead.`);
           }
           // falls through
         case 'insert_row_below':
@@ -538,8 +538,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'insert_col': // backward compatibility
           if (!deprecationWarns.has(action)) {
             deprecationWarns.add(action);
-            warn(toSingleLine`The alter action "${action}" is deprecated and will be removed in the next\x20
-                              major release. Please use "insert_col_start" instead.`);
+            warn(toSingleLine`The \`${action}\` action of the \`alter()\` method is deprecated and will be removed\x20
+                              in the next major release of Handsontable. Use the \`insert_col_start\` action instead.`);
           }
           // falls through
         case 'insert_col_start':
