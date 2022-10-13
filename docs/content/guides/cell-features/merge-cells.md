@@ -11,6 +11,8 @@ searchCategory: Guides
 
 # Merge cells
 
+Merge adjacent cells, using the <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> shortcut or the right-click context menu. Control merged cells, using Handsontable's API.
+
 [[toc]]
 
 ## Overview

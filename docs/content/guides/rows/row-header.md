@@ -1,7 +1,7 @@
 ---
 title: Row headers
 metaTitle: Row headers - JavaScript Data Grid | Handsontable
-description: Use row headers with consecutive numbers (like in Excel), or set them to custom values provided by an array or a function.
+description: Use default row headers (1, 2, 3), or set them to custom values provided by an array or a function.
 permalink: /row-header
 canonicalUrl: /row-header
 tags:
@@ -13,7 +13,9 @@ react:
 searchCategory: Guides
 ---
 
-# Row header
+# Row headers
+
+Use default row headers (1, 2, 3), or set them to custom values provided by an array or a function.
 
 [[toc]]
 

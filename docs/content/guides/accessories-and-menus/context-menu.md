@@ -1,7 +1,7 @@
 ---
 title: Context menu
 metaTitle: Context menu - JavaScript Data Grid | Handsontable
-description: Open the right-click context menu to get access to contextual actions such as removing rows, inserting columns, or copying data to the clipboard.
+description: Open a right-click context menu to access contextual actions such as removing rows, inserting columns, or copying data to the clipboard.
 permalink: /context-menu
 canonicalUrl: /context-menu
 tags:
@@ -15,6 +15,8 @@ searchCategory: Guides
 ---
 
 # Context menu
+
+Open a right-click context menu to access contextual actions such as removing rows, inserting columns, or copying data to the clipboard.
 
 [[toc]]
 
