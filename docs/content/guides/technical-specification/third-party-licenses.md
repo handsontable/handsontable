@@ -11,8 +11,9 @@ searchCategory: Guides
 
 # Third-party licenses
 
-[[toc]]
+Learn about the licensing terms of Handsontable's software dependencies.
 
+[[toc]]
 
 ## Open-source software components
 

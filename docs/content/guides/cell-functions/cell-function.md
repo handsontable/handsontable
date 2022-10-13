@@ -9,7 +9,9 @@ react:
 searchCategory: Guides
 ---
 
-# Cell function
+# Cell functions
+
+Render, edit, and validate the contents of your cells, using Handsontable's cell functions. Quickly set up your cell, using cell types.
 
 [[toc]]
 
