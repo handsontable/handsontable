@@ -15,15 +15,13 @@ searchCategory: Guides
 
 # Column groups
 
+Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
+
 [[toc]]
 
-## Overview
+## Nested column headers
 
-Columns in Handsontable may be grouped using multiple levels of headers. We refer to them as "nested headers" as they utilize a tree structure.
-
-## Nested headers
-
-The [NestedHeaders](@/api/nestedHeaders.md) plugin allows creating a nested header structure using the `colspan` attribute. The header cannot be wider than its parent element, i.e., headers cannot overlap each other.
+The [`NestedHeaders`](@/api/nestedHeaders.md) plugin allows creating a nested header structure using the `colspan` attribute. The header cannot be wider than its parent element, i.e., headers cannot overlap each other.
 
 To make a header that spans across multiple columns, its corresponding configuration array element should be provided as an object with `label` and `colspan` properties. The `label` property defines the header's label, while the `colspan` property defines the number of columns that the header should cover.
 

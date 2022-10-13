@@ -11,6 +11,8 @@ searchCategory: Guides
 
 # Cell renderer
 
+Create a custom cell renderer function, to have full control over how a cell looks.
+
 [[toc]]
 
 ::: only-for javascript
@@ -39,7 +41,7 @@ A renderer is a function that determines how a cell looks.
 
 Set together, a renderer, [editor](@/guides/cell-functions/cell-editor.md) and [validator](@/guides/cell-functions/cell-validator.md) form a [cell type](@/guides/cell-types/cell-type.md).
 
-## Declaring a custom renderer as a component
+## Declare a custom renderer as a component
 
 Handsontable's React wrapper lets you create custom cell renderers using React components.
 Although it's possible to use class-based react components for this purpose, **we strongly suggest** using functional components, as using the `state` of a class-based component would re-initialize on every Handsontable render.
@@ -94,7 +96,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
 :::
 
-## Using the renderer component within React's Context
+## Use the renderer component within React's Context
 
 In this example, React's `Context` passes information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with [editors](@/guides/cell-functions/cell-editor.md) as well.
 
@@ -106,8 +108,7 @@ In this example, React's `Context` passes information available in the main app 
 }
 ```
 ```jsx
-import { useState, useContext } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useState, useContext } from 'react';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -158,7 +159,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 ```
 :::
 
-## Declaring a custom renderer as a function
+## Declare a custom renderer as a function
 
 You can also declare a custom renderer for the `HotTable` component by declaring it as a function. In the simplest scenario, you can pass the rendering function as a Handsontable setting.
 
@@ -216,7 +217,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 :::
 
 ::: only-for javascript
-## Using a cell renderer
+## Use a cell renderer
 
 Use the renderer name of your choice when configuring the column:
 :::
@@ -254,7 +255,7 @@ type: 'numeric'
 ```
 :::
 
-### Using a cell renderer
+### Use a cell renderer
 
 It is possible to register your renderer and re-use it with the name you registered it under.
 :::
@@ -283,11 +284,11 @@ const hot = new Handsontable(container, {
 :::
 
 ::: only-for javascript
-## Registering custom cell renderer
+## Register custom cell renderer
 :::
 
 ::: only-for react
-### Registering custom cell renderer
+### Register custom cell renderer
 :::
 
 To register your own alias use `Handsontable.renderers.registerRenderer()` function. It takes two arguments:
@@ -324,11 +325,11 @@ Handsontable.renderers.registerRenderer('my.asterix', asterixDecoratorRenderer);
 That's better.
 
 ::: only-for javascript
-## Using an alias
+## Use an alias
 :::
 
 ::: only-for react
-### Using an alias
+### Use an alias
 :::
 
 The final touch is to using the registered aliases, so that users can easily refer to it without the need to now the actual renderer function is.
@@ -374,11 +375,11 @@ const hot = new Handsontable(container, {
 :::
 
 ::: only-for javascript
-## Rendering custom HTML in cells
+## Render custom HTML in cells
 :::
 
 ::: only-for react
-### Rendering custom HTML in cells
+### Render custom HTML in cells
 :::
 
 This example shows how to use custom cell renderers to display HTML content in a cell. This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS attacks. In the below configuration:
@@ -532,11 +533,11 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 :::
 
 ::: only-for javascript
-## Rendering custom HTML in header
+## Render custom HTML in header
 :::
 
 ::: only-for react
-### Rendering custom HTML in header
+### Render custom HTML in header
 :::
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
@@ -669,11 +670,11 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
 :::
 
 ::: only-for javascript
-## Adding event listeners in cell renderer function
+## Add event listeners in cell renderer function
 :::
 
 ::: only-for react
-### Adding event listeners in cell renderer function
+### Add event listeners in cell renderer function
 :::
 
 If you are writing an advanced cell renderer, and you want to add some custom behavior after a certain user action (i.e. after user hover a mouse pointer over a cell) you might be tempted to add an event listener directly to table cell node passed as an argument to the `renderer` function. Unfortunately, this will almost always cause you trouble and you will end up with either performance issues or having the listeners attached to the wrong cell.

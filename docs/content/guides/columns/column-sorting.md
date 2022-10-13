@@ -11,6 +11,8 @@ searchCategory: Guides
 
 # Column sorting
 
+Sort the view (not the source data) in ascending, descending, or a custom order, across one or multiple columns of the data grid.
+
 [[toc]]
 
 ## This guide has been moved permanently

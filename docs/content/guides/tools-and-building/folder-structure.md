@@ -18,7 +18,9 @@ searchCategory: Guides
 
 # Folder structure
 
-Handsontable's source files are stored on GitHub, in a mono repository.
+Handsontable's source files are stored on GitHub, in a monorepo.
+
+[[toc]]
 
 ```bash
 ├── bin                                     # Binary files

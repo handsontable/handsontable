@@ -1,7 +1,7 @@
 ---
 title: Installation
 metaTitle: Installation - JavaScript Data Grid | Handsontable
-description: Install Handsontable using your preferred package manager, or import Handsontable's assets directly from a CDN.
+description: Install Handsontable through your preferred package manager, or import Handsontable's assets directly from a CDN.
 permalink: /installation
 canonicalUrl: /installation
 tags:
@@ -13,9 +13,23 @@ searchCategory: Guides
 
 # Installation
 
+::: only-for javascript
+
+Install Handsontable through your preferred package manager, or import Handsontable's assets directly from a CDN.
+
+:::
+
+::: only-for react
+
+Install Handsontable through your preferred package manager, and control your grid through the `HotTable` component's props.
+
+:::
+
 [[toc]]
 
 ::: only-for react
+
+## Install Handsontable
 
 To install Handsontable locally using a package manager, run one of these commands:
 
@@ -200,6 +214,7 @@ In your HTML, add an empty `div`, which serves as a container for your Handsonta
 ## Initialize Handsontable
 
 Now turn your container into a data grid with sample data.
+
 ```js
 const data = [
   ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
@@ -243,7 +258,8 @@ const hot = new Handsontable(container, {
 :::
 
 ::: only-for react
-## HotTable component
+
+## `HotTable` component
 
 The main Handsontable component is called `HotTable`.
 ```jsx

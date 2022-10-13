@@ -1,7 +1,7 @@
 ---
 title: Column filter
 metaTitle: Column filter - JavaScript Data Grid | Handsontable
-description: Filter your data by a value or by a combination of conditions. Customize the filter menu, using the available API methods.
+description: Filter your data by a value or by a combination of conditions.
 permalink: /column-filter
 canonicalUrl: /column-filter
 tags:
@@ -13,9 +13,12 @@ searchCategory: Guides
 
 # Column filter
 
+Filter your data by a value or by a combination of conditions.
+
 [[toc]]
 
 ## Overview
+
 The [`Filters`](@/api/filters.md) plugin allows filtering the data in the table's columns using a range of pre-defined conditions.
 
 ## Basic configuration

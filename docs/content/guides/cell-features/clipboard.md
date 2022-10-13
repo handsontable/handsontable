@@ -15,6 +15,8 @@ searchCategory: Guides
 
 # Clipboard
 
+Copy data from selected cells to the clipboard, using the <kbd>**Ctrl**</kbd> / <kbd>**Cmd**</kbd>  + <kbd>**C**</kbd> shortcut or the right-click context menu. Control the clipboard with Handsontable's API.
+
 [[toc]]
 
 ## Overview

@@ -9,6 +9,8 @@ searchCategory: Guides
 
 # Custom renderer in Vue 3
 
+Create a custom cell renderer, and use it in your Vue 3 data grid by declaring it as a function.
+
 [[toc]]
 
 ## Overview
@@ -17,7 +19,7 @@ You can declare a custom renderer for the `HotTable` component by declaring it a
 
 [Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
-## Example - Declaring a renderer as a function
+## Declare a renderer as a function
 
 The following example is an implementation of `@handsontable/vue3` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
 

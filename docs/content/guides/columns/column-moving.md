@@ -11,12 +11,11 @@ searchCategory: Guides
 
 # Column moving
 
+Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
+
 [[toc]]
 
-## Overview
-This page shows you how to move columns in Handsontable.
-
-## Enabling plugin
+## Enable the plugin
 
 To enable column moving, set the [`manualColumnMove`](@/api/options.md#manualcolumnmove) configuration option to `true`.
 
