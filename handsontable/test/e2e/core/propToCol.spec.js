@@ -18,7 +18,7 @@ describe('Core.propToCol', () => {
       manualColumnMove: true,
     });
 
-    hot.alter('insert_col', 5);
+    hot.alter('insert_col_start', 5);
 
     expect(propToCol(0)).toBe(0);
     expect(propToCol(10)).toBe(10);

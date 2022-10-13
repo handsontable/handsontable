@@ -777,7 +777,7 @@ describe('AutoFill', () => {
   });
 
   it('should add new row after dragging the handle to the last table row', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -792,19 +792,28 @@ describe('AutoFill', () => {
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
 
     await sleep(300);
-    expect(hot.countRows()).toBe(5);
+    expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
     await sleep(300);
-    expect(hot.countRows()).toBe(6);
+    expect(countRows()).toBe(6);
+
+    expect(getData()).toEqual([
+      [1, 2, 'test', 4, 5, 6],
+      [1, 2, 3, 4, 5, 6],
+      [1, 2, 3, 4, 5, 6],
+      [1, 2, 3, 4, 5, 6],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+    ]);
   });
 
   it('should add new row after dragging the handle to the last table row (autoInsertRow as true)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 2, 'test', 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -821,15 +830,24 @@ describe('AutoFill', () => {
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    expect(hot.countRows()).toBe(4);
+    expect(countRows()).toBe(4);
 
     await sleep(300);
-    expect(hot.countRows()).toBe(5);
+    expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
     await sleep(300);
-    expect(hot.countRows()).toBe(6);
+    expect(countRows()).toBe(6);
+
+    expect(getData()).toEqual([
+      [1, 2, 'test', 4, 5, 6],
+      [1, 2, 3, 4, 5, 6],
+      [1, 2, 3, 4, 5, 6],
+      [1, 2, 3, 4, 5, 6],
+      [null, null, null, null, null, null],
+      [null, null, null, null, null, null],
+    ]);
   });
 
   it('should add new row after dragging the handle to the last table row (autoInsertRow as true, vertical)', async() => {

@@ -530,7 +530,7 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      hot.alter('insert_row', 0, 1);
+      hot.alter('insert_row_above', 0, 1);
       expect(getDataAtCell(0, 0)).toEqual(null);
       expect(getCellMeta(0, 0).className).toEqual(void 0);
       expect(getCellMeta(0, 0).readOnly).toEqual(false);
@@ -555,7 +555,7 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      hot.alter('insert_col', 0, 1);
+      hot.alter('insert_col_start', 0, 1);
       expect(getDataAtCell(0, 0)).toEqual(null);
       expect(getCellMeta(0, 0).className).toEqual(void 0);
       expect(getCellMeta(0, 0).readOnly).toEqual(false);
@@ -903,7 +903,7 @@ describe('ColumnSummarySpec', () => {
 
     expect(warnFirstArgs.filter(arg => arg === warnMessage).length).toBe(1);
 
-    alter('insert_row', 0);
+    alter('insert_row_above', 0);
 
     warnFirstArgs = warnSpy.calls.allArgs().map(args => args[0]);
 

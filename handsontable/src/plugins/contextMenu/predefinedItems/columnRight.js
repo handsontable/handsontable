@@ -1,6 +1,5 @@
 import { getValidSelection } from '../utils';
 import * as C from '../../../i18n/constants';
-import { isDefined } from '../../../helpers/mixed';
 
 export const KEY = 'col_right';
 
@@ -14,25 +13,10 @@ export default function columnRightItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
     },
     callback() {
-      const isSelectedByCorner = this.selection.isSelectedByCorner();
-      let columnRight = this.isRtl() ? 0 : this.countCols();
+      const latestSelection = this.getSelectedRangeLast().getTopRightCorner();
+      const alterAction = this.isRtl() ? 'insert_col_start' : 'insert_col_end';
 
-      if (!isSelectedByCorner) {
-        const selectedRange = this.getSelectedRangeLast();
-
-        // If there is no selection we have clicked on the corner and there is no data.
-        if (isDefined(selectedRange)) {
-          const { col } = selectedRange.getTopRightCorner();
-
-          columnRight = this.isRtl() ? col : col + 1;
-        }
-      }
-
-      this.alter('insert_col', columnRight, 1, 'ContextMenu.columnRight');
-
-      if (isSelectedByCorner) {
-        this.selectAll();
-      }
+      this.alter(alterAction, latestSelection.col, 1, 'ContextMenu.columnRight');
     },
     disabled() {
       if (!this.isColumnModificationAllowed()) {
