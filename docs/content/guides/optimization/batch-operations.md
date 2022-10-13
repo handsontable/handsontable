@@ -66,7 +66,7 @@ For more information, see the [`Instance Methods`](@/guides/getting-started/reac
 // call the batch method on an instance
 hot.batch(() => {
   // run the operations as needed
-  hot.alter('insert_row', 5, 45);
+  hot.alter('insert_row_above', 5, 45);
   hot.setDataAtCell(1, 1, 'x');
   hot.selectCell(0, 0);
   // the render is executed right after all of the operations are completed
@@ -110,7 +110,7 @@ This method supsends both rendering and other operations. It is universal and es
 
 ```js
 hot.batch(() => {
-  hot.alter('insert_row', 5, 45);
+  hot.alter('insert_row_above', 5, 45);
   hot.setDataAtCell(1, 1, 'x');
 
   const filters = hot.getPlugin('filters');
@@ -128,7 +128,7 @@ The [`batchRender()`](@/api/core.md#batchrender) method is a callback function. 
 
 ```js
 hot.batchRender(() => {
-  hot.alter('insert_row', 5, 45);
+  hot.alter('insert_row_above', 5, 45);
   hot.setDataAtCell(1, 1, 'x');
   // The table will be rendered once after executing the callback
 });
@@ -159,7 +159,7 @@ After suspending, resume the process with the [`resumeRender()`](@/api/core.md#r
 
 ```js
 hot.suspendRender(); // suspend rendering
-hot.alter('insert_row', 5, 45);
+hot.alter('insert_row_above', 5, 45);
 hot.setDataAtCell(1, 1, 'x');
 hot.resumeRender(); // remember to resume rendering
 ```
@@ -230,8 +230,8 @@ const hot = new Handsontable(container, {
 });
 
 const alterTable = () => {
-  hot.alter('insert_row', 10, 10);
-  hot.alter('insert_col', 6, 1);
+  hot.alter('insert_row_above', 10, 10);
+  hot.alter('insert_col_start', 6, 1);
   hot.populateFromArray(10, 0, data2);
   hot.populateFromArray(11, 0, data3);
   hot.setCellMeta(2, 2, 'className', 'green-bg');

@@ -80,7 +80,7 @@ For more information, see the [`Instance Methods`](@/guides/getting-started/reac
 
 ```js
 hot.batch(() => {
-  hot.alter('insert_row', 5, 45);
+  hot.alter('insert_row_above', 5, 45);
   hot.setDataAtCell(1, 1, 'x');
 
   const filters = hot.getPlugin('filters');
