@@ -579,7 +579,7 @@ describe('AutoColumnSize', () => {
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(108);
 
-    alter('insert_col', 0);
+    alter('insert_col_start', 0);
 
     expect(colWidth(spec().$container, 0)).toBe(50); // Added new row here.
     expect(colWidth(spec().$container, 1)).toBe(50);
@@ -587,7 +587,7 @@ describe('AutoColumnSize', () => {
     expect(colWidth(spec().$container, 3)).toBe(108);
     expect(colWidth(spec().$container, 4)).toBe(50);
 
-    alter('insert_col', 3);
+    alter('insert_col_start', 3);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(50);
@@ -596,7 +596,7 @@ describe('AutoColumnSize', () => {
     expect(colWidth(spec().$container, 4)).toBe(108);
     expect(colWidth(spec().$container, 5)).toBe(50);
 
-    alter('insert_col', 5);
+    alter('insert_col_start', 5);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(50);
@@ -724,7 +724,7 @@ describe('AutoColumnSize', () => {
         autoColumnSize: true,
       });
 
-      alter('insert_col', 0);
+      alter('insert_col_start', 0);
 
       hot.undo();
 
@@ -745,7 +745,7 @@ describe('AutoColumnSize', () => {
       expect(colWidth(spec().$container, 1)).toBe(92);
       expect(colWidth(spec().$container, 2)).toBe(173);
 
-      alter('insert_col', 1);
+      alter('insert_col_start', 1);
 
       hot.undo();
 
@@ -766,7 +766,7 @@ describe('AutoColumnSize', () => {
       expect(colWidth(spec().$container, 1)).toBe(92);
       expect(colWidth(spec().$container, 2)).toBe(173);
 
-      alter('insert_col', 2);
+      alter('insert_col_start', 2);
 
       hot.undo();
 
@@ -787,7 +787,7 @@ describe('AutoColumnSize', () => {
       expect(colWidth(spec().$container, 1)).toBe(92);
       expect(colWidth(spec().$container, 2)).toBe(173);
 
-      alter('insert_col', 3);
+      alter('insert_col_start', 3);
 
       hot.undo();
 

@@ -4,11 +4,11 @@ import {
   isObject,
   objectEach,
   setProperty
-} from './helpers/object';
-import { countFirstRowKeys } from './helpers/data';
-import { arrayEach } from './helpers/array';
-import { rangeEach } from './helpers/number';
-import { isFunction } from './helpers/function';
+} from '../helpers/object';
+import { countFirstRowKeys } from '../helpers/data';
+import { arrayEach } from '../helpers/array';
+import { rangeEach } from '../helpers/number';
+import { isFunction } from '../helpers/function';
 
 /**
  * @class DataSource
