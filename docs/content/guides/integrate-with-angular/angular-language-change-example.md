@@ -9,15 +9,15 @@ searchCategory: Guides
 
 # Language change in Angular
 
+Change the default language of the right-click context menu from English to any of the built-in translations, using the `language` property.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following example is an implementation of the `@handsontable/angular` component with an option to change the Context Menu language.
 
 Select a language from the selector above the table and open the Context Menu to see the result.
-
-## Example
 
 ::: example :angular-languages --html 1 --js 2
 ```html

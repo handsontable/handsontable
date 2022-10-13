@@ -9,11 +9,9 @@ searchCategory: Guides
 
 # Basic example in Vue 2
 
+Start with a basic example of the Vue 2 data grid, using component props for configuration and external control.
+
 [[toc]]
-
-## Overview
-
-The following example is a simple implementation of the `@handsontable/vue` component.
 
 ## Example
 

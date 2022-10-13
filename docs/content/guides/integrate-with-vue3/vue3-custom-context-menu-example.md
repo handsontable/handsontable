@@ -1,7 +1,7 @@
 ---
 title: Custom context menu in Vue 3
 metaTitle: Custom context menu - Vue 3 Data Grid | Handsontable
-description: Customize the right-click context menu of your Vue 3 data grid, by a creating a custom function for each menu item.
+description: Customize the right-click context menu of your Vue 3 data grid, by creating a custom function for each menu item.
 permalink: /vue3-custom-context-menu-example
 canonicalUrl: /vue3-custom-context-menu-example
 searchCategory: Guides
@@ -9,15 +9,15 @@ searchCategory: Guides
 
 # Custom context menu example in Vue 3
 
+Customize the right-click context menu of your Vue 3 data grid, by creating a custom function for each menu item.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following example implements the `@handsontable/vue3` component, adding a custom Context Menu.
 
 [Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
-
-## Example
 
 ::: example #example1 :vue3 --html 1 --js 2
 ```html

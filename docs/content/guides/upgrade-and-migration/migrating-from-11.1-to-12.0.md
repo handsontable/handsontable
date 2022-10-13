@@ -12,9 +12,9 @@ searchCategory: Guides
 
 # Migrate from 11.1 to 12.0
 
-[[toc]]
+Migrate from Handsontable 11.1 to Handsontable 12.0, released on April 28, 2022.
 
-To upgrade your Handsontable version from 11.x.x to 12.x.x, follow this guide.
+[[toc]]
 
 ## Step 1: Verify your `updateSettings()` calls
 

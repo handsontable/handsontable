@@ -9,6 +9,8 @@ searchCategory: Guides
 
 # Custom ID, Class, Style, and other attributes in Vue 3
 
+Pass a custom ID, class, and style to the "HotTable" component, to further customize your Vue 3 data grid.
+
 [[toc]]
 
 ## Overview

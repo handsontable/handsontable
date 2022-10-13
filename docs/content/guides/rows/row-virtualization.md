@@ -15,6 +15,8 @@ searchCategory: Guides
 
 # Row virtualization
 
+Render thousands of rows without freezing the browser by using row virtualization.
+
 [[toc]]
 
 ## Overview
@@ -27,7 +29,7 @@ This feature is enabled by default and can be turned off by setting the [`render
 Note that the data grid without virtualization enabled will only work with relatively small data sets.
 :::
 
-## Configuring row virtualization
+## Configure row virtualization
 
 You can experiment with the [`viewportRowsRenderingOffset`](@/api/options.md#viewportrowsrenderingoffset) configuration option, which determines the number of rows displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, then the virtualization will be practically turned off.
 

@@ -14,13 +14,11 @@ searchCategory: Guides
 
 # Export to CSV
 
+Export your grid's data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
+
 [[toc]]
 
-## Overview
-
-The plugin allows you to export data from Handsontable into a CSV file.
-
-## Live examples
+## Examples
 
 ### Export to file
 
