@@ -68,7 +68,7 @@ describe('Core_beforeKeyDown', () => {
       beforeKeyDown(event) {
         if (event.keyCode === 8) {
           event.stopImmediatePropagation();
-          getInstance().alter('insert_row', 1, 1);
+          getInstance().alter('insert_row_above', 1, 1);
         }
       }
     });

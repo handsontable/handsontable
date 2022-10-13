@@ -356,7 +356,7 @@ describe('Core_dataSchema', () => {
       ],
     });
 
-    alter('insert_row', 5, 5);
+    alter('insert_row_above', 5, 5);
 
     expect(countRows()).toEqual(10);
     expect(getDataAtCol(0)).toEqual([1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009]);
@@ -453,7 +453,7 @@ describe('Core_dataSchema', () => {
     expect(spy.calls.argsFor(0)[5]).toEqual({ id: 1 });
 
     spy.calls.reset();
-    hot.alter('insert_row', 0);
+    hot.alter('insert_row_above', 0);
 
     expect(spy.calls.count()).toBe(2);
     expect(spy.calls.argsFor(0)[5]).toEqual({ id: null });
@@ -486,7 +486,7 @@ describe('Core_dataSchema', () => {
     expect(spy.calls.argsFor(0)[5]).toEqual({ id: 1 });
 
     spy.calls.reset();
-    hot.alter('insert_row', 0);
+    hot.alter('insert_row_above', 0);
 
     expect(spy.calls.count()).toBe(2);
     expect(spy.calls.argsFor(0)[5]).toEqual({ id: null });

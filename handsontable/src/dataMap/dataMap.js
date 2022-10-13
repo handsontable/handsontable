@@ -284,11 +284,13 @@ class DataMap {
    *
    * @param {number} [index] Physical index of the row before which the new row will be inserted.
    * @param {number} [amount=1] An amount of rows to add.
-   * @param {string} [source] Source of method call.
+   * @param {object} [options] Additional options for created rows.
+   * @param {string} [options.source] Source of method call.
+   * @param {'above'|'below'} [options.mode] Sets where the row is inserted: above or below the passed index.
    * @fires Hooks#afterCreateRow
    * @returns {number} Returns number of created rows.
    */
-  createRow(index, amount = 1, source) {
+  createRow(index, amount = 1, { source, mode = 'above' } = {}) {
     const sourceRowsCount = this.instance.countSourceRows();
     let physicalRowIndex = sourceRowsCount;
     let numberOfCreatedRows = 0;
@@ -341,12 +343,21 @@ class DataMap {
 
     this.instance.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
 
+    if (mode === 'below') {
+      physicalRowIndex = Math.min(physicalRowIndex + 1, sourceRowsCount);
+    }
+
     this.spliceData(physicalRowIndex, 0, rowsToAdd);
 
-    this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
+    const newVisualRowIndex = this.instance.toVisualRow(physicalRowIndex);
+
+    this.instance.runHooks('afterCreateRow', newVisualRowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
 
-    return numberOfCreatedRows;
+    return {
+      delta: numberOfCreatedRows,
+      startPhysicalIndex: physicalRowIndex,
+    };
   }
 
   /**
@@ -354,11 +365,14 @@ class DataMap {
    *
    * @param {number} [index] Visual index of the column before which the new column will be inserted.
    * @param {number} [amount=1] An amount of columns to add.
-   * @param {string} [source] Source of method call.
+   * @param {object} [options] Additional options for created columns.
+   * @param {string} [options.source] Source of method call.
+   * @param {'start'|'end'} [options.mode] Sets where the column is inserted: at the start (left in [LTR](@/api/options.md#layoutdirection), right in [RTL](@/api/options.md#layoutdirection)) or at the end (right in LTR, left in LTR)
+   * the passed index.
    * @fires Hooks#afterCreateCol
    * @returns {number} Returns number of created columns.
    */
-  createCol(index, amount = 1, source) {
+  createCol(index, amount = 1, { source, mode = 'start' } = {}) {
     if (!this.instance.isColumnModificationAllowed()) {
       throw new Error('Cannot create new column. When data source in an object, ' +
         'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
@@ -367,10 +381,11 @@ class DataMap {
 
     const dataSource = this.dataSource;
     const maxCols = this.tableMeta.maxCols;
+    const countSourceCols = this.instance.countSourceCols();
     let columnIndex = index;
 
-    if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countSourceCols()) {
-      columnIndex = this.instance.countSourceCols();
+    if (typeof columnIndex !== 'number' || columnIndex >= countSourceCols) {
+      columnIndex = countSourceCols;
     }
 
     const continueProcess = this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
@@ -379,7 +394,7 @@ class DataMap {
       return 0;
     }
 
-    let physicalColumnIndex = this.instance.countSourceCols();
+    let physicalColumnIndex = countSourceCols;
 
     if (columnIndex < this.instance.countCols()) {
       physicalColumnIndex = this.instance.toPhysicalColumn(columnIndex);
@@ -389,6 +404,12 @@ class DataMap {
     let nrOfColumns = this.instance.countCols();
     let numberOfCreatedCols = 0;
     let currentIndex = physicalColumnIndex;
+
+    if (mode === 'end') {
+      currentIndex = Math.min(currentIndex + 1, countSourceCols);
+    }
+
+    const startPhysicalIndex = currentIndex;
 
     while (numberOfCreatedCols < amount && nrOfColumns < maxCols) {
       if (typeof columnIndex !== 'number' || columnIndex >= nrOfColumns) {
@@ -417,10 +438,15 @@ class DataMap {
 
     this.instance.columnIndexMapper.insertIndexes(columnIndex, numberOfCreatedCols);
 
-    this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
+    const newVisualColumnIndex = this.instance.toVisualColumn(startPhysicalIndex);
+
+    this.instance.runHooks('afterCreateCol', newVisualColumnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
 
-    return numberOfCreatedCols;
+    return {
+      delta: numberOfCreatedCols,
+      startPhysicalIndex,
+    };
   }
 
   /**
