@@ -1844,7 +1844,7 @@ describe('Filters UI', () => {
     simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(2) [type=checkbox]'));
     simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-    hot().alter('insert_col', 0);
+    hot().alter('insert_col_start', 0);
     hot().alter('remove_col', 2);
 
     {
@@ -3305,7 +3305,7 @@ describe('Filters UI', () => {
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-        alter('insert_row', 1, 5);
+        alter('insert_row_above', 1, 5);
 
         dropdownMenu(2);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
@@ -3327,7 +3327,7 @@ describe('Filters UI', () => {
         expect(getData().length).toBe(9);
         expect(getDataAtCol(0).join()).toBe('24,17,14,16,23,32,26,28,21');
 
-        alter('insert_row', 1, 1);
+        alter('insert_row_above', 1, 1);
 
         expect(getData().length).toBe(10);
         expect(getDataAtCol(0).join()).toBe('24,,17,14,16,23,32,26,28,21');
@@ -3512,7 +3512,7 @@ describe('Filters UI', () => {
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-        alter('insert_row', 1, 5);
+        alter('insert_row_above', 1, 5);
 
         dropdownMenu(2);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
@@ -3534,7 +3534,7 @@ describe('Filters UI', () => {
         expect(getData().length).toBe(9);
         expect(getDataAtCol(0).join()).toBe('24,17,14,16,23,32,26,28,21');
 
-        alter('insert_row', 1, 1);
+        alter('insert_row_above', 1, 1);
 
         expect(getData().length).toBe(10);
         expect(getDataAtCol(0).join()).toBe('24,,17,14,16,23,32,26,28,21');

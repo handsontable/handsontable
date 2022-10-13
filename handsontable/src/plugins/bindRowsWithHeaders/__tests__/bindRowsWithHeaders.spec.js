@@ -36,7 +36,7 @@ describe('BindRowsWithHeaders', () => {
     expect(callback.calls.argsFor(12)).toEqual([0]);
     expect(callback.calls.argsFor(13)).toEqual([4]);
 
-    alter('insert_row', 1, 1);
+    alter('insert_row_above', 1, 1);
 
     expect(callback.calls.argsFor(14)).toEqual([0]);
     expect(callback.calls.argsFor(15)).toEqual([5]);
@@ -84,7 +84,7 @@ describe('BindRowsWithHeaders', () => {
       height: 300
     });
 
-    alter('insert_row', 1, 4);
+    alter('insert_row_above', 1, 4);
 
     expect(getRowHeader()).toEqual([1, 5, 6, 7, 8, 2, 3, 4]);
   });
@@ -98,9 +98,9 @@ describe('BindRowsWithHeaders', () => {
       height: 300
     });
 
-    alter('insert_row', 1, 4);
+    alter('insert_row_above', 1, 4);
     alter('remove_row', 0, 3);
-    alter('insert_row', 3, 1);
+    alter('insert_row_above', 3, 1);
 
     expect(getRowHeader()).toEqual([7, 8, 2, 9, 3, 4]);
   });
@@ -147,11 +147,11 @@ describe('BindRowsWithHeaders', () => {
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-      alter('insert_row', 4, 1);
+      alter('insert_row_above', 4, 1);
 
       expect(getRowHeader()).toEqual([1, 10, 2, 3, 11, 4, 5, 6, 7, 8, 9]);
 
-      alter('insert_row', 0, 5);
+      alter('insert_row_above', 0, 5);
 
       expect(getRowHeader()).toEqual([12, 13, 14, 15, 16, 1, 10, 2, 3, 11, 4, 5, 6, 7, 8, 9]);
     });
@@ -172,7 +172,7 @@ describe('BindRowsWithHeaders', () => {
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-      alter('insert_row', 4, 1);
+      alter('insert_row_above', 4, 1);
       alter('remove_row', 0, 5);
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
