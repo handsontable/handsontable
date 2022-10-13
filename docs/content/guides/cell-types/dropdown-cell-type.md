@@ -1,7 +1,7 @@
 ---
 title: Dropdown cell type
 metaTitle: Dropdown cell type - JavaScript Data Grid | Handsontable
-description: Use the dropdown cell type to collect user input with a searchable menu that lets the user choose a suggested option while typing.
+description: Collect user input with a searchable list of choices, by using the dropdown cell type.
 permalink: /dropdown-cell-type
 canonicalUrl: /dropdown-cell-type
 react:
@@ -11,7 +11,7 @@ searchCategory: Guides
 
 # Dropdown cell type
 
-Use the dropdown cell type to collect user input with a searchable menu that lets the user choose a suggested option while typing.
+Collect user input with a searchable list of choices, by using the dropdown cell type.
 
 [[toc]]
 

@@ -1,7 +1,7 @@
 ---
 title: Row heights
 metaTitle: Row heights - JavaScript Data Grid | Handsontable
-description: Configure row heights, using an array or a function. Let your users manually change row heights using Handsontable's interface.
+description: Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
 permalink: /row-height
 canonicalUrl: /row-height
 tags:
@@ -22,7 +22,7 @@ searchCategory: Guides
 
 # Row heights
 
-Configure row heights, using an array or a function. Let your users manually change row heights using Handsontable's interface.
+Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
 
 [[toc]]
 
