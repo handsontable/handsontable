@@ -27,7 +27,7 @@ Select a language from the selector above the table and open the Context Menu to
 // app.component.ts
 import { Component } from '@angular/core';
 import { getLanguagesDictionaries } from 'handsontable/i18n';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 @Component({
   selector: 'app-root',
@@ -43,7 +43,7 @@ import { createSpreadsheetData } from './helpers';
 })
 class AppComponent {
   hotSettings: Handsontable.GridSettings = {
-    data: createSpreadsheetData(5, 10),
+    data: Handsontable.helper.createSpreadsheetData(5, 10),
     colHeaders: true,
     rowHeaders: true,
     contextMenu: true,

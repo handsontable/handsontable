@@ -25,7 +25,6 @@ The following is an implementation of the `@handsontable/angular` component with
 import { Component } from '@angular/core';
 import Handsontable from 'handsontable/base';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
-import { createSpreadsheetData } from './helpers';
 
 @Component({
   selector: 'app-root',
@@ -37,7 +36,7 @@ import { createSpreadsheetData } from './helpers';
 })
 class AppComponent {
   hotSettings: Handsontable.GridSettings = {
-    data: createSpreadsheetData(5, 5),
+    data: Handsontable.helper.createSpreadsheetData(5, 5),
     colHeaders: true,
     contextMenu: {
       items: {

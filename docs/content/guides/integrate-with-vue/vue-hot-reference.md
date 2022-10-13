@@ -28,7 +28,7 @@ The following example implements the `@handsontable/vue`, showing how to referen
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -38,7 +38,7 @@ new Vue({
   data: function() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(4, 4),
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
         colHeaders: true,
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation'

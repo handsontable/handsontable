@@ -28,7 +28,7 @@ import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -38,7 +38,7 @@ new Vue({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(5, 5),
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
         colHeaders: true,
         contextMenu: {
           items: {
