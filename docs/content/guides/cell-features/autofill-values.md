@@ -19,11 +19,9 @@ searchCategory: Guides
 
 # Autofill values
 
+Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable's API.
+
 [[toc]]
-
-## Overview
-
-Autofill is a feature that enables you to copy the contents of a cell to another cell or range of cells within the grid.
 
 ## Autofill in all directions
 

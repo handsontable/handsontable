@@ -11,7 +11,11 @@ searchCategory: Guides
 
 # Software license
 
+Learn about the licensing terms of the Handsontable data grid.
+
 [[toc]]
+
+## Overview
 
 Handsontable's source code is available under two types of licenses, to make it a better fit for different types of projects. You are required to specify which type of license you use.
 

@@ -1,7 +1,7 @@
 ---
-title: Binding to data
-metaTitle: Binding to data - JavaScript Data Grid | Handsontable
-description: Use Handsontable's configuration options or API methods to fill the data grid with various data structures, including an array of arrays, or arrays of objects.
+title: Bind to data
+metaTitle: Bind to data - JavaScript Data Grid | Handsontable
+description: Use Handsontable's configuration options or API methods to fill your data grid with various data structures, including an array of arrays or an array of objects.
 permalink: /binding-to-data
 canonicalUrl: /binding-to-data
 tags:
@@ -9,17 +9,15 @@ tags:
   - data connect
   - data sources
 react:
-  metaTitle: Binding to data - React Data Grid | Handsontable
+  metaTitle: Bind to data - React Data Grid | Handsontable
 searchCategory: Guides
 ---
 
-# Binding to data
+# Bind to data
+
+Fill your data grid with various data structures, including an array of arrays or an array of objects.
 
 [[toc]]
-
-## Overview
-
-The following guide provides information on using a data source and manipulating how the data is displayed in the data grid.
 
 ## Compatible data types
 

@@ -1,7 +1,7 @@
 ---
 title: Select cell type
 metaTitle: Select cell type - JavaScript Data Grid | Handsontable
-description: Use the select cell type to collect user input with a HTML <select> element that creates a multi-item dropdown menu.
+description: Use the select cell type to collect user input with an HTML <select> element that creates a multi-item dropdown list.
 permalink: /select-cell-type
 canonicalUrl: /select-cell-type
 react:
@@ -11,12 +11,16 @@ searchCategory: Guides
 
 # Select cell type
 
+Use the select cell type to collect user input with an HTML `<select>` element that creates a multi-item dropdown list.
+
 [[toc]]
 
 ## Overview
-The select cell type is a simpler form of the dropdown cell type.
+
+The select cell type is a simpler form of the [dropdown](@/guides/cell-types/dropdown-cell-type.md) cell type.
 
 ## Usage
+
 The select editor should be considered an example of how to write editors rather than used as a fully-featured editor. It is a much simpler form of the [Dropdown editor](@/guides/cell-types/dropdown-cell-type.md). We recommend that you use the latter in your projects.
 
 ::: only-for javascript

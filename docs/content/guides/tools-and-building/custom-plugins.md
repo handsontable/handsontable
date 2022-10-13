@@ -15,9 +15,9 @@ searchCategory: Guides
 
 # Custom plugins
 
-[[toc]]
+Extend Handsontable's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
 
-Create a custom plugin that extends Handsontable's built-in functionalities.
+[[toc]]
 
 ## Overview
 

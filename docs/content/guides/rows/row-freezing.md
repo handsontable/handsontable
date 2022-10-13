@@ -15,10 +15,15 @@ searchCategory: Guides
 
 # Row freezing
 
+Lock the position of specified rows, keeping them visible when scrolling.
+
 [[toc]]
 
 ## Overview
+
 Row freezing locks specific rows of a grid in place, keeping them visible while scrolling to another area of the grid.
+
+This feature is sometimes called "pinned rows".
 
 ## Example
 
