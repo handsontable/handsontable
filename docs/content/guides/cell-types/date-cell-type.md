@@ -11,14 +11,13 @@ searchCategory: Guides
 
 # Date cell type
 
-[[toc]]
+Use the date cell type to display, format, and validate date values. Pick a date using an interactive pop-up editor.
 
-## Overview
-The `'date'` cell type is used to display a date in a cell or column.
+[[toc]]
 
 ## Usage
 
-To trigger the date cell type, use the option `type: 'date'` in the [`columns`](@/api/options.md#columns) array or [`cells`](@/api/options.md#cells) function. The date cell uses [Pikaday datepicker](https://github.com/dbushell/Pikaday) as the UI control. Pikaday uses [Moment.js](https://github.com/moment/moment) as a date formatter.
+To set the date cell type, use the option `type: 'date'` in the [`columns`](@/api/options.md#columns) array or [`cells`](@/api/options.md#cells) function. The date cell uses [Pikaday datepicker](https://github.com/dbushell/Pikaday) as the UI control. Pikaday uses [Moment.js](https://github.com/moment/moment) as a date formatter.
 
 Note that date cell requires additional modules :
 
@@ -36,7 +35,7 @@ The default date format is `'DD/MM/YYYY'`.
 
 Handsontable doesn't support JavaScript's `Date` object.
 
-### Changing the date format
+### Change the date format
 
 To change the date format accepted by `date` cells, set the [`dateFormat`](@/api/options.md#dateformat) configuration option to a string with your preferred format. For example:
 
@@ -52,7 +51,7 @@ dateFormat={'YYYY-MM-DD'}
 ```
 :::
 
-### Autocorrecting invalid dates
+### Autocorrect invalid dates
 
 By default, when the user enters a date in a format that doesn't match the [`dateFormat`](@/api/options.md#dateformat) setting, the date is treated as invalid.
 

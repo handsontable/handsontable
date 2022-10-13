@@ -11,11 +11,11 @@ searchCategory: Guides
 
 # Column hiding
 
+Hide individual columns to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.
+
 [[toc]]
 
-Hide your columns, using the [`HiddenColumns`](@/api/hiddenColumns.md) plugin.
-
-## About column hiding
+## Overview
 
 "Hiding a column" means that the hidden column doesn't get rendered as a DOM element.
 
@@ -23,7 +23,7 @@ When you're hiding a column:
 - The source data doesn't get modified.
 - The [`HiddenColumns`](@/api/hiddenColumns.md) plugin doesn't participate in data transformation<br>(the shape of the data returned by the [`getData*()` methods](@/api/core.md#getdata) stays intact).
 
-## Enabling column hiding
+## Enable column hiding
 
 To simply enable column hiding (without further configuration), set the [`hiddenColumns`](@/api/options.md#hiddencolumns) configuration option to `true`:
 
@@ -77,7 +77,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 
 
-## Setting up column hiding
+## Set up column hiding
 
 To set up your column hiding configuration, follow the steps below.
 
@@ -418,7 +418,7 @@ For more information, see the [`Instance Methods`](@/guides/getting-started/reac
 
 To see your changes, re-render your Handsontable instance with the [`render()`](@/api/core.md#render) method.
 
-### Accessing the [`HiddenColumns`](@/api/hiddenColumns.md) plugin instance
+### Access the [`HiddenColumns`](@/api/hiddenColumns.md) plugin instance
 
 To access the [`HiddenColumns`](@/api/hiddenColumns.md) plugin instance, use the [`getPlugin()`](@/api/core.md#getplugin) method:
 
@@ -426,7 +426,7 @@ To access the [`HiddenColumns`](@/api/hiddenColumns.md) plugin instance, use the
 const plugin = hot.getPlugin('hiddenColumns');
 ```
 
-### Hiding a single column
+### Hide a single column
 
 To hide a single column, use the [`hideColumn()`](@/api/hiddenColumns.md#hidecolumn) method:
 
@@ -439,7 +439,7 @@ plugin.hideColumn(4);
 hot.render()
 ```
 
-### Hiding multiple columns
+### Hide multiple columns
 
 To hide multiple columns:
 - Either pass column indexes as arguments to the [`hideColumn()`](@/api/hiddenColumns.md#hidecolumn) method
@@ -456,7 +456,7 @@ plugin.hideColumns([0, 4, 6]);
 hot.render()
 ```
 
-### Unhiding a single column
+### Unhide a single column
 
 To unhide a single column, use the [`showColumn()`](@/api/hiddenColumns.md#showcolumn) method:
 
@@ -469,7 +469,7 @@ plugin.showColumn(4);
 hot.render()
 ```
 
-### Unhiding multiple columns
+### Unhide multiple columns
 
 To unhide multiple columns:
 - Either pass column indexes as arguments to the [`showColumn()`](@/api/hiddenColumns.md#showcolumn) method

@@ -11,11 +11,13 @@ searchCategory: Guides
 
 # Row trimming
 
+Hide individual rows from your interface and exclude them from the rendering process and `DataMap`. This feature is similar to [row hiding](@/guides/rows/row-hiding.md), but works a bit differently.
+
 [[toc]]
 
 ## Overview
 
-The _Trim Rows_ plugin allows the trimming of specific rows from the table. Rows being trimmed **aren't rendered** and **aren't included** in a `DataMap`, which can be retrieved by calling the [getData](@/api/core.md#getdata) method.
+The [`TrimRows`](@/api/trimRows.md) plugin allows the trimming of specific rows from the table. Rows being trimmed **aren't rendered** and **aren't included** in a `DataMap`, which can be retrieved by calling the [getData](@/api/core.md#getdata) method.
 
 ## Setup
 

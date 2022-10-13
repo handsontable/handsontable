@@ -9,6 +9,8 @@ searchCategory: Guides
 
 # Custom ID in Angular
 
+Pass a custom ID to the `hot-table` component to further customize your Angular data grid.
+
 [[toc]]
 
 ## Overview
