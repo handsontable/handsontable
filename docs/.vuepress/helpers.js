@@ -9,15 +9,17 @@ let docsVersion = null;
 let docsSHA = null;
 
 // Please keep in mind that the first element is default framework.
+const fullyProcessedFrameworks = [
+  'javascript',
+  'react',
+];
+
 const frameworkToPrettyName = new Map([
   ['javascript', 'JavaScript'],
   ['react', 'React'],
-]);
-
-const partialFrameworkPrettyName = new Map([
   ['angular', 'Angular'],
   ['vue', 'Vue 2'],
-  ['vue3', 'Vue 3']
+  ['vue3', 'Vue 3'],
 ]);
 
 /**
@@ -26,7 +28,7 @@ const partialFrameworkPrettyName = new Map([
  * @returns {string[]}
  */
 function getFrameworks() {
-  return Array.from(frameworkToPrettyName.keys());
+  return Array.from(fullyProcessedFrameworks);
 }
 
 /**
@@ -46,16 +48,6 @@ function getDefaultFramework() {
  */
 function getPrettyFrameworkName(framework) {
   return frameworkToPrettyName.get(framework);
-}
-
-/**
- * Get the full version of a "partial" framework name.
- *
- * @param {string} partialFramework The "partial" framework name in lowercase format.
- * @returns {string|undefined}
- */
-function getPrettyPartialFrameworkName(partialFramework) {
-  return partialFrameworkPrettyName.get(partialFramework);
 }
 
 /**
@@ -291,7 +283,6 @@ module.exports = {
   getNormalizedPath,
   getFrameworks,
   getPrettyFrameworkName,
-  getPrettyPartialFrameworkName,
   getSidebars,
   getIgnorePagesPatternList,
   parseFramework,
