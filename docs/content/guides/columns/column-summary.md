@@ -415,7 +415,7 @@ columnSummary={[
 :::
 
 ::: tip
-Don't change the CSS class of a column summary's destination row. Otherwise, the summary may not work properly.
+We don't recommend changing the CSS styling of the summary's destination row (the summary may not work properly).
 :::
 
 ### Step 5: Make room for the destination cell
