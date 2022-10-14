@@ -244,8 +244,8 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
         items: [
           { text: 'Contact support', link: 'https://handsontable.com/contact?category=technical_support' },
           { text: 'Report an issue', link: 'https://github.com/handsontable/handsontable/issues/new/choose' },
-          { text: 'Developers Forum', link: 'https://forum.handsontable.com' },
-          { text: 'Ask on StackOverflow', link: 'https://stackoverflow.com/questions/tagged/handsontable' },
+          { text: 'Handsontable forum', link: 'https://forum.handsontable.com' },
+          { text: 'Ask on Stack Overflow', link: 'https://stackoverflow.com/questions/tagged/handsontable' },
           { text: 'Blog', link: 'https://handsontable.com/blog' }
         ]
       },

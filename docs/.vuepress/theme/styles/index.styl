@@ -371,10 +371,13 @@ div.js-fiddle-link {
   .tabs-component-panels {
     padding: 16px 16px;
     section {
+      pre {
+        scrollbar($scrollbarDarkBackgroundColor, $scrollbarDarkThumbColor, $scrollbarDarkThumbColorHover)
+      }
       &#code {
         pre {
           padding 20px 24px
-          scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
+          scrollbar($scrollbarDarkBackgroundColor, $scrollbarDarkThumbColor, $scrollbarDarkThumbColorHover)
         }
       }
 

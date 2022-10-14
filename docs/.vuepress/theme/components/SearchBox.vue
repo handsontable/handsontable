@@ -403,7 +403,7 @@ export default {
       &:focus
         cursor text
         left 0
-        width 6rem
+        width 5rem
         margin-right 1rem
     .kbd-hint *
       display none
@@ -436,6 +436,6 @@ export default {
     .suggestions
       width calc(100vw - 4rem)
     input:focus
-      width 8rem
+      width 5rem
 
 </style>

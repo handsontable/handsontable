@@ -102,7 +102,7 @@
           6.58 1.98 9.39 5.9 4.21 5.88 7.04 16.12 2.34 27.23z"/>
         </svg>
         <h1>Page not found (404)</h1>
-        <a :href="homeUrl">Go back to Handsontable docs ⟶</a>
+        <a :href="homeUrl">&larrhk; Go back to the documentation</a>
       </div>
     </div>
 
