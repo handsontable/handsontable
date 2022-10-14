@@ -414,6 +414,10 @@ columnSummary={[
 ```
 :::
 
+::: tip
+Don't change the CSS class of a column summary's destination row. Otherwise, the summary may not work properly.
+:::
+
 ### Step 5: Make room for the destination cell
 
 The [`ColumnSummary`](@/api/columnSummary.md) plugin doesn't automatically add new rows to display its summary results.
