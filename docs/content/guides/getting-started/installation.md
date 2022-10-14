@@ -259,7 +259,27 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
-## `HotTable` component
+## Import Handsontable's CSS
+
+Import Handsontable's CSS into your application.
+
+```jsx
+import 'handsontable/dist/handsontable.full.min.css';
+```
+
+## Register Handsontable's modules
+
+Register all of Handsontable's modules with a single function call:
+
+```jsx
+import { registerAllModules } from 'handsontable/registry';
+
+registerAllModules();
+```
+
+Or, to reduce the size of your JavaScript bundle, [import only the modules that you need](@/guides/tools-and-building/modules.md).
+
+## Use the `HotTable` component
 
 The main Handsontable component is called `HotTable`.
 ```jsx
@@ -276,14 +296,6 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
   height="auto"
   licenseKey="non-commercial-and-evaluation" // for non-commercial use only
 />
-```
-
-## Import Handsontable's CSS
-
-Import Handsontable's CSS into your application.
-
-```jsx
-import 'handsontable/dist/handsontable.full.min.css';
 ```
 
 ## Basic example
