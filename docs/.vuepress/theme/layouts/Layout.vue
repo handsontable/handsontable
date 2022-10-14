@@ -4,7 +4,7 @@
       <template #page-top>
         <div v-show="show" class="page-top">
           <div class="custom-block tip version-alert">
-            <p>There is a newer version of Handsontable available. 
+            <p>There is a newer version of Handsontable available.
               <a href="/docs/latest/">Switch to the latest version ⟶</a></p>
           </div>
         </div>
