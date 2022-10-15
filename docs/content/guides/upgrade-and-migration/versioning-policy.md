@@ -11,9 +11,11 @@ searchCategory: Guides
 
 # Versioning policy
 
+Handsontable follows the principles of [Semantic Versioning](https://semver.org/) (SemVer).
+
 [[toc]]
 
-Handsontable follows the principles of [Semantic Versioning](https://semver.org/).
+## Overview
 
 We use the version format of X.Y.Z (Major.Minor.Patch), incrementing them when a certain type of change occurs to the code.
 

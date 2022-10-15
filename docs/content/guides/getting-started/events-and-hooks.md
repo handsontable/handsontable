@@ -21,6 +21,8 @@ searchCategory: Guides
 
 # Events and hooks
 
+Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
+
 [[toc]]
 
 ## Overview

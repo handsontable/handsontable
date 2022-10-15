@@ -1,7 +1,7 @@
 ---
 title: Row parent-child
 metaTitle: Row parent-child - JavaScript Data Grid | Handsontable
-description: Reflect the parent-child relationship of your data, using Handsontable's interactive UI elements such as expand and collapse buttons or extended context menu.
+description: Reflect the parent-child relationship of your data, using Handsontable's interactive UI elements such as expand and collapse buttons or an extended context menu.
 permalink: /row-parent-child
 canonicalUrl: /row-parent-child
 tags:
@@ -18,19 +18,17 @@ searchCategory: Guides
 
 # Row parent-child
 
+Reflect the parent-child relationship of your data, using the [`NestedRows`](@/api/nestedRows.md) plugin's interactive UI elements such as expand and collapse buttons or an extended context menu.
+
 [[toc]]
 
 ::: warning
-Sorting and filtering features don't work with the parent-child structure.
+The [row sorting](@/guides/rows/row-sorting.md) and [column filter](@/guides/columns/column-filter.md) features don't work with the parent-child row structure.
 :::
 
-## Overview
+## Quick setup
 
-The **Nested Rows** plugin extends Handsontable, adding new functionality that displays nested structures in a two-dimensional data table.
-
-## Quick Setup
-
-To enable the plugin, simply set the [`nestedRows`](@/api/options.md#nestedrows) option to `true`.
+To enable the [`NestedRows`](@/api/nestedRows.md) plugin, set the [`nestedRows`](@/api/options.md#nestedrows) option to `true`.
 
 ::: only-for javascript
 ```js
@@ -50,7 +48,7 @@ const hot = new Handsontable(container, {
 
 Note that using all the functionalities provided by the plugin requires enabling the row headers and the Handsontable context menu. To do this set [`rowHeaders`](@/api/options.md#rowheaders) and [`contextMenu`](@/api/options.md#contextmenu) to `true`. The _collapse_ / _expand_ buttons are located in the row headers, and the row modification options _add row_, _insert child_, etc., are in the Context Menu.
 
-## Preparing the data source
+## Prepare the data source
 
 The data source must have a specific structure to be used with the _Nested Rows_ plugin.
 

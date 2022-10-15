@@ -13,7 +13,7 @@ searchCategory: Guides
 
 # Bundle size
 
-Use modules and optimize Moment.js, to reduce Handsontable's bundle size.
+Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules and Moment.js locales.
 
 [[toc]]
 

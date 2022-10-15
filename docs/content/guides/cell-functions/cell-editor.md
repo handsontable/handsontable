@@ -11,6 +11,8 @@ searchCategory: Guides
 
 # Cell editor
 
+Create a custom cell editor function, to have full control over how editing works in the cells of your data grid.
+
 [[toc]]
 
 ## Overview
@@ -37,6 +39,7 @@ Note that in case of React 16 and older, it wouldn't work out of the box because
 
 ::: example #example1 :react --tab preview
 ```jsx
+import React from 'react';
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
@@ -262,11 +265,11 @@ This information is applicable in React when using the non-component editor appr
 We will discuss each of those tasks in detail.
 
 ::: only-for javascript
-#### Selecting proper editor for an active cell
+#### Select proper editor for an active cell
 :::
 
 ::: only-for react
-##### Selecting proper editor for an active cell
+##### Select proper editor for an active cell
 :::
 
 When user selects a cell [`EditorManager`](@/api/baseEditor.md) finds the editor class assigned to this cell, examining the value of the [`editor`](@/api/options.md#editor) configuration option. You can define the [`editor`](@/api/options.md#editor) configuration option globally (for all cells in table), per column (for all cells in column) or for each cell individually. For more details, see the [Configuration options](@/guides/getting-started/configuration-options.md#cascading-configuration) guide.
@@ -274,21 +277,21 @@ When user selects a cell [`EditorManager`](@/api/baseEditor.md) finds the editor
 The value of the [`editor`](@/api/options.md#editor) configuration option can be either a string representing an editor (such as 'text', 'autocomplete', 'checkbox' etc.), or an editor class. [`EditorManager`](@/api/baseEditor.md) will then get an instance of editor class and the first very important thing to remember is: **there is always one instance of certain editor class in a single table**, in other words each editor class object **is a singleton** within a single table, which means that its constructor will be invoked only once per table. If you have 3 tables on a page, each table will have its own instance of editor class. This has some important implications that you have to consider creating your own editor.
 
 ::: only-for javascript
-#### Preparing editor to be displayed
+#### Prepare editor to be displayed
 :::
 
 ::: only-for react
-##### Preparing editor to be displayed
+##### Prepare editor to be displayed
 :::
 
 When [`EditorManager`](@/api/baseEditor.md) obtain editor class instance (editor object) it invokes its [`prepare()`](@/api/baseEditor.md#prepare) method. The [`prepare()`](@/api/baseEditor.md#prepare) method sets editor objects properties related to the selected cell, but does not display the editor. [`prepare()`](@/api/baseEditor.md#prepare) is called each time user selects a cell. In some cases it can be invoked multiple times for the same cell, without changing the selection.
 
 ::: only-for javascript
-#### Displaying editor
+#### Display editor
 :::
 
 ::: only-for react
-##### Displaying editor
+##### Display editor
 :::
 
 When editor is prepared the [`EditorManager`](@/api/baseEditor.md) waits for user event that triggers cell edition. Those events are:
@@ -301,11 +304,11 @@ When editor is prepared the [`EditorManager`](@/api/baseEditor.md) waits for use
 If any of those events is triggered, [`EditorManager`](@/api/baseEditor.md) calls editor's [`beginEditing()`](@/api/baseEditor.md#beginediting) method, which should display the editor.
 
 ::: only-for javascript
-#### Closing editor
+#### Close editor
 :::
 
 ::: only-for react
-##### Closing editor
+##### Close editor
 :::
 
 When editor is opened the [`EditorManager`](@/api/baseEditor.md) waits for user event that should end cell edition. Those events are:
@@ -725,11 +728,11 @@ Things to do:
 6. Register editor.
 
 ::: only-for javascript
-#### Creating new editor
+#### Create new editor
 :::
 
 ::: only-for react
-##### Creating new editor
+##### Create new editor
 :::
 
 That's probably the easiest part. All we have to do is call `BaseEditor.prototype.extend()` function which will return a new function class that inherits from [`BaseEditor`](@/api/baseEditor.md).
@@ -741,11 +744,11 @@ const SelectEditor = Handsontable.editors.BaseEditor.prototype.extend();
 Task one: **DONE**
 
 ::: only-for javascript
-#### Creating `<select>` input and attaching it to DOM
+#### Create `<select>` input and attaching it to DOM
 :::
 
 ::: only-for react
-##### Creating `<select>` input and attaching it to DOM
+##### Create `<select>` input and attaching it to DOM
 :::
 
 There are three potential places where we can put the function that will create `<select>` element and put it in the DOM:
@@ -797,11 +800,11 @@ class SelectEditor extends Handsontable.editors.BaseEditor {
 Task two: **DONE**
 
 ::: only-for javascript
-#### Populating `<select>` with options
+#### Populate `<select>` with options
 :::
 
 ::: only-for react
-##### Populating `<select>` with options
+##### Populate `<select>` with options
 :::
 
 In the previous step we implemented a function that creates the `<select>` input and attaches it to the DOM. You probably noticed that we haven't written any code that would create the `<option>` elements, therefore if we displayed the list, it would be empty.
@@ -889,11 +892,11 @@ prepareOptions(optionsToPrepare) {
 Task three: **DONE**
 
 ::: only-for javascript
-#### Implementing editor specific methods
+#### Implement editor specific methods
 :::
 
 ::: only-for react
-##### Implementing editor specific methods
+##### Implement editor specific methods
 :::
 
 Most of the work is done. Now we just need to implement all the editor specific methods. Luckily, our editor is quite simple so those methods will be only few lines of code.
@@ -1084,11 +1087,11 @@ Handsontable.editors.registerEditor('my.select', SelectEditor);
 That's better.
 
 ::: only-for javascript
-## Preparing editor for publication
+## Prepare editor for publication
 :::
 
 ::: only-for react
-### Preparing editor for publication
+### Prepare editor for publication
 :::
 
 If you plan to publish your editor or just want to keep your code nice and clean (as we all do :) there are 3 simple steps that will help you to organize your code.
@@ -1168,11 +1171,11 @@ const AnotherEditor = Handsontable.editors.getEditor('custom').prototype.extend(
 Keep in mind, that there are no restrictions to the name you choose, but choose wisely and do not overwrite existing editors. Try to keep the names unique.
 
 ::: only-for javascript
-### Registering an alias
+### Register an alias
 :::
 
 ::: only-for react
-#### Registering an alias
+#### Register an alias
 :::
 
 The final touch is to register your editor under some alias, so that users can easily refer to it without the need to now the actual class name. See Registering editor for details.

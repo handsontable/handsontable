@@ -13,7 +13,7 @@ searchCategory: Guides
 
 # Modules
 
-Import just the modules that you actually use, to reduce Handsontable's bundle size.
+Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
 
 [[toc]]
 

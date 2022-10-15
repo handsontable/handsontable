@@ -17,11 +17,11 @@ searchCategory: Guides
 
 # Language
 
+Set Handsontable's UI language to one of the built-in translations, or create your own language set using our templates.
+
 [[toc]]
 
-Display Handsontable's UI text in other languages, and add your own translations.
-
-## About language settings
+## Overview
 
 You can easily change the text of the UI for the purpose of translating it to specific languages. We provide the developer with predefined languages, which can be applied by loading the language set and changing just one setting, and an ability to use their own language sets, created using templates of existing language files.
 
@@ -29,9 +29,9 @@ You can easily change the text of the UI for the purpose of translating it to sp
 To properly display RTL languages, configure Handsontable's [layout direction](@/guides/internationalization/layout-direction.md).
 :::
 
-## Loading the prepared language files
+## Load the prepared language files
 
-To properly use the internationalization feature, you'll need to load the language sets. It's important that they're included after the Handsontable files. You can do it by getting the necessary files created with the UMD standard:
+To properly use the internationalization feature, you need to load the language sets. It's important that they're included after the Handsontable files. You can do it by getting the necessary files created with the UMD standard:
 
 ::: only-for javascript
 1. **ES modules (ESM)**
@@ -109,7 +109,9 @@ To properly use the internationalization feature, you'll need to load the langua
 
 ### Demo
 
-Please right click on a cell to see the translated context menu. Language files were loaded after loading Handsontable.
+To see the translated context menu, right-click on a cell.
+
+Language files were loaded after loading Handsontable.
 
 ::: only-for javascript
 ::: example #example1 :hot-lang
@@ -232,7 +234,7 @@ ReactDOM.render(<ExampleComponent/>, document.getElementById('example2'));
 
 ## List of translatable features
 
-Below you'll find a list of features which can be translated:
+Below is a list of features which can be translated:
 
 * Dropdown menu
 * Filtering
@@ -269,7 +271,7 @@ By default, Handsontable uses the **English - United States** language-country s
 * `zh-CN.js` for **Chinese - China** (`zh-CN` code).
 * `zh-TW.js` for **Chinese - Taiwan** (`zh-TW` code).
 
-### Creating custom languages
+### Create custom languages
 
 You can create custom language sets for your implementations, or share them, as they're easily applicable to any Handsontable implementation.
 
@@ -277,7 +279,7 @@ You can create custom language sets for your implementations, or share them, as 
 
 It's really important for us, that the community is a important part of the growth of our library. We encourage you to create and share your translations!
 
-Additional languages files should be placed in the `src/i18n/languages` folder of the Handsontable repository with name corresponding to the chosen language code (described below, for example: `es-VE.js`). You can incorporate your translations to the Handsontable library by sending us a [pull request](@/guides/tools-and-building/custom-builds.md). It's important, that your changes are not made to the `/languages` and `/dist/languages` directories! Our release master will generate files which will be placed there in the building process. After that, you will be able to use the languages in `Handsontable`.
+Additional languages files should be placed in the `src/i18n/languages` folder of the Handsontable repository with name corresponding to the chosen language code (described below, for example: `es-VE.js`). You can incorporate your translations to the Handsontable library by sending us a [pull request](@/guides/tools-and-building/custom-builds.md). It's important, that your changes are not made to the `/languages` and `/dist/languages` directories! We will generate the final files to be placed there. After that, you'll be able to use the languages in Handsontable.
 
 You can see a full template of a sample language at the bottom of this paragraph. We're basing it on our [default language pack](https://github.com/handsontable/handsontable/blob/master/handsontable/src/i18n/languages/en-US.js). Parts of the file creation process are described below.
 
@@ -293,7 +295,7 @@ You can see a full template of a sample language at the bottom of this paragraph
     */
     ```
 
-2. After that, you'll need to import the dictionary keys to be used in the translation.
+2. Now, import the dictionary keys to be used in the translation.
 
     ```js
     import * as C from '../constants';
@@ -369,7 +371,7 @@ Handsontable.languages.registerLanguageDictionary({
 });
 ```
 
-## Using custom keys in the translation
+## Use custom keys in the translation
 
 You can register a language dictionary containing custom keys. These entries can be used like any other keys, so you're not limited to using our pre-defined constants (the ones that are present within `src/i18n/constants.js` file and may be accessed by `Handsontable.languages.dictionaryKeys` alias).
 

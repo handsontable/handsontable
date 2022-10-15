@@ -16,11 +16,11 @@ searchCategory: Guides
 
 # Column summary
 
+Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
+
 [[toc]]
 
-Summarize your columns' data, using the [`ColumnSummary`](@/api/columnSummary.md) plugin.
-
-## About column summary
+## Overview
 
 The [`ColumnSummary`](@/api/columnSummary.md) plugin lets you quickly calculate and display a column summary.
 
@@ -33,7 +33,7 @@ To customize your column summaries, you can:
 
 ### Column summary example
 
-The example below calculates and displays five different column summaries:
+This example calculates and displays five different column summaries:
 
 ::: only-for javascript
 ::: example #example1
@@ -56,7 +56,9 @@ const hot = new Handsontable(container, {
       sourceColumn: 0,
       type: 'sum',
       destinationRow: 3,
-      destinationColumn: 0
+      destinationColumn: 0,
+      // force this column summary to treat non-numeric values as numeric values
+      forceNumeric: true
     },
     {
       sourceColumn: 1,
@@ -116,7 +118,9 @@ const ExampleComponent = () => {
           sourceColumn: 0,
           type: 'sum',
           destinationRow: 3,
-          destinationColumn: 0
+          destinationColumn: 0,
+          // force this column summary to treat non-numeric values as numeric values
+          forceNumeric: true
         },
         {
           sourceColumn: 1,
@@ -172,7 +176,7 @@ You can customize each of your column summaries with configuration options.
 
 For the full list of available options, see the [API reference](@/api/columnSummary.md#options).
 
-## Setting up a column summary
+## Set up a column summary
 
 To set up a column summary, follow the steps below.
 
@@ -410,6 +414,10 @@ columnSummary={[
 ```
 :::
 
+::: tip
+We don't recommend changing the CSS styling of the summary's destination row (the summary may not work properly).
+:::
+
 ### Step 5: Make room for the destination cell
 
 The [`ColumnSummary`](@/api/columnSummary.md) plugin doesn't automatically add new rows to display its summary results.
@@ -519,7 +527,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 :::
 :::
 
-## Setting up column summaries, using a function
+## Set up column summaries, using a function
 
 Instead of [setting up the column summary options manually](#setting-up-a-column-summary), you can provide the whole column summary configuration as a function that returns a required array of objects.
 
@@ -812,7 +820,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example8'));
 :::
 
 
-## Implementing a custom summary function
+## Implement a custom summary function
 
 Apart from using the [built-in summary functions](#built-in-summary-functions), you can also implement your own custom function that performs any summary calculation you want.
 
@@ -879,7 +887,7 @@ columnSummary={[{
 ```
 :::
 
-The example below implements a function that counts the number of even values in a column:
+This example implements a function that counts the number of even values in a column:
 
 ::: only-for javascript
 ::: example #example9
@@ -1044,7 +1052,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
 :::
 
 
-## Rounding a column summary result
+## Round a column summary result
 
 You can round a column summary result to a specific number of digits after the decimal point.
 
@@ -1135,7 +1143,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example12'));
 :::
 
 
-## Dealing with non-numeric values
+## Deal with non-numeric values
 
 To summarize a column that contains non-numeric data, you can:
 
@@ -1143,7 +1151,7 @@ To summarize a column that contains non-numeric data, you can:
 - Or throw an error whenever a non-numeric value is passed to your column summary
 - Or make your column summary skip any non-numeric values
 
-### Forcing numeric values
+### Force numeric values
 
 You can force your column summary to treat non-numeric values as numeric values.
 
@@ -1243,7 +1251,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example10'));
 :::
 
 
-### Throwing data type errors
+### Throw data type errors
 
 You can throw a data type error whenever a non-numeric value is passed to your column summary.
 

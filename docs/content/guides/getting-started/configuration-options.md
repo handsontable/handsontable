@@ -14,13 +14,11 @@ searchCategory: Guides
 
 # Configuration options
 
+Configure your grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
+
 [[toc]]
 
-Customize Handsontable with configuration options.
-
-## About configuration options
-
-Configuration options let you customize your Handsontable instance.
+## Overview
 
 ::: only-for javascript
 To apply configuration options, pass them as a second argument of the Handsontable constructor, using the object literal notation:

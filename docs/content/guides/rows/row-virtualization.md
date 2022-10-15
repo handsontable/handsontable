@@ -15,6 +15,8 @@ searchCategory: Guides
 
 # Row virtualization
 
+Render thousands of rows without freezing the browser by using row virtualization.
+
 [[toc]]
 
 ## Overview

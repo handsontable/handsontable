@@ -9,13 +9,13 @@ searchCategory: Guides
 
 # Vuex example in Vue 2
 
+Use the Vuex state management pattern to maintain the data and configuration options of your Vue 2 data grid.
+
 [[toc]]
 
-## Overview
+## Example - Vuex store dump
 
 The following example implements the `@handsontable/vue` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Vuex state manager.
-
-## Example - Vuex store dump:
 
 Toggle [`readOnly`](@/api/options.md#readonly) for the entire table.
 

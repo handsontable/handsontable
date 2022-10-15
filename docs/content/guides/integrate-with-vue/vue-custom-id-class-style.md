@@ -7,13 +7,16 @@ canonicalUrl: /vue-custom-id-class-style
 searchCategory: Guides
 ---
 
-# Custom ID, Class, Style, and other attributes in Vue 2
+# Custom ID, class, style, and other attributes in Vue 2
+
+Pass a custom ID, class, and style to the `HotTable` component, to further customize your Vue 2 data grid.
 
 [[toc]]
 
 ## Overview
 
 Custom `id`, `class`, `style`, and other attributes can be passed into the `hot-table` wrapper element.
+
 Each of them will be applied to the root Handsontable element, allowing further customization of the table.
 
 ## Example

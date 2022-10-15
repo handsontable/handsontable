@@ -1,7 +1,7 @@
 ---
 title: Grid size
 metaTitle: Grid size - JavaScript Data Grid | Handsontable
-description: Set the width and height of the grid, columns, and rows, using either absolute values or values relative the parent container.
+description: Set the width and height of the grid, columns, and rows, using either absolute values or values relative to the parent container.
 permalink: /grid-size
 canonicalUrl: /grid-size
 tags:
@@ -16,17 +16,15 @@ searchCategory: Guides
 
 # Grid size
 
+Set the width and height of the grid, columns, and rows, using either absolute values or values relative to the parent container.
+
 [[toc]]
 
-## Overview
-
-Grid size is used to define the initial size of the grid by setting the width, height and dimensions.
-
-## Setting the size
+## Set your grid's size
 
 You need to define the grid's container as a starting point to initialize it. Usually, the `div` element becomes this container. This container should have defined dimensions as well as the rest of your layout. Handsontable supports relative units such as `%`, `rem`, `em`, `vh`, `vw`, and `px`.
 
-### Define the size in CSS styles
+### Define the size in your CSS
 
 Both `width` and `height` could be defined as inline styles or as a CSS class property. In this case, it's important to define what should be an `overflow` parent properly. Handsontable looks for the closest element with `overflow: auto` or `overflow: hidden` to use it as a scrollable container. If no such element is found, a window will be used.
 

@@ -9,9 +9,9 @@ searchCategory: Guides
 
 # Modules in Vue 2
 
-[[toc]]
+Reduce the size of your Vue 2 app by importing only the modules that you need and use.
 
-Import just the modules that you actually need, to reduce Handsontable's impact on the size of your Vue 2 app.
+[[toc]]
 
 ## Use modules in Vue
 

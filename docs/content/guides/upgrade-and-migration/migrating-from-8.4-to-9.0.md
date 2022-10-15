@@ -12,7 +12,11 @@ searchCategory: Guides
 
 # Migrate from 8.4 to 9.0
 
+Migrate from Handsontable 8.4 to Handsontable 9.0, released on June 1, 2021.
+
 [[toc]]
+
+## Overview
 
 The purpose of this guide is to make it easier to migrate from v8.4.0 to v9.0.0. In the version 9.0 we have introduced a new formula engine with has completely replaced the previous one. There is a breaking change in the formula API - even in the way the plugin itself is initialized.
 

@@ -9,9 +9,11 @@ searchCategory: Guides
 
 # Language change in Vue 3
 
+Change the default language of the right-click context menu from English to any of the built-in translations, using the `language` property.
+
 [[toc]]
 
-## Overview
+## Example - Select language
 
 The following example implements the `@handsontable/vue3` component with the option to change the Context Menu language configured. Select a language from the selector above the table and open the Context Menu to see the result.
 
@@ -20,8 +22,6 @@ Note that the `language` property is bound to the component separately using `la
 :::
 
 [Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
-
-## Example - Select language
 
 ::: example #example1 :vue3-languages --html 1 --js 2
 ```html

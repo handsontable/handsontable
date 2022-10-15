@@ -494,7 +494,7 @@ UndoRedo.CreateRowAction.prototype.undo = function(instance, undoneCallback) {
 };
 UndoRedo.CreateRowAction.prototype.redo = function(instance, redoneCallback) {
   instance.addHookOnce('afterCreateRow', redoneCallback);
-  instance.alter('insert_row', this.index, this.amount, 'UndoRedo.redo');
+  instance.alter('insert_row_above', this.index, this.amount, 'UndoRedo.redo');
 };
 
 /**
@@ -522,7 +522,7 @@ UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
   settings.fixedRowsBottom = this.fixedRowsBottom;
   settings.fixedRowsTop = this.fixedRowsTop;
 
-  instance.alter('insert_row', this.index, this.data.length, 'UndoRedo.undo');
+  instance.alter('insert_row_above', this.index, this.data.length, 'UndoRedo.undo');
   instance.addHookOnce('afterViewRender', undoneCallback);
   instance.populateFromArray(this.index, 0, this.data, void 0, void 0, 'UndoRedo.undo');
 };
@@ -551,7 +551,7 @@ UndoRedo.CreateColumnAction.prototype.undo = function(instance, undoneCallback) 
 };
 UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) {
   instance.addHookOnce('afterCreateCol', redoneCallback);
-  instance.alter('insert_col', this.index, this.amount, 'UndoRedo.redo');
+  instance.alter('insert_col_start', this.index, this.amount, 'UndoRedo.redo');
 };
 
 /**
@@ -598,7 +598,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   const sortedHeaders = arrayMap(this.headers, sortByIndexes);
   const changes = [];
 
-  instance.alter('insert_col', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
+  instance.alter('insert_col_start', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   arrayEach(instance.getSourceDataArray(), (rowData, rowIndex) => {
     arrayEach(ascendingIndexes, (changedIndex, contiquesIndex) => {

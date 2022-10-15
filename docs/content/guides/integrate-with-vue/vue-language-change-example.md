@@ -9,17 +9,17 @@ searchCategory: Guides
 
 # Language change in Vue 2
 
+Change the default language of the right-click context menu from English to any of the built-in translations, using the `language` property.
+
 [[toc]]
 
-## Overview
+## Example - Select language
 
 The following example implements the `@handsontable/vue` component with the option to change the Context Menu language configured. Select a language from the selector above the table and open the Context Menu to see the result.
 
 :::tip
 Note that the `language` property is bound to the component separately using `language={this.language}"`, but it could be included in the `settings` property just as well.
 :::
-
-## Example - Select language
 
 ::: example #example1 :vue-languages --html 1 --js 2
 ```html
