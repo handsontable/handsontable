@@ -220,7 +220,7 @@ describe('MergeCells Selection', () => {
     const $borderTop = spec().$container.find('.wtBorder.current').eq(1);
     const topPositionBefore = $borderTop.position().top;
 
-    alter('insert_row', 1);
+    alter('insert_row_above', 1);
 
     expect(getSelected()).toEqual([[2, 1, 3, 2]]);
     expect($borderTop.position().top).toBe(topPositionBefore + 23); // adds default row height
@@ -239,7 +239,7 @@ describe('MergeCells Selection', () => {
     const $borderLeft = spec().$container.find('.wtBorder.current').eq(1);
     const leftPositionBefore = $borderLeft.position().left;
 
-    alter('insert_col', 1);
+    alter('insert_col_start', 1);
 
     expect(getSelected()).toEqual([[1, 2, 2, 3]]);
 

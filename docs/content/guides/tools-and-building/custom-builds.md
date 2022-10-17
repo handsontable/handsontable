@@ -15,13 +15,11 @@ searchCategory: Guides
 
 # Custom builds
 
-Create your own build of Handsontable, using the available npm tasks.
+Handsontable's building process transforms the source files located in the code repository into dedicated packages.
 
 [[toc]]
 
-## About building
-
-Get an overview of Handsontable's building processes.
+## Overview
 
 ### Monorepo
 
@@ -38,7 +36,7 @@ The Handsontable repository is a monorepo that contains the following projects:
 All the projects are released together, under the same version number.
 But each project has its own [building](#building-processes) and [testing](@/guides/tools-and-building/testing.md) processes.
 
-### Building processes
+### Build processes
 
 The building processes transform the source files located in the `/handsontable/src/` directory into the following output files:
 
@@ -56,7 +54,7 @@ Don't modify the output files mentioned above. Instead, make changes in the `/ha
 For more information on the distribution packages, see [this file](https://github.com/handsontable/handsontable/blob/master/dist/README.md).
 :::
 
-### Building requirements
+### Build requirements
 
 Handsontable building processes require:
 - [Node.js](https://nodejs.org/) (version **16.17**+)
@@ -76,7 +74,7 @@ Each Handsontable [project](#about-building) has its own building processes defi
 | `/wrappers/vue/package.json`     | The Vue 2 package                                   |
 | `/wrappers/vue3/package.json`    | The Vue 3 package                                   |
 
-## Running your first build
+## Run your first build
 
 To run your first build:
 1. Install [Node.js](https://nodejs.org/) (version **16.17**+).
@@ -85,11 +83,11 @@ To run your first build:
 4. From the root directory, run `npm install`.<br>All the required dependencies get installed.
 5. From the root directory, run `npm run build`.<br>All the Handsontable packages get built.
 
-## Building the packages
+## Build the packages
 
 You can either build all the packages at once, or build each package individually.
 
-### Building all the packages
+### Build all the packages
 
 To build all the packages at once:
 1. Make sure you meet the [building requirements](#building-requirements).
@@ -102,7 +100,7 @@ To build all the packages at once:
      - The Vue 3 package
      - A code examples package
 
-### Building the JavaScript package
+### Build the JavaScript package
 
 To build the JavaScript package:
 1. Make sure you meet the [building requirements](#building-requirements).
@@ -157,7 +155,7 @@ From the `/handsontable` directory, you can also run individual JavaScript `buil
      - `/handsontable/dist/languages/all.min.js`
 :::
 
-### Building the React package
+### Build the React package
 
 To build the React package:
 1. Make sure you meet the [building requirements](#building-requirements).
@@ -194,7 +192,7 @@ From the `/wrappers/react` directory, you can also run individual React `build` 
 :::
 
 ::: only-for javascript
-### Building the Angular package
+### Build the Angular package
 
 To build the Angular package:
 1. Make sure you meet the [building requirements](#building-requirements).
@@ -218,7 +216,7 @@ From the `/wrappers/angular` directory, You can also run individual Angular `bui
 :::
 
 ::: only-for javascript
-### Building the Vue 2 package
+### Build the Vue 2 package
 
 To build the Vue 2 package:
 1. Make sure you meet the [building requirements](#building-requirements).
@@ -256,7 +254,7 @@ From the `/wrappers/vue` directory, you can also run individual Vue 2 `build` ta
 :::
 
 ::: only-for javascript
-### Building the Vue 3 package
+### Build the Vue 3 package
 
 To build the Vue 3 package:
 1. Make sure you meet the [building requirements](#building-requirements).

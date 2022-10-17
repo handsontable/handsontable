@@ -3,9 +3,12 @@ describe('Comments', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    $('.jasmine_html-reporter').hide(); // a workaround for making the test more predictable
   });
 
   afterEach(function() {
+    $('.jasmine_html-reporter').show(); // a workaround for making the test more predictable
+
     if (this.$container) {
       destroy();
       this.$container.remove();

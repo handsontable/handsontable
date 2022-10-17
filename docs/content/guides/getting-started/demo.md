@@ -15,9 +15,9 @@ searchCategory: Guides
 
 # Demo
 
-[[toc]]
-
 Play around with a demo of Handsontable, in your favorite framework.
+
+[[toc]]
 
 <div class="example-container"><iframe
     src="https://handsontable.github.io/handsontable/examples/12.1.3/docs/js/demo/"

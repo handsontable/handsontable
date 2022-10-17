@@ -9,13 +9,13 @@ searchCategory: Guides
 
 # Basic example in Angular
 
+Start with the Angular data grid basic configuration examples, using component properties for configuration and external control.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following example is a basic implementation of the `@handsontable/angular` wrapper.
-
-## Example
 
 ::: example :angular --html 1 --js 2
 ```html

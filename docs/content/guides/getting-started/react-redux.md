@@ -1,7 +1,7 @@
 ---
 title: Integration with Redux
 metaTitle: Integration with Redux - JavaScript Data Grid | Handsontable
-description: Use the Redux state container to maintain the data and configuration options of your React data grid.
+description: Maintain the data and configuration options of your grid by using the Redux state container.
 permalink: /redux
 canonicalUrl: /redux
 react:
@@ -11,13 +11,15 @@ searchCategory: Guides
 
 # Integration with Redux
 
+Maintain the data and configuration options of your grid by using the Redux state container.
+
 [[toc]]
 
-You can integrate Handsontable with Redux or a similar state management library.
+## Integrate with Redux
 
+::: tip
 Before using any state management library, make sure you know how Handsontable handles data: see the [Binding to data](@/guides/getting-started/binding-to-data.md#understand-binding-as-a-reference) page.
-
-## Overview
+:::
 
 The following example implements the `@handsontable/react` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Redux state manager.
 

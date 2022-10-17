@@ -11,10 +11,9 @@ searchCategory: Guides
 
 # Time cell type
 
-[[toc]]
+Use the time cell type to display, format, and validate values as times. The time cell type uses Moment.js as a time formatter.
 
-## Overview
-The time cell type formats, renders, and validates the contents of the cell as a time.
+[[toc]]
 
 ## Usage
 To use the time cell type, set the `type: 'time'` option in the [`columns`](@/api/options.md#columns) array or the [`cells`](@/api/options.md#cells) function.

@@ -11,13 +11,11 @@ searchCategory: Guides
 
 # Row moving
 
+Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
+
 [[toc]]
 
-## Overview
-
-This page shows how to move rows in Handsontable.
-
-## Enabling the `ManualRowMove` plugin
+## Enable the `ManualRowMove` plugin
 
 To enable row moving, set the [`manualRowMove`](@/api/options.md#manualrowmove) option to `true`.
 
