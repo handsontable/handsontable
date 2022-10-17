@@ -2,12 +2,14 @@ const {
   FRAMEWORK_SUFFIX,
   MULTI_FRAMEWORKED_CONTENT_DIR,
   getDefaultFramework,
+  getDocsBase,
+  getDocsHostname,
   getDocsRepoSHA,
+  getFrameworks,
   getPrettyFrameworkName,
   getSidebars,
   getThisDocsVersion,
   parseFramework,
-  getFrameworks,
 } = require('../../helpers');
 
 const buildMode = process.env.BUILD_MODE;
@@ -67,6 +69,7 @@ module.exports = (options, context) => {
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.buildMode = buildMode;
+      $page.hostname = getDocsHostname();
 
       if ($page.relativePath) {
         $page.originRelativePath = getOriginRelativePath($page.relativePath);
@@ -105,6 +108,15 @@ SHA: ${getDocsRepoSHA()}
       if ($page.frontmatter.permalink) {
         $page.frontmatter.permalink = `/${frameworkPath}${$page.frontmatter.permalink}`;
       }
+
+      // Add OpenGraph entries
+      frontmatter.meta = [
+        { name: 'og:url', content: `${getDocsHostname()}${getDocsBase()}${$page.frontmatter.permalink}` },
+        { name: 'og:type', content: 'website' },
+        { name: 'og:title', content: frontmatter.title },
+        { name: 'og:description', content: frontmatter.description },
+        { name: 'og:image', content: `${getDocsHostname()}${getDocsBase()}/img/handsontable-banner-og.png` },
+      ];
     },
   };
 };
