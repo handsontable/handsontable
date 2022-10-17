@@ -139,6 +139,10 @@ export default class CellMeta {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
     cellMeta[key] = value;
+
+    if (cellMeta._automaticallyAssignedMetaProps[key] === true) {
+      cellMeta._automaticallyAssignedMetaProps[key] = void 0;
+    }
   }
 
   /**
