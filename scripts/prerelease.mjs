@@ -1,9 +1,12 @@
 import { displayErrorMessage } from './utils/console.mjs';
 import { setVersion } from './utils/pre-release.mjs';
+import mainPackageJson from '../../package.json' assert { type: 'json' };
 
 import moment from 'moment';
-import fs from 'fs-extra';
+//import fs from 'fs-extra';
 import ChildProcess from 'child_process';
+
+const workspacePackages = mainPackageJson.workspaces;
 
 const PACKAGES_SETTINGS = {
   MAIN: {
@@ -28,7 +31,7 @@ const PACKAGES_SETTINGS = {
   },
 };
 
-const FILE_NAME = 'package.json';
+// const FILE_NAME = 'package.json';
 const MAIN_PATH = process.cwd();
 
 const hash = ChildProcess.execSync('git rev-parse HEAD')
@@ -54,7 +57,7 @@ Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
 }); 
 */
 
-setVersion(newVersionNumber);
+setVersion(newVersionNumber, workspacePackages);
 
 Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   process.chdir(MAIN_PATH);
