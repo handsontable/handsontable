@@ -1,3 +1,9 @@
+import {
+  displayConfirmationMessage,
+  displayErrorMessage,
+} from './utils/console.mjs';
+import moment from 'moment';
+
 import fs from 'fs-extra';
 import ChildProcess from 'child_process';
 
@@ -27,15 +33,14 @@ const PACKAGES_SETTINGS = {
 const FILE_NAME = 'package.json';
 const MAIN_PATH = process.cwd();
 
-const hash = ChildProcess.execSync('git rev-parse HEAD').toString().trim().slice(0, 7);
+const hash = ChildProcess.execSync('git rev-parse HEAD')
+  .toString()
+  .trim()
+  .slice(0, 7);
 
-const date = new Date();
-const year = date.getFullYear();
-const month = date.getMonth() < 10 ? `0${date.getMonth()}` : date.getMonth();
-const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
+const date = moment().format('YYYYMMDD');
 
-// const newVersionNumber = `${hotConfig.HOT_VERSION}-dev.${hash}`;
-const newVersionNumber = `0.0.0-next-dev.${hash}-${year}${month}${day}`;
+const newVersionNumber = `0.0.0-next-dev.${hash}-${date}`;
 
 Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   const dataFromFile = JSON.parse(fs.readFileSync(`${item.PATH}/${FILE_NAME}`));
@@ -55,10 +60,10 @@ Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
 
   ChildProcess.exec('npm publish').then(
     () => {
-      console.log('\x1b[32m%s\x1b[0m', `${key} - success`);
+      displayConfirmationMessage('\x1b[32m%s\x1b[0m', `${key} - success`);
     },
     (error) => {
-      console.log('\x1b[31m%s\x1b[0m', `${key} - something went wrong`);
+      displayErrorMessage('\x1b[31m%s\x1b[0m', `${key} - something went wrong`);
       throw new Error(error);
     }
   );
