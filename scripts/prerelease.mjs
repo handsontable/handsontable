@@ -59,8 +59,6 @@ Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
 
 setVersion(newVersionNumber, workspacePackages);
 
-ChildProcess.exec('npm run build');
-
 Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   process.chdir(MAIN_PATH);
   process.chdir(`${item.PATH}`);
