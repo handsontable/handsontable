@@ -1,7 +1,7 @@
 ---
 title: Handsontable cell type
 metaTitle: Handsontable cell type - JavaScript Data Grid | Handsontable
-description: Use the Handsontable cell type to collect user input with an interactive spreadsheet editor in a popup.
+description: Add a spreadsheet editor in a popup, by using the Handsontable cell type.
 permalink: /handsontable-cell-type
 canonicalUrl: /handsontable-cell-type
 react:
@@ -11,11 +11,9 @@ searchCategory: Guides
 
 # Handsontable cell type
 
+Add a spreadsheet editor in a popup, by using the Handsontable cell type.
+
 [[toc]]
-
-## Overview
-
-This page describes how to use Handsontable as a cell editor in Handsontable.
 
 ## Usage
 

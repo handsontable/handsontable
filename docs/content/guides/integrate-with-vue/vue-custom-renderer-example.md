@@ -9,6 +9,8 @@ searchCategory: Guides
 
 # Custom renderer in Vue 2
 
+Create a custom cell renderer, and use it in your Vue 2 data grid by declaring it as a function.
+
 [[toc]]
 
 ## Overview

@@ -2,6 +2,8 @@ import { addClass, empty, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
+import { warn } from './helpers/console';
+import { toSingleLine } from './helpers/templateLiteralTag';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {
@@ -22,7 +24,7 @@ import { getValidator } from './validators/registry';
 import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse, isNumericLike } from './helpers/number';
 import TableView from './tableView';
-import DataSource from './dataSource';
+import DataSource from './dataMap/dataSource';
 import { cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
@@ -37,6 +39,7 @@ import { createShortcutManager } from './shortcuts';
 
 const SHORTCUTS_GROUP = 'gridDefault';
 let activeGuid = null;
+const deprecationWarns = new Set();
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -52,7 +55,7 @@ let activeGuid = null;
  *
  * ::: only-for javascript
  * ```js
- * // First, let's contruct Handsontable
+ * // First, let's construct Handsontable
  * const hot = new Handsontable(document.getElementById('example'), options);
  *
  * // Then, let's use the setDataAtCell method
@@ -408,10 +411,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterDeselect');
   });
   this.selection.addLocalHook('insertRowRequire', (totalRows) => {
-    this.alter('insert_row', totalRows, 1, 'auto');
+    this.alter('insert_row_above', totalRows, 1, 'auto');
   });
   this.selection.addLocalHook('insertColRequire', (totalCols) => {
-    this.alter('insert_col', totalCols, 1, 'auto');
+    this.alter('insert_col_start', totalCols, 1, 'auto');
   });
 
   grid = {
@@ -419,18 +422,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * Inserts or removes rows and columns.
      *
      * @private
-     * @param {string} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col".
+     * @param {string} action Possible values: "insert_row_above", "insert_row_below", "insert_col_start", "insert_col_end",
+     *                        "remove_row", "remove_col".
      * @param {number|Array} index Row or column visual index which from the alter action will be triggered.
      *                             Alter actions such as "remove_row" and "remove_col" support array indexes in the
      *                             format `[[index, amount], [index, amount]...]` this can be used to remove
      *                             non-consecutive columns or rows in one call.
-     * @param {number} [amount=1] Ammount rows or columns to remove.
+     * @param {number} [amount=1] Amount of rows or columns to remove.
      * @param {string} [source] Optional. Source of hook runner.
      * @param {boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
     alter(action, index, amount = 1, source, keepEmptyRows) {
-      let delta;
-
       const normalizeIndexesGroup = (indexes) => {
         if (indexes.length === 0) {
           return [];
@@ -469,27 +471,48 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       /* eslint-disable no-case-declarations */
       switch (action) {
-        case 'insert_row':
-
+        case 'insert_row': // backward compatibility
+          if (!deprecationWarns.has(action)) {
+            deprecationWarns.add(action);
+            warn(toSingleLine`The \`${action}\` action of the \`alter()\` method is deprecated and will be removed\x20
+                              in the next major release of Handsontable. Use the \`insert_row_above\` action instead.`);
+          }
+          // falls through
+        case 'insert_row_below':
+        case 'insert_row_above':
           const numberOfSourceRows = instance.countSourceRows();
 
           if (tableMeta.maxRows === numberOfSourceRows) {
             return;
           }
-          // eslint-disable-next-line no-param-reassign
-          index = (isDefined(index)) ? index : numberOfSourceRows;
-          delta = datamap.createRow(index, amount, source);
 
-          if (delta) {
-            metaManager.createRow(instance.toPhysicalRow(index), amount);
+          // `above` is the default behavior for creating new rows
+          const insertRowMode = action === 'insert_row_below' ? 'below' : 'above';
+
+          // The line below ensures backward compatibility of the `alter()` method's `insert_row` action.
+          // Calling the `insert_row` action with no arguments adds a new row at the end of the data set.
+          // Calling the `insert_row_above` action adds a new row at the beginning of the data set.
+          // eslint-disable-next-line no-param-reassign
+          index = index ?? (action === 'insert_row' || insertRowMode === 'below' ? numberOfSourceRows : 0);
+          const {
+            delta: rowDelta,
+            startPhysicalIndex: startRowPhysicalIndex,
+          } = datamap.createRow(index, amount, { source, mode: insertRowMode });
+
+          if (rowDelta) {
+            metaManager.createRow(startRowPhysicalIndex, amount);
 
             const currentSelectedRange = selection.selectedRange.current();
             const currentFromRange = currentSelectedRange?.from;
             const currentFromRow = currentFromRange?.row;
+            const startVisualRowIndex = instance.toVisualRow(startRowPhysicalIndex);
 
-            // Moving down the selection (when it exist). It should be present on the "old" row.
-            // TODO: The logic here should be handled by selection module.
-            if (isDefined(currentFromRow) && currentFromRow >= index) {
+            if (selection.isSelectedByCorner()) {
+              instance.selectAll();
+
+            } else if (isDefined(currentFromRow) && currentFromRow >= startVisualRowIndex) {
+              // Moving the selection (if it exists) downward – it should be applied to the "old" row.
+              // TODO: The logic here should be handled by selection module.
               const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
               let currentFromColumn = currentFromRange.col;
 
@@ -501,36 +524,61 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               // Remove from the stack the last added selection as that selection below will be
               // replaced by new transformed selection.
               selection.getSelectedRange().pop();
-
               // I can't use transforms as they don't work in negative indexes.
-              selection.setRangeStartOnly(instance._createCellCoords(currentFromRow + delta, currentFromColumn), true);
-              selection.setRangeEnd(instance._createCellCoords(currentToRow + delta, currentToColumn)); // will call render() internally
+              selection.setRangeStartOnly(instance
+                ._createCellCoords(currentFromRow + rowDelta, currentFromColumn), true);
+              selection.setRangeEnd(instance
+                ._createCellCoords(currentToRow + rowDelta, currentToColumn)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
             }
           }
           break;
 
-        case 'insert_col':
-          delta = datamap.createCol(index, amount, source);
+        case 'insert_col': // backward compatibility
+          if (!deprecationWarns.has(action)) {
+            deprecationWarns.add(action);
+            warn(toSingleLine`The \`${action}\` action of the \`alter()\` method is deprecated and will be removed\x20
+                              in the next major release of Handsontable. Use the \`insert_col_start\` action instead.`);
+          }
+          // falls through
+        case 'insert_col_start':
+        case 'insert_col_end':
+          // "start" is a default behavior for creating new columns
+          const insertColumnMode = action === 'insert_col_end' ? 'end' : 'start';
 
-          if (delta) {
-            metaManager.createColumn(instance.toPhysicalColumn(index), amount);
+          // The line below ensures backward compatibility of the `alter()` method's `insert_col` action.
+          // Calling the `insert_col` action with no arguments adds a new column to the right of the data set.
+          // Calling the `insert_col_start` action adds a new column to the left of the data set.
+          // eslint-disable-next-line no-param-reassign
+          index = index ?? (action === 'insert_col' || insertColumnMode === 'end' ? instance.countSourceCols() : 0);
+
+          const {
+            delta: colDelta,
+            startPhysicalIndex: startColumnPhysicalIndex,
+          } = datamap.createCol(index, amount, { source, mode: insertColumnMode });
+
+          if (colDelta) {
+            metaManager.createColumn(startColumnPhysicalIndex, amount);
 
             if (Array.isArray(tableMeta.colHeaders)) {
-              const spliceArray = [index, 0];
+              const spliceArray = [instance.toVisualColumn(startColumnPhysicalIndex), 0];
 
-              spliceArray.length += delta; // inserts empty (undefined) elements at the end of an array
+              spliceArray.length += colDelta; // inserts empty (undefined) elements at the end of an array
               Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
             }
 
             const currentSelectedRange = selection.selectedRange.current();
             const currentFromRange = currentSelectedRange?.from;
             const currentFromColumn = currentFromRange?.col;
+            const startVisualColumnIndex = instance.toVisualColumn(startColumnPhysicalIndex);
 
-            // Moving right the selection (when it exist). It should be present on the "old" row.
-            // TODO: The logic here should be handled by selection module.
-            if (isDefined(currentFromColumn) && currentFromColumn >= index) {
+            if (selection.isSelectedByCorner()) {
+              instance.selectAll();
+
+            } else if (isDefined(currentFromColumn) && currentFromColumn >= startVisualColumnIndex) {
+              // Moving the selection (if it exists) rightward – it should be applied to the "old" column.
+              // TODO: The logic here should be handled by selection module.
               const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
               let currentFromRow = currentFromRange.row;
 
@@ -544,8 +592,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               selection.getSelectedRange().pop();
 
               // I can't use transforms as they don't work in negative indexes.
-              selection.setRangeStartOnly(instance._createCellCoords(currentFromRow, currentFromColumn + delta), true);
-              selection.setRangeEnd(instance._createCellCoords(currentToRow, currentToColumn + delta)); // will call render() internally
+              selection.setRangeStartOnly(instance
+                ._createCellCoords(currentFromRow, currentFromColumn + colDelta), true);
+              selection.setRangeEnd(instance
+                ._createCellCoords(currentToRow, currentToColumn + colDelta)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
             }
@@ -679,6 +729,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       const minCols = tableMeta.minCols;
       const minSpareCols = tableMeta.minSpareCols;
 
+      if (instance.countRows() === 0 && instance.countCols() === 0) {
+        selection.deselect();
+      }
+
       if (minRows) {
         // should I add empty rows to data source to meet minRows?
         const nrOfRows = instance.countRows();
@@ -686,7 +740,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         if (nrOfRows < minRows) {
           // The synchronization with cell meta is not desired here. For `minRows` option,
           // we don't want to touch/shift cell meta objects.
-          datamap.createRow(nrOfRows, minRows - nrOfRows, 'auto');
+          datamap.createRow(nrOfRows, minRows - nrOfRows, { source: 'auto' });
         }
       }
       if (minSpareRows) {
@@ -699,7 +753,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
           // The synchronization with cell meta is not desired here. For `minSpareRows` option,
           // we don't want to touch/shift cell meta objects.
-          datamap.createRow(instance.countRows(), rowsToCreate, 'auto');
+          datamap.createRow(instance.countRows(), rowsToCreate, { source: 'auto' });
         }
       }
       {
@@ -720,7 +774,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
           emptyCols += colsToCreate;
 
-          datamap.createCol(nrOfColumns, colsToCreate, 'auto');
+          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
         }
         // should I add empty cols to meet minSpareCols?
         if (minSpareCols && !tableMeta.columns && instance.dataType === 'array' &&
@@ -731,17 +785,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
           // The synchronization with cell meta is not desired here. For `minSpareRows` option,
           // we don't want to touch/shift cell meta objects.
-          datamap.createCol(nrOfColumns, colsToCreate, 'auto');
+          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
         }
-      }
-      const rowCount = instance.countRows();
-      const colCount = instance.countCols();
-
-      if (rowCount === 0 || colCount === 0) {
-        selection.deselect();
       }
 
       if (selection.isSelected()) {
+        const rowCount = instance.countRows();
+        const colCount = instance.countCols();
+
         arrayEach(selection.selectedRange, (range) => {
           let selectionChanged = false;
           let fromRow = range.from.row;
@@ -1283,7 +1334,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (tableMeta.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
-          const numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
+          const {
+            delta: numberOfCreatedRows
+          } = datamap.createRow(void 0, void 0, { source });
 
           if (numberOfCreatedRows >= 1) {
             metaManager.createRow(null, numberOfCreatedRows);
@@ -1297,7 +1350,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
           tableMeta.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
-          const numberOfCreatedColumns = datamap.createCol(void 0, void 0, source);
+          const {
+            delta: numberOfCreatedColumns
+          } = datamap.createCol(void 0, void 0, { source });
 
           if (numberOfCreatedColumns >= 1) {
             metaManager.createColumn(null, numberOfCreatedColumns);
@@ -1805,8 +1860,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @example
    * ```js
    * hot.suspendRender();
-   * hot.alter('insert_row', 5, 45);
-   * hot.alter('insert_col', 10, 40);
+   * hot.alter('insert_row_above', 5, 45);
+   * hot.alter('insert_col_start', 10, 40);
    * hot.setDataAtCell(1, 1, 'John');
    * hot.setDataAtCell(2, 2, 'Mark');
    * hot.setDataAtCell(3, 3, 'Ann');
@@ -1839,8 +1894,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @example
    * ```js
    * hot.suspendRender();
-   * hot.alter('insert_row', 5, 45);
-   * hot.alter('insert_col', 10, 40);
+   * hot.alter('insert_row_above', 5, 45);
+   * hot.alter('insert_col_start', 10, 40);
    * hot.setDataAtCell(1, 1, 'John');
    * hot.setDataAtCell(2, 2, 'Mark');
    * hot.setDataAtCell(3, 3, 'Ann');
@@ -1901,8 +1956,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @example
    * ```js
    * hot.batchRender(() => {
-   *   hot.alter('insert_row', 5, 45);
-   *   hot.alter('insert_col', 10, 40);
+   *   hot.alter('insert_row_above', 5, 45);
+   *   hot.alter('insert_col_start', 10, 40);
    *   hot.setDataAtCell(1, 1, 'John');
    *   hot.setDataAtCell(2, 2, 'Mark');
    *   hot.setDataAtCell(3, 3, 'Ann');
@@ -2053,8 +2108,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @example
    * ```js
    * hot.batch(() => {
-   *   hot.alter('insert_row', 5, 45);
-   *   hot.alter('insert_col', 10, 40);
+   *   hot.alter('insert_row_above', 5, 45);
+   *   hot.alter('insert_col_start', 10, 40);
    *   hot.setDataAtCell(1, 1, 'x');
    *   hot.setDataAtCell(2, 2, 'c');
    *   hot.setDataAtCell(3, 3, 'v');
@@ -2588,8 +2643,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function alter
    * @param {string} action Possible alter operations:
    *  <ul>
-   *    <li> `'insert_row'` </li>
-   *    <li> `'insert_col'` </li>
+   *    <li> `'insert_row'` (<b>deprecated</b>, an alias for `'insert_row_above'`) </li>
+   *    <li> `'insert_row_above'` </li>
+   *    <li> `'insert_row_below'` </li>
+   *    <li> `'insert_col'` (<b>deprecated</b>, an alias for `'insert_col_start'`) </li>
+   *    <li> `'insert_col_start'` (depending on the [`layoutDirection`](@/api/options.md#layoutdirection), inserts a column to the left (in LTR) or to the right (in RTL) </li>
+   *    <li> `'insert_col_end'` (depending on the [`layoutDirection`](@/api/options.md#layoutdirection), inserts a column to the right (in LTR) or to the left (in RTL) </li>
    *    <li> `'remove_row'` </li>
    *    <li> `'remove_col'` </li>
    * </ul>.
@@ -2601,9 +2660,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @example
    * ```js
    * // Insert new row above the row at given visual index.
-   * hot.alter('insert_row', 10);
+   * hot.alter('insert_row_above', 10);
+   * // below the row with the given visual index, insert a new row
+   * hot.alter('insert_row_below', 5);
    * // Insert 3 new columns before 10th column.
-   * hot.alter('insert_col', 10, 3);
+   * hot.alter('insert_col_start', 10, 3);
    * // Remove 2 rows starting from 10th row.
    * hot.alter('remove_row', 10, 2);
    * // Remove 5 non-contiquous rows (it removes 3 rows from visual index 1 and 2 rows from visual index 5).
@@ -3809,10 +3870,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Count empty cols.
    */
   this.countEmptyCols = function(ending = false) {
-    if (instance.countRows() < 1) {
-      return 0;
-    }
-
     let emptyColumns = 0;
 
     rangeEachReverse(instance.countCols() - 1, (visualIndex) => {

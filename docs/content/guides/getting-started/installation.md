@@ -1,7 +1,7 @@
 ---
 title: Installation
 metaTitle: Installation - JavaScript Data Grid | Handsontable
-description: Install Handsontable using your preferred package manager, or import Handsontable's assets directly from a CDN.
+description: Install Handsontable through your preferred package manager, or import Handsontable's assets directly from a CDN.
 permalink: /installation
 canonicalUrl: /installation
 tags:
@@ -13,9 +13,23 @@ searchCategory: Guides
 
 # Installation
 
+::: only-for javascript
+
+Install Handsontable through your preferred package manager, or import Handsontable's assets directly from a CDN.
+
+:::
+
+::: only-for react
+
+Install Handsontable through your preferred package manager, and control your grid through the `HotTable` component's props.
+
+:::
+
 [[toc]]
 
 ::: only-for react
+
+## Install Handsontable
 
 To install Handsontable locally using a package manager, run one of these commands:
 
@@ -200,6 +214,7 @@ In your HTML, add an empty `div`, which serves as a container for your Handsonta
 ## Initialize Handsontable
 
 Now turn your container into a data grid with sample data.
+
 ```js
 const data = [
   ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
@@ -243,7 +258,28 @@ const hot = new Handsontable(container, {
 :::
 
 ::: only-for react
-## HotTable component
+
+## Import Handsontable's CSS
+
+Import Handsontable's CSS into your application.
+
+```jsx
+import 'handsontable/dist/handsontable.full.min.css';
+```
+
+## Register Handsontable's modules
+
+Register all of Handsontable's modules with a single function call:
+
+```jsx
+import { registerAllModules } from 'handsontable/registry';
+
+registerAllModules();
+```
+
+Or, to reduce the size of your JavaScript bundle, [import only the modules that you need](@/guides/tools-and-building/modules.md).
+
+## Use the `HotTable` component
 
 The main Handsontable component is called `HotTable`.
 ```jsx
@@ -260,14 +296,6 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
   height="auto"
   licenseKey="non-commercial-and-evaluation" // for non-commercial use only
 />
-```
-
-## Import Handsontable's CSS
-
-Import Handsontable's CSS into your application.
-
-```jsx
-import 'handsontable/dist/handsontable.full.min.css';
 ```
 
 ## Basic example

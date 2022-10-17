@@ -9,7 +9,9 @@ react:
 searchCategory: Guides
 ---
 
-# Column header
+# Column headers
+
+Use default column headers (A, B, C), or set them to custom values provided by an array or a function.
 
 [[toc]]
 

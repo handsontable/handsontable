@@ -1885,7 +1885,7 @@ describe('ContextMenu', () => {
 
       closeContextMenu();
 
-      alter('insert_row');
+      alter('insert_row_above');
 
       contextMenu();
       $menu = $(getPlugin('contextMenu').menu.container).find('.ht_master .htCore');
@@ -1912,7 +1912,7 @@ describe('ContextMenu', () => {
 
       closeContextMenu();
 
-      alter('insert_col');
+      alter('insert_col_start');
 
       contextMenu();
       $menu = $(getPlugin('contextMenu').menu.container).find('.ht_master .htCore');

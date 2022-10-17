@@ -16,9 +16,9 @@ searchCategory: Guides
 
 # Row pre-populating
 
-## Overview
+Populate newly-added rows with predefined template values, using cell renderers.
 
-Rows can be pre-populated with template values using cell renderers.
+[[toc]]
 
 ## Example
 
@@ -116,6 +116,7 @@ hot.loadData(data);
 ::: example #example1 :react
 ```jsx
 import { useEffect, useRef } from 'react';
+import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';

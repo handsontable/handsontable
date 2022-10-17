@@ -1,4 +1,4 @@
-describe('Core_countEmptyRows', () => {
+describe('Core.countEmptyRows', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
