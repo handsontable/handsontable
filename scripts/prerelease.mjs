@@ -43,19 +43,18 @@ const date = moment().format('YYYYMMDD');
 
 const newVersionNumber = `0.0.0-next-dev.${hash}-${date}`;
 
-/* 
+
 Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   const dataFromFile = JSON.parse(fs.readFileSync(`${item.PATH}/${FILE_NAME}`));
 
-  dataFromFile.version = newVersionNumber;
+  //dataFromFile.version = newVersionNumber;
   dataFromFile.name = item.NAME;
 
   fs.writeFileSync(
     `${item.PATH}/${FILE_NAME}`,
     JSON.stringify(dataFromFile, null, 2)
   );
-}); 
-*/
+});
 
 setVersion(newVersionNumber, workspacePackages);
 
