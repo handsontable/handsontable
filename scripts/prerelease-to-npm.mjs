@@ -1,10 +1,6 @@
 import fs from 'fs-extra';
-import crypto from 'crypto';
-import util from 'util';
 import ChildProcess from 'child_process';
-import hotConfig from '../hot.config.js';
 
-const exec = util.promisify(ChildProcess.exec);
 const PACKAGES_SETTINGS = {
   MAIN: {
     NAME: 'tmp-hot',
@@ -31,11 +27,7 @@ const PACKAGES_SETTINGS = {
 const FILE_NAME = 'package.json';
 const MAIN_PATH = process.cwd();
 
-const hash = crypto
-  .createHash('sha256')
-  .update(hotConfig.HOT_VERSION, 'utf8')
-  .digest('hex')
-  .substring(0, 8);
+const hash = ChildProcess.execSync('git rev-parse HEAD').toString().trim().slice(0, 7);
 
 const date = new Date();
 const year = date.getFullYear();
@@ -43,7 +35,7 @@ const month = date.getMonth() < 10 ? `0${date.getMonth()}` : date.getMonth();
 const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
 
 // const newVersionNumber = `${hotConfig.HOT_VERSION}-dev.${hash}`;
-const newVersionNumber = `${hotConfig.HOT_VERSION}-next-dev.${hash}-${year}${month}${day}`;
+const newVersionNumber = `0.0.0-next-dev.${hash}-${year}${month}${day}`;
 
 Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   const dataFromFile = JSON.parse(fs.readFileSync(`${item.PATH}/${FILE_NAME}`));
@@ -61,7 +53,7 @@ Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   process.chdir(MAIN_PATH);
   process.chdir(`${item.PATH}`);
 
-  exec('npm publish').then(
+  ChildProcess.exec('npm publish').then(
     () => {
       console.log('\x1b[32m%s\x1b[0m', `${key} - success`);
     },
