@@ -21,7 +21,7 @@ The following example implements the `@handsontable/vue3` component with a [`rea
 
 ::: example #example1 :vue3-vuex --html 1 --js 2
 ```html
-<div id="example1">
+<div id="example1" class="dump-example-container">
   <div id="example-preview">
     <div id="toggle-boxes">
       <br/>

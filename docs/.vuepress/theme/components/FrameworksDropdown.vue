@@ -113,7 +113,7 @@ export default {
 
 <style lang="stylus">
 .nav-frameworks
-  margin-left 1.25rem
+  margin-left 1.4rem
   margin-right 1.5rem
   display inline-block
   position relative
@@ -121,10 +121,12 @@ export default {
   text-transform capitalize
 
   img
-    height: 12px
+    height 16px
+    position relative
+    top 3px
 
   .nav-item
-    margin-left: 0.25rem
+    margin-left 0.25rem
 
   .dropdown-title {
     text-transform capitalize
@@ -144,13 +146,12 @@ export default {
     overflow-y auto
     position absolute
     top 100%
-    left -19px
     background-color #fff
     padding 0.6rem 0
     border 1px solid #ddd
     border-bottom-color #ccc
     text-align left
-    border-radius 0.25rem
+    border-radius 6px
     white-space nowrap
     margin 0
     z-index 100

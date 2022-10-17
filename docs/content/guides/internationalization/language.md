@@ -203,7 +203,7 @@ const ExampleComponent = () => {
 
   return (
     <div>
-      <div className="controls"><label>Select language:
+      <div className="controls select-language"><label>Select language of the context menu:
         {' '}
         <select value={language} onChange={updateHotLanguage}>
           {languageList.map(({ languageCode }) => (

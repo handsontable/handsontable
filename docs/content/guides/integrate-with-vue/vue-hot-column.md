@@ -331,7 +331,7 @@ List of row indexes (starting from 0):
 
 ::: example #v-model-example :vue --html 1 --js 2
 ```html
-<div id="v-model-example">
+<div id="v-model-example" class="controls v-model">
   <label for="mainInput">List of row indexes (starting from 0):</label><br>
     <input id="mainInput" v-model="highlightedRows"/>
 
