@@ -20,6 +20,7 @@ const {
 } = require('./helpers');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 
+const uniqueSlugs = new Set();
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction ?
@@ -79,23 +80,79 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
     },
     anchor: {
       permalinkSymbol: '',
-      permalinkHref(slug) {
-        // Remove the `-[number]` suffix from the permalink href attribute.
-        const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(slug);
+      permalinkHref(slug, state) {
+        const slugify = state.md.slugify;
+        const openTokenContent = /(?:\n?)::: only-for (((react|javascript) ?)+)\n?/;
+        const closeTokenContent = /(?:\n?):::(?:\n?)$/;
+        const markupForCustomContainer = ':::';
+        const headerOpenType = 'heading_open';
+        const headerCloseType = 'heading_close';
+        let endIndex;
 
-        if (duplicatedSlugsMatch) {
-          slug = duplicatedSlugsMatch[1];
-        }
+        const handleTokensInsideOnlyForContainer = (action) => {
+          for (let index = state.tokens.length - 1; index >= 0; index -= 1) {
+            const token = state.tokens[index];
+            // We don't create custom container intentionally. It can create paragraphs or break listed elements.
+            const isNotNativeContainer = token.markup !== markupForCustomContainer;
+
+            if (isNotNativeContainer) {
+              if (closeTokenContent.test(token.content)) {
+
+                endIndex = index;
+              } else if (openTokenContent.test(token.content)) {
+                action(state.tokens.slice(index, endIndex));
+              }
+            }
+          }
+        };
+
+        const getTokensInsideHeaders = (tokens) => {
+          return tokens.filter((_, tokenIndex) => {
+            if (tokenIndex === 0 || tokenIndex === tokens.length - 1) {
+              return false;
+
+            } else if (tokens[tokenIndex - 1]?.type === headerOpenType &&
+              tokens[tokenIndex + 1]?.type === headerCloseType) {
+              // Content placed inside some header.
+              return true;
+            }
+
+            return false;
+          });
+        };
+
+        const getParsedSlugsFromHeaders = (tokens) => {
+          return getTokensInsideHeaders(tokens)
+            .map(headerContentTag => slugify(headerContentTag.content));
+        };
+
+        const parseAndChangeDuplicatedSlug = (tokensInside) => {
+          getParsedSlugsFromHeaders(tokensInside).forEach((headerSlug) => {
+            const headerSlugWithNumber = new RegExp(`${headerSlug}-(\\d)+$`);
+
+            if (headerSlugWithNumber.test(slug)) {
+              // Remove the `-[number]` suffix from the permalink href attribute.
+              const duplicatedSlugsMatch = headerSlugWithNumber.exec(slug);
+
+              if (duplicatedSlugsMatch) {
+                uniqueSlugs.add(headerSlug);
+
+                slug = `#${headerSlug}`;
+              }
+            }
+          });
+        };
+
+        handleTokensInsideOnlyForContainer(parseAndChangeDuplicatedSlug);
 
         return `#${slug}`;
       },
       callback(token, slugInfo) {
-        if (['h1', 'h2', 'h3'].includes(token.tag)) {
-          // Remove the `-[number]` suffix from the slugs and header IDs.
-          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrs[0][1]);
+        if (uniqueSlugs.has(slugInfo.slug)) {
+          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrGet('id'));
 
           if (duplicatedSlugsMatch) {
-            token.attrs[0][1] = duplicatedSlugsMatch[1];
+            token.attrSet('id', duplicatedSlugsMatch[1]);
             slugInfo.slug = duplicatedSlugsMatch[1];
           }
         }
