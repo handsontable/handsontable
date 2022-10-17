@@ -31,7 +31,7 @@ const PACKAGES_SETTINGS = {
   },
 };
 
-// const FILE_NAME = 'package.json';
+const FILE_NAME = 'package.json';
 const MAIN_PATH = process.cwd();
 
 const hash = ChildProcess.execSync('git rev-parse HEAD')
