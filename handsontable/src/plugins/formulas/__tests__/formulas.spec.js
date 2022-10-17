@@ -2688,6 +2688,44 @@ describe('Formulas general', () => {
     });
   });
 
+  it('should not overwrite source data by formula calculation values when there are some merge cells', () => {
+    handsontable({
+      data: [
+        [null, '=SUM(C1*2)', 3, '=SUM(C1*2)', null],
+        [null, null, null, null, null],
+        [null, null, null, null, null],
+        [null, '=SUM(D1*3)', null, null, null],
+      ],
+      formulas: {
+        engine: HyperFormula
+      },
+      mergeCells: [{
+        row: 0,
+        col: 3,
+        rowspan: 2,
+        colspan: 2
+      }, {
+        row: 3,
+        col: 1,
+        rowspan: 1,
+        colspan: 2
+      }],
+    });
+
+    expect(getSourceData()).toEqual([
+      [null, '=SUM(C1*2)', 3, '=SUM(C1*2)', null],
+      [null, null, null, null, null],
+      [null, null, null, null, null],
+      [null, '=SUM(D1*3)', null, null, null],
+    ]);
+    expect(getData()).toEqual([
+      [null, 6, 3, 6, null],
+      [null, null, null, null, null],
+      [null, null, null, null, null],
+      [null, 18, null, null, null]
+    ]);
+  });
+
   it('should not crash when declaring a named expression with a sheet name that contains a `-` (#8057)', () => {
     const errors = [];
 
