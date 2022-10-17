@@ -187,7 +187,7 @@ export default {
               ...p,
               title: getShortPageTitle(p),
               category: name,
-              priority,
+              priority: priority + 1,
             });
           }
 

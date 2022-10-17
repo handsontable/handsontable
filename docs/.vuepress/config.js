@@ -8,7 +8,6 @@ const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
-const activeHeaderLinksPlugin = require('./plugins/active-header-links');
 const {
   createSymlinks,
   getDocsBase,
@@ -129,11 +128,6 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
     ['sitemap', {
       hostname: getDocsHostname(),
       exclude: ['/404.html']
-    }],
-    [activeHeaderLinksPlugin, {
-      sidebarLinkSelector: '.table-of-contents a',
-      headerAnchorSelector: '.header-anchor',
-      anchorTopOffset: 75,
     }],
     ['container', examples(getThisDocsVersion(), getDocsBaseFullUrl())],
     ['container', sourceCodeLink],
