@@ -24,5 +24,4 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
       - run: npm install
-      - run: npm run build
       - run: npm run prerelease
