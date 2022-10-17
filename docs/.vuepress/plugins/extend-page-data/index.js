@@ -27,6 +27,16 @@ function removeEndingSlashes(string) {
 }
 
 /**
+ * Dedupes the slashes in the string.
+ *
+ * @param {string} string String to process.
+ * @returns {string}
+ */
+function dedupeSlashes(string) {
+  return string.replace(/(\/)+/g, '$1');
+}
+
+/**
  * Returns the original (not symlinked) relative path of the MD file, which the page
  * are created from.
  *
@@ -109,13 +119,15 @@ SHA: ${getDocsRepoSHA()}
         $page.frontmatter.permalink = `/${frameworkPath}${$page.frontmatter.permalink}`;
       }
 
+      const hostWithBase = getDocsHostname() + getDocsBase();
+
       // Add OpenGraph entries
       frontmatter.meta = [
-        { name: 'og:url', content: `${getDocsHostname()}${getDocsBase()}${$page.frontmatter.permalink}/` },
+        { name: 'og:url', content: dedupeSlashes(`${hostWithBase}${$page.frontmatter.permalink}/`) },
         { name: 'og:type', content: 'website' },
         { name: 'og:title', content: frontmatter.title },
         { name: 'og:description', content: frontmatter.description },
-        { name: 'og:image', content: `${getDocsHostname()}${getDocsBase()}/img/handsontable-banner-og.png` },
+        { name: 'og:image', content: `${hostWithBase}/img/handsontable-banner-og.png` },
       ];
     },
   };
