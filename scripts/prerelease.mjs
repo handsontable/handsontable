@@ -58,13 +58,12 @@ Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   process.chdir(MAIN_PATH);
   process.chdir(`${item.PATH}`);
 
-  ChildProcess.exec('npm publish').then(
-    () => {
-      displayConfirmationMessage('\x1b[32m%s\x1b[0m', `${key} - success`);
-    },
-    (error) => {
+  (async function () {
+    try {
+      await ChildProcess.exec('npm publish');
+    } catch (error) {
       displayErrorMessage('\x1b[31m%s\x1b[0m', `${key} - something went wrong`);
-      throw new Error(error);
+      process.exit(error.exitCode);
     }
-  );
+  })();
 });
