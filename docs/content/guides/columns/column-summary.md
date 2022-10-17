@@ -33,7 +33,7 @@ To customize your column summaries, you can:
 
 ### Column summary example
 
-The example below calculates and displays five different column summaries:
+This example calculates and displays five different column summaries:
 
 ::: only-for javascript
 ::: example #example1
@@ -56,7 +56,9 @@ const hot = new Handsontable(container, {
       sourceColumn: 0,
       type: 'sum',
       destinationRow: 3,
-      destinationColumn: 0
+      destinationColumn: 0,
+      // force this column summary to treat non-numeric values as numeric values
+      forceNumeric: true
     },
     {
       sourceColumn: 1,
@@ -116,7 +118,9 @@ const ExampleComponent = () => {
           sourceColumn: 0,
           type: 'sum',
           destinationRow: 3,
-          destinationColumn: 0
+          destinationColumn: 0,
+          // force this column summary to treat non-numeric values as numeric values
+          forceNumeric: true
         },
         {
           sourceColumn: 1,
@@ -408,6 +412,10 @@ columnSummary={[
   }
 ]}
 ```
+:::
+
+::: tip
+We don't recommend changing the CSS styling of the summary's destination row (the summary may not work properly).
 :::
 
 ### Step 5: Make room for the destination cell
@@ -879,7 +887,7 @@ columnSummary={[{
 ```
 :::
 
-The example below implements a function that counts the number of even values in a column:
+This example implements a function that counts the number of even values in a column:
 
 ::: only-for javascript
 ::: example #example9
