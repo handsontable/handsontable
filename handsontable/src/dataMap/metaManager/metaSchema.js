@@ -75,6 +75,24 @@ export default () => {
     /* eslint-disable jsdoc/require-description-complete-sentence */
 
     /**
+     * Information on which of the meta properties were added automatically.
+     * For example: setting the `renderer` property directly won't extend the `_automaticallyAssignedMetaProps`
+     * entry, but setting a `type` will modify it to:
+     * ```
+     * _automaticallyAssignedMetaProps: {
+     *   renderer: true,
+     *   editor: true,
+     *   validator: true
+     * }
+     * ```
+     *
+     * @private
+     * @type {object}
+     * @default {}
+     */
+    _automaticallyAssignedMetaProps: {},
+
+    /**
      * The `activeHeaderClassName` option lets you add a CSS class name
      * to every currently-active, currently-selected header (when a whole column or row is selected).
      *
@@ -292,24 +310,6 @@ export default () => {
      * ```
      */
     allowRemoveRow: true,
-
-    /**
-     * Information on which of the meta properties were added automatically.
-     * For example: setting the `renderer` property directly won't extend the `automaticallyAssignedMetaProps`
-     * entry, but setting a `type` will modify it to:
-     * ```
-     * automaticallyAssignedMetaProps: {
-     *   renderer: true,
-     *   editor: true,
-     *   validator: true
-     * }
-     * ```
-     *
-     * @private
-     * @type {object}
-     * @default {}
-     */
-    automaticallyAssignedMetaProps: {},
 
     /**
      * The `autoColumnSize` option configures the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.

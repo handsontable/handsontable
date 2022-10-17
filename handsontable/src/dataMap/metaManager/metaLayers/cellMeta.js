@@ -140,8 +140,8 @@ export default class CellMeta {
 
     cellMeta[key] = value;
 
-    if (cellMeta.automaticallyAssignedMetaProps[key] === true) {
-      cellMeta.automaticallyAssignedMetaProps[key] = void 0;
+    if (cellMeta._automaticallyAssignedMetaProps[key] === true) {
+      cellMeta._automaticallyAssignedMetaProps[key] = void 0;
     }
   }
 

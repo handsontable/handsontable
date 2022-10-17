@@ -29,14 +29,14 @@ export function expandMetaType(type, metaObject) {
           preventSourceOverwrite &&
           (
             !hasOwnProperty(metaObject, property) ||
-            metaObject?.automaticallyAssignedMetaProps?.[property] === true
+            metaObject?._automaticallyAssignedMetaProps?.[property] === true
           )
         )
       )) {
       expandedType[property] = value;
 
-      if (metaObject?.automaticallyAssignedMetaProps) {
-        metaObject.automaticallyAssignedMetaProps[property] = true;
+      if (metaObject?._automaticallyAssignedMetaProps) {
+        metaObject._automaticallyAssignedMetaProps[property] = true;
       }
     }
   });
