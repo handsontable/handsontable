@@ -106,12 +106,12 @@ SHA: ${getDocsRepoSHA()}
       }
 
       if ($page.frontmatter.permalink) {
-        $page.frontmatter.permalink = `/${frameworkPath}${$page.frontmatter.permalink}/`;
+        $page.frontmatter.permalink = `/${frameworkPath}${$page.frontmatter.permalink}`;
       }
 
       // Add OpenGraph entries
       frontmatter.meta = [
-        { name: 'og:url', content: `${getDocsHostname()}${getDocsBase()}${$page.frontmatter.permalink}` },
+        { name: 'og:url', content: `${getDocsHostname()}${getDocsBase()}${$page.frontmatter.permalink}/` },
         { name: 'og:type', content: 'website' },
         { name: 'og:title', content: frontmatter.title },
         { name: 'og:description', content: frontmatter.description },
