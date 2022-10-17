@@ -11,6 +11,8 @@ searchCategory: Guides
 
 # Conditional formatting
 
+Format specified cells, based on dynamic conditions.
+
 [[toc]]
 
 ## Overview
@@ -114,6 +116,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
+import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';

@@ -8,6 +8,7 @@ tags:
   - fixing columns
   - snapping columns
   - pinning columns
+  - fixedColumns
 react:
   metaTitle: Column freezing - React Data Grid | Handsontable
 searchCategory: Guides
@@ -15,11 +16,15 @@ searchCategory: Guides
 
 # Column freezing
 
+Lock the position of specified columns, keeping them visible when scrolling.
+
 [[toc]]
 
 ## Overview
 
-Column freezing locks specific columns of a grid in place, keeping them visible while scrolling to another area of the grid. We refer to frozen columns as *fixed*. Columns can be frozen during initialization and by the user.
+Column freezing locks specific columns of a grid in place, keeping them visible while scrolling to another area of the grid. We refer to frozen columns as *fixed*.
+
+Columns can be frozen during initialization and by the user.
 
 ## Freeze columns at initialization
 

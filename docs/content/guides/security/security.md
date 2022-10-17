@@ -11,6 +11,8 @@ searchCategory: Guides
 
 # Security
 
+Learn about the security measures we take to make sure you can safely implement Handsontable in your client-side application.
+
 [[toc]]
 
 ## Overview
@@ -25,18 +27,24 @@ You need to ensure that the data transportation method that you use, both at the
 
 ## Content Security Policy (CSP)
 
-CSP is an added layer of security used to detect and diminish certain types of attacks, including Cross-Site Scripting ([XSS](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting)) and data theft.
+Content Security Policy (CSP) is an added layer of security, used by app vendors to detect and diminish certain types of attacks, such as cross-site scripting (XSS) or data theft.
 
-Handsontable doesn't use external fonts, images, or scripts. Depending on whether you are hosting locally or by our recommended CDN (jsdelivr.net), you will need to use one of the following CSP rules:
+Handsontable doesn't use external fonts, images or scripts.
 
-The CSP Rule for Handsontable hosted locally:
-```js
-default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'
+If you use CSP in your app, the only rules that you might need to add for Handsontable to run are `script-src` and `style-src`:
+
+- `script-src` loads Handsontable's script file. Point it at the origin (domain) where you placed your Handsontable assets.
+- `style-src ... 'unsafe-inline'` loads Handsontable's stylesheet file. Point it at the origin (domain) where you placed your Handsontable assets. Handsontable's XSS prevention logic (DOMPurify) needs the `'unsafe-inline'` source expression for certain features (for example, copy and paste).
+
+An example CSP rule for Handsontable hosted on the same app's origin:
+
+```html
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'">
 ```
+An example CSP rule for Handsontable hosted on a CDN (cdn.jsdelivr.net):
 
-The CSP Rule for Handsontable hosted by CDN  - jsdelivr.net:
-```js
-default-src 'none'; script-src 'self' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net
+```html
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net">
 ```
 
 ## Third-party software

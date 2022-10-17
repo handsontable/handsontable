@@ -11,12 +11,11 @@ searchCategory: Guides
 
 # Cell type
 
+Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
+
 [[toc]]
 
 ## Overview
-The cell type functionality enables you to customize the appearance and validate the cell(s) when applied.
-
-## Usage
 
 There are three functions associated with every table cell: [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor), and optionally [`validator`](@/api/options.md#validator). These functions are mostly used all together as they are strongly connected.
 
@@ -146,7 +145,7 @@ columns={[{
 ```
 :::
 
-## Registering custom cell type
+## Register custom cell type
 
 When you create a custom cell type, best practice is to assign it as an alias that will refer to this particular type definition.
 
@@ -437,6 +436,7 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
+import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';

@@ -856,7 +856,7 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      hot.alter('insert_col', 3, 2);
+      hot.alter('insert_col_start', 3, 2);
 
       const plugin = hot.getPlugin('mergeCells');
       const mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
@@ -897,7 +897,7 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      hot.alter('insert_row', 3, 2);
+      hot.alter('insert_row_above', 3, 2);
 
       const plugin = hot.getPlugin('mergeCells');
       const mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;

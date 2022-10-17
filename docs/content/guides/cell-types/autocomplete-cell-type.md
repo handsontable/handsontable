@@ -1,7 +1,7 @@
 ---
 title: Autocomplete cell type
 metaTitle: Autocomplete cell type - JavaScript Data Grid | Handsontable
-description: Use the autocomplete cell type to collect user input with a menu that lets the user choose a suggested option while typing.
+description: Collect user input with a list of choices, by using the autocomplete cell type.
 permalink: /autocomplete-cell-type
 canonicalUrl: /autocomplete-cell-type
 react:
@@ -11,10 +11,16 @@ searchCategory: Guides
 
 # Autocomplete cell type
 
+Collect user input with a list of choices, by using the autocomplete cell type.
+
 [[toc]]
 
 ## Overview
-The `autocomplete` cell type enables the user to choose a suggested option while typing. Autocomplete can be configured in three different ways, flexible mode, strict mode, and strict mode using Ajax.
+
+Autocomplete can be configured in three different ways:
+- Flexible mode
+- Strict mode
+- Strict mode using Ajax
 
 ## Autocomplete flexible mode
 

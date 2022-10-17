@@ -9,13 +9,11 @@ searchCategory: Guides
 
 # Installation in Angular
 
+Install Handsontable's Angular wrapper via npm, import the stylesheets, and get your application up and running.
+
 [[toc]]
 
-## Overview
-
-Angular installation and basic usage guide.
-
-### Install with npm
+## Install with npm
 
 This component needs the Handsontable library to work. Use npm to install the packages.
 
@@ -23,7 +21,7 @@ This component needs the Handsontable library to work. Use npm to install the pa
 npm install handsontable @handsontable/angular
 ```
 
-### Basic usage
+## Basic usage
 
 Import the Handsontable styles to your project.
 

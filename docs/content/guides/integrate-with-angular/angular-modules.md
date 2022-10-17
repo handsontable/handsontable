@@ -9,9 +9,9 @@ searchCategory: Guides
 
 # Modules in Angular
 
-[[toc]]
+Reduce the size of your Angular app by importing only the modules that you need and use.
 
-Import just the modules that you actually need, to reduce Handsontable's impact on the size of your Angular app.
+[[toc]]
 
 ## Use modules in Angular
 

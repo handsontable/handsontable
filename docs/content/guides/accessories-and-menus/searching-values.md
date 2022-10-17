@@ -1,20 +1,25 @@
 ---
-title: Searching values
-metaTitle: Searching values - JavaScript Data Grid | Handsontable
+title: Search values
+metaTitle: Search values - JavaScript Data Grid | Handsontable
 description: Type the text you are looking for in the search bar to highlight the desired values. Use API methods to implement the search bar outside of the data grid.
 permalink: /searching-values
 canonicalUrl: /searching-values
 tags:
   - find values
   - highlight values
+  - search values
 react:
-  metaTitle: Searching values - React Data Grid | Handsontable
+  metaTitle: Search values - React Data Grid | Handsontable
 searchCategory: Guides
 ---
 
-# Searching values
+# Search values
+
+Type the text you are looking for in the search bar to highlight the desired values. Use API methods to implement the search bar outside of the data grid.
 
 [[toc]]
+
+## Overview
 
 ::: only-for react
 ::: tip
@@ -24,7 +29,7 @@ For more information, see the [`Instance Methods`](@/guides/getting-started/reac
 :::
 :::
 
-The search plugin provides an easy interface to search data across Handsontable.
+The [Search](@/api/search.md) plugin provides an easy interface to search data across Handsontable.
 
 You should first enable the plugin by setting the [`search`](@/api/options.md#search) option to `true`. When enabled, the [`Search`](@/api/search.md) plugin exposes a new method [`query(queryStr)`](@/api/search.md#query), where [`queryStr`](@/api/search.md#query) is a string to find within the table. By default, the search is case insensitive.
 

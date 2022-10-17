@@ -12,9 +12,9 @@ searchCategory: Guides
 
 # Migrating from 10.0 to 11.0
 
-[[toc]]
+Migrate from Handsontable 10.0 to Handsontable 11.0, released on November 17, 2021.
 
-To upgrade your Handsontable version from 10.x.x to 11.x.x, follow this guide.
+[[toc]]
 
 ::: only-for javascript
 ## Step 1: React, Angular, Vue – register your modules

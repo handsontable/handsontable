@@ -11,6 +11,8 @@ searchCategory: Guides
 
 # Numeric cell type
 
+Use the numeric cell type to correctly display, format, sort, and filter numbers.
+
 [[toc]]
 
 ## Overview
@@ -199,7 +201,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 
 ::: only-for react
-## Formatting numbers
+## Format numbers
 
 ::: example #example3 :react-numbro
 ```jsx

@@ -356,9 +356,13 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after retrieving information about a column header and appending it to the table header.
    *
+   * Since the 12.2 the hook is triggered with the 3rd `headerLevel` argument.
+   *
    * @event Hooks#afterGetColHeader
    * @param {number} column Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
+   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
+   *                                 values counting from 0 to N).
    */
   'afterGetColHeader',
 
@@ -1832,16 +1836,26 @@ const REGISTERED_HOOKS = [
   'afterFilter',
 
   /**
-   * Called when a value is updated in the engine.
+   * Fired by the {@link Formulas} plugin, when any cell value changes.
+   *
+   * Returns an array of objects that contains:
+   * - The addresses (`sheet`, `row`, `col`) and new values (`newValue`) of the changed cells.
+   * - The addresses and new values of any cells that had to be recalculated (because their formulas depend on the cells that changed).
+   *
+   * This hook gets also fired on Handsontable's initialization, returning the addresses and values of all cells.
+   *
+   * Read more:
+   * - [Guides: Formula calculation](@/guides/formulas/formula-calculation.md)
+   * - [HyperFormula documentation: `valuesUpdated`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#valuesupdated)
    *
    * @since 9.0.0
    * @event Hooks#afterFormulasValuesUpdate
-   * @param {Array} changes The values and location of applied changes.
+   * @param {Array} changes The addresses and new values of all the changed and recalculated cells.
    */
   'afterFormulasValuesUpdate',
 
   /**
-   * Called when a named expression is added to the Formulas' engine instance.
+   * Fired when a named expression is added to the Formulas' engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionAdded
@@ -1851,7 +1865,7 @@ const REGISTERED_HOOKS = [
   'afterNamedExpressionAdded',
 
   /**
-   * Called when a named expression is removed from the Formulas' engine instance.
+   * Fired when a named expression is removed from the Formulas' engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionRemoved
@@ -1861,7 +1875,7 @@ const REGISTERED_HOOKS = [
   'afterNamedExpressionRemoved',
 
   /**
-   * Called when a new sheet is added to the Formulas' engine instance.
+   * Fired when a new sheet is added to the Formulas' engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterSheetAdded
@@ -1870,7 +1884,7 @@ const REGISTERED_HOOKS = [
   'afterSheetAdded',
 
   /**
-   * Called when a sheet in the Formulas' engine instance is renamed.
+   * Fired when a sheet in the Formulas' engine instance is renamed.
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRenamed
@@ -1880,7 +1894,7 @@ const REGISTERED_HOOKS = [
   'afterSheetRenamed',
 
   /**
-   * Called when a sheet is removed from the Formulas' engine instance.
+   * Fired when a sheet is removed from the Formulas' engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRemoved
