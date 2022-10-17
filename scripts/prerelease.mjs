@@ -1,9 +1,7 @@
-import {
-  displayConfirmationMessage,
-  displayErrorMessage,
-} from './utils/console.mjs';
-import moment from 'moment';
+import { displayErrorMessage } from './utils/console.mjs';
+import { setVersion } from './utils/pre-release.mjs';
 
+import moment from 'moment';
 import fs from 'fs-extra';
 import ChildProcess from 'child_process';
 
@@ -42,6 +40,7 @@ const date = moment().format('YYYYMMDD');
 
 const newVersionNumber = `0.0.0-next-dev.${hash}-${date}`;
 
+/* 
 Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   const dataFromFile = JSON.parse(fs.readFileSync(`${item.PATH}/${FILE_NAME}`));
 
@@ -52,7 +51,10 @@ Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
     `${item.PATH}/${FILE_NAME}`,
     JSON.stringify(dataFromFile, null, 2)
   );
-});
+}); 
+*/
+
+setVersion(newVersionNumber);
 
 Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   process.chdir(MAIN_PATH);
