@@ -123,7 +123,7 @@ SHA: ${getDocsRepoSHA()}
 
       // Add OpenGraph entries
       frontmatter.meta = [
-        { name: 'og:url', content: dedupeSlashes(`${hostWithBase}${$page.frontmatter.permalink}/`) },
+        { name: 'og:url', content: `${hostWithBase}${dedupeSlashes(`/${$page.frontmatter.permalink}/`)}` },
         { name: 'og:type', content: 'website' },
         { name: 'og:title', content: frontmatter.title },
         { name: 'og:description', content: frontmatter.description },
