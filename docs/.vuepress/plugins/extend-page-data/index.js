@@ -106,7 +106,7 @@ SHA: ${getDocsRepoSHA()}
       }
 
       if ($page.frontmatter.permalink) {
-        $page.frontmatter.permalink = `/${frameworkPath}${$page.frontmatter.permalink}`;
+        $page.frontmatter.permalink = `/${frameworkPath}${$page.frontmatter.permalink}/`;
       }
 
       // Add OpenGraph entries
