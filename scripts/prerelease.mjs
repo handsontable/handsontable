@@ -1,12 +1,9 @@
 import { displayErrorMessage } from './utils/console.mjs';
 import { setVersion } from './utils/pre-release.mjs';
-import mainPackageJson from '../package.json' assert { type: 'json' };
 
 import moment from 'moment';
 //import fs from 'fs-extra';
 import ChildProcess from 'child_process';
-
-const workspacePackages = mainPackageJson.workspaces;
 
 const PACKAGES_SETTINGS = {
   MAIN: {
@@ -31,7 +28,7 @@ const PACKAGES_SETTINGS = {
   },
 };
 
-const FILE_NAME = 'package.json';
+// const FILE_NAME = 'package.json';
 const MAIN_PATH = process.cwd();
 
 const hash = ChildProcess.execSync('git rev-parse HEAD')
@@ -51,7 +48,7 @@ Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
     try {
       await ChildProcess.exec('npm publish');
     } catch (error) {
-      displayErrorMessage('\x1b[31m%s\x1b[0m', `${key} - something went wrong`);
+      displayErrorMessage(`${key} - something went wrong`);
       process.exit(error.exitCode);
     }
   })();
