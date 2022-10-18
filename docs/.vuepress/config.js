@@ -92,7 +92,7 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
         const handleTokensInsideOnlyForContainer = (action) => {
           for (let index = state.tokens.length - 1; index >= 0; index -= 1) {
             const token = state.tokens[index];
-            // We don't create custom container intentionally. It can create paragraphs or break listed elements.
+            // We don't create custom container intentionally inside `markdown-it-conditional-container` plugin.
             const isNotNativeContainer = token.markup !== markupForCustomContainer;
 
             if (isNotNativeContainer) {
@@ -113,7 +113,7 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
 
             } else if (tokens[tokenIndex - 1]?.type === headerOpenType &&
               tokens[tokenIndex + 1]?.type === headerCloseType) {
-              // Content placed inside some header.
+              // Tokens being children of some header.
               return true;
             }
 
@@ -122,12 +122,11 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
         };
 
         const getParsedSlugsFromHeaders = (tokens) => {
-          return getTokensInsideHeaders(tokens)
-            .map(headerContentTag => slugify(headerContentTag.content));
+          return getTokensInsideHeaders(tokens).map(headerContentTag => slugify(headerContentTag.content));
         };
 
         const parseAndChangeDuplicatedSlug = (tokensInside) => {
-          getParsedSlugsFromHeaders(tokensInside).forEach((headerSlug) => {
+          getParsedSlugsFromHeaders(tokensInside).some((headerSlug) => { // Array.some for purpose of stopping the loop.
             const headerSlugWithNumber = new RegExp(`${headerSlug}-(\\d)+$`);
 
             if (headerSlugWithNumber.test(slug)) {
@@ -135,11 +134,17 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
               const duplicatedSlugsMatch = headerSlugWithNumber.exec(slug);
 
               if (duplicatedSlugsMatch) {
+                // Updating a set of slugs, which will be used by another method.
                 uniqueSlugs.add(headerSlug);
 
+                // Removed the `-[number]` suffix.
                 slug = `#${headerSlug}`;
+
+                return true; // Breaks the loop.
               }
             }
+
+            return false; // Continue looping.
           });
         };
 
@@ -148,7 +153,8 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
         return `#${slug}`;
       },
       callback(token, slugInfo) {
-        if (uniqueSlugs.has(slugInfo.slug)) {
+        // The map is filled in before by a legacy `permalinkHref` method.
+        if (['h1', 'h2', 'h3'].includes(token.tag) && uniqueSlugs.has(slugInfo.slug)) {
           const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrGet('id'));
 
           if (duplicatedSlugsMatch) {
