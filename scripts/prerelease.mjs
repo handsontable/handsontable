@@ -1,9 +1,10 @@
 import { displayErrorMessage } from './utils/console.mjs';
 import { setVersion } from './utils/pre-release.mjs';
 
+import execa from 'execa';
 import moment from 'moment';
 //import fs from 'fs-extra';
-import ChildProcess from 'child_process';
+//import ChildProcess from 'child_process';
 
 const PACKAGES_SETTINGS = {
   MAIN: {
@@ -31,25 +32,18 @@ const PACKAGES_SETTINGS = {
 // const FILE_NAME = 'package.json';
 const MAIN_PATH = process.cwd();
 
-const hash = ChildProcess.execSync('git rev-parse HEAD')
+const { stdout: hash } = await execa.command('git rev-parse HEAD');
+const date = moment().format('YYYYMMDD');
+const newVersionNumber = `0.0.0-next-dev.${hash
   .toString()
   .trim()
-  .slice(0, 7);
-const date = moment().format('YYYYMMDD');
-const newVersionNumber = `0.0.0-next-dev.${hash}-${date}`;
+  .slice(0, 7)}-${date}`;
 
 setVersion(newVersionNumber);
 
-Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
-  process.chdir(MAIN_PATH);
-  process.chdir(`${item.PATH}`);
-
-  (async function () {
-    try {
-      await ChildProcess.exec('npm publish');
-    } catch (error) {
-      displayErrorMessage(`${key} - something went wrong`);
-      process.exit(error.exitCode);
-    }
-  })();
-});
+try {
+  await execa.command('npm run publish-all');
+} catch (error) {
+  displayErrorMessage(`error during publishing`);
+  process.exit(error.exitCode);
+}
