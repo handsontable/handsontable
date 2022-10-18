@@ -32,7 +32,7 @@ import Handsontable from 'handsontable/base';
 @Component({
   selector: 'app-root',
   template: `
-  <div class="controls"><label>Select language:
+  <div class="controls select-language"><label>Select language of the context menu:
   <select [(ngModel)]="language">
     <option *ngFor="let l of languages" [value]="l.languageCode">{{l.languageCode}}</option>
   </select></label></div>

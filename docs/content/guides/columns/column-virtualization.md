@@ -27,10 +27,6 @@ To process a large number of columns in a browser Handsontable utilizes the virt
 
 You can experiment with the [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset) config option, which determines the number of columns being displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, the virtualization will be practically turned off.
 
-::: warning
-Proceed with caution, as it will affect the overall performance of the grid.
-:::
-
 To make the grid scrollable, set the constant width and height to same as the container holding Handsontable and height and set the `overflow` property to `hidden` in the container's stylesheet. If the table contains enough rows or columns, it will be scrollable.
 
 The scrolling performance depends mainly on four factors:

@@ -136,7 +136,7 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 ```
 ```css
 #exampleParent {
-  height: 150px;
+  height: 157px;
 }
 ```
 ```js
@@ -161,7 +161,7 @@ triggerBtn.addEventListener('click', () => {
     hot.refreshDimensions();
     triggerBtn.textContent = 'Expand container';
   } else {
-    exampleParent.style.height = '400px';
+    exampleParent.style.height = '410px';
     hot.refreshDimensions();
     triggerBtn.textContent = 'Collapse container';
   }
@@ -171,7 +171,12 @@ triggerBtn.addEventListener('click', () => {
 :::
 
 ::: only-for react
-::: example #example :react --js 1
+::: example #example :react --css 1 --js 2
+```css
+#exampleParent {
+  height: 157px;
+}
+```
 ```jsx
 import { useRef, useState, useEffect } from 'react';
 import Handsontable from 'handsontable';
@@ -193,7 +198,7 @@ const ExampleComponent = () => {
 
   useEffect(() => {
     // simulate layout change outside of React lifecycle
-    document.getElementById('exampleParent').style.height = isContainerExpanded ? '400px' : '150px';
+    document.getElementById('exampleParent').style.height = isContainerExpanded ? '410px' : '157px';
     hotRef.current.hotInstance.refreshDimensions();
   });
 

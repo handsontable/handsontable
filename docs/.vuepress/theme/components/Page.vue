@@ -55,17 +55,3 @@ export default {
   },
 };
 </script>
-
-<style lang="stylus">
-  /* Absolute position of the span */
-  h1 {
-    position: relative;
-
-    .header-framework {
-      position: absolute;
-      top: -24px;
-      font-size: 16px;
-      opacity: .8;
-    }
-  }
-</style>
