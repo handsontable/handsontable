@@ -1,13 +1,13 @@
 ---
-title: Set up a translation in Vue 2
-metaTitle: Set up a translation - Vue 2 Data Grid | Handsontable
+title: Setting up a translation in Vue 2
+metaTitle: Setting up a translation - Vue 2 Data Grid | Handsontable
 description: Configure your Vue 2 data grid with different number formats, depending on the specified language and culture.
 permalink: /vue-setting-up-a-translation
 canonicalUrl: /vue-setting-up-a-translation
 searchCategory: Guides
 ---
 
-# Set up a translation in Vue 2
+# Setting up a translation in Vue 2
 
 Configure your Vue 2 data grid with different number formats, depending on the specified language and culture.
 

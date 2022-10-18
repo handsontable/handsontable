@@ -113,11 +113,11 @@ The first argument may be modified and passed on through the Handsontable hooks 
 
 ::: example #example3 :react
 ```jsx
+import Handsontable from 'handsontable';
 import { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
@@ -126,7 +126,7 @@ registerAllModules();
 const ExampleComponent = () => {
   const [settings, setSettings] = useState(() => {
     const initialState = {
-      data: createSpreadsheetData(15, 20),
+      data: Handsontable.helper.createSpreadsheetData(15, 20),
       height: 220,
       licenseKey: 'non-commercial-and-evaluation'
     }

@@ -178,12 +178,12 @@ Note that the `language` property is bound to the component separately using `la
 
 ::: example #example2 :react-languages
 ```jsx
+import Handsontable from 'handsontable';
 import { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { getLanguagesDictionaries } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
@@ -215,7 +215,7 @@ const ExampleComponent = () => {
       </label></div>
 
       <HotTable
-        data={createSpreadsheetData(5, 10)}
+        data={Handsontable.helper.createSpreadsheetData(5, 10)}
         colHeaders={true}
         rowHeaders={true}
         contextMenu={true}

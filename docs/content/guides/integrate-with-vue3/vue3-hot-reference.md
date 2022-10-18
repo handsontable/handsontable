@@ -1,13 +1,13 @@
 ---
-title: Reference the Handsontable instance in Vue 3
-metaTitle: Reference Handsontable - Vue 3 Data Grid | Handsontable
-description: Reference the Handsontable instance from a Vue 3 component to programmatically perform actions such as reloading the data in your data grid.
+title: Referencing the Handsontable instance in Vue 3
+metaTitle: Referencing Handsontable - Vue 3 Data Grid | Handsontable
+description: Referencing the Handsontable instance from a Vue 3 component to programmatically perform actions such as reloading the data in your data grid.
 permalink: /vue3-hot-reference
 canonicalUrl: /vue3-hot-reference
 searchCategory: Guides
 ---
 
-# Reference the Handsontable instance in Vue 3
+# Referencing the Handsontable instance in Vue 3
 
 Reference the Handsontable instance from a Vue 3 component to programmatically perform actions such as reloading the data in your data grid.
 
@@ -30,7 +30,7 @@ The following example implements the `@handsontable/vue3`, showing how to refere
 import { createApp } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -39,7 +39,7 @@ const app = createApp({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(4, 4),
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
         colHeaders: true,
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation'
