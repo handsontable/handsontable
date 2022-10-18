@@ -1,10 +1,12 @@
 import { displayErrorMessage } from './utils/console.mjs';
 import { setVersion } from './utils/pre-release.mjs';
 
-import execa from 'execa';
+import {
+  spawnProcess
+} from './utils/processes.mjs';
 import moment from 'moment';
 
-const { stdout: hash } = await execa.command('git rev-parse HEAD');
+const { stdout: hash } = await spawnProcess('git rev-parse HEAD');
 const date = moment().format('YYYYMMDD');
 const newVersionNumber = `0.0.0-next-dev.${hash
   .toString()
@@ -14,7 +16,7 @@ const newVersionNumber = `0.0.0-next-dev.${hash
 setVersion(newVersionNumber);
 
 try {
-  await execa.command('npm run publish-all');
+  await spawnProcess('npm run publish-all');
 } catch (error) {
   displayErrorMessage(`error during publishing`);
   process.exit(error);
