@@ -1,6 +1,5 @@
 /* global GA_ID, ga */
 const { applyToWindow, instanceRegister } = require('./handsontable-manager');
-const { themeLoader } = require('./themeLoader');
 
 applyToWindow();
 
@@ -126,8 +125,6 @@ export default async({ router, siteData, isServer }) => {
 
     return scrollPromise;
   };
-
-  themeLoader();
 
   if (typeof window.ga === 'function') {
     router.afterEach((to) => {

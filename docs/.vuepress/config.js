@@ -66,9 +66,20 @@ module.exports = {
       src: 'https://consent.cookiebot.com/uc.js',
       'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646'
     }],
-    ['script', {}, `\
-var DOCS_VERSION = '${getThisDocsVersion()}';
-`],
+    ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
+    ['script', {}, `
+      (function(w) {
+        const osColorScheme = () => w.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const preferredScheme = colorScheme ? colorScheme : osColorScheme();
+
+        if (preferredScheme === 'dark') {
+          document.documentElement.classList.add('theme-dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window));
+    `],
     ...environmentHead
   ],
   markdown: {
@@ -139,6 +150,10 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
         // docs latest version variable to the "src" or "href" attributes.
         md.renderer.rules.image = function(tokens, ...rest) {
           tokens.forEach((token) => {
+            // if (token.type !== 'image') {
+            //   return;
+            // }
+
             token.attrs.forEach(([name, value], index) => {
               if (name === 'src') {
                 token.attrs[index][1] = (
