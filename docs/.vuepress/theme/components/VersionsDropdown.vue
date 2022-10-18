@@ -22,7 +22,7 @@ export default {
   methods: {
     addLatest(version) {
       if (version === this.$page.latestVersion) {
-        return `${version} (Current)`;
+        return `${version} (Latest)`;
       }
 
       return version;
