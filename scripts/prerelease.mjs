@@ -3,7 +3,7 @@ import { setVersion } from './utils/pre-release.mjs';
 import mainPackageJson from '../package.json' assert { type: 'json' };
 
 import moment from 'moment';
-import fs from 'fs-extra';
+//import fs from 'fs-extra';
 import ChildProcess from 'child_process';
 
 const workspacePackages = mainPackageJson.workspaces;
@@ -40,18 +40,6 @@ const hash = ChildProcess.execSync('git rev-parse HEAD')
   .slice(0, 7);
 const date = moment().format('YYYYMMDD');
 const newVersionNumber = `0.0.0-next-dev.${hash}-${date}`;
-
-Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
-  const dataFromFile = JSON.parse(fs.readFileSync(`${item.PATH}/${FILE_NAME}`));
-
-  //dataFromFile.version = newVersionNumber;
-  dataFromFile.name = item.NAME;
-
-  fs.writeFileSync(
-    `${item.PATH}/${FILE_NAME}`,
-    JSON.stringify(dataFromFile, null, 2)
-  );
-});
 
 setVersion(newVersionNumber);
 
