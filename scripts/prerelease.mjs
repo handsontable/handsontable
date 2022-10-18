@@ -4,7 +4,7 @@ import { setVersion } from './utils/pre-release.mjs';
 import { spawnProcess } from './utils/processes.mjs';
 import moment from 'moment';
 
-const hash = await spawnProcess('git rev-parse HEAD');
+const hash = await spawnProcess('git rev-parse HEAD', { silent: true });
 const date = moment().format('YYYYMMDD');
 const newVersionNumber = `0.0.0-next-dev.${hash.stdout
   .toString()
