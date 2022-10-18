@@ -25,6 +25,71 @@ describe('MergeCells', () => {
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
     });
+
+    it('should overwrite proper cells while creating new dataset (with nulls in place of merge areas)', () => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: [
+          [null, null, 3, 4, null],
+          [null, null, null, null, null],
+          [null, 5, null, null, null],
+        ],
+        mergeCells: [{
+          row: 0,
+          col: 3,
+          rowspan: 2,
+          colspan: 2
+        }, {
+          row: 2,
+          col: 1,
+          rowspan: 1,
+          colspan: 2
+        }],
+        afterChange,
+      });
+
+      expect(afterChange.calls.mostRecent().args[0]).toEqual([
+        [0, 4, null, null],
+        [1, 3, null, null],
+        [1, 4, null, null],
+        [2, 2, null, null],
+      ]);
+      expect(getSourceData()).toEqual([
+        [null, null, 3, 4, null],
+        [null, null, null, null, null],
+        [null, 5, null, null, null],
+      ]);
+      expect(getData()).toEqual([
+        [null, null, 3, 4, null],
+        [null, null, null, null, null],
+        [null, 5, null, null, null],
+      ]);
+    });
+
+    it('should merge cells on startup respecting indexes sequence changes', () => {
+      handsontable({
+        data: [
+          ['A1', 'B1', null, null],
+          ['A2', 'B2', null, null]
+        ],
+        mergeCells: [{
+          row: 0,
+          col: 2,
+          rowspan: 1,
+          colspan: 2
+        }, {
+          row: 1,
+          col: 2,
+          rowspan: 1,
+          colspan: 2
+        }],
+        manualColumnMove: [1, 0, 2, 3],
+      });
+
+      expect(getSourceData()).toEqual([['A1', 'B1', null, null], ['A2', 'B2', null, null]]);
+      expect(getData()).toEqual([['B1', 'A1', null, null], ['B2', 'A2', null, null]]);
+    });
   });
 
   describe('methods', () => {

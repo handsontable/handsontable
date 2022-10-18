@@ -75,6 +75,24 @@ export default () => {
     /* eslint-disable jsdoc/require-description-complete-sentence */
 
     /**
+     * Information on which of the meta properties were added automatically.
+     * For example: setting the `renderer` property directly won't extend the `_automaticallyAssignedMetaProps`
+     * entry, but setting a `type` will modify it to:
+     * ```
+     * _automaticallyAssignedMetaProps: {
+     *   renderer: true,
+     *   editor: true,
+     *   validator: true
+     * }
+     * ```
+     *
+     * @private
+     * @type {object}
+     * @default {}
+     */
+    _automaticallyAssignedMetaProps: {},
+
+    /**
      * The `activeHeaderClassName` option lets you add a CSS class name
      * to every currently-active, currently-selected header (when a whole column or row is selected).
      *
@@ -582,6 +600,10 @@ export default () => {
      * | ------------------- | ---------------------------------------------------------------- |
      * | A string            | Add a single CSS class name to every currently-selected element  |
      * | An array of strings | Add multiple CSS class names to every currently-selected element |
+     *
+     * ::: tip
+     * We don't recommend changing the CSS styling of the [column summary](@/guides/columns/column-summary.md)'s destination row (the summary may not work properly).
+     * :::
      *
      * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration).
      *

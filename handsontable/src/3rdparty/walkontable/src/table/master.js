@@ -53,6 +53,9 @@ class MasterTable extends Table {
         // An issue occurred on Firefox, where an empty element with overflow: scroll returns an element height higher than 0px
         // despite an empty content within.
         cloneNode.style.overflow = 'auto';
+        // Issue #9545 shows problem with calculating height for HOT on Firefox while placing instance in some
+        // flex containers and setting overflow for some `div` section.
+        cloneNode.style.position = 'absolute';
 
         if (trimmingElement.nextElementSibling) {
           trimmingElementParent.insertBefore(cloneNode, trimmingElement.nextElementSibling);

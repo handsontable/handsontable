@@ -35,7 +35,7 @@ To declare column-specific settings, pass the settings as `hot-column` propertie
 import { createApp } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -44,7 +44,7 @@ const app = createApp({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(10, 10),
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation',
       },

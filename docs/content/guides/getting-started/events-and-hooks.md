@@ -113,11 +113,11 @@ The first argument may be modified and passed on through the Handsontable hooks 
 
 ::: example #example3 :react
 ```jsx
+import Handsontable from 'handsontable';
 import { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
@@ -126,7 +126,7 @@ registerAllModules();
 const ExampleComponent = () => {
   const [settings, setSettings] = useState(() => {
     const initialState = {
-      data: createSpreadsheetData(15, 20),
+      data: Handsontable.helper.createSpreadsheetData(15, 20),
       height: 220,
       licenseKey: 'non-commercial-and-evaluation'
     }
@@ -193,17 +193,13 @@ Note that some callbacks are checked on this page by default.
     <li><label><input type="checkbox" id="check_select_all">Select all</label></li>
   </ul>
   <style>
-    .example-table-container {
-      padding: 10px;
-      background-color: white;
-    }
     #example1_events {
       height: 166px;
-      padding: 5px;
+      padding: 6px;
       margin: 10px 0;
       overflow-y: scroll;
-      font-size: 11px;
-      border: 1px solid #CCC;
+      font-size: 13px;
+      border: 1px solid #ccc;
       box-sizing: border-box;
     }
     #example1_events div {
@@ -214,6 +210,17 @@ Note that some callbacks are checked on this page by default.
     }
     #example1 {
       margin-top: 0;
+    }
+    #example3 .controls {
+      margin: 0 0 16px;
+      padding: 0;
+    }
+    #example3 .controls label {
+      display: inline-block;
+      padding: 3px 0;
+    }
+    #example3 .controls label input {
+      margin-right: 6px;
     }
     #hooksList {
       padding: 0;
