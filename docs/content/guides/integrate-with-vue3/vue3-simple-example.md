@@ -31,7 +31,7 @@ In this example, a `div` element of `id="example1"` where the `@handsontable/vue
 import { createApp } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -40,7 +40,7 @@ const app = createApp({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(6, 10),
+        data: Handsontable.helper.createSpreadsheetData(6, 10),
         colHeaders: true,
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation'
