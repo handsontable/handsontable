@@ -23,7 +23,7 @@ Reference a Handsontable instance from within a React component, to programmatic
 
 ## Use Handsontable's API
 
-You can programmatically change the internal state of Handsontable beyond what's possible with props. To do that, you will need to call API methods of the relevant Handsontable instance associated with your instance of the `HotTable` component.
+You can programmatically change the internal state of Handsontable beyond what's possible with props. To do that, call API methods of the relevant Handsontable instance associated with your instance of the `HotTable` component.
 
 The following example implements the `HotTable` component showing how to reference the Handsontable instance from the wrapper component.
 
@@ -40,17 +40,17 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotTableComponent = useRef(null);
+  const hotTableComponentRef = useRef(null);
 
   const selectCell = () => {
     // The Handsontable instance is stored under the `hotInstance` property of the wrapper component.
-    hotTableComponent.current.hotInstance.selectCell(1, 1);
+    hotTableComponentRef.current.hotInstance.selectCell(1, 1);
   };
 
   return (
     <>
       <HotTable
-        ref={hotTableComponent}
+        ref={hotTableComponentRef}
         data={createSpreadsheetData(4, 4)}
         colHeaders={true}
         height="auto"
