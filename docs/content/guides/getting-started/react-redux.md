@@ -42,7 +42,7 @@ registerAllModules();
 const ExampleComponent = () => {
   const hotSettings = useSelector(state => state);
   const dispatch = useDispatch();
-  const hotTableComponent = useRef(null);
+  const hotTableComponentRef = useRef(null);
 
   const hotData = hotSettings.data;
   const isHotData = Array.isArray(hotData);
@@ -76,7 +76,7 @@ const ExampleComponent = () => {
           </div>
 
           <HotTable
-            ref={hotTableComponent}
+            ref={hotTableComponentRef}
             beforeChange={onBeforeHotChange}
             {...hotSettings}
           />
