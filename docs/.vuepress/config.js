@@ -68,17 +68,17 @@ module.exports = {
     }],
     ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
     ['script', {}, `
-      (function(w) {
+      (function(w, d) {
         const osColorScheme = () => w.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
         const preferredScheme = colorScheme ? colorScheme : osColorScheme();
 
         if (preferredScheme === 'dark') {
-          document.documentElement.classList.add('theme-dark');
+          d.documentElement.classList.add('theme-dark');
         }
 
         w.SELECTED_COLOR_SCHEME = preferredScheme;
-      }(window));
+      }(window, document));
     `],
     ...environmentHead
   ],
@@ -150,10 +150,6 @@ module.exports = {
         // docs latest version variable to the "src" or "href" attributes.
         md.renderer.rules.image = function(tokens, ...rest) {
           tokens.forEach((token) => {
-            // if (token.type !== 'image') {
-            //   return;
-            // }
-
             token.attrs.forEach(([name, value], index) => {
               if (name === 'src') {
                 token.attrs[index][1] = (
