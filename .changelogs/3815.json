@@ -1,0 +1,7 @@
+{
+  "title": "Fixed problem related to calculation of editor's width",
+  "type": "fixed",
+  "issue": 3815,
+  "breaking": false,
+  "framework": "none"
+}

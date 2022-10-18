@@ -1,0 +1,7 @@
+{
+  "title": "Fixed problems related to placing instance in some flex containers and setting an  overflow property for some of them to hidden, scroll or auto value.",
+  "type": "fixed",
+  "issue": 9545,
+  "breaking": false,
+  "framework": "none"
+}

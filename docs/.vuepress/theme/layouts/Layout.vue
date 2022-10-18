@@ -3,8 +3,9 @@
     <ParentLayout>
       <template #page-top>
         <div v-show="show" class="page-top">
-          <div class="version-alert">
-            <p>This page covers a non-latest version of Handsontable.</p>
+          <div class="custom-block tip version-alert">
+            <p>There is a newer version of Handsontable available.
+              <a href="/docs/latest/">Switch to the latest version ⟶</a></p>
           </div>
         </div>
       </template>
@@ -43,16 +44,9 @@ export default {
 .layout-container
   min-height 100%
 
-.version-alert
-  margin-top 2rem
-  padding 1rem 1.2rem
-  border-radius 6px
-  color #fff
-  border 1px solid #e9eef2
-  background #2456f2
-  p
-    margin 0
-    padding 0
-    font-weight 500
-    line-height 1.5
+.custom-block.tip.version-alert
+  position relative
+  top -34px
+  border-width 1px
+  border-style dashed
 </style>

@@ -29,11 +29,11 @@ The following example implements the `HotTable` component showing how to referen
 
 ::: example #example1 :react
 ```jsx
+import Handsontable from 'handsontable';
 import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
@@ -51,13 +51,13 @@ const ExampleComponent = () => {
     <>
       <HotTable
         ref={hotTableComponentRef}
-        data={createSpreadsheetData(4, 4)}
+        data={Handsontable.helper.createSpreadsheetData(4, 4)}
         colHeaders={true}
         height="auto"
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button onClick={selectCell}>Select B2 cell!</button>
+        <button onClick={selectCell}>Select cell B2</button>
       </div>
     </>
   );

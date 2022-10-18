@@ -33,7 +33,7 @@ To customize your column summaries, you can:
 
 ### Column summary example
 
-The example below calculates and displays five different column summaries:
+This example calculates and displays five different column summaries:
 
 ::: only-for javascript
 ::: example #example1
@@ -56,7 +56,9 @@ const hot = new Handsontable(container, {
       sourceColumn: 0,
       type: 'sum',
       destinationRow: 3,
-      destinationColumn: 0
+      destinationColumn: 0,
+      // force this column summary to treat non-numeric values as numeric values
+      forceNumeric: true
     },
     {
       sourceColumn: 1,
@@ -116,7 +118,9 @@ const ExampleComponent = () => {
           sourceColumn: 0,
           type: 'sum',
           destinationRow: 3,
-          destinationColumn: 0
+          destinationColumn: 0,
+          // force this column summary to treat non-numeric values as numeric values
+          forceNumeric: true
         },
         {
           sourceColumn: 1,
@@ -410,6 +414,10 @@ columnSummary={[
 ```
 :::
 
+::: tip
+We don't recommend changing the CSS styling of the summary's destination row (the summary may not work properly).
+:::
+
 ### Step 5: Make room for the destination cell
 
 The [`ColumnSummary`](@/api/columnSummary.md) plugin doesn't automatically add new rows to display its summary results.
@@ -417,9 +425,9 @@ The [`ColumnSummary`](@/api/columnSummary.md) plugin doesn't automatically add n
 So, if you always want to display your column summary result below your existing rows, you need to:
 1. Add an empty row to the bottom of your grid (to avoid overwriting your existing rows).
 2. Reverse row coordinates for your column summary (to always display your summary result at the bottom).
-    ::: tip
-    To reverse row coordinates for your column summary, set the [`reversedRowCoords`](@/api/columnSummary.md#options) option to `true`, and adjust the [`destinationRow`](@/api/columnSummary.md#options) coordinate.
-    :::
+::: tip
+To reverse row coordinates for your column summary, set the [`reversedRowCoords`](@/api/columnSummary.md#options) option to `true`, and adjust the [`destinationRow`](@/api/columnSummary.md#options) coordinate.
+:::
 
 ::: only-for javascript
 ::: example #example2
@@ -879,7 +887,7 @@ columnSummary={[{
 ```
 :::
 
-The example below implements a function that counts the number of even values in a column:
+This example implements a function that counts the number of even values in a column:
 
 ::: only-for javascript
 ::: example #example9
