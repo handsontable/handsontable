@@ -11,7 +11,7 @@
 const CLASS_THEME_DARK = 'theme-dark';
 const STORAGE_KEY = 'handsontable/docs::color-scheme';
 // The "SELECTED_COLOR_SCHEME" const is defined in the script that is injected in the VuePress config.js file.
-// The script executes the logic before the VuePress app is initialized to prevent page flickering #8288.
+// The script executes the logic before the VuePress app is initialized to prevent page flickering (#8288).
 const SELECTED_THEME = typeof window === 'undefined' ? undefined : window.SELECTED_COLOR_SCHEME;
 
 export default {
@@ -71,6 +71,7 @@ export default {
   position relative
   display inline-block
   top: 1px;
+  vertical-align: top;
 
   /* Hide the theme switcher on narrow screen */
   @media (max-width: $large) {
