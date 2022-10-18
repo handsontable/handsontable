@@ -14,7 +14,7 @@ const newVersionNumber = `0.0.0-next-dev.${hash.stdout
 setVersion(newVersionNumber);
 
 try {
-  await spawnProcess('npm run publish-all', { silent: true });
+  await spawnProcess('npm run publish-all');
 } catch (error) {
   displayErrorMessage(`error during publishing`);
   throw new Error(error);
