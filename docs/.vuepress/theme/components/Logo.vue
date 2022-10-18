@@ -1,5 +1,6 @@
 <template>
   <svg viewBox="0 0 1300 197.33" xmlns="http://www.w3.org/2000/svg" id="handsontable-logo">
+    <title>Handsontable - a JavaScript data grid that provides spreadsheet-like UX</title>
     <path transform="translate(-50 -101.33)" d="m50
 108.22h37.31v49.447h42.56v-49.447h37.125v129.49h-37.125v-51.068h-42.56v51.068h-37.31z"/>
     <path transform="translate(-50 -101.33)" d="m182.72 211.45c0-22.271 18.838-30.969

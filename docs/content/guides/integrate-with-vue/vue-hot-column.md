@@ -33,7 +33,7 @@ To declare column-specific settings, pass the settings as `hot-column` propertie
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -43,7 +43,7 @@ new Vue({
   data: function() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(10, 10),
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation',
       },
@@ -134,7 +134,7 @@ Be sure to turn those options off in your Handsontable config, as keeping them e
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 const CustomRenderer = {
   template: '<div><i style="color: #a9a9a9">Row: {{row}}, column: {{col}},</i> value: {{value}}</div>',
@@ -165,7 +165,7 @@ const App = new Vue({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(10, 10),
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
         autoRowSize: false,
         autoColumnSize: false,
         height: 'auto',
@@ -331,7 +331,7 @@ List of row indexes (starting from 0):
 
 ::: example #v-model-example :vue --html 1 --js 2
 ```html
-<div id="v-model-example">
+<div id="v-model-example" class="controls v-model">
   <label for="mainInput">List of row indexes (starting from 0):</label><br>
     <input id="mainInput" v-model="highlightedRows"/>
 
@@ -347,7 +347,7 @@ List of row indexes (starting from 0):
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 const CustomRenderer = {
   template: `<div v-bind:style="{ backgroundColor: bgColor }">{{value}}</div>`,
@@ -374,7 +374,7 @@ const App = new Vue({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(10, 1)  ,
+        data: Handsontable.helper.createSpreadsheetData(10, 1)  ,
         licenseKey: 'non-commercial-and-evaluation',
         autoRowSize: false,
         autoColumnSize: false,

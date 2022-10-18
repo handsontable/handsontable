@@ -27,13 +27,13 @@ The following example implements the `@handsontable/react` component with a [`re
 
 ::: example #example1 :react-redux
 ```jsx
+import Handsontable from 'handsontable';
 import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { createStore } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
@@ -64,7 +64,7 @@ const ExampleComponent = () => {
   }
 
   return (
-    <div className="redux-example-container">
+    <div className="dump-example-container">
       <div id="example-container">
 
         <div id="example-preview">
@@ -118,7 +118,7 @@ const ExampleComponent = () => {
 };
 
 const initialReduxStoreState = {
-  data: createSpreadsheetData(5, 3),
+  data: Handsontable.helper.createSpreadsheetData(5, 3),
   colHeaders: true,
   rowHeaders: true,
   readOnly: false,
