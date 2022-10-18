@@ -6,7 +6,7 @@ import moment from 'moment';
 //import fs from 'fs-extra';
 //import ChildProcess from 'child_process';
 
-const PACKAGES_SETTINGS = {
+/* const PACKAGES_SETTINGS = {
   MAIN: {
     NAME: 'tmp-hot',
     PATH: 'handsontable/tmp',
@@ -27,10 +27,10 @@ const PACKAGES_SETTINGS = {
     NAME: 'tmp-hot-vue3',
     PATH: 'wrappers/vue3',
   },
-};
+}; */
 
 // const FILE_NAME = 'package.json';
-const MAIN_PATH = process.cwd();
+// const MAIN_PATH = process.cwd();
 
 const { stdout: hash } = await execa.command('git rev-parse HEAD');
 const date = moment().format('YYYYMMDD');
