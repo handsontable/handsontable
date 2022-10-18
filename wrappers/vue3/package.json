@@ -1,6 +1,6 @@
 {
-  "name": "@handsontable/vue3",
-  "version": "12.1.3",
+  "name": "tmp-hot-vue3",
+  "version": "12.1.3-dev.da8a0e22-1665015147969",
   "description": "Best Data Grid for Vue with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",

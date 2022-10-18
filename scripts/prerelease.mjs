@@ -38,12 +38,8 @@ const hash = ChildProcess.execSync('git rev-parse HEAD')
   .toString()
   .trim()
   .slice(0, 7);
-
 const date = moment().format('YYYYMMDD');
-
 const newVersionNumber = `0.0.0-next-dev.${hash}-${date}`;
-
-
 
 Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   const dataFromFile = JSON.parse(fs.readFileSync(`${item.PATH}/${FILE_NAME}`));
@@ -57,7 +53,7 @@ Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   );
 });
 
-setVersion(newVersionNumber, workspacePackages);
+setVersion(newVersionNumber);
 
 Object.entries(PACKAGES_SETTINGS).forEach(([key, item]) => {
   process.chdir(MAIN_PATH);

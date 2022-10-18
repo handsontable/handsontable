@@ -1,5 +1,5 @@
 {
-  "name": "handsontable",
+  "name": "tmp-hot",
   "description": "Handsontable is a JavaScript Spreadsheet Component available for React, Angular and Vue.",
   "homepage": "https://handsontable.com/",
   "repository": {
@@ -15,7 +15,7 @@
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
   "jsdelivr": "dist/handsontable.full.min.js",
-  "unpkg": "dist/handsontable.full.min.js",
+  "unpkg": "dist/handsontpackagesLocationable.full.min.js",
   "scripts": {
     "clean": "rimraf commonjs es coverage tmp",
     "lint": "npm run eslint && npm run tslint && npm run dtslint && npm run stylelint",
