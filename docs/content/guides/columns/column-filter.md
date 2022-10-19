@@ -189,9 +189,9 @@ The examples below show how to adjust the Filter plugin to your needs. They incl
 
 ### Filter as you type
 
-In this example, a basic `input` element has been placed inside a column’s header (A, B, C…). It is placed right below the column's label and is separated with a horizontal line for better visibility. The data is being filtered as you type - with a 100 ms delay. The filter element has been excluded from the selection event, so the column doesn’t get selected when clicked on.
+This example places a basic `input` element inside each column header (A, B, C), separated by a horizontal line. The data is being filtered as you type, with a 100 ms delay. The filter element is excluded from the selection event, so the column doesn’t get selected when clicked on.
 
-Please note that this demo uses a Handsontable API to a great extent.
+The demo below is just a demonstration (e.g., you can't add more columns). We don't recommend using it in your production code.
 
 ::: only-for javascript
 ::: example #example3
