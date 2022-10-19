@@ -18,6 +18,7 @@ env:
 
 jobs:
   check-scope:
+    name: Checking the scope
     runs-on: ubuntu-latest
     outputs:
       run-all: ${{
