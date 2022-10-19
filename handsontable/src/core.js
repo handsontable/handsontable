@@ -2667,7 +2667,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.alter('insert_col_start', 10, 3);
    * // Remove 2 rows starting from 10th row.
    * hot.alter('remove_row', 10, 2);
-   * // Remove 5 non-contiquous rows (it removes 3 rows from visual index 1 and 2 rows from visual index 5).
+   * // Remove 5 non-contiguous rows (it removes 3 rows from visual index 1 and 2 rows from visual index 5).
    * hot.alter('remove_row', [[1, 3], [5, 2]]);
    * ```
    */
