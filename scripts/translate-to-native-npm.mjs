@@ -24,7 +24,7 @@ if (argv._.length === 0) {
 (async() => {
   const prependWithScope = (packageName) => {
     if (packageName !== 'tmp-hot' && packageName !== 'examples') {
-      return `@tmp-hot-${packageName}`;
+      return `@tmp-hot/${packageName}`;
     }
 
     return packageName;
