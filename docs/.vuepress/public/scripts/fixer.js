@@ -29,7 +29,7 @@
     return string[0].toUpperCase() + string.substr(1);
   }
 
-  // Necessery for jsFiddle environment
+  // Necessary for jsFiddle environment
   if (!isInternalFixer && window.addEventListener) {
     function appendScript(code) {
       const scriptEl = document.createElement('script');

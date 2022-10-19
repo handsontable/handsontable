@@ -108,10 +108,26 @@ module.exports = function(docsVersion, base) {
 
         jsToken.content = jsToken.content.replaceAll('{{$basePath}}', base);
 
+        let codeFooter = '';
+
+        if (preset.includes('angular')) {
+          jsToken.content = jsToken.content
+            .replace('import { AppComponent } from \'./app.component\';', '')
+            .replace('import { CustomEditor } from \'./CustomEditor\';', '');
+
+          codeFooter = `
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch(err => { console.error(err) });
+          `;
+        }
+
         const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
         const noEdit = !!args.match(/--no-edit/)?.[0];
 
-        const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), jsToken.content, env.relativePath);
+        const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), `${jsToken.content}${codeFooter}`, env.relativePath);
         const encodedCode = encodeURI(`useHandsontable('${docsVersion}', function(){${code}}, '${preset}')`);
 
         [htmlIndex, jsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {

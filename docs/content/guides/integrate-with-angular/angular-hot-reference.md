@@ -22,7 +22,7 @@ The following example is an implementation of `@handsontable/angular`, which sho
 <app-root></app-root>
 ```
 ```js
-// app.component.ts
+/* file: app.component.ts */
 import { Component } from '@angular/core';
 import Handsontable from 'handsontable/base';
 import { HotTableRegisterer } from '@handsontable/angular';
@@ -30,14 +30,14 @@ import { HotTableRegisterer } from '@handsontable/angular';
 @Component({
   selector: 'app-root',
   template: `
-  <div>
-    <hot-table [hotId]="id" [settings]="hotSettings"></hot-table>
-  </div>
-  <br>
-  <button (click)="swapHotData()" class="controls">Load new data</button>
+    <div>
+      <hot-table [hotId]="id" [settings]="hotSettings"></hot-table>
+    </div>
+    <br>
+    <button (click)="swapHotData()" class="controls">Load new data</button>
   `,
 })
-class AppComponent {
+export class AppComponent {
   private hotRegisterer = new HotTableRegisterer();
   id = 'hotInstance';
   hotSettings: Handsontable.GridSettings = {
@@ -52,25 +52,21 @@ class AppComponent {
   }
 }
 
-// app.module.ts
+/* file: app.module.ts */
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
 import { registerAllModules } from 'handsontable/registry';
+import { AppComponent } from './app.component';
 
 // register Handsontable's modules
 registerAllModules();
 
 @NgModule({
-  imports:      [ BrowserModule, HotTableModule.forRoot() ],
+  imports: [ BrowserModule, HotTableModule.forRoot() ],
   declarations: [ AppComponent ],
-  bootstrap:    [ AppComponent ]
+  bootstrap: [ AppComponent ]
 })
-class AppModule { }
-
-// bootstrap
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
-platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
+export class AppModule { }
 ```
 :::

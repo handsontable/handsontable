@@ -23,20 +23,20 @@ The following is an implementation of the `@handsontable/angular` component with
 ```
 
 ```js
-/// file: app.component.ts
+/* file: app.component.ts */
 import { Component } from '@angular/core';
 import Handsontable from 'handsontable/base';
-//import { CustomEditor } from './CustomEditor.js';
+import { CustomEditor } from './CustomEditor';
 
 @Component({
   selector: 'app-root',
   template: `
-  <div>
-    <hot-table [settings]="hotSettings"></hot-table>
-  </div>
+    <div>
+      <hot-table [settings]="hotSettings"></hot-table>
+    </div>
   `,
 })
-class AppComponent {
+export class AppComponent {
   hotSettings: Handsontable.GridSettings = {
     startRows: 5,
     columns: [
@@ -50,24 +50,25 @@ class AppComponent {
   };
 }
 
-/// file: app.module.ts
+/* file: app.module.ts */
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
+import { AppComponent } from './app.component';
 
 // register Handsontable's modules
 registerAllModules();
 
 @NgModule({
-  imports:      [ BrowserModule, HotTableModule ],
+  imports: [ BrowserModule, HotTableModule ],
   declarations: [ AppComponent ],
-  bootstrap:    [ AppComponent ]
+  bootstrap: [ AppComponent ]
 })
-class AppModule { }
+export class AppModule { }
 
-/// file: CustomEditor.js
+/* file: CustomEditor.ts */
 export class CustomEditor extends TextEditor {
   constructor(props) {
     super(props);
@@ -84,11 +85,6 @@ export class CustomEditor extends TextEditor {
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }
-
-/// bootstrap:
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
-platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
 :::
 

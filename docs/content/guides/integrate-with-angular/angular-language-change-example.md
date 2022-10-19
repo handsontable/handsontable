@@ -24,7 +24,7 @@ Select a language from the selector above the table and open the Context Menu to
 <app-root></app-root>
 ```
 ```js
-// app.component.ts
+/* file: app.component.ts */
 import { Component } from '@angular/core';
 import { getLanguagesDictionaries } from 'handsontable/i18n';
 import Handsontable from 'handsontable/base';
@@ -32,16 +32,16 @@ import Handsontable from 'handsontable/base';
 @Component({
   selector: 'app-root',
   template: `
-  <div class="controls select-language"><label>Select language of the context menu:
-  <select [(ngModel)]="language">
-    <option *ngFor="let l of languages" [value]="l.languageCode">{{l.languageCode}}</option>
-  </select></label></div>
-  <div>
-    <hot-table [language]="language" [settings]="hotSettings"></hot-table>
-  </div>
+    <div class="controls select-language"><label>Select language of the context menu:
+    <select [(ngModel)]="language">
+      <option *ngFor="let l of languages" [value]="l.languageCode">{{l.languageCode}}</option>
+    </select></label></div>
+    <div>
+      <hot-table [language]="language" [settings]="hotSettings"></hot-table>
+    </div>
   `,
 })
-class AppComponent {
+export class AppComponent {
   hotSettings: Handsontable.GridSettings = {
     data: Handsontable.helper.createSpreadsheetData(5, 10),
     colHeaders: true,
@@ -54,27 +54,23 @@ class AppComponent {
   languages = getLanguagesDictionaries();
 }
 
-// app.module.ts
+/* file: app.module.ts */
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
 import { registerAllModules } from 'handsontable/registry';
+import { AppComponent } from './app.component';
 
 // register Handsontable's modules
 registerAllModules();
 
 @NgModule({
-  imports:      [ BrowserModule, FormsModule, HotTableModule ],
+  imports: [ BrowserModule, FormsModule, HotTableModule ],
   declarations: [ AppComponent ],
-  bootstrap:    [ AppComponent ]
+  bootstrap: [ AppComponent ]
 })
-class AppModule { }
-
-// bootstrap
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
-platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
+export class AppModule { }
 ```
 :::
 
