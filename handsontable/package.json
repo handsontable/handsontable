@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "0.0.0-next-c0a7ce9-20221019",
+  "version": "12.1.3",
   "main": "index",
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
