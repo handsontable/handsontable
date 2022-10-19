@@ -37,7 +37,7 @@ jobs:
       test-vue: ${{ steps.path-filter.outputs.test-vue }}
       test-vue3: ${{ steps.path-filter.outputs.test-vue3 }}
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
       - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # https://github.com/dorny/paths-filter/releases/tag/v2.10.2
         id: path-filter
@@ -107,9 +107,9 @@ jobs:
       needs.check-scope.outputs.run-all == 'true' ||
       needs.check-scope.outputs.build-handsontable-umd == 'true'
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -135,9 +135,9 @@ jobs:
       needs.check-scope.outputs.run-all == 'true' ||
       needs.check-scope.outputs.build-handsontable-es-cjs == 'true'
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -164,9 +164,9 @@ jobs:
       needs.check-scope.outputs.run-all == 'true' ||
       needs.check-scope.outputs.test-handsontable-unit == 'true'
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -184,9 +184,9 @@ jobs:
       needs.check-scope.outputs.run-all == 'true' ||
       needs.check-scope.outputs.test-handsontable-types == 'true'
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -204,9 +204,9 @@ jobs:
       needs.check-scope.outputs.run-all == 'true' ||
       needs.check-scope.outputs.test-handsontable-walkontable == 'true'
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -224,9 +224,9 @@ jobs:
       needs.check-scope.outputs.run-all == 'true' ||
       needs.check-scope.outputs.test-handsontable-e2e == 'true'
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -250,9 +250,9 @@ jobs:
       needs.check-scope.outputs.run-all == 'true' ||
       needs.check-scope.outputs.test-handsontable-e2e-min == 'true'
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -276,9 +276,9 @@ jobs:
       needs.check-scope.outputs.run-all == 'true' ||
       needs.check-scope.outputs.test-angular == 'true'
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -302,9 +302,9 @@ jobs:
       needs.check-scope.outputs.run-all == 'true' ||
       needs.check-scope.outputs.test-react == 'true'
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -328,9 +328,9 @@ jobs:
       needs.check-scope.outputs.run-all == 'true' ||
       needs.check-scope.outputs.test-vue == 'true'
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -354,9 +354,9 @@ jobs:
       needs.check-scope.outputs.run-all == 'true' ||
       needs.check-scope.outputs.test-vue3 == 'true'
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
