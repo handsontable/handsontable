@@ -21,12 +21,14 @@ jobs:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
     steps:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # https://github.com/actions/checkout/releases/tag/v3.0.2
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@eeb10cff27034e7acf239c5d29f62154018672fd # https://github.com/actions/setup-node/releases/tag/v3.3.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+
       - name: Install the dependencies
         run: npm ci
+
       - name: Build all packages
         run: npm run all build
