@@ -1,21 +1,14 @@
-import { displayErrorMessage } from './utils/console.mjs';
-import { setVersion } from './utils/pre-release.mjs';
-
-import { spawnProcess } from './utils/processes.mjs';
 import moment from 'moment';
+import { setVersion } from './utils/pre-release.mjs';
+import { spawnProcess } from './utils/processes.mjs';
 
-const hash = await spawnProcess('git rev-parse HEAD', { silent: true });
-const date = moment().format('YYYYMMDD');
-const newVersionNumber = `0.0.0-next-dev.${hash.stdout
+const commitSha = (await spawnProcess('git rev-parse HEAD', { silent: true }))
+  .stdout
   .toString()
-  .trim()
-  .slice(0, 7)}-${date}`;
+  .slice(0, 7);
+const date = moment().format('YYYYMMDD');
+const newVersion = `0.0.0-next-${commitSha}-${date}`;
 
-setVersion(newVersionNumber);
+setVersion(newVersion);
 
-try {
-  await spawnProcess('npm run publish-all');
-} catch (error) {
-  displayErrorMessage(`error during publishing`);
-  throw new Error(error);
-}
+await spawnProcess('npm run publish-all');
