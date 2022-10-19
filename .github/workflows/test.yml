@@ -40,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
-      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # https://github.com/dorny/paths-filter/releases/tag/v2.10.2
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # https://github.com/dorny/paths-filter/releases/tag/v2.11.2
         id: path-filter
         with:
           filters: |
@@ -122,11 +122,10 @@ jobs:
           npm run build:umd.min && npm run build:languages.min
       - run: tar -zcf dist.tar.gz ./handsontable/dist
       - name: Upload the Handsontable UMD build artifact.
-        uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # https://github.com/actions/upload-artifact/releases/tag/v3.1.0
         with:
           name: handsontable-build-umd
-          path: |
-            dist.tar.gz
+          path: dist.tar.gz
 
   build-handsontable-es-cjs:
     name: "[BUILD] Handsontable: ES + CJS"
@@ -151,11 +150,10 @@ jobs:
           npm run postbuild
       - run: tar -zcf tmp.tar.gz ./handsontable/tmp
       - name: Upload the Handsontable ES + CJS build artifact.
-        uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # https://github.com/actions/upload-artifact/releases/tag/v3.1.0
         with:
           name: handsontable-build-es-cjs
-          path: |
-            tmp.tar.gz
+          path: tmp.tar.gz
 
   test-handsontable-unit:
     name: "[TEST] Handsontable: Unit"
@@ -233,7 +231,7 @@ jobs:
           cache: 'npm'
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 # https://github.com/actions/download-artifact/releases/tag/v3.0.0
         with:
           name: handsontable-build-umd
           path: ./
@@ -259,7 +257,7 @@ jobs:
           cache: 'npm'
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 # https://github.com/actions/download-artifact/releases/tag/v3.0.0
         with:
           name: handsontable-build-umd
           path: ./
@@ -285,7 +283,7 @@ jobs:
           cache: 'npm'
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 # https://github.com/actions/download-artifact/releases/tag/v3.0.0
         with:
           name: handsontable-build-es-cjs
           path: ./
@@ -311,7 +309,7 @@ jobs:
           cache: 'npm'
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 # https://github.com/actions/download-artifact/releases/tag/v3.0.0
         with:
           name: handsontable-build-es-cjs
           path: ./
@@ -337,7 +335,7 @@ jobs:
           cache: 'npm'
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 # https://github.com/actions/download-artifact/releases/tag/v3.0.0
         with:
           name: handsontable-build-es-cjs
           path: ./
@@ -363,7 +361,7 @@ jobs:
           cache: 'npm'
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 # https://github.com/actions/download-artifact/releases/tag/v3.0.0
         with:
           name: handsontable-build-es-cjs
           path: ./
