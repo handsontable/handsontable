@@ -110,7 +110,7 @@ Handsontable's built-in features and customizability keep it present across diff
 
 ## Technical support
 
-Implementing Handsontable requires a certain level of front-end development skills. In case you need help, and can't find a solution in the documentation, reach out to us. If you have a commercial Handsontable license, and your support plan is active, contact our Support Team at [support@handsontable.com](mailto:support@handsontable.com).
+Implementing Handsontable requires a certain level of front-end development skills. In case you need help, and can't find a solution in the documentation, reach out to us. If you have a commercial Handsontable license, and your support plan is active, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
 
 ## Feedback
 
