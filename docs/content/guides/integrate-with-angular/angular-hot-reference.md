@@ -1,13 +1,13 @@
 ---
-title: Reference a Handsontable instance in Angular
-metaTitle: Reference Handsontable - Angular Data Grid | Handsontable
-description: Reference a Handsontable instance from an Angular component to programmatically perform actions such as reloading the data in your data grid.
+title: Referencing a Handsontable instance in Angular
+metaTitle: Referencing Handsontable - Angular Data Grid | Handsontable
+description: Referencing a Handsontable instance from an Angular component to programmatically perform actions such as reloading the data in your data grid.
 permalink: /angular-hot-reference
 canonicalUrl: /angular-hot-reference
 searchCategory: Guides
 ---
 
-# Reference a Handsontable instance in Angular
+# Referencing a Handsontable instance in Angular
 
 Reference a Handsontable instance from an Angular component to programmatically perform actions such as reloading the data in your data grid.
 
