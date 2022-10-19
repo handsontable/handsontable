@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [12.2.0] - 2022-10-25
+
+### Fixed
+- Fixed problem related to calculation of editor's width [#3815](https://github.com/handsontable/handsontable/issues/3815)
+- Fixed problem with overwriting source data incorrectly when there are some merged cells [#6359](https://github.com/handsontable/handsontable/issues/6359)
+- Fixed problems related to placing instance in some flex containers and setting an  overflow property for some of them to hidden, scroll or auto value. [#9545](https://github.com/handsontable/handsontable/issues/9545)
+- Fixed an issue with being unable to effectively change the `type` meta multiple times. [#9734](https://github.com/handsontable/handsontable/issues/9734)
+- Fixed an issue with dropdownMenu not being displayed on a nestedHeaders-enabled instance with all rows trimmed out. [#9753](https://github.com/handsontable/handsontable/issues/9753)
+- Fixed an issue where release script exits with an error code. [#9941](https://github.com/handsontable/handsontable/issues/9941)
+
+### Added
+- Added a new feature that lets you add rows and columns in a specified position (above or below the given index). [#9471](https://github.com/handsontable/handsontable/issues/9471)
+
+### Changed
+- API reference and type definitions for hooks and methods has been made more precise [#9901](https://github.com/handsontable/handsontable/issues/9901)
+
+### Removed
+- Removed type definition for non-existing method translateRowsToColumns. [#9919](https://github.com/handsontable/handsontable/issues/9919)
+
 ## [12.1.3] - 2022-09-22
 
 For more information on this release, see:
