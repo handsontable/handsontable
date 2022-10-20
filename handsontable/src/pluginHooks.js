@@ -835,20 +835,20 @@ const REGISTERED_HOOKS = [
    * @example
    * ::: only-for javascript
    * ```js
+   * // to alter a single change, overwrite the value with `changes[i][3]`
+   * new Handsontable(element, {
+   *   beforeChange: (changes, source) => {
+   *     // [[row, prop, oldVal, newVal], ...]
+   *     changes[0][3] = 10;
+   *   }
+   * });
+   *
    * // to ignore a single change, set `changes[i]` to `null`
    * // or remove `changes[i]` from the array, by using `changes.splice(i, 1)`
    * new Handsontable(element, {
    *   beforeChange: (changes, source) => {
    *     // [[row, prop, oldVal, newVal], ...]
    *     changes[0] = null;
-   *   }
-   * });
-   *
-   * // to alter a single change, overwrite the value with `changes[i][3]`
-   * new Handsontable(element, {
-   *   beforeChange: (changes, source) => {
-   *     // [[row, prop, oldVal, newVal], ...]
-   *     changes[0][3] = 10;
    *   }
    * });
    *
@@ -865,20 +865,20 @@ const REGISTERED_HOOKS = [
    *
    * ::: only-for react
    * ```jsx
+   * // to alter a single change, overwrite the desired value with `changes[i][3]`
+   * <HotTable
+   *   beforeChange={(changes, source) => {
+   *     // [[row, prop, oldVal, newVal], ...]
+   *     changes[0][3] = 10;
+   *   }}
+   * />
+   *
    * // to ignore a single change, set `changes[i]` to `null`
    * // or remove `changes[i]` from the array, by using changes.splice(i, 1).
    * <HotTable
    *   beforeChange={(changes, source) => {
    *     // [[row, prop, oldVal, newVal], ...]
    *     changes[0] = null;
-   *   }}
-   * />
-   *
-   * // to alter a single change, overwrite the desired value with `changes[i][3]`
-   * <HotTable
-   *   beforeChange={(changes, source) => {
-   *     // [[row, prop, oldVal, newVal], ...]
-   *     changes[0][3] = 10;
    *   }}
    * />
    *
