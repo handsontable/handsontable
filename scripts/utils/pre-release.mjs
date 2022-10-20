@@ -4,7 +4,10 @@ import moment from 'moment';
 import replace from 'replace-in-file';
 import inquirer from 'inquirer';
 import semver from 'semver';
-import { displayErrorMessage, displayConfirmationMessage } from './index.mjs';
+import {
+  displayErrorMessage,
+  displayConfirmationMessage
+} from './index.mjs';
 
 import mainPackageJson from '../../package.json' assert { type: 'json' };
 import hotConfig from '../../hot.config.js';
@@ -42,12 +45,13 @@ export function validateReleaseDate(date) {
   const now = moment();
   const returnObj = {
     valid: true,
-    error: null,
+    error: null
   };
 
   if (!dateObj.isValid()) {
     returnObj.valid = false;
     returnObj.error = 'The provided date is invalid.';
+
   } else if (!dateObj.isAfter(now)) {
     returnObj.valid = false;
     returnObj.error = 'The release date has to be a future date.';
@@ -66,51 +70,35 @@ export function setVersion(version, packages = workspacePackages) {
   // Set the new version number to hot.config.js.
   const hotConfigPath = path.resolve(__dirname, '../../hot.config.js');
 
-  validateReplacementStatus(
-    replace.sync({
-      files: hotConfigPath,
-      from: /HOT_VERSION: '(.*)'/,
-      to: `HOT_VERSION: '${version}'`,
-    }),
-    version
-  );
+  validateReplacementStatus(replace.sync({
+    files: hotConfigPath,
+    from: /HOT_VERSION: '(.*)'/,
+    to: `HOT_VERSION: '${version}'`,
+  }), version);
 
   // Set the new version number to all the packages.
   packages.forEach((packagesLocation) => {
-    validateReplacementStatus(
-      replace.sync({
-        files: `${packagesLocation}${
-          packagesLocation === '.' ? '' : '*'
-        }/package.json`,
-        from: [
-          /"version": "(.*)"/,
-          /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g,
-          /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g,
-        ],
-        to: (fullMatch, ...[semverPrefix, previousVersion]) => {
-          console.log(fullMatch);
-          if (fullMatch.indexOf('version') > 0) {
-            // Replace the version with the new version.
-            return `"version": "${version}"`;
-          } else if (fullMatch.indexOf('handsontable') > 0) {
-            const maxSatisfyingVersion = `${semver.major(
-              semver.maxSatisfying([version, previousVersion], '*')
-            )}.0.0`;
+    validateReplacementStatus(replace.sync({
+      files: `${packagesLocation}${packagesLocation === '.' ? '' : '*'}/package.json`,
+      from: [/"version": "(.*)"/, /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g],
+      to: (fullMatch, ...[semverPrefix, previousVersion]) => {
+        if (fullMatch.indexOf('version') > 0) {
+          // Replace the version with the new version.
+          return `"version": "${version}"`;
 
-            // Replace the `handsontable` dependency with the current major (or previous major, if it's a prerelease).
-            return `"handsontable": "${semverPrefix}${maxSatisfyingVersion}"`;
-          } else {
-            return `"handsontable": "${version}"`;
-          }
-        },
-        ignore: [
-          `${packagesLocation}*/node_modules/**/*`,
-          `${packagesLocation}*/projects/hot-table/package.json`,
-          `${packagesLocation}*/dist/hot-table/package.json`,
-        ],
-      }),
-      version
-    );
+        } else {
+          const maxSatisfyingVersion = `${semver.major(semver.maxSatisfying([version, previousVersion], '*'))}.0.0`;
+
+          // Replace the `handsontable` dependency with the current major (or previous major, if it's a prerelease).
+          return `"handsontable": "${semverPrefix}${maxSatisfyingVersion}"`;
+        }
+      },
+      ignore: [
+        `${packagesLocation}*/node_modules/**/*`,
+        `${packagesLocation}*/projects/hot-table/package.json`,
+        `${packagesLocation}*/dist/hot-table/package.json`,
+      ],
+    }), version);
   });
 }
 
@@ -156,14 +144,19 @@ export async function scheduleRelease(version, releaseDate) {
       type: 'list',
       name: 'changeType',
       message: 'Select the type of the release.',
-      choices: ['Major', 'Minor', 'Patch', 'Custom'],
-      filter: (value) => value.toLowerCase(),
+      choices: [
+        'Major',
+        'Minor',
+        'Patch',
+        'Custom',
+      ],
+      filter: value => value.toLowerCase(),
     },
     {
       type: 'input',
       name: 'customVersion',
       message: 'Enter the custom version number.',
-      when: (answers) => answers.changeType === 'custom',
+      when: answers => answers.changeType === 'custom',
       validate: (value) => {
         if (isVersionValid(value)) {
           return true;
@@ -185,7 +178,7 @@ export async function scheduleRelease(version, releaseDate) {
 
         return releaseDateValidity.error;
       },
-    },
+    }
   ];
   const getConfirmationQuestion = (newVersion, formattedDate) => [
     {
@@ -216,19 +209,18 @@ Are the version number and release date above correct?`,
 
     if (isVersionValid(version)) {
       newVersion = version;
+
     } else if (semverBumpOptions.includes(version)) {
       newVersion = semver.inc(currentVersion, version);
+
     } else {
       displayErrorMessage(
-        `${version} is not a valid version number, nor a semver change type (major/minor/patch).`
-      );
+        `${version} is not a valid version number, nor a semver change type (major/minor/patch).`);
       process.exit(1);
     }
 
     if (!newVersion) {
-      displayErrorMessage(
-        'Something went wrong while updating the version number with semver.'
-      );
+      displayErrorMessage('Something went wrong while updating the version number with semver.');
       process.exit(1);
     }
 
@@ -241,18 +233,20 @@ Are the version number and release date above correct?`,
 
     setVersion(newVersion, workspacePackages);
     setReleaseDate(releaseDate);
+
   } else {
     const answers = await inquirer.prompt(questions);
     const releaseDateObj = moment(answers.releaseDate, 'DD/MM/YYYY', true);
     const newVersion =
-      answers.changeType !== 'custom'
-        ? getVersionFromReleaseType(answers.changeType, currentVersion)
-        : answers.customVersion;
+      answers.changeType !== 'custom' ?
+        getVersionFromReleaseType(answers.changeType, currentVersion) :
+        answers.customVersion;
     const confirmationAnswers = await inquirer.prompt(
       getConfirmationQuestion(newVersion, releaseDateObj.format('DD MMMM YYYY'))
     );
 
     if (confirmationAnswers.isReleaseDateConfirmed) {
+
       finalVersion = newVersion;
       finalReleaseDate = answers.releaseDate;
 
@@ -263,7 +257,7 @@ Are the version number and release date above correct?`,
 
   return {
     version: finalVersion,
-    releaseDate: finalReleaseDate,
+    releaseDate: finalReleaseDate
   };
 }
 
@@ -283,13 +277,9 @@ function validateReplacementStatus(replacementStatus, replacedString) {
     if (!infoObj.hasChanged) {
       displayErrorMessage(`${filePath} was not modified.`);
       versionReplaced = false;
+
     } else {
-      displayConfirmationMessage(
-        `- Saved '${replacedString}' to ${path.relative(
-          process.cwd(),
-          filePath
-        )}.`
-      );
+      displayConfirmationMessage(`- Saved '${replacedString}' to ${path.relative(process.cwd(), filePath)}.`);
     }
   });
 
