@@ -28,13 +28,24 @@ Released on October 25, 2022 ([Documentation](docs/12.2/))
 For more information on this release, see:
 - [Blog post](PLACEHOLDER)
 
+**Added**
+- Added a new feature that lets you add rows and columns in a specified position (above or below a specified index). [#9471](https://github.com/handsontable/handsontable/issues/9471)
 
+**Fixed**
+- Fixed an issue where the width of the cell editor was calculated incorrectly. [#3815](https://github.com/handsontable/handsontable/issues/3815)
+- Fixed an issue where formulas surrounded by merged cells were converted to values by mistake. [#6359](https://github.com/handsontable/handsontable/issues/6359)
+- Fixed an issue where Handsontable could disappear on Firefox 93 if `overflow` was set to `hidden`, `scroll` or `auto`. [#9545](https://github.com/handsontable/handsontable/issues/9545)
+- Fixed an issue where changing a cell's [`type`](@/api/options.md#type) through [`setCellMeta()`](@/api/core.md#setcellmeta) didn't properly set the cell's [`editor`](@/api/options.md#editor) and [`renderer`](@/api/options.md#renderer). [#9734](https://github.com/handsontable/handsontable/issues/9734)
+- Fixed an issue where the dropdown menu didn't display when the [`NestedHeaders`](@/api/nestedHeaders.md) plugin was enabled and all rows were trimmed out. [#9753](https://github.com/handsontable/handsontable/issues/9753)
+
+**Removed**
+- Removed a type definition for a non-existing method, `translateRowsToColumns()`. [#9919](https://github.com/handsontable/handsontable/issues/9919)
 
 ## 12.1.3
 
 Released on September 22, 2022 ([Documentation](docs/12.1/))
 
-### Fixed
+**Fixed**
 - Fixed incorrect date format conversion on input in the date editor. [#9681](https://github.com/handsontable/handsontable/issues/9681)
 - Fixed an error when adding a large number of rows using the `alter` method. [#7840](https://github.com/handsontable/handsontable/issues/7840)
 - Fixed IME text input in the editors. [#9586](https://github.com/handsontable/handsontable/issues/9586)
@@ -46,7 +57,7 @@ Released on September 22, 2022 ([Documentation](docs/12.1/))
 - Fixed misalignment on mobile devices when the edge cells were selected. [#9621](https://github.com/handsontable/handsontable/issues/9621)
 - Fixed type definitions for the method `setSourceDataAtCell`. [#8599](https://github.com/handsontable/handsontable/issues/8599)
 
-### Removed
+**Removed**
 - Removed a custom stable sorting implementation in favor of the stable sorting algorithm guaranteed by ECMAScript 2019 [#6091](https://github.com/handsontable/handsontable/issues/6091)
 - Removed type definitions for non-existing methods `rowOffset` and `colOffset` and a non-existing hook `modifyRowSourceData`. [#8659](https://github.com/handsontable/handsontable/issues/8659), [#7317](https://github.com/handsontable/handsontable/issues/7317)
 
