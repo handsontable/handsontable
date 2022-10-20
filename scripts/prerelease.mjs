@@ -12,4 +12,3 @@ const newVersion = `0.0.0-next-${commitSha}-${date}`;
 setVersion(newVersion);
 
 await spawnProcess('npm run publish-all');
-
