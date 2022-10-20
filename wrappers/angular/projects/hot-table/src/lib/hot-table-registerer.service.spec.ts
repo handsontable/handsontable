@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import Handsontable from 'handsontable/base';
-import { HotTableModule, HotTableRegisterer } from '@handsontable/angular';
+import { HotTableModule, HotTableRegisterer } from '@tmp-hot/angular';
 
 @Component({
   selector: 'hot-test-component',

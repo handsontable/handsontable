@@ -45,7 +45,7 @@
     "clean": "rimraf dist",
     "prebuild": "npm run clean && node scripts/pre-build.js",
     "build": "ng build hot-table",
-    "postbuild": "node scripts/post-build.js && cd ../.. && node --experimental-json-modules ./scripts/swap-package-links.mjs @handsontable/angular",
+    "postbuild": "node scripts/post-build.js && cd ../.. && node --experimental-json-modules ./scripts/swap-package-links.mjs @tmp-hot/angular",
     "pretest": "npm run lint && npm run build",
     "test": "ng test hot-table --browsers=Chrome",
     "test:ci": "ng test hot-table --browsers=ChromeHeadlessCI",
