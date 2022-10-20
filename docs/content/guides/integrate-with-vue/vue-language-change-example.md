@@ -23,8 +23,8 @@ Note that the `language` property is bound to the component separately using `la
 
 ::: example #example1 :vue-languages --html 1 --js 2
 ```html
-<div id="example1">
-  <label for="languages">Select language:</label>
+<div id="example1" class="controls select-language">
+  <label for="languages">Select language of the context menu:</label>
   <select v-on:change="updateHotLanguage" id="languages"></select><br/>
   <br/>
   <hot-table :language="language" :settings="hotSettings"></hot-table>
@@ -35,7 +35,7 @@ import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { getLanguagesDictionaries } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -45,7 +45,7 @@ new Vue({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(5, 10),
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         rowHeaders: true,
         contextMenu: true,

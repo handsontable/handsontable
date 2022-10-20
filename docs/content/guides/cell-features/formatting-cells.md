@@ -195,7 +195,7 @@ To enable the custom borders feature, set the [`customBorders`](@/api/options.md
 
 In the names of the API properties, the words `start` and `end` refer to the starting and ending edges of the [layout direction](@/guides/internationalization/layout-direction.md).
 
-::: warning
+::: tip
 The `start` and `end` properties used to be called `left` and `right` before Handsontable 12.0.0. The old names `left` and `right` work in the LTR layout direction but throw an error when the layout direction is set to RTL.
 :::
 

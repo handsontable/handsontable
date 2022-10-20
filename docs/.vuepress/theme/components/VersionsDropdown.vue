@@ -102,13 +102,12 @@ export default {
     overflow-y auto
     position absolute
     top 100%
-    left 0
     background-color #fff
     padding 0.6rem 0
     border 1px solid #ddd
     border-bottom-color #ccc
     text-align left
-    border-radius 0.25rem
+    border-radius 6px
     white-space nowrap
     margin 0
     z-index 100

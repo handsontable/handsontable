@@ -1,13 +1,13 @@
 ---
-title: Reference a Handsontable instance in Angular
-metaTitle: Reference Handsontable - Angular Data Grid | Handsontable
-description: Reference a Handsontable instance from an Angular component to programmatically perform actions such as reloading the data in your data grid.
+title: Referencing a Handsontable instance in Angular
+metaTitle: Referencing Handsontable - Angular Data Grid | Handsontable
+description: Referencing a Handsontable instance from an Angular component to programmatically perform actions such as reloading the data in your data grid.
 permalink: /angular-hot-reference
 canonicalUrl: /angular-hot-reference
 searchCategory: Guides
 ---
 
-# Reference a Handsontable instance in Angular
+# Referencing a Handsontable instance in Angular
 
 Reference a Handsontable instance from an Angular component to programmatically perform actions such as reloading the data in your data grid.
 
@@ -26,7 +26,6 @@ The following example is an implementation of `@handsontable/angular`, which sho
 import { Component } from '@angular/core';
 import Handsontable from 'handsontable/base';
 import { HotTableRegisterer } from '@handsontable/angular';
-import { createSpreadsheetData } from './helpers';
 
 @Component({
   selector: 'app-root',
@@ -42,7 +41,7 @@ class AppComponent {
   private hotRegisterer = new HotTableRegisterer();
   id = 'hotInstance';
   hotSettings: Handsontable.GridSettings = {
-    data: createSpreadsheetData(4, 4),
+    data: Handsontable.helper.createSpreadsheetData(4, 4),
     colHeaders: true,
     height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'

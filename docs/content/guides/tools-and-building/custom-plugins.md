@@ -314,9 +314,9 @@ For more information, see the [`Instance Methods`](@/guides/getting-started/reac
 :::
 
 ```jsx
-const hotTableComponent = useRef(null);
+const hotTableComponentRef = useRef(null);
 
-const pluginInstance = hotTableComponent.current.hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
+const pluginInstance = hotTableComponentRef.current.hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
 ```
 :::
 

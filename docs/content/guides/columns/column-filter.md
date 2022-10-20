@@ -189,9 +189,9 @@ The examples below show how to adjust the Filter plugin to your needs. They incl
 
 ### Filter as you type
 
-In this example, a basic `input` element has been placed inside a column’s header (A, B, C…). It is placed right below the column's label and is separated with a horizontal line for better visibility. The data is being filtered as you type - with a 100 ms delay. The filter element has been excluded from the selection event, so the column doesn’t get selected when clicked on.
+This example places a basic `input` element inside each column header (A, B, C), separated by a horizontal line. The data is being filtered as you type, with a 100 ms delay. The filter element is excluded from the selection event, so the column doesn’t get selected when clicked on.
 
-Please note that this demo uses a Handsontable API to a great extent.
+The demo below is just a demonstration (e.g., you can't add more columns). We don't recommend using it in your production code.
 
 ::: only-for javascript
 ::: example #example3
@@ -373,7 +373,7 @@ Note that selecting a column in the Filter component resets the state of the tab
 :::
 
 ::: only-for javascript
-::: example #example4 --html 1 --js 2
+::: example #example4 --html 1 --css 2 --js 3
 ```html
 <div id="example4"></div>
 <div id="externalFilter">
@@ -396,6 +396,32 @@ Note that selecting a column in the Filter component resets the state of the tab
     <button class="clear">Clear filter</button>
   </div>
 </div>
+```
+```css
+#externalFilter {
+  width: 240px;
+  margin-top: 20px;
+}
+
+#externalFilter .columnChoose {
+  margin-bottom: 5px;
+}
+
+#externalFilter .columnChoose select {
+  width: 100%;
+  margin-top: 5px;
+  padding: 3px 6px;
+  display: block;
+  border-radius: 4px;
+  border: 1px solid #cfdbe4;
+}
+
+#externalFilter #filterSelect {
+  margin-bottom: 5px;
+  padding: 0 10px 8px;
+  border-radius: 4px;
+  border: 1px solid #cfdbe4;
+}
 ```
 ```js
 const arrayEach = Handsontable.helper.arrayEach;
@@ -812,7 +838,6 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 ```
 :::
 :::
-
 
 ## Related API reference
 

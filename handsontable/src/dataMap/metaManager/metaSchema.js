@@ -15,11 +15,14 @@ import { isObjectEqual } from '../../helpers/object';
  * - Adjust Handsontable's behavior
  * - Implement your own custom features
  *
+ * ::: only-for javascript
+ *
  * To apply [configuration options](@/guides/getting-started/configuration-options.md), pass them as
  * a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-handsontable),
  * using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
  *
- * ::: only-for javascript
+ * Read more on the [Configuration options](@/guides/getting-started/configuration-options.md) page.
+ *
  * ```js
  * const container = document.getElementById('example');
  *
@@ -41,6 +44,13 @@ import { isObjectEqual } from '../../helpers/object';
  * :::
  *
  * ::: only-for react
+ *
+ * To apply configuration options, pass them as individual props
+ * of the [`HotTable`](@/guides/getting-started/installation.md##hottable-component)
+ * or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
+ *
+ * Read more on the [Configuration options](@/guides/getting-started/configuration-options.md) page.
+ *
  * ```jsx
  * <HotTable
  *   // configuration options, in the object literal notation
@@ -73,6 +83,24 @@ export default () => {
   return {
 
     /* eslint-disable jsdoc/require-description-complete-sentence */
+
+    /**
+     * Information on which of the meta properties were added automatically.
+     * For example: setting the `renderer` property directly won't extend the `_automaticallyAssignedMetaProps`
+     * entry, but setting a `type` will modify it to:
+     * ```
+     * _automaticallyAssignedMetaProps: {
+     *   renderer: true,
+     *   editor: true,
+     *   validator: true
+     * }
+     * ```
+     *
+     * @private
+     * @type {object}
+     * @default {}
+     */
+    _automaticallyAssignedMetaProps: {},
 
     /**
      * The `activeHeaderClassName` option lets you add a CSS class name

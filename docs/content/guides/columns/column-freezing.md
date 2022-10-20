@@ -90,9 +90,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 To manually freeze a column, you need to set the [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) configuration option to `true` in the Handsontable settings. When the Manual Column Freeze plugin is enabled, you can freeze any non-fixed column and unfreeze any fixed column in your Handsontable instance using the Context Menu.
 
-::: tip
-A frozen column won't go back to the original position after you unfreeze it.
-:::
+Mind that a frozen column won't go back to the original position after you unfreeze it.
 
 ::: only-for javascript
 ::: example #example2
