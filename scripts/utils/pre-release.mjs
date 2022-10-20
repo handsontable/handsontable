@@ -82,6 +82,7 @@ export function setVersion(version, packages = workspacePackages) {
       files: `${packagesLocation}${packagesLocation === '.' ? '' : '*'}/package.json`,
       from: [/"version": "(.*)"/, /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g, /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g],
       to: (fullMatch, ...[semverPrefix, previousVersion]) => {
+        console.log(fullMatch);
         if (fullMatch.indexOf('version') > 0) {
           // Replace the version with the new version.
           return `"version": "${version}"`;
