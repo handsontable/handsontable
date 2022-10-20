@@ -67,38 +67,42 @@ export function validateReleaseDate(date) {
  * @param {Array} [packages] Array of package paths. Defaults to the workspace config.
  */
 export function setVersion(version, packages = workspacePackages) {
-  // Set the new version number to hot.config.js.
-  const hotConfigPath = path.resolve(__dirname, '../../hot.config.js');
-
-  validateReplacementStatus(replace.sync({
-    files: hotConfigPath,
-    from: /HOT_VERSION: '(.*)'/,
-    to: `HOT_VERSION: '${version}'`,
-  }), version);
-
   // Set the new version number to all the packages.
   packages.forEach((packagesLocation) => {
-    validateReplacementStatus(replace.sync({
-      files: `${packagesLocation}${packagesLocation === '.' ? '' : '*'}/package.json`,
-      from: [/"version": "(.*)"/, /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g],
-      to: (fullMatch, ...[semverPrefix, previousVersion]) => {
-        if (fullMatch.indexOf('version') > 0) {
-          // Replace the version with the new version.
-          return `"version": "${version}"`;
+    validateReplacementStatus(
+      replace.sync({
+        files: `${packagesLocation}${
+          packagesLocation === '.' ? '' : '*'
+        }/package.json`,
+        from: [
+          /"version": "(.*)"/,
+          /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g,
+        ],
+        to: (fullMatch, ...[semverPrefix, previousVersion]) => {
+          if (fullMatch.indexOf('version') > 0) {
+            // Replace the version with the new version.
+            return `"version": "${version}"`;
 
-        } else {
-          const maxSatisfyingVersion = `${semver.major(semver.maxSatisfying([version, previousVersion], '*'))}.0.0`;
+          } else {
+            const isPreRelease = version.startsWith('0.0.0');
+            const maxSatisfyingVersion = `${semver.major(
+              semver.maxSatisfying([version, previousVersion], '*')
+            )}.0.0`;
 
-          // Replace the `handsontable` dependency with the current major (or previous major, if it's a prerelease).
-          return `"handsontable": "${semverPrefix}${maxSatisfyingVersion}"`;
-        }
-      },
-      ignore: [
-        `${packagesLocation}*/node_modules/**/*`,
-        `${packagesLocation}*/projects/hot-table/package.json`,
-        `${packagesLocation}*/dist/hot-table/package.json`,
-      ],
-    }), version);
+            const newVersion = isPreRelease ? version : semverPrefix + maxSatisfyingVersion;
+
+            // Replace the `handsontable` dependency with the current major (or previous major, if it's a prerelease).
+            return `"handsontable": "${newVersion}"`;
+          }
+        },
+        ignore: [
+          `${packagesLocation}*/node_modules/**/*`,
+          `${packagesLocation}*/projects/hot-table/package.json`,
+          `${packagesLocation}*/dist/hot-table/package.json`,
+        ],
+      }),
+      version
+    );
   });
 }
 
