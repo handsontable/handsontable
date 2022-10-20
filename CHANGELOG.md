@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [12.2.0] - 2022-10-25
 
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-2-0)
+- [Blog post](https://handsontable.com/blog/)
+
 ### Fixed
 - Fixed problem related to calculation of editor's width [#3815](https://github.com/handsontable/handsontable/issues/3815)
 - Fixed problem with overwriting source data incorrectly when there are some merged cells [#6359](https://github.com/handsontable/handsontable/issues/6359)

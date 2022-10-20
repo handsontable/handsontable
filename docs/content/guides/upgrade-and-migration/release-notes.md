@@ -21,9 +21,18 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 12.2.0
+
+Released on October 25, 2022 ([Documentation](docs/12.2/))
+
+For more information on this release, see:
+- [Blog post](PLACEHOLDER)
+
+
+
 ## 12.1.3
 
-Released on 22nd of September, 2022 - [view docs](docs/12.1/)
+Released on September 22, 2022 ([Documentation](docs/12.1/))
 
 ### Fixed
 - Fixed incorrect date format conversion on input in the date editor. [#9681](https://github.com/handsontable/handsontable/issues/9681)
@@ -43,7 +52,7 @@ Released on 22nd of September, 2022 - [view docs](docs/12.1/)
 
 ## 12.1.2
 
-Released on 8th of July, 2022 - [view docs](docs/12.1/)
+Released on July 8, 2022 ([Documentation](docs/12.1/))
 
 **Changed**
 - Changed the version of the Moment.js dependency from 2.29.3 to 2.29.4, in reaction to a recently-found Moment.js security vulnerability. The vulnerability did not affect a correct configuration of Handsontable. [#9638](https://github.com/handsontable/handsontable/issues/9638)
@@ -51,14 +60,14 @@ Released on 8th of July, 2022 - [view docs](docs/12.1/)
 
 ## 12.1.1
 
-Released on 5th of July, 2022 - [view docs](docs/12.1/)
+Released on July 5, 2022 ([Documentation](docs/12.1/))
 
 **Fixed**
 - *Angular:* Fixed an issue where the installation of `@handsontable/angular` package failed for versions of Angular other than 9 [#9622](https://github.com/handsontable/handsontable/issues/9622)
 
 ## 12.1.0
 
-Released on 28th of June, 2022 - [view docs](docs/12.1/)
+Released on June 28, 2022 ([Documentation](docs/12.1/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-12.1.0-data-grid-new-hooks-new-translations-and-rendering-improvements)
@@ -90,7 +99,7 @@ For more information on this release, see:
 
 ## 12.0.1
 
-Released on 16th of May, 2022 - [view docs](docs/12.0/)
+Released on May 16, 2022 ([Documentation](docs/12.0/))
 
 **Fixed**
 - Fixed an issue where checking or unchecking a checkbox in a row with [`autoRowSize: true`](@/api/options.md#autorowsize) and multi-line cell values caused rows to align incorrectly. [#7102](https://github.com/handsontable/handsontable/issues/7102)
@@ -101,7 +110,7 @@ Released on 16th of May, 2022 - [view docs](docs/12.0/)
 
 ## 12.0.0
 
-Released on 28th of April, 2022 - [view docs](docs/12.0/)
+Released on April 28, 2022 ([Documentation](docs/12.0/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
@@ -151,7 +160,7 @@ For more information on this release, see:
 
 ## 11.1.0
 
-Released on 13th of January, 2022 - [view docs](docs/11.1/)
+Released on January 13, 2022 ([Documentation](docs/11.1/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-11.1.0-vue-3-support-and-updatedata)
@@ -162,7 +171,7 @@ For more information on this release, see:
 
 **Changed**
 - Updated the TypeScript definition of the [`setDataAtCell()`](@/api/core.md#setdataatcell) method. [#8601](https://github.com/handsontable/handsontable/issues/8601)
-- Extended the [`Code Examples Deployment` GitHub Actions workflow](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml), to allow for deploying code examples to [GitHub Pages](https://pages.github.com/). [#9058](https://github.com/handsontable/handsontable/issues/9058)
+- Extended the [`Code Examples Deployment` GitHub Actions workflow](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml), to allow for deploying code examples to [GitHub Pages](https://pages.github.com/)). [#9058](https://github.com/handsontable/handsontable/issues/9058)
 
 **Fixed**
 - Fixed an issue where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) editor's suggestion list didn't update properly. [#7570](https://github.com/handsontable/handsontable/issues/7570)
@@ -181,14 +190,14 @@ For more information on this release, see:
 
 ## 11.0.1
 
-Released on 17th of November, 2021 - [view docs](docs/11.0/)
+Released on November 17, 2021 ([Documentation](docs/11.0/))
 
 **Fixed**
 - Fixed the UMD build of `@handsontable/angular`, which was not working properly in `11.0.0`. [#8946](https://github.com/handsontable/handsontable/pull/8946)
 
 ## 11.0.0
 
-Released on 17th of November, 2021 - [view docs](docs/11.0/)
+Released on November 17, 2021 ([Documentation](docs/11.0/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue)
@@ -220,7 +229,7 @@ For more information on this release, see:
 
 ## 10.0.0
 
-Released on 29th of September, 2021 - [view docs](docs/10.0/)
+Released on September 29, 2021 ([Documentation](docs/10.0/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-10.0.0-improved-performance-and-consistency)
@@ -254,7 +263,7 @@ For more information on this release, see:
 
 ## 9.0.2
 
-Released on 28th of July, 2021 - [view docs](docs/9.0/)
+Released on July 28, 2021 ([Documentation](docs/9.0/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/whats-new-in-handsontable-9.0.2)
@@ -276,7 +285,7 @@ For more information on this release, see:
 
 ## 9.0.1
 
-Released on 17th of June, 2021 - [view docs](docs/9.0/)
+Released on June 17, 2021 ([Documentation](docs/9.0/))
 
 **Fixed**
 
@@ -289,7 +298,7 @@ Released on 17th of June, 2021 - [view docs](docs/9.0/)
 
 ## 9.0.0
 
-Released on 1st of June, 2021 - [view docs](docs/9.0/)
+Released on June 1, 2021 ([Documentation](docs/9.0/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-9.0.0-new-formula-plugin)
@@ -321,7 +330,7 @@ For more information on this release, see:
 *   Deprecated the `beforeAutofillInsidePopulate` hook. It will be removed in the next major release. ([#8095](https://github.com/handsontable/handsontable/issues/8095))
 
 ## 8.4.0
-Released on 11th of May, 2021 - [view docs](docs/8.4/)
+Released on May 11, 2021 ([Documentation](docs/8.4/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/whats-new-in-handsontable-8-4-0)
@@ -360,7 +369,7 @@ For more information on this release, see:
 
 ## 8.3.2
 
-Released on 16th of March, 2021 - [view docs](docs/8.3/)
+Released on March 16, 2021 ([Documentation](docs/8.3/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-8-3-2-introducing-monorepo)
@@ -391,7 +400,7 @@ For more information on this release, see:
 
 ## 8.3.1
 
-Released on 10th of February, 2021 - [view docs](docs/8.3/)
+Released on February 10, 2021 ([Documentation](docs/8.3/))
 
 **Fixed**
 
@@ -399,7 +408,7 @@ Released on 10th of February, 2021 - [view docs](docs/8.3/)
 
 ## 8.3.0
 
-Released on 28th of January, 2021 - [view docs](docs/8.3/)
+Released on January 28, 2021 ([Documentation](docs/8.3/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-8.3.0-has-been-released)
@@ -432,7 +441,7 @@ For more information on this release, see:
 
 ## 8.2.0
 
-Released on 12th of November, 2020 - [view docs](docs/8.2/)
+Released on November 12, 2020 ([Documentation](docs/8.2/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-8.2.0-has-been-released)
@@ -457,7 +466,7 @@ For more information on this release, see:
 
 ## 8.1.0
 
-Released on 1st of October, 2020 - [view docs](docs/8.1/)
+Released on October 1, 2020 ([Documentation](docs/8.1/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-8.1.0-has-been-released)
@@ -491,7 +500,7 @@ For more information on this release, see:
 
 ## 8.0.0
 
-Released on 5th of August, 2020 - [view docs](docs/8.0/)
+Released on August 5, 2020 ([Documentation](docs/8.0/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/the-new-handsontable-8-is-now-available)
@@ -789,7 +798,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 
 ## 7.4.2
 
-Released on 19th of February, 2020 - [view docs](docs/7.4/)
+Released on February 19, 2020 ([Documentation](docs/7.4/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-7-4-2-released)
@@ -802,7 +811,7 @@ For more information on this release, see:
 
 ## 7.4.1
 
-Released on 19th of February, 2020 - [view docs](docs/7.4/)
+Released on February 19, 2020 ([Documentation](docs/7.4/))
 
 Due to technical issues, version 7.4.2 patch needed to be released.
 
@@ -810,7 +819,7 @@ Due to technical issues, version 7.4.2 patch needed to be released.
 
 ## 7.4.0
 
-Released on 12th of February, 2020 - [view docs](docs/7.4/)
+Released on February 12, 2020 ([Documentation](docs/7.4/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-7-4-0-released)
