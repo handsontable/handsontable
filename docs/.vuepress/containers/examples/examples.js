@@ -108,10 +108,10 @@ module.exports = function(docsVersion, base) {
 
         jsToken.content = jsToken.content.replaceAll('{{$basePath}}', base);
 
-        let codeToCompile = jsToken.content
+        const codeToCompile = jsToken.content
           // Remove the code between "/* start:non-compilable */" and "/* end:non-compilable */" expressions
           .replace(/\/\*(\s+)?start:non-compilable(\s+)?\*\/\n.*?\/\*(\s+)?end:non-compilable(\s+)?\*\/\n/msg, '');
-        let codeToPreview = jsToken.content
+        const codeToPreview = jsToken.content
           // Remove the all "/* start:non-compilable */" and "/* end:non-compilable */" expressions
           .replace(/\/\*(\s+)?(start|end):non-compilable(\s+)?\*\/\n/gm, '')
           // Remove the code between "/* start:non-previewable */" and "/* end:non-previewable */" expressions
