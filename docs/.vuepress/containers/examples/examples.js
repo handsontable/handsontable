@@ -108,26 +108,21 @@ module.exports = function(docsVersion, base) {
 
         jsToken.content = jsToken.content.replaceAll('{{$basePath}}', base);
 
-        let codeFooter = '';
+        let codeToCompile = jsToken.content
+          // Remove the code between "/* start:non-compilable */" and "/* end:non-compilable */" expressions
+          .replace(/\/\*(\s+)?start:non-compilable(\s+)?\*\/\n.*?\/\*(\s+)?end:non-compilable(\s+)?\*\/\n/msg, '');
+        let codeToPreview = jsToken.content
+          // Remove the all "/* start:non-compilable */" and "/* end:non-compilable */" expressions
+          .replace(/\/\*(\s+)?(start|end):non-compilable(\s+)?\*\/\n/gm, '')
+          // Remove the code between "/* start:non-previewable */" and "/* end:non-previewable */" expressions
+          .replace(/\/\*(\s+)?start:non-previewable(\s+)?\*\/\n.*?\/\*(\s+)?end:non-previewable(\s+)?\*\/\n/msg, '');
 
-        if (preset.includes('angular')) {
-          jsToken.content = jsToken.content
-            .replace('import { AppComponent } from \'./app.component\';', '')
-            .replace('import { CustomEditor } from \'./CustomEditor\';', '');
-
-          codeFooter = `
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
-platformBrowserDynamic()
-  .bootstrapModule(AppModule)
-  .catch(err => { console.error(err) });
-          `;
-        }
+        jsToken.content = codeToPreview;
 
         const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
         const noEdit = !!args.match(/--no-edit/)?.[0];
 
-        const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), `${jsToken.content}${codeFooter}`, env.relativePath);
+        const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), codeToCompile, env.relativePath);
         const encodedCode = encodeURI(`useHandsontable('${docsVersion}', function(){${code}}, '${preset}')`);
 
         [htmlIndex, jsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
@@ -144,7 +139,7 @@ platformBrowserDynamic()
         tokens.splice(index + 1, 0, ...newTokens);
 
         return `
-            ${!noEdit ? jsfiddle(id, htmlContent, jsToken.content, cssContent, docsVersion, preset) : ''}
+            ${!noEdit ? jsfiddle(id, htmlContent, codeToCompile, cssContent, docsVersion, preset) : ''}
             <tabs
               :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
               :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"

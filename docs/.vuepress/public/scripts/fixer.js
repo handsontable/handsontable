@@ -172,6 +172,20 @@
             moduleToReturn = moduleToReturn[n];
           });
         }
+
+        if (ns === 'Handsontable.languages') {
+          Handsontable.languages.getLanguagesDictionaries().forEach((lang) => {
+            moduleToReturn[lang.languageCode.replace('-', '')] = lang;
+          });
+        }
+
+        if (typeof moduleToReturn.default === 'undefined') {
+          Object.defineProperty(moduleToReturn, 'default', {
+            value: moduleToReturn,
+            writable: false,
+            enumerable: false,
+          });
+        }
       }
 
       return moduleToReturn;

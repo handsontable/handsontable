@@ -25,11 +25,14 @@ The following example shows a Handsontable instance with translations set up in 
 ```ts
 /* file: app.component.ts */
 import { Component } from '@angular/core';
-import * as numbro from 'numbro';
-import * as languages from 'numbro/dist/languages.min';
+import numbro from 'numbro';
+// @ts-ignore: Missing TypeScript declaration file for "numbro" languages files
+import jaJP from 'numbro/languages/ja-JP';
+// @ts-ignore: Missing TypeScript declaration file for "numbro" languages files
+import trTR from 'numbro/languages/tr-TR';
 
-numbro.registerLanguage(languages['ja-JP']);
-numbro.registerLanguage(languages['tr-TR']);
+numbro.registerLanguage(jaJP);
+numbro.registerLanguage(trTR);
 
 type Product = {
   productName: string,
@@ -88,7 +91,9 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
 import { registerAllModules } from 'handsontable/registry';
+/* start:non-compilable */
 import { AppComponent } from './app.component';
+/* end:non-compilable */
 
 // register Handsontable's modules
 registerAllModules();
@@ -99,6 +104,14 @@ registerAllModules();
   bootstrap: [ AppComponent ]
 })
 export class AppModule { }
+
+/* start:non-previewable */
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch(err => { console.error(err) });
+/* end:non-previewable */
 ```
 :::
 

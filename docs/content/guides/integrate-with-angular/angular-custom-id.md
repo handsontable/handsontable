@@ -56,7 +56,9 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
 import { registerAllModules } from 'handsontable/registry';
+/* start:non-compilable */
 import { AppComponent } from './app.component';
+/* end:non-compilable */
 
 // register Handsontable's modules
 registerAllModules();
@@ -67,5 +69,13 @@ registerAllModules();
   bootstrap: [ AppComponent ]
 })
 export class AppModule { }
+
+/* start:non-previewable */
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch(err => { console.error(err) });
+/* end:non-previewable */
 ```
 :::

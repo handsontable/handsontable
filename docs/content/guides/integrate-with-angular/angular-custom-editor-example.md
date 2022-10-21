@@ -26,7 +26,9 @@ The following is an implementation of the `@handsontable/angular` component with
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import Handsontable from 'handsontable/base';
+/* start:non-compilable */
 import { CustomEditor } from './CustomEditor';
+/* end:non-compilable */
 
 @Component({
   selector: 'app-root',
@@ -54,9 +56,10 @@ export class AppComponent {
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
-import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
+/* start:non-compilable */
 import { AppComponent } from './app.component';
+/* end:non-compilable */
 
 // register Handsontable's modules
 registerAllModules();
@@ -69,12 +72,10 @@ registerAllModules();
 export class AppModule { }
 
 /* file: CustomEditor.ts */
-export class CustomEditor extends TextEditor {
-  constructor(props) {
-    super(props);
-  }
+import { TextEditor } from 'handsontable/editors/textEditor';
 
-  createElements() {
+export class CustomEditor extends TextEditor {
+  override createElements() {
     super.createElements();
 
     this.TEXTAREA = document.createElement('input');
@@ -85,6 +86,14 @@ export class CustomEditor extends TextEditor {
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }
+
+/* start:non-previewable */
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch(err => { console.error(err) });
+/* end:non-previewable */
 ```
 :::
 

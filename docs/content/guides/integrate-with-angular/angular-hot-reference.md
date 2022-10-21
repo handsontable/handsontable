@@ -41,7 +41,12 @@ export class AppComponent {
   private hotRegisterer = new HotTableRegisterer();
   id = 'hotInstance';
   hotSettings: Handsontable.GridSettings = {
-    data: Handsontable.helper.createSpreadsheetData(4, 4),
+    data: [
+      ['A1', 'B1', 'C1', 'D1'],
+      ['A2', 'B2', 'C2', 'D2'],
+      ['A3', 'B3', 'C3', 'D3'],
+      ['A4', 'B4', 'C4', 'D4'],
+    ],
     colHeaders: true,
     height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
@@ -57,7 +62,9 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
 import { registerAllModules } from 'handsontable/registry';
+/* start:non-compilable */
 import { AppComponent } from './app.component';
+/* end:non-compilable */
 
 // register Handsontable's modules
 registerAllModules();
@@ -68,5 +75,13 @@ registerAllModules();
   bootstrap: [ AppComponent ]
 })
 export class AppModule { }
+
+/* start:non-previewable */
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch(err => { console.error(err) });
+/* end:non-previewable */
 ```
 :::
