@@ -58,7 +58,7 @@
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ../hot.config.js webpack",
     "publish-package": "cd tmp && npm publish",
     "postbuild": "node ./scripts/prepare-package-for-publish.mjs && npm run swap-package-links",
-    "swap-package-links": "node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable"
+    "swap-package-links": "node --experimental-json-modules ./scripts/swap-package-links.mjs tmp-hot"
   },
   "keywords": [
     "data",
