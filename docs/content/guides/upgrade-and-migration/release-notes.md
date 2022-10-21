@@ -121,7 +121,7 @@ Released on May 16, 2022 ([Documentation](docs/12.0/))
 
 ## 12.0.0
 
-Released on April 28, 2022 ([Documentation](docs/12.0/))
+Released on April 28, 2022 ([Documentation](/12.0/))
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
