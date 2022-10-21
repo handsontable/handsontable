@@ -85,11 +85,9 @@ export function setVersion(version, packages = workspacePackages) {
 
           } else {
             const isPreRelease = version.startsWith('0.0.0');
-            const maxSatisfyingVersion = `${semver.major(
+            const newVersion = isPreRelease ? version : `${semverPrefix} + ${semver.major(
               semver.maxSatisfying([version, previousVersion], '*')
             )}.0.0`;
-
-            const newVersion = isPreRelease ? version : semverPrefix + maxSatisfyingVersion;
 
             // Replace the `handsontable` dependency with the current major (or previous major, if it's a prerelease).
             return `"handsontable": "${newVersion}"`;

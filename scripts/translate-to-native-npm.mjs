@@ -23,8 +23,8 @@ if (argv._.length === 0) {
 
 (async() => {
   const prependWithScope = (packageName) => {
-    if (packageName !== 'handsontable' && packageName !== 'examples') {
-      return `@tmp-hot/${packageName}`;
+    if (packageName !== 'handsoncode' && packageName !== 'examples') {
+      return `tmp-hot-${packageName}`;
     }
 
     return packageName;
@@ -45,11 +45,10 @@ if (argv._.length === 0) {
       // eslint-disable-next-line prefer-template
       let workspacesCommandList = '-w ' + [
         'tmp-hot',
-        '@tmp-hot/handsontable',
-        '@tmp-hot/angular',
-        '@tmp-hot/react',
-        '@tmp-hot/vue',
-        '@tmp-hot/vue3',
+        'tmp-hot-angular',
+        'tmp-hot-react',
+        'tmp-hot-vue',
+        'tmp-hot-vue3',
         'examples',
       ].join(' -w ');
 

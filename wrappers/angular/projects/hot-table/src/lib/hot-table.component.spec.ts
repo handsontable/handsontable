@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import Handsontable from 'handsontable/base';
-import { HotTableModule, HotTableRegisterer } from '@tmp-hot/angular';
+import { HotTableModule, HotTableRegisterer } from 'tmp-hot-angular';
 import { HOT_DESTROYED_WARNING } from '../lib/hot-table-registerer.service';
 import { createSpreadsheetData } from './helpers';
 import {
