@@ -18,6 +18,8 @@ if (pkgName) {
 
 const PACKAGE_LOCATIONS = new Map([
   ['handsontable', './handsontable/tmp'],
+  ['@handsontable/angular', './wrappers/angular/dist/hot-table'],
+  ['tmp-hot', './handsontable/tmp'],
   ['tmp-hot-angular', './wrappers/angular/dist/hot-table']
 ]);
 const linkPackage = (packageName, packageLocation) => {
