@@ -23,7 +23,7 @@ if (argv._.length === 0) {
 
 (async() => {
   const prependWithScope = (packageName) => {
-    if (packageName !== 'handsoncode' && packageName !== 'examples') {
+    if (packageName !== 'handsontable' && packageName !== 'examples') {
       return `tmp-hot-${packageName}`;
     }
 

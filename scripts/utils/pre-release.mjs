@@ -90,7 +90,7 @@ export function setVersion(version, packages = workspacePackages) {
             )}.0.0`;
 
             // Replace the `handsontable` dependency with the current major (or previous major, if it's a prerelease).
-            return `"handsontable": "${newVersion}"`;
+            return `"tmp-hot": "${newVersion}"`;
           }
         },
         ignore: [
