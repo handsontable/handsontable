@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 For more information on this release, see:
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-2-0)
-- [Blog post](PLACEHOLDER)
+- [Blog post](https://handsontable.com/blog/articles/handsontable-12.2.0)
 
 ### Added
 - Added a new feature that lets you add rows and columns in a specified position (above or below a specified index). [#9471](https://github.com/handsontable/handsontable/issues/9471)

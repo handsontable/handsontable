@@ -26,7 +26,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on October 25, 2022 ([Documentation](docs/12.2/))
 
 For more information on this release, see:
-- [Blog post](PLACEHOLDER)
+- [Blog post](https://handsontable.com/blog/articles/handsontable-12.2.0)
 
 **Added**
 - Added a new feature that lets you add rows and columns in a specified position (above or below a specified index). [#9471](https://github.com/handsontable/handsontable/issues/9471)
