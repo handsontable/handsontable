@@ -48,10 +48,11 @@ The following example shows a Handsontable instance with translations set up in 
 ```
 
 ```js
-import { createApp } from 'vue';
+import { defineComponent } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import numbro from 'numbro';
-import languages from 'numbro/dist/languages.min.js';
+import jaJP from 'numbro/languages/ja-JP';
+import trTR from 'numbro/languages/tr-TR';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -59,10 +60,10 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 // register the languages you need
-numbro.registerLanguage(languages['ja-JP']);
-numbro.registerLanguage(languages['tr-TR']);
+numbro.registerLanguage(jaJP);
+numbro.registerLanguage(trTR);
 
-const app = createApp({
+const ExampleComponent = defineComponent({
   data() {
     return {
       formatJP: {
@@ -102,7 +103,15 @@ const app = createApp({
   }
 });
 
+export default ExampleComponent;
+
+/* start:non-previewable */
+import { createApp } from 'vue';
+
+const app = createApp(ExampleComponent);
+
 app.mount('#example1');
+/* end:non-previewable */
 ```
 :::
 

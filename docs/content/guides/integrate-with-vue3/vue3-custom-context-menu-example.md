@@ -26,20 +26,26 @@ The following example implements the `@handsontable/vue3` component, adding a cu
 </div>
 ```
 ```js
-import { createApp } from 'vue';
+import { defineComponent } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
-import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const app = createApp({
+const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: [
+          ['A1', 'B1', 'C1', 'D1', 'E1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4'],
+          ['A5', 'B5', 'C5', 'D5', 'E5'],
+        ],
         colHeaders: true,
         contextMenu: {
           items: {
@@ -66,7 +72,15 @@ const app = createApp({
   }
 });
 
+export default ExampleComponent;
+
+/* start:non-previewable */
+import { createApp } from 'vue';
+
+const app = createApp(ExampleComponent);
+
 app.mount('#example1');
+/* end:non-previewable */
 ```
 :::
 

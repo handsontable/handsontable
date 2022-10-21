@@ -30,14 +30,15 @@ Each of them will be applied to the root Handsontable element, allowing further 
 ```
 
 ```js
-import { createApp } from 'vue';
+import { defineComponent } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const app = createApp({
+const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
@@ -57,6 +58,14 @@ const app = createApp({
   }
 });
 
+export default ExampleComponent;
+
+/* start:non-previewable */
+import { createApp } from 'vue';
+
+const app = createApp(ExampleComponent);
+
 app.mount('#example1');
+/* end:non-previewable */
 ```
 :::

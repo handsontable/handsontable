@@ -30,19 +30,16 @@ The following example implements the `@handsontable/vue3` component with a custo
 </div>
 ```
 ```js
-import { createApp } from 'vue';
+import { defineComponent } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 class CustomEditor extends TextEditor {
-  constructor(props) {
-    super(props);
-  }
-
   createElements() {
     super.createElements();
 
@@ -55,7 +52,7 @@ class CustomEditor extends TextEditor {
   }
 }
 
-const app = createApp({
+const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
@@ -76,7 +73,15 @@ const app = createApp({
   }
 });
 
+export default ExampleComponent;
+
+/* start:non-previewable */
+import { createApp } from 'vue';
+
+const app = createApp(ExampleComponent);
+
 app.mount('#example1');
+/* end:non-previewable */
 ```
 :::
 

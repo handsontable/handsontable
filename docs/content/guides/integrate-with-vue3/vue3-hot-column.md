@@ -32,19 +32,30 @@ To declare column-specific settings, pass the settings as `hot-column` propertie
 ```
 
 ```js
-import { createApp } from 'vue';
+import { defineComponent } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const app = createApp({
+const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: [
+          ['A1', 'B1'],
+          ['A2', 'B2'],
+          ['A3', 'B3'],
+          ['A4', 'B4'],
+          ['A5', 'B5'],
+          ['A6', 'B6'],
+          ['A7', 'B7'],
+          ['A8', 'B8'],
+          ['A9', 'B9'],
+          ['A10', 'B10'],
+        ],
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation',
       },
@@ -59,7 +70,15 @@ const app = createApp({
   }
 });
 
+export default ExampleComponent;
+
+/* start:non-previewable */
+import { createApp } from 'vue';
+
+const app = createApp(ExampleComponent);
+
 app.mount('#example1');
+/* end:non-previewable */
 ```
 :::
 
@@ -83,11 +102,16 @@ To work with an array of objects for the `hot-column` component, you need to pro
 </div>
 ```
 ```js
-import { createApp } from 'vue';
+import { defineComponent } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
-const app = createApp({
-  data() {
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = defineComponent({
+data() {
     return {
       hotData: [
         { id: 1, name: 'Table tennis racket', payment: { price: 13, currency: 'PLN' } },
@@ -109,6 +133,14 @@ const app = createApp({
   }
 });
 
+export default ExampleComponent;
+
+/* start:non-previewable */
+import { createApp } from 'vue';
+
+const app = createApp(ExampleComponent);
+
 app.mount('#example2');
+/* end:non-previewable */
 ```
 :::

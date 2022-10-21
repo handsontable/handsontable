@@ -115,7 +115,8 @@ module.exports = function(docsVersion, base) {
           // Remove the all "/* start:non-compilable */" and "/* end:non-compilable */" expressions
           .replace(/\/\*(\s+)?(start|end):non-compilable(\s+)?\*\/\n/gm, '')
           // Remove the code between "/* start:non-previewable */" and "/* end:non-previewable */" expressions
-          .replace(/\/\*(\s+)?start:non-previewable(\s+)?\*\/\n.*?\/\*(\s+)?end:non-previewable(\s+)?\*\/\n/msg, '');
+          .replace(/\/\*(\s+)?start:non-previewable(\s+)?\*\/\n.*?\/\*(\s+)?end:non-previewable(\s+)?\*\/\n/msg, '')
+          .trim();
 
         jsToken.content = codeToPreview;
 

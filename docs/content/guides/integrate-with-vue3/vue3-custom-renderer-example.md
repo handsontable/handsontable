@@ -30,15 +30,15 @@ The following example is an implementation of `@handsontable/vue3` with a custom
 </div>
 ```
 ```js
-import { createApp } from 'vue';
+import { defineComponent } from 'vue';
 import { HotTable } from '@handsontable/vue3';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const app = createApp({
+const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
@@ -50,7 +50,7 @@ const app = createApp({
         columns: [
           {},
           {
-            renderer(instance, td, row, col, prop, value, cellProperties) {
+            renderer(instance, td, row, col, prop, value) {
               const img = document.createElement('img');
 
               img.src = value;
@@ -78,7 +78,15 @@ const app = createApp({
   }
 });
 
+export default ExampleComponent;
+
+/* start:non-previewable */
+import { createApp } from 'vue';
+
+const app = createApp(ExampleComponent);
+
 app.mount('#example1');
+/* end:non-previewable */
 ```
 :::
 
