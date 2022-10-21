@@ -29,15 +29,14 @@ Each of them will be applied to the root Handsontable element, allowing further 
 ```
 
 ```js
-import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-new Vue({
-  el: '#example1',
+const ExampleComponent = {
   data() {
     return {
       hotSettings: {
@@ -55,6 +54,15 @@ new Vue({
   components: {
     HotTable
   }
+}
+
+export default ExampleComponent;
+
+/* start:non-previewable */
+new Vue({
+  ...ExampleComponent,
+  el: '#example1',
 });
+/* end:non-previewable */
 ```
 :::

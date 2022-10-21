@@ -28,16 +28,14 @@ The following example is an implementation of `@handsontable/vue` with a custom 
 </div>
 ```
 ```js
-import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-new Vue({
-  el: '#example1',
+const ExampleComponent = {
   data() {
     return {
       hotSettings: {
@@ -49,7 +47,7 @@ new Vue({
         columns: [
           {},
           {
-            renderer(instance, td, row, col, prop, value, cellProperties) {
+            renderer(instance, td, row, col, prop, value) {
               const img = document.createElement('img');
 
               img.src = value;
@@ -75,7 +73,16 @@ new Vue({
   components: {
     HotTable
   }
+}
+
+export default ExampleComponent;
+
+/* start:non-previewable */
+new Vue({
+  ...ExampleComponent,
+  el: '#example1',
 });
+/* end:non-previewable */
 ```
 :::
 

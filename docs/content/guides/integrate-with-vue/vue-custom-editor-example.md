@@ -28,19 +28,15 @@ The following example implements the `@handsontable/vue` component with a custom
 </div>
 ```
 ```js
-import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 class CustomEditor extends TextEditor {
-  constructor(props) {
-    super(props);
-  }
-
   createElements() {
     super.createElements();
 
@@ -53,8 +49,12 @@ class CustomEditor extends TextEditor {
   }
 }
 
-new Vue({
-  el: '#example1',
+import 'handsontable/dist/handsontable.full.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = {
   data() {
     return {
       hotSettings: {
@@ -73,7 +73,16 @@ new Vue({
   components: {
     HotTable
   }
+}
+
+export default ExampleComponent;
+
+/* start:non-previewable */
+new Vue({
+  ...ExampleComponent,
+  el: '#example1',
 });
+/* end:non-previewable */
 ```
 :::
 

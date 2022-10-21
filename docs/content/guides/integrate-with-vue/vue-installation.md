@@ -31,6 +31,7 @@ npm install handsontable @handsontable/vue
 <script>
   import { HotTable } from '@handsontable/vue';
   import { registerAllModules } from 'handsontable/registry';
+  import 'handsontable/dist/handsontable.full.css';
 
   // register Handsontable's modules
   registerAllModules();
@@ -51,8 +52,6 @@ npm install handsontable @handsontable/vue
     }
   }
 </script>
-
-<style src="../node_modules/handsontable/dist/handsontable.full.css"></style>
 ```
 
 ## Related API reference
