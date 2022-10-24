@@ -30,7 +30,7 @@ For more information on this release, see:
 - [Documentation](https://handsontable.com/docs/12.2/)
 
 **Added**
-- Added a new feature that lets you add rows and columns in a specified position (above or below a specified index). [#9471](https://github.com/handsontable/handsontable/issues/9471)
+- Added a new feature that lets you add rows and columns at a specified position. Now, the [`alter()`](@/api/core.md#alter) method takes 4 new parameter values: `insert_row_above`, `insert_row_below`, `insert_col_start`, and `insert_col_end`. The `insert_row` and `insert_col` parameters are marked as deprecated. [#9471](https://github.com/handsontable/handsontable/issues/9471)
 
 **Fixed**
 - Fixed an issue where the width of the cell editor was calculated incorrectly. [#3815](https://github.com/handsontable/handsontable/issues/3815)
