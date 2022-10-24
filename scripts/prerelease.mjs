@@ -10,8 +10,6 @@ const currentDate = moment().format('YYYYMMDD');
 const currentBranchName = (await spawnProcess('git rev-parse --abbrev-ref HEAD', { silent: true })).stdout;
 let versionNumber = '0.0.0';
 
-console.log(currentBranchName);
-
 if (currentBranchName.startsWith('release/')) {
   versionNumber = currentBranchName.split('/')[1];
 }
@@ -19,4 +17,3 @@ if (currentBranchName.startsWith('release/')) {
 const packageVersion = `${versionNumber}-next-${commitSha}-${currentDate}`;
 
 setVersion(packageVersion);
-
