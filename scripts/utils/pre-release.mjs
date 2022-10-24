@@ -67,6 +67,14 @@ export function validateReleaseDate(date) {
  * @param {Array} [packages] Array of package paths. Defaults to the workspace config.
  */
 export function setVersion(version, packages = workspacePackages) {
+  // Set the new version number to hot.config.js.
+  const hotConfigPath = path.resolve(__dirname, '../../hot.config.js');
+
+  validateReplacementStatus(replace.sync({
+    files: hotConfigPath,
+    from: /HOT_VERSION: '(.*)'/,
+    to: `HOT_VERSION: '${version}'`,
+  }), version);
   // Set the new version number to all the packages.
   packages.forEach((packagesLocation) => {
     validateReplacementStatus(
