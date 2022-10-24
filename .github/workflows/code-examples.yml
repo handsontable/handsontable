@@ -188,7 +188,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           name: handsontable-build-es-cjs
           path: ./
@@ -224,7 +224,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           name: handsontable-build-es-cjs
           path: ./
@@ -260,7 +260,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           name: handsontable-build-es-cjs
           path: ./
@@ -296,7 +296,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           name: handsontable-build-es-cjs
           path: ./
@@ -368,7 +368,7 @@ jobs:
       # Downloading the Handsontable builds
       - name: Download the Handsontable ES + CJS build artifact
         if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           name: handsontable-build-es-cjs
           path: ./
@@ -378,7 +378,7 @@ jobs:
         if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
       - name: Download the Handsontable UMD build artifact
         if: matrix.version == 'next' && steps.path-check.outputs.n-a != 'true'
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           name: handsontable-build-umd
           path: ./
@@ -393,7 +393,7 @@ jobs:
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
           startsWith(matrix.framework, 'angular')
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           name: angular-build
           path: ./
@@ -409,7 +409,7 @@ jobs:
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
           startsWith(matrix.framework, 'react')
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           name: react-build
           path: ./
@@ -425,7 +425,7 @@ jobs:
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
           startsWith(matrix.framework, 'vue')
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           name: vue-build
           path: ./
@@ -441,7 +441,7 @@ jobs:
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
           startsWith(matrix.framework, 'vue')
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           name: vue3-build
           path: ./
