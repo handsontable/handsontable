@@ -43,9 +43,9 @@ if (argv._.length === 0) {
     }
     case 'all': {
       const [command] = argv._;
-      
+
       // eslint-disable-next-line prefer-template
-      let workspacesCommandList = ` -w `  + [
+      let workspacesCommandList = `${argv.isPrerelease ? ' --tag next ' : ''} -w `  + [
         'tmp-hot',
         'tmp-hot-angular',
         'tmp-hot-react',
