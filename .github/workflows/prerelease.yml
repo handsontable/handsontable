@@ -12,6 +12,7 @@ env:
 
 jobs:
   build:
+    name: Build and publish
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
