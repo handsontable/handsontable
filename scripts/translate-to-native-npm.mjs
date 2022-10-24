@@ -74,3 +74,4 @@ if (argv._.length === 0) {
     default:
   }
 })();
+
