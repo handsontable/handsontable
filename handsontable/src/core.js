@@ -2651,12 +2651,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    *  | Action               | Description |
    *  | -------------------- | ----------- |
-   *  | `'insert_row_above'` | Insert row(s) above a specified row. |
-   *  | `'insert_row_below'` | Insert row(s) below a specified row. |
-   *  | `'remove_row'`       | Remove specified row(s). |
-   *  | `'insert_col_start'` | Depending on your [`layoutDirection`](@/api/options.md#layoutdirection), insert column(s) to the left (in LTR) or to the right (in RTL) of a specified column. |
-   *  | `'insert_col_end'`   | Depending on your [`layoutDirection`](@/api/options.md#layoutdirection), insert column(s) to the right (in LTR) or to the left (in RTL) of a specified column. |
-   *  | `'remove_col'`       | Remove specified column(s). |
+   *  | `'insert_row_above'` | Insert rows above a specified row. |
+   *  | `'insert_row_below'` | Insert rows below a specified row. |
+   *  | `'remove_row'`       | Remove specified rows. |
+   *  | `'insert_col_start'` | Depending on your [`layoutDirection`](@/api/options.md#layoutdirection), insert columns to the left (in LTR) or to the right (in RTL) of a specified column. |
+   *  | `'insert_col_end'`   | Depending on your [`layoutDirection`](@/api/options.md#layoutdirection), insert columns to the right (in LTR) or to the left (in RTL) of a specified column. |
+   *  | `'remove_col'`       | Remove specified columns. |
    *  | `'insert_row'`       | (<b>Deprecated</b>) An alias for `'insert_row_above'`. |
    *  | `'insert_col'`       | (<b>Deprecated</b>) An alias for `'insert_col_start'`. |
    *
