@@ -17,3 +17,4 @@ if (currentBranchName.startsWith('release/')) {
 const packageVersion = `${versionNumber}-next-${commitSha}-${currentDate}`;
 
 setVersion(packageVersion);
+
