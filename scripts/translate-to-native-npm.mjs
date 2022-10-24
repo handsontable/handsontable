@@ -10,6 +10,7 @@ import {
 
 const argv = yargs(hideBin(process.argv))
   .boolean('if-present')
+  .boolean('isPrerelease')
   .array('exclude')
   .alias('exclude', 'e')
   .argv;
@@ -33,7 +34,7 @@ if (argv._.length === 0) {
   switch (modifier) {
     case 'in': {
       const [project, command] = argv._;
-
+      
       await spawnProcess(
         `npm run ${command} --workspace=${prependWithScope(project)}${argv.ifPresent ? ' --if-present' : ''}`
       );
@@ -42,8 +43,9 @@ if (argv._.length === 0) {
     }
     case 'all': {
       const [command] = argv._;
+      
       // eslint-disable-next-line prefer-template
-      let workspacesCommandList = '-w ' + [
+      let workspacesCommandList = `${argv.isPrerelease ? ' --tag next ' : ''} -w `  + [
         'tmp-hot',
         'tmp-hot-angular',
         'tmp-hot-react',
