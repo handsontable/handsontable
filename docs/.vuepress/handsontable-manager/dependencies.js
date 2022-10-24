@@ -72,20 +72,20 @@ const buildDependencyGetter = (version) => {
       'angular-platform-browser': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser@8/bundles/platform-browser.umd.min.js', [/* todo */]],
       'angular-platform-browser-dynamic': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser-dynamic@8/bundles/platform-browser-dynamic.umd.min.js', [/* todo */]],
       'hot-angular': [`https://cdn.jsdelivr.net/npm/@handsontable/angular@${mappedVersion}/bundles/handsontable-angular.umd.min.js`, [/* todo */]],
-      'hot-vue': [`https://cdn.jsdelivr.net/npm/@handsontable/vue@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */]],
-      'hot-vue3': [`https://cdn.jsdelivr.net/npm/@handsontable/vue3@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */]],
-      vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */]],
-      vuex: ['https://cdn.jsdelivr.net/npm/vuex@3/dist/vuex.min.js', [/* todo */]],
+      'hot-vue': [`https://cdn.jsdelivr.net/npm/@handsontable/vue@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */], null, 'hot-vue3'],
+      'hot-vue3': [`https://cdn.jsdelivr.net/npm/@handsontable/vue3@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */], null, 'hot-vue'],
+      vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */], null, 'vue3'],
+      vuex: ['https://cdn.jsdelivr.net/npm/vuex@3/dist/vuex.min.js', [/* todo */], null, 'vuex4'],
       'vue-color': ['https://cdn.jsdelivr.net/npm/vue-color@2/dist/vue-color.min.js', [/* todo */]],
       'vue-class-component': ['https://cdn.jsdelivr.net/npm/vue-class-component@7.1.0/dist/vue-class-component.min.js', [/* todo */]],
       'vue-star-rating': ['https://cdn.jsdelivr.net/npm/vue-star-rating@1/dist/VueStarRating.umd.min.js', [/* todo */]],
-      vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */]],
-      vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */]],
+      vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */], null, 'vue'],
+      vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex'],
       languages: [languagesJs, [/* todo */]],
     };
     /* eslint-enable max-len */
 
-    // [jsUrl, dependentVars[]?, cssUrl?]
+    // [jsUrl, dependentVars[]?, cssUrl?, globalVarSharedDependency?]
     return dependencies[dependency];
   };
 };
