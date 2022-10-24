@@ -6,8 +6,15 @@ const commitSha = (await spawnProcess('git rev-parse HEAD', { silent: true }))
   .stdout
   .toString()
   .slice(0, 7);
-const date = moment().format('YYYYMMDD');
-const newVersion = `0.0.0-next-${commitSha}-${date}`;
+const currentDate = moment().format('YYYYMMDD');
+const currentBranchName = (await spawnProcess('git rev-parse --abbrev-ref HEAD', { silent: true })).stdout;
+let versionNumber = '0.0.0';
 
-setVersion(newVersion);
+if (currentBranchName.startsWith('release/')) {
+  versionNumber = currentBranchName.split('/')[1];
+}
+
+const packageVersion = `${versionNumber}-next-${commitSha}-${currentDate}`;
+
+setVersion(packageVersion);
 
