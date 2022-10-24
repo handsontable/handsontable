@@ -55,14 +55,14 @@ html.theme-dark {
       border-color $searchBoxInputBorderColor
       color $fontColor
 
-      &:focus {
-        border-color $accentColor
-      }
-
       @media (max-width: $extraLarge) {
         border-color transparent
         background-color transparent
+      }
 
+      &:focus {
+        border-color $searchBoxFocusInputBorderColor
+        background-color $backgroundColor
       }
     }
 
