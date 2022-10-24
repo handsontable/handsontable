@@ -110,10 +110,10 @@ displaySeparator();
   await spawnProcess('npm run all build -- --e examples');
 
   // Install the "next" package for examples
-  await spawnProcess('npm run examples:install next');
+  // await spawnProcess('npm run examples:install next');
 
   // Build the examples/next directory.
-  await spawnProcess('npm run in examples build');
+  // await spawnProcess('npm run in examples build');
 
   // Test all packages.
   // await spawnProcess('npm run all test');
@@ -125,7 +125,7 @@ displaySeparator();
   // await spawnProcess('npm run changelog consume', { stdin: 'pipe' });
 
   // Create the examples/[version] directory.
-  await spawnProcess(`npm run examples:version ${finalVersion}`);
+  // await spawnProcess(`npm run examples:version ${finalVersion}`);
 
   if (argv.commit === true) {
     // Commit the changes to the release branch.
