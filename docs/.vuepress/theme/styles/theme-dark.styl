@@ -405,21 +405,23 @@ html.theme-dark {
   /* A custom demo at getting-started/react-redux.md */
   .dump-example-container {
     color: $fontColor;
-    
-    table {
-      border-color: $tabsComponentBorderColor;
-      
-      tr:nth-child(2n) {
-        background-color: $backgroundColor;
-      }
-      td {
-        border-bottom: none;
-      }
-    }
 
     .controls {
       margin: 0 0 20px;
       padding-top: 0;
+    }
+    
+    #vuex-preview, #redux-preview {
+      table {
+        border-color: $tabsComponentBorderColor;
+
+        tr:nth-child(2n) {
+          background-color: $backgroundColor;
+        }
+        td {
+          border-bottom: none;
+        }
+      }
     }
   }
   
