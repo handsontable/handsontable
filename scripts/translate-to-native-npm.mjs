@@ -34,7 +34,7 @@ if (argv._.length === 0) {
   switch (modifier) {
     case 'in': {
       const [project, command] = argv._;
-      
+
       await spawnProcess(
         `npm run ${command} --workspace=${prependWithScope(project)}${argv.ifPresent ? ' --if-present' : ''}`
       );
@@ -45,7 +45,7 @@ if (argv._.length === 0) {
       const [command] = argv._;
 
       // eslint-disable-next-line prefer-template
-      let workspacesCommandList = `${argv.isPrerelease ? ' --tag next ' : ''} -w ` + [
+      let workspacesCommandList = ' -w ' + [
         'tmp-hot',
         'tmp-hot-angular',
         'tmp-hot-react',
