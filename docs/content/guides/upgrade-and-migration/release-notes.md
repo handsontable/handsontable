@@ -34,7 +34,7 @@ For more information on this release, see:
 **Fixed**
 - Fixed an issue where the width of the cell editor was calculated incorrectly. [#3815](https://github.com/handsontable/handsontable/issues/3815)
 - Fixed an issue where formulas surrounded by merged cells were converted to values by mistake. [#6359](https://github.com/handsontable/handsontable/issues/6359)
-- Fixed an issue where Handsontable could disappear on Firefox 93 if `overflow` was set to `hidden`, `scroll` or `auto`. [#9545](https://github.com/handsontable/handsontable/issues/9545)
+- Fixed an issue where Handsontable could disappear on Firefox 93 (and later) in a specific use case. [#9545](https://github.com/handsontable/handsontable/issues/9545)
 - Fixed an issue where changing a cell's [`type`](@/api/options.md#type) through [`setCellMeta()`](@/api/core.md#setcellmeta) didn't properly set the cell's [`editor`](@/api/options.md#editor) and [`renderer`](@/api/options.md#renderer). [#9734](https://github.com/handsontable/handsontable/issues/9734)
 - Fixed an issue where the dropdown menu didn't display when the [`NestedHeaders`](@/api/nestedHeaders.md) plugin was enabled and all rows were trimmed out. [#9753](https://github.com/handsontable/handsontable/issues/9753)
 
