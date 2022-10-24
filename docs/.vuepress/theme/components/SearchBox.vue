@@ -411,7 +411,7 @@ export default {
         background-color #fff
     .kbd-hint *
       display none
-  
+
 @media (max-width: $medium)
   input
     right 0!important
