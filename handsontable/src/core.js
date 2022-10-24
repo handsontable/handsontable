@@ -2657,8 +2657,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *  | `'insert_col_start'` | Insert columns before a specified column. |
    *  | `'insert_col_end'`   | Insert columns after a specified column. |
    *  | `'remove_col'`       | Remove specified columns. |
-   *  | `'insert_row'`       | (<b>Deprecated</b>) An alias for `'insert_row_above'`. |
-   *  | `'insert_col'`       | (<b>Deprecated</b>) An alias for `'insert_col_start'`. |
+   *  | `'insert_row'`       | (<b>Deprecated</b>) Insert rows above a specified row. |
+   *  | `'insert_col'`       | (<b>Deprecated</b>) Insert columns before a specified column. |
    *
    * @memberof Core#
    * @function alter
