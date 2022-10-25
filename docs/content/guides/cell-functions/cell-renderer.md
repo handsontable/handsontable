@@ -1,13 +1,233 @@
 ---
 title: Cell renderer
-metaTitle: Cell renderer - Guide - Handsontable Documentation
+metaTitle: Cell renderer - JavaScript Data Grid | Handsontable
+description: Create a custom cell renderer function, to have full control over how a cell looks.
 permalink: /cell-renderer
 canonicalUrl: /cell-renderer
+react:
+  metaTitle: Cell renderer - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Cell renderer
 
+Create a custom cell renderer function, to have full control over how a cell looks.
+
 [[toc]]
+
+::: only-for javascript
+## Overview
+
+When you create a renderer, a good idea is to assign it as an alias that will refer to this particular renderer function. Handsontable defines 10 aliases by default:
+
+* `autocomplete` for `Handsontable.renderers.AutocompleteRenderer`
+* `base` for `Handsontable.renderers.BaseRenderer`
+* `checkbox` for `Handsontable.renderers.CheckboxRenderer`
+* `date` for `Handsontable.renderers.DateRenderer`
+* `dropdown` for `Handsontable.renderers.DropdownRenderer`
+* `html` for `Handsontable.renderers.HtmlRenderer`
+* `numeric` for `Handsontable.renderers.NumericRenderer`
+* `password` for `Handsontable.renderers.PasswordRenderer`
+* `text` for `Handsontable.renderers.TextRenderer`
+* `time` for `Handsontable.renderers.TimeRenderer`
+
+It gives users a convenient way for defining which renderer should be used when table rendering was triggered. User doesn't need to know which renderer function is responsible for displaying the cell value, he does not even need to know that there is any function at all. What is more, you can change the render function associated with an alias without a need to change code that defines a table.
+:::
+
+::: only-for react
+## Overview
+
+A renderer is a function that determines how a cell looks.
+
+Set together, a renderer, [editor](@/guides/cell-functions/cell-editor.md) and [validator](@/guides/cell-functions/cell-validator.md) form a [cell type](@/guides/cell-types/cell-type.md).
+
+## Declare a custom renderer as a component
+
+Handsontable's React wrapper lets you create custom cell renderers using React components.
+Although it's possible to use class-based react components for this purpose, **we strongly suggest** using functional components, as using the `state` of a class-based component would re-initialize on every Handsontable render.
+
+To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
+
+::: tip
+Handsontable's [`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) options require calculating the widths/heights of some of the cells before rendering them into the table. For this reason, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
+
+Be sure to turn those options off in your Handsontable configuration, as keeping them enabled may cause unexpected results. Please note that [`autoColumnSize`](@/api/options.md#autocolumnsize) is enabled by default.
+:::
+
+::: example #example1 :react --tab preview
+```jsx
+import ReactDOM from 'react-dom';
+import Handsontable from 'handsontable';
+import { HotTable, HotColumn } from '@handsontable/react';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// your renderer component
+const RendererComponent = (props) => {
+  // the available renderer-related props are:
+  // - `row` (row index)
+  // - `col` (column index)
+  // - `prop` (column property name)
+  // - `TD` (the HTML cell element)
+  // - `cellProperties` (the `cellProperties` object for the edited cell)
+  return (
+    <>
+      <i style={{ color: "#a9a9a9" }}>
+        Row: {props.row}, column: {props.col},
+      </i>{" "}
+      value: {props.value}
+    </>
+  );
+}
+
+const hotData = Handsontable.helper.createSpreadsheetData(10, 5);
+
+const ExampleComponent = () => {
+  return (
+    <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
+      <HotColumn width={250}>
+        {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
+        <RendererComponent hot-renderer />
+      </HotColumn>
+    </HotTable>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+
+## Use the renderer component within React's Context
+
+In this example, React's `Context` passes information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with [editors](@/guides/cell-functions/cell-editor.md) as well.
+
+::: example #example2 :react --css 1 --js 2 --tab preview
+```css
+.handsontable td.dark {
+  background: #000;
+  color: #fff;
+}
+```
+```jsx
+import React, { useState, useContext } from 'react';
+import Handsontable from 'handsontable';
+import { HotTable, HotColumn } from '@handsontable/react';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// a component
+const HighlightContext = React.createContext();
+
+// a renderer component
+function CustomRenderer(props) {
+  const darkMode = useContext(HighlightContext);
+
+  if (darkMode) {
+    props.TD.className = 'dark';
+  } else {
+    props.TD.className = '';
+  }
+
+  return <div>{props.value}</div>;
+}
+
+const ExampleComponent = () => {
+  const [darkMode, setDarkMode] = useState(false);
+
+  const toggleDarkMode = (event) => {
+    setDarkMode(event.target.checked);
+  };
+
+  return (
+    <HighlightContext.Provider value={darkMode}>
+      <div className="controls">
+        <label><input type="checkbox" onClick={toggleDarkMode}/> Dark mode</label>
+      </div>
+      <HotTable
+        data={Handsontable.helper.createSpreadsheetData(10, 1)}
+        rowHeaders={true}
+        licenseKey={"non-commercial-and-evaluation"}
+      >
+        <HotColumn>
+          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
+          <CustomRenderer hot-renderer />
+        </HotColumn>
+      </HotTable>
+    </HighlightContext.Provider>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+
+## Declare a custom renderer as a function
+
+You can also declare a custom renderer for the `HotTable` component by declaring it as a function. In the simplest scenario, you can pass the rendering function as a Handsontable setting.
+
+The following example implements `@handsontable/react` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
+
+::: example #example3 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      id="hot"
+      data={[
+        ['A1', '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+        ['A2', '{{$basePath}}/img/examples/javascript-the-good-parts.jpg']
+      ]}
+      columns={[
+        {},
+        {
+          renderer(instance, td, row, col, prop, value, cellProperties) {
+            const img = document.createElement('img');
+
+            img.src = value;
+
+            img.addEventListener('mousedown', event => {
+              event.preventDefault();
+            });
+
+            td.innerText = '';
+            td.appendChild(img);
+
+            return td;
+          }
+        }
+      ]}
+      colHeaders={true}
+      rowHeights={55}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+}
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
+::: only-for javascript
+## Use a cell renderer
+
+Use the renderer name of your choice when configuring the column:
+:::
+
+::: only-for react
+::: tip
+All the sections below describe how to utilize the features available for the Handsontable function-based renderers.
+:::
+
+### Overview
 
 When you create a renderer, a good idea is to assign it as an alias that will refer to this particular renderer function. Handsontable defines 10 aliases by default:
 
@@ -24,10 +244,23 @@ When you create a renderer, a good idea is to assign it as an alias that will re
 
 It gives users a convenient way for defining which renderer should be used when table rendering was triggered. User doesn't need to know which renderer function is responsible for displaying the cell value, he does not even need to know that there is any function at all. What is more, you can change the render function associated with an alias without a need to change code that defines a table.
 
-## Using a cell renderer
+::: tip
+You can set a cell's [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator) individually, but you still need to set that cell's [`type`](@/api/options.md#type). For example:
 
-Use the renderer name of your choice when configuring the column:
+```js
+renderer: Handsontable.NumericRenderer,
+editor: Handsontable.editors.NumericEditor,
+validator: Handsontable.NumericValidator,
+type: 'numeric'
+```
+:::
 
+### Use a cell renderer
+
+It is possible to register your renderer and re-use it with the name you registered it under.
+:::
+
+::: only-for javascript
 ```js
 const container = document.getElementById('container');
 const hot = new Handsontable(container, {
@@ -37,8 +270,26 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+:::
 
-## Registering custom cell renderer
+::: only-for react
+```jsx
+<HotTable
+  data={someData}
+  columns={[{
+    renderer: 'numeric'
+  }]}
+/>
+```
+:::
+
+::: only-for javascript
+## Register custom cell renderer
+:::
+
+::: only-for react
+### Register custom cell renderer
+:::
 
 To register your own alias use `Handsontable.renderers.registerRenderer()` function. It takes two arguments:
 
@@ -73,7 +324,13 @@ Handsontable.renderers.registerRenderer('my.asterix', asterixDecoratorRenderer);
 
 That's better.
 
-## Using an alias
+::: only-for javascript
+## Use an alias
+:::
+
+::: only-for react
+### Use an alias
+:::
 
 The final touch is to using the registered aliases, so that users can easily refer to it without the need to now the actual renderer function is.
 
@@ -94,6 +351,7 @@ Handsontable.renderers.registerRenderer('my.custom', customRenderer);
 
 From now on, you can use `customRenderer` like so:
 
+::: only-for javascript
 ```js
 const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
@@ -103,8 +361,26 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+:::
 
-## Rendering custom HTML in cells
+::: only-for react
+```jsx
+<HotTable
+  data={someData}
+  columns={[{
+    renderer: 'my.custom'
+  }]}
+/>
+```
+:::
+
+::: only-for javascript
+## Render custom HTML in cells
+:::
+
+::: only-for react
+### Render custom HTML in cells
+:::
 
 This example shows how to use custom cell renderers to display HTML content in a cell. This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS attacks. In the below configuration:
 
@@ -113,30 +389,31 @@ This example shows how to use custom cell renderers to display HTML content in a
 * **Comments** column uses a custom renderer (`safeHtmlRenderer`). This should be safe for user input, because only certain tags are allowed
 * **Cover** column accepts image URL as a string and converts it to a `<img>` in the renderer
 
-::: example #example1
+::: only-for javascript
+::: example #example4
 ```js
 const data = [
   {
     title: '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
     description: 'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
     comments: 'I would rate it &#x2605;&#x2605;&#x2605;&#x2605;&#x2606;',
-    cover: 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'
+    cover: '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'
   },
   {
     title: '<a href="https://shop.oreilly.com/product/9780596517748.do">JavaScript: The Good Parts</a>',
     description: 'This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.',
     comments: 'This is the book about JavaScript',
-    cover: 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/javascript-the-good-parts.jpg'
+    cover: '{{$basePath}}/img/examples/javascript-the-good-parts.jpg'
   },
   {
     title: '<a href="https://shop.oreilly.com/product/9780596805531.do">JavaScript: The Definitive Guide</a>',
     description: '<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.',
     comments: 'I\'ve never actually read it, but the <a href="https://shop.oreilly.com/product/9780596805531.do">comments</a> are highly <strong>positive</strong>.',
-    cover: 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/javascript-the-definitive-guide.jpg'
+    cover: '{{$basePath}}/img/examples/javascript-the-definitive-guide.jpg'
   }
 ];
 
-const container = document.getElementById('example1');
+const container = document.getElementById('example4');
 const hot = new Handsontable(container, {
   data,
   colWidths: [200, 200, 200, 80],
@@ -160,36 +437,131 @@ function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
 }
 
 function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
-  const stringifiedValue = Handsontable.helper.stringify(value);
+  const img = document.createElement('img');
 
-  if (stringifiedValue.startsWith('http')) {
-    const img = document.createElement('IMG');
+  img.src = value;
 
-    img.src = value;
+  img.addEventListener('mousedown', event => {
+    event.preventDefault();
+  });
 
-    Handsontable.dom.addEvent(img, 'mousedown', event =>{
-      event.preventDefault(); // prevent selection quirk
-    });
+  td.innerText = '';
+  td.appendChild(img);
 
-    Handsontable.dom.empty(td);
-    td.appendChild(img);
-  } else {
-    // render as text
-    Handsontable.renderers.TextRenderer.apply(this, arguments);
-  }
+  return td;
 }
 ```
 :::
+:::
 
-## Rendering custom HTML in header
+::: only-for react
+::: example #example4 :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const data = [{
+    title: '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
+    description: 'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
+    comments: 'I would rate it ★★★★☆',
+    cover: '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'
+  },
+    {
+      title: '<a href="https://shop.oreilly.com/product/9780596517748.do">JavaScript: The Good Parts</a>',
+      description: 'This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.',
+      comments: 'This is the book about JavaScript',
+      cover: '{{$basePath}}/img/examples/javascript-the-good-parts.jpg'
+    },
+    {
+      title: '<a href="https://shop.oreilly.com/product/9780596805531.do">JavaScript: The Definitive Guide</a>',
+      description: '<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.',
+      comments: 'I\'ve never actually read it, but the <a href="https://shop.oreilly.com/product/9780596805531.do">comments</a> are highly <strong>positive</strong>.',
+      cover: '{{$basePath}}/img/examples/javascript-the-definitive-guide.jpg'
+    }
+  ];
+
+  function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
+    // be sure you only allow certain HTML tags to avoid XSS threats
+    // (you should also remove unwanted HTML attributes)
+    td.innerHTML = Handsontable.helper.sanitize(value, {
+      ALLOWED_TAGS: ['em', 'b', 'strong', 'a', 'big'],
+    });
+  }
+
+  function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
+    const img = document.createElement('img');
+
+    img.src = value;
+
+    img.addEventListener('mousedown', event => {
+      event.preventDefault();
+    });
+
+    td.innerText = '';
+    td.appendChild(img);
+
+    return td;
+  }
+
+  return (
+    <HotTable
+      data={data}
+      colWidths={[200, 200, 200, 80]}
+      colHeaders={['Title', 'Description', 'Comments', 'Cover']}
+      height="auto"
+      columns={[
+        { data: 'title', renderer: 'html' },
+        { data: 'description', renderer: 'html' },
+        { data: 'comments', renderer: safeHtmlRenderer },
+        { data: 'cover', renderer: coverRenderer }
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+```
+:::
+:::
+
+::: only-for javascript
+## Render custom HTML in header
+:::
+
+::: only-for react
+### Render custom HTML in header
+:::
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
 
-::: example #example2
+::: only-for javascript
+::: example #example5 --js 2 --html 1
+```html
+<div id="exampleContainer5">
+  <div id="example5"></div>
+</div>
+```
 ```js
 let isChecked = false;
-const container = document.querySelector('#example2');
+const exampleContainer3 = document.querySelector('#exampleContainer5');
+const container = document.querySelector('#example5');
 
+function customRenderer(instance, td) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  if (isChecked) {
+    td.style.backgroundColor = 'yellow';
+  } else {
+    td.style.backgroundColor = 'white';
+  }
+}
 
 const hot = new Handsontable(container, {
   height: 'auto',
@@ -205,25 +577,17 @@ const hot = new Handsontable(container, {
       case 1:
         return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
     }
-  }
+  },
+  licenseKey: 'non-commercial-and-evaluation'
 });
 
-function customRenderer(instance, td) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
-  if (isChecked) {
-    td.style.backgroundColor = 'yellow';
-  } else {
-    td.style.backgroundColor = 'white';
-  }
-}
-
-Handsontable.dom.addEvent(container, 'mousedown', event => {
+exampleContainer3.addEventListener('mousedown', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     event.stopPropagation();
   }
 });
 
-Handsontable.dom.addEvent(container, 'mouseup', event => {
+exampleContainer3.addEventListener('mouseup', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     isChecked = !event.target.checked;
     hot.render();
@@ -231,8 +595,89 @@ Handsontable.dom.addEvent(container, 'mouseup', event => {
 });
 ```
 :::
+:::
 
-## Adding event listeners in cell renderer function
+::: only-for react
+::: example #example5 :react
+```jsx
+import { useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = useRef(null);
+
+  let isChecked = false;
+
+  function customRenderer(instance, td) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    if (isChecked) {
+      td.style.backgroundColor = 'yellow';
+    } else {
+      td.style.backgroundColor = 'white';
+    }
+  }
+
+  const exampleContainer3MousedownCallback = event => {
+    if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
+      event.stopPropagation();
+    }
+  };
+  let exampleContainer3MouseupCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    exampleContainer3MouseupCallback = event => {
+      if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
+        isChecked = !event.target.checked;
+        hot.render();
+      }
+    };
+  });
+
+  return (
+    <div id="exampleContainer5" onMouseUp={(...args) => exampleContainer3MouseupCallback(...args)}>
+      <HotTable
+        ref={hotRef}
+        height="auto"
+        columns={[
+          {},
+          { renderer: customRenderer }
+        ]}
+        colHeaders={
+          function(col) {
+            switch (col) {
+            case 0:
+            return '<b>Bold</b> and <em>Beautiful</em>';
+
+            case 1:
+            return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
+          }
+        }}
+        licenseKey="non-commercial-and-evaluation"
+      />
+    </div>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
+```
+:::
+:::
+
+::: only-for javascript
+## Add event listeners in cell renderer function
+:::
+
+::: only-for react
+### Add event listeners in cell renderer function
+:::
 
 If you are writing an advanced cell renderer, and you want to add some custom behavior after a certain user action (i.e. after user hover a mouse pointer over a cell) you might be tempted to add an event listener directly to table cell node passed as an argument to the `renderer` function. Unfortunately, this will almost always cause you trouble and you will end up with either performance issues or having the listeners attached to the wrong cell.
 
@@ -249,16 +694,22 @@ If you did't find a suitable _Handsontable event_ put the cell content into a wr
 
 Cell renderers are called separately for every displayed cell, during every table render. Table can be rendered multiple times during its lifetime (after table scroll, after table sorting, after cell edit etc.), therefore you should keep your `renderer` functions as simple and fast as possible or you might experience a performance drop, especially when dealing with large sets of data.
 
+::: only-for javascript
 ## Related articles
 
 ### Related guides
 
-- [Custom renderer in React](@/guides/integrate-with-react/react-custom-renderer-example.md)
+- [Custom renderer in React](@/react/guides/cell-functions/cell-renderer.md)
 - [Custom renderer in Angular](@/guides/integrate-with-angular/angular-custom-renderer-example.md)
 - [Custom renderer in Vue 2](@/guides/integrate-with-vue/vue-custom-renderer-example.md)
 - [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example.md)
 
 ### Related API reference
+:::
+
+::: only-for react
+## Related API reference
+:::
 
 - APIs:
   - [`BasePlugin`](@/api/basePlugin.md)

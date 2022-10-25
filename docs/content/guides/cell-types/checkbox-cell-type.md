@@ -1,15 +1,22 @@
 ---
 title: Checkbox cell type
-metaTitle: Checkbox cell type - Guide - Handsontable Documentation
+metaTitle: Checkbox cell type - JavaScript Data Grid | Handsontable
+description: Create interactive elements that can be checked or unchecked, by using the checkbox cell type.
 permalink: /checkbox-cell-type
 canonicalUrl: /checkbox-cell-type
+react:
+  metaTitle: Checkbox cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Checkbox cell type
 
+Create interactive elements that can be checked or unchecked, by using the checkbox cell type.
+
 [[toc]]
 
 ## Overview
+
 Data in these cells will be rendered as a checkbox and can be easily changed by checking/unchecking the checkbox.
 
 Checking the box can be performed using a mouse, or by pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd>.
@@ -22,6 +29,7 @@ You can change the state of multiple cells at once by selecting the cells you wa
 
 This is the default usage scenario where column data has a `true` or `false` value, and we only want to display checkboxes.
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -53,11 +61,59 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+        { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+        { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+        { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+        { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+      ]}
+      colHeaders={['Car model', 'Year of manufacture', 'Available']}
+      height="auto"
+      columns={[{
+          data: 'car'
+        },
+        {
+          data: 'year',
+          type: 'numeric'
+        },
+        {
+          data: 'available',
+          type: 'checkbox'
+        }
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Checkbox template
 
 If you want to use values other than `true` and `false`, you have to provide this information using [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Handsontable will then update your data using the appropriate template.
 
+::: only-for javascript
 ::: example #example2
 ```js
 const container = document.querySelector('#example2');
@@ -91,11 +147,61 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+        { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+        { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+        { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+        { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+      ]}
+      colHeaders={['Car model', 'Year of manufacture', 'Comes in black']}
+      height="auto"
+      columns={[{
+          data: 'car'
+        },
+        {
+          data: 'year',
+          type: 'numeric'
+        },
+        {
+          data: 'comesInBlack',
+          type: 'checkbox',
+          checkedTemplate: 'yes',
+          uncheckedTemplate: 'no'
+        }
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 ## Checkbox labels
 
 To add a label to the checkbox, use the [`label`](@/api/options.md#label) option. You can declare where the label will be injected with this option - either before or after the checkbox element. You can also declare from which data source the label text will be updated.
 
+::: only-for javascript
 ::: example #example3
 ```js
 const container = document.querySelector('#example3');
@@ -137,6 +243,63 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example3 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+        { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+        { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+        { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+        { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
+      ]}
+      colHeaders={['Car model', 'Accepted', 'Comes in black']}
+      height="auto"
+      columns={[{
+          data: 'car'
+        },
+        {
+          data: 'available',
+          type: 'checkbox',
+          label: {
+            position: 'after',
+            property: 'car' // Read value from row object
+          },
+        },
+        {
+          data: 'comesInBlack',
+          type: 'checkbox',
+          checkedTemplate: 'yes',
+          uncheckedTemplate: 'no',
+          label: {
+            position: 'before',
+            value: 'In black? '
+          },
+        },
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
 
 ## Related keyboard shortcuts
 

@@ -1,21 +1,21 @@
 ---
-title: 'Using the `HotColumn` component in Vue 3'
-metaTitle: 'Using the HotColumn component in Vue 3 - Guide - Handsontable Documentation'
+title: Using the `HotColumn` component in Vue 3
+metaTitle: HotColumn component - Vue 3 Data Grid | Handsontable
+description: Configure the Vue 3 data grid's columns, using the props of the "HotColumn" component. Define a custom cell editor or a custom cell renderer.
 permalink: /vue3-hot-column
 canonicalUrl: /vue3-hot-column
+searchCategory: Guides
 ---
 
 # Using the `HotColumn` component in Vue 3
 
+Configure the Vue 3 data grid's columns, using the props of the `HotColumn` component. Define a custom cell editor or a custom cell renderer.
+
 [[toc]]
-
-## Overview
-
-You can configure column-related settings using the `HotColumn` component's attributes.
 
 [Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
-## Declaring column settings
+## Declare column settings
 
 To declare column-specific settings, pass the settings as `hot-column` properties, either separately or wrapped as a `settings` property, exactly as you would for `hot-table`.
 
@@ -35,7 +35,7 @@ To declare column-specific settings, pass the settings as `hot-column` propertie
 import { createApp } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -44,7 +44,7 @@ const app = createApp({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(10, 10),
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation',
       },

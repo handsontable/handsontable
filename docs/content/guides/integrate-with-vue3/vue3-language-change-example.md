@@ -1,15 +1,19 @@
 ---
-title: 'Language change in Vue 3'
-metaTitle: 'Language change in Vue 3 - Guide - Handsontable Documentation'
+title: Language change in Vue 3
+metaTitle: Language change - Vue 3 Data Grid | Handsontable
+description: Change the default language of the right-click context menu from English to any of the built-in translations, using the "language" property.
 permalink: /vue3-language-change-example
 canonicalUrl: /vue3-language-change-example
+searchCategory: Guides
 ---
 
 # Language change in Vue 3
 
+Change the default language of the right-click context menu from English to any of the built-in translations, using the `language` property.
+
 [[toc]]
 
-## Overview
+## Example - Select language
 
 The following example implements the `@handsontable/vue3` component with the option to change the Context Menu language configured. Select a language from the selector above the table and open the Context Menu to see the result.
 
@@ -19,12 +23,10 @@ Note that the `language` property is bound to the component separately using `la
 
 [Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
-## Example - Select language
-
 ::: example #example1 :vue3-languages --html 1 --js 2
 ```html
-<div id="example1">
-  <label for="languages">Select language:</label>
+<div id="example1" class="controls select-language">
+  <label for="languages">Select language of the context menu:</label>
   <select v-on:change="updateHotLanguage" id="languages"></select><br/>
   <br/>
   <hot-table :language="language" :settings="hotSettings"></hot-table>
@@ -35,7 +37,7 @@ import { createApp } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { getLanguagesDictionaries } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -44,7 +46,7 @@ const app = createApp({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(5, 10),
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         rowHeaders: true,
         contextMenu: true,

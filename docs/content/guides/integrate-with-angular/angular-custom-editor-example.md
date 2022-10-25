@@ -1,19 +1,21 @@
 ---
-title: 'Custom editor in Angular'
-metaTitle: 'Custom editor in Angular - Guide - Handsontable Documentation'
+title: Custom editor in Angular
+metaTitle: Custom cell editor - Angular Data Grid | Handsontable
+description: Create a custom cell editor, and use it in your Angular data grid by declaring it as a class.
 permalink: /angular-custom-editor-example
 canonicalUrl: /angular-custom-editor-example
+searchCategory: Guides
 ---
 
 # Custom editor example in Angular
 
+Create a custom cell editor, and use it in your Angular data grid by declaring it as a class.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following is an implementation of the `@handsontable/angular` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
-
-## Example
 
 ::: example :angular --html 1 --js 2 --no-edit
 ```html

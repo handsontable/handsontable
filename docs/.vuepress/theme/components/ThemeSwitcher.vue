@@ -72,16 +72,16 @@ export default {
   display: none;
   margin-bottom: 0;
 
-  @media (max-width: $MQNarrow) {
+  @media (max-width: $large) {
     & {
       display: inline-block;
       left: 50px;
     }
   }
 
-  @media (max-width: $MQMobile) {
+  @media (max-width: $medium) {
     & {
-      left: 65px;
+      left: 10px;
     }
   }
 }
@@ -92,12 +92,13 @@ export default {
 .switch {
   width: 60px;
   height: 32px;
+  margin-left: 9px;
   position relative
   display inline-block
-  top: 3px;
+  top: 1px;
 
   /* Hide the theme switcher on narrow screen */
-  @media (max-width: $MQNarrow) {
+  @media (max-width: $large) {
     display none
   }
 }
@@ -133,17 +134,16 @@ export default {
 .slider:before {
   position: absolute;
   content: "";
-  height: 26px;
-  width: 26px;
-  left: 0px;
-  bottom: 4px;
+  height: 21px;
+  width: 21px;
+  left: 0;
   top: 0;
   bottom: 0;
   margin: auto 0;
   -webkit-transition: 0.4s;
   transition: 0.4s;
-  box-shadow: 0 0px 3px #2020203d;
-  background: #ffffff versionedUrl('/docs/{docsVersion}/img/light-theme-icon.svg');
+  /* Fallback for IE, should work in production */
+  background: #ffffff url('{{$basePath}}/img/light-theme-icon.svg');
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;
@@ -158,10 +158,9 @@ input:focus + .slider {
 }
 
 input:checked + .slider:before {
-  -webkit-transform: translateX(16px);
-  -ms-transform: translateX(16px);
-  transform: translateX(16px);
-  background: #ffffff versionedUrl('/docs/{docsVersion}/img/dark-theme-icon.svg');
+  transform: translateX(18px);
+  /* Fallback for IE, should work in production */
+  background: #ffffff url('{{$basePath}}/img/dark-theme-icon.svg');
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;

@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [12.2.0] - 2022-10-25
+
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-2-0)
+- [Blog post](https://handsontable.com/blog/articles/handsontable-12.2.0)
+
+### Added
+- Added a new feature that lets you add rows and columns at a specified position. Now, the `alter()` method takes 4 new parameter values: `insert_row_above`, `insert_row_below`, `insert_col_start`, and `insert_col_end`. The `insert_row` and `insert_col` parameters are marked as deprecated. [#9471](https://github.com/handsontable/handsontable/issues/9471)
+
+### Fixed
+- Fixed an issue where the width of the cell editor was calculated incorrectly. [#3815](https://github.com/handsontable/handsontable/issues/3815)
+- Fixed an issue where formulas surrounded by merged cells were converted to values by mistake. [#6359](https://github.com/handsontable/handsontable/issues/6359)
+- Fixed an issue where Handsontable could disappear on Firefox 93 (and later) in a specific use case. [#9545](https://github.com/handsontable/handsontable/issues/9545)
+- Fixed an issue where changing a cell's `type` through `setCellMeta()` didn't properly set the cell's `editor` and `renderer`. [#9734](https://github.com/handsontable/handsontable/issues/9734)
+- Fixed an issue where the dropdown menu didn't display when the `NestedHeaders` plugin was enabled and all rows were trimmed out. [#9753](https://github.com/handsontable/handsontable/issues/9753)
+
+### Removed
+- Removed a type definition for a non-existing method, `translateRowsToColumns()`. [#9919](https://github.com/handsontable/handsontable/issues/9919)
+
 ## [12.1.3] - 2022-09-22
 
 For more information on this release, see:
@@ -141,6 +160,10 @@ For more information on this release, see:
 
 ## [11.1.0] - 2022-01-13
 
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_11-1)
+- [Blog post](https://handsontable.com/blog/handsontable-11.1.0-vue-3-support-and-updatedata)
+
 ### Added
 - Added `updateData()`, a new method that allows for replacing Handsontable's `data` without 
 resetting the states of cells, rows and columns. [#7263](https://github.com/handsontable/handsontable/issues/7263)
@@ -167,10 +190,18 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 
 ## [11.0.1] - 2021-11-17
 
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/#_11-0-1)
+
 ### Fixed
 - Fixed the UMD build of `@handsontable/angular`, which was not working properly in `11.0.0`. [#8946](https://github.com/handsontable/handsontable/pull/8946)
 
 ## [11.0.0] - 2021-11-17
+
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_11-0)
+- [Blog post](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue)
+- [Migration guide](https://handsontable.com/docs/migration-from-10.0-to-11.0/)
 
 ### Added
 -  **Breaking change**: Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489)
@@ -197,6 +228,11 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 - *React:* Fixed a React wrapper issue where it's impossible to use different sets of props in editor components reused across multiple columns. [#8527](https://github.com/handsontable/handsontable/issues/8527)
 
 ## [10.0.0] - 2021-09-29
+
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_10-0)
+- [Blog post](https://handsontable.com/blog/handsontable-10.0.0-improved-performance-and-consistency)
+- [Migration guide](https://handsontable.com/docs/migration-from-9.0-to-10.0/)
 
 ### Changed
 - **Breaking change**: Unified the naming and description of the fourth argument, `controller`, for selection manipulation in the `beforeOnCellMouseDown` and `beforeOnCellMouseOver` hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996)
@@ -226,6 +262,10 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 
 ## [9.0.2] - 2021-07-28
 
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_9-0-2)
+- [Blog post](https://handsontable.com/blog/whats-new-in-handsontable-9.0.2)
+
 ### Fixed
 - Fixed an issue with an error being thrown when lazy loading columns on a setup with Nested Headers + Hidden Columns. [#7160](https://github.com/handsontable/handsontable/issues/7160)
 - Fixed column header sizes not being updated on `updateSettings` calls containing `columns`. [#7689](https://github.com/handsontable/handsontable/issues/7689)
@@ -243,6 +283,9 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 
 ## [9.0.1] - 2021-06-17
 
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/#_9-0-1)
+
 ### Fixed
 - Fixed an issue where the validator function was called twice when the Formulas plugin was enabled. [#8138](https://github.com/handsontable/handsontable/issues/8138)
 - Introduced a new CSS style for cells of the `checkbox` type to restore previous behaviour. [#8196](https://github.com/handsontable/handsontable/issues/8196)
@@ -251,6 +294,11 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 - Removed the redundant internal `jsonpatch` library from the source code. [#8140](https://github.com/handsontable/handsontable/issues/8140)
 
 ## [9.0.0] - 2021-06-01
+
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_9-0)
+- [Blog post](https://handsontable.com/blog/handsontable-9.0.0-new-formula-plugin)
+- [Migration guide](https://handsontable.com/docs/migration-from-8.4-to-9.0/)
 
 ### Changed
 - **Breaking change**: New Formulas plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`. [#6466](https://github.com/handsontable/handsontable/issues/6466)
@@ -269,6 +317,10 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 - Deprecated the `beforeAutofillInsidePopulate` hook. It will be removed in the next major release. [#8095](https://github.com/handsontable/handsontable/issues/8095)
 
 ## [8.4.0] - 2021-05-11
+
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-4)
+- [Blog post](https://handsontable.com/blog/whats-new-in-handsontable-8-4-0)
 
 ### Added
 - Introduced a `separated` attribute for the label options (the `label` DOM element may wrap `input` or be placed next to it). [#3172](https://github.com/handsontable/handsontable/issues/3172)
@@ -301,6 +353,10 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 
 ## [8.3.2] - 2021-03-16
 
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-3-2)
+- [Blog post](https://handsontable.com/blog/handsontable-8-3-2-introducing-monorepo)
+
 ### Fixed
 - Fixed a bug where it was impossible to enable `disableVisualSelection` for cells/columns. [#5082](https://github.com/handsontable/handsontable/issues/5082)
 - Fixed wrong paddings for multi-level headers. [#5086](https://github.com/handsontable/handsontable/issues/5086)
@@ -325,10 +381,17 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 
 ## [8.3.1] - 2021-02-10
 
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/#_8-3-1)
+
 ### Fixed
 - Fixed an issue where the CSS files could be eliminated during tree-shaking [#7516](https://github.com/handsontable/handsontable/issues/7516)
 
 ## [8.3.0] - 2021-01-28
+
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-3)
+- [Blog post](https://handsontable.com/blog/handsontable-8.3.0-has-been-released)
 
 ### Added
 - Introduced a new feature that allows postponing the table render and internal data cache update. The table rendering time can be reduced several-fold times by batching (using the `batch` method), multi-line API calls, or manually suspending rendering using the `suspendRender` and `resumeRender` methods. [#7274](https://github.com/handsontable/handsontable/issues/7274)
@@ -357,6 +420,10 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 
 ## [8.2.0] - 2020-11-12
 
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-2)
+- [Blog post](https://handsontable.com/blog/handsontable-8.2.0-has-been-released)
+
 ### Added
 - Added new type of Index Map named `LinkedPhysicalIndexToValueMap` [#7276](https://github.com/handsontable/handsontable/pull/7276)
 - Added an external dependency, `DOMPurify`, to add HTML sanitization what should minimize the risk of inserting insecure code using Handsontable built-in functionalities. [#7292](https://github.com/handsontable/handsontable/issues/7292)
@@ -374,6 +441,10 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 - Fix a bug with parsing multiline cells on pasting `text/html` mime-type. [#7369](https://github.com/handsontable/handsontable/issues/7369)
 
 ## [8.1.0] - 2020-10-01
+
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-1)
+- [Blog post](https://handsontable.com/blog/handsontable-8.1.0-has-been-released)
 
 ### Added
 - Added support for resizing non-contiguous selected rows [#7162](https://github.com/handsontable/handsontable/pull/7162) along with refactor and bug fix introduced within #6871 PR [#7220](https://github.com/handsontable/handsontable/pull/7220)
@@ -399,6 +470,11 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 - Improved performance for TrimRows, HiddenRows and HiddenColumns plugins for big datasets with lots trimmed/hidden indexes [#7223](https://github.com/handsontable/handsontable/pull/7223)
 
 ## [8.0.0] - 2020-08-05
+
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-0)
+- [Blog post](https://handsontable.com/blog/the-new-handsontable-8-is-now-available)
+- [Migration guide](https://handsontable.com/docs/migration-from-7.4-to-8.0/)
 
 ### Added
 - Added `modifySourceData` hook and `setSourceDataAtCell` method. [#6664](https://github.com/handsontable/handsontable/issues/6664)
@@ -461,7 +537,6 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 - Removed the experimental `GanttChart` plugin. [#7022](https://github.com/handsontable/handsontable/issues/7022)
 - Removed post-install warning from package.json file [#6608](https://github.com/handsontable/handsontable/pull/6608)
 - The `modifyRow`, `modifyCol`, `unmodifyRow`, `unmodifyCol` and `skipLengthCache` hooks are no longer needed and were removed. [#5945](https://github.com/handsontable/handsontable/pull/5945)
-
 
 ### Fixed
 - Fixed a problem with data not being added to the table properly with the `columnSorting` option enabled. [#2685](https://github.com/handsontable/handsontable/issues/2685)

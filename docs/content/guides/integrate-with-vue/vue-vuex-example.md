@@ -1,25 +1,27 @@
 ---
-title: 'Vuex example in Vue 2'
-metaTitle: 'Vuex example - Guide - Handsontable Documentation'
+title: Vuex example in Vue 2
+metaTitle: Integration with Vuex - Vue 2 Data Grid - Handsontable
+description: Use the Vuex state management pattern to maintain the data and configuration options of your Vue 2 data grid.
 permalink: /vue-vuex-example
 canonicalUrl: /vue-vuex-example
+searchCategory: Guides
 ---
 
 # Vuex example in Vue 2
 
+Use the Vuex state management pattern to maintain the data and configuration options of your Vue 2 data grid.
+
 [[toc]]
 
-## Overview
+## Example - Vuex store dump
 
 The following example implements the `@handsontable/vue` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Vuex state manager.
-
-## Example - Vuex store dump:
 
 Toggle [`readOnly`](@/api/options.md#readonly) for the entire table.
 
 ::: example #example1 :vue-vuex --html 1 --js 2
 ```html
-<div id="example1">
+<div id="example1" class="dump-example-container">
   <div id="example-preview">
     <div id="toggle-boxes">
       <br/>
@@ -39,7 +41,7 @@ Toggle [`readOnly`](@/api/options.md#readonly) for the entire table.
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -49,7 +51,7 @@ new Vue({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(4, 4),
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
         colHeaders: true,
         rowHeaders: true,
         readOnly: true,

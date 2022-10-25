@@ -1,21 +1,23 @@
 ---
-title: 'Language change in Angular'
-metaTitle: 'Language change in Angular - Guide - Handsontable Documentation'
+title: Language change in Angular
+metaTitle: Language change - Angular Data Grid | Handsontable
+description: Change the default language of the right-click context menu from English to any of the built-in translations, using the "language" property.
 permalink: /angular-language-change-example
 canonicalUrl: /angular-language-change-example
+searchCategory: Guides
 ---
 
 # Language change in Angular
 
+Change the default language of the right-click context menu from English to any of the built-in translations, using the `language` property.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following example is an implementation of the `@handsontable/angular` component with an option to change the Context Menu language.
 
 Select a language from the selector above the table and open the Context Menu to see the result.
-
-## Example
 
 ::: example :angular-languages --html 1 --js 2
 ```html
@@ -25,15 +27,15 @@ Select a language from the selector above the table and open the Context Menu to
 // app.component.ts
 import { Component } from '@angular/core';
 import { getLanguagesDictionaries } from 'handsontable/i18n';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 @Component({
   selector: 'app-root',
   template: `
-  <label for="languages">Select language:</label>
+  <div class="controls select-language"><label>Select language of the context menu:
   <select [(ngModel)]="language">
     <option *ngFor="let l of languages" [value]="l.languageCode">{{l.languageCode}}</option>
-  </select><br/><br/>
+  </select></label></div>
   <div>
     <hot-table [language]="language" [settings]="hotSettings"></hot-table>
   </div>
@@ -41,7 +43,7 @@ import { createSpreadsheetData } from './helpers';
 })
 class AppComponent {
   hotSettings: Handsontable.GridSettings = {
-    data: createSpreadsheetData(5, 10),
+    data: Handsontable.helper.createSpreadsheetData(5, 10),
     colHeaders: true,
     rowHeaders: true,
     contextMenu: true,
@@ -74,6 +76,7 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
+:::
 
 ## Related articles
 

@@ -2,10 +2,10 @@
   <div class="layout-container">
     <ParentLayout>
       <template #page-top>
-        <div v-if="show" class="page-top">
-          <div class="version-alert">
-            <p v-if="isNext">This page covers a next version of Handsontable, and is not published yet.</p>
-            <p v-else-if="!isLatest">This page covers a non-latest version of Handsontable.</p>
+        <div v-show="show" class="page-top">
+          <div class="custom-block tip version-alert">
+            <p>There is a newer version of Handsontable available.
+              <a href="/docs/latest/">Switch to the latest version ⟶</a></p>
           </div>
         </div>
       </template>
@@ -28,16 +28,13 @@ export default {
     Sidebar
   },
   computed: {
-    isLatest() {
-      return this.$page.currentVersion === this.$page.latestVersion;
-    },
-
-    isNext() {
-      return this.$page.currentVersion === 'next';
-    },
-
     show() {
-      return this.$page.latestVersion && !this.isLatest || this.isNext;
+      return this.$page.currentVersion !== this.$page.latestVersion && this.$page.currentVersion !== 'next';
+    }
+  },
+  created() {
+    if (this.$ssrContext) {
+      this.$ssrContext.docsGenStamp = this.$page.docsGenStamp ?? '';
     }
   }
 };
@@ -47,16 +44,9 @@ export default {
 .layout-container
   min-height 100%
 
-.version-alert
-  margin-top 2rem
-  padding 1rem 1.2rem
-  border-radius 6px
-  color #fff
-  border 1px solid #e9eef2
-  background #2456f2
-  p
-    margin 0
-    padding 0
-    font-weight 500
-    line-height 1.5
+.custom-block.tip.version-alert
+  position relative
+  top -34px
+  border-width 1px
+  border-style dashed
 </style>

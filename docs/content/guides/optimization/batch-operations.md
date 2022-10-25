@@ -1,13 +1,21 @@
 ---
 title: Batch operations
-metaTitle: Batch operations - Guide - Handsontable Documentation
+metaTitle: Batch operations - JavaScript Data Grid | Handsontable
+description: Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid's performance.
 permalink: /batch-operations
 canonicalUrl: /batch-operations
 tags:
   - suspend rendering
+  - batching
+  - performance
+react:
+  metaTitle: Batch operations - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Batch operations
+
+Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid's performance.
 
 [[toc]]
 
@@ -46,11 +54,19 @@ There are several API methods you can use for suspending, but [`batch()`](@/api/
 
 The following snippet shows a simple example of a few operations batched. Three API operations are called one after another. Without placing them inside the batch callback, every single operation would end with a [`render()`](@/api/core.md#render). Thanks to the batching feature, you can skip two renders and end the whole action with one render at the end. This is more optimal, and the gain increases with the number of operations placed inside the [`batch()`](@/api/core.md#batch).
 
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+:::
+
 ```js
 // call the batch method on an instance
 hot.batch(() => {
   // run the operations as needed
-  hot.alter('insert_row', 5, 45);
+  hot.alter('insert_row_above', 5, 45);
   hot.setDataAtCell(1, 1, 'x');
   hot.selectCell(0, 0);
   // the render is executed right after all of the operations are completed
@@ -59,7 +75,7 @@ hot.batch(() => {
 
 Suspending the render results in better performance, which is especially noticeable when numerous operations are batched. The diagram shows a comparison where the same operations were performed **with** (deep blue columns) **and without the batch** (light blue columns). The gain in speed of execution time increases with the number of operations batched.
 
-![batch_operations_comparison](/docs/{{$page.currentVersion}}/img/batch_operations_comparison.png)
+![batch_operations_comparison]({{$basePath}}/img/batch_operations_comparison.png)
 
 :::tip
 Note that other methods can be used to batch operations, but they are slightly more advanced and should be used with caution. Flickering, glitches or other visual distortion may happen when you forget to `resume` render after suspending it several times. Mixing methods of a render type with those focused on operations can also result in some unexpected behavior. Above all, [`batch()`](@/api/core.md#batch) should be sufficient in most use cases, and it is safe to work with.
@@ -94,7 +110,7 @@ This method supsends both rendering and other operations. It is universal and es
 
 ```js
 hot.batch(() => {
-  hot.alter('insert_row', 5, 45);
+  hot.alter('insert_row_above', 5, 45);
   hot.setDataAtCell(1, 1, 'x');
 
   const filters = hot.getPlugin('filters');
@@ -112,7 +128,7 @@ The [`batchRender()`](@/api/core.md#batchrender) method is a callback function. 
 
 ```js
 hot.batchRender(() => {
-  hot.alter('insert_row', 5, 45);
+  hot.alter('insert_row_above', 5, 45);
   hot.setDataAtCell(1, 1, 'x');
   // The table will be rendered once after executing the callback
 });
@@ -143,7 +159,7 @@ After suspending, resume the process with the [`resumeRender()`](@/api/core.md#r
 
 ```js
 hot.suspendRender(); // suspend rendering
-hot.alter('insert_row', 5, 45);
+hot.alter('insert_row_above', 5, 45);
 hot.setDataAtCell(1, 1, 'x');
 hot.resumeRender(); // remember to resume rendering
 ```
@@ -166,17 +182,21 @@ hot.resumeExecution(); // It updates the cache internally
 
 The following examples show how much the [`batch()`](@/api/core.md#batch) method can decrease the render time. Both of the examples share the same dataset and operations. The first one shows how much time lapsed when the [`batch()`](@/api/core.md#batch) method was used. Run the second example to check how much time it takes to render without the [`batch()`](@/api/core.md#batch) method.
 
+::: only-for javascript
 ::: example #example1 --html 1 --js 2
 ```html
 <div id="example1"></div>
-<p>
-  <button id="buttonWithout" class="button button--primary">Run without batch method</button>&nbsp;
+<div class="controls">
+  <button id="buttonWithout" class="button button--primary">Run without batch method</button>
   <button id="buttonWith" class="button button--primary">Run with batch method</button>
-</p>
-<div id="logOutput"></div>
+</div>
+<output class="console" id="output">Here you will see the log</output>
 ```
 ```js
 const container = document.querySelector('#example1');
+const buttonWithout = document.querySelector('#buttonWithout');
+const buttonWith = document.querySelector('#buttonWith');
+const output = document.querySelector('#output');
 
 const data1 = [
   [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
@@ -210,8 +230,8 @@ const hot = new Handsontable(container, {
 });
 
 const alterTable = () => {
-  hot.alter('insert_row', 10, 10);
-  hot.alter('insert_col', 6, 1);
+  hot.alter('insert_row_above', 10, 10);
+  hot.alter('insert_col_start', 6, 1);
   hot.populateFromArray(10, 0, data2);
   hot.populateFromArray(11, 0, data3);
   hot.setCellMeta(2, 2, 'className', 'green-bg');
@@ -228,16 +248,16 @@ const alterTable = () => {
   hot.render(); // Render is needed here to populate the new "className"s
 }
 
-const logOutput = msg => {
-  const logDiv = document.querySelector('#logOutput');
-  const div = document.createElement('div');
-  const now = new Date();
+let loggedText = '';
+let counter = 0;
 
-  div.innerText = '[' + now.toTimeString().slice(0, 8) + '] ' + msg;
-  logDiv.insertBefore(div, logDiv.firstChild);
+const logOutput = msg => {
+  counter++;
+  loggedText = `[${counter}] ${msg}\n${loggedText}`;
+  output.innerText = loggedText;
 }
 
-Handsontable.dom.addEvent(buttonWithout, 'click', () => {
+buttonWithout.addEventListener('click', () => {
   const t1 = performance.now();
   alterTable();
   const t2 = performance.now();
@@ -245,7 +265,7 @@ Handsontable.dom.addEvent(buttonWithout, 'click', () => {
   logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
 });
 
-Handsontable.dom.addEvent(buttonWith, 'click', () => {
+buttonWith.addEventListener('click', () => {
   const t1 = performance.now();
   hot.batch(alterTable);
   const t2 = performance.now();
@@ -254,6 +274,114 @@ Handsontable.dom.addEvent(buttonWith, 'click', () => {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import { useRef, useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = useRef(null);
+  const [counter, setCounter] = useState(0);
+  const [output, setOutput] = useState('');
+
+  const data2 = [
+    [11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes'],
+  ];
+  const data3 = [
+    [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],
+    [13, 'Anna Moon', 'Unicorn shades', 'uni', 200, 'no'],
+    [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
+  ];
+  const logOutput = msg => {
+    setCounter(counter + 1);
+    setOutput(`[${counter}] ${msg}\n${output}`);
+  }
+  let buttonWithoutClickCallback;
+  let buttonWithClickCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    const alterTable = () => {
+      hot.alter('insert_row', 10, 10);
+      hot.alter('insert_col', 6, 1);
+      hot.populateFromArray(10, 0, data2);
+      hot.populateFromArray(11, 0, data3);
+      hot.setCellMeta(2, 2, 'className', 'green-bg');
+      hot.setCellMeta(4, 2, 'className', 'green-bg');
+      hot.setCellMeta(5, 2, 'className', 'green-bg');
+      hot.setCellMeta(6, 2, 'className', 'green-bg');
+      hot.setCellMeta(8, 2, 'className', 'green-bg');
+      hot.setCellMeta(9, 2, 'className', 'green-bg');
+      hot.setCellMeta(10, 2, 'className', 'green-bg');
+      hot.alter('remove_col', 6, 1);
+      hot.alter('remove_row', 10, 10);
+      hot.setCellMeta(0, 5, 'className', 'red-bg');
+      hot.setCellMeta(10, 5, 'className', 'red-bg');
+      hot.render(); // Render is needed here to populate the new "className"s
+    }
+
+    buttonWithClickCallback = () => {
+      const t1 = performance.now();
+      hot.batch(alterTable);
+      const t2 = performance.now();
+
+      logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
+    };
+
+    buttonWithoutClickCallback = () => {
+      const t1 = performance.now();
+      alterTable();
+      const t2 = performance.now();
+
+      logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
+    };
+  });
+
+  return (
+    <>
+      <HotTable
+        ref={hotRef}
+        data={[
+          [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
+          [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
+          [3, 'Ronald Carver', 'Sunny T-shirt', 'S', 1, 'no'],
+          [4, 'Samuel Watkins', 'Floppy socks', 'S', 3, 'no'],
+          [5, 'Stephanie Huddart', 'Bushy-bush cap', 'XXL', 1, 'no'],
+          [6, 'Madeline McGillivray', 'Long skirt', 'L', 1, 'no'],
+          [7, 'Jai Moor', 'Happy dress', 'XS', 1, 'no'],
+          [8, 'Ben Lower', 'Speckled trousers', 'M', 1, 'no'],
+          [9, 'Ali Tunbridge', 'Speckled trousers', 'M', 2, 'no'],
+          [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no']
+        ]}
+        width="auto"
+        height="auto"
+        colHeaders={['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return']}
+        licenseKey="non-commercial-and-evaluation"
+      />
+      <div className="controls">
+        <button id="buttonWithout" className="button button--primary" onClick={(...args) => buttonWithoutClickCallback(...args)}>Run without batch method</button>
+        <button id="buttonWith" className="button button--primary" onClick={(...args) => buttonWithClickCallback(...args)}>Run with batch method</button>
+      </div>
+      <output className="console" id="output">{output || 'Here you will see the log'}</output>
+    </>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Related articles
 

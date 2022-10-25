@@ -1,22 +1,37 @@
 ---
 title: Dropdown cell type
-metaTitle: Dropdown cell type - Guide - Handsontable Documentation
+metaTitle: Dropdown cell type - JavaScript Data Grid | Handsontable
+description: Collect user input with a searchable list of choices, by using the dropdown cell type.
 permalink: /dropdown-cell-type
 canonicalUrl: /dropdown-cell-type
+react:
+  metaTitle: Dropdown cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Dropdown cell type
 
+Collect user input with a searchable list of choices, by using the dropdown cell type.
+
 [[toc]]
 
 ## Overview
+
 The dropdown cell type is based on an autocomplete cell type and can also be searchable.
 
 ## Usage
+
 This example shows the usage of the dropdown feature. Dropdown is based on [Autocomplete](@/guides/cell-types/autocomplete-cell-type.md) cell type. All options used by `autocomplete` cell type apply to `dropdown` as well.
 
+::: only-for javascript
 Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplete', strict: true, filter: false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
+:::
 
+::: only-for react
+Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" strict={true} filter={false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
+:::
+
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -45,6 +60,51 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        ['Tesla', 2017, 'black', 'black'],
+        ['Nissan', 2018, 'blue', 'blue'],
+        ['Chrysler', 2019, 'yellow', 'black'],
+        ['Volvo', 2020, 'white', 'gray']
+      ]}
+      colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
+      columns={[
+        {},
+        { type: 'numeric' },
+        {
+          type: 'dropdown',
+          source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
+        },
+        {
+          type: 'dropdown',
+          source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
+        }
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Related articles
 

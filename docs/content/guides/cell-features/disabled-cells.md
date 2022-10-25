@@ -1,6 +1,7 @@
 ---
 title: Disabled cells
-metaTitle: Disabled cells - Guide - Handsontable Documentation
+metaTitle: Disabled cells - JavaScript Data Grid | Handsontable
+description: Make specified cells read-only to protect them from unwanted changes but still allow navigation and copying of data.
 permalink: /disabled-cells
 canonicalUrl: /disabled-cells
 tags:
@@ -9,9 +10,14 @@ tags:
   - non-editable
   - noneditable
   - locked
+react:
+  metaTitle: Disabled cells - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Disabled cells
+
+Make specified cells read-only to protect them from unwanted changes but still allow navigation and copying of data.
 
 [[toc]]
 
@@ -32,6 +38,7 @@ In many use cases, you will need to configure a certain column to be read-only. 
 
 To make a column read-only, declare it in the [`columns`](@/api/options.md#columns) configuration option. You can also define a special renderer function that will dim the read-only values, providing a visual cue for the user that the cells are read-only.
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -43,6 +50,7 @@ const hot = new Handsontable(container, {
     {car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black'},
     {car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray'}
   ],
+  height: 'auto',
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
@@ -63,11 +71,61 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
+        { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
+        { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
+        { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' }
+      ]}
+      height="auto"
+      colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
+      licenseKey="non-commercial-and-evaluation"
+      columns={[
+        {
+          data: 'car',
+          readOnly: true
+        },
+        {
+          data: 'year'
+        },
+        {
+          data: 'chassis'
+        },
+        {
+          data: 'bumper'
+        }
+      ]}
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Read-only specific cells
 
 This example makes cells that contain the word "Nissan" read-only. It forces all cells to be processed by the [`cells`](@/api/options.md#cells) function which will decide whether a cell's metadata should have the [`readOnly`](@/api/options.md#readonly) property set.
 
+::: only-for javascript
 ::: example #example2
 ```js
 const container = document.querySelector('#example2');
@@ -97,6 +155,60 @@ hot.updateSettings({
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import { useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = useRef(null);
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    hot.updateSettings({
+      cells(row, col) {
+        const cellProperties = {};
+
+        if (hot.getData()[row][col] === 'Nissan') {
+          cellProperties.readOnly = true;
+        }
+
+        return cellProperties;
+      }
+    });
+  });
+
+  return (
+    <HotTable
+      ref={hotRef}
+      data={[
+        { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
+        { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
+        { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
+        { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' }
+      ]}
+      colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 Non-editable cells behave like any other cells apart from preventing you from manually changing their values.
 
@@ -106,6 +218,7 @@ In many cases, you will need to configure a certain column to be non-editable. D
 
 To make a column non-editable, declare it in the [`columns`](@/api/options.md#columns) configuration option. You can also define a special renderer function that will dim the `editor` value. This will provide the user with a visual cue that the cell is non-editable.
 
+::: only-for javascript
 ::: example #example3
 ```js
 const container = document.querySelector('#example3');
@@ -117,6 +230,7 @@ const hot = new Handsontable(container, {
     {car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black'},
     {car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray'}
   ],
+  height: 'auto',
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
@@ -140,11 +254,64 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example3 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
+        { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
+        { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
+        { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' }
+      ]}
+      height="auto"
+      colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
+      licenseKey="non-commercial-and-evaluation"
+      columns={[
+        {
+          data: 'car',
+          editor: false
+        },
+        {
+          data: 'year',
+          editor: 'numeric'
+        },
+        {
+          data: 'chassis',
+          editor: 'text'
+        },
+        {
+          data: 'bumper',
+          editor: 'text'
+        }
+      ]}
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
 
 ## Non-editable specific cells
 
 The following example shows the table with non-editable cells containing the word "Nissan". This cell property is optional and can be easily set in the Handsontable configuration.
 
+::: only-for javascript
 ::: example #example4
 ```js
 const container = document.querySelector('#example4');
@@ -177,6 +344,63 @@ hot.updateSettings({
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example4 :react
+```jsx
+import { useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = useRef(null);
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    hot.updateSettings({
+      cells(row, col, prop) {
+        const cellProperties = {};
+
+        if (hot.getDataAtRowProp(row, prop) === 'Nissan') {
+          cellProperties.editor = false;
+
+        } else {
+          cellProperties.editor = 'text';
+        }
+
+        return cellProperties;
+      }
+    });
+  });
+
+  return (
+    <HotTable
+      ref={hotRef}
+      data={[
+        { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
+        { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
+        { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
+        { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' }
+      ]}
+      colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+```
+:::
+:::
+
 
 ## Related API reference
 

@@ -1,11 +1,15 @@
 ---
 title: Packages
-metaTitle: Packages - Guide - Handsontable Documentation
+metaTitle: Packages - JavaScript Data Grid | Handsontable
+description: Instantly add Handsontable to your web app, using pre-built UMD packages of JavaScript and CSS.
 permalink: /packages
 canonicalUrl: /packages
+searchCategory: Guides
 ---
 
 # Packages
+
+Instantly add Handsontable to your web app, using pre-built UMD packages of JavaScript and CSS.
 
 [[toc]]
 

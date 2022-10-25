@@ -1,15 +1,17 @@
 ---
-title: 'Modules in Vue 3'
-metaTitle: 'Modules in Vue 3 - Guide - Handsontable Documentation'
+title: Modules in Vue 3
+metaTitle: Modules - Vue 3 Data Grid | Handsontable
+description: Reduce the size of your Vue 3 app by importing only the modules that you need and use.
 permalink: /vue3-modules
 canonicalUrl: /vue3-modules
+searchCategory: Guides
 ---
 
 # Modules in Vue 3
 
-[[toc]]
+Reduce the size of your Vue 3 app by importing only the modules that you need and use.
 
-Import just the modules that you actually need, to reduce Handsontable's impact on the size of your Vue 3 app.
+[[toc]]
 
 [Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
@@ -39,13 +41,13 @@ For example, to import the [`numeric`](@/guides/cell-types/numeric-cell-type.md)
 
 ```js
 import {
-registerCellType, // cell types' registering function
-NumericCellType,
+  registerCellType, // cell types' registering function
+  NumericCellType,
 } from 'handsontable/cellTypes';
 
 import {
-registerPlugin, // plugins' registering function
-UndoRedo,
+  registerPlugin, // plugins' registering function
+  UndoRedo,
 } from 'handsontable/plugins';
 ```
 

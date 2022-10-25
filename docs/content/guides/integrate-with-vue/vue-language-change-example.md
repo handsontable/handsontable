@@ -1,15 +1,19 @@
 ---
-title: 'Language change in Vue 2'
-metaTitle: 'Language change in Vue 2 - Guide - Handsontable Documentation'
+title: Language change in Vue 2
+metaTitle: Language change - Vue 2 Data Grid | Handsontable
+description: Change the default language of the right-click context menu from English to any of the built-in translations, using the "language" property.
 permalink: /vue-language-change-example
 canonicalUrl: /vue-language-change-example
+searchCategory: Guides
 ---
 
 # Language change in Vue 2
 
+Change the default language of the right-click context menu from English to any of the built-in translations, using the `language` property.
+
 [[toc]]
 
-## Overview
+## Example - Select language
 
 The following example implements the `@handsontable/vue` component with the option to change the Context Menu language configured. Select a language from the selector above the table and open the Context Menu to see the result.
 
@@ -17,12 +21,10 @@ The following example implements the `@handsontable/vue` component with the opti
 Note that the `language` property is bound to the component separately using `language={this.language}"`, but it could be included in the `settings` property just as well.
 :::
 
-## Example - Select language
-
 ::: example #example1 :vue-languages --html 1 --js 2
 ```html
-<div id="example1">
-  <label for="languages">Select language:</label>
+<div id="example1" class="controls select-language">
+  <label for="languages">Select language of the context menu:</label>
   <select v-on:change="updateHotLanguage" id="languages"></select><br/>
   <br/>
   <hot-table :language="language" :settings="hotSettings"></hot-table>
@@ -33,7 +35,7 @@ import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { getLanguagesDictionaries } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -43,7 +45,7 @@ new Vue({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(5, 10),
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
         colHeaders: true,
         rowHeaders: true,
         contextMenu: true,

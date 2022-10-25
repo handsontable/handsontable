@@ -1,30 +1,26 @@
 ---
-title: 'Installation in Vue 3'
-metaTitle: 'Installation in Vue 3 - Guide - Handsontable Documentation'
+title: Installation in Vue 3
+metaTitle: Installation - Vue 3 Data Grid | Handsontable
+description: Install Handsontable's Vue 3 wrapper via npm, import the stylesheets, and get your application up and running.
 permalink: /vue3-installation
 canonicalUrl: /vue3-installation
+searchCategory: Guides
 ---
 
 # Installation in Vue 3
 
+Install Handsontable's Vue 3 wrapper via npm, import the stylesheets, and get your application up and running.
+
 [[toc]]
 
-## Overview
+## Vue 3 version support
 
-Vue 3 installation and basic usage guide.
-
-### Vue 3 version support
-
-To find out which Vue 3 versions are supported by Handsontable, see the table below:
-
-::: details Vue 3 version support
+Handsontable supports the following Vue 3 versions:
 
 | Handsontable version | Vue 3 version      |
 | -------------------- | ------------------ |
 | `11.0.0` and lower   | No Vue 3 support   |
 | `11.1.0` and higher  | `3.2.0` and higher |
-
-:::
 
 ## Install with npm
 

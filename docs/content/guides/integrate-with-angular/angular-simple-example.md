@@ -1,19 +1,21 @@
 ---
-title: 'Basic example in Angular'
-metaTitle: 'Basic example in Angular - Guide - Handsontable Documentation'
-permalink: /angular-simple-example
-canonicalUrl: /angular-simple-example
+title: Basic example in Angular
+metaTitle: Basic example - Angular Data Grid | Handsontable
+description: Start with the Angular data grid basic configuration examples, using component properties for configuration and external control.
+permalink: /angular-basic-example
+canonicalUrl: /angular-basic-example
+searchCategory: Guides
 ---
 
 # Basic example in Angular
 
+Start with the Angular data grid basic configuration examples, using component properties for configuration and external control.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following example is a basic implementation of the `@handsontable/angular` wrapper.
-
-## Example
 
 ::: example :angular --html 1 --js 2
 ```html

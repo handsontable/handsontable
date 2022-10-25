@@ -1,6 +1,7 @@
 ---
 title: Context menu
-metaTitle: Context menu - Guide - Handsontable Documentation
+metaTitle: Context menu - JavaScript Data Grid | Handsontable
+description: Open a right-click context menu to access contextual actions such as removing rows, inserting columns, or copying data to the clipboard.
 permalink: /context-menu
 canonicalUrl: /context-menu
 tags:
@@ -8,9 +9,14 @@ tags:
   - shortcut menu
   - pop-up menu
   - right-click menu
+react:
+  metaTitle: Context menu - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Context menu
+
+Open a right-click context menu to access contextual actions such as removing rows, inserting columns, or copying data to the clipboard.
 
 [[toc]]
 
@@ -18,6 +24,7 @@ tags:
 
 To run the basic configuration of the Context Menu, just set the [`contextMenu`](@/api/options.md#contextmenu) option to `true`.
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -39,6 +46,44 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+        ['2017', 10, 11, 12, 13, 15, 16],
+        ['2018', 10, 11, 12, 13, 15, 16],
+        ['2019', 10, 11, 12, 13, 15, 16],
+        ['2020', 10, 11, 12, 13, 15, 16],
+        ['2021', 10, 11, 12, 13, 15, 16]
+      ]}
+      rowHeaders={true}
+      colHeaders={true}
+      contextMenu={true}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Context menu with specific options
 
@@ -78,6 +123,7 @@ You can define items in the menu by passing the [`contextMenu`](@/api/options.md
 | [`filter_by_value`](@/api/contextMenu.md)                    | Value select element             | Plugin [Filters](@/api/filters.md) turned on                       |
 | [`filter_action_bar`](@/api/contextMenu.md)                  | Action bar element               | Plugin [Filters](@/api/filters.md) turned on                       |
 
+::: only-for javascript
 ::: example #example2
 ```js
 const container = document.querySelector('#example2');
@@ -99,6 +145,94 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+        ['2017', 10, 11, 12, 13, 15, 16],
+        ['2018', 10, 11, 12, 13, 15, 16],
+        ['2019', 10, 11, 12, 13, 15, 16],
+        ['2020', 10, 11, 12, 13, 15, 16],
+        ['2021', 10, 11, 12, 13, 15, 16]
+      ]}
+      rowHeaders={true}
+      colHeaders={true}
+      contextMenu={['row_above', 'row_below', 'remove_row']}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
+::: only-for react
+## Context menu with custom options
+
+In addition to built-in options, you can equip your context menu with custom options.
+
+::: example #example4 :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { ContextMenu } from 'handsontable/plugins/contextMenu';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <div>
+      <HotTable
+        id="hot"
+        data={Handsontable.helper.createSpreadsheetData(5, 5)}
+        colHeaders={true}
+        height="auto"
+        contextMenu={{
+          items: {
+            'row_above': {
+              name: 'Insert row above this one (custom name)'
+            },
+            'row_below': {},
+            'separator': ContextMenu.SEPARATOR,
+            'clear_custom': {
+              name: 'Clear all cells (custom)',
+              callback: function() {
+                this.clear();
+              }
+            }
+          }
+        }}
+        licenseKey="non-commercial-and-evaluation"
+      />
+    </div>
+  )
+}
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+```
+:::
+:::
 
 ## Context menu with fully custom configuration
 
@@ -110,6 +244,7 @@ This example shows how to:
 * add own custom option
 * add callback for specific option
 
+::: only-for javascript
 ::: example #example3
 ```js
 const container = document.querySelector('#example3');
@@ -198,6 +333,109 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example3 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+        ['2017', 10, 11, 12, 13, 15, 16],
+        ['2018', 10, 11, 12, 13, 15, 16],
+        ['2019', 10, 11, 12, 13, 15, 16],
+        ['2020', 10, 11, 12, 13, 15, 16],
+        ['2021', 10, 11, 12, 13, 15, 16]
+      ]}
+      rowHeaders={true}
+      colHeaders={true}
+      licenseKey="non-commercial-and-evaluation"
+      height="auto"
+      contextMenu={{
+        callback(key, selection, clickEvent) {
+          // Common callback for all options
+          console.log(key, selection, clickEvent);
+        },
+        items: {
+          row_above: {
+            disabled() { // `disabled` can be a boolean or a function
+              // Disable option when first row was clicked
+              return this.getSelectedLast()[0] === 0; // `this` === hot
+            }
+          },
+          // A separator line can also be added like this:
+          // 'sp1': { name: '---------' }
+          // and the key has to be unique
+          sp1: '---------',
+          row_below: {
+            name: 'Click to add row below' // Set custom text for predefined option
+          },
+          about: { // Own custom option
+            name() { // `name` can be a string or a function
+              return '<b>Custom option</b>'; // Name can contain HTML
+            },
+            hidden() { // `hidden` can be a boolean or a function
+              // Hide the option when the first column was clicked
+              return this.getSelectedLast()[1] == 0; // `this` === hot
+            },
+            callback(key, selection, clickEvent) { // Callback for specific option
+              setTimeout(() => {
+                alert('Hello world!'); // Fire alert after menu close (with timeout)
+              }, 0);
+            }
+          },
+          colors: { // Own custom option
+            name: 'Colors...',
+            submenu: {
+              // Custom option with submenu of items
+              items: [{
+                // Key must be in the form 'parent_key:child_key'
+                key: 'colors:red',
+                name: 'Red',
+                callback(key, selection, clickEvent) {
+                  setTimeout(() => {
+                    alert('You clicked red!');
+                  }, 0);
+                }
+              },
+                { key: 'colors:green', name: 'Green' },
+                { key: 'colors:blue', name: 'Blue' }
+              ]
+            }
+          },
+          credits: { // Own custom property
+            // Custom rendered element in the context menu
+            renderer(hot, wrapper, row, col, prop, itemValue) {
+              const elem = document.createElement('marquee');
+
+              elem.style.cssText = 'background: lightgray;';
+              elem.textContent = 'Brought to you by...';
+
+              return elem;
+            },
+            disableSelection: true, // Prevent mouseoever from highlighting the item for selection
+            isCommand: false // Prevent clicks from executing command and closing the menu
+          }
+        }
+      }}
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
 
 ## Related keyboard shortcuts
 
@@ -215,11 +453,13 @@ const hot = new Handsontable(container, {
 
 - [Adding comments via the context menu](@/guides/cell-features/comments.md#adding-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
-- [Custom context menu in React](@/guides/integrate-with-react/react-custom-context-menu-example.md)
+- [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
+::: only-for javascript
+- [Custom context menu in React](@/react/guides/accessories-and-menus/context-menu.md)
 - [Custom context menu in Angular](@/guides/integrate-with-angular/angular-custom-context-menu-example.md)
 - [Custom context menu in Vue 2](@/guides/integrate-with-vue/vue-custom-context-menu-example.md)
 - [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example.md)
-- [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
+:::
 
 ### Related blog articles
 

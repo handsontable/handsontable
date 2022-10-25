@@ -1,11 +1,17 @@
 ---
 title: Merge cells
-metaTitle: Merge cells - Guide - Handsontable Documentation
+metaTitle: Merge cells - JavaScript Data Grid | Handsontable
+description: Merge adjacent cells, using the "Ctrl + M" shortcut or the right-click context menu. Control merged cells, using Handsontable's API.
 permalink: /merge-cells
 canonicalUrl: /merge-cells
+react:
+  metaTitle: Merge cells - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Merge cells
+
+Merge adjacent cells, using the <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> shortcut or the right-click context menu. Control merged cells, using Handsontable's API.
 
 [[toc]]
 
@@ -17,8 +23,17 @@ The merging cells feature enables you to combine the contents of two or more cel
 
 To enable the merge cells feature, set the [`mergeCells`](@/api/options.md#mergecells) option to  `true` or to an array.
 
-To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array: `mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }]`.
+To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array:
 
+::: only-for javascript
+`mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }]`
+:::
+
+::: only-for react
+`mergeCells={[{ row: 1, col: 1, rowspan: 2, colspan: 2 }]}`
+:::
+
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -39,6 +54,44 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(100, 50)}
+      height={320}
+      colWidths={47}
+      rowHeaders={true}
+      colHeaders={true}
+      contextMenu={true}
+      mergeCells={[
+        { row: 1, col: 1, rowspan: 3, colspan: 3 },
+        { row: 3, col: 4, rowspan: 2, colspan: 2 },
+        { row: 5, col: 6, rowspan: 3, colspan: 3 }
+      ]}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Related keyboard shortcuts
 

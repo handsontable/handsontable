@@ -1,23 +1,31 @@
 ---
 title: Column filter
-metaTitle: Column filter - Guide - Handsontable Documentation
+metaTitle: Column filter - JavaScript Data Grid | Handsontable
+description: Filter your data by a value or by a combination of conditions.
 permalink: /column-filter
 canonicalUrl: /column-filter
 tags:
   - filtering data
+react:
+  metaTitle: Column filter - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column filter
 
+Filter your data by a value or by a combination of conditions.
+
 [[toc]]
 
 ## Overview
+
 The [`Filters`](@/api/filters.md) plugin allows filtering the data in the table's columns using a range of pre-defined conditions.
 
 ## Basic configuration
 
 To enable the plugin, set the [`filters`](@/api/options.md#filters) configuration option to `true` and enable the filters dependency, which is the [dropdownMenu](@/guides/columns/column-menu.md) plugin.
 
+::: only-for javascript
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -47,11 +55,58 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
+        ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
+        ['Pellentesque', 'vulputate', 'leo', 'semper', '10/23/2015', 26],
+        ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
+        ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
+      ]}
+      columns={[
+        { type: 'text' },
+        { type: 'text' },
+        { type: 'text' },
+        { type: 'text' },
+        { type: 'date', dateFormat: 'M/D/YYYY' },
+        { type: 'numeric' }
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      dropdownMenu={true}
+      filters={true}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
 
 ## Custom filter menu
 
 To display filters while hiding the other elements in the dropdown menu, pass the elements to be displayed as an array into the configuration.
 
+::: only-for javascript
 ::: example #example2
 ```js
 const container = document.querySelector('#example2');
@@ -81,6 +136,52 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
+        ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
+        ['Pellentesque', 'vulputate', 'leo', 'semper', '10/23/2015', 26],
+        ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
+        ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
+      ]}
+      columns={[
+        { type: 'text' },
+        { type: 'text' },
+        { type: 'text' },
+        { type: 'text' },
+        { type: 'date', dateFormat: 'M/D/YYYY' },
+        { type: 'numeric' }
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      filters={true}
+      dropdownMenu={['filter_by_condition', 'filter_action_bar']}
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+```
+:::
+:::
+
 
 ## Custom implementations
 
@@ -92,6 +193,7 @@ In this example, a basic `input` element has been placed inside a column’s hea
 
 Please note that this demo uses a Handsontable API to a great extent.
 
+::: only-for javascript
 ::: example #example3
 ```js
 // Event for `keydown` event. Add condition after delay of 200 ms which is counted from the time of last pressed key.
@@ -163,6 +265,104 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example3 :react
+```jsx
+import { useEffect, useRef } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = useRef(null);
+  let debounceFn = null;
+
+  const addEventListeners = (input, colIndex) => {
+    input.addEventListener('keydown', event => {
+      debounceFn(colIndex, event);
+    });
+  };
+
+  //  Build elements which will be displayed in header.
+  const getInitializedElements = colIndex => {
+    const div = document.createElement('div');
+    const input = document.createElement('input');
+
+    div.className = 'filterHeader';
+
+    addEventListeners(input, colIndex);
+
+    div.appendChild(input);
+
+    return div;
+  };
+
+  //  Add elements to header on `afterGetColHeader` hook.
+  const addInput = (col, TH) => {
+    // Hooks can return a value other than number (for example `columnSorting` plugin uses this).
+    if (typeof col !== 'number') {
+      return col;
+    }
+
+    if (col >= 0 && TH.childElementCount < 2) {
+      TH.appendChild(getInitializedElements(col));
+    }
+  };
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    //  Event for `keydown` event. Add condition after delay of 200 ms which is counted from the time of last pressed key.
+    debounceFn = Handsontable.helper.debounce((colIndex, event) => {
+      const filtersPlugin = hot.getPlugin('filters');
+
+      filtersPlugin.removeConditions(colIndex);
+      filtersPlugin.addCondition(colIndex, 'contains', [event.target.value]);
+      filtersPlugin.filter();
+    }, 100);
+  });
+
+  return (
+    <HotTable
+      ref={hotRef}
+      data={[
+        ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
+        ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
+        ['Pellentesque', 'vulputate', 'leo', 'semper', '10/23/2015', 26],
+        ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
+        ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
+      ]}
+      height="auto"
+      colHeaders={true}
+      rowHeaders={true}
+      className="as-you-type-demo"
+      filters={true}
+      colWidths={100}
+      afterGetColHeader={addInput}
+      beforeOnCellMouseDown={function(event, coords){
+        // Deselect the column after clicking on input.
+        if (coords.row === -1 && event.target.nodeName === 'INPUT') {
+          event.stopImmediatePropagation();
+          this.deselectCell();
+        }
+      }}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+```
+:::
+:::
+
 
 ### Filter from the outside the table
 
@@ -172,9 +372,10 @@ The external Filter component is controlling the main table by passing values fo
 Note that selecting a column in the Filter component resets the state of the table. This implementation can filter only one column at a time.
 :::
 
-::: example #example4 --html 1 --js 2
+::: only-for javascript
+::: example #example4 --html 1 --css 2 --js 3
 ```html
-<div id="example4" class="hot"></div>
+<div id="example4"></div>
 <div id="externalFilter">
   <div class="columnChoose">
     <label>Choose Column: </label>
@@ -184,8 +385,7 @@ Note that selecting a column in the Filter component resets the state of the tab
   <div id="filterSelect">
     <div class="controllers">
       <div>
-        <input type='checkbox' id='filtersSelectAll' checked="checked" />
-        <label for='filtersSelectAll'>(Select all)</label>
+        <label><input type="checkbox" id="filtersSelectAll" checked="checked"> (Select all)</label>
       </div>
     </div>
     <div class="items"></div>
@@ -196,6 +396,32 @@ Note that selecting a column in the Filter component resets the state of the tab
     <button class="clear">Clear filter</button>
   </div>
 </div>
+```
+```css
+#externalFilter {
+  width: 240px;
+  margin-top: 20px;
+}
+
+#externalFilter .columnChoose {
+  margin-bottom: 5px;
+}
+
+#externalFilter .columnChoose select {
+  width: 100%;
+  margin-top: 5px;
+  padding: 3px 6px;
+  display: block;
+  border-radius: 4px;
+  border: 1px solid #cfdbe4;
+}
+
+#externalFilter #filterSelect {
+  margin-bottom: 5px;
+  padding: 0 10px 8px;
+  border-radius: 4px;
+  border: 1px solid #cfdbe4;
+}
 ```
 ```js
 const arrayEach = Handsontable.helper.arrayEach;
@@ -253,9 +479,7 @@ class DOMHelper {
       item.className = 'item';
 
       const input = document.createElement('input');
-      const id = 'cellData' + '(' + this.state.getSelectedColumn()+ ',' + rowIndex + ')';
 
-      input.id = id;
       input.type = 'checkbox';
       input.name = 'cellData';
       input.value = cellData;
@@ -265,10 +489,9 @@ class DOMHelper {
 
       const label = document.createElement('label');
 
-      label.htmlFor = id;
-      label.innerText = cellData;
+      label.innerText = ` ${cellData}`;
 
-      item.appendChild(input);
+      label.prepend(input);
       item.appendChild(label);
       this.inputs.push(input);
       this.itemsContainerUI.appendChild(item);
@@ -465,6 +688,155 @@ const hot = new Handsontable(container, {
   }
 });
 ```
+:::
+:::
+
+::: only-for react
+::: example #example4 :react
+```jsx
+import React, { useEffect, useRef } from 'react';
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const hotRef = useRef(null);
+  const [colHeaders, setColHeaders] = React.useState([]);
+  const [selectedColumnIndex, setSelectedColumnIndex] = React.useState(0);
+  const [rowEntries, setRowEntries] = React.useState([]);
+  const [selectedRowEntries, setSelectedRowEntries] = React.useState([]);
+
+  const selectEntry = (rowEntry) => {
+    if (selectedRowEntries.includes(rowEntry)) {
+      setSelectedRowEntries(selectedRowEntries.filter(entry => entry !== rowEntry));
+
+    } else {
+      setSelectedRowEntries([...selectedRowEntries, rowEntry]);
+    }
+  };
+
+  const toggleSelectAll = (event) => {
+    if (event.target.checked) {
+      setSelectedRowEntries(rowEntries);
+
+    } else {
+      setSelectedRowEntries([]);
+    }
+  }
+
+  let updateSelectedColumn;
+  let applyFilter;
+  let clearFilter;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+    const filtersPlugin = hot.getPlugin('filters');
+
+    if (colHeaders.length === 0) {
+      const fetchedEntries = hot.getSourceDataAtCol(0);
+
+      setColHeaders(hot.getColHeader());
+      setRowEntries(fetchedEntries);
+      setSelectedRowEntries(fetchedEntries);
+    }
+
+    updateSelectedColumn = (event) => {
+      const fetchedEntries = hot.getSourceDataAtCol(event.target.value);
+
+      clearFilter();
+      setRowEntries(fetchedEntries);
+      setSelectedColumnIndex(event.target.value);
+      setSelectedRowEntries(fetchedEntries);
+    };
+
+    applyFilter = () => {
+      filtersPlugin.removeConditions(selectedColumnIndex);
+      if (selectedRowEntries.length) {
+        selectedRowEntries.forEach((selectedEntry) => {
+          filtersPlugin.addCondition(selectedColumnIndex, 'contains', [selectedEntry], 'disjunction');
+        });
+
+      } else {
+        rowEntries.forEach((selectedEntry) => {
+          filtersPlugin.addCondition(selectedColumnIndex, 'not_contains', [selectedEntry], 'conjunction');
+        });
+      }
+
+      filtersPlugin.filter();
+    };
+
+    clearFilter = () => {
+      filtersPlugin.removeConditions(selectedColumnIndex);
+      filtersPlugin.filter();
+      setSelectedRowEntries(rowEntries);
+    };
+  });
+
+  return (
+    <>
+      <HotTable
+        ref={hotRef}
+        data={[
+          ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
+          ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
+          ['Pellentesque', 'vulputate', 'leo', 'semper', '10/23/2015', 26],
+          ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
+          ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
+        ]}
+        height="auto"
+        colHeaders={true}
+        rowHeaders={true}
+        filters={true}
+        colWidths={100}
+        editor={false}
+        fillHandle={false}
+        licenseKey="non-commercial-and-evaluation"
+      />
+      <div id="externalFilter">
+        <div className="columnChoose">
+          <label>Choose Column: </label>
+          <select onChange={(event) => updateSelectedColumn(event)}>
+            {colHeaders.map(
+              (headerLabel, index) => <option key={`${headerLabel}-${index}`} value={index}>{headerLabel}</option>
+            )}
+          </select>
+        </div>
+
+        <div id="filterSelect">
+          <div className="controllers">
+            <div>
+              <label><input type="checkbox" onChange={(event) => toggleSelectAll(event)} id="filtersSelectAll"
+                defaultChecked="checked"/> (Select all)</label>
+            </div>
+          </div>
+          <div className="items">
+            {rowEntries.map(
+              (rowEntry, index) => <React.Fragment key={`${rowEntry}-${index}`}>
+                <label><input type="checkbox" onChange={() => selectEntry(rowEntry)}
+                  checked={selectedRowEntries.includes(rowEntry)}/>{rowEntry}</label><br/>
+              </React.Fragment>
+            )}
+          </div>
+        </div>
+
+        <div className="buttons controls">
+          <button onClick={() => applyFilter()} className="apply">Apply filter</button>
+          <button onClick={() => clearFilter()} className="clear">Clear filter</button>
+        </div>
+      </div>
+
+    </>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+```
+:::
 :::
 
 ## Related API reference

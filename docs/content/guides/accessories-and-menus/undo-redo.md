@@ -1,6 +1,7 @@
 ---
 title: Undo and redo
-metaTitle: Undo and redo - Guide - Handsontable Documentation
+metaTitle: Undo and redo - JavaScript Data Grid | Handsontable
+description: Revert and restore your changes, using the undo and redo features.
 permalink: /undo-redo
 canonicalUrl: /undo-redo
 tags:
@@ -11,9 +12,14 @@ tags:
   - reverse
   - erase last change
   - roll back changes
+react:
+  metaTitle: Undo and redo - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Undo and redo
+
+Revert and restore your changes, using the undo and redo features.
 
 [[toc]]
 
@@ -38,6 +44,7 @@ Not all user-triggered actions are covered by this feature. See the below list o
 
 Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Z**</kbd> command to redo the previous state. Then, use <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Y**</kbd> (or <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**Z**</kbd>) to restore it.
 
+::: only-for javascript
 ::: example #example
 ```javascript
 const container = document.querySelector('#example');
@@ -52,6 +59,38 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example :react
+```jsx
+import Handsontable from 'handsontable';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={Handsontable.helper.createSpreadsheetData(10, 5)}
+      rowHeaders={true}
+      colHeaders={true}
+      stretchH="all"
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
+```
+:::
+:::
+
 
 ## Related keyboard shortcuts
 

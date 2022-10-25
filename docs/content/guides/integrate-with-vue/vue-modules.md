@@ -1,15 +1,17 @@
 ---
-title: 'Modules in Vue 2'
-metaTitle: 'Modules in Vue 2 - Guide - Handsontable Documentation'
+title: Modules in Vue 2
+metaTitle: Modules - Vue 2 Data Grid | Handsontable
+description: Reduce the size of your Vue 2 app by importing only the modules that you need and use.
 permalink: /vue-modules
 canonicalUrl: /vue-modules
+searchCategory: Guides
 ---
 
 # Modules in Vue 2
 
-[[toc]]
+Reduce the size of your Vue 2 app by importing only the modules that you need and use.
 
-Import just the modules that you actually need, to reduce Handsontable's impact on the size of your Vue 2 app.
+[[toc]]
 
 ## Use modules in Vue
 

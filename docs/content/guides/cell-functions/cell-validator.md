@@ -1,13 +1,21 @@
 ---
 title: Cell validator
-metaTitle: Cell validator - Guide - Handsontable Documentation
+metaTitle: Cell validator - JavaScript Data Grid | Handsontable
+description: Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 permalink: /cell-validator
 canonicalUrl: /cell-validator
+react:
+  metaTitle: Cell validator - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Cell validator
 
+Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
+
 [[toc]]
+
+## Overview
 
 When you create a validator, a good idea is to assign it as an alias that will refer to this particular validator function. Handsontable defines 5 aliases by default:
 
@@ -19,7 +27,7 @@ When you create a validator, a good idea is to assign it as an alias that will r
 
 It gives users a convenient way for defining which validator should be used when table validation was triggered. User doesn't need to know which validator function is responsible for checking the cell value, he does not even need to know that there is any function at all. What is more, you can change the validator function associated with an alias without a need to change code that defines a table.
 
-## Registering custom cell validator
+## Register custom cell validator
 
 To register your own alias use `Handsontable.validators.registerValidator()` function. It takes two arguments:
 
@@ -76,6 +84,7 @@ To sum up, a well prepared validator function should look like this:
 
 From now on, you can use `customValidator` like so:
 
+::: only-for javascript
 ```js
 const container = document.querySelector('#container')
 const hot = new Handsontable(container, {
@@ -84,6 +93,17 @@ const hot = new Handsontable(container, {
   }]
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  columns={[{
+    validator: 'my.custom'
+  }]}
+/>
+```
+:::
 
 ## Full featured example
 
@@ -93,12 +113,23 @@ Use the **allowInvalid** option to define if the grid should accept input that d
 
 By default, all invalid cells are marked by `htInvalid` CSS class. If you want to change class to another you can basically add the `invalidCellClassName` option to Handsontable settings. For example:
 
-For whole table
+For the entire table
+
+::: only-for javascript
 ```js
 invalidCellClassName: 'myInvalidClass'
 ```
+:::
+
+::: only-for react
+```jsx
+invalidCellClassName="myInvalidClass"
+```
+:::
 
 For specific columns
+
+::: only-for javascript
 ```js
 columns: [
   { data: 'firstName', invalidCellClassName: 'myInvalidClass' },
@@ -106,19 +137,29 @@ columns: [
   { data: 'address' }
 ]
 ```
+:::
+
+::: only-for react
+```jsx
+columns={[
+  { data: 'firstName', invalidCellClassName: 'myInvalidClass' },
+  { data: 'lastName', invalidCellClassName: 'myInvalidSecondClass' },
+  { data: 'address' }
+]}
+```
+:::
 
 Callback console log:
 
+::: only-for javascript
 ::: example #example1 --js 2 --html 1
 ```html
 <div id="example1"></div>
-<pre class="language-js">
-  <code id="example1console">Here you will see the log</code>
-</pre>
+<output class="console" id="output">Here you will see the log</output>
 ```
 ```js
 const container = document.querySelector('#example1');
-const console = document.querySelector('#example1console');
+const output = document.querySelector('#output');
 
 const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
 
@@ -167,7 +208,7 @@ const hot = new Handsontable(container, {
   },
   afterChange(changes, source) {
     if (source !== 'loadData') {
-      console.innerText = JSON.stringify(changes);
+      output.innerText = JSON.stringify(changes);
     }
   },
   colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
@@ -183,21 +224,101 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
 
-Edit the above grid to see callback
+::: only-for react
+::: example #example1 :react
+```jsx
+import { useState } from 'react';
+import ReactDOM from 'react-dom';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = () => {
+  const [output, setOutput] = useState('');
+
+  const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
+  const emailValidator = (value, callback) => {
+    setTimeout(() => {
+      if (/.+@.+/.test(value)) {
+        callback(true);
+
+      } else {
+        callback(false);
+      }
+    }, 1000);
+  };
+
+  return (
+    <>
+      <HotTable
+        data={[
+          { id: 1, name: { first: 'Joe', last: 'Fabiano' }, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com' },
+          { id: 2, name: { first: 'Fred', last: 'Wecler' }, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com' },
+          { id: 3, name: { first: 'Steve', last: 'Wilson' }, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com' },
+          { id: 4, name: { first: 'Maria', last: 'Fernandez' }, ip: '0.0.0.1', email: 'M.Fernandez@ex.com' },
+          { id: 5, name: { first: 'Pierre', last: 'Barbault' }, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com' },
+          { id: 6, name: { first: 'Nancy', last: 'Moore' }, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com' },
+          { id: 7, name: { first: 'Barbara', last: 'MacDonald' }, ip: '0.0.0.1', email: 'B.MacDonald@ex.com' },
+          { id: 8, name: { first: 'Wilma', last: 'Williams' }, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com' },
+          { id: 9, name: { first: 'Sasha', last: 'Silver' }, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com' },
+          { id: 10, name: { first: 'Don', last: 'Pérignon' }, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com' },
+          { id: 11, name: { first: 'Aaron', last: 'Kinley' }, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com' }
+        ]}
+        beforeChange={function(changes, source) {
+          for (let i = changes.length - 1; i >= 0; i--) {
+            // gently don't accept the word "foo" (remove the change at index i)
+            if (changes[i][3] === 'foo') {
+              changes.splice(i, 1);
+            }
+            // if any of pasted cells contains the word "nuke", reject the whole paste
+            else if (changes[i][3] === 'nuke') {
+              return false;
+            }
+            // capitalise first letter in column 1 and 2
+            else if ((changes[i][1] === 'name.first' || changes[i][1] === 'name.last')) {
+              if (changes[i][3] !== null) {
+                changes[i][3] = changes[i][3].charAt(0).toUpperCase() + changes[i][3].slice(1);
+              }
+            }
+          }
+        }}
+        afterChange={function(changes, source) {
+          if (source !== 'loadData' && source !== 'updateData') {
+            setOutput(JSON.stringify(changes));
+          }
+        }}
+        colHeaders={['ID', 'First name', 'Last name', 'IP', 'E-mail']}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+        columns={[
+          { data: 'id', type: 'numeric' },
+          { data: 'name.first' },
+          { data: 'name.last' },
+          { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
+          { data: 'email', validator: emailValidator, allowInvalid: false }
+        ]}
+      />
+      <output className="console" id="output">{output}</output>
+    </>
+  );
+};
+
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+```
+:::
+:::
+
+
+Edit the above grid to see the `changes` argument from the callback.
 
 **Note:** Please keep in mind that changes in table are applied after running **all validators** (both synchronous and and asynchronous) from **every** changed cells.
 
-## Related articles
-
-### Related guides
-
-- [Custom renderer in React](@/guides/integrate-with-react/react-custom-renderer-example.md)
-- [Custom renderer in Angular](@/guides/integrate-with-angular/angular-custom-renderer-example.md)
-- [Custom renderer in Vue 2](@/guides/integrate-with-vue/vue-custom-renderer-example.md)
-- [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example.md)
-
-### Related API reference
+## Related API reference
 
 - APIs:
   - [`BasePlugin`](@/api/basePlugin.md)

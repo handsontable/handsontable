@@ -1,19 +1,21 @@
 ---
-title: 'Custom context menu in Vue 2'
-metaTitle: 'Custom context menu in Vue 2 - Guide - Handsontable Documentation'
+title: Custom context menu in Vue 2
+metaTitle: Custom context menu - Vue 2 Data Grid | Handsontable
+description: Customize the right-click context menu of your Vue 2 data grid, by creating a custom function for each menu item.
 permalink: /vue-custom-context-menu-example
 canonicalUrl: /vue-custom-context-menu-example
+searchCategory: Guides
 ---
 
 # Custom context menu in Vue 2
 
+Customize the right-click context menu of your Vue 2 data grid, by creating a custom function for each menu item.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following example implements the `@handsontable/vue` component, adding a custom Context Menu.
-
-## Example
 
 ::: example #example1 :vue --html 1 --js 2
 ```html
@@ -26,7 +28,7 @@ import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -36,7 +38,7 @@ new Vue({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(5, 5),
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
         colHeaders: true,
         contextMenu: {
           items: {

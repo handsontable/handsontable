@@ -87,7 +87,7 @@ export interface Events {
   afterFilter?: (conditionsStack: FiltersColumnConditions[]) => void;
   afterFormulasValuesUpdate?: (changes: object[]) => void;
   afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
-  afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement) => void;
+  afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement, headerLevel: number) => void;
   afterGetColumnHeaderRenderers?: (renderers: Array<(col: number, TH: HTMLTableHeaderCellElement) => void>) => void;
   afterGetRowHeader?: (row: number, TH: HTMLTableHeaderCellElement) => void;
   afterGetRowHeaderRenderers?: (renderers: Array<(row: number, TH: HTMLTableHeaderCellElement) => void>) => void;
@@ -154,7 +154,7 @@ export interface Events {
   beforeAutofillInsidePopulate?: (index: CellCoords, direction: 'up' | 'down' | 'left' | 'right', input: CellValue[][], deltas: any[]) => void;
   beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: CellRange[], type: 'horizontal' | 'vertical',
     alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
-  beforeChange?: (changes: CellChange[], source: ChangeSource) => void | boolean;
+  beforeChange?: (changes: Array<CellChange | null>, source: ChangeSource) => void | boolean;
   beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean) => void | boolean;
   beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean) => void | boolean;
@@ -165,7 +165,7 @@ export interface Events {
   beforeContextMenuShow?: (context: ContextMenu) => void;
   beforeCopy?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeCreateCol?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
-  beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
+  beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCut?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
   beforeDrawBorders?: (corners: number[], borderClassName: 'current' | 'area' | 'highlight' | undefined) => void;

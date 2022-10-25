@@ -36,7 +36,7 @@ html.theme-dark {
 
   /* Navbar */
   header.navbar, aside.sidebar {
-    border-color $sectionBorderColor
+    border none
 
     /* Navbar links */
     & .nav-link {
@@ -50,19 +50,19 @@ html.theme-dark {
   /* Searchbox */
   .search-box.search-box {
     input {
-      background $searchBoxBackground versionedUrl('/docs/{docsVersion}/img/search.svg') 0.6rem 0.5rem no-repeat
+      background $searchBoxBackground url('{{$basePath}}/img/search.svg') 0.6rem 0.5rem no-repeat
       background-size 1rem
       border-color $searchBoxInputBorderColor
       color $fontColor
 
-      &:focus {
-        border-color $accentColor
-      }
-
-      @media (max-width: $MQNavbarNarrow) {
+      @media (max-width: $extraLarge) {
         border-color transparent
         background-color transparent
+      }
 
+      &:focus {
+        border-color $searchBoxFocusInputBorderColor
+        background-color $backgroundColor
       }
     }
 
@@ -73,7 +73,7 @@ html.theme-dark {
     // results
     ul.suggestions {
       background-color $backgroundColor
-      border-color #2d2d30
+      border-color #42464d
 
       li {
         &:not(.suggestion) {
@@ -105,13 +105,16 @@ html.theme-dark {
     .nav-dropdown {
       background-color $backgroundColor
       border-color $sectionBorderColor
+      
+      .dropdown-item a:hover {
+        background: #2b2f33;
+      }
     }
   }
 
   /* Sidebar */
   .sidebar {
     scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
-    border-right-color $sectionBorderColor
 
     // sidebar collapsible headings
     & .sidebar-heading {
@@ -128,7 +131,7 @@ html.theme-dark {
       color $fontColor
 
       &:hover {
-        background $sidebarSelectedBackgroundColor
+        background $sidebarHoverBackgroundColor
       }
 
       &.active {
@@ -147,10 +150,10 @@ html.theme-dark {
   /* Table of contents */
   .table-of-contents {
     scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
-    border-left-color $sectionBorderColor
+    border: none
 
     .toc-container-header {
-      color $fontColor
+      color: $fontColor
     }
 
     a {
@@ -158,11 +161,10 @@ html.theme-dark {
 
       &.active {
         color: $fontColor
-        font-weight bold
       }
 
       &:hover {
-        color $fontColor
+        color: $linkFontColor
       }
     }
   }
@@ -170,6 +172,13 @@ html.theme-dark {
   /* Tabs component */
   .tabs-component {
     border-color $tabsComponentBorderColor
+
+    &.selected-preview {
+      .tabs-component-panels {
+        color-scheme light
+        color $tabsComponentBackgroundColor /* Related to issue #8355 */
+      }
+    }
 
     ul.tabs-component-tabs {
       border-bottom-color $tabsComponentBorderColor
@@ -192,30 +201,21 @@ html.theme-dark {
 
     .tabs-component-panels {
       background-color $tabsComponentPanels
-      border-radius 0
-
-      &.selected-preview {
-        color-scheme light
-        color $tabsComponentBackgroundColor /* Related to issue #8355 */
-        background-color white; /* Related to issue #8355 */
-      }
 
       section {
-        &[id*="preview-"] {
-          color $tabsComponentBackgroundColor /* Related to issue #8355 */
-          background-color white; /* Related to issue #8355 */
+        pre {
+          scrollbar($tabsScrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
         }
-
-        &#code {
-          pre {
-            scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
-          }
-        }
-
-        &#html {
-          pre {
-            scrollbar($scrollbarBackgroundColor, $scrollbarThumbColor, $scrollbarThumbColorHover)
-          }
+      }
+    }
+    
+    .controls {
+      label {
+        color $fontColor
+        
+        input {
+          margin 5px
+          color-scheme dark
         }
       }
     }
@@ -251,6 +251,15 @@ html.theme-dark {
   .custom-block {
     color $fontColor
   }
+  
+  /* Every custom block component of type warning */
+  .custom-block.warning {
+    background-color $customBlockWarningBackgroundColor
+    
+    a {
+      color $fontColor
+    }
+  }
 
   /* Details markdown component */
   .custom-block.details {
@@ -275,15 +284,6 @@ html.theme-dark {
     color $kbdFontColor
     background $kbdBackgroundColor
     border-color $kbdBorderColor
-  }
-
-  /* Version alert badge */
-  .version-alert {
-    border-color $versionAlertBorderColor
-
-    p {
-      color $fontColor
-    }
   }
 
   /* Table styling starts */
@@ -311,11 +311,6 @@ html.theme-dark {
 
   /* Footer */
   footer.page-edit {
-    .edit-link {
-      a {
-        color $fontColor
-      }
-    }
 
     .last-updated {
       color $fontColor
@@ -393,4 +388,83 @@ html.theme-dark {
     }
   }
   /* Cookie Consent styling ends */
+
+  /* Handsontable drawing on the introduction page */
+
+  .handsontable-drawing {
+    p {
+      &:first-child {
+        display: none;
+      }
+      &:last-child {
+        display: inline;
+      }
+    }
+  }
+  
+  /* A custom demo at getting-started/react-redux.md */
+  .dump-example-container {
+    color: $fontColor;
+
+    .controls {
+      margin: 0 0 20px;
+      padding-top: 0;
+    }
+    
+    #vuex-preview, #redux-preview {
+      table {
+        border-color: $tabsComponentBorderColor;
+
+        tr:nth-child(2n) {
+          background-color: $backgroundColor;
+        }
+        td {
+          border-bottom: none;
+        }
+      }
+    }
+  }
+  
+  /* A custom demo at columns/column-filter */
+  #externalFilter {
+    color-scheme: dark;
+    color: $fontColor;
+    
+    input[type="checkbox"] {
+      color-scheme: dark;
+    }
+  }
+  
+  /* A custom demo at cell-features/selection */
+  #selectOption {
+    color-scheme: dark;
+  }
+  
+  /* A custom demo at formulas/formula-calculation */
+  #example-named-expressions1 {
+    input[type="text"] {
+      color-scheme: dark;
+    }
+  }
+  
+  /* A custom demo at formulas/formula-calculation */
+  h3.demo-preview {
+    color: $fontColor;
+  }
+  
+  /* A custom demo at internationalization/language */
+  .controls.select-language {
+    select {
+      color-scheme: dark;
+    }
+  }
+  
+  /* Fix for the license info under the table */
+  #hot-display-license-info {
+    color: #fff;
+    
+    a {
+      color: $linkFontColor;
+    }
+  }
 }

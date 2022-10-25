@@ -1,6 +1,7 @@
 ---
 title: Locale
-metaTitle: Locale - Guide - Handsontable Documentation
+metaTitle: Locale - JavaScript Data Grid | Handsontable
+description: Configure Handsontable's locale settings, to properly handle locale-related data and actions such as filtering, searching, or sorting.
 permalink: /locale
 canonicalUrl: /locale
 tags:
@@ -8,15 +9,18 @@ tags:
   - localization
   - L10n
   - i18n
+react:
+  metaTitle: Locale - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Locale
 
+Configure Handsontable's locale settings, to properly handle locale-related data and actions such as filtering, searching, or sorting.
+
 [[toc]]
 
-Configure Handsontable's locale settings, to properly handle locale-related data.
-
-## About locale settings
+## Overview
 
 Handsontable's locale settings affect certain actions performed on your data, such as:
 - [Filtering](@/guides/columns/column-filter.md)
@@ -33,23 +37,35 @@ You can configure the locale setting:
 - [For the entire grid](#setting-the-grid-s-locale)
 - [For individual columns](#setting-a-column-s-locale)
 
-## Setting the grid's locale
+## Set the grid's locale
 
 To configure the locale of the entire grid, set the [`locale`](@/api/options.md#locale) configuration option as a top-level grid option:
 
+::: only-for javascript
 ```js
 const hot = new Handsontable(container, {
   // set the entire grid's locale to Polish
   locale: 'pl-PL',
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  // set the entire grid's locale to Polish
+  locale="pl-PL"
+/>
+```
+:::
 
 You can set the [`locale`](@/api/options.md#locale) option to any valid and canonicalized Unicode BCP 47 locale tag.
 
-## Setting a column's locale
+## Set a column's locale
 
 To configure the locale of an individual column, set the [`locale`](@/api/options.md#locale) configuration option as a mid-level column option:
 
+::: only-for javascript
 ```js
 const hot = new Handsontable(container, {
   columns: [
@@ -68,6 +84,25 @@ const hot = new Handsontable(container, {
   ],
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  columns={[{
+      // set the first column's locale to Polish
+      locale: 'pl-PL',
+    }, {
+      // set the second column's locale to German
+      locale: 'de-DE',
+    }, {
+      // set the third column's locale to Japanese
+      locale: 'ja-JP',
+    },
+  ]}
+/>
+```
+:::
 
 ## Related articles
 
