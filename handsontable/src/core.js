@@ -2653,10 +2653,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *  | -------------------- | ------------ | --------------- |
    *  | `'insert_row_above'` | Inserts rows above the `index` row. | Inserts rows above the first row. |
    *  | `'insert_row_below'` | Inserts rows below the `index` row. | Inserts rows below the last row. |
-   *  | `'remove_row'`       | Removes rows, starting from the `index` row. | – |
+   *  | `'remove_row'`       | Removes rows, starting from the `index` row. | Removes rows, starting from the last row. |
    *  | `'insert_col_start'` | Inserts columns before the `index` column. | Inserts columns before the first column. |
    *  | `'insert_col_end'`   | Inserts columns after the `index` column. | Inserts columns after the last column. |
-   *  | `'remove_col'`       | Removes columns, starting from the `index` column. | – |
+   *  | `'remove_col'`       | Removes columns, starting from the `index` column. | Removes columns, starting from the last column. |
    *  | `'insert_row'` (<b>Deprecated</b>) |  Inserts rows above the `index` row. | Inserts rows below the last row. |
    *  | `'insert_col'` (<b>Deprecated</b>) |  Inserts columns before the `index` column. | Inserts columns after the last column. |
    *
