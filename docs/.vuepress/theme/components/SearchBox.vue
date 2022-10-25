@@ -321,20 +321,20 @@ export default {
   margin-right 1.5rem
   input
     cursor text
-    width 12rem
+    width 11rem
     height: 2rem
     display inline-block
     border 1px solid #cfdbe4
     border-radius 6px
-    font-size 0.9rem
+    font-size 14px
     line-height 2rem
-    padding 0 0.5rem 0 2rem
+    padding 0 0.5rem 0 2.2rem
     outline none
     /* Fallback for IE, should work in production */
     background #fff url('{{$basePath}}/img/search.svg') 0.6rem 0.5rem no-repeat
     background-size 1rem
     &:focus
-      color #104bcd
+      color $textColor
       cursor auto
       border-color $accentColor
       + .kbd-hint
@@ -358,7 +358,7 @@ export default {
     width 22rem
     position absolute
     top 1.6rem
-    border 1px solid #43464d
+    border 1px solid $borderColor
     border-radius 6px
     padding 0.4rem
     list-style-type none
@@ -398,44 +398,21 @@ export default {
       width 0
       background-color transparent
       border-color transparent
-      position relative
-      font-size 16px
+      position absolute
+      right 10px
+      z-index 20
+      font-size 14px
       &:focus
         cursor text
-        left 0
-        width 5rem
-        margin-right 1rem
+        left auto
+        width 7rem
+        // The browser will zoom if the font-size is less than 16px so this is to prevent that.
+        font-size: 16px;
+        background-color #fff
     .kbd-hint *
       display none
 
 @media (max-width: $medium)
-  .search-box.search-box
-    input
-      left 1rem
-      &:focus
-        margin-right 0
-// Match IE11
-@media all and (-ms-high-contrast: none)
-  .search-box input
-    height 2rem
-
-@media (max-width: $extraLarge) and (min-width: $medium)
-  .search-box
-    .suggestions
-      left 0
-
-@media (max-width: $medium)
-  .search-box
-    margin-right 0
-    input
-    .suggestions
-      right 0
-
-@media (max-width: $small)
-  .search-box
-    .suggestions
-      width calc(100vw - 4rem)
-    input:focus
-      width 5rem
-
+  input
+    right 0!important
 </style>
