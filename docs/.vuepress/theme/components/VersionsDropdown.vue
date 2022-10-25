@@ -20,8 +20,14 @@ export default {
     };
   },
   methods: {
-    addLatest(version) {
-      if (version === this.$page.latestVersion) {
+    addLatest(version, showPatch) {
+      const latestMinor = this.$page.latestVersion;
+
+      if (version === latestMinor) {
+        if (showPatch === true && this.$page.patches.has(latestMinor)) {
+          version = this.$page.patches.get(latestMinor)[0]; // Latest patch
+        }
+
         return `${version} (Latest)`;
       }
 
@@ -61,11 +67,11 @@ export default {
   },
   mounted() {
     this.item = {
-      text: this.addLatest(this.$page.currentVersion),
+      text: this.addLatest(this.$page.currentVersion, true),
       items:
         [
           ...this.$page.versions.map(v => ({
-            text: `${this.addLatest(v)}`,
+            text: `${this.addLatest(v, false)}`,
             link: this.getLink(v),
             target: '_self',
             isHtmlLink: true

@@ -22,6 +22,17 @@ async function readFromDocsLatest() {
   const response = await fetch('https://handsontable.com/docs/data/common.json');
   const data = await response.json();
 
+  // TODO: Mocked.
+  data.patches = [
+    ['12.2', ['12.2.0']],
+    ['12.1', ['12.1.3', '12.1.2', '12.1.1', '12.1.0']],
+    ['12.0', ['12.0.1', '12.0.0']],
+    ['11.1', ['11.1.0']],
+    ['11.0', ['11.0.1', '11.0.0']],
+    ['10.0', ['10.0.0']],
+    ['9.0', ['9.0.2', '9.0.1', '9.0.0']]
+  ];
+
   return data;
 }
 
@@ -32,7 +43,6 @@ async function readFromDocsLatest() {
  */
 async function readFromGitHub() {
   const octokit = new Octokit();
-  let versions = [];
 
   const releases = await octokit.rest.repos
     .listReleases({
@@ -46,15 +56,31 @@ async function readFromGitHub() {
   }
 
   const tagsSet = new Set();
+  const minorsToPatches = new Map();
 
   releases.data
     .map(item => item.tag_name)
     .sort((a, b) => semver.rcompare(a, b))
-    .forEach(tag => tagsSet.add(`${semver.parse(tag).major}.${semver.parse(tag).minor}`));
+    .forEach((tag) => {
+      const minorVersion = `${semver.parse(tag).major}.${semver.parse(tag).minor}`;
+      const patchVersion = `${minorVersion}.${semver.parse(tag).patch}`;
 
-  const tags = Array.from(tagsSet);
+      if (semver.gte(patchVersion, semver.coerce(MIN_DOCS_VERSION).version)) {
+        tagsSet.add(minorVersion);
 
-  versions = tags.slice(0, tags.indexOf(MIN_DOCS_VERSION) + 1);
+        if (minorsToPatches.has(minorVersion)) {
+          const uniquePathes = Array.from(new Set(minorsToPatches.get(minorVersion)).add(patchVersion));
+
+          minorsToPatches.set(minorVersion, uniquePathes);
+
+        } else {
+          minorsToPatches.set(minorVersion, [patchVersion]);
+        }
+      }
+    });
+
+  const versions = Array.from(tagsSet);
+  const patches = Array.from(minorsToPatches);
 
   logger.info(`Fetched the following Docs versions: ${versions.join(', ')}`);
   logger.info(`GitHub API rate limits:
@@ -66,6 +92,7 @@ async function readFromGitHub() {
   return {
     versions,
     latestVersion: versions[0],
+    patches,
   };
 }
 
