@@ -63,11 +63,11 @@
     "@angular/platform-browser": ">=9.0.0",
     "@angular/platform-browser-dynamic": ">=9.0.0",
     "@angular/router": ">=9.0.0",
-    "handsontable": "12.1.3"
+    "handsontable": "^12.0.0"
   },
   "dependencies": {
     "core-js": "^2.5.4",
-    "handsontable": "12.1.3",
+    "handsontable": "^12.0.0",
     "rxjs": "~6.5.2",
     "zone.js": "~0.10.3"
   },
