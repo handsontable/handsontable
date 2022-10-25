@@ -55,14 +55,14 @@ html.theme-dark {
       border-color $searchBoxInputBorderColor
       color $fontColor
 
-      &:focus {
-        border-color $accentColor
-      }
-
       @media (max-width: $extraLarge) {
         border-color transparent
         background-color transparent
+      }
 
+      &:focus {
+        border-color $searchBoxFocusInputBorderColor
+        background-color $backgroundColor
       }
     }
 
@@ -405,21 +405,23 @@ html.theme-dark {
   /* A custom demo at getting-started/react-redux.md */
   .dump-example-container {
     color: $fontColor;
-    
-    table {
-      border-color: $tabsComponentBorderColor;
-      
-      tr:nth-child(2n) {
-        background-color: $backgroundColor;
-      }
-      td {
-        border-bottom: none;
-      }
-    }
 
     .controls {
       margin: 0 0 20px;
       padding-top: 0;
+    }
+    
+    #vuex-preview, #redux-preview {
+      table {
+        border-color: $tabsComponentBorderColor;
+
+        tr:nth-child(2n) {
+          background-color: $backgroundColor;
+        }
+        td {
+          border-bottom: none;
+        }
+      }
     }
   }
   

@@ -1,15 +1,12 @@
 var _dictionary;
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 /**
  * @preserve
  * Author: Ivan Zarkovic
  * Last updated: May 9, 2022
  *
  * Description: Definition file for Serbian - Republic of Serbia language-country.
- */
-import Handsontable from "handsontable";
+ */import Handsontable from "handsontable";
 var C = Handsontable.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'sr-SP'
