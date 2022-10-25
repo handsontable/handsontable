@@ -821,10 +821,11 @@ const REGISTERED_HOOKS = [
   'beforeCellAlignment',
 
   /**
-   * Fired before one or more cells is changed. Its main purpose is to alter changes silently after input and before
-   * table rendering.
+   * Fired before one or more cells are changed.
    *
-   * __Note:__: Nullified array items or `false` return value can be used to disregard changes, as presented in the code snippet below.
+   * Use this hook to silently alter the user's changes before Handsontable re-renders.
+   *
+   * To ignore the user's changes, use a nullified array or return `false`.
    *
    * @event Hooks#beforeChange
    * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
@@ -834,21 +835,25 @@ const REGISTERED_HOOKS = [
    * @example
    * ::: only-for javascript
    * ```js
-   * // To disregard a single change, set changes[i] to null or remove it from array using changes.splice(i, 1).
-   * new Handsontable(element, {
-   *   beforeChange: (changes, source) => {
-   *     // [[row, prop, oldVal, newVal], ...]
-   *     changes[0] = null;
-   *   }
-   * });
-   * // To alter a single change, overwrite the desired value to changes[i][3].
+   * // to alter a single change, overwrite the value with `changes[i][3]`
    * new Handsontable(element, {
    *   beforeChange: (changes, source) => {
    *     // [[row, prop, oldVal, newVal], ...]
    *     changes[0][3] = 10;
    *   }
    * });
-   * // To cancel all edit, return false from the callback or set array length to 0 (changes.length = 0).
+   *
+   * // to ignore a single change, set `changes[i]` to `null`
+   * // or remove `changes[i]` from the array, by using `changes.splice(i, 1)`
+   * new Handsontable(element, {
+   *   beforeChange: (changes, source) => {
+   *     // [[row, prop, oldVal, newVal], ...]
+   *     changes[0] = null;
+   *   }
+   * });
+   *
+   * // to ignore all changes, return `false`
+   * // or set the array's length to 0, by using `changes.length = 0`
    * new Handsontable(element, {
    *   beforeChange: (changes, source) => {
    *     // [[row, prop, oldVal, newVal], ...]
@@ -860,21 +865,25 @@ const REGISTERED_HOOKS = [
    *
    * ::: only-for react
    * ```jsx
-   * // To disregard a single change, set changes[i] to null or remove it from array using changes.splice(i, 1).
-   * <HotTable
-   *   beforeChange={(changes, source) => {
-   *     // [[row, prop, oldVal, newVal], ...]
-   *     changes[0] = null;
-   *   }}
-   * />
-   * // To alter a single change, overwrite the desired value to changes[i][3].
+   * // to alter a single change, overwrite the desired value with `changes[i][3]`
    * <HotTable
    *   beforeChange={(changes, source) => {
    *     // [[row, prop, oldVal, newVal], ...]
    *     changes[0][3] = 10;
    *   }}
    * />
-   * // To cancel all edit, return false from the callback or set array length to 0 (changes.length = 0).
+   *
+   * // to ignore a single change, set `changes[i]` to `null`
+   * // or remove `changes[i]` from the array, by using changes.splice(i, 1).
+   * <HotTable
+   *   beforeChange={(changes, source) => {
+   *     // [[row, prop, oldVal, newVal], ...]
+   *     changes[0] = null;
+   *   }}
+   * />
+   *
+   * // to ignore all changes, return `false`
+   * // or set the array's length to 0 (`changes.length = 0`)
    * <HotTable
    *   beforeChange={(changes, source) => {
    *     // [[row, prop, oldVal, newVal], ...]

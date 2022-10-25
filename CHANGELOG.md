@@ -10,22 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [12.2.0] - 2022-10-25
 
-### Fixed
-- Fixed problem related to calculation of editor's width [#3815](https://github.com/handsontable/handsontable/issues/3815)
-- Fixed problem with overwriting source data incorrectly when there are some merged cells [#6359](https://github.com/handsontable/handsontable/issues/6359)
-- Fixed problems related to placing instance in some flex containers and setting an  overflow property for some of them to hidden, scroll or auto value. [#9545](https://github.com/handsontable/handsontable/issues/9545)
-- Fixed an issue with being unable to effectively change the `type` meta multiple times. [#9734](https://github.com/handsontable/handsontable/issues/9734)
-- Fixed an issue with dropdownMenu not being displayed on a nestedHeaders-enabled instance with all rows trimmed out. [#9753](https://github.com/handsontable/handsontable/issues/9753)
-- Fixed an issue where release script exits with an error code. [#9941](https://github.com/handsontable/handsontable/issues/9941)
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-2-0)
+- [Blog post](https://handsontable.com/blog/articles/handsontable-12.2.0)
 
 ### Added
-- Added a new feature that lets you add rows and columns in a specified position (above or below the given index). [#9471](https://github.com/handsontable/handsontable/issues/9471)
+- Added a new feature that lets you add rows and columns at a specified position. Now, the `alter()` method takes 4 new parameter values: `insert_row_above`, `insert_row_below`, `insert_col_start`, and `insert_col_end`. The `insert_row` and `insert_col` parameters are marked as deprecated. [#9471](https://github.com/handsontable/handsontable/issues/9471)
 
-### Changed
-- API reference and type definitions for hooks and methods has been made more precise [#9901](https://github.com/handsontable/handsontable/issues/9901)
+### Fixed
+- Fixed an issue where the width of the cell editor was calculated incorrectly. [#3815](https://github.com/handsontable/handsontable/issues/3815)
+- Fixed an issue where formulas surrounded by merged cells were converted to values by mistake. [#6359](https://github.com/handsontable/handsontable/issues/6359)
+- Fixed an issue where Handsontable could disappear on Firefox 93 (and later) in a specific use case. [#9545](https://github.com/handsontable/handsontable/issues/9545)
+- Fixed an issue where changing a cell's `type` through `setCellMeta()` didn't properly set the cell's `editor` and `renderer`. [#9734](https://github.com/handsontable/handsontable/issues/9734)
+- Fixed an issue where the dropdown menu didn't display when the `NestedHeaders` plugin was enabled and all rows were trimmed out. [#9753](https://github.com/handsontable/handsontable/issues/9753)
 
 ### Removed
-- Removed type definition for non-existing method translateRowsToColumns. [#9919](https://github.com/handsontable/handsontable/issues/9919)
+- Removed a type definition for a non-existing method, `translateRowsToColumns()`. [#9919](https://github.com/handsontable/handsontable/issues/9919)
 
 ## [12.1.3] - 2022-09-22
 
