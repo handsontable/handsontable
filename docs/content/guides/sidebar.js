@@ -178,7 +178,7 @@ const upgradeAndMigrationItems = [
 
 module.exports = {
   sidebar: [
-    { title: 'Get started', children: gettingStartedItems },
+    { title: 'Getting started', children: gettingStartedItems },
     { title: 'Integrate with Angular', children: integrateWithAngularItems, onlyFor: ['javascript'] },
     { title: 'Integrate with Vue 2', children: integrateWithVueItems, onlyFor: ['javascript'] },
     { title: 'Integrate with Vue 3', children: integrateWithVue3Items, onlyFor: ['javascript'], },

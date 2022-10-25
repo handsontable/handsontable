@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue with dropdownMenu not being displayed on a nestedHeaders-enabled instance with all rows trimmed out.",
-  "type": "fixed",
-  "issue": 9753,
-  "breaking": false,
-  "framework": "none"
-}

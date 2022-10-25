@@ -415,7 +415,9 @@ columnSummary={[
 :::
 
 ::: tip
-We don't recommend changing the CSS styling of the summary's destination row (the summary may not work properly).
+Don't change the [`className`](@/api/options.md#classname) metadata of the summary row.
+
+If you need to style the summary row, use the class name assigned automatically by the [`ColumnSummary`](@/api/columnSummary.md) plugin: `columnSummaryResult`.
 :::
 
 ### Step 5: Make room for the destination cell
