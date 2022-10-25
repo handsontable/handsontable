@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.2.0
- * Release date: 25/10/2022 (built at 19/10/2022 12:07:39)
+ * Release date: 25/10/2022 (built at 25/10/2022 12:03:35)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -4988,10 +4988,11 @@ var REGISTERED_HOOKS = [/* eslint-disable jsdoc/require-description-complete-sen
  */
 'beforeCellAlignment',
 /**
- * Fired before one or more cells is changed. Its main purpose is to alter changes silently after input and before
- * table rendering.
+ * Fired before one or more cells are changed.
  *
- * __Note:__: Nullified array items or `false` return value can be used to disregard changes, as presented in the code snippet below.
+ * Use this hook to silently alter the user's changes before Handsontable re-renders.
+ *
+ * To ignore the user's changes, use a nullified array or return `false`.
  *
  * @event Hooks#beforeChange
  * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
@@ -5001,21 +5002,25 @@ var REGISTERED_HOOKS = [/* eslint-disable jsdoc/require-description-complete-sen
  * @example
  * ::: only-for javascript
  * ```js
- * // To disregard a single change, set changes[i] to null or remove it from array using changes.splice(i, 1).
- * new Handsontable(element, {
- *   beforeChange: (changes, source) => {
- *     // [[row, prop, oldVal, newVal], ...]
- *     changes[0] = null;
- *   }
- * });
- * // To alter a single change, overwrite the desired value to changes[i][3].
+ * // to alter a single change, overwrite the value with `changes[i][3]`
  * new Handsontable(element, {
  *   beforeChange: (changes, source) => {
  *     // [[row, prop, oldVal, newVal], ...]
  *     changes[0][3] = 10;
  *   }
  * });
- * // To cancel all edit, return false from the callback or set array length to 0 (changes.length = 0).
+ *
+ * // to ignore a single change, set `changes[i]` to `null`
+ * // or remove `changes[i]` from the array, by using `changes.splice(i, 1)`
+ * new Handsontable(element, {
+ *   beforeChange: (changes, source) => {
+ *     // [[row, prop, oldVal, newVal], ...]
+ *     changes[0] = null;
+ *   }
+ * });
+ *
+ * // to ignore all changes, return `false`
+ * // or set the array's length to 0, by using `changes.length = 0`
  * new Handsontable(element, {
  *   beforeChange: (changes, source) => {
  *     // [[row, prop, oldVal, newVal], ...]
@@ -5027,21 +5032,25 @@ var REGISTERED_HOOKS = [/* eslint-disable jsdoc/require-description-complete-sen
  *
  * ::: only-for react
  * ```jsx
- * // To disregard a single change, set changes[i] to null or remove it from array using changes.splice(i, 1).
- * <HotTable
- *   beforeChange={(changes, source) => {
- *     // [[row, prop, oldVal, newVal], ...]
- *     changes[0] = null;
- *   }}
- * />
- * // To alter a single change, overwrite the desired value to changes[i][3].
+ * // to alter a single change, overwrite the desired value with `changes[i][3]`
  * <HotTable
  *   beforeChange={(changes, source) => {
  *     // [[row, prop, oldVal, newVal], ...]
  *     changes[0][3] = 10;
  *   }}
  * />
- * // To cancel all edit, return false from the callback or set array length to 0 (changes.length = 0).
+ *
+ * // to ignore a single change, set `changes[i]` to `null`
+ * // or remove `changes[i]` from the array, by using changes.splice(i, 1).
+ * <HotTable
+ *   beforeChange={(changes, source) => {
+ *     // [[row, prop, oldVal, newVal], ...]
+ *     changes[0] = null;
+ *   }}
+ * />
+ *
+ * // to ignore all changes, return `false`
+ * // or set the array's length to 0 (`changes.length = 0`)
  * <HotTable
  *   beforeChange={(changes, source) => {
  *     // [[row, prop, oldVal, newVal], ...]
@@ -24923,38 +24932,71 @@ function Core(rootElement, userSettings) {
   };
 
   /**
-   * Allows altering the table structure by either inserting/removing rows or columns.
-   * This method works with an array data structure only.
+   * The `alter()` method lets you alter the grid's structure
+   * by adding or removing rows and columns at specified positions.
+   *
+   * ::: tip
+   * The `alter()` method works only when your [`data`](@/api/options.md#data)
+   * is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
+   * :::
+   *
+   * ```js
+   * // above row 10 (by visual index), insert 1 new row
+   * hot.alter('insert_row_above', 10);
+   * ```
+   *
+   *  | Action               | With `index` | Without `index` |
+   *  | -------------------- | ------------ | --------------- |
+   *  | `'insert_row_above'` | Inserts rows above the `index` row. | Inserts rows above the first row. |
+   *  | `'insert_row_below'` | Inserts rows below the `index` row. | Inserts rows below the last row. |
+   *  | `'remove_row'`       | Removes rows, starting from the `index` row. | Removes rows, starting from the last row. |
+   *  | `'insert_col_start'` | Inserts columns before the `index` column. | Inserts columns before the first column. |
+   *  | `'insert_col_end'`   | Inserts columns after the `index` column. | Inserts columns after the last column. |
+   *  | `'remove_col'`       | Removes columns, starting from the `index` column. | Removes columns, starting from the last column. |
+   *  | `'insert_row'` (<b>Deprecated</b>) |  Inserts rows above the `index` row. | Inserts rows below the last row. |
+   *  | `'insert_col'` (<b>Deprecated</b>) |  Inserts columns before the `index` column. | Inserts columns after the last column. |
+   *
+   * The behavior of `'insert_col_start'`, `'insert_col_end'`, and `'insert_col'` depends on your [`layoutDirection`](@/api/options.md#layoutdirection).
    *
    * @memberof Core#
    * @function alter
-   * @param {string} action Possible alter operations:
-   *  <ul>
-   *    <li> `'insert_row'` (<b>deprecated</b>, an alias for `'insert_row_above'`) </li>
+   * @param {string} action Available operations:
+   * <ul>
    *    <li> `'insert_row_above'` </li>
    *    <li> `'insert_row_below'` </li>
-   *    <li> `'insert_col'` (<b>deprecated</b>, an alias for `'insert_col_start'`) </li>
-   *    <li> `'insert_col_start'` (depending on the [`layoutDirection`](@/api/options.md#layoutdirection), inserts a column to the left (in LTR) or to the right (in RTL) </li>
-   *    <li> `'insert_col_end'` (depending on the [`layoutDirection`](@/api/options.md#layoutdirection), inserts a column to the right (in LTR) or to the left (in RTL) </li>
-   *    <li> `'remove_row'` </li>
+   *    <li> `'remove_row'` </li> </li>
+   *    <li> `'insert_col_start'` </li>
+   *    <li> `'insert_col_end'` </li>
    *    <li> `'remove_col'` </li>
-   * </ul>.
-   * @param {number|number[]} index Visual index of the row/column before which the new row/column will be
-   *                                inserted/removed or an array of arrays in format `[[index, amount],...]`.
-   * @param {number} [amount=1] Amount of rows/columns to be inserted or removed.
+   *    <li> `'insert_row'` (<b>Deprecated</b>) </li>
+   *    <li> `'insert_col'` (<b>Deprecated</b>) </li>
+   * </ul>
+   * @param {number|number[]} [index] A visual index of the row/column before or after which the new row/column will be
+   *                                inserted or removed. Can also be an array of arrays, in format `[[index, amount],...]`.
+   * @param {number} [amount] The amount of rows or columns to be inserted or removed (default: `1`).
    * @param {string} [source] Source indicator.
-   * @param {boolean} [keepEmptyRows] Flag for preventing deletion of empty rows.
+   * @param {boolean} [keepEmptyRows] If set to `true`: prevents removing empty rows.
    * @example
    * ```js
-   * // Insert new row above the row at given visual index.
+   * // above row 10 (by visual index), insert 1 new row
    * hot.alter('insert_row_above', 10);
-   * // below the row with the given visual index, insert a new row
-   * hot.alter('insert_row_below', 5);
-   * // Insert 3 new columns before 10th column.
+   *
+   * // below row 10 (by visual index), insert 3 new rows
+   * hot.alter('insert_row_below', 10, 3);
+   *
+   * // in the LTR layout direction: to the left of column 10 (by visual index), insert 3 new columns
+   * // in the RTL layout direction: to the right of column 10 (by visual index), insert 3 new columns
    * hot.alter('insert_col_start', 10, 3);
-   * // Remove 2 rows starting from 10th row.
+   *
+   * // in the LTR layout direction: to the right of column 10 (by visual index), insert 1 new column
+   * // in the RTL layout direction: to the left of column 10 (by visual index), insert 1 new column
+   * hot.alter('insert_col_end', 10);
+   *
+   * // remove 2 rows, starting from row 10 (by visual index)
    * hot.alter('remove_row', 10, 2);
-   * // Remove 5 non-contiquous rows (it removes 3 rows from visual index 1 and 2 rows from visual index 5).
+   *
+   * // remove 3 rows, starting from row 1 (by visual index)
+   * // remove 2 rows, starting from row 5 (by visual index)
    * hot.alter('remove_row', [[1, 3], [5, 2]]);
    * ```
    */
@@ -32770,7 +32812,8 @@ var _default = function _default() {
      * | An array of strings | Add multiple CSS class names to every currently-selected element |
      *
      * ::: tip
-     * We don't recommend changing the CSS styling of the [column summary](@/guides/columns/column-summary.md)'s destination row (the summary may not work properly).
+     * Don't change the `className` metadata of the [column summary](@/guides/columns/column-summary.md) row.
+     * To style the summary row, use the class name assigned automatically by the [`ColumnSummary`](@/api/columnSummary.md) plugin: `columnSummaryResult`.
      * :::
      *
      * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration).
@@ -41097,7 +41140,7 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "19/10/2022 12:07:39";
+Handsontable.buildDate = "25/10/2022 12:03:35";
 Handsontable.version = "12.2.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
