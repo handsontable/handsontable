@@ -1,7 +1,0 @@
-{
-  "title": "Fixed problem with overwriting source data incorrectly when there are some merged cells",
-  "type": "fixed",
-  "issue": 6359,
-  "breaking": false,
-  "framework": "none"
-}
