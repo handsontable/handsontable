@@ -44,8 +44,8 @@ body {
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 12.1.3
- * Release date: 22/09/2022 (built at 22/09/2022 08:00:36)
+ * Version: 12.2.0
+ * Release date: 25/10/2022 (built at 25/10/2022 10:19:06)
  */
 /**
  * Fix for bootstrap styles
@@ -745,13 +745,11 @@ TextRenderer placeholder value
   left: unset;
 }
 .handsontable.hide-tween {
-  -webkit-animation: opacity-hide 0.3s;
   animation: opacity-hide 0.3s;
   animation-fill-mode: forwards;
   -webkit-animation-fill-mode: forwards;
 }
 .handsontable.show-tween {
-  -webkit-animation: opacity-show 0.3s;
   animation: opacity-show 0.3s;
   animation-fill-mode: forwards;
   -webkit-animation-fill-mode: forwards;
@@ -1608,13 +1606,11 @@ textarea.HandsontableCopyPaste {
 }
 .handsontable.ht__manualColumnMove.after-selection--columns thead th.ht__highlight {
   cursor: move;
-  cursor: -webkit-grab;
   cursor: grab;
 }
 .handsontable.ht__manualColumnMove.on-moving--columns,
 .handsontable.ht__manualColumnMove.on-moving--columns thead th.ht__highlight {
   cursor: move;
-  cursor: -webkit-grabbing;
   cursor: grabbing;
 }
 .handsontable.ht__manualColumnMove.on-moving--columns .manualColumnResizer {
@@ -1652,13 +1648,11 @@ textarea.HandsontableCopyPaste {
 }
 .handsontable.ht__manualRowMove.after-selection--rows tbody th.ht__highlight {
   cursor: move;
-  cursor: -webkit-grab;
   cursor: grab;
 }
 .handsontable.ht__manualRowMove.on-moving--rows,
 .handsontable.ht__manualRowMove.on-moving--rows tbody th.ht__highlight {
   cursor: move;
-  cursor: -webkit-grabbing;
   cursor: grabbing;
 }
 .handsontable.ht__manualRowMove.on-moving--rows .manualRowResizer {
