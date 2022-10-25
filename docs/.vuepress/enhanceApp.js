@@ -79,7 +79,7 @@ export default async({ router, siteData, isServer }) => {
     const docsVersion = canonicalURLs.get(canonicalShortUrl);
     const docsVersionPath = docsVersion === '' ? '' : `/${docsVersion}`;
 
-    frontmatter.canonicalUrl = `/docs${docsVersionPath}/${canonicalShortUrl}/`;
+    frontmatter.canonicalUrl = `${page.hostname}/docs${docsVersionPath}/${canonicalShortUrl}/`;
 
     page.versions = docsData.versions;
     page.latestVersion = docsData.latestVersion;

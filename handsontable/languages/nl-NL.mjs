@@ -1,15 +1,12 @@
 var _dictionary;
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 /**
  * @preserve
  * Authors: Tomas Rapkauskas, Anton Brouwer
  * Last updated: Jun 07, 2018
  *
  * Description: Definition file for Dutch - The Netherlands language-country.
- */
-import Handsontable from "handsontable";
+ */import Handsontable from "handsontable";
 var C = Handsontable.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'nl-NL'
