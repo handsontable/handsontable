@@ -93,7 +93,7 @@ export function setVersion(version, packages = workspacePackages) {
 
           } else {
             const isPreRelease = version.includes('-next-');
-            const newVersion = isPreRelease ? version : `${semverPrefix} + ${semver.major(
+            const newVersion = isPreRelease ? version : `${semverPrefix}${semver.major(
               semver.maxSatisfying([version, previousVersion], '*')
             )}.0.0`;
 
