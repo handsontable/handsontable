@@ -1,5 +1,5 @@
 ---
-title: Use the `HotColumn` component in Vue 2
+title: Using the `HotColumn` component in Vue 2
 metaTitle: HotColumn component - Vue 2 Data Grid | Handsontable
 description: Configure the Vue 2 data grid's columns, using the props of the "HotColumn" component. Define a custom cell editor or a custom cell renderer.
 permalink: /vue-hot-column
@@ -7,7 +7,7 @@ canonicalUrl: /vue-hot-column
 searchCategory: Guides
 ---
 
-# Use the `HotColumn` component in Vue 2
+# Using the `HotColumn` component in Vue 2
 
 Configure the Vue 2 data grid's columns, using the props of the `HotColumn` component. Define a custom cell editor or a custom cell renderer.
 

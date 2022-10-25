@@ -15,11 +15,14 @@ import { isObjectEqual } from '../../helpers/object';
  * - Adjust Handsontable's behavior
  * - Implement your own custom features
  *
+ * ::: only-for javascript
+ *
  * To apply [configuration options](@/guides/getting-started/configuration-options.md), pass them as
  * a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-handsontable),
  * using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
  *
- * ::: only-for javascript
+ * Read more on the [Configuration options](@/guides/getting-started/configuration-options.md) page.
+ *
  * ```js
  * const container = document.getElementById('example');
  *
@@ -41,6 +44,13 @@ import { isObjectEqual } from '../../helpers/object';
  * :::
  *
  * ::: only-for react
+ *
+ * To apply configuration options, pass them as individual props
+ * of the [`HotTable`](@/guides/getting-started/installation.md##hottable-component)
+ * or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
+ *
+ * Read more on the [Configuration options](@/guides/getting-started/configuration-options.md) page.
+ *
  * ```jsx
  * <HotTable
  *   // configuration options, in the object literal notation
@@ -602,7 +612,8 @@ export default () => {
      * | An array of strings | Add multiple CSS class names to every currently-selected element |
      *
      * ::: tip
-     * We don't recommend changing the CSS styling of the [column summary](@/guides/columns/column-summary.md)'s destination row (the summary may not work properly).
+     * Don't change the `className` metadata of the [column summary](@/guides/columns/column-summary.md) row.
+     * To style the summary row, use the class name assigned automatically by the [`ColumnSummary`](@/api/columnSummary.md) plugin: `columnSummaryResult`.
      * :::
      *
      * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration).
