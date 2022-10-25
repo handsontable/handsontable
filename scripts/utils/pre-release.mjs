@@ -84,7 +84,7 @@ export function setVersion(version, packages = workspacePackages) {
         }/package.json`,
         from: [
           /"version": "(.*)"/,
-          /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g,
+          /"tmp-hot": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g,
         ],
         to: (fullMatch, ...[semverPrefix, previousVersion]) => {
           if (fullMatch.indexOf('version') > 0) {
