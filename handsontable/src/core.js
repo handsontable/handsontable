@@ -2649,16 +2649,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.alter('insert_row_above', 10);
    * ```
    *
-   *  | Action               | Description |
-   *  | -------------------- | ----------- |
-   *  | `'insert_row_above'` | Insert rows above a specified row. |
-   *  | `'insert_row_below'` | Insert rows below a specified row. |
-   *  | `'remove_row'`       | Remove specified rows. |
-   *  | `'insert_col_start'` | Insert columns before a specified column. |
-   *  | `'insert_col_end'`   | Insert columns after a specified column. |
-   *  | `'remove_col'`       | Remove specified columns. |
-   *  | `'insert_row'`       | (<b>Deprecated</b>) Insert rows above a specified row. |
-   *  | `'insert_col'`       | (<b>Deprecated</b>) Insert columns before a specified column. |
+   *  | Action               | With `index` | Without `index` |
+   *  | -------------------- | ------------ | --------------- |
+   *  | `'insert_row_above'` | Inserts rows above the `index` row. | Inserts rows above the first row. |
+   *  | `'insert_row_below'` | Inserts rows below the `index` row. | Inserts rows below the last row. |
+   *  | `'remove_row'`       | Removes rows, starting from the `index` row. | – |
+   *  | `'insert_col_start'` | Inserts columns before the `index` column. | Inserts columns before the first column. |
+   *  | `'insert_col_end'`   | Inserts columns after the `index` column. | Inserts columns after the last column. |
+   *  | `'remove_col'`       | Removes columns, starting from the `index` column. | – |
+   *  | `'insert_row'` (<b>Deprecated</b>) |  Inserts rows above the `index` row. | Inserts rows below the last row. |
+   *  | `'insert_col'` (<b>Deprecated</b>) |  Inserts columns before the `index` column. | Inserts columns after the last column. |
+   *
+   * The behavior of `'insert_col_start'`, `'insert_col_end'`, and `'insert_col'` depends on your [`layoutDirection`](@/api/options.md#layoutdirection).
    *
    * @memberof Core#
    * @function alter
@@ -2673,7 +2675,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *    <li> `'insert_row'` (<b>Deprecated</b>) </li>
    *    <li> `'insert_col'` (<b>Deprecated</b>) </li>
    * </ul>
-   * @param {number|number[]} index A visual index of the row/column before or after which the new row/column will be
+   * @param {number|number[]} [index] A visual index of the row/column before or after which the new row/column will be
    *                                inserted or removed. Can also be an array of arrays, in format `[[index, amount],...]`.
    * @param {number} [amount] The amount of rows or columns to be inserted or removed (default: `1`).
    * @param {string} [source] Source indicator.
