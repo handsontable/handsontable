@@ -3,7 +3,7 @@ import HotColumn from '../src/HotColumn.vue';
 import BaseEditorComponent from '../src/BaseEditorComponent.vue';
 import { mount } from '@vue/test-utils';
 import Vue from 'vue';
-import { registerAllCellTypes } from 'handsontable/registry';
+import { registerAllCellTypes } from 'tmp-hot/registry';
 import {
   createDomContainer,
   createSampleData,

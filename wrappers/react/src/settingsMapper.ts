@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable/base';
+import Handsontable from 'tmp-hot/base';
 import { HotTableProps } from './types';
 
 export class SettingsMapper {

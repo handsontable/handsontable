@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable/base';
+import Handsontable from 'tmp-hot/base';
 import React from 'react';
 import { ConnectedComponent } from 'react-redux';
 

@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import { defineComponent, VNode, markRaw } from 'vue';
-import Handsontable from 'handsontable/base';
+import Handsontable from 'tmp-hot/base';
 import {
   HOT_DESTROYED_WARNING,
   prepareSettings,

@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable/base';
+import Handsontable from 'tmp-hot/base';
 
 export interface HotTableProps extends Handsontable.GridSettings {
   id?: string,

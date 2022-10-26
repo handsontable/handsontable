@@ -1,7 +1,7 @@
 import { nextTick } from 'vue';
 import { mount, config } from '@vue/test-utils';
-import { registerPlugin } from 'handsontable/plugins/registry';
-import { NestedRows } from 'handsontable/plugins/nestedRows';
+import { registerPlugin } from 'tmp-hot/plugins/registry';
+import { NestedRows } from 'tmp-hot/plugins/nestedRows';
 import HotTable from '../src/HotTable.vue';
 
 config.renderStubDefaultSlot = true;

@@ -4,7 +4,7 @@ import { HotTableModule, HotTableRegisterer } from 'tmp-hot-angular';
 import {
   registerCellType,
   DateCellType,
-} from 'handsontable/cellTypes';
+} from 'tmp-hot/cellTypes';
 
 registerCellType(DateCellType);
 
