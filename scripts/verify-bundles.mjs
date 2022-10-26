@@ -39,7 +39,9 @@ async function verifyBundles() {
       className: 'HotTable'
     }
   };
-  const { default: mainPackageJson } = await import('../package.json');
+  const { default: mainPackageJson } = await import('../package.json', {
+    assert: { type: 'json' }
+  });
   const workspacePackages = mainPackageJson.workspaces;
   const mismatchedVersions = [];
 
@@ -52,7 +54,9 @@ async function verifyBundles() {
 
     for (const subdir of subdirs) {
       const packageJsonLocation = `../${subdir}/package.json`;
-      const { default: packageJson } = await import(packageJsonLocation);
+      const { default: packageJson } = await import(packageJsonLocation, {
+        assert: { type: 'json' }
+      });
       const packageName = packageJson.name;
 
       if (packagesInfo[packageName]) {
@@ -69,8 +73,7 @@ async function verifyBundles() {
           umdPackage = await import(
             packagesInfo[packageName].entryFile ?
               `../${subdir}/${packagesInfo[packageName].umd}` :
-              `${packageName}/${packageJson.jsdelivr}`
-          );
+              `${packageName}/${packageJson.jsdelivr.replace('./', '')}`);
           umdPackage = umdPackage.default;
         }
 

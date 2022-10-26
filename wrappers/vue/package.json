@@ -11,8 +11,10 @@
   "unpkg": "./dist/vue-handsontable.min.js",
   "types": "./index.d.ts",
   "exports": {
+    "./dist/vue-handsontable.js": "./dist/vue-handsontable.js",
+    "./dist/vue-handsontable.min.js": "./dist/vue-handsontable.min.js",
     ".": {
-      "import": "./es/vue-handsontable.js",
+      "import": "./es/vue-handsontable.mjs",
       "require": "./commonjs/vue-handsontable.js"
     }
   },

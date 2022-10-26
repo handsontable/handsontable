@@ -3,7 +3,7 @@ import { baseConfig } from './base';
 import { plugins } from './base';
 
 const env = process.env.NODE_ENV;
-const filename = 'react-handsontable.js';
+const filename = 'react-handsontable.mjs';
 
 export const esConfig = {
   output: {
