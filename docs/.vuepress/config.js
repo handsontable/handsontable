@@ -99,6 +99,10 @@ module.exports = {
         const headerCloseType = 'heading_close';
         let endIndex;
 
+        if (/(.*)-(\d)+$/.test(slug) === false) {
+          return `#${slug}`;
+        }
+
         const handleTokensInsideOnlyForContainer = (action) => {
           for (let index = state.tokens.length - 1; index >= 0; index -= 1) {
             const token = state.tokens[index];
