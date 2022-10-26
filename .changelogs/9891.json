@@ -1,0 +1,7 @@
+{
+  "title": "Internal: Fixed the broken \"verify-bundles\" script, used in the version freezing process.",
+  "type": "fixed",
+  "issue": 9891,
+  "breaking": false,
+  "framework": "none"
+}
