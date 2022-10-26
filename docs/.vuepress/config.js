@@ -66,9 +66,20 @@ module.exports = {
       src: 'https://consent.cookiebot.com/uc.js',
       'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646'
     }],
-    ['script', {}, `\
-var DOCS_VERSION = '${getThisDocsVersion()}';
-`],
+    ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
+    ['script', {}, `
+      (function(w, d) {
+        const osColorScheme = () => w.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const preferredScheme = colorScheme ? colorScheme : osColorScheme();
+
+        if (preferredScheme === 'dark') {
+          d.documentElement.classList.add('theme-dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window, document));
+    `],
     ...environmentHead
   ],
   markdown: {
