@@ -28,7 +28,7 @@
     "prerelease": "node scripts/prerelease.mjs && npm run build && npm run publish-all --tag next",
     "prerelease-script-only": "node scripts/prerelease.mjs",
     "prerelease-without-build": "node scripts/prerelease.mjs && npm run publish-all --tag next",
-    "swap-package-links": "node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable",
+    "swap-package-links": "node --experimental-json-modules ./scripts/swap-package-links.mjs tmp-hot",
     "examples:version": "node examples/scripts/code-examples.mjs version",
     "examples:install": "node examples/scripts/code-examples.mjs install",
     "examples:build": "node examples/scripts/code-examples.mjs build",
