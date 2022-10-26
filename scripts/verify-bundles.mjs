@@ -41,7 +41,8 @@ async function verifyBundles() {
   };
   const { default: mainPackageJson } = await import('../package.json', {
     assert: { type: 'json' }
-  });
+    }
+  );
   const workspacePackages = mainPackageJson.workspaces;
   const mismatchedVersions = [];
 
@@ -56,7 +57,8 @@ async function verifyBundles() {
       const packageJsonLocation = `../${subdir}/package.json`;
       const { default: packageJson } = await import(packageJsonLocation, {
         assert: { type: 'json' }
-      });
+        }
+      );
       const packageName = packageJson.name;
 
       if (packagesInfo[packageName]) {
