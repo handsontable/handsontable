@@ -27,6 +27,7 @@ ${imports}
 ${html}
       </textarea>
       <textarea class="hidden" name="css" readOnly v-pre>${css}</textarea>
+      <input type="hidden" name="panel_css" value="1" readOnly> <!-- enables SCSS panel -->
       ${isBabelPanel ? '<input type="hidden" name="panel_js" value="3" readOnly>' : ''}
       ${isAngularPanel ? '<input type="hidden" name="panel_js" value="4" readOnly>' : ''}
 
