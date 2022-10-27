@@ -56,8 +56,6 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 ::: example #example1 :react --tab preview
 ```jsx
-import ReactDOM from 'react-dom';
-import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -79,7 +77,17 @@ const RendererComponent = (props) => {
   );
 }
 
-const hotData = Handsontable.helper.createSpreadsheetData(10, 5);
+const hotData = [
+  ['A1', 'B1', 'C1', 'D1', 'E1'],
+  ['A2', 'B2', 'C2', 'D2', 'E2'],
+  ['A3', 'B3', 'C3', 'D3', 'E3'],
+  ['A4', 'B4', 'C4', 'D4', 'E4'],
+  ['A5', 'B5', 'C5', 'D5', 'E5'],
+  ['A6', 'B6', 'C6', 'D6', 'E6'],
+  ['A7', 'B7', 'C7', 'D7', 'E7'],
+  ['A8', 'B8', 'C8', 'D8', 'E8'],
+  ['A9', 'B9', 'C9', 'D9', 'E9'],
+];
 
 const ExampleComponent = () => {
   return (
@@ -92,7 +100,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 
@@ -109,7 +119,6 @@ In this example, React's `Context` passes information available in the main app 
 ```
 ```jsx
 import React, { useState, useContext } from 'react';
-import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -129,7 +138,7 @@ function CustomRenderer(props) {
   return <div>{props.value}</div>;
 }
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const [darkMode, setDarkMode] = useState(false);
 
   const toggleDarkMode = (event) => {
@@ -142,7 +151,18 @@ const ExampleComponent = () => {
         <label><input type="checkbox" onClick={toggleDarkMode}/> Dark mode</label>
       </div>
       <HotTable
-        data={Handsontable.helper.createSpreadsheetData(10, 1)}
+        data={[
+          ['A1'],
+          ['A2'],
+          ['A3'],
+          ['A4'],
+          ['A5'],
+          ['A6'],
+          ['A7'],
+          ['A8'],
+          ['A9'],
+          ['A10'],
+        ]}
         rowHeaders={true}
         licenseKey={"non-commercial-and-evaluation"}
       >
@@ -155,7 +175,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 
@@ -167,7 +189,6 @@ The following example implements `@handsontable/react` with a custom renderer ad
 
 ::: example #example3 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 import { registerAllModules } from 'handsontable/registry';
@@ -176,7 +197,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       id="hot"
@@ -211,7 +232,9 @@ const ExampleComponent = () => {
   );
 }
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -457,8 +480,6 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -466,7 +487,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [{
     title: '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
     description: 'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
@@ -527,7 +548,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -601,7 +624,6 @@ exampleContainer3.addEventListener('mouseup', event => {
 ::: example #example5 :react
 ```jsx
 import { useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -609,7 +631,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   let isChecked = false;
@@ -666,7 +688,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
+/* end:skip-in-preview */
 ```
 :::
 :::

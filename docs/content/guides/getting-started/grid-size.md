@@ -144,8 +144,15 @@ const triggerBtn = document.querySelector('#triggerBtn');
 const example = document.querySelector('#example');
 const exampleParent = document.querySelector('#exampleParent');
 
+const data = new Array(100) // number of rows
+  .fill()
+  .map((_, row) => new Array(50) // number of columns
+    .fill()
+    .map((_, column) => `${row}, ${column}`)
+  );
+
 const hot = new Handsontable(example, {
-  data: Handsontable.helper.createSpreadsheetData(100, 50),
+  data,
   rowHeaders: true,
   colHeaders: true,
   width: '100%',
@@ -179,8 +186,6 @@ triggerBtn.addEventListener('click', () => {
 ```
 ```jsx
 import { useRef, useState, useEffect } from 'react';
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -188,7 +193,14 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+const data = new Array(100) // number of rows
+  .fill()
+  .map((_, row) => new Array(50) // number of columns
+    .fill()
+    .map((_, column) => `${row}, ${column}`)
+  );
+
+export const ExampleComponent = () => {
   const [isContainerExpanded, setIsContainerExpanded] = useState(false);
   const hotRef = useRef(null);
 
@@ -206,7 +218,7 @@ const ExampleComponent = () => {
     <>
       <div id="exampleParent" className="exampleParent">
         <HotTable
-          data={Handsontable.helper.createSpreadsheetData(100, 50)}
+          data={data}
           rowHeaders={true}
           colHeaders={true}
           width="100%"
@@ -231,7 +243,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
+/* end:skip-in-preview */
 ```
 :::
 :::

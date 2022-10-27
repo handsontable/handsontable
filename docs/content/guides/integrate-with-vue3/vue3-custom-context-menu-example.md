@@ -74,13 +74,13 @@ const ExampleComponent = defineComponent({
 
 export default ExampleComponent;
 
-/* start:non-previewable */
+/* start:skip-in-preview */
 import { createApp } from 'vue';
 
 const app = createApp(ExampleComponent);
 
 app.mount('#example1');
-/* end:non-previewable */
+/* end:skip-in-preview */
 ```
 :::
 

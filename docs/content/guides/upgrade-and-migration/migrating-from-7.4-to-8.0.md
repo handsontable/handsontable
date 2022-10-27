@@ -169,7 +169,18 @@ Take a look on the trimming example, too. It used to work like this:
 
 ::: only-for javascript
 ```js
-data: Handsontable.helper.createSpreadsheetData(10, 10),
+data: [
+  ['A1', 'B1', 'C1'],
+  ['A2', 'B2', 'C2'],
+  ['A3', 'B3', 'C3'],
+  ['A4', 'B4', 'C4'],
+  ['A5', 'B5', 'C5'],
+  ['A6', 'B6', 'C6'],
+  ['A7', 'B7', 'C7'],
+  ['A8', 'B8', 'C8'],
+  ['A9', 'B9', 'C9'],
+  ['A10', 'B10', 'C10'],
+],
 modifyRow(row) {
   // trimming the first row
   if (row < 9) {
@@ -184,7 +195,18 @@ modifyRow(row) {
 ::: only-for react
 ```jsx
 <HotTable
-  data={Handsontable.helper.createSpreadsheetData(10, 10)}
+  data={[
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+    ['A3', 'B3', 'C3'],
+    ['A4', 'B4', 'C4'],
+    ['A5', 'B5', 'C5'],
+    ['A6', 'B6', 'C6'],
+    ['A7', 'B7', 'C7'],
+    ['A8', 'B8', 'C8'],
+    ['A9', 'B9', 'C9'],
+    ['A10', 'B10', 'C10'],
+  ]}
   modifyRow={(row) {
     // trimming the first row
     if (row < 9) {
@@ -532,7 +554,13 @@ Check the following code example:
 ::: only-for javascript
 ```js
 const hotInstance = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5'],
+  ],
   minSpareRows: 2,
   trimRows: [1, 2, 3, 4]
 });
@@ -542,7 +570,13 @@ const hotInstance = new Handsontable(container, {
 ::: only-for react
 ```jsx
 <HotTable
-  data={Handsontable.helper.createSpreadsheetData(5, 5)}
+  data={[
+    ['A1', 'B1', 'C1', 'D1', 'E1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5'],
+  ]}
   minSpareRows={2}
   trimRows={[1, 2, 3, 4]}
 />
@@ -562,7 +596,13 @@ To ensure your application works as expected you should review it and search the
 ::: only-for javascript
 ```js
 const hotInstance = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(10, 10),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5'],
+  ],
   trimRows: [0],
   minSpareRows: 2
 }
@@ -572,7 +612,13 @@ const hotInstance = new Handsontable(container, {
 ::: only-for react
 ```jsx
 <HotTable
-  data={Handsontable.helper.createSpreadsheetData(10, 10)}
+  data={[
+    ['A1', 'B1', 'C1', 'D1', 'E1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5'],
+  ]}
   trimRows={[0]}
   minSpareRows={2}
 />
@@ -584,7 +630,13 @@ rendered **0** spare rows. If you want to keep it that way you may need a workar
 ::: only-for javascript
 ```js
 const hotInstance = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(10, 10),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5'],
+  ],
   trimRows: [0],
   beforeCreateRow(index, amount, source) {
     const rowIndexMapper = this.rowIndexMapper;
@@ -601,7 +653,13 @@ const hotInstance = new Handsontable(container, {
 ::: only-for react
 ```jsx
 <HotTable
-  data={Handsontable.helper.createSpreadsheetData(10, 10)}
+  data={[
+    ['A1', 'B1', 'C1', 'D1', 'E1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5'],
+  ]}
   trimRows={[0]}
   beforeCreateRow={(index, amount, source) {
     const rowIndexMapper = this.rowIndexMapper;

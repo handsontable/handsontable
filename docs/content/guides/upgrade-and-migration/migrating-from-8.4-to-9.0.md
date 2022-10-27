@@ -145,7 +145,11 @@ const onAfterGetHeader = function(index, TH) {
 };
 
 const hot = new Handsontable(example, {
-  data: Handsontable.helper.createSpreadsheetData(3, 3),
+  data: [
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+    ['A3', 'B3', 'C3'],
+  ],
   rowHeights: 23,
   autoColumnSize: true,
   rowHeaders: ['1st', '2nd', '3rd'],
@@ -166,7 +170,11 @@ const onAfterGetHeader = function(index, TH) {
 };
 
 <HotTable
-  data={Handsontable.helper.createSpreadsheetData(3, 3)}
+  data={[
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+    ['A3', 'B3', 'C3'],
+  ]}
   rowHeights={23}
   autoColumnSize={true}
   rowHeaders={['1st', '2nd', '3rd']}

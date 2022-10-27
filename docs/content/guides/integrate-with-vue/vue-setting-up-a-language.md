@@ -102,12 +102,12 @@ data() {
 
 export default ExampleComponent;
 
-/* start:non-previewable */
+/* start:skip-in-preview */
 new Vue({
   ...ExampleComponent,
   el: '#example1',
 });
-/* end:non-previewable */
+/* end:skip-in-preview */
 ```
 :::
 

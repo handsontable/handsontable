@@ -60,7 +60,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -68,7 +67,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -96,7 +95,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -141,7 +142,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -149,7 +149,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -177,7 +177,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -196,8 +198,26 @@ The demo below is just a demonstration (e.g., you can't add more columns). We do
 ::: only-for javascript
 ::: example #example3
 ```js
+function debounce(func, wait = 200) {
+  let lastTimer = null;
+  let result;
+
+  function _debounce(...args) {
+    if (lastTimer) {
+      clearTimeout(lastTimer);
+    }
+    lastTimer = setTimeout(() => {
+      result = func.apply(this, args);
+    }, wait);
+
+    return result;
+  }
+
+  return _debounce;
+}
+
 // Event for `keydown` event. Add condition after delay of 200 ms which is counted from the time of last pressed key.
-const debounceFn = Handsontable.helper.debounce((colIndex, event) => {
+const debounceFn = debounce((colIndex, event) => {
   const filtersPlugin = hot.getPlugin('filters');
 
   filtersPlugin.removeConditions(colIndex);
@@ -271,16 +291,28 @@ const hot = new Handsontable(container, {
 ::: example #example3 :react
 ```jsx
 import { useEffect, useRef } from 'react';
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
+function debounce(func, wait = 200) {
+  let lastTimer = null;
+  let result;
 
-const ExampleComponent = () => {
+  function _debounce(...args) {
+    if (lastTimer) {
+      clearTimeout(lastTimer);
+    }
+    lastTimer = setTimeout(() => {
+      result = func.apply(this, args);
+    }, wait);
+
+    return result;
+  }
+
+  return _debounce;
+}
+
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
   let debounceFn = null;
 
@@ -320,7 +352,7 @@ const ExampleComponent = () => {
     const hot = hotRef.current.hotInstance;
 
     //  Event for `keydown` event. Add condition after delay of 200 ms which is counted from the time of last pressed key.
-    debounceFn = Handsontable.helper.debounce((colIndex, event) => {
+    debounceFn = debounce((colIndex, event) => {
       const filtersPlugin = hot.getPlugin('filters');
 
       filtersPlugin.removeConditions(colIndex);
@@ -358,7 +390,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -424,8 +458,26 @@ Note that selecting a column in the Filter component resets the state of the tab
 }
 ```
 ```js
-const arrayEach = Handsontable.helper.arrayEach;
-const curry = Handsontable.helper.curry;
+function curry(func) {
+  const argsLength = func.length;
+
+  function given(argsSoFar) {
+    return function _curry(...params) {
+      const passedArgsSoFar = argsSoFar.concat(params);
+      let result;
+
+      if (passedArgsSoFar.length >= argsLength) {
+        result = func.apply(this, passedArgsSoFar);
+      } else {
+        result = given(passedArgsSoFar);
+      }
+
+      return result;
+    };
+  }
+
+  return given([]);
+}
 
 class DOMHelper {
   constructor(state, actions) {
@@ -459,7 +511,7 @@ class DOMHelper {
   fillSelectByColHeaders() {
     const colHeaders = this.state.getHeaders();
 
-    arrayEach(colHeaders, (colHeader, columnIndex) => {
+    colHeaders.forEach((colHeader, columnIndex) => {
       const option = document.createElement('option');
 
       option.text = colHeader;
@@ -473,7 +525,7 @@ class DOMHelper {
   }
 
   fillValueBoxByData() {
-    arrayEach(this.state.getData(), (cellData, rowIndex) => {
+    this.state.getData().forEach((cellData, rowIndex) => {
       const item = document.createElement('div');
 
       item.className = 'item';
@@ -554,14 +606,14 @@ class DOMHelper {
     if (this.state.allValuesChecked()) {
       this.state.addValuesToFilter();
 
-      arrayEach(this.inputs, function (inputDomElement) {
+      this.inputs.forEach(function (inputDomElement) {
         inputDomElement.checked = false;
       });
 
     } else {
       this.state.removeValuesForFilter();
 
-      arrayEach(this.inputs, function (inputDomElement) {
+      this.inputs.forEach(function (inputDomElement) {
         inputDomElement.checked = true;
       });
     }
@@ -680,7 +732,7 @@ const hot = new Handsontable(container, {
     new Controller(this, {
       selectedColumn: 0,
       addConditionsByValue: curry((values, column) => {
-        arrayEach(values, value => filtersPlugin.addCondition(column, 'not_contains', [value]));
+        values.forEach(value => filtersPlugin.addCondition(column, 'not_contains', [value]));
       }),
       filter: () => filtersPlugin.filter(),
       removeConditions: column => filtersPlugin.removeConditions(column)
@@ -695,8 +747,6 @@ const hot = new Handsontable(container, {
 ::: example #example4 :react
 ```jsx
 import React, { useEffect, useRef } from 'react';
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -704,7 +754,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [colHeaders, setColHeaders] = React.useState([]);
   const [selectedColumnIndex, setSelectedColumnIndex] = React.useState(0);
@@ -834,7 +884,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+/* end:skip-in-preview */
 ```
 :::
 :::

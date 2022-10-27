@@ -109,13 +109,14 @@ module.exports = function(docsVersion, base) {
         jsToken.content = jsToken.content.replaceAll('{{$basePath}}', base);
 
         const codeToCompile = jsToken.content
-          // Remove the code between "/* start:non-compilable */" and "/* end:non-compilable */" expressions
-          .replace(/\/\*(\s+)?start:non-compilable(\s+)?\*\/\n.*?\/\*(\s+)?end:non-compilable(\s+)?\*\/\n/msg, '');
+          // Remove the code between "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" expressions
+          // eslint-disable-next-line max-len
+          .replace(/\/\*(\s+)?start:skip-in-compilation(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-compilation(\s+)?\*\/\n/msg, '');
         const codeToPreview = jsToken.content
-          // Remove the all "/* start:non-compilable */" and "/* end:non-compilable */" expressions
-          .replace(/\/\*(\s+)?(start|end):non-compilable(\s+)?\*\/\n/gm, '')
-          // Remove the code between "/* start:non-previewable */" and "/* end:non-previewable */" expressions
-          .replace(/\/\*(\s+)?start:non-previewable(\s+)?\*\/\n.*?\/\*(\s+)?end:non-previewable(\s+)?\*\/\n/msg, '')
+          // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" expressions
+          .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '')
+          // Remove the code between "/* start:skip-in-preview */" and "/* end:skip-in-preview */" expressions
+          .replace(/\/\*(\s+)?start:skip-in-preview(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-preview(\s+)?\*\/\n/msg, '')
           .trim();
 
         jsToken.content = codeToPreview;

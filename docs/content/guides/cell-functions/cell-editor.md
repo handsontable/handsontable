@@ -39,9 +39,6 @@ Note that in case of React 16 and older, it wouldn't work out of the box because
 
 ::: example #example1 :react --tab preview
 ```jsx
-import React from 'react';
-import ReactDOM from 'react-dom';
-import Handsontable from 'handsontable';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -155,7 +152,7 @@ const data = [
     ['Dean Stapleton']
 ];
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={data}
@@ -170,7 +167,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 
@@ -182,8 +181,6 @@ The following example implements the `@handsontable/react` component with a cust
 
 ::: example #example2 :react  --no-edit
 ```jsx
-import React from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
@@ -193,10 +190,6 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 class CustomEditor extends TextEditor {
-  constructor(props) {
-    super(props);
-  }
-
   createElements() {
     super.createElements();
 
@@ -226,7 +219,9 @@ const ExampleComponent = () => {
   );
 }
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 
@@ -858,13 +853,13 @@ prepare(row, col, prop, td, originalValue, cellProperties) {
     options = this.prepareOptions(selectOptions);
   }
 
-  Handsontable.dom.empty(this.select);
+  this.select.innerText = '';
 
-  Handsontable.helper.objectEach(options, (value, key) => {
+  Object.keys(options).forEach((key) => {
     const optionElement = this.hot.rootDocument.createElement('OPTION');
     optionElement.value = key;
 
-    Handsontable.dom.fastInnerHTML(optionElement, value);
+    Handsontable.dom.fastInnerHTML(optionElement, options[key]);
     this.select.appendChild(optionElement);
   });
 }
@@ -995,7 +990,7 @@ onBeforeKeyDown() {
   const nextOptionIndex = this.select.selectedIndex + 1;
 
   switch (event.keyCode) {
-    case Handsontable.helper.KEY_CODES.ARROW_UP:
+    case 38: // Arrow Up
       if (previousOptionIndex >= 0) {
         this.select[previousOptionIndex].selected = true;
       }
@@ -1004,7 +999,7 @@ onBeforeKeyDown() {
       event.preventDefault();
       break;
 
-    case Handsontable.helper.KEY_CODES.ARROW_DOWN:
+    case 40: // Arrow Down
       if (nextOptionIndex <= this.select.length - 1){
         this.select[nextOptionIndex].selected=true;
       }

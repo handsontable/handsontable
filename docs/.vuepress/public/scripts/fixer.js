@@ -173,12 +173,26 @@
           });
         }
 
+        // Covers `import plPL from 'handsontable/languages'` expressions
         if (ns === 'Handsontable.languages') {
           Handsontable.languages.getLanguagesDictionaries().forEach((lang) => {
             moduleToReturn[lang.languageCode.replace('-', '')] = lang;
           });
+
+        // Covers `import { textRenderer } from 'handsontable/renderers'` expressions
+        } else if (ns === 'Handsontable.renderers') {
+          moduleToReturn = Handsontable.renderers;
+
+          Object.keys(Handsontable.renderers).forEach((rendererKey) => {
+            if (rendererKey.endsWith('Renderer')) {
+              const camelCase = rendererKey.replace(/^[A-Z]/, (firstChar) => firstChar.toLowerCase());
+
+              moduleToReturn[camelCase] = moduleToReturn[rendererKey];
+            }
+          });
         }
 
+        // Covers default import expressions
         if (typeof moduleToReturn.default === 'undefined') {
           Object.defineProperty(moduleToReturn, 'default', {
             value: moduleToReturn,

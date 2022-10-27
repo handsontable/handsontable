@@ -141,7 +141,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react-numbro
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -149,7 +148,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -194,7 +193,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -205,21 +206,19 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ::: example #example3 :react-numbro
 ```jsx
-import React from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable, HotColumn } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import numbro from 'numbro';
+import jaJP from 'numbro/languages/ja-JP';
+import trTR from 'numbro/languages/tr-TR';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-import numbro from 'numbro';
-import languages from 'numbro/dist/languages.min.js';
-
 // register the languages you need
-numbro.registerLanguage(languages['ja-JP']);
-numbro.registerLanguage(languages['tr-TR']);
+numbro.registerLanguage(jaJP);
+numbro.registerLanguage(trTR);
 
 // define formats
 const formatJP = {
@@ -232,7 +231,7 @@ const formatTR = {
   culture: 'tr-TR'
 };
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -275,7 +274,9 @@ const ExampleComponent = () => {
   )
 }
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::

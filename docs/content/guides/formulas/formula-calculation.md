@@ -173,7 +173,6 @@ h3.demo-preview {
 ```
 ```jsx
 import { HyperFormula } from 'hyperformula';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -181,7 +180,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data1 = [
     ['10.26', null, 'Sum', '=SUM(A:A)'],
     ['20.12', null, 'Average', '=AVERAGE(A:A)'],
@@ -233,7 +232,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -371,7 +372,6 @@ new Handsontable(container, {
 ::: example #example-data-grid :react
 ```jsx
 import { HyperFormula } from 'hyperformula';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -379,7 +379,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [
     ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
     ['172', '474', '0.51', '11', '=A2*(B2*C2)+D2'],
@@ -500,7 +500,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example-data-grid'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -857,7 +859,6 @@ button.addEventListener('click', (event) => {
 ```jsx
 import { useEffect, useRef, useState } from 'react';
 import { HyperFormula } from 'hyperformula';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -925,7 +926,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example-named-expressions1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

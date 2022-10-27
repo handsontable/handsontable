@@ -116,16 +116,15 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import { registerRenderer, textRenderer } from 'handsontable/renderers/textRenderer';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
     ['2017', -5, '', 12, 13],
@@ -134,14 +133,14 @@ const ExampleComponent = () => {
   ];
 
   function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
-    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    textRenderer.apply(this, arguments);
     td.style.fontWeight = 'bold';
     td.style.color = 'green';
     td.style.background = '#CEC';
   }
 
   function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    textRenderer.apply(this, arguments);
 
     // if row contains negative number
     if (parseInt(value, 10) < 0) {
@@ -161,7 +160,7 @@ const ExampleComponent = () => {
     }
   }
   //  maps function to a lookup string
-  Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
+  registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
   return (
     <HotTable
@@ -199,7 +198,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

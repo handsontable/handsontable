@@ -26,8 +26,15 @@ A draggable move handle appears above the selected row header. You can click and
 ```js
 const container = document.querySelector('#example1');
 
+const data = new Array(200) // number of rows
+  .fill()
+  .map((_, row) => new Array(20) // number of columns
+    .fill()
+    .map((_, column) => `${row}, ${column}`)
+  );
+
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(200, 20),
+  data,
   width: '100%',
   height: 320,
   rowHeaders: true,
@@ -43,8 +50,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -52,10 +57,17 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+const data = new Array(200) // number of rows
+  .fill()
+  .map((_, row) => new Array(20) // number of columns
+    .fill()
+    .map((_, column) => `${row}, ${column}`)
+  );
+
+export const ExampleComponent = () => {
   return (
     <HotTable
-      data={Handsontable.helper.createSpreadsheetData(200, 20)}
+      data={data}
       width="100%"
       height={320}
       rowHeaders={true}
@@ -67,7 +79,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

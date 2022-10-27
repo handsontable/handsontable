@@ -26,9 +26,9 @@ The following is an implementation of the `@handsontable/angular` component with
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import Handsontable from 'handsontable/base';
-/* start:non-compilable */
+/* start:skip-in-compilation */
 import { CustomEditor } from './CustomEditor';
-/* end:non-compilable */
+/* end:skip-in-compilation */
 
 @Component({
   selector: 'app-root',
@@ -57,9 +57,9 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
 import { registerAllModules } from 'handsontable/registry';
-/* start:non-compilable */
+/* start:skip-in-compilation */
 import { AppComponent } from './app.component';
-/* end:non-compilable */
+/* end:skip-in-compilation */
 
 // register Handsontable's modules
 registerAllModules();
@@ -87,13 +87,13 @@ export class CustomEditor extends TextEditor {
   }
 }
 
-/* start:non-previewable */
+/* start:skip-in-preview */
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 platformBrowserDynamic()
   .bootstrapModule(AppModule)
   .catch(err => { console.error(err) });
-/* end:non-previewable */
+/* end:skip-in-preview */
 ```
 :::
 
