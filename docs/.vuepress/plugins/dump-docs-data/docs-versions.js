@@ -79,7 +79,7 @@ async function readFromGitHub() {
       }
     });
 
-  const versions = Array.from(tagsSet);
+  const versions = Array.from(tagsSet).slice(0, 6);
   const patches = Array.from(minorsToPatches);
 
   logger.info(`Fetched the following Docs versions: ${versions.join(', ')}`);

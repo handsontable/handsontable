@@ -40,30 +40,6 @@ export default {
 
       return `/docs/${version}/`;
     },
-    getLegacyVersions() {
-      return [
-        '8.4.0',
-        '8.3.2',
-        '8.2.0',
-        '8.1.0',
-        '8.0.0',
-        '7.4.2',
-        '7.3.0',
-        '7.2.2',
-        '7.1.1',
-        '7.0.3',
-        '6.2.2',
-        '6.1.1',
-        '6.0.1',
-        '5.0.2',
-        '4.0.0',
-      ].map(version => ({
-        text: version.replace(/\.\d+$/, ''),
-        link: `/docs/${version}/`,
-        target: '_blank',
-        isHtmlLink: true,
-      }));
-    }
   },
   mounted() {
     this.item = {
@@ -77,7 +53,6 @@ export default {
             isHtmlLink: true,
             subitems: this.$page.patches.get(v),
           })),
-          ...this.getLegacyVersions()
         ]
     };
   }

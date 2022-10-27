@@ -50,9 +50,10 @@ module.exports = (options, context) => {
 
       const docsVersions = await fetchDocsVersions();
       const canonicalURLs = await generateCommonCanonicalURLs(rawCanonicalURLs);
+      const minorsLimit = docsVersions.versions[0] === 'next' ? 7 : 6;
 
       docsDataCommon.urls = Array.from(canonicalURLs);
-      docsDataCommon.versions = docsVersions.versions;
+      docsDataCommon.versions = docsVersions.versions.slice(0, minorsLimit);
       docsDataCommon.latestVersion = docsVersions.latestVersion;
       docsDataCommon.patches = docsVersions.patches;
 
