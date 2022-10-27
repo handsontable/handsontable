@@ -74,7 +74,8 @@ export default {
             text: `${this.addLatest(v, false)}`,
             link: this.getLink(v),
             target: '_self',
-            isHtmlLink: true
+            isHtmlLink: true,
+            subitems: this.$page.patches.get(v),
           })),
           ...this.getLegacyVersions()
         ]
