@@ -87,10 +87,13 @@ export function setVersion(version, packages = workspacePackages) {
           return `"version": "${version}"`;
 
         } else {
-          const maxSatisfyingVersion = `${semver.major(semver.maxSatisfying([version, previousVersion], '*'))}.0.0`;
+          const isPreRelease = version.includes('-next-');
+          const newVersion = isPreRelease ? version : `${semverPrefix}${semver.major(
+            semver.maxSatisfying([version, previousVersion], '*')
+          )}.0.0`;
 
           // Replace the `handsontable` dependency with the current major (or previous major, if it's a prerelease).
-          return `"handsontable": "${semverPrefix}${maxSatisfyingVersion}"`;
+          return `"handsontable": "${newVersion}"`;
         }
       },
       ignore: [

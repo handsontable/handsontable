@@ -1,0 +1,31 @@
+name: Publish prerelease in NPM
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [develop, 'release/**']
+
+env:
+  NODE_VERSION: 16
+
+jobs:
+  build:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: https://registry.npmjs.org/
+          cache: 'npm'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
+      - run: npm install
+      - run: npm run prerelease
