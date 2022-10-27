@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue with being unable to effectively change the `type` meta multiple times.",
-  "type": "fixed",
-  "issue": 9734,
-  "breaking": false,
-  "framework": "none"
-}

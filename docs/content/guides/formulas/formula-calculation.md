@@ -45,8 +45,6 @@ Different versions of Handsontable support different versions of HyperFormula.
 
 To find out which HyperFormula version to use, see the table below:
 
-::: details HyperFormula version support
-
 | Handsontable version                                                                    | HyperFormula version                                                                                           |
 | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | [`8.x.x`](https://github.com/handsontable/handsontable/releases/tag/8.0.0) and lower    | No HyperFormula support (old [Formulas](https://handsontable.com/docs/8.0.0/demo-formula-support.html) plugin) |
@@ -54,8 +52,6 @@ To find out which HyperFormula version to use, see the table below:
 | [`10.x.x`](https://github.com/handsontable/handsontable/releases/tag/10.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
 | [`11.x.x`](https://github.com/handsontable/handsontable/releases/tag/11.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
 | [`12.x.x`](https://github.com/handsontable/handsontable/releases/tag/12.0.0) and higher | [`^2.0.0`](https://github.com/handsontable/hyperformula/releases/tag/2.0.0)                                    |
-
-:::
 
 ::: tip
 Your [Handsontable license key](@/guides/getting-started/license-key.md) lets you use HyperFormula for free in your Handsontable instance: just pass `'internal-use-in-handsontable'` as your HyperFormula license key .<br><br>

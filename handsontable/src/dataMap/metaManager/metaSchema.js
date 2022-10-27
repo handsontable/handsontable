@@ -624,7 +624,8 @@ export default () => {
      * | An array of strings | Add multiple CSS class names to every currently-selected element |
      *
      * ::: tip
-     * We don't recommend changing the CSS styling of the [column summary](@/guides/columns/column-summary.md)'s destination row (the summary may not work properly).
+     * Don't change the `className` metadata of the [column summary](@/guides/columns/column-summary.md) row.
+     * To style the summary row, use the class name assigned automatically by the [`ColumnSummary`](@/api/columnSummary.md) plugin: `columnSummaryResult`.
      * :::
      *
      * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration).

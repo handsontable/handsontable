@@ -1,7 +1,7 @@
 ---
 title: Grid size
 metaTitle: Grid size - JavaScript Data Grid | Handsontable
-description: Set the width and height of the grid, columns, and rows, using either absolute values or values relative to the parent container.
+description: Set the width and height of the grid, using either absolute values or values relative to the parent container.
 permalink: /grid-size
 canonicalUrl: /grid-size
 tags:
@@ -16,7 +16,7 @@ searchCategory: Guides
 
 # Grid size
 
-Set the width and height of the grid, columns, and rows, using either absolute values or values relative to the parent container.
+Set the width and height of the grid, using either absolute values or values relative to the parent container.
 
 [[toc]]
 
