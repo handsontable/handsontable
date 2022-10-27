@@ -47,8 +47,14 @@ Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>**C
 ::: only-for javascript
 ::: example #example
 ```javascript
-const container = document.querySelector('#example');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1'],

@@ -32,8 +32,14 @@ This is the default usage scenario where column data has a `true` or `false` val
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
@@ -117,8 +123,14 @@ If you want to use values other than `true` and `false`, you have to provide thi
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   data: [
     { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
@@ -206,8 +218,14 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 ::: only-for javascript
 ::: example #example3
 ```js
-const container = document.querySelector('#example3');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   data: [
     { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },

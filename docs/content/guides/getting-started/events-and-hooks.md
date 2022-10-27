@@ -421,9 +421,15 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 ::: only-for javascript
 ::: example #example2
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 let lastChange = null;
 const container = document.getElementById('example2')
-
 const hot = new Handsontable(container, {
   data: [
     ['Tesla', 2017, 'black', 'black'],

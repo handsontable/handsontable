@@ -51,9 +51,15 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 </div>
 ```
 ```js
-const container = document.querySelector('#example1');
-const selectOption = document.querySelector('#selectOption');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const selectOption = document.querySelector('#selectOption');
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
@@ -178,10 +184,16 @@ To retrieve the selected cells as an array of arrays, you use the [`getSelected(
 </div>
 ```
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const output = document.querySelector('#output');
 const getButton = document.querySelector('#getButton');
-
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
@@ -320,9 +332,15 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 }
 ```
 ```js
-const container = document.querySelector('#example3');
-const button = document.querySelector('#set-data-action');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const button = document.querySelector('#set-data-action');
+const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],

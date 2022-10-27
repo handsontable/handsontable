@@ -30,8 +30,14 @@ To simply enable row hiding (without further configuration), set the [`hiddenRow
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -117,8 +123,14 @@ Now, those rows are hidden by default:
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -208,8 +220,14 @@ If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the [`H
 ::: only-for javascript
 ::: example #example3
 ```js
-const container = document.querySelector('#example3');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -296,8 +314,14 @@ Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the [`HiddenRow
 ::: only-for javascript
 ::: example #example4
 ```js
-const container = document.querySelector('#example4');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -383,8 +407,14 @@ You can also add the row hiding menu items individually, by adding the [`hidden_
 ::: only-for javascript
 ::: example #example5
 ```js
-const container = document.querySelector('#example5');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example5');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -472,8 +502,14 @@ To exclude hidden rows from copying and pasting, in the `hiddenRows` object, set
 ::: only-for javascript
 ::: example #example6
 ```js
-const container = document.querySelector('#example6');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example6');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [

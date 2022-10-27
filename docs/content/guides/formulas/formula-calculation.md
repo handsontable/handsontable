@@ -243,6 +243,13 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 ::: only-for javascript
 ::: example #example-data-grid
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const data = [
   ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
   ['172', '474', '0.51', '11', '=A2*(B2*C2)+D2'],
@@ -349,7 +356,7 @@ const data = [
 ];
 
 const container = document.getElementById('example-data-grid');
-new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: data,
   formulas: {
     engine: HyperFormula,
@@ -811,6 +818,13 @@ You can use custom-named expressions in your formula expressions. A named expres
 </div>
 ```
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const data = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
   ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],

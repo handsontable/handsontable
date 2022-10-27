@@ -38,8 +38,14 @@ This example calculates and displays five different column summaries:
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -189,7 +195,14 @@ Each object represents a single column summary.
 
 ::: only-for javascript
 ```js
-const hot = new Handsontable(container, {
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const hot = new Handsontable(document.queryElement('example'), {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     [1, 2, 3, 4, 5],
@@ -435,8 +448,14 @@ To reverse row coordinates for your column summary, set the [`reversedRowCoords`
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -545,6 +564,13 @@ The example below sets up five different column summaries. To do this, it:
 ::: only-for javascript
 ::: example #example7
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 // generate an array of arrays with dummy numeric data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
@@ -562,7 +588,6 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 };
 
 const container = document.querySelector('#example7');
-
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   // initialize a Handsontable instance with the generated data
@@ -667,8 +692,14 @@ Using a function to provide a column summary configuration lets you set up all s
 ::: only-for javascript
 ::: example #example8
 ```js
-const container = document.getElementById('example8');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.getElementById('example8');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -898,6 +929,13 @@ This example implements a function that counts the number of even values in a co
 ::: only-for javascript
 ::: example #example9
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 // generate an array of arrays with dummy numeric data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
@@ -915,7 +953,6 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 };
 
 const container = document.querySelector('#example9');
-
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   // initialize a Handsontable instance with the generated numeric data
@@ -1068,8 +1105,14 @@ To enable this feature, set the [`roundFloat`](@/api/columnSummary.md) option to
 ::: only-for javascript
 ::: example #example12
 ```js
-const container = document.querySelector('#example12');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example12');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -1174,8 +1217,14 @@ To enable this feature, set the [`forceNumeric`](@/api/columnSummary.md) option 
 ::: only-for javascript
 ::: example #example10
 ```js
-const container = document.querySelector('#example10');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example10');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -1269,8 +1318,14 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 ::: only-for javascript
 ::: example #example11 --tab code
 ```js
-const container = document.querySelector('#example11');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example11');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [

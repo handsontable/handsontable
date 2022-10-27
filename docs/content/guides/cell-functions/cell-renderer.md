@@ -573,12 +573,21 @@ You can also put HTML into row and column headers. If you need to attach events 
 </div>
 ```
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 let isChecked = false;
-const exampleContainer3 = document.querySelector('#exampleContainer5');
+const exampleContainer = document.querySelector('#exampleContainer5');
 const container = document.querySelector('#example5');
 
 function customRenderer(instance, td) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  textRenderer.apply(this, arguments);
+
   if (isChecked) {
     td.style.backgroundColor = 'yellow';
   } else {
@@ -604,13 +613,13 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-exampleContainer3.addEventListener('mousedown', event => {
+exampleContainer.addEventListener('mousedown', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     event.stopPropagation();
   }
 });
 
-exampleContainer3.addEventListener('mouseup', event => {
+exampleContainer.addEventListener('mouseup', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     isChecked = !event.target.checked;
     hot.render();
@@ -626,6 +635,7 @@ exampleContainer3.addEventListener('mouseup', event => {
 import { useEffect, useRef } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
@@ -637,7 +647,8 @@ export const ExampleComponent = () => {
   let isChecked = false;
 
   function customRenderer(instance, td) {
-    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    textRenderer.apply(this, arguments);
+
     if (isChecked) {
       td.style.backgroundColor = 'yellow';
     } else {
@@ -645,17 +656,17 @@ export const ExampleComponent = () => {
     }
   }
 
-  const exampleContainer3MousedownCallback = event => {
+  const exampleContainerMousedownCallback = event => {
     if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
       event.stopPropagation();
     }
   };
-  let exampleContainer3MouseupCallback;
+  let exampleContainerMouseupCallback;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
 
-    exampleContainer3MouseupCallback = event => {
+    exampleContainerMouseupCallback = event => {
       if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
         isChecked = !event.target.checked;
         hot.render();
@@ -664,7 +675,7 @@ export const ExampleComponent = () => {
   });
 
   return (
-    <div id="exampleContainer5" onMouseUp={(...args) => exampleContainer3MouseupCallback(...args)}>
+    <div id="exampleContainer5" onMouseUp={(...args) => exampleContainerMouseupCallback(...args)}>
       <HotTable
         ref={hotRef}
         height="auto"

@@ -193,6 +193,13 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 <output class="console" id="output">Here you will see the log</output>
 ```
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const container = document.querySelector('#example1');
 const buttonWithout = document.querySelector('#buttonWithout');
 const buttonWith = document.querySelector('#buttonWith');

@@ -26,8 +26,14 @@ The select editor should be considered an example of how to write editors rather
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     ['2017', 'Honda', 10],

@@ -37,8 +37,14 @@ In this example we set the same width of `100px` for all columns across the enti
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1', 'M1', 'N1', 'O1'],
@@ -105,8 +111,14 @@ In this example, the width is only set for the first four columns. Each addition
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -173,9 +185,15 @@ In this example, the size of all columns is set using a function by taking a col
 ::: only-for javascript
 ::: example #example3
 ```js
-const container = document.querySelector('#example3');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
-const hot3 = new Handsontable(container, {
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example3');
+const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1'],
     ['A2', 'B2', 'C2', 'D2', 'E2'],
@@ -247,8 +265,14 @@ You can adjust the size of one or multiple columns simultaneously, even if the s
 ::: only-for javascript
 ::: example #example4
 ```js
-const container = document.querySelector('#example4');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1'],
@@ -323,8 +347,14 @@ This example fits all columns to the container's width equally by setting the op
 ::: only-for javascript
 ::: example #example5
 ```js
-const container = document.querySelector('#example5');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example5');
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1'],
@@ -391,8 +421,14 @@ In this example, the first three columns are set to be 80px wide, and the last c
 ::: only-for javascript
 ::: example #example6
 ```js
-const container = document.querySelector('#example6');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example6');
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1'],

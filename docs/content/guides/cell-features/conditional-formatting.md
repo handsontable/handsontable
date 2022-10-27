@@ -38,8 +38,15 @@ This demo shows how to use the cell type renderer feature to make some condition
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.getElementById('example1');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import { registerRenderer, textRenderer } from 'handsontable/renderers';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.getElementById('example1');
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
   ['2017', -5, '', 12, 13],
@@ -48,14 +55,14 @@ const data = [
 ];
 
 function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  textRenderer.apply(this, arguments);
   td.style.fontWeight = 'bold';
   td.style.color = 'green';
   td.style.background = '#CEC';
 }
 
 function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  textRenderer.apply(this, arguments);
 
   // if the row contains a negative number
   if (parseInt(value, 10) < 0) {
@@ -75,7 +82,7 @@ function negativeValueRenderer(instance, td, row, col, prop, value, cellProperti
   }
 }
 // maps function to a lookup string
-Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
+registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
 const hot = new Handsontable(container, {
   data: data,
@@ -118,7 +125,7 @@ const hot = new Handsontable(container, {
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
-import { registerRenderer, textRenderer } from 'handsontable/renderers/textRenderer';
+import { registerRenderer, textRenderer } from 'handsontable/renderers';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules

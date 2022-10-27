@@ -25,11 +25,8 @@ Set the [`comments`](@/api/options.md#comments) configuration option to `true` t
 ```js
 const hot = new Handsontable(container, {
   data: [
-    ['A1', 'B1', 'C1', 'D1', 'E1'],
-    ['A2', 'B2', 'C2', 'D2', 'E2'],
-    ['A3', 'B3', 'C3', 'D3', 'E3'],
-    ['A4', 'B4', 'C4', 'D4', 'E4'],
-    ['A5', 'B5', 'C5', 'D5', 'E5'],
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
   ],
   comments: true
 });
@@ -40,11 +37,8 @@ const hot = new Handsontable(container, {
 ```jsx
 <HotTable
   data={[
-    ['A1', 'B1', 'C1', 'D1', 'E1'],
-    ['A2', 'B2', 'C2', 'D2', 'E2'],
-    ['A3', 'B3', 'C3', 'D3', 'E3'],
-    ['A4', 'B4', 'C4', 'D4', 'E4'],
-    ['A5', 'B5', 'C5', 'D5', 'E5'],
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
   ]}
   comments={true}
 />
@@ -86,8 +80,14 @@ In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
@@ -162,8 +162,14 @@ By default, all comments are editable. To change this, set the [`readOnly`](@/ap
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
@@ -234,8 +240,14 @@ To set the width and height of a comment box, use the [`style`](@/api/options.md
 ::: only-for javascript
 ::: example #example3
 ```js
-const container = document.querySelector('#example3');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
@@ -308,8 +320,14 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 ::: only-for javascript
 ::: example #example4
 ```js
-const container = document.querySelector('#example4');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],

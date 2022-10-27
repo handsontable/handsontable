@@ -116,8 +116,16 @@ Language files were loaded after loading Handsontable.
 ::: only-for javascript
 ::: example #example1 :hot-lang
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+registerLanguageDictionary(deDE);
+
+const container = document.querySelector('#example1');
 const data = [
   ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
   ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],

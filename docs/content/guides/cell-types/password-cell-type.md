@@ -22,8 +22,14 @@ The password cell type behaves like a text cell, the only difference being that 
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
@@ -90,8 +96,14 @@ By default, every hash has a length equal to the length of its corresponding val
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   data: [
     { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
@@ -158,8 +170,14 @@ By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to
 ::: only-for javascript
 ::: example #example3
 ```js
-const container = document.querySelector('#example3');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   data: [
     { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },

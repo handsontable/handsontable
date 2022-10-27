@@ -40,6 +40,13 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 ::: only-for javascript
 ::: example #example1
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const container = document.querySelector('#example1');
 const colorData = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
 const manufacturerData = [

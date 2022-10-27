@@ -158,6 +158,13 @@ Callback console log:
 <output class="console" id="output">Here you will see the log</output>
 ```
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const container = document.querySelector('#example1');
 const output = document.querySelector('#output');
 

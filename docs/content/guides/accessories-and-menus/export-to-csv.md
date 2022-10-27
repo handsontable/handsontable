@@ -32,9 +32,15 @@ Export your grid's data to the CSV format, as a downloadable file, a blob, or a 
 </div>
 ```
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const container = document.querySelector('#example1');
 const button = document.querySelector('#export-file');
-
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'],
@@ -158,9 +164,15 @@ Open a console in browser developer tools to see the result for the below exampl
 </div>
 ```
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const container = document.querySelector('#example2');
 const button = document.querySelector('#export-blob');
-
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'],
@@ -284,9 +296,15 @@ Open a console in browser developer tools to see the result for the below exampl
 </div>
 ```
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const container = document.querySelector('#example3');
 const button = document.querySelector('#export-string');
-
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'],

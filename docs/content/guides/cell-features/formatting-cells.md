@@ -36,8 +36,14 @@ td.custom-cell {
 }
 ```
 ```javascript
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -124,18 +130,23 @@ You can apply inline styles directly to the DOM element using its `style` proper
 ::: only-for javascript
 ::: example #example2
 ```javascript
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import { textRenderer, registerRenderer } from 'handsontable/renderers';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
+  textRenderer(hotInstance, TD, ...rest);
+
+  TD.style.fontWeight = 'bold';
+  TD.style.color = 'green';
+  TD.style.background = '#d7f1e1';
+});
+
 const container = document.querySelector('#example2');
-
-Handsontable
-  .renderers
-  .registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
-    Handsontable.renderers.getRenderer('text')(hotInstance, TD, ...rest);
-
-    TD.style.fontWeight = 'bold';
-    TD.style.color = 'green';
-    TD.style.background = '#d7f1e1';
-  });
-
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -225,8 +236,14 @@ The `start` and `end` properties used to be called `left` and `right` before Han
 ::: only-for javascript
 ::: example #example3
 ```js
-const container = document.getElementById('example3');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.getElementById('example3');
 const hot = Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1'],

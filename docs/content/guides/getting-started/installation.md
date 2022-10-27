@@ -179,16 +179,21 @@ const hot = new Handsontable(container, {
 
 ::: example #example
 ```js
-const data = [
-  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-  ['2019', 10, 11, 12, 13],
-  ['2020', 20, 11, 14, 13],
-  ['2021', 30, 15, 12, 13]
-];
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
 
 const container = document.getElementById('example');
 const hot = new Handsontable(container, {
-  data: data,
+  data: [
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
+  ],
   rowHeaders: true,
   colHeaders: true,
   height: 'auto',
@@ -211,9 +216,10 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 ## Register Handsontable's modules
 
-Register all of Handsontable's modules with a single function call:
+Import and register all of Handsontable's modules with a single function call:
 
 ```jsx
+import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();

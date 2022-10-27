@@ -43,6 +43,13 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 ```
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const container = document.querySelector('#example1');
 const exampleConsole = document.querySelector('#output');
 const autosave = document.querySelector('#autosave');

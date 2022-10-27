@@ -52,8 +52,14 @@ You can use them in the same way as the rest of the predefined items in the [con
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -144,6 +150,13 @@ The **CopyPaste** plugin listens to the browser's `copy` and `cut` events. If tr
 ```
 
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const container = document.querySelector('#example2');
 const copyBtn = document.querySelector('#copy');
 const cutBtn = document.querySelector('#cut');

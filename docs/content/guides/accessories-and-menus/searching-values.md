@@ -101,9 +101,15 @@ The example below:
 <div id="example1"></div>
 ```
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const container = document.querySelector('#example1');
 const searchField = document.querySelector('#search_field');
-
 const data = [
   ['Tesla', 2017, 'black', 'black'],
   ['Nissan', 2018, 'blue', 'blue'],
@@ -222,9 +228,15 @@ The example below highlights its search results in bold red. To do this, it:
 <div id="example2"></div>
 ```
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const container = document.querySelector('#example2');
 const searchField = document.querySelector('#search_field2');
-
 const data = [
   ['Tesla', 2017, 'black', 'black'],
   ['Nissan', 2018, 'blue', 'blue'],
@@ -342,9 +354,15 @@ The example below searches only for exact search query matches. To do this, it:
 <div id="example3"></div>
 ```
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const container = document.querySelector('#example3');
 const searchField = document.querySelector('#search_field3');
-
 const data = [
   ['Tesla', 2017, 'black', 'black'],
   ['Nissan', 2018, 'blue', 'blue'],
@@ -471,6 +489,13 @@ The example below displays the number of matching search results. To do this, it
 <div id="example4"></div>
 ```
 ```js
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
 const container = document.querySelector('#example4');
 const searchField = document.querySelector('#search_field4');
 const output = document.querySelector('#output');

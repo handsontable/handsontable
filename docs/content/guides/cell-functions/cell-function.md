@@ -70,8 +70,14 @@ However, you have to remember that [`getCellMeta()`](@/api/core.md#getcellmeta) 
 
 ::: only-for javascript
 ```js
-const container = document.querySelector('#container');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
   columns: [{
     type: 'numeric'

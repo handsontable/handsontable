@@ -91,8 +91,14 @@ Note that the [`numericFormat`](@/api/options.md#numericformat) option doesn't c
 ::: only-for javascript
 ::: example #example1 :hot-numbro
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register Handsontable's modules
+registerAllModules();
+
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     { car: 'Mercedes A 160', year: 2017, price_usd: 7000, price_eur: 7000 },
