@@ -62,11 +62,11 @@
           </ul>
 
           <a
-            v-else
+            class="nav-link"
             :href="subItem.link"
           >
             <ul
-              class="dropdown-subitem-wrapper"
+              class="dropdown-subitem-wrapper font-normal"
             >
               <li class="dropdown-subitem">{{ subItem.text }}</li>
               <li v-for="childSubItem in subItem.subitems"
@@ -187,6 +187,8 @@ export default {
       .dropdown-subitem-wrapper
         padding 0
         list-style none
+        &.font-normal .dropdown-subitem
+          font-size: inherit;
         .dropdown-subitem
           font-size 0.9em
           &.intend
