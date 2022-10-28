@@ -140,12 +140,8 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 }
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const triggerBtn = document.querySelector('#triggerBtn');
 const example = document.querySelector('#example');

@@ -39,6 +39,7 @@ Note that in case of React 16 and older, it wouldn't work out of the box because
 
 ::: example #example1 :react --tab preview
 ```jsx
+import React from 'react';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -202,7 +203,7 @@ class CustomEditor extends TextEditor {
   }
 }
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       id="hot"
@@ -663,7 +664,6 @@ That's it! You can now use your new editor:
 ::: only-for javascript
 ```js
 const container = document.querySelector('#container')
-
 const hot = new Handsontable(container, {
   columns: [
     {
@@ -809,7 +809,6 @@ We want to be able to define an option list like this:
 ::: only-for javascript
 ```js
 const container = document.querySelector('#container')
-
 const hot = new Handsontable(container, {
   columns: [
     {

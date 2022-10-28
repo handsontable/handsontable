@@ -406,7 +406,7 @@ const data = [
     [5, '#eb144c', '#abb8c3']
 ];
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   useEffect(() => {
     reduxStore.dispatch({
       type: 'initRatingColors',

@@ -70,12 +70,8 @@ However, you have to remember that [`getCellMeta()`](@/api/core.md#getcellmeta) 
 
 ::: only-for javascript
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
@@ -96,7 +92,7 @@ cellProperties.type; // "numeric"
 
 ::: only-for react
 ```jsx
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   useEffect(() => {

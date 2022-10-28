@@ -101,12 +101,8 @@ The example below:
 <div id="example1"></div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example1');
 const searchField = document.querySelector('#search_field');
@@ -228,12 +224,8 @@ The example below highlights its search results in bold red. To do this, it:
 <div id="example2"></div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example2');
 const searchField = document.querySelector('#search_field2');
@@ -354,12 +346,8 @@ The example below searches only for exact search query matches. To do this, it:
 <div id="example3"></div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example3');
 const searchField = document.querySelector('#search_field3');
@@ -489,12 +477,8 @@ The example below displays the number of matching search results. To do this, it
 <div id="example4"></div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example4');
 const searchField = document.querySelector('#search_field4');
@@ -522,7 +506,7 @@ function searchResultCounter(instance, row, col, value, result) {
   }
 }
 
-const hot4 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data,
   colHeaders: true,
   // enable the `Search` plugin
@@ -537,12 +521,12 @@ const hot4 = new Handsontable(container, {
 searchField.addEventListener('keyup', function(event) {
   searchResultCount = 0;
 
-  const search = hot4.getPlugin('search');
+  const search = hot.getPlugin('search');
   const queryResult = search.query(event.target.value);
 
   console.log(queryResult);
   output.innerText = `${searchResultCount} results`;
-  hot4.render();
+  hot.render();
 });
 ```
 :::

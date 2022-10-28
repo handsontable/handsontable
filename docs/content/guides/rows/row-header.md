@@ -40,12 +40,8 @@ To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowsw
 ::: only-for javascript
 ::: example #example1
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 // Generate an array of arrays with a dummy data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {

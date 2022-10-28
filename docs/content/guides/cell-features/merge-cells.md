@@ -36,12 +36,8 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 ::: only-for javascript
 ::: example #example1
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 // generate an array of arrays with dummy data
 const data = new Array(100) // number of rows

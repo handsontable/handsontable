@@ -41,20 +41,16 @@ To make a column read-only, declare it in the [`columns`](@/api/options.md#colum
 ::: only-for javascript
 ::: example #example1
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
-    {car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black'},
-    {car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue'},
-    {car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black'},
-    {car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray'}
+    { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
+    { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
+    { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
+    { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' }
   ],
   height: 'auto',
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
@@ -135,12 +131,8 @@ This example makes cells that contain the word "Nissan" read-only. It forces all
 ::: only-for javascript
 ::: example #example2
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
@@ -235,20 +227,16 @@ To make a column non-editable, declare it in the [`columns`](@/api/options.md#co
 ::: only-for javascript
 ::: example #example3
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   data: [
-    {car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black'},
-    {car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue'},
-    {car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black'},
-    {car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray'}
+    { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
+    { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
+    { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
+    { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' }
   ],
   height: 'auto',
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
@@ -335,12 +323,8 @@ The following example shows the table with non-editable cells containing the wor
 ::: only-for javascript
 ::: example #example4
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
@@ -384,7 +368,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   useEffect(() => {

@@ -89,7 +89,7 @@ const hotData = [
   ['A9', 'B9', 'C9', 'D9', 'E9'],
 ];
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
       <HotColumn width={250}>
@@ -285,7 +285,7 @@ It is possible to register your renderer and re-use it with the name you registe
 
 ::: only-for javascript
 ```js
-const container = document.getElementById('container');
+const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
   data: someData,
   columns: [{
@@ -415,6 +415,9 @@ This example shows how to use custom cell renderers to display HTML content in a
 ::: only-for javascript
 ::: example #example4
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const data = [
   {
     title: '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
@@ -436,7 +439,7 @@ const data = [
   }
 ];
 
-const container = document.getElementById('example4');
+const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   data,
   colWidths: [200, 200, 200, 80],
@@ -452,11 +455,9 @@ const hot = new Handsontable(container, {
 });
 
 function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
-  // be sure you only allow certain HTML tags to avoid XSS threats
-  // (you should also remove unwanted HTML attributes)
-  td.innerHTML = Handsontable.helper.sanitize(value, {
-    ALLOWED_TAGS: ['em', 'b', 'strong', 'a', 'big'],
-  });
+  // WARNING: Be sure you only allow certain HTML tags to avoid XSS threats.
+  // Sanitize the "value" before passing it to the innerHTML property.
+  td.innerHTML = value;
 }
 
 function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
@@ -509,11 +510,9 @@ export const ExampleComponent = () => {
   ];
 
   function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
-    // be sure you only allow certain HTML tags to avoid XSS threats
-    // (you should also remove unwanted HTML attributes)
-    td.innerHTML = Handsontable.helper.sanitize(value, {
-      ALLOWED_TAGS: ['em', 'b', 'strong', 'a', 'big'],
-    });
+    // WARNING: Be sure you only allow certain HTML tags to avoid XSS threats.
+    // Sanitize the "value" before passing it to the innerHTML property.
+    td.innerHTML = value;
   }
 
   function coverRenderer(instance, td, row, col, prop, value, cellProperties) {

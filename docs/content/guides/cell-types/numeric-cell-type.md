@@ -91,12 +91,13 @@ Note that the [`numericFormat`](@/api/options.md#numericformat) option doesn't c
 ::: only-for javascript
 ::: example #example1 :hot-numbro
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
+import numbro from 'numbro';
+import deDE from 'numbro/languages/de-DE';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
+// register the languages you need
+numbro.registerLanguage(deDE);
 
 const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
@@ -148,11 +149,16 @@ const hot = new Handsontable(container, {
 ::: example #example1 :react-numbro
 ```jsx
 import { HotTable } from '@handsontable/react';
+import numbro from 'numbro';
+import deDE from 'numbro/languages/de-DE';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
+
+// register the languages you need
+numbro.registerLanguage(deDE);
 
 export const ExampleComponent = () => {
   return (

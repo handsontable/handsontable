@@ -30,12 +30,8 @@ To simply enable row hiding (without further configuration), set the [`hiddenRow
 ::: only-for javascript
 ::: example #example1
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
@@ -123,12 +119,8 @@ Now, those rows are hidden by default:
 ::: only-for javascript
 ::: example #example2
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
@@ -220,12 +212,8 @@ If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the [`H
 ::: only-for javascript
 ::: example #example3
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
@@ -314,12 +302,8 @@ Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the [`HiddenRow
 ::: only-for javascript
 ::: example #example4
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
@@ -407,12 +391,8 @@ You can also add the row hiding menu items individually, by adding the [`hidden_
 ::: only-for javascript
 ::: example #example5
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example5');
 const hot = new Handsontable(container, {
@@ -502,12 +482,8 @@ To exclude hidden rows from copying and pasting, in the `hiddenRows` object, set
 ::: only-for javascript
 ::: example #example6
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example6');
 const hot = new Handsontable(container, {

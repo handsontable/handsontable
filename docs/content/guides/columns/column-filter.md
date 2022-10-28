@@ -28,12 +28,8 @@ To enable the plugin, set the [`filters`](@/api/options.md#filters) configuratio
 ::: only-for javascript
 ::: example #example1
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
@@ -116,12 +112,8 @@ To display filters while hiding the other elements in the dropdown menu, pass th
 ::: only-for javascript
 ::: example #example2
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
@@ -210,12 +202,8 @@ The demo below is just a demonstration (e.g., you can't add more columns). We do
 ::: only-for javascript
 ::: example #example3
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 function debounce(func, wait = 200) {
   let lastTimer = null;
@@ -481,12 +469,8 @@ Note that selecting a column in the Filter component resets the state of the tab
 }
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 function curry(func) {
   const argsLength = func.length;

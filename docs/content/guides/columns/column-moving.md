@@ -24,12 +24,8 @@ A draggable move handle appears above the selected column header. You can click 
 ::: only-for javascript
 ::: example #example1
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 // generate an array of arrays with dummy data
 const data = new Array(200) // number of rows

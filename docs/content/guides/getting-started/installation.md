@@ -165,7 +165,7 @@ const data = [
   ['2021', 30, 15, 12, 13]
 ];
 
-const container = document.getElementById('example');
+const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
   data: data,
   rowHeaders: true,
@@ -186,7 +186,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const container = document.getElementById('example');
+const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],

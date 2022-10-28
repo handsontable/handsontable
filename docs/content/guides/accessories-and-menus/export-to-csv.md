@@ -32,12 +32,8 @@ Export your grid's data to the CSV format, as a downloadable file, a blob, or a 
 </div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example1');
 const button = document.querySelector('#export-file');
@@ -164,12 +160,8 @@ Open a console in browser developer tools to see the result for the below exampl
 </div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example2');
 const button = document.querySelector('#export-blob');
@@ -296,12 +288,8 @@ Open a console in browser developer tools to see the result for the below exampl
 </div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example3');
 const button = document.querySelector('#export-string');

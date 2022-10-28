@@ -50,12 +50,11 @@ To try out Handsontable's RTL support, check out the demo below:
 ::: only-for javascript
 ::: example #example1 :hot-lang
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
+import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
+registerLanguageDictionary(arAR);
 
 // generate random RTL data (e.g., Arabic)
 function generateArabicData() {
@@ -111,10 +110,12 @@ const hot = new Handsontable(container, {
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
+registerLanguageDictionary(arAR);
 
 //  generate random RTL data (e.g., Arabic)
 function generateArabicData() {
@@ -212,12 +213,8 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
 </section>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
@@ -287,12 +284,8 @@ and set it to `'rtl'`:
 ::: only-for javascript
 ::: example #example3
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
@@ -360,12 +353,8 @@ and set it to `'ltr'`:
 ::: only-for javascript
 ::: example #example4
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
@@ -432,12 +421,8 @@ In the example below, some columns are explicitly aligned to the left, center, o
 ::: only-for javascript
 ::: example #example5
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example5');
 const hot = new Handsontable(container, {

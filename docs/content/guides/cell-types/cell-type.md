@@ -388,24 +388,19 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 ::: only-for javascript
 ::: example #example1
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example1');
 const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
 
 const yellowRenderer = function(instance, td, row, col, prop, value, cellProperties) {
-  textRenderer.apply(this, arguments);
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
   td.style.backgroundColor = 'yellow';
 };
 
 const greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
-  textRenderer.apply(this, arguments);
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
 
   td.style.backgroundColor = 'green';
 };
@@ -515,12 +510,8 @@ Please keep in mind that opening a cell with `undefined` and `null` values resul
 ::: only-for javascript
 ::: example #example2
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {

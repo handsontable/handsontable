@@ -24,14 +24,10 @@ Configure your grid down to each column, row, and cell, using various built-in o
 To apply configuration options, pass them as a second argument of the Handsontable constructor, using the object literal notation:
 
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.getElementById('example');
+const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
   // configuration options, in the object literal notation
   licenseKey: "non-commercial-and-evaluation",
@@ -84,11 +80,9 @@ You can also pass your options as an object, using the `settings` prop.
     // configuration options, in the object literal notation
     licenseKey: 'non-commercial-and-evaluation',
     data: [
-      ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
-      ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
-      ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
-      ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
-      ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+      ['A1', 'B1', 'C1', 'D1'],
+      ['A2', 'B2', 'C2', 'D2'],
+      ['A3', 'B3', 'C3', 'D3'],
     ],
     width: 400,
     height: 300,
@@ -199,12 +193,8 @@ As a result, each cell in the grid is read-only:
 <div id="example1"></div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
@@ -332,12 +322,8 @@ As a result, each cell in the third and ninth columns is read-only:
 <div id="example2"></div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
@@ -493,12 +479,8 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 <div id="example3"></div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
@@ -642,12 +624,8 @@ The modified [`cell`](@/api/options.md#cell) options:
 <div id="example4"></div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
@@ -759,21 +737,17 @@ The [`getCellMeta()`](@/api/core.md#getcellmeta) method returns an object with:
 For example:
 ::: only-for javascript
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.querySelector('example');
+const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
   // top-level grid options that apply to the entire grid
   data: [
     ['A1', 'B1', 'C1', 'D1'],
     ['A2', 'B2', 'C2', 'D2'],
     ['A3', 'B3', 'C3', 'D3'],
-  ]
+  ],
   licenseKey: 'non-commercial-and-evaluation',
   width: 'auto',
   height: 'auto',
@@ -833,14 +807,10 @@ For example:
 
 ::: only-for javascript
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.querySelector('example');
+const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
   // top-level grid options that apply to the entire grid
   data: [
@@ -948,12 +918,8 @@ In the example below, the modified [`cells`](@/api/options.md#cells) options ove
 <div id="example5"></div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example5');
 const hot = new Handsontable(container, {
@@ -1019,12 +985,8 @@ In the example below, some cells are read-only, and some cells are editable:
 <div id="example6"></div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example6');
 const hot = new Handsontable(container, {

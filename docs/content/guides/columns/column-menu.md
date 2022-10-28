@@ -29,12 +29,8 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 ::: only-for javascript
 ::: example #example1
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
@@ -93,12 +89,8 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 ::: only-for javascript
 ::: example #example2
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {

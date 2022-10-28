@@ -28,14 +28,10 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 ::: only-for javascript
 ::: example #example1
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.getElementById('example1');
+const container = document.querySelector('#example1');
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
@@ -108,14 +104,10 @@ The following example shows how you would use the array of arrays with a selecti
 ::: only-for javascript
 ::: example #example2
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.getElementById('example2');
+const container = document.querySelector('#example2');
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
@@ -202,14 +194,10 @@ An array of objects can be used as a data source as follows:
 ::: only-for javascript
 ::: example #example3
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.getElementById('example3');
+const container = document.querySelector('#example3');
 const data = [
   { id: 1, name: 'Ted Right', address: '' },
   { id: 2, name: 'Frank Honest', address: '' },
@@ -276,14 +264,10 @@ You can set the [`columns`](@/api/options.md#columns) configuration option to a 
 ::: only-for javascript
 ::: example #example4 .custom-class
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.getElementById('example4');
+const container = document.querySelector('#example4');
 const data = [
   { id: 1, name: {first: 'Ted', last: 'Right'}, address: '' },
   { id: 2, address: '' },// Handsontable will create missing properties on demand
@@ -380,14 +364,10 @@ In a scenario where you have nested objects, you can use them as the data source
 ::: only-for javascript
 ::: example #example5
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.getElementById('example5');
+const container = document.querySelector('#example5');
 const data = [
   { id: 1, name: {first: 'Ted', last: 'Right'}, address: '' },
   { id: 2, address: '' }, // Handsontable will create missing properties on demand
@@ -464,14 +444,10 @@ In a scenario where you start with an empty data source, you will need to provid
 ::: only-for javascript
 ::: example #example6
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.getElementById('example6');
+const container = document.querySelector('#example6');
 const hot = new Handsontable(container, {
   data: [],
   dataSchema: { id: null, name: { first: null, last: null }, address: null },
@@ -549,14 +525,10 @@ The example below shows how to use such objects:
 ::: only-for javascript
 ::: example #example7
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.getElementById('example7');
+const container = document.querySelector('#example7');
 const hot = new Handsontable(container, {
   data: [
     model({ id: 1, name: 'Ted Right', address: '' }),
@@ -705,14 +677,10 @@ By default, if you don't provide any data, Handsontable renders as an empty 5x5 
 ::: only-for javascript
 ::: example #example9
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.getElementById('example9');
+const container = document.querySelector('#example9');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
@@ -766,14 +734,10 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 ::: example #example10
 
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.getElementById('example10');
+const container = document.querySelector('#example10');
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
@@ -971,14 +935,10 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 ::: only-for javascript
 ::: example #example11
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.getElementById('example11');
+const container = document.querySelector('#example11');
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],

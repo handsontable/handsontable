@@ -29,12 +29,8 @@ This example uses the `autocomplete` feature in the default **flexible mode**. I
 ::: only-for javascript
 ::: example #example1
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const colors = ['yellow', 'red', 'orange and another color', 'green',
   'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
@@ -145,12 +141,8 @@ In strict mode, the **allowInvalid** option determines the behaviour in the case
 ::: only-for javascript
 ::: example #example2
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const colors = ['yellow', 'red', 'orange', 'green', 'blue',
   'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
@@ -259,13 +251,8 @@ Autocomplete can also be used with Ajax data sources. In the example below, sugg
 ::: only-for javascript
 ::: example #example3
 ```js
-
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
@@ -318,7 +305,6 @@ export const ExampleComponent = () => {
         ['Volvo', 2020, 'white', 'gray']
       ]}
       colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
-      licenseKey="non-commercial-and-evaluation"
       columns={[{
           type: 'autocomplete',
           source(query, process) {

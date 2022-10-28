@@ -138,12 +138,11 @@ See the snippet below for example implementation.
 
 ::: only-for javascript
 ```js
-const example = document.getElementById('tooltip-example');
-
 const onAfterGetHeader = function(index, TH) {
   TH.setAttribute('title', TH.querySelector('span').textContent);
 };
 
+const example = document.querySelector('#tooltip-example');
 const hot = new Handsontable(example, {
   data: [
     ['A1', 'B1', 'C1'],
@@ -163,8 +162,6 @@ const hot = new Handsontable(example, {
 
 ::: only-for react
 ```jsx
-const example = document.getElementById('tooltip-example');
-
 const onAfterGetHeader = function(index, TH) {
   TH.setAttribute('title', TH.querySelector('span').textContent);
 };

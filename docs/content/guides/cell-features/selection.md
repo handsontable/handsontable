@@ -51,12 +51,8 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 </div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const selectOption = document.querySelector('#selectOption');
 const container = document.querySelector('#example1');
@@ -184,12 +180,8 @@ To retrieve the selected cells as an array of arrays, you use the [`getSelected(
 </div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const output = document.querySelector('#output');
 const getButton = document.querySelector('#getButton');
@@ -332,12 +324,8 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 }
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const button = document.querySelector('#set-data-action');
 const container = document.querySelector('#example3');

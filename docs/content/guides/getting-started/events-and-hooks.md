@@ -268,7 +268,7 @@ const config = {
   contextMenu: true,
   licenseKey: 'non-commercial-and-evaluation'
 };
-const example1Events = document.getElementById("example1_events");
+const example1Events = document.getElementById('example1_events');
 const hooksList = document.getElementById('hooksList');
 const hooks = Handsontable.hooks.getRegistered();
 
@@ -339,7 +339,7 @@ function log_events(event, data) {
   }
 }
 
-const example1 = document.getElementById('example1');
+const example1 = document.querySelector('#example1');
 const hot = new Handsontable(example1, config);
 
 document.querySelector('#check_select_all').addEventListener('click', function () {
@@ -421,15 +421,11 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 ::: only-for javascript
 ::: example #example2
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
 let lastChange = null;
-const container = document.getElementById('example2')
+const container = document.querySelector('#example2')
 const hot = new Handsontable(container, {
   data: [
     ['Tesla', 2017, 'black', 'black'],

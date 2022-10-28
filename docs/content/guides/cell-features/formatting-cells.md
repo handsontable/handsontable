@@ -36,12 +36,8 @@ td.custom-cell {
 }
 ```
 ```javascript
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
@@ -130,16 +126,11 @@ You can apply inline styles directly to the DOM element using its `style` proper
 ::: only-for javascript
 ::: example #example2
 ```javascript
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
-import { textRenderer, registerRenderer } from 'handsontable/renderers';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
-  textRenderer(hotInstance, TD, ...rest);
+Handsontable.renderers.registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
+  Handsontable.renderers.TextRenderer(hotInstance, TD, ...rest);
 
   TD.style.fontWeight = 'bold';
   TD.style.color = 'green';
@@ -236,14 +227,10 @@ The `start` and `end` properties used to be called `left` and `right` before Han
 ::: only-for javascript
 ::: example #example3
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
-
-const container = document.getElementById('example3');
+const container = document.querySelector('#example3');
 const hot = Handsontable(container, {
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1'],

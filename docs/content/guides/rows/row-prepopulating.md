@@ -27,13 +27,8 @@ The example below shows how cell renderers can be used to populate the template 
 ::: only-for javascript
 ::: example #example1
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 const container = document.querySelector('#example1');
 const templateValues = ['one', 'two', 'three'];
@@ -67,7 +62,7 @@ function defaultValueRenderer(instance, td, row, col, prop, value, cellPropertie
     td.style.color = '';
   }
 
-  textRenderer.apply(this, args);
+  Handsontable.renderers.TextRenderer.apply(this, args);
 }
 
 const hot = new Handsontable(container, {

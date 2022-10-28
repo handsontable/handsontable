@@ -116,13 +116,10 @@ Language files were loaded after loading Handsontable.
 ::: only-for javascript
 ::: example #example1 :hot-lang
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
+import Handsontable from 'handsontable';
 import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 import 'handsontable/dist/handsontable.full.min.css';
 
-// register Handsontable's modules
-registerAllModules();
 registerLanguageDictionary(deDE);
 
 const container = document.querySelector('#example1');
@@ -232,7 +229,7 @@ registerLanguageDictionary(ruRU);
 registerLanguageDictionary(zhCN);
 registerLanguageDictionary(zhTW);
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const [language, setLanguage] = useState('en-US');
   const [languageList, setLanguageList] = useState([]);
 
