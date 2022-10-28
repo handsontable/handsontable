@@ -18,6 +18,8 @@ searchCategory: Guides
 
 Open a right-click context menu to access contextual actions such as removing rows, inserting columns, or copying data to the clipboard.
 
+test
+
 [[toc]]
 
 ## Context menu with default options
