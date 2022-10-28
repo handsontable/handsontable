@@ -572,20 +572,15 @@ You can also put HTML into row and column headers. If you need to attach events 
 </div>
 ```
 ```js
-import Handsontable from 'handsontable/base';
-import { registerAllModules } from 'handsontable/registry';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
 
 let isChecked = false;
 const exampleContainer = document.querySelector('#exampleContainer5');
 const container = document.querySelector('#example5');
 
 function customRenderer(instance, td) {
-  textRenderer.apply(this, arguments);
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
 
   if (isChecked) {
     td.style.backgroundColor = 'yellow';
