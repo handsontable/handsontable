@@ -193,6 +193,7 @@ export default {
           font-size 0.9em
           &.intend
             padding: 0 1.5rem 0 1.25rem
+            opacity: .6
       a
         display block
         line-height 1.7rem
