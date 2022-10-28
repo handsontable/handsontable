@@ -73,7 +73,7 @@ async function readFromGitHub() {
     });
 
   const versions = Array.from(tagsSet).slice(0, 6);
-  const patches = Array.from(minorsToPatches);
+  const patches = Array.from(minorsToPatches); // Converting the map, as it's later changed to JSON.
 
   logger.info(`Fetched the following Docs versions: ${versions.join(', ')}`);
   logger.info(`GitHub API rate limits:
