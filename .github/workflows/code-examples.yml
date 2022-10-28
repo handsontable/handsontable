@@ -54,7 +54,7 @@ env:
 jobs:
   prepare-matrix:
     name: Prepare the version Matrix and cache dependencies.
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     outputs:
       versions: ${{ steps.get-dispatch-value.outputs.matrix || steps.prepare-version-matrix.outputs.matrix }}
@@ -330,7 +330,7 @@ jobs:
       needs.build-vue.result != 'failure' &&
       needs.build-vue3.result != 'failure' &&
       needs.prepare-matrix.outputs.versions != '[]'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
@@ -508,7 +508,7 @@ jobs:
       always() &&
       (github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch') &&
       needs.install-and-build.result == 'success'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout gh-pages branch to "./examples/tmp".
