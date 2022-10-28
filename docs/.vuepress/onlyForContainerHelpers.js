@@ -80,7 +80,7 @@ function getPermalinkHrefMethod(uniqueSlugs) {
     handleTokensInsideOnlyForContainer(parseAndChangeDuplicatedSlug);
 
     return `#${slug}`;
-  }
+  };
 }
 
 module.exports = {
