@@ -152,7 +152,7 @@ module.exports = {
                 uniqueSlugs.add(headerSlug);
 
                 // Removed the `-[number]` suffix.
-                slug = `#${headerSlug}`;
+                slug = `${headerSlug}`;
 
                 return true; // Breaks the loop.
               }
