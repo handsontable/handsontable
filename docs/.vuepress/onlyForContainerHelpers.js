@@ -1,8 +1,8 @@
 /**
  * A factory for creating function for `markdown-it-anchor` plugin's `permalinkSymbol` configuration option.
  *
- * @param {Set} uniqueSlugs An unique set, where are stored slugs. 
- * @returns {function}
+ * @param {Set} uniqueSlugs An unique set, where are stored slugs.
+ * @returns {Function}
  */
 function getPermalinkHrefMethod(uniqueSlugs) {
   return function(slug, state) {
@@ -85,4 +85,4 @@ function getPermalinkHrefMethod(uniqueSlugs) {
 
 module.exports = {
   getPermalinkHrefMethod,
-}
+};
