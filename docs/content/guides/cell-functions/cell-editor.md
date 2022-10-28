@@ -653,7 +653,7 @@ class PasswordEditor extends Handsontable.editors.TextEditor {
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
 
-    Handsontable.dom.empty(this.TEXTAREA_PARENT);
+    this.TEXTAREA_PARENT.innerText = '';
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }
@@ -772,7 +772,7 @@ class SelectEditor extends Handsontable.editors.BaseEditor {
   init() {
     // Create detached node, add CSS class and make sure its not visible
     this.select = this.hot.rootDocument.createElement('SELECT');
-    Handsontable.dom.addClass(this.select, 'htSelectEditor');
+    this.select.classList.add('htSelectEditor');
     this.select.style.display = 'none';
 
     // Attach node to DOM, by appending it to the container holding the table
@@ -857,8 +857,7 @@ prepare(row, col, prop, td, originalValue, cellProperties) {
   Object.keys(options).forEach((key) => {
     const optionElement = this.hot.rootDocument.createElement('OPTION');
     optionElement.value = key;
-
-    Handsontable.dom.fastInnerHTML(optionElement, options[key]);
+    optionElement.innerText = options[key];
     this.select.appendChild(optionElement);
   });
 }
@@ -994,7 +993,7 @@ onBeforeKeyDown() {
         this.select[previousOptionIndex].selected = true;
       }
 
-      Handsontable.dom.stopImmediatePropagation(event);
+      event.stopImmediatePropagation();
       event.preventDefault();
       break;
 
@@ -1003,7 +1002,7 @@ onBeforeKeyDown() {
         this.select[nextOptionIndex].selected=true;
       }
 
-      Handsontable.dom.stopImmediatePropagation(event);
+      event.stopImmediatePropagation();
       event.preventDefault();
       break;
 
