@@ -1,3 +1,9 @@
+/**
+ * A factory for creating function for `markdown-it-anchor` plugin's `permalinkSymbol` configuration option.
+ *
+ * @param {Set} uniqueSlugs An unique set, where are stored slugs. 
+ * @returns {function}
+ */
 function getPermalinkHrefMethod(uniqueSlugs) {
   return function(slug, state) {
     const slugify = state.md.slugify;
