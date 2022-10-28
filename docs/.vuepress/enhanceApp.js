@@ -72,7 +72,6 @@ export default async({ router, siteData, isServer }) => {
 
   const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
   const docsData = await response.json();
-
   const canonicalURLs = new Map(docsData.urls);
 
   siteData.pages.forEach((page) => {
