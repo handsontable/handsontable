@@ -73,17 +73,6 @@ export default async({ router, siteData, isServer }) => {
   const response = await fetch(`${window.location.origin}/docs/${pathVersion}data/common.json`);
   const docsData = await response.json();
 
-  // TODO: Mocked.
-  docsData.patches = [
-    ['12.2', ['12.2.0']],
-    ['12.1', ['12.1.3', '12.1.2', '12.1.1', '12.1.0']],
-    ['12.0', ['12.0.1', '12.0.0']],
-    ['11.1', ['11.1.0']],
-    ['11.0', ['11.0.1', '11.0.0']],
-    ['10.0', ['10.0.0']],
-    ['9.0', ['9.0.2', '9.0.1', '9.0.0']]
-  ];
-
   const canonicalURLs = new Map(docsData.urls);
 
   siteData.pages.forEach((page) => {
