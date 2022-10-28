@@ -9,11 +9,6 @@ const { Octokit } = require('@octokit/rest');
 const { logger } = require('@vuepress/shared-utils');
 
 /**
- * Min Docs version that is listed in the Docs version dropdown menu.
- */
-const MIN_DOCS_VERSION = '9.0';
-
-/**
  * Reads the list of Docs versions from the latest Docs image.
  *
  * @returns {object}
@@ -65,17 +60,15 @@ async function readFromGitHub() {
       const minorVersion = `${semver.parse(tag).major}.${semver.parse(tag).minor}`;
       const patchVersion = `${minorVersion}.${semver.parse(tag).patch}`;
 
-      if (semver.gte(patchVersion, semver.coerce(MIN_DOCS_VERSION).version)) {
-        tagsSet.add(minorVersion);
+      tagsSet.add(minorVersion);
 
-        if (minorsToPatches.has(minorVersion)) {
-          const uniquePathes = Array.from(new Set(minorsToPatches.get(minorVersion)).add(patchVersion));
+      if (minorsToPatches.has(minorVersion)) {
+        const uniquePathes = Array.from(new Set(minorsToPatches.get(minorVersion)).add(patchVersion));
 
-          minorsToPatches.set(minorVersion, uniquePathes);
+        minorsToPatches.set(minorVersion, uniquePathes);
 
-        } else {
-          minorsToPatches.set(minorVersion, [patchVersion]);
-        }
+      } else {
+        minorsToPatches.set(minorVersion, [patchVersion]);
       }
     });
 
