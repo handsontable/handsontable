@@ -410,9 +410,17 @@ For the most popular column hiding tasks, use the API methods below.
 
 ::: only-for react
 ::: tip
-To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+To use Handsontable's [API methods](@/api/core.md):
+1. Create a reference to the [`HotTable` component](@/guides/getting-started/installation.md#use-the-hottable-component):
+    ```jsx
+    const hotTableComponentRef = useRef(null);
+    ```
+2. Read the reference's `hotInstance` property:
+    ```jsx
+    hotTableComponentRef.current.hotInstance
+    ```
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+Read more on the [Instance methods](@/guides/getting-started/react-methods.md) page.
 :::
 :::
 

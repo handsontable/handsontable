@@ -70,13 +70,7 @@ Changing your background, font colors, etc., shouldn't lower the performance. Ho
 
 By default, Handsontable will call the render after each CRUD operation. Usually, this is expected behavior, but you may find it slightly excessive in some use cases. By using one of the batching methods, you can suspend rendering and call it just once at the end. For example:
 
-::: only-for react
-::: tip
-To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
-:::
-:::
 
 ```js
 hot.batch(() => {
@@ -91,6 +85,22 @@ hot.batch(() => {
   // The table cache will be recalculated and table render will be called once after executing the callback
 });
 ```
+
+::: only-for react
+::: tip
+To use Handsontable's [API methods](@/api/core.md):
+1. Create a reference to the [`HotTable` component](@/guides/getting-started/installation.md#use-the-hottable-component):
+    ```jsx
+    const hotTableComponentRef = useRef(null);
+    ```
+2. Read the reference's `hotInstance` property:
+    ```jsx
+    hotTableComponentRef.current.hotInstance
+    ```
+
+Read more on the [Instance methods](@/guides/getting-started/react-methods.md) page.
+:::
+:::
 
 See the [batch operations](@/guides/optimization/batch-operations.md) page to find more information on how to use batching.
 
