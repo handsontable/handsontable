@@ -18,9 +18,16 @@ import DropdownLink from '@theme/components/DropdownLink.vue';
  * @param {string} value Cookie value.
  */
 function setCookie(name, value) {
+  const hostname = window.location.hostname;
+  const urlParts = hostname.split('.');
+  let domainWithoutSubdomain = hostname;
+
+  if (urlParts.length > 2) {
+    domainWithoutSubdomain = urlParts.slice(1).join('.');
+  }
   let str = `${name}=${value}`;
 
-  str += `; Domain=${window.location.hostname}`;
+  str += `; Domain=${domainWithoutSubdomain}`;
   str += '; Path=/docs';
   str += `; Expires=${new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString()}`; // 1 year
 
@@ -106,7 +113,7 @@ export default {
 
 <style lang="stylus">
 .nav-frameworks
-  margin-left 1.25rem
+  margin-left 1.4rem
   margin-right 1.5rem
   display inline-block
   position relative
@@ -114,10 +121,12 @@ export default {
   text-transform capitalize
 
   img
-    height: 12px
+    height 16px
+    position relative
+    top 3px
 
   .nav-item
-    margin-left: 0.25rem
+    margin-left 0.25rem
 
   .dropdown-title {
     text-transform capitalize
@@ -137,13 +146,12 @@ export default {
     overflow-y auto
     position absolute
     top 100%
-    left -19px
     background-color #fff
     padding 0.6rem 0
     border 1px solid #ddd
     border-bottom-color #ccc
     text-align left
-    border-radius 0.25rem
+    border-radius 6px
     white-space nowrap
     margin 0
     z-index 100

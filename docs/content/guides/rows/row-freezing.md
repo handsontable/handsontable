@@ -7,6 +7,7 @@ canonicalUrl: /row-freezing
 tags:
   - fixing rows
   - pinning rows
+  - fixedRows
 react:
   metaTitle: Row freezing - React Data Grid | Handsontable
 searchCategory: Guides
@@ -14,10 +15,15 @@ searchCategory: Guides
 
 # Row freezing
 
+Lock the position of specified rows, keeping them visible when scrolling.
+
 [[toc]]
 
 ## Overview
+
 Row freezing locks specific rows of a grid in place, keeping them visible while scrolling to another area of the grid.
+
+This feature is sometimes called "pinned rows".
 
 ## Example
 

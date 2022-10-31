@@ -12,6 +12,8 @@ searchCategory: Guides
 
 # Migrate from 7.4 to 8.0
 
+Migrate from Handsontable 7.4 to Handsontable 8.0, released on August 5, 2020.
+
 [[toc]]
 
 ## Overview
@@ -27,7 +29,7 @@ Handsontable 8.0.0 introduces [`IndexMapper`](@/api/indexMapper.md), a new API t
 ## General guidelines
 
 * Check if you use any of the features listed in the [Keywords](#keywords-alphabetically) section. You need to address them first after installing Handsontable 8.0.0.
-* To keep backward compatibility, test solutions proposed in this guide. If you experience any problems, contact us.
+* To keep backward compatibility, test solutions proposed in this guide. If you experience any problems, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
 * You can also check the release notes for a complete list of all changes.
 
 ## Keywords (alphabetically)
@@ -811,4 +813,4 @@ Public methods `colOffset()` and `rowOffset()` were removed and their functional
 
 Also, an experimental feature called `ganttChart` was removed and is no longer supported.
 
-If you use these features in your project and need backward compatibility, please contact our Suppport Team ([support@handsontable.com](mailto:support@handsontable.com)).
+If you use these features in your project and need backward compatibility, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).

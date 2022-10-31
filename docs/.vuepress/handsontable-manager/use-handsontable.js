@@ -10,14 +10,24 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
   const getDependency = buildDependencyGetter(version, buildMode);
 
   const loadDependency = dep => new Promise((resolve) => {
-    const id = `dependency-reloader_${dep}`;
-    const [jsUrl, dependentVars = [], cssUrl = undefined] = getDependency(dep);
+    const getId = depName => `dependency-reloader_${depName}`;
+    const [jsUrl, dependentVars = [], cssUrl = undefined, globalVarSharedDependency] = getDependency(dep);
+    const id = getId(dep);
 
     const _document = document; // eslint-disable-line no-restricted-globals
-    let script = _document.getElementById(`script-${id}`);
+    let script = null;
+
+    // As the documentation uses multiple versions of Vue (which reuse the same global variable - `Vue`), every
+    // time the Vue dependency is loaded, the previously used version should be removed.
+    if (globalVarSharedDependency) {
+      script = _document.getElementById(`script-${getId(globalVarSharedDependency)}`);
+
+    } else {
+      script = _document.getElementById(`script-${id}`);
+    }
 
     // clear outdated version
-    if (script && script.getAttribute(ATTR_VERSION) !== version) {
+    if (script && (script.getAttribute(ATTR_VERSION) !== version || globalVarSharedDependency)) {
       dependentVars.forEach(x => delete x.split('.').reduce((p, c) => p[c] || {}, {}));
       script.remove();
       script = null;

@@ -87,7 +87,7 @@ export interface Events {
   afterFilter?: (conditionsStack: FiltersColumnConditions[]) => void;
   afterFormulasValuesUpdate?: (changes: object[]) => void;
   afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
-  afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement) => void;
+  afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement, headerLevel: number) => void;
   afterGetColumnHeaderRenderers?: (renderers: Array<(col: number, TH: HTMLTableHeaderCellElement) => void>) => void;
   afterGetRowHeader?: (row: number, TH: HTMLTableHeaderCellElement) => void;
   afterGetRowHeaderRenderers?: (renderers: Array<(row: number, TH: HTMLTableHeaderCellElement) => void>) => void;
@@ -165,7 +165,7 @@ export interface Events {
   beforeContextMenuShow?: (context: ContextMenu) => void;
   beforeCopy?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeCreateCol?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
-  beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
+  beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCut?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
   beforeDrawBorders?: (corners: number[], borderClassName: 'current' | 'area' | 'highlight' | undefined) => void;

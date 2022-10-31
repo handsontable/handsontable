@@ -8,7 +8,6 @@ const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
 const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
-const activeHeaderLinksPlugin = require('./plugins/active-header-links');
 const {
   createSymlinks,
   getDocsBase,
@@ -67,15 +66,26 @@ module.exports = {
       src: 'https://consent.cookiebot.com/uc.js',
       'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646'
     }],
-    ['script', {}, `\
-var DOCS_VERSION = '${getThisDocsVersion()}';
-`],
+    ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
+    ['script', {}, `
+      (function(w, d) {
+        const osColorScheme = () => w.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const preferredScheme = colorScheme ? colorScheme : osColorScheme();
+
+        if (preferredScheme === 'dark') {
+          d.documentElement.classList.add('theme-dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window, document));
+    `],
     ...environmentHead
   ],
   markdown: {
     toc: {
       includeLevel: [2, 3],
-      containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
+      containerHeaderHtml: '<div class="toc-container-header">In this article</div>'
     },
     anchor: {
       permalinkSymbol: '',
@@ -129,11 +139,6 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
     ['sitemap', {
       hostname: getDocsHostname(),
       exclude: ['/404.html']
-    }],
-    [activeHeaderLinksPlugin, {
-      sidebarLinkSelector: '.table-of-contents a',
-      headerAnchorSelector: '.header-anchor',
-      anchorTopOffset: 75,
     }],
     ['container', examples(getThisDocsVersion(), getDocsBaseFullUrl())],
     ['container', sourceCodeLink],
@@ -231,21 +236,22 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
     prevLinks: true,
     repo: 'handsontable/handsontable',
     docsRepo: 'handsontable/handsontable',
-    docsDir: 'docs',
+    docsDir: 'docs/content',
     docsBranch: 'develop',
     editLinks: true,
     editLinkText: 'Suggest edits',
     lastUpdated: true,
     smoothScroll: false,
     nav: [
-      // Guide & API Reference has defined in: theme/components/NavLinks.vue
+      // Guide & API Reference has been defined in theme/components/NavLinks.vue
       { text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
-      { text: 'Blog', link: 'https://handsontable.com/blog' },
       { text: 'Support',
         items: [
           { text: 'Contact support', link: 'https://handsontable.com/contact?category=technical_support' },
           { text: 'Report an issue', link: 'https://github.com/handsontable/handsontable/issues/new/choose' },
-          { text: 'Forum', link: 'https://forum.handsontable.com' },
+          { text: 'Handsontable forum', link: 'https://forum.handsontable.com' },
+          { text: 'Ask on Stack Overflow', link: 'https://stackoverflow.com/questions/tagged/handsontable' },
+          { text: 'Blog', link: 'https://handsontable.com/blog' }
         ]
       },
     ],

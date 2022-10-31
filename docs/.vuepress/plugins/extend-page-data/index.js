@@ -1,8 +1,11 @@
 const {
   FRAMEWORK_SUFFIX,
+  MULTI_FRAMEWORKED_CONTENT_DIR,
   getDefaultFramework,
   getDocsBase,
+  getDocsHostname,
   getDocsRepoSHA,
+  getFrameworks,
   getPrettyFrameworkName,
   getSidebars,
   getThisDocsVersion,
@@ -14,6 +17,16 @@ const pluginName = 'hot/extend-page-data';
 const now = new Date();
 
 /**
+ * Remove the slash from the beginning and ending of the string.
+ *
+ * @param {string} string String to process.
+ * @returns {string}
+ */
+function removeEndingSlashes(string) {
+  return string.replace(/^\//, '').replace(/\/$/, '');
+}
+
+/**
  * Dedupes the slashes in the string.
  *
  * @param {string} string String to process.
@@ -21,6 +34,19 @@ const now = new Date();
  */
 function dedupeSlashes(string) {
   return string.replace(/(\/)+/g, '$1');
+}
+
+/**
+ * Returns the original (not symlinked) relative path of the MD file, which the page
+ * are created from.
+ *
+ * @param {string} relativePath The relative path of the processed file (symlinked path).
+ * @returns {string}
+ */
+function getOriginRelativePath(relativePath) {
+  return relativePath
+    .replace(new RegExp(`^/?${MULTI_FRAMEWORKED_CONTENT_DIR}`), '')
+    .replace(new RegExp(`/(${getFrameworks().join('|')})${FRAMEWORK_SUFFIX}/`), '');
 }
 
 const formatDate = (dateString) => {
@@ -53,6 +79,11 @@ module.exports = (options, context) => {
       $page.defaultFramework = getDefaultFramework();
       $page.frameworkSuffix = FRAMEWORK_SUFFIX;
       $page.buildMode = buildMode;
+      $page.hostname = getDocsHostname();
+
+      if ($page.relativePath) {
+        $page.originRelativePath = getOriginRelativePath($page.relativePath);
+      }
 
       if ($page.currentVersion === 'next') {
         $page.docsGenStamp = `<!--
@@ -77,13 +108,27 @@ SHA: ${getDocsRepoSHA()}
       const frameworkPath = currentFramework + FRAMEWORK_SUFFIX;
 
       if ($page.frontmatter.canonicalUrl) {
-        $page.frontmatter
-          .canonicalUrl = dedupeSlashes(`${getDocsBase()}/${frameworkPath}${$page.frontmatter.canonicalUrl}/`);
+        const canonicalShortUrl = removeEndingSlashes(frameworkPath + $page.frontmatter.canonicalUrl);
+
+        // The "canonicalShortUrl" property is used by "dump-docs-data" plugin. The property holds the
+        // canonical URL without slashes at the beginning and ending of the URL path and without Docs base.
+        $page.frontmatter.canonicalShortUrl = canonicalShortUrl;
       }
 
       if ($page.frontmatter.permalink) {
         $page.frontmatter.permalink = `/${frameworkPath}${$page.frontmatter.permalink}`;
       }
+
+      const hostWithBase = getDocsHostname() + getDocsBase();
+
+      // Add OpenGraph entries
+      frontmatter.meta = [
+        { name: 'og:url', content: `${hostWithBase}${dedupeSlashes(`/${$page.frontmatter.permalink}/`)}` },
+        { name: 'og:type', content: 'website' },
+        { name: 'og:title', content: frontmatter.title },
+        { name: 'og:description', content: frontmatter.description },
+        { name: 'og:image', content: `${hostWithBase}/img/handsontable-banner-og.png` },
+      ];
     },
   };
 };

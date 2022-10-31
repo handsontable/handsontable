@@ -1,7 +1,7 @@
 <template>
-  <label id="switch" class="switch">
-    <div class="inner">
-      <input type="checkbox" v-on:change="toggleTheme" id="slider" :checked="isDarkTheme">
+  <label id="switch" class="switch" :class="{ ready: isReady }">
+    <div class="inner" v-show="isReady">
+      <input type="checkbox" v-on:change="toggleTheme" :checked="isDarkTheme">
       <span class="slider round"></span>
     </div>
   </label>
@@ -10,59 +10,35 @@
 <script>
 const CLASS_THEME_DARK = 'theme-dark';
 const STORAGE_KEY = 'handsontable/docs::color-scheme';
-
-const toggleDarkThemeClassOnHTML = (htmlDomElement, isDarkTheme) => {
-  if (isDarkTheme) {
-    htmlDomElement.classList.add(CLASS_THEME_DARK);
-
-    return;
-  }
-
-  htmlDomElement.classList.remove(CLASS_THEME_DARK);
-};
+// The "SELECTED_COLOR_SCHEME" const is defined in the script that is injected in the VuePress config.js file.
+// The script executes the logic before the VuePress app is initialized to prevent page flickering (#8288).
+const SELECTED_THEME = typeof window === 'undefined' ? undefined : window.SELECTED_COLOR_SCHEME;
 
 export default {
   name: 'ThemeSwitcher',
   methods: {
     toggleTheme() {
       this.isDarkTheme = !this.isDarkTheme;
-      const theme = this.isDarkTheme ? 'dark' : 'light';
 
-      if (localStorage) {
-        localStorage.setItem(STORAGE_KEY, theme);
+      localStorage.setItem(STORAGE_KEY, this.isDarkTheme ? 'dark' : 'light');
+
+      if (this.isDarkTheme) {
+        document.documentElement.classList.add(CLASS_THEME_DARK);
+      } else {
+        document.documentElement.classList.remove(CLASS_THEME_DARK);
       }
-
-      toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme);
     }
   },
   data() {
     return {
-      isDarkTheme: null,
-      htmlDomEl: null,
+      isDarkTheme: false,
+      isReady: false,
     };
   },
-  beforeMount() {
-    const userPreferredTheme = localStorage ? localStorage.getItem(STORAGE_KEY) : 'light';
-
-    if (userPreferredTheme) {
-      this.isDarkTheme = userPreferredTheme === 'dark';
-
-      return;
-    }
-
-    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-
-    if (prefersDarkScheme.matches) {
-      this.isDarkTheme = true;
-    } else {
-      this.isDarkTheme = false;
-    }
-  },
   mounted() {
-    this.htmlDomEl = document.querySelector('html');
-
-    toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme);
-  }
+    this.isDarkTheme = SELECTED_THEME === 'dark';
+    this.isReady = typeof SELECTED_THEME === 'string';
+  },
 };
 </script>
 
@@ -72,32 +48,33 @@ export default {
   display: none;
   margin-bottom: 0;
 
-  @media (max-width: $MQNarrow) {
+  @media (max-width: $large) {
     & {
       display: inline-block;
       left: 50px;
     }
   }
 
-  @media (max-width: $MQMobile) {
+  @media (max-width: $medium) {
     & {
-      left: 65px;
+      left: 10px;
     }
   }
 }
 </style>
 
 <style lang="stylus" scoped>
-
 .switch {
   width: 60px;
   height: 32px;
+  margin-left: 9px;
   position relative
   display inline-block
-  top: 3px;
+  top: 1px;
+  vertical-align: top;
 
   /* Hide the theme switcher on narrow screen */
-  @media (max-width: $MQNarrow) {
+  @media (max-width: $large) {
     display none
   }
 }
@@ -126,27 +103,36 @@ export default {
   right: 0;
   bottom: 0;
   background-color: #ccc;
-  -webkit-transition: 0.4s;
-  transition: 0.4s;
+}
+
+.switch.ready {
+  & .slider {
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
+  }
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 26px;
-  width: 26px;
-  left: 0px;
+  height: 21px;
+  width: 21px;
+  left: 0;
   top: 0;
   bottom: 0;
   margin: auto 0;
-  -webkit-transition: 0.4s;
-  transition: 0.4s;
-  box-shadow: 0 0px 3px #2020203d;
   /* Fallback for IE, should work in production */
   background: #ffffff url('{{$basePath}}/img/light-theme-icon.svg');
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;
+}
+
+.switch.ready {
+  & .slider:before {
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
+  }
 }
 
 input:checked + .slider {
@@ -158,9 +144,7 @@ input:focus + .slider {
 }
 
 input:checked + .slider:before {
-  -webkit-transform: translateX(16px);
-  -ms-transform: translateX(16px);
-  transform: translateX(16px);
+  transform: translateX(18px);
   /* Fallback for IE, should work in production */
   background: #ffffff url('{{$basePath}}/img/dark-theme-icon.svg');
   background-size: 70%;

@@ -9,6 +9,8 @@ searchCategory: Guides
 
 # Packages
 
+Instantly add Handsontable to your web app, using pre-built UMD packages of JavaScript and CSS.
+
 [[toc]]
 
 ## Full distribution (recommended)

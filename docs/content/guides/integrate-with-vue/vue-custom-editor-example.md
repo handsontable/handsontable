@@ -9,6 +9,8 @@ searchCategory: Guides
 
 # Custom editor in Vue 2
 
+Create a custom cell editor, and use it in your Vue 2 data grid by declaring it as a class.
+
 [[toc]]
 
 ## Overview

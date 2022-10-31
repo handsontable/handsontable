@@ -1,7 +1,7 @@
 ---
 title: Context menu
 metaTitle: Context menu - JavaScript Data Grid | Handsontable
-description: Open the right-click context menu to get access to contextual actions such as removing rows, inserting columns, or copying data to the clipboard.
+description: Open a right-click context menu to access contextual actions such as removing rows, inserting columns, or copying data to the clipboard.
 permalink: /context-menu
 canonicalUrl: /context-menu
 tags:
@@ -15,6 +15,8 @@ searchCategory: Guides
 ---
 
 # Context menu
+
+Open a right-click context menu to access contextual actions such as removing rows, inserting columns, or copying data to the clipboard.
 
 [[toc]]
 
@@ -188,11 +190,11 @@ In addition to built-in options, you can equip your context menu with custom opt
 
 ::: example #example4 :react
 ```jsx
+import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
@@ -203,7 +205,7 @@ const ExampleComponent = () => {
     <div>
       <HotTable
         id="hot"
-        data={createSpreadsheetData(5, 5)}
+        data={Handsontable.helper.createSpreadsheetData(5, 5)}
         colHeaders={true}
         height="auto"
         contextMenu={{

@@ -13,6 +13,7 @@ tags:
   - workbook
   - sheet
   - function
+  - hyperformula
 react:
   metaTitle: Formula calculation - React Data Grid | Handsontable
 searchCategory: Guides
@@ -20,16 +21,13 @@ searchCategory: Guides
 
 # Formula calculation
 
-[[toc]]
+Perform calculations on cells' values, using a powerful calculation engine that handles 380+ functions, custom functions, named expressions, and more.
 
-::: tip
-To use HyperFormula within Handsontable's default [Formulas](@/api/formulas.md) plugin, you only need your existing [Handsontable license key](@/guides/getting-started/license-key.md).<br><br>
-To use HyperFormula independently from Handsontable, you need a license key dedicated to HyperFormula. For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
-:::
+[[toc]]
 
 ## Overview
 
-The _Formulas_ plugin provides you an extensive calculation capabilities based on formulas using the spreadsheet notation. Under the hood, it uses an engine called [HyperFormula](https://handsontable.github.io/hyperformula/) created by the Handsontable team as an independent library to help developers build complex data management apps.
+The _Formulas_ plugin provides you an extensive calculation capabilities based on formulas using the spreadsheet notation. Under the hood, it uses an engine called [HyperFormula](https://hyperformula.handsontable.com/) created by the Handsontable team as an independent library to help developers build complex data management apps.
 
 This plugin comes with a library of 386 functions grouped into categories, such as Math and trigonometry, Engineering, Statistical, Financial, and Logical. Using these, you can create complex data entry rules in business apps and much more. Below are some ideas on what you can do with it:
 
@@ -47,8 +45,6 @@ Different versions of Handsontable support different versions of HyperFormula.
 
 To find out which HyperFormula version to use, see the table below:
 
-::: details HyperFormula version support
-
 | Handsontable version                                                                    | HyperFormula version                                                                                           |
 | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | [`8.x.x`](https://github.com/handsontable/handsontable/releases/tag/8.0.0) and lower    | No HyperFormula support (old [Formulas](https://handsontable.com/docs/8.0.0/demo-formula-support.html) plugin) |
@@ -57,6 +53,10 @@ To find out which HyperFormula version to use, see the table below:
 | [`11.x.x`](https://github.com/handsontable/handsontable/releases/tag/11.0.0)            | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
 | [`12.x.x`](https://github.com/handsontable/handsontable/releases/tag/12.0.0) and higher | [`^2.0.0`](https://github.com/handsontable/hyperformula/releases/tag/2.0.0)                                    |
 
+::: tip
+Your [Handsontable license key](@/guides/getting-started/license-key.md) lets you use HyperFormula for free in your Handsontable instance: just pass `'internal-use-in-handsontable'` as your HyperFormula license key .<br><br>
+
+To use HyperFormula outside of a Handsontable instance, though, (e.g., on a server), you need a dedicated [HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html). For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 :::
 
 ## Features
@@ -72,8 +72,9 @@ To find out which HyperFormula version to use, see the table below:
 
 **Known limitations:**
 
-*   Doesn't work with nested rows
-*   Doesn't work with undo/redo
+*   Doesn't work with [nested rows](@/guides/rows/row-parent-child.md)
+*   Doesn't work with [undo/redo](@/guides/accessories-and-menus/undo-redo.md)
+*   Doesn't work with nested data (when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data.md#array-of-objects))
 
 ## Available options and methods
 
@@ -526,7 +527,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```
 :::
 
-### Passing the HyperFormula class/instance to Handsontable
+### Pass the HyperFormula class/instance to Handsontable
 
 ::: only-for javascript
 ```js
@@ -804,7 +805,7 @@ You can use custom-named expressions in your formula expressions. A named expres
 <div id="example-named-expressions1"></div>
 <div class="controls">
   <input id="named-expressions-input" type="text" value="=10 * Sheet1!$A$2">
-  <button id="named-expressions-button">Calculate price</button>
+  <button id="named-expressions-button">Calculate the price</button>
 </div>
 ```
 ```js
@@ -913,7 +914,7 @@ const ExampleComponent = () => {
           id="named-expressions-button"
           onClick={(...args) => buttonClickCallback(...args)}
         >
-          Calculate price
+          Calculate the price
         </button>
       </div>
     </>

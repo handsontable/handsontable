@@ -14,6 +14,8 @@ searchCategory: Guides
 
 # Selection
 
+Select a single cell, a range of adjacent cells, or multiple non-adjacent ranges of cells.
+
 [[toc]]
 
 ## Overview
@@ -26,7 +28,7 @@ With this feature, you can select single cells or ranges of cells across a grid.
 
 Use <kbd>**Cmd**</kbd> on Mac or <kbd>**Ctrl**</kbd> on Windows to select non-adjacent ranges of cells.
 
-## Selecting ranges
+## Select ranges
 
 There are different modes in which you can use this plugin. Choose between selecting a single cell, a range of adjacent cells, and multiple non-adjacent ranges of cells.
 
@@ -41,7 +43,7 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 ```html
 <div id="example1"></div>
 <div class="controls">
-  <select id="selectOption" style="width: auto; margin-top: 16px">
+  <select id="selectOption">
     <option>Single selection</option>
     <option>Range selection</option>
     <option selected="selected">Multiple ranges selection</option>
@@ -124,7 +126,6 @@ const ExampleComponent = () => {
       <div className="controls">
         <select
           id="selectOption"
-          style={{width: 'auto', marginTop: 16}}
           onChange={(...args) => selectOptionChangeCallback(...args)}
           defaultValue="multiple"
         >
@@ -143,7 +144,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 
 
-## Getting data from the selected ranges
+## Get data from the selected ranges
 
 To retrieve the selected cells as an array of arrays, you use the [`getSelected()`](@/api/core.md#getselected) or [`getSelectedRange()`](@/api/core.md#getselectedrange) methods.
 
@@ -260,7 +261,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 :::
 
 
-## Modifying the selected cells
+## Modify the selected cells
 
 You may want to delete, format, or otherwise change the selected cells. For example, you can change a value or add CSS classes to the selected cells using the demo below.
 
@@ -270,7 +271,7 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 <div id="example3"></div>
 
 <div class="controls">
-  <button id="set-data-action">Change selected data and change the CSS class of the cell</button>
+  <button id="set-data-action">Click to modify the selected cells</button>
 </div>
 ```
 ```css
@@ -391,7 +392,7 @@ const ExampleComponent = () => {
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Change selected data and change the CSS class of the cell</button>
+        <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Click to modify the selected cells</button>
       </div>
     </>
   );
@@ -403,7 +404,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 :::
 
 
-## Styling the selection area
+## Style the selection area
 
 The background color can be easily changed using CSS styles. The main, light blue background color is defined in the `.area` class.
 
@@ -411,11 +412,11 @@ For non-adjacent selection, multiple classes are making each level a bit darker.
 
 Unfortunately, there is no easy way to change the border color of the selection.
 
-## Jumping across the grid's edges
+## Jump across the grid's edges
 
 When you use keyboard navigation, and you cross an edge of the grid, you can set cell selection to jump to the opposite edge.
 
-#### Jumping across vertical edges
+#### Jump across vertical edges
 
 To enable jumping across the left and right edges:
 - Set the [`autoWrapRow`](@/api/options.md#autowraprow) configuration option to `true`.
@@ -424,7 +425,7 @@ To jump across a vertical edge:
 - When cell selection is on a row's first cell, press the left arrow key.
 - When cell selection is on a row's last cell, press the right arrow key, or press <kbd>**Tab**</kbd>.
 
-#### Jumping across horizontal edges
+#### Jump across horizontal edges
 
 To enable jumping across the top and bottom edges:
 - Set the [`autoWrapCol`](@/api/options.md#autowrapcol) configuration option to `true`.

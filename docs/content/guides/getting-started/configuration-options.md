@@ -14,13 +14,11 @@ searchCategory: Guides
 
 # Configuration options
 
+Configure your grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
+
 [[toc]]
 
-Customize Handsontable with configuration options.
-
-## About configuration options
-
-Configuration options let you customize your Handsontable instance.
+## Overview
 
 ::: only-for javascript
 To apply configuration options, pass them as a second argument of the Handsontable constructor, using the object literal notation:
@@ -130,7 +128,7 @@ If you use Handsontable through [modules](@/guides/tools-and-building/modules.md
 
 To find out if an option comes from a plugin, check the `Category` label in the [configuration options' API reference](@/api/options.md).
 
-## Setting grid options
+## Set grid options
 
 To apply configuration options to the entire grid:
 
@@ -234,7 +232,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 
 
-## Setting column options
+## Set column options
 
 To apply configuration options to an individual column (or a range of columns), use the [`columns`](@/api/options.md#columns) option.
 ::: only-for javascript
@@ -361,7 +359,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 :::
 :::
 
-## Setting row options
+## Set row options
 
 To apply configuration options to an individual row (or a range of rows), use the [`cells`](@/api/options.md#cells) option.
 
@@ -504,7 +502,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 :::
 
 
-## Setting cell options
+## Set cell options
 
 To apply configuration options to individual cells, use the [`cell`](@/api/options.md#cell) option.
 ::: only-for javascript
@@ -650,7 +648,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 :::
 
 
-### Reading cell options
+### Read cell options
 
 When Handsontable is running, you can check a cell's current options, using the [`getCellMeta()`](@/api/core.md#getcellmeta) method.
 
@@ -717,7 +715,7 @@ hot.getCellMeta(1, 1).readOnly;
 ```
 :::
 
-### Changing cell options
+### Change cell options
 
 When Handsontable is running, you can change the initial cell options, using the [`setCellMeta()`](@/api/core.md#setcellmeta) method.
 
@@ -768,7 +766,7 @@ hot.getCellMeta(1, 1).readOnly;
 ```
 :::
 
-## Implementing custom logic
+## Implement custom logic
 
 You can apply configuration options to individual grid elements (columns, rows, cells), based on any logic you implement, using the [`cells`](@/api/options.md#cells) option.
 

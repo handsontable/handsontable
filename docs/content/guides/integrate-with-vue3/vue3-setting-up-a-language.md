@@ -9,15 +9,15 @@ searchCategory: Guides
 
 # Setting up a translation in Vue 3
 
+Configure your Vue 3 data grid with different number formats, depending on the specified language and culture.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following example shows a Handsontable instance with translations set up in Vue 3.
 
 [Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
-
-## Example
 
 ::: example #example1 :vue3-numbro --html 1 --js 2
 ```html

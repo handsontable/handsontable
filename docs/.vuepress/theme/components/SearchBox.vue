@@ -187,7 +187,7 @@ export default {
               ...p,
               title: getShortPageTitle(p),
               category: name,
-              priority,
+              priority: priority + 1,
             });
           }
 
@@ -318,23 +318,23 @@ export default {
 .search-box.search-box
   display inline-block
   position relative
-  margin-right 2rem
+  margin-right 1.5rem
   input
     cursor text
-    width 12rem
+    width 11rem
     height: 2rem
     display inline-block
     border 1px solid #cfdbe4
-    border-radius 8px
-    font-size 0.9rem
+    border-radius 6px
+    font-size 14px
     line-height 2rem
-    padding 0 0.5rem 0 2rem
+    padding 0 0.5rem 0 2.2rem
     outline none
     /* Fallback for IE, should work in production */
     background #fff url('{{$basePath}}/img/search.svg') 0.6rem 0.5rem no-repeat
     background-size 1rem
     &:focus
-      color #104bcd
+      color $textColor
       cursor auto
       border-color $accentColor
       + .kbd-hint
@@ -355,10 +355,10 @@ export default {
   .suggestions
     background #fff
     max-width calc(100vw - 4rem)
-    width 26rem
+    width 22rem
     position absolute
     top 1.6rem
-    border 1px solid darken($borderColor, 10%)
+    border 1px solid $borderColor
     border-radius 6px
     padding 0.4rem
     list-style-type none
@@ -374,7 +374,7 @@ export default {
   .suggestion
     line-height 1.4
     padding 0.4rem 0.6rem
-    border-radius 4px
+    border-radius 6px
     cursor pointer
     a
       white-space normal
@@ -390,7 +390,7 @@ export default {
       a
         color $accentColor
 
-@media (max-width: $MQNavbarNarrow)
+@media (max-width: $extraLarge)
   .search-box.search-box
     margin-right 0
     input
@@ -398,44 +398,21 @@ export default {
       width 0
       background-color transparent
       border-color transparent
-      position relative
-      font-size 16px
+      position absolute
+      right 10px
+      z-index 20
+      font-size 14px
       &:focus
         cursor text
-        left 0
-        width 8rem
-        margin-right 1rem
+        left auto
+        width 7rem
+        // The browser will zoom if the font-size is less than 16px so this is to prevent that.
+        font-size: 16px;
+        background-color #fff
     .kbd-hint *
       display none
 
-@media (max-width: $MQMobile)
-  .search-box.search-box
-    input
-      left 1rem
-      &:focus
-        margin-right 0
-// Match IE11
-@media all and (-ms-high-contrast: none)
-  .search-box input
-    height 2rem
-
-@media (max-width: $MQNavbarNarrow) and (min-width: $MQMobile)
-  .search-box
-    .suggestions
-      left 0
-
-@media (max-width: $MQMobile)
-  .search-box
-    margin-right 0
-    input
-    .suggestions
-      right 0
-
-@media (max-width: $MQMobileNarrow)
-  .search-box
-    .suggestions
-      width calc(100vw - 4rem)
-    input:focus
-      width 8rem
-
+@media (max-width: $medium)
+  input
+    right 0!important
 </style>

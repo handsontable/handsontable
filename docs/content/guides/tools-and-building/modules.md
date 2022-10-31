@@ -13,7 +13,7 @@ searchCategory: Guides
 
 # Modules
 
-Import just the modules that you actually use, to reduce Handsontable's bundle size.
+Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
 
 [[toc]]
 
@@ -873,6 +873,7 @@ registerLanguageDictionary(zhTW);
 
 ::: tip
 Parcel, webpack 3 (and older), and a few other bundlers require you to import modules one by one, from their respective files of origin. See the full list of such imports:
+:::
 
 ::: details All imports
 ```js

@@ -9,13 +9,11 @@ searchCategory: Guides
 
 # Using the `HotColumn` component in Vue 2
 
+Configure the Vue 2 data grid's columns, using the props of the `HotColumn` component. Define a custom cell editor or a custom cell renderer.
+
 [[toc]]
 
-## Overview
-
-You can configure the column-related settings using the `HotColumn` component's attributes. You can also create custom renderers and editors using Vue components.
-
-## Declaring column settings
+## Declare column settings
 
 To declare column-specific settings, pass the settings as `hot-column` properties, either separately or wrapped as a `settings` property, exactly as you would for `hot-table`.
 
@@ -35,7 +33,7 @@ To declare column-specific settings, pass the settings as `hot-column` propertie
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -45,7 +43,7 @@ new Vue({
   data: function() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(10, 10),
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation',
       },
@@ -111,7 +109,7 @@ new Vue({
 ```
 :::
 
-## Declaring a custom renderer as a component
+## Declare a custom renderer as a component
 
 The wrapper allows creating custom renderers using Vue 2 components. The data you would normally get as arguments of the rendering function will be injected into the rendering component's `$data` object.
 
@@ -136,7 +134,7 @@ Be sure to turn those options off in your Handsontable config, as keeping them e
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 const CustomRenderer = {
   template: '<div><i style="color: #a9a9a9">Row: {{row}}, column: {{col}},</i> value: {{value}}</div>',
@@ -167,7 +165,7 @@ const App = new Vue({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(10, 10),
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
         autoRowSize: false,
         autoColumnSize: false,
         height: 'auto',
@@ -190,7 +188,7 @@ By default, the number of entries available for the cache is set to `3000`, whic
 
 To prevent this problem, it is possible to pass the `wrapperRendererCacheSize` option to the `HotTable` component and set it to a number of entries available in the renderer cache.
 
-## Declaring a custom editor as a component
+## Declare a custom editor as a component
 
 You can also utilize the Vue 2 components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/vue`.
 
@@ -323,7 +321,7 @@ const App = new Vue({
 ```
 :::
 
-## Using the renderer/editor components with `v-model`
+## Use the renderer/editor components with `v-model`
 
 You can also use Vue 2's `v-model` with the renderer and editor components.
 
@@ -333,7 +331,7 @@ List of row indexes (starting from 0):
 
 ::: example #v-model-example :vue --html 1 --js 2
 ```html
-<div id="v-model-example">
+<div id="v-model-example" class="controls v-model">
   <label for="mainInput">List of row indexes (starting from 0):</label><br>
     <input id="mainInput" v-model="highlightedRows"/>
 
@@ -349,7 +347,7 @@ List of row indexes (starting from 0):
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
-import { createSpreadsheetData } from './helpers';
+import Handsontable from 'handsontable/base';
 
 const CustomRenderer = {
   template: `<div v-bind:style="{ backgroundColor: bgColor }">{{value}}</div>`,
@@ -376,7 +374,7 @@ const App = new Vue({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(10, 1)  ,
+        data: Handsontable.helper.createSpreadsheetData(10, 1)  ,
         licenseKey: 'non-commercial-and-evaluation',
         autoRowSize: false,
         autoColumnSize: false,
@@ -648,7 +646,7 @@ Finally, modify the component template to be used as a renderer _and_ editor. We
 
 This component contains some Vuex state logic. Ignore it for now. We'll cover this in the third step.
 
-### 2. Using `v-for` for column declaration
+### 2. Use `v-for` for column declaration
 
 `v-for` is used to declare the second and third columns in a loop. You can bind the loop to your data and retrieve the settings from there.
 
@@ -663,6 +661,6 @@ This component contains some Vuex state logic. Ignore it for now. We'll cover th
 </hot-table>
 ```
 
-### 3. Binding the state between components.
+### 3. Bind the state between components.
 
 As you can see in our first editor/renderer component, we're already committing all of the changes into the applications `$store`. This way, we can easily bind the state of our new component (based on a star-rating component dependency) to the data in the second and third columns.
