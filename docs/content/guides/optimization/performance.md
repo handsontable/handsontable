@@ -8,6 +8,7 @@ tags:
   - speed
 react:
   metaTitle: Performance - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Performance

@@ -6,6 +6,7 @@ permalink: /column-hiding
 canonicalUrl: /column-hiding
 react:
   metaTitle: Column hiding - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column hiding
@@ -34,6 +35,7 @@ const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 12),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   // enable the `HiddenColumns` plugin
@@ -50,6 +52,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -57,8 +60,9 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
-      licenseKey='non-commercial-and-evaluation'
+      licenseKey="non-commercial-and-evaluation"
       data={Handsontable.helper.createSpreadsheetData(5, 12)}
+      height="auto"
       colHeaders={true}
       rowHeaders={true}
       // enable the `HiddenColumns` plugin
@@ -93,6 +97,7 @@ const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 12),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   // enable the `HiddenColumns` plugin
@@ -112,6 +117,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -121,6 +127,7 @@ const ExampleComponent = () => {
     <HotTable
       licenseKey="non-commercial-and-evaluation"
       data={Handsontable.helper.createSpreadsheetData(5, 12)}
+      height="auto"
       colHeaders={true}
       rowHeaders={true}
       // enable the `HiddenColumns` plugin
@@ -156,6 +163,7 @@ const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 12),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   hiddenColumns: {
@@ -175,6 +183,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -184,6 +193,7 @@ const ExampleComponent = () => {
     <HotTable
       licenseKey="non-commercial-and-evaluation"
       data={Handsontable.helper.createSpreadsheetData(5, 12)}
+      height="auto"
       colHeaders={true}
       rowHeaders={true}
       hiddenColumns={{
@@ -215,6 +225,7 @@ const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 12),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   // enable the context menu
@@ -237,6 +248,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -246,6 +258,7 @@ const ExampleComponent = () => {
     <HotTable
       licenseKey={"non-commercial-and-evaluation"}
       data={Handsontable.helper.createSpreadsheetData(5, 12)}
+      height="auto"
       colHeaders={true}
       rowHeaders={true}
       // enable the context menu
@@ -276,6 +289,7 @@ const container = document.querySelector('#example5');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 12),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   // individually add column hiding context menu items
@@ -296,6 +310,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -305,9 +320,10 @@ const ExampleComponent = () => {
     <HotTable
       licenseKey="non-commercial-and-evaluation"
       data={Handsontable.helper.createSpreadsheetData(5, 12)}
+      height="auto"
       colHeaders={true}
       rowHeaders={true}
-      contextMenu={[`hidden_columns_show`, `hidden_columns_hide`]}
+      contextMenu={['hidden_columns_show', 'hidden_columns_hide']}
       hiddenColumns={{
         columns: [3, 5, 9],
         indicators: true
@@ -336,6 +352,7 @@ const container = document.querySelector('#example6');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 12),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   contextMenu: [`hidden_columns_show`, `hidden_columns_hide`],
@@ -357,6 +374,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -366,6 +384,7 @@ const ExampleComponent = () => {
     <HotTable
       licenseKey="non-commercial-and-evaluation"
       data={Handsontable.helper.createSpreadsheetData(5, 12)}
+      height="auto"
       colHeaders={true}
       rowHeaders={true}
       contextMenu={[`hidden_columns_show`, `hidden_columns_hide`]}
@@ -393,7 +412,7 @@ For the most popular column hiding tasks, use the API methods below.
 ::: tip
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
-For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page. 
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
 :::
 :::
 

@@ -11,6 +11,7 @@ tags:
   - placeholder
 react:
   metaTitle: Row pre-populating - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row pre-populating
@@ -118,12 +119,13 @@ import { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   const templateValues = ['one', 'two', 'three'];
   const data = [
@@ -162,15 +164,13 @@ const ExampleComponent = () => {
 
   useEffect(() => {
     hot = hotRef.current.hotInstance;
-
-    //  or, use `updateData()` to replace `data` without resetting states
-    hot.loadData(data);
   });
 
   return (
     <>
       <HotTable
         ref={hotRef}
+        data={data}
         startRows={8}
         startCols={5}
         minSpareRows={1}

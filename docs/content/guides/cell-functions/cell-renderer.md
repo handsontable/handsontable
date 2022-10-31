@@ -6,6 +6,7 @@ permalink: /cell-renderer
 canonicalUrl: /cell-renderer
 react:
   metaTitle: Cell renderer - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Cell renderer
@@ -29,17 +30,6 @@ When you create a renderer, a good idea is to assign it as an alias that will re
 * `time` for `Handsontable.renderers.TimeRenderer`
 
 It gives users a convenient way for defining which renderer should be used when table rendering was triggered. User doesn't need to know which renderer function is responsible for displaying the cell value, he does not even need to know that there is any function at all. What is more, you can change the render function associated with an alias without a need to change code that defines a table.
-
-::: tip
-You can set a cell's [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator) individually, but you still need to set that cell's [`type`](@/api/options.md#type). For example:
-
-```js
-renderer: Handsontable.NumericRenderer,
-editor: Handsontable.editors.NumericEditor,
-validator: Handsontable.NumericValidator,
-type: 'numeric'
-```
-:::
 :::
 
 ::: only-for react
@@ -67,7 +57,7 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // your renderer component
 const RendererComponent = (props) => {
@@ -116,11 +106,11 @@ In this example, React's `Context` passes information available in the main app 
 }
 ```
 ```jsx
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // a component
 const HighlightContext = React.createContext();
@@ -180,6 +170,7 @@ import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -469,6 +460,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -606,16 +598,17 @@ exampleContainer3.addEventListener('mouseup', event => {
 ::: only-for react
 ::: example #example5 :react
 ```jsx
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   let isChecked = false;
 
@@ -660,7 +653,7 @@ const ExampleComponent = () => {
             switch (col) {
             case 0:
             return '<b>Bold</b> and <em>Beautiful</em>';
-  
+
             case 1:
             return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
           }
@@ -703,7 +696,7 @@ Cell renderers are called separately for every displayed cell, during every tabl
 
 ### Related guides
 
-- [Custom renderer in React](../../react-data-grid/cell-renderer)
+- [Custom renderer in React](@/react/guides/cell-functions/cell-renderer.md)
 - [Custom renderer in Angular](@/guides/integrate-with-angular/angular-custom-renderer-example.md)
 - [Custom renderer in Vue 2](@/guides/integrate-with-vue/vue-custom-renderer-example.md)
 - [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example.md)

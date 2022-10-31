@@ -14,6 +14,7 @@ tags:
   - roll back changes
 react:
   metaTitle: Undo and redo - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Undo and redo
@@ -65,6 +66,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

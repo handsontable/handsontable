@@ -8,6 +8,7 @@ tags:
   - suspend rendering
 react:
   metaTitle: Batch operations - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Batch operations
@@ -278,12 +279,13 @@ import { useRef, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
   const [counter, setCounter] = useState(0);
   const [output, setOutput] = useState('');
 

@@ -6,6 +6,7 @@ permalink: /autocomplete-cell-type
 canonicalUrl: /autocomplete-cell-type
 react:
   metaTitle: Autocomplete cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Autocomplete cell type
@@ -66,6 +67,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -176,6 +178,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -271,6 +274,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

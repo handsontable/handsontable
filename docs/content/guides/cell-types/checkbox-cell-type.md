@@ -6,6 +6,7 @@ permalink: /checkbox-cell-type
 canonicalUrl: /checkbox-cell-type
 react:
   metaTitle: Checkbox cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Checkbox cell type
@@ -65,6 +66,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -150,6 +152,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -245,6 +248,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

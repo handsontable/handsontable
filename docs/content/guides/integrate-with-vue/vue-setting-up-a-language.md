@@ -4,6 +4,7 @@ metaTitle: Setting up a translation - Vue 2 Data Grid | Handsontable
 description: Configure your Vue 2 data grid with different number formats, depending on the specified language and culture.
 permalink: /vue-setting-up-a-translation
 canonicalUrl: /vue-setting-up-a-translation
+searchCategory: Guides
 ---
 
 # Setting up a translation in Vue 2
@@ -50,8 +51,7 @@ import { HotTable, HotColumn } from '@handsontable/vue';
 import numbro from 'numbro';
 import languages from 'numbro/dist/languages.min.js';
 import { registerAllModules } from 'handsontable/registry';
-
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

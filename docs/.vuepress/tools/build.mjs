@@ -31,19 +31,19 @@ async function buildVersion(version) {
   const cwd = path.resolve(__dirname, '../../');
   const versionEscaped = version.replace('.', '-');
 
-  await spawnProcess(
-    'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-' +
-      `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
-    { cwd, env: { DOCS_BASE: version }, }
-  );
-
-  if (version !== 'next') {
+  if (version !== 'next' || buildMode === 'staging') {
     await spawnProcess(
-      'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
+      'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-' +
         `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
-      { cwd, env: { DOCS_BASE: 'latest' }, }
+      { cwd, env: { DOCS_BASE: version }, }
     );
   }
+
+  await spawnProcess(
+    'node --experimental-fetch node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
+      `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
+    { cwd, env: { DOCS_BASE: 'latest' }, }
+  );
 
   logger.success(`Version "${version}" build finished at`, new Date().toString());
 }
@@ -56,27 +56,21 @@ async function buildVersion(version) {
 async function concatenate(version) {
   const versionEscaped = version.replace('.', '-');
 
-  if (version !== 'next') {
-    const prebuildLatest = path.resolve(__dirname, '../../', `.vuepress/dist/pre-latest-${versionEscaped}`);
-    const distLatest = path.resolve(__dirname, '../../', '.vuepress/dist/docs');
+  if (version !== 'next' || buildMode === 'staging') {
+    const prebuildVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/pre-${versionEscaped}`);
+    const distVersioned = path.resolve(__dirname, '../../', `.vuepress/dist/docs/${version}`);
 
-    await fs.cp(prebuildLatest, distLatest, { force: true, recursive: true });
-    await fs.rm(prebuildLatest, { recursive: true });
+    await fs.cp(prebuildVersioned, distVersioned, { force: true, recursive: true });
+    await fs.rm(prebuildVersioned, { recursive: true });
   }
 
-  const prebuildVersioned = path.resolve(
-    __dirname,
-    '../../', `.vuepress/dist/pre-${versionEscaped}`
-  );
-  const distVersioned = path.resolve(
-    __dirname,
-    '../../', `.vuepress/dist/docs/${version}`
-  );
+  const prebuildLatest = path.resolve(__dirname, '../../', `.vuepress/dist/pre-latest-${versionEscaped}`);
+  const distLatest = path.resolve(__dirname, '../../', '.vuepress/dist/docs');
+
+  await fs.cp(prebuildLatest, distLatest, { force: true, recursive: true });
+  await fs.rm(prebuildLatest, { recursive: true });
 
   logger.info(`Apply built version "${version}" to the "docs/"`);
-
-  await fs.cp(prebuildVersioned, distVersioned, { force: true, recursive: true });
-  await fs.rm(prebuildVersioned, { recursive: true });
 }
 
 const startedAt = new Date().toString();

@@ -6,6 +6,7 @@ permalink: /dropdown-cell-type
 canonicalUrl: /dropdown-cell-type
 react:
   metaTitle: Dropdown cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Dropdown cell type
@@ -23,7 +24,7 @@ Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplet
 :::
 
 ::: only-for react
-Internally, cell `type={'dropdown'}` is equivalent to cell `type={'autocomplete'} strict={true} filter={false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" strict={true} filter={false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
 :::
 
 ::: only-for javascript
@@ -63,6 +64,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

@@ -723,7 +723,7 @@ export default () => {
      *
      * The `columns` option overwrites the [top-level grid options](@/guides/getting-started/configuration-options.md#setting-grid-options).
      *
-     * When you use `columns`, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) option are ignored.
+     * When you use `columns`, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) options are ignored.
      *
      * Read more:
      * - [Configuration options: Setting column options](@/guides/getting-started/configuration-options.md#setting-column-options)
@@ -1565,16 +1565,16 @@ export default () => {
     dateFormat: 'DD/MM/YYYY',
 
     /**
-     * The `datePickerConfig` option configures the `date` [cell editor](@/guides/cell-functions/cell-editor.md)'s date picker, which uses an external dependency: [Pikaday](https://github.com/Pikaday/Pikaday/tree/1.8.0).
+     * The `datePickerConfig` option configures the `date` [cell editor](@/guides/cell-functions/cell-editor.md)'s date picker, which uses an external dependency: [Pikaday](https://github.com/Pikaday/Pikaday/tree/1.8.2).
      *
-     * You can set the `datePickerConfig` option to an object with any of the available [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration),
+     * You can set the `datePickerConfig` option to an object with any of the available [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration),
      * except for the following, which are always overwritten by the `date` [cell editor](@/guides/cell-functions/cell-editor.md):
      * - `bound`
      * - `container`
      * - `field`
      * - `trigger`
      *
-     * If the `datePickerConfig` option is not defined, the `date` [cell editor](@/guides/cell-functions/cell-editor.md) overwrites the following [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration) as well:
+     * If the `datePickerConfig` option is not defined, the `date` [cell editor](@/guides/cell-functions/cell-editor.md) overwrites the following [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration) as well:
      *
      * | Pikaday option       | Handsontable's setting |
      * | -------------------- | ---------------------- |
@@ -1585,7 +1585,7 @@ export default () => {
      * - [`editor`](#editor)
      * - [`dateFormat`](#dateFormat)
      * - [Cell editor](@/guides/cell-functions/cell-editor.md)
-     * - [All Pikaday options &#8594;](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration)
+     * - [All Pikaday options &#8594;](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration)
      *
      * @memberof Options#
      * @type {object}
@@ -1780,17 +1780,6 @@ export default () => {
      *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
-     *
-     * ::: tip
-     * You can set a cell's [`renderer`](#renderer), [`editor`](#editor) or [`validator`](#validator) individually, but you still need to set that cell's [`type`](#type). For example:
-     *
-     * ```js
-     * renderer: Handsontable.NumericRenderer,
-     * editor: Handsontable.editors.NumericEditor,
-     * validator: Handsontable.NumericValidator,
-     * type: 'numeric'
-     * ```
-     * :::
      *
      * Read more:
      * - [Cell editor](@/guides/cell-functions/cell-editor.md)
@@ -3222,7 +3211,8 @@ export default () => {
 
     /**
      * The `numericFormat` option configures the number format and the currency format
-     * of [`numeric`](@/guides/cell-types/numeric-cell-type.md) cells` displayed output.
+     * of [`numeric`](@/guides/cell-types/numeric-cell-type.md) cells` displayed output
+     * in the numeric cell renderer.
      *
      * You can set the `numericFormat` option to an object with the following properties:
      *
@@ -3231,10 +3221,7 @@ export default () => {
      * | `pattern`   | All [`numbro.js` number formats](https://numbrojs.com/format.html#numbers)    | Number format   |
      * | `culture`   | All [`numbro.js` currency formats](https://numbrojs.com/format.html#currency) | Currency format |
      *
-     * The `numericFormat` option as no effect on cells' input data.
-     * To enter numeric data into Handsontable, use:
-     * - Either floats (separated by a dot, or a comma)
-     * - Or integers
+     * The `numericFormat` option as no effect on the numeric cell editor.
      *
      * In the source data, numeric data is stored as JavaScript numbers.
      *
@@ -3577,17 +3564,6 @@ export default () => {
      *
      * To set the [`renderer`](#renderer), [`editor`](#editor), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
-     *
-     * ::: tip
-     * You can set a cell's [`renderer`](#renderer), [`editor`](#editor) or [`validator`](#validator) individually, but you still need to set that cell's [`type`](#type). For example:
-     *
-     * ```js
-     * renderer: Handsontable.NumericRenderer,
-     * editor: Handsontable.editors.NumericEditor,
-     * validator: Handsontable.NumericValidator,
-     * type: 'numeric'
-     * ```
-     * :::
      *
      * Read more:
      * - [Cell renderer](@/guides/cell-functions/cell-renderer.md)
@@ -4315,7 +4291,8 @@ export default () => {
     trimRows: void 0,
 
     /**
-     * The `trimWhitespace` option configures automatic whitespace removal.
+     * The `trimWhitespace` option configures automatic whitespace removal. This option
+     * affects the cell renderer and the cell editor.
      *
      * You can set the `trimWhitespace` option to one of the following:
      *
@@ -4324,7 +4301,7 @@ export default () => {
      * | `true` (default) | Remove whitespace at the beginning and at the end of each cell |
      * | `false`          | Don't remove whitespace                                         |
      *
-     * @memberof Options#tr
+     * @memberof Options#
      * @type {boolean}
      * @default true
      * @category Core
@@ -4352,26 +4329,15 @@ export default () => {
      * | Cell type                                                         | Renderer, editor & validator                                                                                                                                                                                                                       |
      * | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | A [custom cell type](@/guides/cell-types/cell-type.md)            | Renderer: your [custom cell renderer](@/guides/cell-functions/cell-renderer.md)<br>Editor: your [custom cell editor](@/guides/cell-functions/cell-editor.md)<br>Validator: your [custom cell validator](@/guides/cell-functions/cell-validator.md) |
-     * | [`'autocomplete'`](@/guides/cell-types/autocomplete-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `AutocompleteEditor`<br>Validator: `AutocompleteValidator`                                                                                                                                             |
-     * | [`'checkbox'`](@/guides/cell-types/checkbox-cell-type.md)         | Renderer: `CheckboxRenderer`<br>Editor: `CheckboxEditor`<br>Validator: -                                                                                                                                                                           |
-     * | [`'date'`](@/guides/cell-types/date-cell-type.md)                 | Renderer: `DateRenderer`<br>Editor: `DateEditor`<br>Validator: `DateValidator`                                                                                                                                                                     |
-     * | [`'dropdown'`](@/guides/cell-types/dropdown-cell-type.md)         | Renderer: `DropdownRenderer`<br>Editor: `DropdownEditor`<br>Validator: `DropdownValidator`                                                                                                                                                         |
-     * | [`'handsontable'`](@/guides/cell-types/handsontable-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `HandsontableEditor`<br>Validator: -                                                                                                                                                                   |
-     * | [`'numeric'`](@/guides/cell-types/numeric-cell-type.md)           | Renderer: `NumericRenderer`<br>Editor: `NumericEditor` (same as `TextEditor`)<br>Validator: `NumericValidator`                                                                                                                                     |
-     * | [`'password'`](@/guides/cell-types/password-cell-type.md)         | Renderer: `PasswordRenderer`<br>Editor: `PasswordEditor`<br>Validator: -                                                                                                                                                                           |
-     * | `'text'`                                                          | Renderer: `TextRenderer`<br>Editor: `TextEditor`<br>Validator: -                                                                                                                                                                                   |
-     * | [`'time`'](@/guides/cell-types/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                                                                                     |
-     *
-     * ::: tip
-     * You can set a cell's [`renderer`](#renderer), [`editor`](#editor) or [`validator`](#validator) individually, but you still need to set that cell's [`type`](#type). For example:
-     *
-     * ```js
-     * renderer: Handsontable.NumericRenderer,
-     * editor: Handsontable.editors.NumericEditor,
-     * validator: Handsontable.NumericValidator,
-     * type: 'numeric'
-     * ```
-     * :::
+     * | [`'autocomplete'`](@/guides/cell-types/autocomplete-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `AutocompleteEditor`<br>Validator: `AutocompleteValidator`                                                                         |
+     * | [`'checkbox'`](@/guides/cell-types/checkbox-cell-type.md)         | Renderer: `CheckboxRenderer`<br>Editor: `CheckboxEditor`<br>Validator: -                                                                                                                               |
+     * | [`'date'`](@/guides/cell-types/date-cell-type.md)                 | Renderer: `DateRenderer`<br>Editor: `DateEditor`<br>Validator: `DateValidator`                                                                                                 |
+     * | [`'dropdown'`](@/guides/cell-types/dropdown-cell-type.md)         | Renderer: `DropdownRenderer`<br>Editor: `DropdownEditor`<br>Validator: `DropdownValidator`                                                                                     |
+     * | [`'handsontable'`](@/guides/cell-types/handsontable-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `HandsontableEditor`<br>Validator: -                                                                                                                       |
+     * | [`'numeric'`](@/guides/cell-types/numeric-cell-type.md)           | Renderer: `NumericRenderer`<br>Editor: `NumericEditor`<br>Validator: `NumericValidator`                                                                                        |
+     * | [`'password'`](@/guides/cell-types/password-cell-type.md)         | Renderer: `PasswordRenderer`<br>Editor: `PasswordEditor`<br>Validator: -                                                                                                                               |
+     * | `'text'`                                                          | Renderer: `TextRenderer`<br>Editor: `TextEditor`<br>Validator: -                                                                                                                                       |
+     * | [`'time`'](@/guides/cell-types/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                 |
      *
      * Read more:
      * - [Cell type](@/guides/cell-types/cell-type.md)
@@ -4508,17 +4474,6 @@ export default () => {
      *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
-     *
-     * ::: tip
-     * You can set a cell's [`renderer`](#renderer), [`editor`](#editor) or [`validator`](#validator) individually, but you still need to set that cell's [`type`](#type). For example:
-     *
-     * ```js
-     * renderer: Handsontable.NumericRenderer,
-     * editor: Handsontable.editors.NumericEditor,
-     * validator: Handsontable.NumericValidator,
-     * type: 'numeric'
-     * ```
-     * :::
      *
      * Read more:
      * - [Cell validator](@/guides/cell-functions/cell-validator.md)

@@ -16,6 +16,7 @@ tags:
 - hooks
 react:
   metaTitle: Events and hooks - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Events and hooks
@@ -115,6 +116,7 @@ import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import { createSpreadsheetData } from './helpers';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -453,16 +455,17 @@ hot.updateSettings({
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef(null);
   let lastChange = null;
 
   useEffect(() => {
@@ -511,7 +514,7 @@ const ExampleComponent = () => {
       beforeChange={(changes, source) => {
         lastChange = changes;
       }}
-      licenseKey="non-commercial-and-evaluation"  
+      licenseKey="non-commercial-and-evaluation"
       ref={hotRef}
     />
   );

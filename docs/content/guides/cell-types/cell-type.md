@@ -6,6 +6,7 @@ permalink: /cell-type
 canonicalUrl: /cell-type
 react:
   metaTitle: Cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Cell type
@@ -13,23 +14,11 @@ react:
 [[toc]]
 
 ## Overview
-
 The cell type functionality enables you to customize the appearance and validate the cell(s) when applied.
 
 ## Usage
 
 There are three functions associated with every table cell: [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor), and optionally [`validator`](@/api/options.md#validator). These functions are mostly used all together as they are strongly connected.
-
-::: tip
-You can set a cell's [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator) individually, but you still need to set that cell's [`type`](@/api/options.md#type). For example:
-
-```js
-renderer: Handsontable.renderers.NumericRenderer,
-editor: Handsontable.editors.NumericEditor,
-validator: Handsontable.validators.NumericValidator,
-type: 'numeric'
-```
-:::
 
 Example scenario - To store a date in a cell, you would:
 * Use a [`renderer`](@/api/options.md#renderer) to display the date using appropriate formatting `dd/mm/yyyy`, `yyyy-mm-dd`, etc.
@@ -39,8 +28,9 @@ Example scenario - To store a date in a cell, you would:
 Cell type is represented by a string i.e. `"text"`, `"numeric"`, `"date"`. Each string is internally mapped to functions associated with this type e.g., `"numeric"` type is associated with the following functions:
 
 * `Handsontable.renderers.NumericRenderer`
+* `Handsontable.editors.TextEditor`
 * `Handsontable.validators.NumericValidator`
-* `Handsontable.editors.NumericEditor` (same as `Handsontable.editors.TextEditor`)
+
 
 When Handsontable encounters a cell with the [`type`](@/api/options.md#type) option defined, it checks which cell functions this type refers to and uses them. For example, when setting the column type to `'password'`:
 
@@ -450,6 +440,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -566,6 +557,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

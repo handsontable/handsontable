@@ -42,7 +42,7 @@ export default {
     },
     exact() {
       if (this.link === `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`) {
-        return /\/api\//.test(this.$route.fullPath) || /\/examples\//.test(this.$route.fullPath);
+        return /\/api\//.test(this.$route.fullPath);
       }
 
       return false;

@@ -6,6 +6,7 @@ permalink: /column-moving
 canonicalUrl: /column-moving
 react:
   metaTitle: Column moving - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column moving
@@ -47,6 +48,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

@@ -8,6 +8,7 @@ tags:
   - size
 react:
   metaTitle: Bundle size - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Bundle size
@@ -38,6 +39,7 @@ new Handsontable(container, {
 ::: only-for react
 ```js
 import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/react';
 import { registerPlugin, ContextMenu } from 'handsontable/plugins';
 
 registerPlugin(ContextMenu);
@@ -95,6 +97,7 @@ new Handsontable(container, {
 ::: only-for react
 ```js
 import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/react';
 import { registerCellType, DateCellType } from 'handsontable/cellTypes';
 
 // explicitly import Moment.js
@@ -109,7 +112,7 @@ registerCellType(DateCellType);
 const App = () => {
   return (
     <HotTable
-      type={'date'}
+      type="date"
     />
   );
 };

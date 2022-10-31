@@ -11,6 +11,7 @@ tags:
   - functions
 react:
   metaTitle: Column summary - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column summary
@@ -93,6 +94,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -116,7 +118,7 @@ const ExampleComponent = () => {
           destinationRow: 3,
           destinationColumn: 0
         },
-        { 
+        {
           sourceColumn: 1,
           type: 'min',
           destinationRow: 3,
@@ -204,6 +206,7 @@ const hot = new Handsontable(container, {
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -333,7 +336,7 @@ columnSummary: [
     // set this column summary to return the sum all values in the summarized column
     type: 'sum',
   },
-  { 
+  {
     sourceColumn: 1,
     // set this column summary to return the lowest value in the summarized column
     type: 'min',
@@ -350,7 +353,7 @@ columnSummary={[
     // set this column summary to return the sum all values in the summarized column
     type: 'sum',
   },
-  { 
+  {
     sourceColumn: 1,
     // set this column summary to return the lowest value in the summarized column
     type: 'min',
@@ -467,6 +470,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -586,6 +590,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -726,6 +731,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -767,7 +773,7 @@ const ExampleComponent = () => {
 
         if (nestedRowsPlugin.isEnabled()) {
           nestedRowsCache = this.hot.getPlugin('nestedRows').dataManager.cache;
-          
+
         } else {
           return;
         }
@@ -778,18 +784,18 @@ const ExampleComponent = () => {
           if (!nestedRowsCache.levels[0][i].__children || nestedRowsCache.levels[0][i].__children.length === 0) {
             continue;
           }
-          
+
           tempEndpoint.destinationColumn = resultColumn;
           tempEndpoint.destinationRow = getRowIndex(nestedRowsCache.levels[0][i]);
           tempEndpoint.type = 'sum';
           tempEndpoint.forceNumeric = true;
           tempEndpoint.ranges = [];
-          
+
           tempEndpoint.ranges.push([
             getRowIndex(nestedRowsCache.levels[0][i].__children[0]),
             getRowIndex(nestedRowsCache.levels[0][i].__children[nestedRowsCache.levels[0][i].__children.length - 1])
           ]);
-          
+
           endpoints.push(tempEndpoint);
           tempEndpoint = null;
         }
@@ -823,7 +829,7 @@ columnSummary: [{
   type: 'custom',
   destinationRow: 0,
   destinationColumn: 5,
-  reversedRowCoords: true 
+  reversedRowCoords: true
 }]
 ```
 :::
@@ -957,6 +963,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -1085,6 +1092,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -1190,6 +1198,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -1207,7 +1216,7 @@ const ExampleComponent = () => {
       colHeaders={true}
       rowHeaders={true}
       columnSummary={
-        [{ 
+        [{
           type: 'sum',
           destinationRow: 0,
           destinationColumn: 0,
@@ -1283,6 +1292,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

@@ -6,6 +6,7 @@ permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
   metaTitle: Time cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Time cell type
@@ -82,12 +83,13 @@ import { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;

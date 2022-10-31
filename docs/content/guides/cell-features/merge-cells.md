@@ -6,6 +6,7 @@ permalink: /merge-cells
 canonicalUrl: /merge-cells
 react:
   metaTitle: Merge cells - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Merge cells
@@ -20,7 +21,7 @@ The merging cells feature enables you to combine the contents of two or more cel
 
 To enable the merge cells feature, set the [`mergeCells`](@/api/options.md#mergecells) option to  `true` or to an array.
 
-To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array: 
+To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array:
 
 ::: only-for javascript
 `mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }]`
@@ -60,6 +61,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

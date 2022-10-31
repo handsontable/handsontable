@@ -11,6 +11,7 @@ tags:
   - i18n
 react:
   metaTitle: Locale - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Locale

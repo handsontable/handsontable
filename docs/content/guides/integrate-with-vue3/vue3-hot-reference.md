@@ -4,6 +4,7 @@ metaTitle: Referencing Handsontable - Vue 3 Data Grid | Handsontable
 description: Reference the Handsontable instance from a Vue 3 component to programmatically perform actions such as reloading the data in your data grid.
 permalink: /vue3-hot-reference
 canonicalUrl: /vue3-hot-reference
+searchCategory: Guides
 ---
 
 # Referencing the Handsontable instance in Vue 3

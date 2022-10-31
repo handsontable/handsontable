@@ -13,6 +13,7 @@ tags:
   - master detail
 react:
   metaTitle: Row parent-child - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row parent-child
@@ -204,6 +205,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -392,4 +394,4 @@ The “Insert row above” and “Insert row below” options were modified to w
 - Plugins:
   - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
   - [`ContextMenu`](@/api/contextMenu.md)
-  - [`NestedRows`](@/api/nestedRows.md) 
+  - [`NestedRows`](@/api/nestedRows.md)

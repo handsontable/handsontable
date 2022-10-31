@@ -7,6 +7,7 @@ canonicalUrl: /migration-from-10.0-to-11.0
 pageClass: migration-guide
 react:
   metaTitle: Migrate from 10.0 to 11.0 - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Migrating from 10.0 to 11.0
@@ -18,7 +19,7 @@ To upgrade your Handsontable version from 10.x.x to 11.x.x, follow this guide.
 ::: only-for javascript
 ## Step 1: React, Angular, Vue – register your modules
 
-Starting with Handsontable 11.0.0, the [React wrapper](../../react-data-grid), the [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md), and the [Vue wrapper](@/guides/integrate-with-vue/vue-installation.md) support [modularization](@/guides/tools-and-building/modules.md).
+Starting with Handsontable 11.0.0, the [React wrapper](@/react/guides/getting-started/introduction.md), the [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md), and the [Vue wrapper](@/guides/integrate-with-vue/vue-installation.md) support [modularization](@/guides/tools-and-building/modules.md).
 
 If you don't use any of the wrappers, you don't need to change anything.
 
@@ -38,7 +39,7 @@ registerAllModules();
 ### Using individual modules
 
 To start using individual Handsontable modules with your wrapper, see the following guides:
-- [Using modules with React](../../react-data-grid/modules)
+- [Using modules with React](@/react/guides/tools-and-building/modules.md)
 - [Using modules with Angular](@/guides/integrate-with-angular/angular-modules.md)
 - [Using modules with Vue](@/guides/integrate-with-vue/vue-modules.md)
 :::

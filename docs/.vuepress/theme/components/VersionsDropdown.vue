@@ -1,6 +1,5 @@
 <template>
     <nav class="nav-versions nav-links" >
-      <!-- user links -->
       <nav class="nav-item" >
         <DropdownLink :item="item"></DropdownLink>
       </nav>
@@ -9,8 +8,6 @@
 
 <script>
 import DropdownLink from '@theme/components/DropdownLink.vue';
-
-const MIN_FRAMEWORKED_DOCS_VERSION = 12.1;
 
 export default {
   name: 'VersionsDropdown',
@@ -31,17 +28,11 @@ export default {
       return version;
     },
     getLink(version) {
-      let framework = '';
-
-      if (parseFloat(version) >= MIN_FRAMEWORKED_DOCS_VERSION || version === 'next') {
-        framework = `${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
-      }
-
       if (version === this.$page.latestVersion) {
-        return `/docs/${framework}`;
+        return '/docs/';
       }
 
-      return `/docs/${version}/${framework}`;
+      return `/docs/${version}/`;
     },
     getLegacyVersions() {
       return [
@@ -94,9 +85,8 @@ export default {
   top -1px
   text-transform capitalize
 
-  .dropdown-title {
+  .dropdown-title, .mobile-dropdown-title
     text-transform capitalize
-  }
 
   .icon.outbound
     display none
@@ -121,6 +111,7 @@ export default {
     border-radius 0.25rem
     white-space nowrap
     margin 0
+    z-index 100
 .dropdown-wrapper .dropdown-title .arrow, .dropdown-wrapper .mobile-dropdown-title .arrow
   margin-left 0.1rem
 

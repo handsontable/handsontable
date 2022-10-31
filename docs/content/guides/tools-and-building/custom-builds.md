@@ -10,6 +10,7 @@ tags:
   - contributing
 react:
   metaTitle: Custom builds - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Custom builds
@@ -26,13 +27,13 @@ Get an overview of Handsontable's building processes.
 
 The Handsontable repository is a monorepo that contains the following projects:
 
-| Project                 | Location            | Description                                                        |
-| ----------------------- | ------------------- | ------------------------------------------------------------------ |
-| `handsontable`          | `/handsontable`     | Main Handsontable project                                          |
-| `@handsontable/react`   | `/wrappers/react`   | [React wrapper](../../react-data-grid)                             |
-| `@handsontable/angular` | `/wrappers/angular` | [Angular wrapper](../../javascript-data-grid/angular-installation) |
-| `@handsontable/vue`     | `/wrappers/vue`     | [Vue 2 wrapper](../../javascript-data-grid/vue-simple-example)     |
-| `@handsontable/vue3`    | `/wrappers/vue3`    | [Vue 3 wrapper](../../javascript-data-grid/vue3-installation)      |
+| Project                 | Location            | Description                                                                           |
+| ----------------------- | ------------------- | ------------------------------------------------------------------------------------- |
+| `handsontable`          | `/handsontable`     | Main Handsontable project                                                             |
+| `@handsontable/react`   | `/wrappers/react`   | [React wrapper](@/react/guides/getting-started/introduction.md)                       |
+| `@handsontable/angular` | `/wrappers/angular` | [Angular wrapper](@/javascript/guides/integrate-with-angular/angular-installation.md) |
+| `@handsontable/vue`     | `/wrappers/vue`     | [Vue 2 wrapper](@/javascript/guides/integrate-with-vue/vue-installation.md)           |
+| `@handsontable/vue3`    | `/wrappers/vue3`    | [Vue 3 wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation.md)         |
 
 All the projects are released together, under the same version number.
 But each project has its own [building](#building-processes) and [testing](@/guides/tools-and-building/testing.md) processes.
@@ -58,8 +59,8 @@ For more information on the distribution packages, see [this file](https://githu
 ### Building requirements
 
 Handsontable building processes require:
-- [Node.js](https://nodejs.org/) (version **16.15**+)
-- [npm](https://www.npmjs.com/) (version **8.11**+)
+- [Node.js](https://nodejs.org/) (version **16.17**+)
+- [npm](https://www.npmjs.com/) (version **8.15**+)
 - Node modules installed through `npm install` (e.g. [webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/))
 
 ### `package.json` files
@@ -78,8 +79,8 @@ Each Handsontable [project](#about-building) has its own building processes defi
 ## Running your first build
 
 To run your first build:
-1. Install [Node.js](https://nodejs.org/) (version **16.14**+).
-2. Install [npm](https://www.npmjs.com/) (version **8.5**+).
+1. Install [Node.js](https://nodejs.org/) (version **16.17**+).
+2. Install [npm](https://www.npmjs.com/) (version **8.15**+).
 3. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
 4. From the root directory, run `npm install`.<br>All the required dependencies get installed.
 5. From the root directory, run `npm run build`.<br>All the Handsontable packages get built.

@@ -12,13 +12,14 @@ tags:
   - methods
 react:
   metaTitle: Instance methods - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Instance methods
 
 You can programmatically change the internal state of Handsontable beyond what's possible with props. To do that, you will need to call API methods of the relevant Handsontable instance associated with your instance of the `HotTable` component.
 
-The following example implements the `HotTable` component showing how to reference the Handsontable instance from the wrapper component. 
+The following example implements the `HotTable` component showing how to reference the Handsontable instance from the wrapper component.
 
 ::: example #example1 :react
 ```jsx
@@ -27,6 +28,7 @@ import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import { createSpreadsheetData } from './helpers';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

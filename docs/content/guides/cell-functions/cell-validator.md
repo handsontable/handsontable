@@ -6,6 +6,7 @@ permalink: /cell-validator
 canonicalUrl: /cell-validator
 react:
   metaTitle: Cell validator - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Cell validator
@@ -21,17 +22,6 @@ When you create a validator, a good idea is to assign it as an alias that will r
 * `time` for `Handsontable.validators.TimeValidator`
 
 It gives users a convenient way for defining which validator should be used when table validation was triggered. User doesn't need to know which validator function is responsible for checking the cell value, he does not even need to know that there is any function at all. What is more, you can change the validator function associated with an alias without a need to change code that defines a table.
-
-::: tip
-You can set a cell's [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator) individually, but you still need to set that cell's [`type`](@/api/options.md#type). For example:
-
-```js
-renderer: Handsontable.NumericRenderer,
-editor: Handsontable.editors.NumericEditor,
-validator: Handsontable.NumericValidator,
-type: 'numeric'
-```
-:::
 
 ## Registering custom cell validator
 
@@ -239,6 +229,7 @@ import { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

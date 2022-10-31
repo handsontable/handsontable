@@ -12,6 +12,7 @@ tags:
   - i18n
 react:
   metaTitle: Language - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Language
@@ -75,6 +76,7 @@ To properly use the internationalization feature, you'll need to load the langua
 1. **ES modules (ESM)**
   ```js
   import Handsontable from 'handsontable/base';
+  import { HotTable } from '@handsontable/react';
   import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 
   registerLanguageDictionary(deDE);
@@ -139,6 +141,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -179,6 +182,7 @@ import { HotTable } from '@handsontable/react';
 import { getLanguagesDictionaries } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
 import { createSpreadsheetData } from './helpers';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

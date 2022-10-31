@@ -37,7 +37,7 @@ export default {
       }
     },
     exact() {
-      if (this.link === '/' && this.$route.fullPath.match(/([^/]*\/)?(api|examples)\//)) {
+      if (this.link === '/' && this.$route.fullPath.match(/([^/]*\/)?(api)\//)) {
         return true;
       }
 

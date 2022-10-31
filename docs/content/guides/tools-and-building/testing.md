@@ -13,6 +13,7 @@ tags:
   - spec
 react:
   metaTitle: Testing - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Testing

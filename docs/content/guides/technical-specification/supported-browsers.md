@@ -8,6 +8,7 @@ tags:
   - compatibility
 react:
   metaTitle: Supported browsers - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Supported browsers

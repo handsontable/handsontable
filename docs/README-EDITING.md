@@ -16,15 +16,16 @@ When adding new documentation files, check the documentation [directory structur
 
 Each Markdown file can start with the following frontmatter tags:
 
-| Tag            | Meaning                                       | Default value                                              |
-| -------------- | --------------------------------------------- | ---------------------------------------------------------- |
-| `title`        | The page's header.                            | If not set, gets generated from the page's parent's title. |
-| `permalink`    | The page's **unique** URL.                    | If not set, gets generated from the Markdown file name.    |
-| `canonicalUrl` | A canonical URL of the page's latest version. | None (not required)                                        |
-| `metaTitle`    | The page's SEO meta title.                    | None (not required)                                        |
-| `description`  | The page's SEO meta description.              | None (not required)                                        |
-| `tags`         | Search tags used by the documentation search engine. | None (not required)                                        |
-| `react`        | Holds an alternative set of frontmatter tags (applied only to the React version of the page) | None (not required)                                        |
+| Tag              | Meaning                                              | Default value                                              |
+| ---------------- | ---------------------------------------------------- | ---------------------------------------------------------- |
+| `title`          | The page's header.                                   | If not set, gets generated from the page's parent's title. |
+| `permalink`      | The page's **unique** URL.                           | If not set, gets generated from the Markdown file name.    |
+| `canonicalUrl`   | A canonical URL of the page's latest version.        | None (not required)                                        |
+| `metaTitle`      | The page's SEO meta title.                           | None (not required)                                        |
+| `description`    | The page's SEO meta description.                     | None (not required)                                        |
+| `tags`           | Search tags used by the documentation search engine. | None (not required)                                 |
+| `react`          | Holds an alternative set of frontmatter tags (applied only to the React version of the page) | None (not required)                                             |
+| `searchCategory` | Search category used by the search engine to categorize the search results. | If not set, the search result will be listed under the default "Guides" section. |
 
 You can set different frontmatter tags for different framework versions of the page. For example, you can set `metaTitle` to say either `JS data grid` or `React data table`, depending on the framework:
 
@@ -53,6 +54,10 @@ react:
   metaTitle: Installation - Guide - Handsontable Documentation for React
   description: Install the wrapper for React via npm, import stylesheets, and use it to get up and running your application.
   customValue: Custom # Custom value that can be used within template and will be available only for React framework
+tags:
+  - api
+  - api ref
+searchCategory: API Reference # The list of categories can be found here ./docs/.vuepress/config.js#L258
 ---
 ```
 
@@ -80,7 +85,7 @@ The `next` version of the documentation is available only locally and on the sta
 
 To display the `next` version in a browser:
 1. Start a [local Handsontable documentation server](./README.md#getting-started-with-handsontable-documentation).
-2. In your browser, go to http://localhost:8080/docs/next/.
+2. In your browser, go to http://localhost:8080/docs/.
 
 ### Editing a published documentation version
 
@@ -122,7 +127,7 @@ To deploy the documentation locally at a `[COMMIT_HASH]` commit:
    ```bash
    npm run docs:review [COMMIT_HASH]
    ```
-3. In your browser, go to: http://localhost:8000/docs/next/.
+3. In your browser, go to: http://localhost:8000/docs/.
 
 ## Documentation versioning
 
@@ -131,7 +136,7 @@ takes care to create a Documentation production branch, generate API content fro
 
 ## Markdown links
 
-When linking to other documentation pages, avoid using absolute links or relative URLs.
+When linking to other documentation pages, **avoid using absolute links or relative URLs**.
 
 To link to another page in the same documentation version, use the following syntax:
 
@@ -142,8 +147,24 @@ To link to another page in the same documentation version, use the following syn
 For example, to link to a file called `core.md`, from anywhere in the same documentation version:
 
 ```markdown
-[Core](@/api/core.md)
+[Core](@/api/core.md#updatesettings)
 ```
+
+To link to another page but for other framework (and still for the same documentation version), use the following syntax:
+
+```markdown
+[link_text](@/{FRAMEWORK}/relative_file_path_from_this_version's_root/file_name.md#some-anchor)
+```
+
+For example, to link to a file called `./content/guides/getting-started/react-methods.md` that should be accessible only for React framework, use:
+
+```markdown
+[React methods](@/react/guides/getting-started/react-methods.md)
+```
+
+When there is no framework defined in the link URL, the generated link will be pointed to the currently viewed framework. For example, link `[Core](@/api/core.md)` for Javascript will point to `/docs/javascript-data-grid/api/core` and for chosen React framework to `/docs/react-data-grid/api/core`.
+
+List of available frameworks: `javascript`, `react`.
 
 Follow these rules:
 * After the `@` character, provide the target's relative file path (from the current version's root directory).<br>
@@ -273,7 +294,7 @@ The `example-checker` script checks if:
 - The number of Handsontable instances implemented in the example containers corresponds to the number of Handsontable instance DOM containers being rendered on the page.
 
 To use the `example-checker` script: (all the commands need to be run from the `docs` directory)
-1. Build the documentation. 
+1. Build the documentation.
   ```bash
   npm run docs:build
   ```
@@ -330,4 +351,15 @@ For matters not covered here, follow the conventions of https://beta.reactjs.org
       // (...)
       </div>
     </>
+  ```
+- Always define `data` as a const, outside of JSX.
+  ```jsx
+  const data = [
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
+  ];
+
+  return <HotTable data={data} />
   ```

@@ -1,29 +1,32 @@
 ---
-title: HotColumn component
-metaTitle: HotColumn component - React Data Grid | Handsontable
+title: Column component
+metaTitle: Column component - React Data Grid | Handsontable
 description: Configure the React data grid's columns, using the props of the "HotColumn" component. Pass your component as a custom cell editor or a custom cell renderer.
 permalink: /hot-column
 canonicalUrl: /hot-column
+tags:
+  - hotcolumn
+searchCategory: Guides
 ---
 
-# `HotColumn` component
+# Column component
 
 [[toc]]
 
 ## Overview
 
-You can configure the column-related settings using the `HotColumn` component's attributes. You can also create custom renderers and editors using React components.
+You can configure the column-related settings using the `HotColumn` component's props. You can also create custom renderers and editors using React components.
 
 ## Declaring column settings
 
-To declare column-specific settings, pass the settings as `HotColumn` properties, either separately or wrapped as a `settings` property, exactly as you would with `HotTable`.
+To declare column-specific settings, pass the settings as `HotColumn` props, either separately or wrapped as a `settings` prop, exactly as you would with `HotTable`.
 
 ::: example #example1 :react --tab preview
 ```jsx
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/dist/handsontable.full.min.css';
 
 const hotData = Handsontable.helper.createSpreadsheetData(10, 5);
 const secondColumnSettings = {
@@ -43,7 +46,7 @@ const ExampleComponent = () => {
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 ```
 :::
- 
+
 ## Object data source
 
 When you use object data binding for `<HotColumn/>`, you need to provide precise information about the data structure for columns. To do so, refer to your object-based data property in `HotColumn`'s `data` prop, for example, `<HotColumn data='id' />`:
@@ -53,16 +56,14 @@ When you use object data binding for `<HotColumn/>`, you need to provide precise
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // a renderer component
 const ScoreRenderer = (props) => {
   const { value } = props;
   const color = value > 60 ? '#2ECC40' : '#FF4136';
   return (
-    <>
-      <span style={{ color }}>{value}</span>
-    </>
+    <span style={{ color }}>{value}</span>
   );
 };
 
@@ -71,15 +72,11 @@ const PromotionRenderer = (props) => {
   const { value } = props;
   if (value) {
     return (
-      <>
-        <span>&#10004;</span>
-      </>
+      <span>&#10004;</span>
     );
   }
   return (
-    <>
-      <span>&#10007;</span>
-    </>
+    <span>&#10007;</span>
   );
 };
 
@@ -119,7 +116,7 @@ const data = [
 
 const ExampleComponent = () => {
   return (
-    <HotTable 
+    <HotTable
         data={data}
         licenseKey="non-commercial-and-evaluation"
         autoRowSize={false}
@@ -157,14 +154,14 @@ import StarRatingComponent from 'react-star-rating-component';
 import { Provider, connect } from 'react-redux';
 import { createStore, combineReducers } from 'redux';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // a component
 class UnconnectedColorPicker extends BaseEditorComponent {
   constructor(props) {
     super(props);
 
-    this.editorRef = React.createRef();
+    this.editorRef = React.createRef(null);
 
     this.editorContainerStyle = {
       display: 'none',

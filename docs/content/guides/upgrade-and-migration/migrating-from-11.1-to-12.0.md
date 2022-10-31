@@ -7,6 +7,7 @@ canonicalUrl: /migration-from-11.1-to-12.0
 pageClass: migration-guide
 react:
   metaTitle: Migrate from 11.1 to 12.0 - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Migrate from 11.1 to 12.0
@@ -54,7 +55,7 @@ If you still want to reset the states when replacing [`data`](@/api/options.md#d
 ```jsx
 import { useRef } from 'react';
 
-const hotTableComponentRef = useRef();
+const hotTableComponentRef = useRef(null);
 
 // Handsontable 12.0: this doesn't reset your configuration options and index mapper information
 hotTableComponentRef.current.hotInstance.updateSettings({
@@ -77,7 +78,7 @@ To replace [`data`](@/api/options.md#data) and reset the states, call the [`load
 
 Read more on referencing the Handsontable instance:
 - [Referencing the Handsontable instance in Angular](@/guides/integrate-with-angular/angular-hot-reference.md)
-- [Referencing the Handsontable instance in React](../../react-data-grid/methods)
+- [Referencing the Handsontable instance in React](@/react/guides/getting-started/react-methods.md)
 - [Referencing the Handsontable instance in Vue 2](@/guides/integrate-with-vue/vue-hot-reference.md)
 - [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference.md)
 :::

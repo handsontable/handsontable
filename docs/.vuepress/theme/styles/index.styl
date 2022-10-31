@@ -186,6 +186,17 @@ h5 {
   font-size: 1em;
 }
 
+h1, h2, h3, h4, h5 {
+  a.header-anchor::before {
+    content: '#';
+    visibility: 'hidden';
+  }
+
+  &:hover {
+    visibility: 'visible';
+  }
+}
+
 .page {
   ul, ol {
       padding-left: 2.2em;
@@ -205,26 +216,31 @@ a {
   overflow-x: scroll;
 }
 
+table.htCore {
+  display: table;
+}
+
 table {
   width: 100%;
-  display: table;
-  overflow: scroll;
 
   tr {
-      border-top: none;
+    border-top: none;
+  }
+
+  td {
+    white-space: normal;
+
+    @media (max-width: $MQNarrow) {
+      white-space: nowrap;
+    }
   }
 
   th, td {
-      border: none;
-      border-bottom: 1px solid #e9eef2;
-      line-height: 1.7;
-      text-align: left;
+    border: none;
+    border-bottom: 1px solid #e9eef2;
+    line-height: 1.7;
+    text-align: left;
   }
-}
-
-/* fix for very wide tables in the migration guides */
-.migration-guide table {
-  word-break: break-word;
 }
 
 // floating sidebar should be inline on mobile, and float on wider screens

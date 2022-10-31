@@ -6,6 +6,7 @@ permalink: /formatting-cells
 canonicalUrl: /formatting-cells
 react:
   metaTitle: Formatting cells - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Formatting cells
@@ -74,6 +75,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -105,7 +107,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ## Apply inline styles
 
-You can apply inline styles directly to the DOM element using its `style` attribute. You can use the [`renderer`](@/api/options.md#renderer) option to do that.
+You can apply inline styles directly to the DOM element using its `style` property. You can use the [`renderer`](@/api/options.md#renderer) option to do that.
 
 ::: only-for javascript
 ::: example #example2
@@ -148,6 +150,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -157,7 +160,7 @@ const ExampleComponent = () => {
     .renderers
     .registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
       Handsontable.renderers.getRenderer('text')(hotInstance, TD, ...rest);
-  
+
       TD.style.fontWeight = 'bold';
       TD.style.color = 'green';
       TD.style.background = '#d7f1e1';
@@ -262,6 +265,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

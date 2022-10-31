@@ -11,6 +11,7 @@ tags:
   - dimensions
 react:
   metaTitle: Grid size - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Grid size
@@ -52,7 +53,7 @@ or
 }
 ```
 or
-```js 
+```js
 {
   width: 100,
   height: 100,
@@ -70,7 +71,7 @@ or
 ```
 or
 ```jsx
-  <HotTable height="100px" width="100px" /> 
+  <HotTable height="100px" width="100px" />
 ```
 :::
 
@@ -102,7 +103,7 @@ You can easily overwrite this behaviour by returning `false` in the [`beforeRefr
 
 ::: only-for react
 ```jsx
-  <HotTable beforeRefreshDimensions={() => false} /> 
+  <HotTable beforeRefreshDimensions={() => false} />
 ```
 :::
 
@@ -172,46 +173,35 @@ triggerBtn.addEventListener('click', () => {
 :::
 
 ::: only-for react
-::: example #example :react --css 1 --js 2
-```css
-#exampleParent {
-  height: 150px;
-}
-```
+::: example #example :react --js 1
 ```jsx
-import { useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
-  
-  let triggerBtnClickCallback;
+  const [isContainerExpanded, setIsContainerExpanded] = useState(false);
+  const hotRef = useRef(null);
+
+  const triggerBtnClickCallback = () => {
+    setIsContainerExpanded(!isContainerExpanded);
+  };
 
   useEffect(() => {
-    const hot = hotRef.current.hotInstance;
-
-    triggerBtnClickCallback = () => {
-      if (triggerBtn.textContent === 'Collapse container') {
-        exampleParent.style.height = ''; // reset to initial 150px;
-        hot.refreshDimensions();
-        triggerBtn.textContent = 'Expand container';
-      } else {
-        exampleParent.style.height = '400px';
-        hot.refreshDimensions();
-        triggerBtn.textContent = 'Collapse container';
-      }
-    };
+    // simulate layout change outside of React lifecycle
+    document.getElementById('exampleParent').style.height = isContainerExpanded ? '400px' : '150px';
+    hotRef.current.hotInstance.refreshDimensions();
   });
 
   return (
     <>
-      <div id="exampleParent">
+      <div id="exampleParent" className="exampleParent">
         <HotTable
           data={Handsontable.helper.createSpreadsheetData(100, 50)}
           rowHeaders={true}
@@ -220,13 +210,19 @@ const ExampleComponent = () => {
           height="100%"
           rowHeights={23}
           colWidths={100}
-          licenseKey="non-commercial-and-evaluation"  
+          licenseKey="non-commercial-and-evaluation"
           ref={hotRef}
         />
       </div>
-      
+
       <div className="controls">
-        <button id="triggerBtn" className="button button--primary" onClick={(...args) => triggerBtnClickCallback(...args)}>Expand container</button>
+        <button
+          id="triggerBtn"
+          className="button button--primary"
+          onClick={(...args) => triggerBtnClickCallback(...args)}
+        >
+          {isContainerExpanded ? 'Collapse container' : 'Expand container'}
+        </button>
       </div>
     </>
   );

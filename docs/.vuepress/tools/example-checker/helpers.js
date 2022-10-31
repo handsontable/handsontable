@@ -167,7 +167,7 @@ function fetchPermalinks(searchResults, pathsWithConditions) {
  * @returns {string}
  */
 function extendPermalink(permalink, framework) {
-  permalink = permalink.replace('/', `/next/${framework}${FRAMEWORK_SUFFIX}/`);
+  permalink = permalink.replace('/', `/${framework}${FRAMEWORK_SUFFIX}/`);
 
   return permalink;
 }

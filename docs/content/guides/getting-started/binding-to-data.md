@@ -10,6 +10,7 @@ tags:
   - data sources
 react:
   metaTitle: Binding to data - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Binding to data
@@ -60,6 +61,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -84,7 +86,7 @@ const ExampleComponent = () => {
       colHeaders={true}
       minSpareRows={1}
       licenseKey="non-commercial-and-evaluation"
-    />  
+    />
   );
 };
 
@@ -139,6 +141,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -152,7 +155,7 @@ const ExampleComponent = () => {
     ['2020', 10, 11, 12, 13, 15, 16],
     ['2021', 10, 11, 12, 13, 15, 16]
   ];
-  
+
   return (
     <HotTable
       data={data}
@@ -215,6 +218,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -227,7 +231,7 @@ const ExampleComponent = () => {
     { id: 4, name: 'Gail Polite', address: '' },
     { id: 5, name: 'Michael Fair', address: '' }
   ];
-  
+
   return (
     <HotTable
       data={data}
@@ -296,6 +300,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -306,7 +311,7 @@ const ExampleComponent = () => {
     { id: 2, address: '' }, // Handsontable will create missing properties on demand
     { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
   ];
-      
+
   return (
     <HotTable
       data={data}
@@ -381,6 +386,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -391,7 +397,7 @@ const ExampleComponent = () => {
     { id: 2, address: '' }, // Handsontable will create missing properties on demand
     { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
   ];
-  
+
   return (
     <HotTable
       data={data}
@@ -454,6 +460,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -462,7 +469,7 @@ const ExampleComponent = () => {
   return (
     <HotTable
       data={[]}
-      dataSchema={{ 
+      dataSchema={{
         id: null,
         name: {
           first: null,
@@ -570,6 +577,7 @@ function property(attr) {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -665,6 +673,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -732,16 +741,17 @@ hot.setDataAtCell(0, 1, 'Ford');
 ::: example #example10 :react
 
 ```jsx
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef(null);
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
@@ -759,7 +769,7 @@ const ExampleComponent = () => {
   ];
 
   return (
-      <HotTable 
+      <HotTable
         ref={hotRef}
         data={data}
         height="auto"
@@ -928,6 +938,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

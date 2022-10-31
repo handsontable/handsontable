@@ -16,6 +16,8 @@ const msgs = [
   'Looks like we\'ve got some broken links.'
 ];
 
+const frameworkRegExp = /^\/docs\/((next|\d+.\d+)\/)?(?<framework>react|javascript)-data-grid\/.*/;
+
 export default {
   data() {
     return {
@@ -25,7 +27,7 @@ export default {
   methods: {
     /**
      * Returns the new homepage URL of the previously selected framework. For example for
-     * `/docs/10.1/react-data-grid/foo/bar` it's `/docs/10.1/react-data-grid/`.
+     * `/docs/10.1/react-data-grid/foo/bar` it's `/docs/react-data-grid/`.
      *
      * The $page object is not available within the component so read the state from
      * the "window.location".
@@ -33,7 +35,13 @@ export default {
      * @returns {string}
      */
     getFrameworkHomePage() {
-      return window.location.pathname.replace(/^(\/docs\/(?:(?:next|\d+\.\d)\/)?.+-data-grid\/).*/, '$1');
+      const {
+        framework,
+      } = window.location.pathname.match(frameworkRegExp)?.groups ?? {
+        framework: 'javascript'
+      };
+
+      return `/docs/${framework}-data-grid/`;
     },
     getMsg() {
       return msgs[Math.floor(Math.random() * msgs.length)];

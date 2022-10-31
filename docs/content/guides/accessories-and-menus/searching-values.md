@@ -9,6 +9,7 @@ tags:
   - highlight values
 react:
   metaTitle: Searching values - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Searching values
@@ -136,12 +137,13 @@ import { useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   const data = [
     ['Tesla', 2017, 'black', 'black'],
@@ -260,12 +262,13 @@ import { useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   const data = [
     ['Tesla', 2017, 'black', 'black'],
@@ -379,12 +382,13 @@ import { useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   const data = [
     ['Tesla', 2017, 'black', 'black'],
@@ -518,14 +522,15 @@ import { useRef, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hot4Ref = useRef();
+  const hot4Ref = useRef(null);
   const [output, setOutput] = useState('');
-  
+
   const data = [
     ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],

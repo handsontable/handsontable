@@ -6,6 +6,7 @@ permalink: /redux
 canonicalUrl: /redux
 react:
   metaTitle: Integration with Redux - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Integration with Redux
@@ -31,6 +32,7 @@ import { Provider, useSelector, useDispatch } from 'react-redux';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import { createSpreadsheetData } from './helpers';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

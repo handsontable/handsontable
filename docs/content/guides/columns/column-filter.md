@@ -8,6 +8,7 @@ tags:
   - filtering data
 react:
   metaTitle: Column filter - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Column filter
@@ -59,6 +60,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -139,6 +141,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -264,17 +267,18 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import React, { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef(null);
   let debounceFn = null;
 
   const addEventListeners = (input, colIndex) => {
@@ -282,7 +286,7 @@ const ExampleComponent = () => {
       debounceFn(colIndex, event);
     });
   };
-  
+
   //  Build elements which will be displayed in header.
   const getInitializedElements = colIndex => {
     const div = document.createElement('div');
@@ -296,7 +300,7 @@ const ExampleComponent = () => {
 
     return div;
   };
-  
+
   //  Add elements to header on `afterGetColHeader` hook.
   const addInput = (col, TH) => {
     // Hooks can return a value other than number (for example `columnSorting` plugin uses this).
@@ -321,7 +325,7 @@ const ExampleComponent = () => {
       filtersPlugin.filter();
     }, 100);
   });
-  
+
   return (
     <HotTable
       ref={hotRef}
@@ -661,17 +665,18 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = React.createRef();
+  const hotRef = useRef(null);
   const [colHeaders, setColHeaders] = React.useState([]);
   const [selectedColumnIndex, setSelectedColumnIndex] = React.useState(0);
   const [rowEntries, setRowEntries] = React.useState([]);
@@ -772,7 +777,7 @@ const ExampleComponent = () => {
             )}
           </select>
         </div>
-    
+
         <div id="filterSelect">
           <div className="controllers">
             <div>
@@ -783,19 +788,19 @@ const ExampleComponent = () => {
           <div className="items">
             {rowEntries.map(
               (rowEntry, index) => <React.Fragment key={`${rowEntry}-${index}`}>
-                <label><input type="checkbox" onChange={() => selectEntry(rowEntry)} 
+                <label><input type="checkbox" onChange={() => selectEntry(rowEntry)}
                   checked={selectedRowEntries.includes(rowEntry)}/>{rowEntry}</label><br/>
               </React.Fragment>
             )}
           </div>
         </div>
-    
+
         <div className="buttons controls">
           <button onClick={() => applyFilter()} className="apply">Apply filter</button>
           <button onClick={() => clearFilter()} className="clear">Clear filter</button>
         </div>
       </div>
-    
+
     </>
   );
 };

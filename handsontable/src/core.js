@@ -62,7 +62,7 @@ let activeGuid = null;
  *
  * ::: only-for react
  * ```jsx
- * const hotRef = useRef();
+ * const hotRef = useRef(null);
  *
  * ...
  *

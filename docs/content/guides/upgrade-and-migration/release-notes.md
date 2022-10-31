@@ -12,11 +12,32 @@ tags:
   - breaking change
 react:
   metaTitle: Release notes - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Release notes
 
 [[toc]]
+
+## 12.1.3
+
+Released on 22nd of September, 2022
+
+### Fixed
+- Fixed incorrect date format conversion on input in the date editor. [#9681](https://github.com/handsontable/handsontable/issues/9681)
+- Fixed an error when adding a large number of rows using the `alter` method. [#7840](https://github.com/handsontable/handsontable/issues/7840)
+- Fixed IME text input in the editors. [#9586](https://github.com/handsontable/handsontable/issues/9586)
+- Fixed an issue where the editor did not open on key events when the cell was outside the viewport. [#9022](https://github.com/handsontable/handsontable/issues/9022)
+- Fixed an issue with "0" values being ignored by the Column Summary plugin. [#6385](https://github.com/handsontable/handsontable/issues/6385)
+- Fixed an error when opening the column dropdown menu with the Filters plugin enabled. [#9561](https://github.com/handsontable/handsontable/issues/9561)
+- Fixed an issue where the `trimWhitespace` option could not be used in the column and cell levels of the cascading configuration. [#7387](https://github.com/handsontable/handsontable/issues/7387)
+- Fixed the flickering of the selection area at the edge of the table while scrolling. [#8317](https://github.com/handsontable/handsontable/issues/8317)
+- Fixed misalignment on mobile devices when the edge cells were selected. [#9621](https://github.com/handsontable/handsontable/issues/9621)
+- Fixed type definitions for the method `setSourceDataAtCell`. [#8599](https://github.com/handsontable/handsontable/issues/8599)
+
+### Removed
+- Removed a custom stable sorting implementation in favor of the stable sorting algorithm guaranteed by ECMAScript 2019 [#6091](https://github.com/handsontable/handsontable/issues/6091)
+- Removed type definitions for non-existing methods `rowOffset` and `colOffset` and a non-existing hook `modifyRowSourceData`. [#8659](https://github.com/handsontable/handsontable/issues/8659), [#7317](https://github.com/handsontable/handsontable/issues/7317)
 
 ## 12.1.2
 
@@ -125,7 +146,7 @@ Released on 13th of January, 2022
 
 **Added**
 - Added [`updateData()`](@/api/core.md#updatedata), a new method that lets you replace Handsontable's [`data`](@/api/options.md#data) without resetting the states of cells, rows and columns. [#7263](https://github.com/handsontable/handsontable/issues/7263)
-- *Vue:* Added [Vue 3](https://v3.vuejs.org/guide/migration/introduction.html#overview) support, by introducing a [new wrapper](@/guides/integrate-with-vue3/vue3-simple-example.md). [#7545](https://github.com/handsontable/handsontable/issues/7545)
+- *Vue:* Added [Vue 3](https://v3.vuejs.org/guide/migration/introduction.html#overview) support, by introducing a [new wrapper](@/javascript/guides/integrate-with-vue3/vue3-simple-example.md). [#7545](https://github.com/handsontable/handsontable/issues/7545)
 
 **Changed**
 - Updated the TypeScript definition of the [`setDataAtCell()`](@/api/core.md#setdataatcell) method. [#8601](https://github.com/handsontable/handsontable/issues/8601)

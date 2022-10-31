@@ -6,6 +6,7 @@ permalink: /security
 canonicalUrl: /security
 react:
   metaTitle: Security - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Security

@@ -10,6 +10,7 @@ tags:
   - row id
 react:
   metaTitle: Row headers - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row header
@@ -74,6 +75,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

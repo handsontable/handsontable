@@ -10,12 +10,13 @@ const firstHeaderInjection = require('./plugins/markdown-it-header-injection');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
 const activeHeaderLinksPlugin = require('./plugins/active-header-links');
 const {
-  getDocsBaseFullUrl,
+  createSymlinks,
   getDocsBase,
+  getDocsBaseFullUrl,
   getDocsHostname,
+  getIgnorePagesPatternList,
   getThisDocsVersion,
   MULTI_FRAMEWORKED_CONTENT_DIR,
-  createSymlinks,
 } = require('./helpers');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 
@@ -44,6 +45,7 @@ module.exports = {
   },
   patterns: [
     `${MULTI_FRAMEWORKED_CONTENT_DIR}/**/*.md`,
+    ...getIgnorePagesPatternList(),
   ],
   description: 'Handsontable',
   base: `${getDocsBase()}/`,
@@ -76,9 +78,20 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
     anchor: {
+      permalinkSymbol: '',
+      permalinkHref(slug) {
+        // Remove the `-[number]` suffix from the permalink href attribute.
+        const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(slug);
+
+        if (duplicatedSlugsMatch) {
+          slug = duplicatedSlugsMatch[1];
+        }
+
+        return `#${slug}`;
+      },
       callback(token, slugInfo) {
         if (['h1', 'h2', 'h3'].includes(token.tag)) {
-          // Remove the `-[number]` suffix from the slugs and header IDs
+          // Remove the `-[number]` suffix from the slugs and header IDs.
           const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrs[0][1]);
 
           if (duplicatedSlugsMatch) {
@@ -242,14 +255,22 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
     search: true,
     searchOptions: {
       placeholder: 'Search...',
-      guidesMaxSuggestions: 5,
-      apiMaxSuggestions: 10,
-      fuzzySearchDomains: ['Core', 'Hooks', 'Options'],
-      // The list modifies the search results position. When the search phrase matches the pages
-      // below, the search suggestions are placed before the rest results. The pages declared in
-      // the array at the beginning have the highest display priority.
-      apiSearchDomainPriorityList: ['Options'],
-      guidesSearchDomainPriorityList: [],
+      categoryPriorityList: [
+        {
+          name: 'Guides',
+          domainPriority: [],
+          maxSuggestions: 5,
+        },
+        {
+          name: 'API Reference',
+          // The "domainPriority" list modifies the search results position. When the search phrase matches
+          // the page titles, the search suggestions are placed before the rest results. The pages declared
+          // in the array at the beginning have the highest display priority.
+          domainPriority: ['Configuration options', 'Core', 'Hooks'],
+          maxSuggestions: 10,
+        },
+      ],
+      fuzzySearchDomains: ['Core', 'Hooks', 'Configuration options'],
     }
   }
 };

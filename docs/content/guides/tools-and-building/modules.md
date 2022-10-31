@@ -8,6 +8,7 @@ tags:
   - tree shaking
 react:
   metaTitle: Modules - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Modules
@@ -181,6 +182,7 @@ new Handsontable(container, {
 ::: only-for react
 ```jsx
 import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/react';
 import {
   registerCellType,
   NumericCellType,
@@ -239,6 +241,7 @@ new Handsontable(container, {
 ::: only-for react
 ```jsx
 import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/react';
 import {
   registerRenderer,
   numericRenderer,
@@ -952,7 +955,7 @@ import { registerLanguageDictionary } from 'handsontable/i18n/registry';
 ## Using modules with frameworks
 
 You can also use modules with Handsontable's framework wrappers:
-- [Using modules with React](../../react-data-grid/modules)
+- [Using modules with React](@/react/guides/tools-and-building/modules.md)
 - [Using modules with Angular](@/guides/integrate-with-angular/angular-modules.md)
 - [Using modules with Vue 2](@/guides/integrate-with-vue/vue-modules.md)
 - [Using modules with Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)
@@ -965,7 +968,7 @@ You can also use modules with Handsontable's framework wrappers:
 - [Bundle size](@/guides/optimization/bundle-size.md)
 - [Installation](@/guides/getting-started/installation.md)
 ::: only-for javascript
-- [Modules in React](../../react-data-grid/modules)
+- [Modules in React](@/react/guides/tools-and-building/modules.md)
 - [Modules in Angular](@/guides/integrate-with-angular/angular-modules.md)
 - [Modules in Vue 2](@/guides/integrate-with-vue/vue-modules.md)
 - [Modules in Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)

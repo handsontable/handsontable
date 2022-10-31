@@ -6,6 +6,7 @@ permalink: /row-sorting
 canonicalUrl: /row-sorting
 react:
   metaTitle: Row sorting - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Row sorting
@@ -14,7 +15,7 @@ react:
 
 ## Overview
 
-The column sorting plugin works as a proxy between the datasource and the Handsontable rendering module.
+The column sorting plugin works as a middleware between the datasource and the Handsontable rendering module.
 It can:
 * Map indices of displayed rows `visual indices` to the indices of corresponding rows in the datasource `physical indices` and vice versa
 * Alter the order of rows presented to a user without changing the datasource’s internal structure
@@ -71,6 +72,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -163,6 +165,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -277,6 +280,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -429,6 +433,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

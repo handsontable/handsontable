@@ -6,6 +6,7 @@ permalink: /text-alignment
 canonicalUrl: /text-alignment
 react:
   metaTitle: Text alignment - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Text alignment
@@ -83,6 +84,7 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

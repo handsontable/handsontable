@@ -8,6 +8,7 @@ tags:
   - quick start
 react:
   metaTitle: Installation - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Installation
@@ -41,7 +42,7 @@ To install Handsontable locally using a package manager, run one of these comman
 ::: tip
 To install Handsontable using a framework, see:
 
- - [Installation in React](../../react-data-grid/installation)
+ - [Installation in React](@/react/guides/getting-started/installation.md)
  - [Installation in Angular](@/guides/integrate-with-angular/angular-installation.md)
  - [Installation in Vue 2](@/guides/integrate-with-vue/vue-installation.md)
  - [Installation in Vue 3](@/guides/integrate-with-vue3/vue3-installation.md)
@@ -177,7 +178,7 @@ Import Handsontable's CSS into your application.
 If your bundler allows it, you can import Handsontable's full distribution CSS file, using an `import` statement.
 
 ```js
-import 'handsontable/dist/handsontable.full.css';
+import 'handsontable/dist/handsontable.full.min.css';
 ```
 
 ### Using the `link` tag
@@ -249,7 +250,7 @@ The main Handsontable component is called `HotTable`.
 import { HotTable } from '@handsontable/react';
 ```
 
-To set Handsontable's [configuration options](@/guides/getting-started/setting-options.md), use `HotTable`'s props. For example:
+To set Handsontable's [configuration options](@/guides/getting-started/configuration-options.md), use `HotTable`'s props. For example:
 
 ```jsx
 <HotTable
@@ -266,7 +267,7 @@ To set Handsontable's [configuration options](@/guides/getting-started/setting-o
 Import Handsontable's CSS into your application.
 
 ```jsx
-import 'handsontable/dist/handsontable.full.css';
+import 'handsontable/dist/handsontable.full.min.css';
 ```
 
 ## Basic example
@@ -274,9 +275,9 @@ import 'handsontable/dist/handsontable.full.css';
 
 ```jsx
 import ReactDOM from 'react-dom';
-import 'handsontable/dist/handsontable.full.css';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

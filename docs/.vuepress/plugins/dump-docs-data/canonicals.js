@@ -1,4 +1,17 @@
-const BASE_URL = 'https://handsontable.com';
+const { logger } = require('@vuepress/shared-utils');
+const {
+  getDocsHostname
+} = require('../../helpers');
+
+const BASE_URL = getDocsHostname(false);
+const fetchCommonHeaders = new Headers({
+  'Accept': 'application/json', // eslint-disable-line quote-props
+  'Content-Type': 'application/json',
+  'User-Agent': 'HandsontableDocsBuilder'
+});
+
+logger.info(`Using "${BASE_URL}/docs/data/common.json" URL for fetching and building Docs data` +
+  '(fetch docs versions and build canonical URLs).');
 
 /**
  * Generates a Map with canonical URLs using the following structure [/path url/, /latest docs version that has the url/].
@@ -8,12 +21,14 @@ const BASE_URL = 'https://handsontable.com';
  */
 async function generateCommonCanonicalURLs(currentCanonicals) {
   const commonURLs = new Map();
-  const response = await fetch(`${BASE_URL}/docs/data/common.json`);
+  const response = await fetch(`${BASE_URL}/docs/data/common.json`, {
+    headers: fetchCommonHeaders
+  });
   const docsData = await response.json();
   const allDocsVersions = [...docsData.versions];
-  const latestDocsVersion = docsData.latestVersion;
+  const latestDocsVersion = currentCanonicals.v === 'next' ? 'next' : docsData.latestVersion;
 
-  if (!allDocsVersions.includes(currentCanonicals.v) && currentCanonicals.v !== 'next') {
+  if (!allDocsVersions.includes(currentCanonicals.v)) {
     allDocsVersions.push(currentCanonicals.v);
   }
 
@@ -26,7 +41,9 @@ async function generateCommonCanonicalURLs(currentCanonicals) {
       canonicalsURLs = currentCanonicals.urls;
     } else {
       /* eslint-disable no-await-in-loop */
-      const canonicalsResponse = await fetch(`${BASE_URL}/docs/${docsVersion}/data/canonicals-raw.json`);
+      const canonicalsResponse = await fetch(`${BASE_URL}/docs/${docsVersion}/data/canonicals-raw.json`, {
+        headers: fetchCommonHeaders
+      });
 
       canonicalsURLs = (await canonicalsResponse.json()).urls;
     }

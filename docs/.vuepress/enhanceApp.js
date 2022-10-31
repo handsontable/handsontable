@@ -17,23 +17,24 @@ const buildRegisterCleaner = register => (to, from) => {
   register.destroyAll();
 };
 
-const buildActiveHeaderLinkHandler = () => {
-  let activeLink = null;
+// TODO: temporary disabled on September 29 (#9963)
+// const buildActiveHeaderLinkHandler = () => {
+//   let activeLink = null;
 
-  return (to, from) => {
-    if (to.hash !== from.hash) {
-      if (activeLink) {
-        activeLink.classList.remove('active');
-      }
-      // eslint-disable-next-line
-      activeLink = document.querySelector(`.table-of-contents a[href="${to.hash}"]`);
+//   return (to, from) => {
+//     if (to.hash !== from.hash) {
+//       if (activeLink) {
+//         activeLink.classList.remove('active');
+//       }
+//       // eslint-disable-next-line
+//       activeLink = document.querySelector(`.table-of-contents a[href="${to.hash}"]`);
 
-      if (activeLink) {
-        activeLink.classList.add('active');
-      }
-    }
-  };
-};
+//       if (activeLink) {
+//         activeLink.classList.add('active');
+//       }
+//     }
+//   };
+// };
 
 /**
  * The variable prevents collect double page views for the initial page load.
@@ -56,7 +57,7 @@ export default async({ router, siteData, isServer }) => {
   } = siteData.pages[0];
 
   // in watch mode redirect to page with default framework
-  if (location.pathname === '/docs/next/' && !buildMode) {
+  if (location.pathname === '/docs/' && currentVersion === 'next' && !buildMode) {
     location.replace(`${location.href}${defaultFramework}${frameworkSuffix}`);
 
     return;
@@ -64,7 +65,8 @@ export default async({ router, siteData, isServer }) => {
 
   let pathVersion = '';
 
-  if (buildMode !== 'production') {
+  // Change path for `/data/common.json` file for developing released docs versions locally.
+  if (buildMode !== 'production' && currentVersion !== 'next') {
     pathVersion = `${currentVersion}/`;
   }
 
@@ -151,5 +153,6 @@ export default async({ router, siteData, isServer }) => {
   }
 
   router.afterEach(buildRegisterCleaner(instanceRegister));
-  router.afterEach(buildActiveHeaderLinkHandler());
+  // TODO: temporary disabled on September 29 (#9963)
+  // router.afterEach(buildActiveHeaderLinkHandler());
 };

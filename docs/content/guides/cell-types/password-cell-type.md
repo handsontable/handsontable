@@ -6,6 +6,7 @@ permalink: /password-cell-type
 canonicalUrl: /password-cell-type
 react:
   metaTitle: Password cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Password cell type
@@ -47,6 +48,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -113,6 +115,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -146,7 +149,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 
 ## Custom hash symbol
 
-By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to set a custom hash symbol. You can use any character, entity, or event HTML. Note that you can't change the symbol used by the input field due to browser limitations.
+By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to set a custom hash symbol. You can use any character, entity, or even HTML. Note that you can't change the symbol used by the input field due to browser limitations.
 
 ::: only-for javascript
 ::: example #example3
@@ -180,6 +183,7 @@ import React, { Fragment, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

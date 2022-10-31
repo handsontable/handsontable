@@ -12,6 +12,7 @@ tags:
   - locked
 react:
   metaTitle: Disabled cells - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Disabled cells
@@ -47,6 +48,7 @@ const hot = new Handsontable(container, {
     {car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black'},
     {car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray'}
   ],
+  height: 'auto',
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
@@ -75,6 +77,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -88,6 +91,7 @@ const ExampleComponent = () => {
         { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
         { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' }
       ]}
+      height="auto"
       colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
       licenseKey="non-commercial-and-evaluation"
       columns={[
@@ -158,12 +162,13 @@ import { useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
@@ -223,6 +228,7 @@ const hot = new Handsontable(container, {
     {car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black'},
     {car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray'}
   ],
+  height: 'auto',
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
@@ -254,6 +260,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -267,6 +274,7 @@ const ExampleComponent = () => {
         { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
         { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' }
       ]}
+      height="auto"
       colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
       licenseKey="non-commercial-and-evaluation"
       columns={[
@@ -343,12 +351,13 @@ import { useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;

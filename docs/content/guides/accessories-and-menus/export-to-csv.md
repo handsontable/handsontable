@@ -9,6 +9,7 @@ tags:
   - save file
 react:
   metaTitle: Export to CSV - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Export to CSV
@@ -74,12 +75,13 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   let buttonClickCallback;
 
@@ -183,19 +185,20 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
+  const hotRef = useRef(null);
 
   let buttonClickCallback;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
     const exportPlugin = hot.getPlugin('exportFile');
-    
+
     buttonClickCallback = () => {
       const exportedBlob = exportPlugin.exportAsBlob('csv', {
         bom: false,
@@ -291,13 +294,14 @@ import Handsontable from 'handsontable';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotRef = useRef();
-  
+  const hotRef = useRef(null);
+
   let buttonClickCallback;
 
   useEffect(() => {

@@ -6,6 +6,7 @@ permalink: /select-cell-type
 canonicalUrl: /select-cell-type
 react:
   metaTitle: Select cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Select cell type
@@ -51,6 +52,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();

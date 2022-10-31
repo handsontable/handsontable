@@ -4,6 +4,7 @@ metaTitle: Integration with Vuex - Vue 3 Data Grid - Handsontable
 description: Use the Vuex state management pattern to maintain the data and configuration options of your Vue 3 data grid.
 permalink: /vue3-vuex-example
 canonicalUrl: /vue3-vuex-example
+searchCategory: Guides
 ---
 
 # Vuex in Vue 3

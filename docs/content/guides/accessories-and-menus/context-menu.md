@@ -11,6 +11,7 @@ tags:
   - right-click menu
 react:
   metaTitle: Context menu - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Context menu
@@ -51,6 +52,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -149,6 +151,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -185,44 +188,40 @@ In addition to built-in options, you can equip your context menu with custom opt
 
 ::: example #example4 :react
 ```jsx
-import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
 import { createSpreadsheetData } from './helpers';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
-
-const hotSettings = {
-  data: createSpreadsheetData(5, 5),
-  colHeaders: true,
-  height: 'auto',
-  contextMenu: {
-    items: {
-      'row_above': {
-        name: 'Insert row above this one (custom name)'
-      },
-      'row_below': {},
-      'separator': ContextMenu.SEPARATOR,
-      'clear_custom': {
-        name: 'Clear all cells (custom)',
-        callback: function() {
-          this.clear();
-        }
-      }
-    }
-  },
-  licenseKey: 'non-commercial-and-evaluation'
-};
 
 const ExampleComponent = () => {
   return (
     <div>
       <HotTable
         id="hot"
-        settings={hotSettings}
+        data={createSpreadsheetData(5, 5)}
+        colHeaders={true}
+        height="auto"
+        contextMenu={{
+          items: {
+            'row_above': {
+              name: 'Insert row above this one (custom name)'
+            },
+            'row_below': {},
+            'separator': ContextMenu.SEPARATOR,
+            'clear_custom': {
+              name: 'Clear all cells (custom)',
+              callback: function() {
+                this.clear();
+              }
+            }
+          }
+        }}
+        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   )
@@ -340,6 +339,7 @@ const hot = new Handsontable(container, {
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -453,7 +453,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 - [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
 ::: only-for javascript
-- [Custom context menu in React](../../react-data-grid)
+- [Custom context menu in React](@/react/guides/accessories-and-menus/context-menu.md)
 - [Custom context menu in Angular](@/guides/integrate-with-angular/angular-custom-context-menu-example.md)
 - [Custom context menu in Vue 2](@/guides/integrate-with-vue/vue-custom-context-menu-example.md)
 - [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example.md)

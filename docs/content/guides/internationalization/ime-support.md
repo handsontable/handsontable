@@ -12,6 +12,7 @@ tags:
   - latin
 react:
   metaTitle: IME support - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # IME support
