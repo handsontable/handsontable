@@ -20,11 +20,11 @@ Play around with a demo of Handsontable, in your favorite framework.
 [[toc]]
 
 ::: only-for javascript
-<DemoJS fullVersionNumber="12.1.1" />
+<DemoJS fullVersionNumber="12.2.0" />
 :::
 
 ::: only-for react
-<DemoReact fullVersionNumber="12.1.1" />
+<DemoReact fullVersionNumber="12.2.0" />
 :::
 
 ## Find the code on GitHub
