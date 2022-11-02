@@ -41,7 +41,7 @@ export default {
       return `/docs/${version}/`;
     },
   },
-  mounted() {    
+  mounted() {
     this.item = {
       text: this.addLatest(this.$page.currentVersion, true),
       items:
