@@ -25,7 +25,6 @@ async function readFromDocsLatest() {
     ['11.1', ['11.1.0']],
     ['11.0', ['11.0.1', '11.0.0']],
     ['10.0', ['10.0.0']],
-    ['9.0', ['9.0.2', '9.0.1', '9.0.0']]
   ];
 
   return data;
@@ -63,9 +62,9 @@ async function readFromGitHub() {
       tagsSet.add(minorVersion);
 
       if (minorsToPatches.has(minorVersion)) {
-        const uniquePathes = Array.from(new Set(minorsToPatches.get(minorVersion)).add(patchVersion));
+        const uniquePatches = Array.from(new Set(minorsToPatches.get(minorVersion)).add(patchVersion));
 
-        minorsToPatches.set(minorVersion, uniquePathes);
+        minorsToPatches.set(minorVersion, uniquePatches);
 
       } else {
         minorsToPatches.set(minorVersion, [patchVersion]);
@@ -73,7 +72,7 @@ async function readFromGitHub() {
     });
 
   const versions = Array.from(tagsSet).slice(0, 6);
-  const patches = Array.from(minorsToPatches); // Converting the map, as it's later changed to JSON.
+  const patches = Array.from(minorsToPatches).slice(0, 6); // Converting the map, as it's later changed to JSON.
 
   logger.info(`Fetched the following Docs versions: ${versions.join(', ')}`);
   logger.info(`GitHub API rate limits:
