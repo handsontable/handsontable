@@ -17,16 +17,6 @@ async function readFromDocsLatest() {
   const response = await fetch('https://handsontable.com/docs/data/common.json');
   const data = await response.json();
 
-  // TODO: Mocked.
-  data.patches = [
-    ['12.2', ['12.2.0']],
-    ['12.1', ['12.1.3', '12.1.2', '12.1.1', '12.1.0']],
-    ['12.0', ['12.0.1', '12.0.0']],
-    ['11.1', ['11.1.0']],
-    ['11.0', ['11.0.1', '11.0.0']],
-    ['10.0', ['10.0.0']],
-  ];
-
   return data;
 }
 
