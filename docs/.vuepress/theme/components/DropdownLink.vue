@@ -192,7 +192,8 @@ export default {
         .dropdown-subitem
           font-size 0.9em
           &.intend
-            padding: 0 1.5rem 0 1.25rem
+            position: relative;
+            left: 1.5rem;
             opacity: .6
       a
         display block
