@@ -83,7 +83,7 @@ export default async({ router, siteData, isServer }) => {
 
     page.versions = docsData.versions;
     page.latestVersion = docsData.latestVersion;
-    page.patches = new Map(docsData.patches);
+    page.versionsWithPatches = new Map(docsData.versionsWithPatches);
   });
 
   router.options.scrollBehavior = function(to, from, savedPosition) {

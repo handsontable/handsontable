@@ -24,8 +24,8 @@ export default {
       const latestMinor = this.$page.latestVersion;
 
       if (version === latestMinor) {
-        if (showPatch === true && this.$page.patches.has(latestMinor)) {
-          version = this.$page.patches.get(latestMinor)[0]; // Latest patch
+        if (showPatch === true && this.$page.versionsWithPatches.has(latestMinor)) {
+          version = this.$page.versionsWithPatches.get(latestMinor)[0]; // Latest patch
         }
 
         return `${version} (Latest)`;
@@ -41,17 +41,17 @@ export default {
       return `/docs/${version}/`;
     },
   },
-  mounted() {
+  mounted() {    
     this.item = {
       text: this.addLatest(this.$page.currentVersion, true),
       items:
         [
-          ...this.$page.versions.map(v => ({
+          ...Array.from(this.$page.versionsWithPatches.keys()).map(v => ({
             text: `${this.addLatest(v, false)}`,
             link: this.getLink(v),
             target: '_self',
             isHtmlLink: true,
-            subitems: this.$page.patches.get(v),
+            subitems: this.$page.versionsWithPatches.get(v),
           })),
         ]
     };
