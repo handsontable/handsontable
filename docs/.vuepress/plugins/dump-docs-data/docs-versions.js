@@ -83,7 +83,7 @@ async function readFromGitHub() {
   `);
 
   return {
-    versions, // Please keep in mind that we have more version than than displayed for purpose of creating canonicals.
+    versions, // Please keep in mind that we have more version than displayed for purpose of creating canonicals.
     latestVersion: versions[0],
     versionsWithPatches,
   };
