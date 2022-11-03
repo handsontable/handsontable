@@ -82,6 +82,15 @@ class Overlays {
   wtSettings = null;
 
   /**
+   * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
+   * In case of the size change detection the `onContainerElementResize` is fired.
+   *
+   * @private
+   * @type {ResizeObserver}
+   */
+  resizeObserver = new ResizeObserver(() => this.wtSettings.getSetting('onContainerElementResize'));
+
+  /**
    * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {DomBindings} domBindings Bindings into DOM.
@@ -293,6 +302,10 @@ class Overlays {
         this.wtSettings.getSetting('onWindowResize');
       }, 200);
     });
+
+    if (!isScrollOnWindow) {
+      this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);
+    }
   }
 
   /**
@@ -511,6 +524,7 @@ class Overlays {
    *
    */
   destroy() {
+    this.resizeObserver.disconnect();
     this.eventManager.destroy();
     // todo, probably all below `destory` calls has no sense. To analyze
     this.topOverlay.destroy();
