@@ -24,8 +24,11 @@ export default {
       const latestMinor = this.$page.latestVersion;
 
       if (version === latestMinor) {
-        if (showPatch === true && this.$page.versionsWithPatches.has(latestMinor)) {
-          version = this.$page.versionsWithPatches.get(latestMinor)[0]; // Latest patch
+        const patches = this.$page.versionsWithPatches.get(latestMinor);
+
+        // It will show patches only when we have at least two versions for certain minor.
+        if (showPatch === true && patches?.length > 1) {
+          version = patches[0];
         }
 
         return `${version} (Latest)`;

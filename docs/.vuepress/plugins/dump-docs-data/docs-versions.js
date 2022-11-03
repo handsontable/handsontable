@@ -113,6 +113,7 @@ async function fetchDocsVersions() {
 
   if (process.env.BUILD_MODE !== 'production') {
     docsData.versions = ['next', ...docsData.versions];
+    docsData.versionsWithPatches = [['next', []], ...docsData.versionsWithPatches];
     docsData.latestVersion = 'next';
   }
 
