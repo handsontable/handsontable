@@ -142,6 +142,7 @@
     "progress-bar-webpack-plugin": "^1.10.0",
     "puppeteer": "^10.2.0",
     "replace-in-file": "^6.1.0",
+    "resize-observer-polyfill": "^1.5.1",
     "rimraf": "^2.5.4",
     "sass": "^1.3.0",
     "sass-loader": "^10.2.0",

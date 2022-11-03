@@ -15,6 +15,9 @@ module.exports = {
     'vue',
     'node',
   ],
+  setupFilesAfterEnv: [
+    '<rootDir>/test/bootstrap.js'
+  ],
   globals: {
     'ts-jest': {
       tsconfig: 'test-tsconfig.json',

@@ -72,6 +72,7 @@
     "react-dom": "^16.10.2",
     "react-redux": "^7.1.1",
     "redux": "^4.0.4",
+    "resize-observer-polyfill": "^1.5.1",
     "rollup": "^2.58.0",
     "rollup-plugin-alias": "^1.5.2",
     "rollup-plugin-babel": "^4.3.3",
@@ -113,6 +114,9 @@
       "jsx",
       "json",
       "node"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/bootstrap.js"
     ],
     "globals": {
       "ts-jest": {
