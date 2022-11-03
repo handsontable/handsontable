@@ -1,6 +1,6 @@
+import ResizeObserver from 'resize-observer-polyfill';
 import './helpers/custom-matchers';
 import * as jasmineHelpers from './helpers/jasmine-helpers';
-import ResizeObserver from 'resize-observer-polyfill';
 
 global.ResizeObserver = ResizeObserver;
 
