@@ -641,7 +641,7 @@ describe('NestedHeaders', () => {
 
       hot.scrollViewportTo(void 0, 40);
 
-      await sleep(20);
+      await sleep(100);
 
       // scrolled
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`

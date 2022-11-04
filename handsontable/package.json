@@ -140,7 +140,7 @@
     "on-build-webpack": "^0.1.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "progress-bar-webpack-plugin": "^1.10.0",
-    "puppeteer": "^10.2.0",
+    "puppeteer": "^19.2.2",
     "replace-in-file": "^6.1.0",
     "resize-observer-polyfill": "^1.5.1",
     "rimraf": "^2.5.4",
