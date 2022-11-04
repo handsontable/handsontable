@@ -9,9 +9,13 @@ const { Octokit } = require('@octokit/rest');
 const { logger } = require('@vuepress/shared-utils');
 
 /**
- * Min Docs version that is listed in the Docs version dropdown menu.
+ * Min docs version that is used for creating canonicals.
  */
 const MIN_DOCS_VERSION = '9.0';
+/**
+ * Max number of minors displayed in the drop-down.
+ */
+const MAX_MINORS_COUNT = 6;
 
 /**
  * Reads the list of Docs versions from the latest Docs image.
@@ -32,7 +36,6 @@ async function readFromDocsLatest() {
  */
 async function readFromGitHub() {
   const octokit = new Octokit();
-  let versions = [];
 
   const releases = await octokit.rest.repos
     .listReleases({
@@ -46,15 +49,31 @@ async function readFromGitHub() {
   }
 
   const tagsSet = new Set();
+  const minorsToPatches = new Map();
 
   releases.data
     .map(item => item.tag_name)
     .sort((a, b) => semver.rcompare(a, b))
-    .forEach(tag => tagsSet.add(`${semver.parse(tag).major}.${semver.parse(tag).minor}`));
+    .forEach((tag) => {
+      const minorVersion = `${semver.parse(tag).major}.${semver.parse(tag).minor}`;
+      const patchVersion = `${minorVersion}.${semver.parse(tag).patch}`;
+
+      tagsSet.add(minorVersion);
+
+      if (minorsToPatches.has(minorVersion)) {
+        const uniquePatches = Array.from(new Set(minorsToPatches.get(minorVersion)).add(patchVersion));
+
+        minorsToPatches.set(minorVersion, uniquePatches);
+
+      } else {
+        minorsToPatches.set(minorVersion, [patchVersion]);
+      }
+    });
 
   const tags = Array.from(tagsSet);
-
-  versions = tags.slice(0, tags.indexOf(MIN_DOCS_VERSION) + 1);
+  const versions = tags.slice(0, tags.indexOf(MIN_DOCS_VERSION) + 1);
+  // Converting the map, as it's later changed to JSON.
+  const versionsWithPatches = Array.from(minorsToPatches).slice(0, MAX_MINORS_COUNT);
 
   logger.info(`Fetched the following Docs versions: ${versions.join(', ')}`);
   logger.info(`GitHub API rate limits:
@@ -64,8 +83,9 @@ async function readFromGitHub() {
   `);
 
   return {
-    versions,
+    versions, // Please keep in mind that we have more version than displayed for purpose of creating canonicals.
     latestVersion: versions[0],
+    versionsWithPatches,
   };
 }
 
@@ -93,6 +113,7 @@ async function fetchDocsVersions() {
 
   if (process.env.BUILD_MODE !== 'production') {
     docsData.versions = ['next', ...docsData.versions];
+    docsData.versionsWithPatches = [['next', []], ...docsData.versionsWithPatches];
     docsData.latestVersion = 'next';
   }
 
