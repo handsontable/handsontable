@@ -61,12 +61,21 @@
             </li>
           </ul>
 
-          <NavLink
-            v-else
-            :item="subItem"
-            @click.native="itemClick(subItem)"
-            @focusout="isLastItemOfArray(subItem, item.items) && setOpen(false)"
-          />
+          <a
+            class="nav-link"
+            :href="subItem.link"
+          >
+            <ul
+              class="dropdown-subitem-wrapper font-normal"
+            >
+              <li class="dropdown-subitem">{{ subItem.text }}</li>
+              <li v-for="childSubItem in subItem.subitems"
+                  class="dropdown-subitem intend"
+              >
+                {{ childSubItem}}
+              </li>
+            </ul>
+          </a>
         </li>
       </ul>
     </DropdownTransition>
@@ -178,8 +187,14 @@ export default {
       .dropdown-subitem-wrapper
         padding 0
         list-style none
+        &.font-normal .dropdown-subitem
+          font-size: inherit;
         .dropdown-subitem
           font-size 0.9em
+          &.intend
+            position: relative;
+            left: 1.5rem;
+            opacity: .6
       a
         display block
         line-height 1.7rem
