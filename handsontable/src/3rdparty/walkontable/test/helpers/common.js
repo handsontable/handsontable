@@ -224,6 +224,15 @@ afterEach(() => {
   window.scrollTo(0, 0);
 });
 
+beforeAll(() => {
+  // Make the test more predictable by hiding the test suite dots
+  $('.jasmine_html-reporter').hide();
+});
+afterAll(() => {
+  // After the test are finished show the test suite dots
+  $('.jasmine_html-reporter').show();
+});
+
 /**
  * Returns the table width.
  *

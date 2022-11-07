@@ -1721,7 +1721,6 @@ describe('NestedHeaders', () => {
 
     it('should allow scrolling (and lazy loading) the columns properly, ' +
       'when some of the leftmost columns are hidden', async() => {
-      $('.jasmine_html-reporter').hide(); // a workaround for making the test more predictable
       const nestedHeaders = [
         [
           {
@@ -1792,8 +1791,6 @@ describe('NestedHeaders', () => {
       window.onerror = onErrorFn;
 
       expect(errorSpy).not.toHaveBeenCalled();
-
-      $('.jasmine_html-reporter').show();
     });
 
     describe('with cooperation with the HidingColumns plugin', () => {

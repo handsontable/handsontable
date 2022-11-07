@@ -14,13 +14,9 @@ describe('WalkontableOverlay', () => {
     this.$wrapper.appendTo('body');
 
     createDataArray(200, 200);
-
-    $('.jasmine_html-reporter').hide(); // a workaround for making the test more predictable
   });
 
   afterEach(function() {
-    $('.jasmine_html-reporter').show(); // a workaround for making the test more predictable
-
     this.$wrapper.remove();
     this.wotInstance.destroy();
   });

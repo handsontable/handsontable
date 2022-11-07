@@ -138,7 +138,7 @@ describe('WalkontableTable (RTL mode)', () => {
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 0 }), 'master').toBe(-2);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'master').toBe(-2);
 
-    expect(wt.wtOverlays.bottomInlineStartCornerOverlay).toBe(undefined);
+    expect(wt.wtOverlays.bottomInlineStartCornerOverlay).not.toBe(undefined);
 
     expect(wt.wtOverlays.bottomOverlay).not.toBe(undefined); // TODO it should be undefined
 

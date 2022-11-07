@@ -6,13 +6,11 @@ describe('ContextMenu', () => {
     const id = 'testContainer';
 
     beforeEach(function() {
-      $('.jasmine_html-reporter').hide();
       $('html').attr('dir', htmlDir);
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
     afterEach(function() {
-      $('.jasmine_html-reporter').show();
       $('html').attr('dir', 'ltr');
 
       if (this.$container) {

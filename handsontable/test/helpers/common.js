@@ -137,6 +137,15 @@ afterEach(() => {
   specContext.spec = null;
 });
 
+beforeAll(() => {
+  // Make the test more predictable by hiding the test suite dots
+  $('.jasmine_html-reporter').hide();
+});
+afterAll(() => {
+  // After the test are finished show the test suite dots
+  $('.jasmine_html-reporter').show();
+});
+
 /**
  * @returns {object} Returns the spec object for currently running test.
  */

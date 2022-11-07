@@ -805,7 +805,7 @@ describe('manualRowMove', () => {
         });
       });
 
-      it('should properly scrolling viewport if mouse is over part-visible cell', (done) => {
+      it('should properly scrolling viewport if mouse is over part-visible cell', async() => {
         const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(20, 20),
           colHeaders: true,
@@ -818,24 +818,20 @@ describe('manualRowMove', () => {
 
         hot.selectCell(19, 0);
 
-        setTimeout(() => {
-          expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
+        await sleep(50);
 
-          const $rowsHeaders = spec().$container.find('.ht_clone_inline_start tr th');
+        expect(hot.view.getFirstFullyVisibleRow()).toBe(9);
 
-          $rowsHeaders.eq(10).simulate('mousedown');
-          $rowsHeaders.eq(10).simulate('mouseup');
-          $rowsHeaders.eq(10).simulate('mousedown');
-          $rowsHeaders.eq(8).simulate('mouseover');
-          $rowsHeaders.eq(8).simulate('mousemove');
-          $rowsHeaders.eq(8).simulate('mouseup');
-        }, 50);
+        $(getCell(9, -1))
+          .simulate('mousedown')
+          .simulate('mouseup')
+          .simulate('mousedown');
+        $(getCell(7, -1))
+          .simulate('mouseover')
+          .simulate('mousemove')
+          .simulate('mouseup');
 
-        setTimeout(() => {
-          expect(hot.view._wt.wtTable.getFirstVisibleRow())
-            .toBeLessThan(8);
-          done();
-        }, 150);
+        expect(hot.view.getFirstFullyVisibleRow()).toBe(8);
       });
     });
   });
