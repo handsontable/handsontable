@@ -61,23 +61,12 @@
             </li>
           </ul>
 
-          <a
-            class="nav-link"
-            :href="subItem.link"
-            @click="itemClick(subItem)"
+          <NavLink
+            v-else
+            :item="subItem"
+            @click.native="itemClick(subItem)"
             @focusout="isLastItemOfArray(subItem, item.items) && setOpen(false)"
-          >
-            <ul
-              class="dropdown-subitem-wrapper font-normal"
-            >
-              <li class="dropdown-subitem">{{ subItem.text }}</li>
-              <li v-for="childSubItem in subItem.subitems"
-                  class="dropdown-subitem intend"
-              >
-                {{ childSubItem}}
-              </li>
-            </ul>
-          </a>
+          />
         </li>
       </ul>
     </DropdownTransition>
@@ -180,10 +169,9 @@ export default {
         color $accentColor
   .nav-dropdown
     list-style none
-    li.dropdown-item, li.dropdown-subitem
-      line-height 1.7rem
-      color inherit
     .dropdown-item
+      color inherit
+      line-height 1.7rem
       h4
         margin 0.45rem 0 0
         border-top 1px solid #eee
@@ -191,16 +179,11 @@ export default {
       .dropdown-subitem-wrapper
         padding 0
         list-style none
-        &.font-normal .dropdown-subitem
-          font-size: inherit;
         .dropdown-subitem
           font-size 0.9em
-          &.intend
-            position: relative;
-            left: 1.5rem;
-            opacity: .6
       a
         display block
+        line-height 1.7rem
         position relative
         border-bottom none
         font-weight 400

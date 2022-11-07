@@ -16,7 +16,22 @@
     :rel="rel"
     @focusout="focusoutAction"
   >
-    {{ item.text }}
+    <section v-if="item.subTexts?.length">
+      <p>{{ item.text }}</p>
+      <ul>
+        <li
+          v-for="(subText, i) in item.subTexts"
+          :key="i"
+          class="subtext"
+        >
+          {{ subText  }}
+        </li>
+      </ul>
+    </section>
+
+    <template v-else>
+      {{ item.text }}
+    </template>
     <OutboundLink v-if="isBlankTarget" />
   </a>
 </template>
@@ -95,3 +110,16 @@ export default {
   }
 };
 </script>
+
+<style lang="stylus">
+  section
+    p
+      margin 0
+    ul
+      list-style none
+      padding 0
+      li.subtext
+        position: relative;
+        left: 1.5rem;
+        opacity: .6
+</style>
