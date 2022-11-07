@@ -3,56 +3,62 @@
  */
 
 export const CONTEXT_MENU_ITEMS_NAMESPACE = 'ContextMenu:items';
-export const CONTEXTMENU_ITEMS_NO_ITEMS = `${CONTEXT_MENU_ITEMS_NAMESPACE}.noItems`;
-export const CONTEXTMENU_ITEMS_ROW_ABOVE = `${CONTEXT_MENU_ITEMS_NAMESPACE}.insertRowAbove`;
-export const CONTEXTMENU_ITEMS_ROW_BELOW = `${CONTEXT_MENU_ITEMS_NAMESPACE}.insertRowBelow`;
-export const CONTEXTMENU_ITEMS_INSERT_LEFT = `${CONTEXT_MENU_ITEMS_NAMESPACE}.insertColumnOnTheLeft`;
-export const CONTEXTMENU_ITEMS_INSERT_RIGHT = `${CONTEXT_MENU_ITEMS_NAMESPACE}.insertColumnOnTheRight`;
-export const CONTEXTMENU_ITEMS_REMOVE_ROW = `${CONTEXT_MENU_ITEMS_NAMESPACE}.removeRow`;
-export const CONTEXTMENU_ITEMS_REMOVE_COLUMN = `${CONTEXT_MENU_ITEMS_NAMESPACE}.removeColumn`;
-export const CONTEXTMENU_ITEMS_UNDO = `${CONTEXT_MENU_ITEMS_NAMESPACE}.undo`;
-export const CONTEXTMENU_ITEMS_REDO = `${CONTEXT_MENU_ITEMS_NAMESPACE}.redo`;
-export const CONTEXTMENU_ITEMS_READ_ONLY = `${CONTEXT_MENU_ITEMS_NAMESPACE}.readOnly`;
-export const CONTEXTMENU_ITEMS_CLEAR_COLUMN = `${CONTEXT_MENU_ITEMS_NAMESPACE}.clearColumn`;
 
-export const CONTEXTMENU_ITEMS_COPY = `${CONTEXT_MENU_ITEMS_NAMESPACE}.copy`;
-export const CONTEXTMENU_ITEMS_CUT = `${CONTEXT_MENU_ITEMS_NAMESPACE}.cut`;
+const CM_NS = CONTEXT_MENU_ITEMS_NAMESPACE;
 
-export const CONTEXTMENU_ITEMS_FREEZE_COLUMN = `${CONTEXT_MENU_ITEMS_NAMESPACE}.freezeColumn`;
-export const CONTEXTMENU_ITEMS_UNFREEZE_COLUMN = `${CONTEXT_MENU_ITEMS_NAMESPACE}.unfreezeColumn`;
+export const CONTEXTMENU_ITEMS_NO_ITEMS = `${CM_NS}.noItems`;
+export const CONTEXTMENU_ITEMS_ROW_ABOVE = `${CM_NS}.insertRowAbove`;
+export const CONTEXTMENU_ITEMS_ROW_BELOW = `${CM_NS}.insertRowBelow`;
+export const CONTEXTMENU_ITEMS_INSERT_LEFT = `${CM_NS}.insertColumnOnTheLeft`;
+export const CONTEXTMENU_ITEMS_INSERT_RIGHT = `${CM_NS}.insertColumnOnTheRight`;
+export const CONTEXTMENU_ITEMS_REMOVE_ROW = `${CM_NS}.removeRow`;
+export const CONTEXTMENU_ITEMS_REMOVE_COLUMN = `${CM_NS}.removeColumn`;
+export const CONTEXTMENU_ITEMS_UNDO = `${CM_NS}.undo`;
+export const CONTEXTMENU_ITEMS_REDO = `${CM_NS}.redo`;
+export const CONTEXTMENU_ITEMS_READ_ONLY = `${CM_NS}.readOnly`;
+export const CONTEXTMENU_ITEMS_CLEAR_COLUMN = `${CM_NS}.clearColumn`;
 
-export const CONTEXTMENU_ITEMS_MERGE_CELLS = `${CONTEXT_MENU_ITEMS_NAMESPACE}.mergeCells`;
-export const CONTEXTMENU_ITEMS_UNMERGE_CELLS = `${CONTEXT_MENU_ITEMS_NAMESPACE}.unmergeCells`;
+export const CONTEXTMENU_ITEMS_COPY = `${CM_NS}.copy`;
+export const CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS = `${CM_NS}.copyWithHeaders`;
+export const CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS = `${CM_NS}.copyWithGroupHeaders`;
+export const CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY = `${CM_NS}.copyHeadersOnly`;
+export const CONTEXTMENU_ITEMS_CUT = `${CM_NS}.cut`;
 
-export const CONTEXTMENU_ITEMS_ADD_COMMENT = `${CONTEXT_MENU_ITEMS_NAMESPACE}.addComment`;
-export const CONTEXTMENU_ITEMS_EDIT_COMMENT = `${CONTEXT_MENU_ITEMS_NAMESPACE}.editComment`;
-export const CONTEXTMENU_ITEMS_REMOVE_COMMENT = `${CONTEXT_MENU_ITEMS_NAMESPACE}.removeComment`;
-export const CONTEXTMENU_ITEMS_READ_ONLY_COMMENT = `${CONTEXT_MENU_ITEMS_NAMESPACE}.readOnlyComment`;
+export const CONTEXTMENU_ITEMS_FREEZE_COLUMN = `${CM_NS}.freezeColumn`;
+export const CONTEXTMENU_ITEMS_UNFREEZE_COLUMN = `${CM_NS}.unfreezeColumn`;
 
-export const CONTEXTMENU_ITEMS_ALIGNMENT = `${CONTEXT_MENU_ITEMS_NAMESPACE}.align`;
-export const CONTEXTMENU_ITEMS_ALIGNMENT_LEFT = `${CONTEXT_MENU_ITEMS_NAMESPACE}.align.left`;
-export const CONTEXTMENU_ITEMS_ALIGNMENT_CENTER = `${CONTEXT_MENU_ITEMS_NAMESPACE}.align.center`;
-export const CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT = `${CONTEXT_MENU_ITEMS_NAMESPACE}.align.right`;
-export const CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY = `${CONTEXT_MENU_ITEMS_NAMESPACE}.align.justify`;
-export const CONTEXTMENU_ITEMS_ALIGNMENT_TOP = `${CONTEXT_MENU_ITEMS_NAMESPACE}.align.top`;
-export const CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE = `${CONTEXT_MENU_ITEMS_NAMESPACE}.align.middle`;
-export const CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM = `${CONTEXT_MENU_ITEMS_NAMESPACE}.align.bottom`;
+export const CONTEXTMENU_ITEMS_MERGE_CELLS = `${CM_NS}.mergeCells`;
+export const CONTEXTMENU_ITEMS_UNMERGE_CELLS = `${CM_NS}.unmergeCells`;
 
-export const CONTEXTMENU_ITEMS_BORDERS = `${CONTEXT_MENU_ITEMS_NAMESPACE}.borders`;
-export const CONTEXTMENU_ITEMS_BORDERS_TOP = `${CONTEXT_MENU_ITEMS_NAMESPACE}.borders.top`;
-export const CONTEXTMENU_ITEMS_BORDERS_RIGHT = `${CONTEXT_MENU_ITEMS_NAMESPACE}.borders.right`;
-export const CONTEXTMENU_ITEMS_BORDERS_BOTTOM = `${CONTEXT_MENU_ITEMS_NAMESPACE}.borders.bottom`;
-export const CONTEXTMENU_ITEMS_BORDERS_LEFT = `${CONTEXT_MENU_ITEMS_NAMESPACE}.borders.left`;
-export const CONTEXTMENU_ITEMS_REMOVE_BORDERS = `${CONTEXT_MENU_ITEMS_NAMESPACE}.borders.remove`;
+export const CONTEXTMENU_ITEMS_ADD_COMMENT = `${CM_NS}.addComment`;
+export const CONTEXTMENU_ITEMS_EDIT_COMMENT = `${CM_NS}.editComment`;
+export const CONTEXTMENU_ITEMS_REMOVE_COMMENT = `${CM_NS}.removeComment`;
+export const CONTEXTMENU_ITEMS_READ_ONLY_COMMENT = `${CM_NS}.readOnlyComment`;
 
-export const CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD = `${CONTEXT_MENU_ITEMS_NAMESPACE}.nestedHeaders.insertChildRow`; // eslint-disable-line max-len
-export const CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD = `${CONTEXT_MENU_ITEMS_NAMESPACE}.nestedHeaders.detachFromParent`; // eslint-disable-line max-len
+export const CONTEXTMENU_ITEMS_ALIGNMENT = `${CM_NS}.align`;
+export const CONTEXTMENU_ITEMS_ALIGNMENT_LEFT = `${CM_NS}.align.left`;
+export const CONTEXTMENU_ITEMS_ALIGNMENT_CENTER = `${CM_NS}.align.center`;
+export const CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT = `${CM_NS}.align.right`;
+export const CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY = `${CM_NS}.align.justify`;
+export const CONTEXTMENU_ITEMS_ALIGNMENT_TOP = `${CM_NS}.align.top`;
+export const CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE = `${CM_NS}.align.middle`;
+export const CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM = `${CM_NS}.align.bottom`;
 
-export const CONTEXTMENU_ITEMS_HIDE_COLUMN = `${CONTEXT_MENU_ITEMS_NAMESPACE}.hideColumn`;
-export const CONTEXTMENU_ITEMS_SHOW_COLUMN = `${CONTEXT_MENU_ITEMS_NAMESPACE}.showColumn`;
+export const CONTEXTMENU_ITEMS_BORDERS = `${CM_NS}.borders`;
+export const CONTEXTMENU_ITEMS_BORDERS_TOP = `${CM_NS}.borders.top`;
+export const CONTEXTMENU_ITEMS_BORDERS_RIGHT = `${CM_NS}.borders.right`;
+export const CONTEXTMENU_ITEMS_BORDERS_BOTTOM = `${CM_NS}.borders.bottom`;
+export const CONTEXTMENU_ITEMS_BORDERS_LEFT = `${CM_NS}.borders.left`;
+export const CONTEXTMENU_ITEMS_REMOVE_BORDERS = `${CM_NS}.borders.remove`;
 
-export const CONTEXTMENU_ITEMS_HIDE_ROW = `${CONTEXT_MENU_ITEMS_NAMESPACE}.hideRow`;
-export const CONTEXTMENU_ITEMS_SHOW_ROW = `${CONTEXT_MENU_ITEMS_NAMESPACE}.showRow`;
+export const CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD = `${CM_NS}.nestedHeaders.insertChildRow`; // eslint-disable-line max-len
+export const CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD = `${CM_NS}.nestedHeaders.detachFromParent`; // eslint-disable-line max-len
+
+export const CONTEXTMENU_ITEMS_HIDE_COLUMN = `${CM_NS}.hideColumn`;
+export const CONTEXTMENU_ITEMS_SHOW_COLUMN = `${CM_NS}.showColumn`;
+
+export const CONTEXTMENU_ITEMS_HIDE_ROW = `${CM_NS}.hideRow`;
+export const CONTEXTMENU_ITEMS_SHOW_ROW = `${CM_NS}.showRow`;
 
 export const FILTERS_NAMESPACE = 'Filters:';
 export const FILTERS_CONDITIONS_NAMESPACE = `${FILTERS_NAMESPACE}conditions`;

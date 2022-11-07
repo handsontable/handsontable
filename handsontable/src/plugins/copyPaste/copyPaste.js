@@ -6,6 +6,9 @@ import { rangeEach } from '../../helpers/number';
 import { sanitize } from '../../helpers/string';
 import { getSelectionText } from '../../helpers/dom/element';
 import copyItem from './contextMenuItem/copy';
+import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
+import copyWithColumnGroupHeadersItem from './contextMenuItem/copyWithColumnGroupHeaders';
+import copyWithColumnHeadersItem from './contextMenuItem/copyWithColumnHeaders';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
@@ -25,8 +28,6 @@ Hooks.getSingleton().register('afterCopy');
 export const PLUGIN_KEY = 'copyPaste';
 export const PLUGIN_PRIORITY = 80;
 const SETTING_KEYS = ['fragmentSelection'];
-const ROWS_LIMIT = Infinity;
-const COLUMNS_LIMIT = Infinity;
 const privatePool = new WeakMap();
 const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
@@ -81,54 +82,78 @@ export class CopyPaste extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Maximum number of columns than can be copied to clipboard using <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>.
+   *
+   * @type {number}
+   * @default Infinity
+   */
+  columnsLimit = Infinity;
+  /**
+   * Maximum number of rows than can be copied to clipboard using <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>.
+   *
+   * @type {number}
+   * @default Infinity
+   */
+   rowsLimit = Infinity;
+  /**
+   * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
+   *
+   * @private
+   * @type {Array}
+   */
+  copyableRanges = [];
+  /**
+   * Provides focusable element to support IME and copy/paste/cut actions.
+   *
+   * @private
+   * @type {FocusableWrapper}
+   */
+  focusableElement = void 0;
+  /**
+   * Defines paste (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**V**</kbd>) behavior.
+   * * Default value `"overwrite"` will paste clipboard value over current selection.
+   * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
+   * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
+   *
+   * @type {string}
+   * @default 'overwrite'
+   */
+  pasteMode = 'overwrite';
+  /**
+   * Shows the "Copy with column headers" item in the context menu and extends the context menu for
+   * `'copy_with_column_headers'` option that can be used for creating custom menus arrangements.
+   *
+   * @type {boolean}
+   * @default false
+   */
+  copyColumnHeaders = false;
+  /**
+   * Shows the "Copy with column group headers" item in the context menu and extends the context menu for
+   * `'copy_with_column_group headers'` option that can be used for creating custom menus arrangements.
+   *
+   * @type {boolean}
+   * @default false
+   */
+  copyColumnGroupHeaders = false;
+  /**
+   * Shows the "Copy column headers only" item in the context menu and extends the context menu for
+   * `'copy_column_headers_only'` option that can be used for creating custom menus arrangements.
+   *
+   * @type {boolean}
+   * @default false
+   */
+  copyColumnHeadersOnly = false;
+
+  /**
+   * UI container for the secondary focusable element.
+   *
+   * @type {HTMLElement}
+   */
+  uiContainer = this.hot.rootDocument.body;
+
   constructor(hotInstance) {
     super(hotInstance);
-    /**
-     * Maximum number of columns than can be copied to clipboard using <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>.
-     *
-     * @type {number}
-     * @default Infinity
-     */
-    this.columnsLimit = COLUMNS_LIMIT;
-    /**
-     * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
-     *
-     * @private
-     * @type {Array}
-     */
-    this.copyableRanges = [];
-    /**
-     * Provides focusable element to support IME and copy/paste/cut actions.
-     *
-     * @private
-     * @type {FocusableWrapper}
-     */
-    this.focusableElement = void 0;
-    /**
-     * Defines paste (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**V**</kbd>) behavior.
-     * * Default value `"overwrite"` will paste clipboard value over current selection.
-     * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
-     * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
-     *
-     * @type {string}
-     * @default 'overwrite'
-     */
-    this.pasteMode = 'overwrite';
-    /**
-     * Maximum number of rows than can be copied to clipboard using <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>.
-     *
-     * @type {number}
-     * @default Infinity
-     */
-    this.rowsLimit = ROWS_LIMIT;
-
-    /**
-     * UI container for the secondary focusable element.
-     *
-     * @type {HTMLElement}
-     */
-    this.uiContainer = this.hot.rootDocument.body;
-
     privatePool.set(this, {
       isTriggeredByCopy: false,
       isTriggeredByCut: false,
@@ -163,6 +188,9 @@ export class CopyPaste extends BasePlugin {
       this.pasteMode = settings.pasteMode || this.pasteMode;
       this.rowsLimit = isNaN(settings.rowsLimit) ? this.rowsLimit : settings.rowsLimit;
       this.columnsLimit = isNaN(settings.columnsLimit) ? this.columnsLimit : settings.columnsLimit;
+      this.copyColumnHeaders = !!settings.copyColumnHeaders;
+      this.copyColumnGroupHeaders = !!settings.copyColumnGroupHeaders;
+      this.copyColumnHeadersOnly = !!settings.copyColumnHeadersOnly;
       this.uiContainer = settings.uiContainer || this.uiContainer;
     }
 
@@ -220,6 +248,31 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
+   * Copies the selected cell/cells into the clipboard.
+   */
+  copyCellsOnly() {
+    this.copy();
+  }
+  /**
+   * Copies the column headers into the clipboard.
+   */
+  copyColumnHeadersOnly() {
+
+  }
+  /**
+   * Copies the selected cell/cells including column group headers into the clipboard.
+   */
+  copyWithColumnGroupHeaders() {
+
+  }
+  /**
+   * Copies the selected cell/cells including column headers into the clipboard.
+   */
+  copyWithColumnHeaders() {
+
+  }
+
+  /**
    * Cuts the selected cell into the clipboard.
    */
   cut() {
@@ -233,7 +286,7 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Creates copyable text releated to range objects.
+   * Creates copyable text related to range objects.
    *
    * @param {object[]} ranges Array of objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
    * @returns {string} Returns string which will be copied into clipboard.
@@ -271,7 +324,7 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Creates copyable text releated to range objects.
+   * Creates copyable text related to range objects.
    *
    * @param {object[]} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
    * @returns {Array[]} Returns array of arrays which will be copied into clipboard.
@@ -611,12 +664,27 @@ export class CopyPaste extends BasePlugin {
    */
   onAfterContextMenuDefaultOptions(options) {
     options.items.push(
-      {
-        name: '---------',
-      },
+      { name: '---------' },
       copyItem(this),
-      cutItem(this)
     );
+
+    if (this.copyColumnHeaders) {
+      options.items.push(
+        copyWithColumnHeadersItem(this),
+      );
+    }
+    if (this.copyColumnGroupHeaders) {
+      options.items.push(
+        copyWithColumnGroupHeadersItem(this),
+      );
+    }
+    if (this.copyColumnHeadersOnly) {
+      options.items.push(
+        copyColumnHeadersOnlyItem(this),
+      );
+    }
+
+    options.items.push(cutItem(this));
   }
 
   /**
