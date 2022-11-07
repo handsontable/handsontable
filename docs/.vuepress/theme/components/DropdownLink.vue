@@ -64,6 +64,8 @@
           <a
             class="nav-link"
             :href="subItem.link"
+            @click="itemClick(subItem)"
+            @focusout="isLastItemOfArray(subItem, item.items) && setOpen(false)"
           >
             <ul
               class="dropdown-subitem-wrapper font-normal"
