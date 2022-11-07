@@ -138,12 +138,16 @@ afterEach(() => {
 });
 
 beforeAll(() => {
-  // Make the test more predictable by hiding the test suite dots
-  $('.jasmine_html-reporter').hide();
+  // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
+  if (!process.env.JEST_WORKER_ID) {
+    $('.jasmine_html-reporter').hide();
+  }
 });
 afterAll(() => {
   // After the test are finished show the test suite dots
-  $('.jasmine_html-reporter').show();
+  if (!process.env.JEST_WORKER_ID) {
+    $('.jasmine_html-reporter').show();
+  }
 });
 
 /**
