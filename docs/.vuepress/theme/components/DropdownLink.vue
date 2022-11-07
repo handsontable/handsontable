@@ -180,9 +180,10 @@ export default {
         color $accentColor
   .nav-dropdown
     list-style none
-    .dropdown-item
-      color inherit
+    li.dropdown-item, li.dropdown-subitem
       line-height 1.7rem
+      color inherit
+    .dropdown-item
       h4
         margin 0.45rem 0 0
         border-top 1px solid #eee
@@ -200,7 +201,6 @@ export default {
             opacity: .6
       a
         display block
-        line-height 1.7rem
         position relative
         border-bottom none
         font-weight 400
