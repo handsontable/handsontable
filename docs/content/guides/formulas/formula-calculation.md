@@ -21,7 +21,7 @@ searchCategory: Guides
 
 # Formula calculation
 
-Perform Excel-like calculations on your cells's values, using nearly 400 built-in functions.
+Perform Excel-like calculations on your cells's values, using nearly 400 built-in functions in 16 languages.
 
 [[toc]]
 
@@ -301,7 +301,7 @@ All thanks to a powerful calculation engine called [HyperFormula](https://hyperf
 ::: only-for javascript
 
 1. Import and register the [`Formulas`](@/api/formulas.md) plugin.
-2. Set the [`formulas`](@/api/options.md#formulas) configuration option to `engine: Hyperformula`.
+2. Set the [`formulas`](@/api/options.md#formulas) configuration option to [`engine: Hyperformula`](@/api/formulas.md#engine).
 
 ```js{12-14}
 import Handsontable from 'handsontable/base';
@@ -325,9 +325,9 @@ new Handsontable(container, {
 ::: only-for react
 
 1. Import the `HyperFormula` class.
-2. Set the [`formulas`](@/api/options.md#formulas) prop to `engine: Hyperformula`.
+2. Set the [`formulas`](@/api/options.md#formulas) prop to [`engine: Hyperformula`](@/api/formulas.md#engine).
 
-```jsx{1,5-7}
+```jsx{6-8}
 import { HyperFormula } from 'hyperformula';
 
 <HotTable
@@ -336,48 +336,81 @@ import { HyperFormula } from 'hyperformula';
   formulas={{
     engine: HyperFormula,
   }}
-  colHeaders={['Qty', 'Unit price', 'Discount', 'Freight', 'Total due (fx)']}
-  fixedRowsBottom={2}
-  stretchH="all"
-  height={200}
 />
 ```
 :::
 
-[See other setup methods](#other-setup-methods)
+See also [other setup methods](#other-setup-methods).
 
 ## Configuration
 
-Decide how you use your formulas. Configure currency symbols, date and time formats, decimal and thousands separators, smart rounding rules, and much more.
+Set your currency symbols, date and time formats, decimal and thousands separators, smart rounding rules, and much more.
 
-[See all configuration options](https://hyperformula.handsontable.com/api/interfaces/configparams.html)
+[See all formula configuration options](https://hyperformula.handsontable.com/api/interfaces/configparams.html)
 
+::: only-for javascript
 ```js
+// default configuration (selected options)
+
 formulas: {
   engine: HyperFormula,
-  functionArgSeparator: ',', // set by default
-  decimalSeparator: '.', // set by default
-  thousandSeparator: '', // set by default
-  arrayColumnSeparator: ',', // set by default
-  arrayRowSeparator: ';', // set by default
-  dateFormats: ['MM/DD/YYYY', 'MM/DD/YY', 'YYYY/MM/DD'],
-  timeFormats: ['hh:mm', 'hh:mm:ss.sss'], // set by default
-  nullYear: 30, // set by default
-  caseSensitive: false, // set by default
-  accentSensitive: true,
-  ignorePunctuation: false, // set by default
-  localeLang: 'en', // set by default
-  useWildcards: true, // set by default
-  useRegularExpressions: false, // set by default
-  matchWholeCell: true, // set by default
-  useArrayArithmetic: true,
-  ignoreWhiteSpace: 'any',
-  evaluateNullToZero: true,
-  leapYear1900: true,
-  nullDate: { year: 1899, month: 12, day: 31 },
-  smartRounding: true, // set by default
+  functionArgSeparator: ',',
+  decimalSeparator: '.',
+  thousandSeparator: '',
+  arrayColumnSeparator: ',',
+  arrayRowSeparator: ';',
+  dateFormats: ['DD/MM/YYYY', 'DD/MM/YY'],
+  timeFormats: ['hh:mm', 'hh:mm:ss.sss'],
+  nullYear: 30,
+  caseSensitive: false,
+  accentSensitive: false,
+  ignorePunctuation: false,
+  localeLang: 'en',
+  useWildcards: true,
+  useRegularExpressions: false,
+  matchWholeCell: true,
+  useArrayArithmetic: false,
+  ignoreWhiteSpace: 'standard',
+  evaluateNullToZero: false,
+  leapYear1900: false,
+  nullDate: { year: 1899, month: 12, day: 30 },
+  smartRounding: true,
 },
 ```
+:::
+
+::: only-for react
+```jsx
+// default configuration (selected options)
+
+<HotTable
+  formulas={{
+    engine: HyperFormula,
+    functionArgSeparator: ',',
+    decimalSeparator: '.',
+    thousandSeparator: '',
+    arrayColumnSeparator: ',',
+    arrayRowSeparator: ';',
+    dateFormats: ['DD/MM/YYYY', 'DD/MM/YY'],
+    timeFormats: ['hh:mm', 'hh:mm:ss.sss'],
+    nullYear: 30,
+    caseSensitive: false,
+    accentSensitive: false,
+    ignorePunctuation: false,
+    localeLang: 'en',
+    useWildcards: true,
+    useRegularExpressions: false,
+    matchWholeCell: true,
+    useArrayArithmetic: false,
+    ignoreWhiteSpace: 'standard',
+    evaluateNullToZero: false,
+    leapYear1900: false,
+    nullDate: { year: 1899, month: 12, day: 30 },
+    smartRounding: true,
+  }}
+/>
+```
+:::
 
 See also:
 - [Configuration compatible with Microsoft Excel](https://hyperformula.handsontable.com/guide/compatibility-with-microsoft-excel.html#full-configuration)
@@ -705,7 +738,228 @@ new Handsontable(element, {
 
 ## Other setup methods
 
+After you [import and register](#quickstart) the [`Formulas`](@/api/formulas.md) plugin, you can initialize it in different ways, depending on your use case.
 
+The simplest way is to set the [`formulas`](@/api/options.md#formulas) configuration option to [`engine: Hyperformula`](@/api/formulas.md#engine):
+
+::: only-for javascript
+```js
+formulas: {
+  engine: HyperFormula,
+}
+```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  formulas={{
+    engine: HyperFormula,
+  }}
+/>
+```
+:::
+
+You can also set [`engine`](@/api/formulas.md#engine) to an object:
+
+::: only-for javascript
+```js
+formulas: {
+  engine: {
+    hyperformula: HyperFormula,
+  }
+}
+```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  formulas={{
+    engine: {
+      hyperformula: HyperFormula,
+    }
+  }}
+/>
+```
+:::
+
+You can also create an external HyperFormula instance:
+
+::: only-for javascript
+```js{10-12}
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
+
+new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: data,
+  formulas: {
+    engine: hyperformulaInstance,
+  },
+});
+```
+:::
+
+::: only-for react
+```jsx{12-14}
+const ExampleComponent = () => {
+  const hyperformulaInstance = HyperFormula.buildEmpty({
+    // to use an external HyperFormula instance,
+    // initialize it with the `'internal-use-in-handsontable'` license key
+    licenseKey: 'internal-use-in-handsontable',
+  });
+
+  return (
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={data}
+      formulas={{
+        engine: hyperformulaInstance
+      }}
+    />
+  );
+};
+```
+:::
+
+You can use different HyperFormula instances in different Handsontable instances:
+
+::: only-for javascript
+```js
+const handsontableInstance1 = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: data,
+  formulas: {
+    engine: HyperFormula,
+  },
+});
+
+const handsontableInstance2 = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: data,
+  formulas: {
+    engine: HyperFormula,
+  },
+});
+```
+:::
+
+::: only-for react
+```jsx
+const ExampleComponent = () => {
+  return (
+    <>
+      <HotTable
+        licenseKey="non-commercial-and-evaluation"
+        data={data}
+        formulas={{
+          engine: HyperFormula,
+        }}
+      />
+
+      <HotTable
+        licenseKey="non-commercial-and-evaluation"
+        data={data}
+        formulas={{
+          engine: HyperFormula,
+        }}
+      />
+    </>
+  );
+};
+```
+:::
+
+::: only-for javascript
+
+You can also use a single HyperFormula instance across multiple Handsontable instances, by using Handsontable's [`getPlugin()`](@/api/core.md#getplugin) method:
+
+```js
+const handsontableInstance1 = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: data,
+  formulas: {
+    engine: HyperFormula,
+    sheetName: 'Sheet1',
+  },
+});
+
+const handsontableInstance2 = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: data,
+  formulas: {
+    engine: handsontableInstance1.getPlugin('formulas').engine,
+    sheetName: 'Sheet2',
+  },
+});
+```
+:::
+
+You can create an external HyperFormula instance and use it across multiple Handsontable instances:
+
+::: only-for javascript
+```js
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
+
+const handsontableInstance1 = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: data,
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet1',
+  },
+});
+
+const handsontableInstance2 = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: data,
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet2',
+  },
+});
+```
+:::
+
+::: only-for react
+```jsx
+const ExampleComponent = () => {
+  const hyperformulaInstance = HyperFormula.buildEmpty({
+    // to use an external HyperFormula instance,
+    // initialize it with the `'internal-use-in-handsontable'` license key
+    licenseKey: 'internal-use-in-handsontable',
+  });
+  
+  return (
+    <>
+      <HotTable
+        licenseKey="non-commercial-and-evaluation"
+        data={data}
+        formulas={{
+          engine: hyperformulaInstance,
+        }}
+      />
+
+      <HotTable
+        licenseKey="non-commercial-and-evaluation"
+        data={data}
+        formulas={{
+          engine: hyperformulaInstance,
+        }}
+      />
+    </>
+  );
+};
+```
+:::
 
 ## Handsontable and HyperFormula
 
