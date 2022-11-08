@@ -168,6 +168,7 @@ export default {
       &:hover
         color $accentColor
   .nav-dropdown
+    list-style none
     .dropdown-item
       color inherit
       line-height 1.7rem
