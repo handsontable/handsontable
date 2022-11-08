@@ -2372,7 +2372,7 @@ const REGISTERED_HOOKS = [
   'afterUnlisten',
 
   /**
-   * Fired after the window was resized.
+   * Fired after the window was resized or the size of the Handsontable root element was changed.
    *
    * @event Hooks#afterRefreshDimensions
    * @param {object} previousDimensions Previous dimensions of the container.
@@ -2382,7 +2382,8 @@ const REGISTERED_HOOKS = [
   'afterRefreshDimensions',
 
   /**
-   * Cancellable hook, called after resizing a window, but before redrawing a table.
+   * Cancellable hook, called after resizing a window or after detecting size change of the
+   * Handsontable root element, but before redrawing a table.
    *
    * @event Hooks#beforeRefreshDimensions
    * @param {object} previousDimensions Previous dimensions of the container.
