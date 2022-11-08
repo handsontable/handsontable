@@ -109,11 +109,13 @@ module.exports = function(docsVersion, base) {
         jsToken.content = jsToken.content.replaceAll('{{$basePath}}', base);
 
         const codeToCompile = jsToken.content
+          // Remove the all "/* start:skip-in-preview */" and "/* end:skip-in-preview */" comments
+          .replace(/\/\*(\s+)?(start|end):skip-in-preview(\s+)?\*\/\n/gm, '')
           // Remove the code between "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" expressions
           // eslint-disable-next-line max-len
           .replace(/\/\*(\s+)?start:skip-in-compilation(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-compilation(\s+)?\*\/\n/msg, '');
         const codeToPreview = jsToken.content
-          // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" expressions
+          // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
           .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '')
           // Remove the code between "/* start:skip-in-preview */" and "/* end:skip-in-preview */" expressions
           .replace(/\/\*(\s+)?start:skip-in-preview(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-preview(\s+)?\*\/\n/msg, '')
