@@ -290,13 +290,15 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example-data-grid
 
 ## Overview
 
-With Handsontable's [`Formulas`](@/api/formulas.md) plugin, your users can perform complex calculations right out of the box, using the familiar A1 notation (`Sheet1!A1:B2`) and the same functions they know from Microsoft Excel or Google Sheets.
+With Handsontable's [`Formulas`](@/api/formulas.md) plugin, your users can perform complex calculations right out of the box, using functions they know from Microsoft Excel or Google Sheets, and the familiar A1 notation (`Sheet1!A1:B2`).
 
 All thanks to a powerful calculation engine called [HyperFormula](https://hyperformula.handsontable.com/?_ga=2.175054562.1554369424.1667382893-1753876268.1623181985), which is an independent library being developed and supported by the Handsontable team.
 
 [See all built-in functions](https://handsontable.github.io/hyperformula/guide/built-in-functions.html)
 
 ## Quickstart
+
+Get started with formulas:
 
 ::: only-for javascript
 
@@ -573,6 +575,7 @@ Learn more in the [HyperFormula documentation](https://hyperformula.handsontable
 
 Give custom names to cells, formulas, numbers, strings, or any other type of data.
 
+::: only-for javascript
 ```js
 formulas: {
   engine: HyperFormula,
@@ -586,6 +589,22 @@ formulas: {
 
 // now, =SUM(myCell:A10) is the same as =SUM(A1:A10)
 ```
+:::
+
+::: only-for react
+```jsx
+formulas={{
+  engine: HyperFormula,
+  namedExpressions: [{
+    name: 'myCell',
+    expression: '=A1',
+  }]
+}}
+
+// now, =SUM(myCell:A10) is the same as =SUM(A1:A10)
+```
+:::
+
 ::: only-for javascript
 ::: example #example-named-expressions1 --html 1 --js 2
 ```html
@@ -721,6 +740,7 @@ Learn more in the [HyperFormula documentation](https://hyperformula.handsontable
 Listen to any changes made to cells' values,
 using Handsontable's [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook.
 
+::: only-for javascript
 ```js
 const afterFormulasValuesUpdate = (changes) => {
   changes.forEach((change) => {
@@ -735,6 +755,28 @@ new Handsontable(element, {
   afterFormulasValuesUpdate
 })
 ```
+:::
+
+::: only-for react
+```jsx
+const ExampleComponent = () => {
+  const afterFormulasValuesUpdate = (changes) => {
+    changes.forEach((change) => {
+      console.log('change', change.address, change.newValue)
+    })
+  }
+
+  return (
+    <HotTable
+      formulas={{
+        engine: HyperFormula
+      }}
+      afterFormulasValuesUpdate={afterFormulasValuesUpdate}
+    />
+  );
+};
+```
+:::
 
 ## Other setup methods
 
@@ -878,7 +920,7 @@ const ExampleComponent = () => {
 
 You can also use a single HyperFormula instance across multiple Handsontable instances, by using Handsontable's [`getPlugin()`](@/api/core.md#getplugin) method:
 
-```js
+```js{14}
 const handsontableInstance1 = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: data,
@@ -961,6 +1003,14 @@ const ExampleComponent = () => {
 ```
 :::
 
+## Known limitations
+
+The `Formulas` plugin:
+
+* Doesn't work with the [`NestedRows`](@/api/nestedRows.md) plugin.
+* Doesn't work with the [`UndoRedo`](@/api/undoRedo.md) plugin.
+* Doesn't work with nested data (when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data.md#array-of-objects)).
+
 ## Handsontable and HyperFormula
 
 Different versions of Handsontable support different versions of HyperFormula.
@@ -978,14 +1028,6 @@ To find out which HyperFormula version to use, see the table below:
 Your [Handsontable license key](@/guides/getting-started/license-key.md) lets you use HyperFormula for free in your Handsontable instance: just pass `'internal-use-in-handsontable'` as your HyperFormula license key .
 
 To use HyperFormula outside of a Handsontable instance, though, (e.g., on a server), you need a dedicated [HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html). For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
-
-## Known limitations
-
-The `Formulas` plugin:
-
-* Doesn't work with the [`NestedRows`](@/api/nestedRows.md) plugin.
-* Doesn't work with the [`UndoRedo`](@/api/undoRedo.md) plugin.
-* Doesn't work with nested data (when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data.md#array-of-objects)).
 
 ## Related articles
 
