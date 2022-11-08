@@ -50,11 +50,11 @@ export default {
       items:
         [
           ...Array.from(this.$page.versionsWithPatches.keys()).map(v => ({
-            text: `${this.addLatest(v, false)}`,
+            text: v,
+            subTexts: this.$page.versionsWithPatches.get(v),
             link: this.getLink(v),
             target: '_self',
             isHtmlLink: true,
-            subitems: this.$page.versionsWithPatches.get(v),
           })),
         ]
     };
