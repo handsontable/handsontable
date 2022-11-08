@@ -16,7 +16,7 @@
     :rel="rel"
     @focusout="focusoutAction"
   >
-    <section v-if="item.subTexts?.length">
+    <section v-if="item.subTexts && item.subTexts.length">
       <p>{{ item.text }}</p>
       <ul>
         <li
