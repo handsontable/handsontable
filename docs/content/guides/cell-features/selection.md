@@ -36,7 +36,7 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 - [`single`](@/api/options.md#selectionmode) - A single cell can be selected.
 - [`range`](@/api/options.md#selectionmode) - Multiple cells within a single range can be selected.
-- [`multiple`](@/api/options.md#selectionmode) - Multiple non-contiguous ranges of cells can be selected.
+- [`multiple`](@/api/options.md#selectionmode) - Multiple, non-adjacent ranges of cells can be selected.
 
 ::: only-for javascript
 ::: example #example1 --html 1 --js 2
