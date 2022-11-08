@@ -23,13 +23,16 @@ The following example shows a Handsontable instance with translations set up in 
 ```
 
 ```ts
-// app.component.ts
+/* file: app.component.ts */
 import { Component } from '@angular/core';
-import * as numbro from 'numbro';
-import * as languages from 'numbro/dist/languages.min';
+import numbro from 'numbro';
+// @ts-ignore: Missing TypeScript declaration file for "numbro" languages files
+import jaJP from 'numbro/languages/ja-JP';
+// @ts-ignore: Missing TypeScript declaration file for "numbro" languages files
+import trTR from 'numbro/languages/tr-TR';
 
-numbro.registerLanguage(languages['ja-JP']);
-numbro.registerLanguage(languages['tr-TR']);
+numbro.registerLanguage(jaJP);
+numbro.registerLanguage(trTR);
 
 type Product = {
   productName: string,
@@ -63,7 +66,7 @@ type Product = {
     </div>
   `
 })
-class AppComponent {
+export class AppComponent {
   formatTR = {
     pattern: '0,0.00 $',
     culture: 'tr-TR'
@@ -83,26 +86,32 @@ class AppComponent {
   ];
 }
 
-// app.module.ts
+/* file: app.module.ts */
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
 import { registerAllModules } from 'handsontable/registry';
+/* start:skip-in-compilation */
+import { AppComponent } from './app.component';
+/* end:skip-in-compilation */
 
 // register Handsontable's modules
 registerAllModules();
 
 @NgModule({
-  imports:      [ BrowserModule, HotTableModule ],
+  imports: [ BrowserModule, HotTableModule ],
   declarations: [ AppComponent ],
-  bootstrap:    [ AppComponent ]
+  bootstrap: [ AppComponent ]
 })
-class AppModule { }
+export class AppModule { }
 
-// bootstrap
+/* start:skip-in-preview */
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
-platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch(err => { console.error(err) });
+/* end:skip-in-preview */
 ```
 :::
 

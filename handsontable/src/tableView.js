@@ -695,11 +695,14 @@ class TableView {
       selections: this.instance.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
       onWindowResize: () => {
-        if (!this.instance || this.instance.isDestroyed) {
-          return;
+        if (this.instance && !this.instance.isDestroyed) {
+          this.instance.refreshDimensions();
         }
-
-        this.instance.refreshDimensions();
+      },
+      onContainerElementResize: () => {
+        if (this.instance && !this.instance.isDestroyed) {
+          this.instance.refreshDimensions();
+        }
       },
       onCellMouseDown: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
