@@ -56,8 +56,6 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 ::: example #example1 :react --tab preview
 ```jsx
-import ReactDOM from 'react-dom';
-import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -79,9 +77,19 @@ const RendererComponent = (props) => {
   );
 }
 
-const hotData = Handsontable.helper.createSpreadsheetData(10, 5);
+const hotData = [
+  ['A1', 'B1', 'C1', 'D1', 'E1'],
+  ['A2', 'B2', 'C2', 'D2', 'E2'],
+  ['A3', 'B3', 'C3', 'D3', 'E3'],
+  ['A4', 'B4', 'C4', 'D4', 'E4'],
+  ['A5', 'B5', 'C5', 'D5', 'E5'],
+  ['A6', 'B6', 'C6', 'D6', 'E6'],
+  ['A7', 'B7', 'C7', 'D7', 'E7'],
+  ['A8', 'B8', 'C8', 'D8', 'E8'],
+  ['A9', 'B9', 'C9', 'D9', 'E9'],
+];
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
       <HotColumn width={250}>
@@ -92,7 +100,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 
@@ -109,7 +119,6 @@ In this example, React's `Context` passes information available in the main app 
 ```
 ```jsx
 import React, { useState, useContext } from 'react';
-import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -129,7 +138,7 @@ function CustomRenderer(props) {
   return <div>{props.value}</div>;
 }
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const [darkMode, setDarkMode] = useState(false);
 
   const toggleDarkMode = (event) => {
@@ -142,7 +151,18 @@ const ExampleComponent = () => {
         <label><input type="checkbox" onClick={toggleDarkMode}/> Dark mode</label>
       </div>
       <HotTable
-        data={Handsontable.helper.createSpreadsheetData(10, 1)}
+        data={[
+          ['A1'],
+          ['A2'],
+          ['A3'],
+          ['A4'],
+          ['A5'],
+          ['A6'],
+          ['A7'],
+          ['A8'],
+          ['A9'],
+          ['A10'],
+        ]}
         rowHeaders={true}
         licenseKey={"non-commercial-and-evaluation"}
       >
@@ -155,7 +175,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 
@@ -167,7 +189,6 @@ The following example implements `@handsontable/react` with a custom renderer ad
 
 ::: example #example3 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 import { registerAllModules } from 'handsontable/registry';
@@ -176,7 +197,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       id="hot"
@@ -211,7 +232,9 @@ const ExampleComponent = () => {
   );
 }
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -262,7 +285,7 @@ It is possible to register your renderer and re-use it with the name you registe
 
 ::: only-for javascript
 ```js
-const container = document.getElementById('container');
+const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
   data: someData,
   columns: [{
@@ -392,6 +415,9 @@ This example shows how to use custom cell renderers to display HTML content in a
 ::: only-for javascript
 ::: example #example4
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const data = [
   {
     title: '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
@@ -413,7 +439,7 @@ const data = [
   }
 ];
 
-const container = document.getElementById('example4');
+const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   data,
   colWidths: [200, 200, 200, 80],
@@ -429,11 +455,9 @@ const hot = new Handsontable(container, {
 });
 
 function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
-  // be sure you only allow certain HTML tags to avoid XSS threats
-  // (you should also remove unwanted HTML attributes)
-  td.innerHTML = Handsontable.helper.sanitize(value, {
-    ALLOWED_TAGS: ['em', 'b', 'strong', 'a', 'big'],
-  });
+  // WARNING: Be sure you only allow certain HTML tags to avoid XSS threats.
+  // Sanitize the "value" before passing it to the innerHTML property.
+  td.innerHTML = value;
 }
 
 function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
@@ -457,8 +481,6 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -466,7 +488,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [{
     title: '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
     description: 'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
@@ -488,11 +510,9 @@ const ExampleComponent = () => {
   ];
 
   function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
-    // be sure you only allow certain HTML tags to avoid XSS threats
-    // (you should also remove unwanted HTML attributes)
-    td.innerHTML = Handsontable.helper.sanitize(value, {
-      ALLOWED_TAGS: ['em', 'b', 'strong', 'a', 'big'],
-    });
+    // WARNING: Be sure you only allow certain HTML tags to avoid XSS threats.
+    // Sanitize the "value" before passing it to the innerHTML property.
+    td.innerHTML = value;
   }
 
   function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
@@ -527,7 +547,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -550,12 +572,16 @@ You can also put HTML into row and column headers. If you need to attach events 
 </div>
 ```
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 let isChecked = false;
-const exampleContainer3 = document.querySelector('#exampleContainer5');
+const exampleContainer = document.querySelector('#exampleContainer5');
 const container = document.querySelector('#example5');
 
 function customRenderer(instance, td) {
   Handsontable.renderers.TextRenderer.apply(this, arguments);
+
   if (isChecked) {
     td.style.backgroundColor = 'yellow';
   } else {
@@ -581,13 +607,13 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-exampleContainer3.addEventListener('mousedown', event => {
+exampleContainer.addEventListener('mousedown', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     event.stopPropagation();
   }
 });
 
-exampleContainer3.addEventListener('mouseup', event => {
+exampleContainer.addEventListener('mouseup', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     isChecked = !event.target.checked;
     hot.render();
@@ -601,21 +627,22 @@ exampleContainer3.addEventListener('mouseup', event => {
 ::: example #example5 :react
 ```jsx
 import { useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   let isChecked = false;
 
   function customRenderer(instance, td) {
-    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    textRenderer.apply(this, arguments);
+
     if (isChecked) {
       td.style.backgroundColor = 'yellow';
     } else {
@@ -623,17 +650,17 @@ const ExampleComponent = () => {
     }
   }
 
-  const exampleContainer3MousedownCallback = event => {
+  const exampleContainerMousedownCallback = event => {
     if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
       event.stopPropagation();
     }
   };
-  let exampleContainer3MouseupCallback;
+  let exampleContainerMouseupCallback;
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
 
-    exampleContainer3MouseupCallback = event => {
+    exampleContainerMouseupCallback = event => {
       if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
         isChecked = !event.target.checked;
         hot.render();
@@ -642,7 +669,7 @@ const ExampleComponent = () => {
   });
 
   return (
-    <div id="exampleContainer5" onMouseUp={(...args) => exampleContainer3MouseupCallback(...args)}>
+    <div id="exampleContainer5" onMouseUp={(...args) => exampleContainerMouseupCallback(...args)}>
       <HotTable
         ref={hotRef}
         height="auto"
@@ -666,7 +693,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
+/* end:skip-in-preview */
 ```
 :::
 :::

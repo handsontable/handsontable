@@ -91,8 +91,15 @@ Note that the [`numericFormat`](@/api/options.md#numericformat) option doesn't c
 ::: only-for javascript
 ::: example #example1 :hot-numbro
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import numbro from 'numbro';
+import deDE from 'numbro/languages/de-DE';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// register the languages you need
+numbro.registerLanguage(deDE);
+
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     { car: 'Mercedes A 160', year: 2017, price_usd: 7000, price_eur: 7000 },
@@ -141,15 +148,19 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react-numbro
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
+import numbro from 'numbro';
+import deDE from 'numbro/languages/de-DE';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+// register the languages you need
+numbro.registerLanguage(deDE);
+
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -194,7 +205,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -205,21 +218,19 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ::: example #example3 :react-numbro
 ```jsx
-import React from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable, HotColumn } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import numbro from 'numbro';
+import jaJP from 'numbro/languages/ja-JP';
+import trTR from 'numbro/languages/tr-TR';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-import numbro from 'numbro';
-import languages from 'numbro/dist/languages.min.js';
-
 // register the languages you need
-numbro.registerLanguage(languages['ja-JP']);
-numbro.registerLanguage(languages['tr-TR']);
+numbro.registerLanguage(jaJP);
+numbro.registerLanguage(trTR);
 
 // define formats
 const formatJP = {
@@ -232,7 +243,7 @@ const formatTR = {
   culture: 'tr-TR'
 };
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -275,7 +286,9 @@ const ExampleComponent = () => {
   )
 }
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::

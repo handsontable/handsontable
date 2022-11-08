@@ -23,20 +23,19 @@ The following example is an implementation of `@handsontable/angular` with a cus
 ```
 
 ```js
-// app.component.ts
+/* file: app.component.ts */
 import { Component } from '@angular/core';
 import Handsontable from 'handsontable/base';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 @Component({
   selector: 'app-root',
   template: `
-  <div>
-    <hot-table [settings]="hotSettings"></hot-table>
-  </div>
+    <div>
+      <hot-table [settings]="hotSettings"></hot-table>
+    </div>
   `,
 })
-class AppComponent {
+export class AppComponent {
   hotSettings: Handsontable.GridSettings = {
     data:
       [
@@ -69,26 +68,32 @@ class AppComponent {
   };
 }
 
-// app.module.ts
+/* file: app.module.ts */
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
 import { registerAllModules } from 'handsontable/registry';
+/* start:skip-in-compilation */
+import { AppComponent } from './app.component';
+/* end:skip-in-compilation */
 
 // register Handsontable's modules
 registerAllModules();
 
 @NgModule({
-  imports:      [ BrowserModule, HotTableModule ],
+  imports: [ BrowserModule, HotTableModule ],
   declarations: [ AppComponent ],
-  bootstrap:    [ AppComponent ]
+  bootstrap: [ AppComponent ]
 })
-class AppModule { }
+export class AppModule { }
 
-// bootstrap
+/* start:skip-in-preview */
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
-platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch(err => { console.error(err) });
+/* end:skip-in-preview */
 ```
 :::
 
