@@ -346,7 +346,18 @@ export class NestedHeaders extends BasePlugin {
         }
       }
 
-      this.hot.view.appendColHeader(visualColumnIndex, TH, headerLevel);
+      this.hot.view.appendColHeader(visualColumnIndex, TH, (visualIndex, headerLevel) => {
+        const {
+          isHidden,
+          isPlaceholder,
+        } = this.#stateManager.getHeaderSettings(headerLevel, visualIndex) ?? {};
+
+        if (isPlaceholder || isHidden) {
+          return '';
+        }
+
+        return this.hot.getColHeader(visualIndex, headerLevel);
+      }, headerLevel);
     };
   }
 

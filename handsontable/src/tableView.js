@@ -1136,21 +1136,16 @@ class TableView {
    * @param {number} [headerLevel=0] The index of header level counting from the top (positive
    *                                 values counting from 0 to N).
    */
-  appendColHeader(visualColumnIndex, TH, headerLevel = 0) {
+  appendColHeader(visualColumnIndex, TH, label = this.instance.getColHeader, headerLevel = 0) {
     if (TH.firstChild) {
       const container = TH.firstChild;
 
       if (hasClass(container, 'relative')) {
-        this.updateCellHeader(
-          container.querySelector('.colHeader'),
-          visualColumnIndex,
-          this.instance.getColHeader,
-          headerLevel,
-        );
+        this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, label, headerLevel);
 
       } else {
         empty(TH);
-        this.appendColHeader(visualColumnIndex, TH, headerLevel);
+        this.appendColHeader(visualColumnIndex, TH, label, headerLevel);
       }
 
     } else {
@@ -1160,7 +1155,7 @@ class TableView {
 
       div.className = 'relative';
       span.className = 'colHeader';
-      this.updateCellHeader(span, visualColumnIndex, this.instance.getColHeader, headerLevel);
+      this.updateCellHeader(span, visualColumnIndex, label, headerLevel);
 
       div.appendChild(span);
       TH.appendChild(div);
