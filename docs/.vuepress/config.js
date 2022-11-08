@@ -17,7 +17,7 @@ const {
   getThisDocsVersion,
   MULTI_FRAMEWORKED_CONTENT_DIR,
 } = require('./helpers');
-const { getPermalinkHrefMethod } = require('./onlyForContainerHelpers');
+const { getPermalinkHrefMethod } = require('./plugins/markdown-it-conditional-container/onlyForContainerHelpers');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 
 const uniqueSlugs = new Set();
