@@ -346,19 +346,35 @@ export class NestedHeaders extends BasePlugin {
         }
       }
 
-      this.hot.view.appendColHeader(visualColumnIndex, TH, (visualIndex, headerLevel) => {
-        const {
-          isHidden,
-          isPlaceholder,
-        } = this.#stateManager.getHeaderSettings(headerLevel, visualIndex) ?? {};
-
-        if (isPlaceholder || isHidden) {
-          return '';
-        }
-
-        return this.hot.getColHeader(visualIndex, headerLevel);
-      }, headerLevel);
+      this.hot.view.appendColHeader(
+        visualColumnIndex,
+        TH,
+        (...args) => this.getColumnHeaderValue(...args),
+        headerLevel
+      );
     };
+  }
+
+  /**
+   * Returns the column header value for specified column and header level index.
+   *
+   * @private
+   * @param {number} visualColumnIndex Visual column index.
+   * @param {number} headerLevel The index of header level counting from the top (positive
+   *                             values counting from 0 to N).
+   * @returns {string} Returns the column header value to update.
+   */
+  getColumnHeaderValue(visualColumnIndex, headerLevel) {
+    const {
+      isHidden,
+      isPlaceholder,
+    } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? {};
+
+    if (isPlaceholder || isHidden) {
+      return '';
+    }
+
+    return this.hot.getColHeader(visualColumnIndex, headerLevel);
   }
 
   /**

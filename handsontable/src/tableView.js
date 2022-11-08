@@ -1133,6 +1133,7 @@ class TableView {
    * @private
    * @param {number} visualColumnIndex Visual column index.
    * @param {HTMLTableCellElement} TH The table header element.
+   * @param {Function} [label] The function that returns the header label.
    * @param {number} [headerLevel=0] The index of header level counting from the top (positive
    *                                 values counting from 0 to N).
    */

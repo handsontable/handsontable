@@ -3599,6 +3599,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} [headerLevel=0] The index of header level counting from the top (positive
    *                                 values counting from 0 to N).
    * @fires Hooks#modifyColHeader
+   * @fires Hooks#modifyColumnHeaderValue
    * @returns {Array|string|number} The column header(s).
    */
   this.getColHeader = function(column, headerLevel = 0) {
@@ -3656,9 +3657,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       result = spreadsheetColumnLabel(columnIndex); // see #1458
     }
 
-    if (instance.hasHook('modifyColumnHeaderValue')) {
-      result = instance.runHooks('modifyColumnHeaderValue', result, column, headerLevel);
-    }
+    result = instance.runHooks('modifyColumnHeaderValue', result, column, headerLevel);
 
     return result;
   };
