@@ -1,5 +1,8 @@
+import ResizeObserver from 'resize-observer-polyfill';
 import './helpers/custom-matchers';
 import * as jasmineHelpers from './helpers/jasmine-helpers';
+
+global.ResizeObserver = ResizeObserver;
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
 

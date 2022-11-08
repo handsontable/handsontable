@@ -216,6 +216,7 @@ export default class Settings {
       onBeforeHighlightingColumnHeader: sourceCol => sourceCol,
 
       onWindowResize: null,
+      onContainerElementResize: null,
 
       renderAllRows: false,
       groups: false,
