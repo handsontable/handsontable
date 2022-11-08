@@ -1930,6 +1930,19 @@ const REGISTERED_HOOKS = [
   'modifyColumnHeaderHeight',
 
   /**
+   * Fired while retrieving the column header value.
+   *
+   * @since 12.3.0
+   * @event Hooks#modifyColumnHeaderValue
+   * @param {string} value The column header value.
+   * @param {number} visualColumnIndex The visual column index.
+   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
+   *                                 values counting from 0 to N).
+   * @returns {string} Returns the column header value to update.
+   */
+  'modifyColumnHeaderValue',
+
+  /**
    * Fired by {@link UndoRedo} plugin before the undo action. Contains information about the action that is being undone.
    * This hook is fired when {@link Options#undo} option is enabled.
    *

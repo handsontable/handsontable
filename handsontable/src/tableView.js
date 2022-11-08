@@ -1130,16 +1130,20 @@ class TableView {
    * @private
    * @param {number} visualColumnIndex Visual column index.
    * @param {HTMLTableCellElement} TH The table header element.
-   * @param {Function} label The function that returns the header label.
    * @param {number} [headerLevel=0] The index of header level counting from the top (positive
    *                                 values counting from 0 to N).
    */
-  appendColHeader(visualColumnIndex, TH, label = this.instance.getColHeader, headerLevel = 0) {
+  appendColHeader(visualColumnIndex, TH, headerLevel = 0) {
     if (TH.firstChild) {
       const container = TH.firstChild;
 
       if (hasClass(container, 'relative')) {
-        this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, label);
+        this.updateCellHeader(
+          container.querySelector('.colHeader'),
+          visualColumnIndex,
+          this.instance.getColHeader,
+          headerLevel,
+        );
 
       } else {
         empty(TH);
@@ -1153,7 +1157,7 @@ class TableView {
 
       div.className = 'relative';
       span.className = 'colHeader';
-      this.updateCellHeader(span, visualColumnIndex, label);
+      this.updateCellHeader(span, visualColumnIndex, this.instance.getColHeader, headerLevel);
 
       div.appendChild(span);
       TH.appendChild(div);
@@ -1165,12 +1169,14 @@ class TableView {
   /**
    * Updates header cell content.
    *
-   * @since 0.15.0-beta4
+   * @private
    * @param {HTMLElement} element Element to update.
    * @param {number} index Row index or column index.
    * @param {Function} content Function which should be returns content for this cell.
+   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
+   *                                 values counting from 0 to N).
    */
-  updateCellHeader(element, index, content) {
+  updateCellHeader(element, index, content, headerLevel = 0) {
     let renderedIndex = index;
     const parentOverlay = this._wt.wtOverlays.getParentOverlay(element) || this._wt;
 
@@ -1185,7 +1191,7 @@ class TableView {
     }
 
     if (renderedIndex > -1) {
-      fastInnerHTML(element, content(index));
+      fastInnerHTML(element, content(index, headerLevel));
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946

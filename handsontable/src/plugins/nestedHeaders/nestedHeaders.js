@@ -136,6 +136,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
     this.addHook('modifyColWidth', (...args) => this.onModifyColWidth(...args));
+    this.addHook('modifyColumnHeaderValue', (...args) => this.onModifyColumnHeaderValue(...args));
     this.addHook('beforeHighlightingColumnHeader', (...args) => this.onBeforeHighlightingColumnHeader(...args));
     this.addHook(
       'afterViewportColumnCalculatorOverride',
@@ -313,10 +314,10 @@ export class NestedHeaders extends BasePlugin {
     return (renderedColumnIndex, TH) => {
       const { columnIndexMapper, view } = this.hot;
 
-      let visualColumnsIndex = columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
+      let visualColumnIndex = columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
 
-      if (visualColumnsIndex === null) {
-        visualColumnsIndex = renderedColumnIndex;
+      if (visualColumnIndex === null) {
+        visualColumnIndex = renderedColumnIndex;
       }
 
       TH.removeAttribute('colspan');
@@ -324,10 +325,9 @@ export class NestedHeaders extends BasePlugin {
 
       const {
         colspan,
-        label,
         isHidden,
         isPlaceholder,
-      } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnsIndex) ?? { label: '' };
+      } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? { label: '' };
 
       if (isPlaceholder || isHidden) {
         addClass(TH, 'hiddenHeader');
@@ -346,7 +346,7 @@ export class NestedHeaders extends BasePlugin {
         }
       }
 
-      this.hot.view.appendColHeader(visualColumnsIndex, TH, () => label, headerLevel);
+      this.hot.view.appendColHeader(visualColumnIndex, TH, headerLevel);
     };
   }
 
@@ -573,6 +573,25 @@ export class NestedHeaders extends BasePlugin {
     const cachedWidth = this.ghostTable.getWidth(column);
 
     return width > cachedWidth ? width : cachedWidth;
+  }
+
+  /**
+   * Listens the `modifyColumnHeaderValue` hook that overwrites the column headers values based on
+   * the internal state and settings of the plugin.
+   *
+   * @private
+   * @param {string} value The column header value.
+   * @param {number} visualColumnIndex The visual column index.
+   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
+   *                                 values counting from 0 to N).
+   * @returns {string} Returns the column header value to update.
+   */
+  onModifyColumnHeaderValue(value, visualColumnIndex, headerLevel) {
+    const {
+      label,
+    } = this.#stateManager.getHeaderTreeNodeData(headerLevel, visualColumnIndex) ?? { label: '' };
+
+    return label;
   }
 
   /**

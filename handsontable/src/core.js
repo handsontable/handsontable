@@ -3596,12 +3596,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getColHeader
    * @param {number} [column] Visual column index.
+   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
+   *                                 values counting from 0 to N).
    * @fires Hooks#modifyColHeader
    * @returns {Array|string|number} The column header(s).
    */
-  this.getColHeader = function(column) {
+  this.getColHeader = function(column, headerLevel = 0) {
     const columnIndex = instance.runHooks('modifyColHeader', column);
-    let result = tableMeta.colHeaders;
 
     if (columnIndex === void 0) {
       const out = [];
@@ -3611,47 +3612,52 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         out.push(instance.getColHeader(i));
       }
 
-      result = out;
+      return out;
+    }
 
-    } else {
-      const translateVisualIndexToColumns = function(visualColumnIndex) {
-        const arr = [];
-        const columnsLen = instance.countCols();
-        let index = 0;
+    let result = tableMeta.colHeaders;
 
-        for (; index < columnsLen; index++) {
-          if (isFunction(tableMeta.columns) && tableMeta.columns(index)) {
-            arr.push(index);
-          }
+    const translateVisualIndexToColumns = function(visualColumnIndex) {
+      const arr = [];
+      const columnsLen = instance.countCols();
+      let index = 0;
+
+      for (; index < columnsLen; index++) {
+        if (isFunction(tableMeta.columns) && tableMeta.columns(index)) {
+          arr.push(index);
         }
-
-        return arr[visualColumnIndex];
-      };
-
-      const physicalColumn = instance.toPhysicalColumn(columnIndex);
-      const prop = translateVisualIndexToColumns(physicalColumn);
-
-      if (tableMeta.colHeaders === false) {
-        result = null;
-
-      } else if (tableMeta.columns && isFunction(tableMeta.columns) && tableMeta.columns(prop) &&
-                 tableMeta.columns(prop).title) {
-        result = tableMeta.columns(prop).title;
-
-      } else if (tableMeta.columns && tableMeta.columns[physicalColumn] &&
-                 tableMeta.columns[physicalColumn].title) {
-        result = tableMeta.columns[physicalColumn].title;
-
-      } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== void 0) {
-        result = tableMeta.colHeaders[physicalColumn];
-
-      } else if (isFunction(tableMeta.colHeaders)) {
-        result = tableMeta.colHeaders(physicalColumn);
-
-      } else if (tableMeta.colHeaders && typeof tableMeta.colHeaders !== 'string' &&
-                 typeof tableMeta.colHeaders !== 'number') {
-        result = spreadsheetColumnLabel(columnIndex); // see #1458
       }
+
+      return arr[visualColumnIndex];
+    };
+
+    const physicalColumn = instance.toPhysicalColumn(columnIndex);
+    const prop = translateVisualIndexToColumns(physicalColumn);
+
+    if (tableMeta.colHeaders === false) {
+      result = null;
+
+    } else if (tableMeta.columns && isFunction(tableMeta.columns) && tableMeta.columns(prop) &&
+                tableMeta.columns(prop).title) {
+      result = tableMeta.columns(prop).title;
+
+    } else if (tableMeta.columns && tableMeta.columns[physicalColumn] &&
+                tableMeta.columns[physicalColumn].title) {
+      result = tableMeta.columns[physicalColumn].title;
+
+    } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== void 0) {
+      result = tableMeta.colHeaders[physicalColumn];
+
+    } else if (isFunction(tableMeta.colHeaders)) {
+      result = tableMeta.colHeaders(physicalColumn);
+
+    } else if (tableMeta.colHeaders && typeof tableMeta.colHeaders !== 'string' &&
+                typeof tableMeta.colHeaders !== 'number') {
+      result = spreadsheetColumnLabel(columnIndex); // see #1458
+    }
+
+    if (instance.hasHook('modifyColumnHeaderValue')) {
+      result = instance.runHooks('modifyColumnHeaderValue', result, column, headerLevel);
     }
 
     return result;
