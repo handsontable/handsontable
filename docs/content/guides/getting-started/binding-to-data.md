@@ -28,8 +28,10 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.getElementById('example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
@@ -56,7 +58,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -64,7 +65,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -88,7 +89,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -101,8 +104,10 @@ The following example shows how you would use the array of arrays with a selecti
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.getElementById('example2');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example2');
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
@@ -136,7 +141,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -144,7 +148,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -175,7 +179,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -188,8 +194,10 @@ An array of objects can be used as a data source as follows:
 ::: only-for javascript
 ::: example #example3
 ```js
-const container = document.getElementById('example3');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example3');
 const data = [
   { id: 1, name: 'Ted Right', address: '' },
   { id: 2, name: 'Frank Honest', address: '' },
@@ -213,7 +221,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -221,7 +228,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [
     { id: 1, name: 'Ted Right', address: '' },
     { id: 2, name: 'Frank Honest', address: '' },
@@ -242,7 +249,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -255,8 +264,10 @@ You can set the [`columns`](@/api/options.md#columns) configuration option to a 
 ::: only-for javascript
 ::: example #example4 .custom-class
 ```js
-const container = document.getElementById('example4');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example4');
 const data = [
   { id: 1, name: {first: 'Ted', last: 'Right'}, address: '' },
   { id: 2, address: '' },// Handsontable will create missing properties on demand
@@ -295,7 +306,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 .custom-class :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -303,7 +313,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [
     { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
     { id: 2, address: '' }, // Handsontable will create missing properties on demand
@@ -339,7 +349,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -352,8 +364,10 @@ In a scenario where you have nested objects, you can use them as the data source
 ::: only-for javascript
 ::: example #example5
 ```js
-const container = document.getElementById('example5');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example5');
 const data = [
   { id: 1, name: {first: 'Ted', last: 'Right'}, address: '' },
   { id: 2, address: '' }, // Handsontable will create missing properties on demand
@@ -381,7 +395,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example5 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -389,9 +402,9 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [
-    { id: 1,  name: { first: 'Ted', last: 'Right' }, address: '' },
+    { id: 1, name: { first: 'Ted', last: 'Right' }, address: '' },
     { id: 2, address: '' }, // Handsontable will create missing properties on demand
     { id: 3, name: { first: 'Joan', last: 'Well' }, address: '' }
   ];
@@ -414,7 +427,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -429,8 +444,10 @@ In a scenario where you start with an empty data source, you will need to provid
 ::: only-for javascript
 ::: example #example6
 ```js
-const container = document.getElementById('example6');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example6');
 const hot = new Handsontable(container, {
   data: [],
   dataSchema: { id: null, name: { first: null, last: null }, address: null },
@@ -455,7 +472,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example6 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -463,7 +479,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[]}
@@ -492,7 +508,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -507,8 +525,10 @@ The example below shows how to use such objects:
 ::: only-for javascript
 ::: example #example7
 ```js
-const container = document.getElementById('example7');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example7');
 const hot = new Handsontable(container, {
   data: [
     model({ id: 1, name: 'Ted Right', address: '' }),
@@ -572,7 +592,6 @@ function property(attr) {
 ::: only-for react
 ::: example #example7 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -580,7 +599,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   function model(opts) {
     let _pub = {
       id: undefined,
@@ -643,7 +662,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example7'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -656,8 +677,10 @@ By default, if you don't provide any data, Handsontable renders as an empty 5x5 
 ::: only-for javascript
 ::: example #example9
 ```js
-const container = document.getElementById('example9');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example9');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
@@ -668,7 +691,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example9 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -676,14 +698,15 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable licenseKey="non-commercial-and-evaluation" />
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
-
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -711,8 +734,10 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 ::: example #example10
 
 ```js
-const container = document.getElementById('example10');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example10');
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
@@ -740,7 +765,6 @@ hot.setDataAtCell(0, 1, 'Ford');
 
 ```jsx
 import { useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -748,7 +772,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   useEffect(() => {
@@ -776,8 +800,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example10'));
-
+/* end:skip-in-preview */
 ```
 
 :::
@@ -910,8 +935,10 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 ::: only-for javascript
 ::: example #example11
 ```js
-const container = document.getElementById('example11');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example11');
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
@@ -933,7 +960,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example11 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -941,7 +967,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -960,7 +986,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example11'));
+/* end:skip-in-preview */
 ```
 :::
 :::
