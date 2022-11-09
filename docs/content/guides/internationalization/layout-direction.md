@@ -50,7 +50,11 @@ To try out Handsontable's RTL support, check out the demo below:
 ::: only-for javascript
 ::: example #example1 :hot-lang
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
+import 'handsontable/dist/handsontable.full.min.css';
+
+registerLanguageDictionary(arAR);
 
 // generate random RTL data (e.g., Arabic)
 function generateArabicData() {
@@ -81,6 +85,7 @@ function generateArabicData() {
   return arr;
 }
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: generateArabicData(),
@@ -103,13 +108,14 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react-languages
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
+registerLanguageDictionary(arAR);
 
 //  generate random RTL data (e.g., Arabic)
 function generateArabicData() {
@@ -138,7 +144,7 @@ function generateArabicData() {
   return arr;
 }
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       licenseKey="non-commercial-and-evaluation"
@@ -155,7 +161,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -204,10 +212,11 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
   <div id="example2"></div>
 </section>
 ```
-
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -230,7 +239,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -238,7 +246,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <section dir="rtl">
       <HotTable
@@ -258,7 +266,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -274,8 +284,10 @@ and set it to `'rtl'`:
 ::: only-for javascript
 ::: example #example3
 ```js
-const container = document.querySelector('#example3');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -298,7 +310,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -306,7 +317,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       licenseKey="non-commercial-and-evaluation"
@@ -324,7 +335,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -340,8 +353,10 @@ and set it to `'ltr'`:
 ::: only-for javascript
 ::: example #example4
 ```js
-const container = document.querySelector('#example4');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -364,7 +379,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -372,7 +386,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       licenseKey="non-commercial-and-evaluation"
@@ -390,7 +404,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -405,8 +421,10 @@ In the example below, some columns are explicitly aligned to the left, center, o
 ::: only-for javascript
 ::: example #example5
 ```js
-const container = document.querySelector('#example5');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example5');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -439,7 +457,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example5 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -447,7 +464,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       licenseKey="non-commercial-and-evaluation"
@@ -475,7 +492,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
+/* end:skip-in-preview */
 ```
 :::
 :::

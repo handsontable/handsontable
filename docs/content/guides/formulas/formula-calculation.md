@@ -106,6 +106,10 @@ h3.demo-preview {
 }
 ```
 ```js
+import Handsontable from 'handsontable';
+import HyperFormula from 'hyperformula';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const data1 = [
   ['10.26', null, 'Sum', '=SUM(A:A)'],
   ['20.12', null, 'Average', '=AVERAGE(A:A)'],
@@ -129,7 +133,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
   licenseKey: 'internal-use-in-handsontable',
 });
 
-const container1 = document.getElementById('example-basic-multi-sheet-1');
+const container1 = document.querySelector('#example-basic-multi-sheet-1');
 new Handsontable(container1, {
   data: data1,
   colHeaders: true,
@@ -142,7 +146,7 @@ new Handsontable(container1, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-const container2 = document.getElementById('example-basic-multi-sheet-2');
+const container2 = document.querySelector('#example-basic-multi-sheet-2');
 new Handsontable(container2, {
   data: data2,
   colHeaders: true,
@@ -169,7 +173,6 @@ h3.demo-preview {
 ```
 ```jsx
 import { HyperFormula } from 'hyperformula';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -177,7 +180,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data1 = [
     ['10.26', null, 'Sum', '=SUM(A:A)'],
     ['20.12', null, 'Average', '=AVERAGE(A:A)'],
@@ -229,7 +232,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -242,6 +247,10 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 ::: only-for javascript
 ::: example #example-data-grid
 ```js
+import Handsontable from 'handsontable';
+import HyperFormula from 'hyperformula';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const data = [
   ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
   ['172', '474', '0.51', '11', '=A2*(B2*C2)+D2'],
@@ -347,8 +356,8 @@ const data = [
   ['=SUM(A1:A100)', '=AVERAGE(B1:B100)', '=AVERAGE(C1:C100)', '=SUM(D1:D100)', '=SUM(E1:E100)']
 ];
 
-const container = document.getElementById('example-data-grid');
-new Handsontable(container, {
+const container = document.querySelector('#example-data-grid');
+const hot = new Handsontable(container, {
   data: data,
   formulas: {
     engine: HyperFormula,
@@ -367,7 +376,6 @@ new Handsontable(container, {
 ::: example #example-data-grid :react
 ```jsx
 import { HyperFormula } from 'hyperformula';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -375,7 +383,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [
     ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
     ['172', '474', '0.51', '11', '=A2*(B2*C2)+D2'],
@@ -496,7 +504,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example-data-grid'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -605,7 +615,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 
 ::: only-for react
 ```jsx
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
     // to use an external HyperFormula instance,
     // initialize it with the `'internal-use-in-handsontable'` license key
@@ -647,7 +657,7 @@ const ExampleComponent = () => {
 
 ::: only-for react
 ```jsx
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <>
       <HotTable
@@ -724,7 +734,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 
 ::: only-for react
 ```jsx
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
     // to use an external HyperFormula instance,
     // initialize it with the `'internal-use-in-handsontable'` license key
@@ -776,7 +786,7 @@ new Handsontable(element, {
 
 ::: only-for react
 ```jsx
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const afterFormulasValuesUpdate = (changes) => {
     changes.forEach((change) => {
       console.log('change', change.address, change.newValue)
@@ -809,6 +819,10 @@ You can use custom-named expressions in your formula expressions. A named expres
 </div>
 ```
 ```js
+import Handsontable from 'handsontable';
+import HyperFormula from 'hyperformula';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const data = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
   ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
@@ -816,7 +830,7 @@ const data = [
   ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)']
 ];
 
-const container = document.getElementById('example-named-expressions1');
+const container = document.querySelector('#example-named-expressions1');
 const hotNamedExpressions = new Handsontable(container, {
   data: data,
   colHeaders: true,
@@ -853,7 +867,6 @@ button.addEventListener('click', (event) => {
 ```jsx
 import { useEffect, useRef, useState } from 'react';
 import { HyperFormula } from 'hyperformula';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -861,7 +874,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotNamedExpressionsRef = useRef(null);
   const [namedExpressionValue, setNamedExpressionValue] = useState('=10 * Sheet1!$A$2');
 
@@ -921,7 +934,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example-named-expressions1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

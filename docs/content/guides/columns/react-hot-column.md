@@ -21,18 +21,31 @@ To declare column-specific settings, pass the settings as `HotColumn` props, eit
 
 ::: example #example1 :react --tab preview
 ```jsx
-import ReactDOM from 'react-dom';
-import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const hotData = Handsontable.helper.createSpreadsheetData(10, 5);
+// register Handsontable's modules
+registerAllModules();
+
+const hotData = [
+  ['A1', 'B1'],
+  ['A2', 'B2'],
+  ['A3', 'B3'],
+  ['A4', 'B4'],
+  ['A5', 'B5'],
+  ['A6', 'B6'],
+  ['A7', 'B7'],
+  ['A8', 'B8'],
+  ['A9', 'B9'],
+  ['A10', 'B10'],
+];
 const secondColumnSettings = {
   title: 'Second column header',
   readOnly: true
 };
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
       <HotColumn title="First column header" />
@@ -41,7 +54,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 
@@ -51,10 +66,12 @@ When you use object data binding for `<HotColumn/>`, you need to provide precise
 
 ::: example #example3 :react --tab preview
 ```jsx
-import ReactDOM from 'react-dom';
-import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
 
 // a renderer component
 const ScoreRenderer = (props) => {
@@ -80,39 +97,39 @@ const PromotionRenderer = (props) => {
 
 // you can set `data` to an array of objects
 const data = [
-    {
-      id: 1,
-      name: 'Alex',
-      score: 10,
-      isPromoted: false
-    },
-    {
-      id: 2,
-      name: 'Adam',
-      score: 55,
-      isPromoted: false
-    },
-    {
-      id: 3,
-      name: 'Kate',
-      score: 61,
-      isPromoted: true
-    },
-    {
-      id: 4,
-      name: 'Max',
-      score: 98,
-      isPromoted: true
-    },
-    {
-      id: 5,
-      name: 'Lucy',
-      score: 59,
-      isPromoted: false
-    }
-  ];
+  {
+    id: 1,
+    name: 'Alex',
+    score: 10,
+    isPromoted: false
+  },
+  {
+    id: 2,
+    name: 'Adam',
+    score: 55,
+    isPromoted: false
+  },
+  {
+    id: 3,
+    name: 'Kate',
+    score: 61,
+    isPromoted: true
+  },
+  {
+    id: 4,
+    name: 'Max',
+    score: 98,
+    isPromoted: true
+  },
+  {
+    id: 5,
+    name: 'Lucy',
+    score: 59,
+    isPromoted: false
+  }
+];
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
         data={data}
@@ -135,6 +152,8 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::

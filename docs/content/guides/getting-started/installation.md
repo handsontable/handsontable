@@ -165,7 +165,7 @@ const data = [
   ['2021', 30, 15, 12, 13]
 ];
 
-const container = document.getElementById('example');
+const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
   data: data,
   rowHeaders: true,
@@ -179,16 +179,17 @@ const hot = new Handsontable(container, {
 
 ::: example #example
 ```js
-const data = [
-  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-  ['2019', 10, 11, 12, 13],
-  ['2020', 20, 11, 14, 13],
-  ['2021', 30, 15, 12, 13]
-];
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.getElementById('example');
+const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
-  data: data,
+  data: [
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
+  ],
   rowHeaders: true,
   colHeaders: true,
   height: 'auto',
@@ -211,9 +212,10 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 ## Register Handsontable's modules
 
-Register all of Handsontable's modules with a single function call:
+Import and register all of Handsontable's modules with a single function call:
 
 ```jsx
+import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
@@ -244,7 +246,6 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 ::: example #example :react
 
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -252,7 +253,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [
     ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
     ['2019', 10, 11, 12, 13],
@@ -271,7 +272,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
+/* end:skip-in-preview */
 ```
 :::
 :::
