@@ -468,6 +468,8 @@ export class Comments extends BasePlugin {
 
     const { rootWindow, view: { _wt: wt } } = this.hot;
     const { wtTable } = wt;
+    // TODO: Probably using `hot.getCell` would be the best. However, case for showing comment editor for hidden cell
+    // potentially should be removed with that change (currently a test for it is passing).
     const TD = wt.getCell({ row: renderableRow, col: renderableColumn }, true);
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
 
