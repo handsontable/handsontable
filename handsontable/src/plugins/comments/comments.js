@@ -468,12 +468,7 @@ export class Comments extends BasePlugin {
 
     const { rootWindow, view: { _wt: wt } } = this.hot;
     const { wtTable } = wt;
-
-    const TD = wtTable.getCell({
-      row: renderableRow,
-      col: renderableColumn,
-    });
-
+    const TD = wt.getCell({ row: renderableRow, col: renderableColumn }, true);
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
 
     if (commentStyle) {
