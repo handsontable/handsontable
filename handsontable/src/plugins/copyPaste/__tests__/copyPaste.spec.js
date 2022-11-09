@@ -236,10 +236,16 @@ describe('CopyPaste', () => {
 
       expect(beforeCopySpy.calls.count()).toEqual(1);
       expect(beforeCopySpy).toHaveBeenCalledWith(
-        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
+        [['A1']],
+        [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }],
+        { columnHeadersCount: 0 }
+      );
       expect(afterCopySpy.calls.count()).toEqual(1);
       expect(afterCopySpy).toHaveBeenCalledWith(
-        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
+        [['A1']],
+        [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }],
+        { columnHeadersCount: 0 },
+      );
     });
 
     it('should be possible to block copying', () => {

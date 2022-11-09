@@ -138,6 +138,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('modifyColWidth', (...args) => this.onModifyColWidth(...args));
     this.addHook('modifyColumnHeaderValue', (...args) => this.onModifyColumnHeaderValue(...args));
     this.addHook('beforeHighlightingColumnHeader', (...args) => this.onBeforeHighlightingColumnHeader(...args));
+    this.addHook('beforeCopy', (...args) => this.onBeforeCopy(...args));
     this.addHook(
       'afterViewportColumnCalculatorOverride',
       (...args) => this.onAfterViewportColumnCalculatorOverride(...args)
@@ -417,6 +418,52 @@ export class NestedHeaders extends BasePlugin {
     }
 
     return visualColumn;
+  }
+
+  /**
+   * Listening to the `beforeCopy` hook allows processing the copied column headers so that the
+   * merged column headers do not propagate the value for each column but only once at the beginning
+   * of the column.
+   *
+   * @private
+   * @param {Array[]} data An array of arrays which contains data to copied.
+   * @param {object[]} copyableRanges An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
+   *                                  which will copied.
+   * @param {{ columnHeadersCount: number }} copiedHeadersCount An object with keys that holds information with
+   *                                                            the number of copied headers.
+   */
+  onBeforeCopy(data, copyableRanges, { columnHeadersCount }) {
+    if (columnHeadersCount === 0) {
+      return;
+    }
+
+    for (let rangeIndex = 0; rangeIndex < copyableRanges.length; rangeIndex++) {
+      const { startRow, startCol, endRow, endCol } = copyableRanges[rangeIndex];
+      const rowsCount = endRow - startRow + 1;
+      const columnsCount = startCol - endCol + 1;
+
+      // do not process dataset range and column headers where only one column is copied
+      if (startRow >= 0 || columnsCount === 1) {
+        break;
+      }
+
+      for (let column = startCol; column <= endCol; column++) {
+        for (let row = startRow; row <= endRow; row++) {
+          const zeroBasedColumnHeaderLevel = rowsCount + row;
+          const zeroBasedColumnIndex = column - startCol;
+
+          if (zeroBasedColumnIndex === 0) {
+            continue; // eslint-disable-line no-continue
+          }
+
+          const {
+            label
+          } = this.#stateManager.getHeaderSettings(row, column) ?? { label: '' };
+
+          data[zeroBasedColumnHeaderLevel][zeroBasedColumnIndex] = label;
+        }
+      }
+    }
   }
 
   /**

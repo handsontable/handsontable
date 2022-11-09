@@ -18,7 +18,7 @@ export default function copyWithColumnGroupHeadersItem(copyPastePlugin) {
         return true;
       }
 
-      if (!this.hasColHeaders()) {
+      if (!this.hasColHeaders() || !this.getSettings().nestedHeaders) {
         return true;
       }
 
