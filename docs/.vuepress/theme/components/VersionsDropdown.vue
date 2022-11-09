@@ -25,7 +25,7 @@ export default {
 
       if (version === latestMinor) {
         if (version !== 'next') {
-          version = this.$page.versionsWithPatches.get(latestMinor)[0]; // Latest patch.
+          version = this.$page.versionsWithPatches.get(latestMinor)[0]; // Latest version in a format major.minor.patch
         }
 
         return `${version} (Latest)`;
