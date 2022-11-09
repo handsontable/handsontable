@@ -3760,14 +3760,34 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the row height.
+   * Returns a row's height, as recognized by Handsontable.
    *
-   * Mind that this method is different from the [AutoRowSize](@/api/autoRowSize.md) plugin's [`getRowHeight()`](@/api/autoRowSize.md#getrowheight) method.
+   * Depending on your configuration, the method may return:
+   *   - The row height set by the [`ManualRowResize`](@/api/manualRowResize.md) plugin
+   *     (if the plugin is enabled).
+   *   - The row height set by the [`rowHeights`](@/api/options.md#rowheights) configuration option
+   *     (if the option is set).
+   *   - The row height as measured in the DOM by the [`AutoRowSize`](@/api/autoRowSize.md) plugin
+   *     (if the plugin is enabled).
+   *   - `undefined`, if neither [`ManualRowResize`](@/api/manualRowResize.md),
+   *     nor [`rowHeights`](@/api/options.md#rowheights),
+   *     nor [`AutoRowSize`](@/api/autoRowSize.md) is used.
+   *
+   * The order of priority:
+   *   1. [`ManualRowResize`](@/api/manualRowResize.md)
+   *   2. [`rowHeights`](@/api/options.md#rowheights)
+   *   3. [`AutoRowSize`](@/api/autoRowSize.md)
+   *
+   * The height returned includes 1 px of the row's bottom border.
+   *
+   * Mind that this method is different from the
+   * [`getRowHeight()`](@/api/autoRowSize.md#getrowheight) method
+   * of the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
    *
    * @memberof Core#
    * @function getRowHeight
-   * @param {number} row Visual row index.
-   * @returns {number} The given row's height.
+   * @param {number} row A visual row index.
+   * @returns {number|undefined} The height of the specified row, in pixels.
    * @fires Hooks#modifyRowHeight
    */
   this.getRowHeight = function(row) {
