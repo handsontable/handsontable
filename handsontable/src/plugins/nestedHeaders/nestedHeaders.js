@@ -361,8 +361,10 @@ export class NestedHeaders extends BasePlugin {
    *
    * @private
    * @param {number} visualColumnIndex Visual column index.
-   * @param {number} headerLevel The index of header level counting from the top (positive
-   *                             values counting from 0 to N).
+   * @param {number} headerLevel The index of header level. The header level accepts positive (0 to N)
+   *                             and negative (-1 to -N) values. For positive values, 0 points to the
+   *                             top most header, and for negative direction, -1 points to the most bottom
+   *                             header (the header closest to the cells).
    * @returns {string} Returns the column header value to update.
    */
   getColumnHeaderValue(visualColumnIndex, headerLevel) {
@@ -421,7 +423,7 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Listening to the `beforeCopy` hook allows processing the copied column headers so that the
+   * Listens the `beforeCopy` hook that allows processing the copied column headers so that the
    * merged column headers do not propagate the value for each column but only once at the beginning
    * of the column.
    *

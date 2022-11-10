@@ -10,6 +10,14 @@ copyPaste.pasteMode = 'shift_down';
 copyPaste.pasteMode = 'shift_right';
 
 copyPaste.copy();
+copyPaste.copy('cells-only');
+copyPaste.copy('column-headers-only');
+copyPaste.copy('with-column-group-headers');
+copyPaste.copy('with-column-headers');
+copyPaste.copyCellsOnly();
+copyPaste.copyColumnHeadersOnly();
+copyPaste.copyWithColumnGroupHeaders();
+copyPaste.copyWithColumnHeaders();
 copyPaste.cut();
 copyPaste.getRangedData([{ startRow: 1, startCol: 1, endRow: 2, endCol: 2 }]);
 copyPaste.getRangedCopyableData([{ startRow: 1, startCol: 1, endRow: 2, endCol: 2 }]);
