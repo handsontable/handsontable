@@ -30,7 +30,7 @@ Configure row heights, using a number, an array or a function. Let your users ma
 
 By default, the height of a row adjusts to the height of the content. The content gets wrapped if it doesn't fit the cell's size. The default (and minimum) row height is 23 px (22 px + 1 px of the row's bottom border).
 
-If your rows will different heights than the default (because you use multiline text, or [custom renderers](@/guides/cell-functions/cell-renderer.md#), or custom styles), do one of the following:
+If your rows will have different heights than the default (because you use multiline text, or [custom renderers](@/guides/cell-functions/cell-renderer.md#), or custom styles), do one of the following:
   - Configure your row heights in advance:  set the [`rowHeights`](@/api/options.md#rowheights) option to a [number](#set-row-heights-to-a-number), or an [array](#set-row-heights-with-an-array), or a [function](#set-row-heights-with-a-function). This requires you to know the heights beforehand, but results in the best runtime performance.
   - Set the [`manualRowResize`](@/api/options.md#manualrowresize) option to an array, to configure initial row heights and let your users [adjust the row heights manually](#adjust-row-heights-manually).
   - Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin, by setting `autoRowSize: true`. This tells Handsontable to measure the actual row heights in the DOM. It impacts runtime performance but is accurate.
