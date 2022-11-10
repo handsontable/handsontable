@@ -442,7 +442,7 @@ export class NestedHeaders extends BasePlugin {
       const rowsCount = endRow - startRow + 1;
       const columnsCount = startCol - endCol + 1;
 
-      // do not process dataset range and column headers where only one column is copied
+      // do not process dataset ranges and column headers where only one column is copied
       if (startRow >= 0 || columnsCount === 1) {
         break;
       }
@@ -457,17 +457,20 @@ export class NestedHeaders extends BasePlugin {
           }
 
           const {
-            label
-          } = this.#stateManager.getHeaderSettings(row, column) ?? { label: '' };
+            isHidden,
+            isPlaceholder,
+          } = this.#stateManager.getHeaderSettings(row, column) ?? {};
 
-          data[zeroBasedColumnHeaderLevel][zeroBasedColumnIndex] = label;
+          if (isPlaceholder || isHidden) {
+            data[zeroBasedColumnHeaderLevel][zeroBasedColumnIndex] = '';
+          }
         }
       }
     }
   }
 
   /**
-   * Allows to block the column selection that is controlled by the core Selection module.
+   * Allows blocking the column selection that is controlled by the core Selection module.
    *
    * @private
    * @param {MouseEvent} event Mouse event.

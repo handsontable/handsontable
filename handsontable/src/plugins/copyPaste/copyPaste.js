@@ -111,35 +111,38 @@ export class CopyPaste extends BasePlugin {
    */
   pasteMode = 'overwrite';
   /**
-   * Shows the "Copy with column headers" item in the context menu and extends the context menu for
-   * `'copy_with_column_headers'` option that can be used for creating custom menus arrangements.
-   *
-   * @type {boolean}
-   * @default false
-   */
-  enableCopyColumnHeaders = false;
-  /**
-   * Shows the "Copy with column group headers" item in the context menu and extends the context menu for
-   * `'copy_with_column_group headers'` option that can be used for creating custom menus arrangements.
-   *
-   * @type {boolean}
-   * @default false
-   */
-  enableCopyColumnGroupHeaders = false;
-  /**
-   * Shows the "Copy column headers only" item in the context menu and extends the context menu for
-   * `'copy_column_headers_only'` option that can be used for creating custom menus arrangements.
-   *
-   * @type {boolean}
-   * @default false
-   */
-  enableCopyColumnHeadersOnly = false;
-  /**
    * UI container for the secondary focusable element.
    *
    * @type {HTMLElement}
    */
-  uiContainer = this.hot.rootDocument.body;
+   uiContainer = this.hot.rootDocument.body;
+  /**
+   * Shows the "Copy with column headers" item in the context menu and extends the context menu for
+   * `'copy_with_column_headers'` option that can be used for creating custom menus arrangements.
+   *
+   * @private
+   * @type {boolean}
+   * @default false
+   */
+  #enableCopyColumnHeaders = false;
+  /**
+   * Shows the "Copy with column group headers" item in the context menu and extends the context menu for
+   * `'copy_with_column_group headers'` option that can be used for creating custom menus arrangements.
+   *
+   * @private
+   * @type {boolean}
+   * @default false
+   */
+  #enableCopyColumnGroupHeaders = false;
+  /**
+   * Shows the "Copy column headers only" item in the context menu and extends the context menu for
+   * `'copy_column_headers_only'` option that can be used for creating custom menus arrangements.
+   *
+   * @private
+   * @type {boolean}
+   * @default false
+   */
+  #enableCopyColumnHeadersOnly = false;
   /**
    * Defines the data range to copy. Possible values:
    *  * `'cells-only'` Copy selected cells only;
@@ -203,9 +206,9 @@ export class CopyPaste extends BasePlugin {
       this.pasteMode = settings.pasteMode ?? this.pasteMode;
       this.rowsLimit = isNaN(settings.rowsLimit) ? this.rowsLimit : settings.rowsLimit;
       this.columnsLimit = isNaN(settings.columnsLimit) ? this.columnsLimit : settings.columnsLimit;
-      this.enableCopyColumnHeaders = !!settings.enableCopyColumnHeaders;
-      this.enableCopyColumnGroupHeaders = !!settings.enableCopyColumnGroupHeaders;
-      this.enableCopyColumnHeadersOnly = !!settings.enableCopyColumnHeadersOnly;
+      this.#enableCopyColumnHeaders = !!settings.copyColumnHeaders;
+      this.#enableCopyColumnGroupHeaders = !!settings.copyColumnGroupHeaders;
+      this.#enableCopyColumnHeadersOnly = !!settings.copyColumnHeadersOnly;
       this.uiContainer = settings.uiContainer ?? this.uiContainer;
     }
 
@@ -692,17 +695,17 @@ export class CopyPaste extends BasePlugin {
       copyItem(this),
     );
 
-    if (this.enableCopyColumnHeaders) {
+    if (this.#enableCopyColumnHeaders) {
       options.items.push(
         copyWithColumnHeadersItem(this),
       );
     }
-    if (this.enableCopyColumnGroupHeaders) {
+    if (this.#enableCopyColumnGroupHeaders) {
       options.items.push(
         copyWithColumnGroupHeadersItem(this),
       );
     }
-    if (this.enableCopyColumnHeadersOnly) {
+    if (this.#enableCopyColumnHeadersOnly) {
       options.items.push(
         copyColumnHeadersOnlyItem(this),
       );

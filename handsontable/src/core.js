@@ -3593,11 +3593,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Returns an array of column headers (in string format, if they are enabled). If param `column` is given, it
    * returns the header at the given column.
    *
+   * Since the 12.3.0 the method accepts the 2nd `headerLevel` argument.
+   *
    * @memberof Core#
    * @function getColHeader
    * @param {number} [column] Visual column index.
-   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
-   *                                 values counting from 0 to N).
+   * @param {number} [headerLevel=0] The index of header level. The header level accepts positive (0 to N)
+   *                                 and negative (-1 to -N) values. For positive values, 0 points to the
+   *                                 top most header, and for negative direction, -1 points to the most bottom
+   *                                 header (the header closest to the cells).
    * @fires Hooks#modifyColHeader
    * @fires Hooks#modifyColumnHeaderValue
    * @returns {Array|string|number} The column header(s).
