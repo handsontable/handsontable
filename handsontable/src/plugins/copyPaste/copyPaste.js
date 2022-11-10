@@ -12,10 +12,10 @@ import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
 import {
-  getCellsCopyableRange,
-  getColumnGroupHeadersCopyableRange,
-  getColumnHeadersCopyableRange,
-  normalizeCopyableRange,
+  getCellsRange,
+  getColumnGroupHeadersRange,
+  getColumnHeadersRange,
+  normalizeRanges,
 } from './copyableRanges';
 import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
 
@@ -323,7 +323,7 @@ export class CopyPaste extends BasePlugin {
    */
   getRangedData(ranges) {
     const data = [];
-    const { rows, columns } = normalizeCopyableRange(ranges);
+    const { rows, columns } = normalizeRanges(ranges);
 
     // Concat all rows and columns data defined in ranges into one copyable string
     arrayEach(rows, (row) => {
@@ -386,20 +386,21 @@ export class CopyPaste extends BasePlugin {
     this.copyableRanges = [];
 
     if (this.#copyMode === 'column-headers-only') {
-      this.copyableRanges.push(getColumnHeadersCopyableRange(selectionRange));
+      this.copyableRanges
+        .push(getColumnGroupHeadersRange(selectionRange, this.hot.view.getColumnHeadersCount()));
 
     } else {
       if (this.#copyMode === 'with-column-headers') {
         this.copyableRanges
-          .push(getColumnHeadersCopyableRange(selectionRange));
+          .push(getColumnHeadersRange(selectionRange));
 
       } else if (this.#copyMode === 'with-column-group-headers') {
         this.copyableRanges
-          .push(getColumnGroupHeadersCopyableRange(selectionRange, this.hot.view.getColumnHeadersCount()));
+          .push(getColumnGroupHeadersRange(selectionRange, this.hot.view.getColumnHeadersCount()));
       }
 
       // Copy cells only for 'cells-only' or other type that does not match to the known `#copyMode` type.
-      cellsRange = getCellsCopyableRange(selectionRange);
+      cellsRange = getCellsRange(selectionRange);
 
       const {
         startRow, startCol, endRow, endCol
@@ -465,7 +466,7 @@ export class CopyPaste extends BasePlugin {
    *                                           information with the number of copied headers.
    */
   #countCopiedHeaders(ranges) {
-    const { rows } = normalizeCopyableRange(ranges);
+    const { rows } = normalizeRanges(ranges);
     let columnHeadersCount = 0;
 
     for (let row = 0; row < rows.length; row++) {

@@ -30,7 +30,7 @@ export class CopyPaste extends BasePlugin {
   pasteMode: string;
 
   isEnabled(): boolean;
-  copy(copyMode: CopyModeType): void;
+  copy(copyMode: CopyModeType = 'cells-only'): void;
   copyCellsOnly(): void;
   copyColumnHeadersOnly(): void;
   copyWithColumnGroupHeaders(): void;

@@ -8,7 +8,7 @@ import { rangeEach } from '../../helpers/number';
  * @param {CellRange} selectionRange The selection range represented by the CellRange class.
  * @returns {{startRow: number, startCol: number, endRow: number, endCol: number}}
  */
-export function getCellsCopyableRange(selectionRange) {
+export function getCellsRange(selectionRange) {
   const {
     row: startRow,
     col: startCol,
@@ -33,7 +33,7 @@ export function getCellsCopyableRange(selectionRange) {
  * @param {CellRange} selectionRange The selection range represented by the CellRange class.
  * @returns {{startRow: number, startCol: number, endRow: number, endCol: number}}
  */
-export function getColumnHeadersCopyableRange(selectionRange) {
+export function getColumnHeadersRange(selectionRange) {
   const {
     col: startCol,
   } = selectionRange.getTopStartCorner();
@@ -57,7 +57,7 @@ export function getColumnHeadersCopyableRange(selectionRange) {
  * @param {number} columnHeadersCount The total count of the column header layers.
  * @returns {{startRow: number, startCol: number, endRow: number, endCol: number}}
  */
-export function getColumnGroupHeadersCopyableRange(selectionRange, columnHeadersCount) {
+export function getColumnGroupHeadersRange(selectionRange, columnHeadersCount) {
   const {
     col: startCol,
   } = selectionRange.getTopStartCorner();
@@ -80,7 +80,7 @@ export function getColumnGroupHeadersCopyableRange(selectionRange, columnHeaders
  * @param {{startRow: number, startCol: number, endRow: number, endCol: number}[]} ranges The range to process.
  * @returns {{rows: number[], columns: number[]}}
  */
-export function normalizeCopyableRange(ranges) {
+export function normalizeRanges(ranges) {
   const rows = [];
   const columns = [];
 
