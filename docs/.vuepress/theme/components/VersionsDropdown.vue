@@ -20,15 +20,12 @@ export default {
     };
   },
   methods: {
-    addLatest(version, showPatch) {
+    addLatest(version) {
       const latestMinor = this.$page.latestVersion;
 
       if (version === latestMinor) {
-        const patches = this.$page.versionsWithPatches.get(latestMinor);
-
-        // It will show patches only when we have at least two versions for certain minor.
-        if (showPatch === true && patches?.length > 1) {
-          version = patches[0];
+        if (version !== 'next') {
+          version = this.$page.versionsWithPatches.get(latestMinor)[0]; // Latest version in a format major.minor.patch
         }
 
         return `${version} (Latest)`;
@@ -46,7 +43,7 @@ export default {
   },
   mounted() {
     this.item = {
-      text: this.addLatest(this.$page.currentVersion, true),
+      text: this.addLatest(this.$page.currentVersion),
       items:
         [
           ...Array.from(this.$page.versionsWithPatches.keys()).map(v => ({
