@@ -257,10 +257,10 @@ export class CopyPaste extends BasePlugin {
    *
    * @param {'cells-only' | 'column-headers-only' | 'with-column-group-headers' | 'with-column-headers'} [copyMode='cells-only']
    * Defines the data range to copy. Possible values:
-   *  * `'cells-only'` Copy selected cells only;
-   *  * `'column-headers-only'` Copy column headers only;
-   *  * `'with-column-group-headers'` Copy cells with group column headers;
-   *  * `'with-column-headers'` Copy cells with column headers;
+   *  - `'cells-only'` Copy selected cells only;
+   *  - `'column-headers-only'` Copy column headers only;
+   *  - `'with-column-group-headers'` Copy cells with group column headers;
+   *  - `'with-column-headers'` Copy cells with column headers;
    */
   copy(copyMode = 'cells-only') {
     this.#copyMode = copyMode;
@@ -308,7 +308,7 @@ export class CopyPaste extends BasePlugin {
   /**
    * Creates copyable text related to range objects.
    *
-   * @param {object[]} ranges Array of objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
+   * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges Array of objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
    * @returns {string} Returns string which will be copied into clipboard.
    */
   getRangedCopyableData(ranges) {
@@ -318,7 +318,7 @@ export class CopyPaste extends BasePlugin {
   /**
    * Creates copyable text related to range objects.
    *
-   * @param {object[]} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
    * @returns {Array[]} Returns array of arrays which will be copied into clipboard.
    */
   getRangedData(ranges) {
@@ -437,8 +437,7 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   getOrCreateFocusableElement() {
-    const editor = this.hot.getActiveEditor();
-    const editableElement = editor ? editor.TEXTAREA : void 0;
+    const editableElement = this.hot.getActiveEditor()?.TEXTAREA;
 
     if (editableElement) {
       this.focusableElement.setFocusableElement(editableElement);
@@ -461,7 +460,7 @@ export class CopyPaste extends BasePlugin {
    * Counts how many column headers will be copied based on the passed range.
    *
    * @private
-   * @param {object[]} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
    * @returns {{ columnHeadersCount: number }} Returns an object with keys that holds
    *                                           information with the number of copied headers.
    */

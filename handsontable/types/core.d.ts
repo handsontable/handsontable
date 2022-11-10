@@ -62,7 +62,7 @@ export default class Core {
   getCellValidator(cellMeta: CellMeta): BaseValidator | RegExp | undefined;
   getCellValidator(row: number, col: number): BaseValidator | RegExp | undefined;
   getColHeader(): Array<number | string>;
-  getColHeader(column: number, headerLevel: number = 0): number | string;
+  getColHeader(column: number, headerLevel?: number): number | string;
   getColWidth(col: number): number;
   getCoords(elem: Element | null): CellCoords;
   getCopyableData(row: number, column: number): string;

@@ -77,7 +77,7 @@ export function getColumnGroupHeadersRange(selectionRange, columnHeadersCount) {
  * Returns an object with `rows` and `columns` keys. The arrays contains sorted indexes
  * generated according to the given `ranges` array.
  *
- * @param {{startRow: number, startCol: number, endRow: number, endCol: number}[]} ranges The range to process.
+ * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges The range to process.
  * @returns {{rows: number[], columns: number[]}}
  */
 export function normalizeRanges(ranges) {
