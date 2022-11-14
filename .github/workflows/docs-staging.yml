@@ -64,15 +64,12 @@ jobs:
           docker push ${GHA_DOCKER_TAG_SHA}
 
       - name: Find PR
-        uses: jwalton/gh-find-current-pr@b6f8d7342efe4913388d5d1ac7f4b956caa5db52 # https://github.com/jwalton/gh-find-current-pr/tree/v1
+        uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
         id: pr-finder
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish sticky comment in PR
-        uses: marocchino/sticky-pull-request-comment@6804b5ad49d19c10c9ae7cf5057352f7ff333f31 # https://github.com/marocchino/sticky-pull-request-comment/tree/v1.6.0
+        uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.pr-finder.outputs.pr }}
           message: |
             Launch the local version of documentation by running:
