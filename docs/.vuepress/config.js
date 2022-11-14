@@ -17,8 +17,10 @@ const {
   getThisDocsVersion,
   MULTI_FRAMEWORKED_CONTENT_DIR,
 } = require('./helpers');
+const { getPermalinkHrefMethod } = require('./plugins/markdown-it-conditional-container/onlyForContainerHelpers');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 
+const uniqueSlugs = new Set();
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction ?
@@ -89,24 +91,16 @@ module.exports = {
     },
     anchor: {
       permalinkSymbol: '',
-      permalinkHref(slug) {
-        // Remove the `-[number]` suffix from the permalink href attribute.
-        const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(slug);
-
-        if (duplicatedSlugsMatch) {
-          slug = duplicatedSlugsMatch[1];
-        }
-
-        return `#${slug}`;
-      },
+      permalinkHref: getPermalinkHrefMethod(uniqueSlugs),
       callback(token, slugInfo) {
+        // The map is filled in before by a legacy `permalinkHref` method.
         if (['h1', 'h2', 'h3'].includes(token.tag)) {
-          // Remove the `-[number]` suffix from the slugs and header IDs.
-          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrs[0][1]);
+          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrGet('id'));
+          const slugWithoutNumber = duplicatedSlugsMatch?.[1];
 
-          if (duplicatedSlugsMatch) {
-            token.attrs[0][1] = duplicatedSlugsMatch[1];
-            slugInfo.slug = duplicatedSlugsMatch[1];
+          if (slugWithoutNumber && uniqueSlugs.has(slugWithoutNumber)) {
+            token.attrSet('id', slugWithoutNumber);
+            slugInfo.slug = slugWithoutNumber;
           }
         }
       }

@@ -23,20 +23,22 @@ The following is an implementation of the `@handsontable/angular` component with
 ```
 
 ```js
-/// file: app.component.ts
+/* file: app.component.ts */
 import { Component } from '@angular/core';
 import Handsontable from 'handsontable/base';
-//import { CustomEditor } from './CustomEditor.js';
+/* start:skip-in-compilation */
+import { CustomEditor } from './CustomEditor';
+/* end:skip-in-compilation */
 
 @Component({
   selector: 'app-root',
   template: `
-  <div>
-    <hot-table [settings]="hotSettings"></hot-table>
-  </div>
+    <div>
+      <hot-table [settings]="hotSettings"></hot-table>
+    </div>
   `,
 })
-class AppComponent {
+export class AppComponent {
   hotSettings: Handsontable.GridSettings = {
     startRows: 5,
     columns: [
@@ -50,30 +52,30 @@ class AppComponent {
   };
 }
 
-/// file: app.module.ts
+/* file: app.module.ts */
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
-import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
+/* start:skip-in-compilation */
+import { AppComponent } from './app.component';
+/* end:skip-in-compilation */
 
 // register Handsontable's modules
 registerAllModules();
 
 @NgModule({
-  imports:      [ BrowserModule, HotTableModule ],
+  imports: [ BrowserModule, HotTableModule ],
   declarations: [ AppComponent ],
-  bootstrap:    [ AppComponent ]
+  bootstrap: [ AppComponent ]
 })
-class AppModule { }
+export class AppModule { }
 
-/// file: CustomEditor.js
+/* file: CustomEditor.ts */
+import { TextEditor } from 'handsontable/editors/textEditor';
+
 export class CustomEditor extends TextEditor {
-  constructor(props) {
-    super(props);
-  }
-
-  createElements() {
+  override createElements() {
     super.createElements();
 
     this.TEXTAREA = document.createElement('input');
@@ -85,10 +87,13 @@ export class CustomEditor extends TextEditor {
   }
 }
 
-/// bootstrap:
+/* start:skip-in-preview */
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
-platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch(err => { console.error(err) });
+/* end:skip-in-preview */
 ```
 :::
 
