@@ -581,6 +581,7 @@ export class CopyPaste extends BasePlugin {
       this.hot.runHooks('afterCopy', data, this.copyableRanges, copiedHeadersCount);
     }
 
+    this.#copyMode = 'cells-only';
     event.preventDefault();
   }
 
