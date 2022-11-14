@@ -17,7 +17,6 @@ describe('Comments', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       expect(hot.getPlugin('comments').isEnabled()).toBe(true);
@@ -55,7 +54,6 @@ describe('Comments', () => {
             }
           };
         },
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const plugin = hot.getPlugin('comments');
@@ -100,7 +98,6 @@ describe('Comments', () => {
             { row: 1, col: 1, comment: { value: 'test' } },
             { row: 2, col: 2, comment: { value: 'test' } }
           ],
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         expect(getCell(1, 1).classList.contains('htCommentCell')).toBeTrue();
@@ -126,7 +123,6 @@ describe('Comments', () => {
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(4, 10),
           comments: true,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         const plugin = getPlugin('comments');
@@ -152,7 +148,6 @@ describe('Comments', () => {
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(100, 100),
           comments: true,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         scrollViewportTo(countRows() - 1, countCols() - 1);
@@ -178,7 +173,6 @@ describe('Comments', () => {
           comments: true,
           width: 300,
           height: 200,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         const plugin = getPlugin('comments');
@@ -200,7 +194,6 @@ describe('Comments', () => {
           comments: true,
           width: 300,
           height: 200,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         scrollViewportTo(countRows() - 1, countCols() - 1);
@@ -230,7 +223,6 @@ describe('Comments', () => {
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(100, 100),
           comments: true,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         scrollViewportTo(countRows() - 1, countCols() - 1);
@@ -262,7 +254,6 @@ describe('Comments', () => {
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(100, 100),
           comments: true,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         scrollViewportTo(countRows() - 1, countCols() - 1);
@@ -296,7 +287,6 @@ describe('Comments', () => {
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(100, 100),
           comments: true,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         scrollViewportTo(countRows() - 1, 0);
@@ -335,7 +325,6 @@ describe('Comments', () => {
             }
           };
         },
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       $(getCell(1, 1)).simulate('mouseover', {
@@ -458,7 +447,6 @@ describe('Comments', () => {
           { row: 1, col: 1, comment: { value: 'test' } },
           { row: 2, col: 2, comment: { value: 'another test' } }
         ],
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const plugin = hot.getPlugin('comments');
@@ -473,7 +461,6 @@ describe('Comments', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const plugin = hot.getPlugin('comments');
@@ -490,7 +477,6 @@ describe('Comments', () => {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         beforeSetCellMeta: () => false,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const plugin = hot.getPlugin('comments');
@@ -508,7 +494,6 @@ describe('Comments', () => {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
         afterSetCellMeta: afterSetCellMetaCallback,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const plugin = hot.getPlugin('comments');
@@ -525,7 +510,6 @@ describe('Comments', () => {
         cell: [
           { row: 1, col: 1, comment: { value: 'test' } }
         ],
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const plugin = hot.getPlugin('comments');
@@ -544,7 +528,6 @@ describe('Comments', () => {
         cell: [
           { row: 1, col: 1, comment: { value: 'test' } }
         ],
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       hot.updateSettings({ beforeSetCellMeta: () => false });
@@ -565,7 +548,6 @@ describe('Comments', () => {
           { row: 1, col: 1, comment: { value: 'test' } }
         ],
         afterSetCellMeta: afterSetCellMetaCallback,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const plugin = hot.getPlugin('comments');
@@ -578,7 +560,6 @@ describe('Comments', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const plugin = hot.getPlugin('comments');
@@ -595,7 +576,6 @@ describe('Comments', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const plugin = hot.getPlugin('comments');
@@ -614,7 +594,6 @@ describe('Comments', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       comments: true,
-      licenseKey: 'non-commercial-and-evaluation'
     });
     const plugin = hot.getPlugin('comments');
     let readOnly;
@@ -642,7 +621,6 @@ describe('Comments', () => {
       data: createSpreadsheetData(4, 4),
       contextMenu: true,
       comments: true,
-      licenseKey: 'non-commercial-and-evaluation'
     });
 
     selectCell(1, 1);
@@ -679,7 +657,6 @@ describe('Comments', () => {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       selectCell(1, 1);
@@ -704,7 +681,6 @@ describe('Comments', () => {
         cell: [
           { row: 1, col: 1, comment: { value: 'Test comment' } }
         ],
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       expect(getCellMeta(1, 1).comment.value).toEqual('Test comment');
@@ -731,7 +707,6 @@ describe('Comments', () => {
           { row: 2, col: 2, comment: { value: 'Test comment 2' } },
           { row: 3, col: 3, comment: { value: 'Test comment 3' } },
         ],
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       selectCell(1, 1, 3, 3);
@@ -758,7 +733,6 @@ describe('Comments', () => {
           { row: 2, col: 2, comment: { value: 'Test comment 2' } },
           { row: 3, col: 3, comment: { value: 'Test comment 3' } },
         ],
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       selectCell(3, 3, 1, 1);
@@ -783,7 +757,6 @@ describe('Comments', () => {
         cell: [
           { row: 1, col: 1, comment: { value: 'Test comment' } }
         ],
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       selectCell(1, 1);
@@ -818,7 +791,6 @@ describe('Comments', () => {
           { row: 2, col: 2, comment: { value: 'Test comment 2' } },
           { row: 3, col: 3, comment: { value: 'Test comment 3' } },
         ],
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       selectCell(1, 1, 3, 3);
@@ -850,7 +822,6 @@ describe('Comments', () => {
           { row: 2, col: 2, comment: { value: 'Test comment 2' } },
           { row: 3, col: 3, comment: { value: 'Test comment 3' } },
         ],
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       selectCell(3, 3, 1, 1);
@@ -890,7 +861,6 @@ describe('Comments', () => {
           };
         },
         afterSetCellMeta: afterSetCellMetaCallback,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       expect(afterSetCellMetaCallback).not.toHaveBeenCalled();
@@ -922,7 +892,6 @@ describe('Comments', () => {
           };
         },
         beforeSetCellMeta: () => false,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       expect(getCellMeta(1, 1).comment.value).toEqual('test');
@@ -956,7 +925,6 @@ describe('Comments', () => {
           };
         },
         afterSetCellMeta: afterSetCellMetaCallback,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       selectCell(0, 0);
@@ -1001,7 +969,6 @@ describe('Comments', () => {
           };
         },
         beforeSetCellMeta: () => false,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       selectCell(0, 0);
@@ -1044,7 +1011,6 @@ describe('Comments', () => {
           rows: [0, 1, 4, 8, 9],
           indicators: true
         },
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const plugin = hot.getPlugin('comments');
@@ -1117,7 +1083,6 @@ describe('Comments', () => {
           { row: 2, col: 2, comment: { value: 'Foo' } },
           { row: 5, col: 5, comment: { value: 'Bar' } },
         ],
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const plugin = hot.getPlugin('comments');
@@ -1150,7 +1115,6 @@ describe('Comments', () => {
         rowHeaders: true,
         colHeaders: true,
         comments: true,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const container2 = $('<div id="hot2"></div>').appendTo(spec().$container).handsontable({
@@ -1159,7 +1123,6 @@ describe('Comments', () => {
         rowHeaders: true,
         colHeaders: true,
         comments: true,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       let commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
@@ -1187,7 +1150,6 @@ describe('Comments', () => {
         rowHeaders: true,
         colHeaders: true,
         comments: true,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const container2 = $('<div id="hot2"></div>').appendTo(spec().$container).handsontable({
@@ -1196,7 +1158,6 @@ describe('Comments', () => {
         rowHeaders: true,
         colHeaders: true,
         comments: true,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       container2.handsontable('destroy');

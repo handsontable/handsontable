@@ -30,7 +30,6 @@ describe('Comments (RTL mode)', () => {
             { row: 1, col: 1, comment: { value: 'test' } },
             { row: 2, col: 2, comment: { value: 'test' } }
           ],
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         expect(getCell(1, 1).classList.contains('htCommentCell')).toBeTrue();
@@ -50,7 +49,6 @@ describe('Comments (RTL mode)', () => {
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(4, 10),
           comments: true,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         const plugin = getPlugin('comments');
@@ -77,7 +75,6 @@ describe('Comments (RTL mode)', () => {
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(100, 100),
           comments: true,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         scrollViewportTo(countRows() - 1, countCols() - 1);
@@ -104,7 +101,6 @@ describe('Comments (RTL mode)', () => {
           comments: true,
           width: 400,
           height: 200,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         const plugin = getPlugin('comments');
@@ -127,7 +123,6 @@ describe('Comments (RTL mode)', () => {
           comments: true,
           width: 200,
           height: 200,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         scrollViewportTo(countRows() - 1, countCols() - 1);
@@ -158,7 +153,6 @@ describe('Comments (RTL mode)', () => {
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(100, 100),
           comments: true,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         scrollViewportTo(countRows() - 1, countCols() - 1);
@@ -189,7 +183,6 @@ describe('Comments (RTL mode)', () => {
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(100, 100),
           comments: true,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         scrollViewportTo(countRows() - 1, countCols() - 1);
@@ -223,7 +216,6 @@ describe('Comments (RTL mode)', () => {
           layoutDirection,
           data: Handsontable.helper.createSpreadsheetData(100, 100),
           comments: true,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         scrollViewportTo(countRows() - 1, 0);

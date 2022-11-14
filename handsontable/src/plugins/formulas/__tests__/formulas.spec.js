@@ -2530,7 +2530,6 @@ describe('Formulas general', () => {
       formulas: {
         engine: HyperFormula
       },
-      licenseKey: 'non-commercial-and-evaluation'
     });
 
     hot.getPlugin('nestedRows').collapsingUI.collapseMultipleChildren([0, 6, 18]);

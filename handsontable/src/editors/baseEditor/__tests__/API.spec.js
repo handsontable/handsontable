@@ -55,7 +55,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedRowsTop: 2,
@@ -107,7 +106,6 @@ describe('BaseEditor API', () => {
 
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedRowsTop: 2,
@@ -154,7 +152,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
@@ -202,7 +199,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
@@ -249,7 +245,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
@@ -295,7 +290,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
@@ -342,7 +336,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
@@ -390,7 +383,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedColumnsStart: 2,
@@ -437,7 +429,6 @@ describe('BaseEditor API', () => {
           it('and the scrollable element is the Window object', () => {
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedRowsBottom: 2,
@@ -489,7 +480,6 @@ describe('BaseEditor API', () => {
 
             handsontable({
               layoutDirection,
-              licenseKey: 'non-commercial-and-evaluation',
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedRowsBottom: 2,
