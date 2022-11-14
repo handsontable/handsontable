@@ -495,16 +495,19 @@ describe('BaseEditor API (RTL mode)', () => {
               data: createSpreadsheetData(100, 100),
               editor: 'my-editor',
               fixedRowsBottom: 2,
+              // Disabling `autoColumnSize` to prevent pixel-length differences in the spreader width dependent
+              // on window size
+              autoColumnSize: false
             });
 
             scrollViewportTo(countRows() - 1, countCols() - 1);
             selectCell(countRows() - 1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
-              start: 4950,
+              start: 4949,
               top: document.documentElement.offsetHeight - 24,
               width: 51,
-              maxWidth: 50,
+              maxWidth: 51,
               height: 24,
               // maxHeight: ?, // returns wrong value! it will be fixed within #9206
             }));
