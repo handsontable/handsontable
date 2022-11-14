@@ -1,4 +1,4 @@
-describe('ContextMenu', () => {
+describe('CopyPaste', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -12,16 +12,46 @@ describe('ContextMenu', () => {
     }
   });
 
-  describe('copy', () => {
+  describe('context menu `copy` action', () => {
+    it('should be available while creating custom menu', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: ['copy'],
+      });
+
+      contextMenu(getCell(1, 1));
+
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        return this.textContent === 'Copy';
+      });
+
+      expect(readOnlyItem[0]).not.toBeUndefined();
+    });
+
+    it('should call plugin\'s `copyCellsOnly()` method after menu item click', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+      });
+
+      spyOn(getPlugin('copyPaste'), 'copyCellsOnly');
+
+      contextMenu(getCell(1, 1));
+      simulateClick($('.htContextMenu tbody tr td:contains("Copy")'));
+
+      expect(getPlugin('copyPaste').copyCellsOnly).toHaveBeenCalled();
+    });
+
     it('should be enabled when the cells are selected and headers are enabled', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
-        copyPaste: {
-          copyColumnHeadersOnly: true,
-        }
       });
 
       contextMenu(getCell(1, 1));
@@ -39,9 +69,6 @@ describe('ContextMenu', () => {
         rowHeaders: false,
         colHeaders: false,
         contextMenu: true,
-        copyPaste: {
-          copyColumnHeadersOnly: true,
-        }
       });
 
       contextMenu(getCell(1, 1));
@@ -59,9 +86,6 @@ describe('ContextMenu', () => {
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
-        copyPaste: {
-          copyColumnHeadersOnly: true,
-        }
       });
 
       contextMenu(getCell(-1, 1));
@@ -79,9 +103,6 @@ describe('ContextMenu', () => {
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
-        copyPaste: {
-          copyColumnHeadersOnly: true,
-        }
       });
 
       contextMenu(getCell(1, -1));
@@ -99,9 +120,6 @@ describe('ContextMenu', () => {
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
-        copyPaste: {
-          copyColumnHeadersOnly: true,
-        }
       });
 
       selectCells([
@@ -162,7 +180,6 @@ describe('ContextMenu', () => {
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
         contextMenu: true,
-        trimRows: [0, 1, 2, 3, 4], // The TrimmingMap should be used instead of the plugin.
       });
 
       // trim all rows
@@ -185,7 +202,7 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      // trim all rows
+      // trim all columns
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
       render();
 

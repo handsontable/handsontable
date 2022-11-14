@@ -1,4 +1,4 @@
-describe('ContextMenu', () => {
+describe('CopyPaste', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -12,7 +12,46 @@ describe('ContextMenu', () => {
     }
   });
 
-  describe('copyColumnHeadersOnly', () => {
+  describe('context menu `copy_column_headers_only` action', () => {
+    it('should be available while creating custom menu', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: ['copy_column_headers_only'],
+        copyPaste: {
+          copyColumnHeadersOnly: true,
+        }
+      });
+
+      contextMenu(getCell(1, 1));
+
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        return this.textContent === 'Copy headers only';
+      });
+
+      expect(readOnlyItem[0]).not.toBeUndefined();
+    });
+
+    it('should call plugin\'s `copyColumnHeadersOnly()` method after menu item click', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        copyPaste: {
+          copyColumnHeadersOnly: true,
+        }
+      });
+
+      spyOn(getPlugin('copyPaste'), 'copyColumnHeadersOnly');
+
+      contextMenu(getCell(1, 1));
+      simulateClick($('.htContextMenu tbody tr td:contains("Copy headers only")'));
+
+      expect(getPlugin('copyPaste').copyColumnHeadersOnly).toHaveBeenCalled();
+    });
+
     it('should be enabled when the cells are selected and column headers are enabled', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
@@ -200,7 +239,7 @@ describe('ContextMenu', () => {
         }
       });
 
-      // trim all rows
+      // trim all columns
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
       render();
 
