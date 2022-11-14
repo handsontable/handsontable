@@ -209,6 +209,8 @@ ${document.URL}?spec=${encodeURI(fullSpecName)}
     this.$elements.failedCount = this.generateFailedCountBlock();
 
     this.$elements.container.append(this.$elements.failedCount);
+
+    this.updateFailedCountBlock();
   }
 
   /**
