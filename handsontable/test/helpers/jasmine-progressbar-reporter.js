@@ -143,7 +143,7 @@ class JasmineProgressBarReporter {
         `
 ${document.URL}?spec=${encodeURI(fullSpecName)}
 
-\t${failedExpectation.message.replace('\n', '\n\t')}
+\t${failedExpectation.message.replace(/\n/g, '\n\t')}
 `);
     });
     /* eslint-enable no-console */
@@ -195,7 +195,7 @@ ${document.URL}?spec=${encodeURI(fullSpecName)}
       height: '100%',
       backgroundColor
     });
-    const $link = $(`<a href="?spec=${encodeURI(fullSpecName)}"></a>`);
+    const $link = $(`<a title="${fullSpecName.replace(/"/g, '&#34;')}" href="?spec=${encodeURI(fullSpecName)}"></a>`);
 
     $link.append($block);
 
