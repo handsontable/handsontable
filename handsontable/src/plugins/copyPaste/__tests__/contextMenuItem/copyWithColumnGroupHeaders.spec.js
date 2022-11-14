@@ -29,7 +29,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, 1));
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(() => {
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with group headers';
       });
 
@@ -49,7 +49,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, 1));
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(() => {
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with group headers';
       });
 
@@ -69,7 +69,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, 1));
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(() => {
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with group headers';
       });
 
@@ -92,7 +92,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, 1));
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(() => {
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with group headers';
       });
 
@@ -115,7 +115,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, -1));
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(() => {
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with group headers';
       });
 
@@ -142,7 +142,7 @@ describe('ContextMenu', () => {
       ]);
       contextMenu(getCell(3, 3));
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(() => {
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with group headers';
       });
 
@@ -169,7 +169,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, 1)); // Column header "B"
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(() => {
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with group headers';
       });
 
@@ -196,7 +196,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, -1)); // Row header "2"
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(() => {
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with group headers';
       });
 
@@ -223,7 +223,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(-1, 1)); // Column header "B"
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(() => {
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with group headers';
       });
 
@@ -250,7 +250,7 @@ describe('ContextMenu', () => {
 
       contextMenu(getCell(1, -1)); // Row header "2"
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(() => {
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with group headers';
       });
 
