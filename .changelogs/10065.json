@@ -1,0 +1,7 @@
+{
+  "title": "Fixed a problem with the dropdown-typed cells validation when using `HotColumn`.",
+  "type": "fixed",
+  "issue": 10065,
+  "breaking": false,
+  "framework": "react"
+}
