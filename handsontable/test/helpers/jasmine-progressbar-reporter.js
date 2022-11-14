@@ -12,6 +12,7 @@ class JasmineProgressBarReporter {
     this.finished = 0;
     /**
      * Failed specs count.
+     *
      * @type {number}
      */
     this.failed = 0;
@@ -134,6 +135,7 @@ class JasmineProgressBarReporter {
    * @param {string} fullSpecName Full spec name.
    */
   logFailedSpec(failedExpectations, fullSpecName) {
+    /* eslint-disable no-console */
     failedExpectations.forEach((failedExpectation) => {
       console.log(
         '%cFailed expectations in:',
@@ -144,6 +146,7 @@ ${document.URL}?spec=${encodeURI(fullSpecName)}
 \t${failedExpectation.message.replace('\n', '\n\t')}
 `);
     });
+    /* eslint-enable no-console */
   }
 
   /**
