@@ -14,10 +14,6 @@ export default function copyWithColumnGroupHeadersItem(copyPastePlugin) {
       copyPastePlugin.copyWithColumnGroupHeaders();
     },
     disabled() {
-      if (this.countRows() === 0 || this.countCols() === 0) {
-        return true;
-      }
-
       if (!this.hasColHeaders() || !this.getSettings().nestedHeaders) {
         return true;
       }

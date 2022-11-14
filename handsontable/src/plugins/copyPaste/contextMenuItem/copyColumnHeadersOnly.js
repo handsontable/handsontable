@@ -14,10 +14,6 @@ export default function copyColumnHeadersOnlyItem(copyPastePlugin) {
       copyPastePlugin.copyColumnHeadersOnly();
     },
     disabled() {
-      if (this.countRows() === 0 || this.countCols() === 0) {
-        return true;
-      }
-
       if (!this.hasColHeaders()) {
         return true;
       }

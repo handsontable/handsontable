@@ -256,11 +256,9 @@ export class CopyPaste extends BasePlugin {
    * Copies the selected cell with or without column headers into the clipboard.
    *
    * @param {'cells-only' | 'column-headers-only' | 'with-column-group-headers' | 'with-column-headers'} [copyMode='cells-only']
-   * Defines the data range to copy. Possible values:
-   *  - `'cells-only'` Copy selected cells only;
-   *  - `'column-headers-only'` Copy column headers only;
-   *  - `'with-column-group-headers'` Copy cells with group column headers;
-   *  - `'with-column-headers'` Copy cells with column headers;
+   * Defines the data range to copy. Possible values: `cells-only` (copy selected cells only),
+   * `column-headers-only` (copy column headers only), `with-column-group-headers` (copy cells
+   * with group column headers) or `with-column-headers` (copy cells with column headers).
    */
   copy(copyMode = 'cells-only') {
     this.#copyMode = copyMode;
