@@ -54,18 +54,13 @@ for (const packagesLocation of workspacePackages) {
 
   for (const subdir of subdirs) {
     const packageJsonLocation = `../${subdir}/package.json`;
-    const { default: packageJson } = await import(packageJsonLocation, {
-      assert: { type: 'json' }
-    }
-      );
+    const { default: packageJson } = await import(packageJsonLocation, { assert: { type: 'json' } });
     const packageName = packageJson.name;
 
     if (packagesInfo[packageName]) {
       const defaultPackage = await import(
-        packagesInfo[packageName].entryFile ?
-          `../${subdir}/${packagesInfo[packageName].entryFile}` :
-          packageName
-        );
+        packagesInfo[packageName].entryFile ? `../${subdir}/${packagesInfo[packageName].entryFile}` : packageName
+      );
       let defaultPackageVersion = null;
       let umdPackageVersion = null;
       let umdPackage = null;
