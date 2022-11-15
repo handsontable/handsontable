@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HotTableModule, HotTableRegisterer } from '@handsontable/angular';
+import { HotTableModule, HotTableRegisterer } from 'tmp-hot-angular';
 import {
   registerCellType,
   DateCellType,
-} from 'handsontable/cellTypes';
+} from 'tmp-hot/cellTypes';
 
 registerCellType(DateCellType);
 

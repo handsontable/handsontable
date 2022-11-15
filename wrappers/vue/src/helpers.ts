@@ -1,5 +1,5 @@
 import Vue, { VNode } from 'vue';
-import Handsontable from 'handsontable/base';
+import Handsontable from 'tmp-hot/base';
 import { HotTableProps, VueProps, EditorComponent } from './types';
 
 const unassignedPropSymbol = Symbol('unassigned');

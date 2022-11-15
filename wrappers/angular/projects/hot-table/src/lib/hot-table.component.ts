@@ -9,7 +9,7 @@ import {
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import Handsontable from 'handsontable/base';
+import Handsontable from 'tmp-hot/base';
 import {
   HotTableRegisterer,
   HOT_DESTROYED_WARNING

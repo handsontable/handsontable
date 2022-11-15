@@ -24,7 +24,7 @@
   } from './types';
   import * as packageJson from '../package.json';
   import { LRUMap } from './lib/lru/lru';
-  import Handsontable from 'handsontable/base';
+  import Handsontable from 'tmp-hot/base';
 
   const HotTable: HotTableComponent<Vue, HotTableData, HotTableMethods, {}, HotTableProps> = {
     name: 'HotTable',

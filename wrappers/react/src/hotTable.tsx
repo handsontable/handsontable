@@ -1,5 +1,5 @@
 import React from 'react';
-import Handsontable from 'handsontable/base';
+import Handsontable from 'tmp-hot/base';
 import { SettingsMapper } from './settingsMapper';
 import { PortalManager } from './portalManager';
 import { HotColumn } from './hotColumn';

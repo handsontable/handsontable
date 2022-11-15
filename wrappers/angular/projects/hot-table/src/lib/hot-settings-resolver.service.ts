@@ -1,5 +1,5 @@
 import { Injectable, SimpleChanges } from '@angular/core';
-import Handsontable from 'handsontable/base';
+import Handsontable from 'tmp-hot/base';
 
 const AVAILABLE_OPTIONS: string[] = Object.keys(Handsontable.DefaultSettings);
 const AVAILABLE_HOOKS: string[] = Handsontable.hooks.getRegistered();

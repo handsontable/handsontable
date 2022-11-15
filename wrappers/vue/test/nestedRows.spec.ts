@@ -1,5 +1,5 @@
-import { NestedRows } from 'handsontable/plugins/nestedRows';
-import { registerPlugin } from 'handsontable/plugins/registry';
+import { NestedRows } from 'tmp-hot/plugins/nestedRows';
+import { registerPlugin } from 'tmp-hot/plugins/registry';
 import HotTable from '../src/HotTable.vue';
 import { mount } from '@vue/test-utils';
 import Vue from 'vue';
