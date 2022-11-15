@@ -5,7 +5,10 @@ on:
   workflow_run:
     workflows: [Tests]
     types: [completed]
-    branches: [develop, 'release/**']
+    branches:
+      - 'develop'
+      - 'release/**'
+      - '!release/**-**'
 
 env:
   NODE_VERSION: 16
