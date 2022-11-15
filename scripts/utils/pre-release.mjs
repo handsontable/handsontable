@@ -75,7 +75,6 @@ export function setVersion(version, packages = workspacePackages) {
     from: /HOT_VERSION: '(.*)'/,
     to: `HOT_VERSION: '${version}'`,
   }), version);
-
   // Set the new version number to all the packages.
   packages.forEach((packagesLocation) => {
     validateReplacementStatus(

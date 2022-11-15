@@ -1,4 +1,4 @@
-const fse = require('fs-extra')
+const fse = require('fs-extra');
 const path = require('path');
 
 const DIST_PATH = './dist/hot-table';

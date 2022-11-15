@@ -37,6 +37,10 @@ import { MetaManager, DynamicCellMetaMod, ExtendMetaPropertiesMod, replaceData }
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 
+/* eslint-disable */
+console.log('test');
+/* eslint-enable */
+
 const SHORTCUTS_GROUP = 'gridDefault';
 let activeGuid = null;
 const deprecationWarns = new Set();

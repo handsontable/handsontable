@@ -10,6 +10,7 @@ import {
 
 const argv = yargs(hideBin(process.argv))
   .boolean('if-present')
+  .boolean('isPrerelease')
   .array('exclude')
   .alias('exclude', 'e')
   .argv;
@@ -42,6 +43,7 @@ if (argv._.length === 0) {
     }
     case 'all': {
       const [command] = argv._;
+
       // eslint-disable-next-line prefer-template
       let workspacesCommandList = '-w ' + [
         'tmp-hot',
@@ -72,3 +74,4 @@ if (argv._.length === 0) {
     default:
   }
 })();
+
