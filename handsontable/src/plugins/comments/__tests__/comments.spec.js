@@ -389,6 +389,32 @@ describe('Comments', () => {
     });
   });
 
+  it('should display the comment editor properly, when comment had been added on fixed column and some scrolling was performed', async() => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 20),
+      comments: true,
+      cell: [
+        { row: 0, col: 0, comment: { value: 'test' } },
+      ],
+      width: 300,
+      height: 200,
+      fixedColumnsStart: 5,
+    });
+
+    hot.scrollViewportTo(0, 19);
+
+    await sleep(10);
+
+    const plugin = hot.getPlugin('comments');
+    const editor = plugin.editor.getInputElement();
+
+    expect(plugin.getCommentAtCell(0, 0)).toEqual('test');
+
+    plugin.showAtCell(0, 0);
+
+    expect(editor.parentNode.style.display).toEqual('block');
+  });
+
   describe('API', () => {
     it('should return the comment from a proper cell, when using the getCommentAtCell method', () => {
       const hot = handsontable({
