@@ -9,6 +9,7 @@ on:
       - 'develop'
       - 'release/**'
       - '!release/**-**'
+      - 'feature/**'
 
 env:
   NODE_VERSION: 16
