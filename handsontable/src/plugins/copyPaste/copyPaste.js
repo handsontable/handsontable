@@ -172,7 +172,7 @@ export class CopyPaste extends BasePlugin {
    * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
    *
    * @private
-   * @type {Array}
+   * @type {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>}
    */
   copyableRanges = [];
   /**
@@ -378,44 +378,54 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
+    const columnHeadersCount = this.hot.view.getColumnHeadersCount();
+    const groupedRanges = new Map([
+      ['headers', null],
+      ['cells', null],
+    ]);
     let cellsRange = null;
     let hasCellsCopyLimitReached = false;
 
-    this.copyableRanges = [];
-
     if (this.#copyMode === 'column-headers-only') {
-      this.copyableRanges
-        .push(getColumnGroupHeadersRange(selectionRange, this.hot.view.getColumnHeadersCount()));
+      groupedRanges.set('headers', getColumnGroupHeadersRange(selectionRange, columnHeadersCount));
 
     } else {
       if (this.#copyMode === 'with-column-headers') {
-        this.copyableRanges
-          .push(getColumnHeadersRange(selectionRange));
+        groupedRanges.set('headers', getColumnHeadersRange(selectionRange, columnHeadersCount));
 
       } else if (this.#copyMode === 'with-column-group-headers') {
-        this.copyableRanges
-          .push(getColumnGroupHeadersRange(selectionRange, this.hot.view.getColumnHeadersCount()));
+        groupedRanges.set('headers', getColumnGroupHeadersRange(selectionRange, columnHeadersCount));
       }
 
       // Copy cells only for 'cells-only' or other type that does not match to the known `#copyMode` type.
       cellsRange = getCellsRange(selectionRange);
 
-      const {
-        startRow, startCol, endRow, endCol
-      } = cellsRange;
+      if (cellsRange !== null) {
+        const {
+          startRow, startCol, endRow, endCol
+        } = cellsRange;
 
-      const finalEndRow = Math.min(endRow, startRow + this.rowsLimit - 1);
-      const finalEndCol = Math.min(endCol, startCol + this.columnsLimit - 1);
+        const finalEndRow = Math.min(endRow, startRow + this.rowsLimit - 1);
+        const finalEndCol = Math.min(endCol, startCol + this.columnsLimit - 1);
 
-      hasCellsCopyLimitReached = endRow !== finalEndRow || endCol !== finalEndCol;
+        hasCellsCopyLimitReached = endRow !== finalEndRow || endCol !== finalEndCol;
 
-      this.copyableRanges.push({
-        startRow,
-        startCol,
-        endRow: finalEndRow,
-        endCol: finalEndCol
-      });
+        groupedRanges.set('cells', {
+          startRow,
+          startCol,
+          endRow: finalEndRow,
+          endCol: finalEndCol
+        });
+      }
     }
+
+    this.copyableRanges = [];
+
+    groupedRanges.forEach((range) => {
+      if (range !== null) {
+        this.copyableRanges.push(range);
+      }
+    });
 
     this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
 

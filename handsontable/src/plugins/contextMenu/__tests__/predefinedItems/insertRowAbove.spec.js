@@ -116,7 +116,7 @@ describe('ContextMenu', () => {
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
-        |   ║ - : - : - : - : - |
+        |   ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         `).toBeMatchToSelectionPattern();
     });
@@ -145,12 +145,12 @@ describe('ContextMenu', () => {
       expect(`
         |   |
         |===|
-        | - |
-        | - |
-        | - |
-        | - |
-        | - |
-        | - |
+        | * |
+        | * |
+        | * |
+        | * |
+        | * |
+        | * |
         `).toBeMatchToSelectionPattern();
     });
 

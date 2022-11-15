@@ -49,87 +49,44 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy special characters to the clipboard', () => {
+    it('should copy only column headers to the clipboard when all cells and headers are selected', () => {
       handsontable({
-        data: createSpreadsheetData(5, 5),
-        colHeaders: ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~'],
-      });
-
-      const copyEvent = getClipboardEvent();
-      const plugin = getPlugin('CopyPaste');
-
-      selectCell(3, 0, 4, 1);
-
-      plugin.copyColumnHeadersOnly();
-      plugin.onCopy(copyEvent); // emulate native "copy" event
-
-      expect(copyEvent.clipboardData.getData('text/plain')).toBe('!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~');
-      expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/>' +
-          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td>!@#$%^&*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~</td></tr>',
-        '</tbody></table>',
-      ].join(''));
-    });
-
-    it('should copy text in quotes to the clipboard', () => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        colHeaders: [
-          '{"test": "value"}',
-          '{"test2": {"testtest": ""}}',
+        data: createSpreadsheetData(2, 2),
+        rowHeaders: true,
+        colHeaders: true,
+        copyPaste: {
+          copyColumnHeadersOnly: true,
+          copyColumnGroupHeaders: true,
+          copyColumnHeaders: true,
+        },
+        nestedHeaders: [
+          [{ label: 'a1', colspan: 2 }],
         ],
       });
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(3, 0, 4, 1);
+      selectAll();
 
       plugin.copyColumnHeadersOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      expect(copyEvent.clipboardData.getData('text/plain')).toBe('{"test": "value"}\t{"test2": {"testtest": ""}}');
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('a1\t');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
           '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody>',
-        '<tr><td>{"test":&nbsp;"value"}</td><td>{"test2":&nbsp;{"testtest":&nbsp;""}}</td></tr>',
+        '<tr><td>a1</td><td></td></tr>',
         '</tbody></table>',
       ].join(''));
     });
 
-    it('should copy 0 and false values to the clipboard', () => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        colHeaders: ['', 0, false, undefined, null],
-      });
-
-      const copyEvent = getClipboardEvent();
-      const plugin = getPlugin('CopyPaste');
-
-      selectCell(0, 0, 4, 4);
-
-      plugin.copyColumnHeadersOnly();
-      plugin.onCopy(copyEvent); // emulate native "copy" event
-
-      // Handsontable replaces undefined values with letters
-      expect(copyEvent.clipboardData.getData('text/plain')).toBe('\t0\tfalse\tD\t');
-      expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/>' +
-          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td></td><td>0</td><td>false</td><td>D</td><td></td></tr>',
-        '</tbody></table>',
-      ].join(''));
-    });
-
-    it('should copy hidden rows to the clipboard', () => {
+    it('should copy column headers to the clipboard when all rows are hidden', () => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
-        contextMenu: true,
+        rowHeaders: true,
       });
 
       // hide all rows
@@ -154,13 +111,38 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    // TODO
-    it('should enable the item when all columns are hidden', () => {
+    it('should copy an empty string to the clipboard when all rows are hidden and the `colHeaders` is disabled', () => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
+        colHeaders: false,
         rowHeaders: true,
-        colHeaders: true, // there is a bug when the colHeaders is false
-        contextMenu: true,
+      });
+
+      // hide all rows
+      hot.rowIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
+      render();
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(1, 1, 2, 3);
+
+      plugin.copyColumnHeadersOnly();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table></table>',
+      ].join(''));
+    });
+
+    it('should copy hidden column headers to the clipboard when all columns are hidden', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
       });
 
       // hide all columns
@@ -185,11 +167,38 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should disable the item when all rows are trimmed', () => {
+    it('should copy an empty string to the clipboard when all columns are hidden and the `colHeaders` is disabled', () => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
+        colHeaders: false,
+        rowHeaders: true,
+      });
+
+      // hide all columns
+      hot.columnIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
+      render();
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(1, 1, 2, 3);
+
+      plugin.copyColumnHeadersOnly();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table></table>',
+      ].join(''));
+    });
+
+    it('should copy column headers to the clipboard when all rows are trimmed', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
         colHeaders: true,
-        contextMenu: true,
       });
 
       // trim all rows
@@ -214,12 +223,38 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    // TODO
-    it('should disable the item when all columns are trimmed', () => {
+    it('should copy an empty string to the clipboard when all rows are trimmed and the `colHeaders` is disabled', () => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
-        contextMenu: true,
+        colHeaders: false,
+      });
+
+      // trim all rows
+      hot.rowIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
+      render();
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectAll();
+
+      plugin.copyColumnHeadersOnly();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table></table>',
+      ].join(''));
+    });
+
+    it('should copy an empty string to the clipboard when all columns are trimmed', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
       });
 
       // trim all columns
@@ -234,18 +269,39 @@ describe('CopyPaste', () => {
       plugin.copyColumnHeadersOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      // expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
-      // expect(copyEvent.clipboardData.getData('text/html')).toBe([
-      //   '<meta name="generator" content="Handsontable"/>' +
-      //     '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-      //   '<table><tbody>',
-      //     '<tr><td>A1</td></tr>',
-      //     '<tr><td>A2</td></tr>',
-      //     '<tr><td>A3</td></tr>',
-      //     '<tr><td>A4</td></tr>',
-      //     '<tr><td>A5</td></tr>',
-      //   '</tbody></table>',
-      // ].join(''));
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table></table>',
+      ].join(''));
+    });
+
+    it('should copy an empty string to the clipboard when all columns are trimmed and the `colHeaders` is disabled', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: false,
+      });
+
+      // trim all columns
+      hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
+      render();
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectAll();
+
+      plugin.copyColumnHeadersOnly();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table></table>',
+      ].join(''));
     });
   });
 });

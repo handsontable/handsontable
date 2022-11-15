@@ -120,6 +120,11 @@ class CellRange {
    * @returns {number}
    */
   getHeight() {
+    // If the selection contains only rows headers return 0.
+    if (this.from.row < 0 && this.to.row < 0) {
+      return 0;
+    }
+
     const fromRow = Math.max(this.from.row, 0);
     const toRow = Math.max(this.to.row, 0);
 
@@ -132,6 +137,11 @@ class CellRange {
    * @returns {number}
    */
   getWidth() {
+    // If the selection contains only columns headers return 0.
+    if (this.from.col < 0 && this.to.col < 0) {
+      return 0;
+    }
+
     const fromCol = Math.max(this.from.col, 0);
     const toCol = Math.max(this.to.col, 0);
 

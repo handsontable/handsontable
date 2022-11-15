@@ -16,14 +16,6 @@ describe('CopyPaste', () => {
   });
 
   describe('`copyCellsOnly` method', () => {
-    xit('should be possible to copy data by keyboard shortcut', () => {
-      // simulated keyboard shortcuts doesn't run the true events
-    });
-
-    xit('should be possible to copy data by contextMenu option', () => {
-      // simulated mouse events doesn't run the true browser event
-    });
-
     it('should copy only cells to the clipboard', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
@@ -57,90 +49,36 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy special characters to the clipboard', () => {
+    it('should copy only cells to the clipboard when all cells and headers are selected', () => {
       handsontable({
-        data: [
-          ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~']
+        data: createSpreadsheetData(2, 2),
+        rowHeaders: true,
+        colHeaders: true,
+        copyPaste: {
+          copyColumnHeadersOnly: true,
+          copyColumnGroupHeaders: true,
+          copyColumnHeaders: true,
+        },
+        nestedHeaders: [
+          [{ label: 'a1', colspan: 2 }],
         ],
       });
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(0, 0, 0, 1);
+      selectAll();
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      expect(copyEvent.clipboardData.getData('text/plain')).toBe('!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~');
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('A1\tB1\nA2\tB2');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
           '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody>',
-        '<tr><td>!@#$%^&*()_+-={[</td><td>]};:\'"\\|,&lt;.&gt;/?~</td></tr>',
-        '</tbody></table>',
-      ].join(''));
-    });
-
-    it('should copy text in quotes to the clipboard', () => {
-      handsontable({
-        data: [
-          ['{"test": "value"}'],
-          ['{"test2": {"testtest": ""}}'],
-          ['{"test3": ""}'],
-        ],
-      });
-
-      const copyEvent = getClipboardEvent();
-      const plugin = getPlugin('CopyPaste');
-
-      selectCell(0, 0, 2, 0);
-
-      plugin.copyCellsOnly();
-      plugin.onCopy(copyEvent); // emulate native "copy" event
-
-      expect(copyEvent.clipboardData.getData('text/plain'))
-        .toBe('{"test": "value"}\n{"test2": {"testtest": ""}}\n{"test3": ""}');
-      expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/>' +
-          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td>{"test":&nbsp;"value"}</td></tr>',
-        '<tr><td>{"test2":&nbsp;{"testtest":&nbsp;""}}</td></tr>',
-        '<tr><td>{"test3":&nbsp;""}</td></tr>',
-        '</tbody></table>',
-      ].join(''));
-    });
-
-    it('should copy 0 and false values to the clipboard', () => {
-      handsontable({
-        data: [
-          [''],
-          [0],
-          [false],
-          [undefined],
-          [null],
-        ],
-      });
-
-      const copyEvent = getClipboardEvent();
-      const plugin = getPlugin('CopyPaste');
-
-      selectCell(0, 0, 4, 0);
-
-      plugin.copyCellsOnly();
-      plugin.onCopy(copyEvent); // emulate native "copy" event
-
-      expect(copyEvent.clipboardData.getData('text/plain')).toBe('\n0\nfalse\n\n');
-      expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/>' +
-          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td></td></tr>',
-        '<tr><td>0</td></tr>',
-        '<tr><td>false</td></tr>',
-        '<tr><td></td></tr>',
-        '<tr><td></td></tr>',
+        '<tr><td>A1</td><td>B1</td></tr>',
+        '<tr><td>A2</td><td>B2</td></tr>',
         '</tbody></table>',
       ].join(''));
     });
@@ -149,7 +87,6 @@ describe('CopyPaste', () => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
-        contextMenu: true,
       });
 
       // hide all rows
@@ -175,11 +112,11 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should enable the item when all columns are hidden', () => {
+    it('should copy hidden columns to the clipboard', () => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
-        contextMenu: true,
+        colHeaders: true,
       });
 
       // hide all columns
@@ -205,12 +142,11 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    // The current behavior is probably a bug. An empty string should be copied into the clipboard.
-    it('should disable the item when all rows are trimmed', () => {
+    it('should copy an empty string when all rows are trimmed', () => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
         colHeaders: true,
-        contextMenu: true,
       });
 
       // trim all rows
@@ -225,22 +161,19 @@ describe('CopyPaste', () => {
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      expect(copyEvent.clipboardData.getData('text/plain')).toBe('\t\t\t\t');
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
           '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td></td><td></td><td></td><td></td><td></td></tr>',
-        '</tbody></table>',
+        '<table></table>',
       ].join(''));
     });
 
-    // The current behavior is probably a bug. An empty string should be copied into the clipboard.
-    it('should disable the item when all columns are trimmed', () => {
+    it('should copy an empty string when all columns are trimmed', () => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
-        contextMenu: true,
+        colHeaders: true,
       });
 
       // trim all columns
@@ -255,17 +188,11 @@ describe('CopyPaste', () => {
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      expect(copyEvent.clipboardData.getData('text/plain')).toBe('A1\nA2\nA3\nA4\nA5');
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
           '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-        '<table><tbody>',
-        '<tr><td>A1</td></tr>',
-        '<tr><td>A2</td></tr>',
-        '<tr><td>A3</td></tr>',
-        '<tr><td>A4</td></tr>',
-        '<tr><td>A5</td></tr>',
-        '</tbody></table>',
+        '<table></table>',
       ].join(''));
     });
   });

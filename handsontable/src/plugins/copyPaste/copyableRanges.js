@@ -6,7 +6,7 @@ import { rangeEach } from '../../helpers/number';
  * and `endCol` keys.
  *
  * @param {CellRange} selectionRange The selection range represented by the CellRange class.
- * @returns {{startRow: number, startCol: number, endRow: number, endCol: number}}
+ * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
  */
 export function getCellsRange(selectionRange) {
   const {
@@ -17,6 +17,10 @@ export function getCellsRange(selectionRange) {
     row: endRow,
     col: endCol,
   } = selectionRange.getBottomEndCorner();
+
+  if (selectionRange.getHeight() === 0 || selectionRange.getWidth() === 0) {
+    return null;
+  }
 
   return {
     startRow,
@@ -31,9 +35,13 @@ export function getCellsRange(selectionRange) {
  * and `endCol` keys.
  *
  * @param {CellRange} selectionRange The selection range represented by the CellRange class.
- * @returns {{startRow: number, startCol: number, endRow: number, endCol: number}}
+ * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
  */
 export function getColumnHeadersRange(selectionRange) {
+  if (selectionRange.getWidth() === 0) {
+    return null;
+  }
+
   const {
     col: startCol,
   } = selectionRange.getTopStartCorner();
@@ -55,9 +63,13 @@ export function getColumnHeadersRange(selectionRange) {
  *
  * @param {CellRange} selectionRange The selection range represented by the CellRange class.
  * @param {number} columnHeadersCount The total count of the column header layers.
- * @returns {{startRow: number, startCol: number, endRow: number, endCol: number}}
+ * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
  */
 export function getColumnGroupHeadersRange(selectionRange, columnHeadersCount) {
+  if (columnHeadersCount === 0 || selectionRange.getWidth() === 0) {
+    return null;
+  }
+
   const {
     col: startCol,
   } = selectionRange.getTopStartCorner();
