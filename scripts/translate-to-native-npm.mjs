@@ -49,6 +49,7 @@ if (argv._.length === 0) {
         'tmp-hot-react',
         'tmp-hot-vue',
         'tmp-hot-vue3',
+        'examples',
       ].join(' -w ');
 
       if (argv.exclude) {

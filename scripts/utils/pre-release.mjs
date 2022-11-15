@@ -78,30 +78,38 @@ export function setVersion(version, packages = workspacePackages) {
 
   // Set the new version number to all the packages.
   packages.forEach((packagesLocation) => {
-    validateReplacementStatus(replace.sync({
-      files: `${packagesLocation}${packagesLocation === '.' ? '' : '*'}/package.json`,
-      from: [/"version": "(.*)"/, /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g],
-      to: (fullMatch, ...[semverPrefix, previousVersion]) => {
-        if (fullMatch.indexOf('version') > 0) {
-          // Replace the version with the new version.
-          return `"version": "${version}"`;
+    validateReplacementStatus(
+      replace.sync({
+        files: `${packagesLocation}${
+          packagesLocation === '.' ? '' : '*'
+        }/package.json`,
+        from: [
+          /"version": "(.*)"/,
+          /"tmp-hot": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g,
+        ],
+        to: (fullMatch, ...[semverPrefix, previousVersion]) => {
+          if (fullMatch.indexOf('version') > 0) {
+            // Replace the version with the new version.
+            return `"version": "${version}"`;
 
-        } else {
-          const isPreRelease = version.includes('-next-');
-          const newVersion = isPreRelease ? version : `${semverPrefix}${semver.major(
-            semver.maxSatisfying([version, previousVersion], '*')
-          )}.0.0`;
+          } else {
+            const isPreRelease = version.includes('-next-');
+            const newVersion = isPreRelease ? version : `${semverPrefix}${semver.major(
+              semver.maxSatisfying([version, previousVersion], '*')
+            )}.0.0`;
 
-          // Replace the `handsontable` dependency with the current major (or previous major, if it's a prerelease).
-          return `"handsontable": "${newVersion}"`;
-        }
-      },
-      ignore: [
-        `${packagesLocation}*/node_modules/**/*`,
-        `${packagesLocation}*/projects/hot-table/package.json`,
-        `${packagesLocation}*/dist/hot-table/package.json`,
-      ],
-    }), version);
+            // Replace the `handsontable` dependency with the current major (or previous major, if it's a prerelease).
+            return `"tmp-hot": "${newVersion}"`;
+          }
+        },
+        ignore: [
+          `${packagesLocation}*/node_modules/**/*`,
+          `${packagesLocation}*/projects/hot-table/package.json`,
+          `${packagesLocation}*/dist/hot-table/package.json`,
+        ],
+      }),
+      version
+    );
   });
 }
 
