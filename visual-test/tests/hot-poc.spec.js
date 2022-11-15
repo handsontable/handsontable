@@ -89,6 +89,9 @@ test('remove content from cell, copy content from one cell to another', async({ 
   // press V button and try to paste value from 2B
   await page.keyboard.press('v');
 
+  // issue: without line below Firefox will scroll entire page up - check snapshot number 3
+  // await page.evaluate(() => window.scrollTo(0, 200));
+
   // make one more screenshot
   await page.screenshot({ path: `snapshots/3-${workerInfo.project.name}.png` });
 
@@ -98,8 +101,6 @@ test('remove content from cell, copy content from one cell to another', async({ 
   // zoom entire page - we've tried CTRL+, but looks like it doesn't work
   // eslint-disable-next-line no-restricted-globals
   await page.evaluate(() => { document.body.style.transform = 'scale(2)'; });
-
-  // await page.evaluate(() => window.scrollTo(0, 200));
 
   // make one more screenshot
   await page.screenshot({ path: `snapshots/4-${workerInfo.project.name}.png` });
