@@ -3,15 +3,15 @@ const { devices } = require('@playwright/test');
 
 /**
  * Read environment variables from file.
- * https://github.com/motdotla/dotenv
+ * Https://github.com/motdotla/dotenv.
  */
 // require('dotenv').config();
-
 
 /**
  * @see https://playwright.dev/docs/test-configuration
  * @type {import('@playwright/test').PlaywrightTestConfig}
  */
+
 const config = {
   testDir: './tests',
   /* Maximum time one test can run for. */
@@ -19,7 +19,7 @@ const config = {
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
-     * For example in `await expect(locator).toHaveText();`
+     * For example in `await expect(locator).toHaveText();`.
      */
     timeout: 5000
   },
@@ -73,7 +73,7 @@ const config = {
         ...devices['Desktop Safari'],
         contextOptions: {
           // chromium-specific permissions
-          //permissions: ['clipboard-write'],
+          // permissions: ['clipboard-write'],
         },
       },
     },
