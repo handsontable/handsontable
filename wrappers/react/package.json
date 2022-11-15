@@ -11,8 +11,10 @@
   "unpkg": "./dist/react-handsontable.min.js",
   "types": "./index.d.ts",
   "exports": {
+    "./dist/react-handsontable.js" : "./dist/react-handsontable.js",
+    "./dist/react-handsontable.min.js" : "./dist/react-handsontable.min.js",
     ".": {
-      "import": "./es/react-handsontable.js",
+      "import": "./es/react-handsontable.mjs",
       "require": "./commonjs/react-handsontable.js"
     }
   },
