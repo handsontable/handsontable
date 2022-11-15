@@ -37,9 +37,9 @@ class JasmineProgressBarReporter {
       consoleErr: '#ab1d00',
       failedCountBorder: '#f4f4f4',
       failedCountBackground: '#fff',
-      bar: '#104bcd',
-      failed: '#ea5c55',
-      pending: '#7898d0',
+      bar: '#007069',
+      failed: '#ca3a11',
+      pending: '#ba9d37',
     };
   }
 
@@ -61,7 +61,7 @@ class JasmineProgressBarReporter {
         position: 'absolute',
         left: 0,
         height: '100%',
-        backgroundColor: '#104bcd',
+        backgroundColor: this.colorScheme.bar,
         width: 0
       })
     };
