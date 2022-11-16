@@ -1,7 +1,7 @@
 import React from 'react';
 import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
-import { registerAllModules } from 'handsontable/registry';
+import { registerAllModules } from 'tmp-hot/registry';
 import {
   createSpreadsheetData,
   RendererComponent,
