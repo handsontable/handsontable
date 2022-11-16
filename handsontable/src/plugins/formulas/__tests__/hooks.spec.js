@@ -30,7 +30,6 @@ describe('Formulas general', () => {
             engine: spec().hfInstance
           },
           afterNamedExpressionAdded,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         spec().hfInstance.addNamedExpression('testExprerssion', '=Sheet1!$A$1+100');
@@ -53,7 +52,6 @@ describe('Formulas general', () => {
             engine: spec().hfInstance
           },
           afterNamedExpressionRemoved,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         spec().hfInstance.removeNamedExpression('testExprerssion');
@@ -73,7 +71,6 @@ describe('Formulas general', () => {
             engine: spec().hfInstance
           },
           afterSheetAdded,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         spec().hfInstance.addSheet('Test Sheet');
@@ -96,7 +93,6 @@ describe('Formulas general', () => {
             engine: spec().hfInstance
           },
           afterSheetRemoved,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         spec().hfInstance.removeSheet(0);
@@ -118,7 +114,6 @@ describe('Formulas general', () => {
             engine: spec().hfInstance
           },
           afterSheetRenamed,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         spec().hfInstance.renameSheet(spec().hfInstance.getSheetId('Test Sheet'), 'New Name');
@@ -140,7 +135,6 @@ describe('Formulas general', () => {
             engine: spec().hfInstance
           },
           afterFormulasValuesUpdate,
-          licenseKey: 'non-commercial-and-evaluation'
         });
 
         setDataAtCell(0, 0, 'test');

@@ -50,6 +50,7 @@ module.exports.create = function create(envArgs) {
           'helpers/common.css',
         ],
         externalJsFiles: [
+          'helpers/jasmine-progressbar-reporter.js',
           'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',

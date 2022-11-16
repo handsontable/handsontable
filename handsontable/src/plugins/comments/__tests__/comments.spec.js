@@ -3,12 +3,9 @@ describe('Comments', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
-    $('.jasmine_html-reporter').hide(); // a workaround for making the test more predictable
   });
 
   afterEach(function() {
-    $('.jasmine_html-reporter').show(); // a workaround for making the test more predictable
-
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -19,7 +16,7 @@ describe('Comments', () => {
     it('should enable the plugin in the initial config', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
-        comments: true
+        comments: true,
       });
 
       expect(hot.getPlugin('comments').isEnabled()).toBe(true);
@@ -56,7 +53,7 @@ describe('Comments', () => {
               value: 'test'
             }
           };
-        }
+        },
       });
 
       const plugin = hot.getPlugin('comments');
@@ -100,7 +97,7 @@ describe('Comments', () => {
           cell: [
             { row: 1, col: 1, comment: { value: 'test' } },
             { row: 2, col: 2, comment: { value: 'test' } }
-          ]
+          ],
         });
 
         expect(getCell(1, 1).classList.contains('htCommentCell')).toBeTrue();
@@ -215,7 +212,38 @@ describe('Comments', () => {
         expect(editorOffset.left).toBeCloseTo(cellOffset.left, 0);
       });
 
-      it('should display the comment editor on the left of the cell when on the right there is no left space', async() => {
+      it('should display the comment editor on the left of the cell when there is not enough space left on the right', async() => {
+        // For this configuration object "{ htmlDir: 'rtl', layoutDirection: 'ltr'}" it's necessary to force
+        // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
+        if (htmlDir === 'rtl' && layoutDirection === 'ltr') {
+          $('html').attr('dir', 'ltr');
+        }
+
+        handsontable({
+          layoutDirection,
+          data: Handsontable.helper.createSpreadsheetData(100, 100),
+          comments: true,
+        });
+
+        scrollViewportTo(countRows() - 1, countCols() - 1);
+
+        const plugin = getPlugin('comments');
+        const $editor = $(plugin.editor.getInputElement());
+
+        await sleep(10);
+
+        plugin.showAtCell(countRows() - 5, countCols() - 2);
+
+        const cellOffset = $(getCell(countRows() - 5, countCols() - 2)).offset();
+        const editorOffset = $editor.offset();
+        const editorWidth = $editor.outerWidth();
+
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
+      });
+
+      it('should display the comment editor on the top-left of the cell when there is not enough space of the' +
+        ' bottom-right', async() => {
         // For this configuration object "{ htmlDir: 'rtl', layoutDirection: 'ltr'}" it's necessary to force
         // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
         if (htmlDir === 'rtl' && layoutDirection === 'ltr') {
@@ -237,11 +265,14 @@ describe('Comments', () => {
 
         plugin.showAtCell(countRows() - 2, countCols() - 2);
 
-        const cellOffset = $(getCell(countRows() - 2, countCols() - 2)).offset();
+        const $cell = $(getCell(countRows() - 2, countCols() - 2));
+        const cellOffset = $cell.offset();
         const editorOffset = $editor.offset();
+        const cellHeight = $cell.outerHeight();
         const editorWidth = $editor.outerWidth();
+        const editorHeight = $editor.outerHeight();
 
-        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
         expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
       });
 
@@ -293,7 +324,7 @@ describe('Comments', () => {
               value: 'test'
             }
           };
-        }
+        },
       });
 
       $(getCell(1, 1)).simulate('mouseover', {
@@ -441,7 +472,7 @@ describe('Comments', () => {
         cell: [
           { row: 1, col: 1, comment: { value: 'test' } },
           { row: 2, col: 2, comment: { value: 'another test' } }
-        ]
+        ],
       });
 
       const plugin = hot.getPlugin('comments');
@@ -455,7 +486,7 @@ describe('Comments', () => {
     it('should allow inserting comments using the `setCommentAtCell` method', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
-        comments: true
+        comments: true,
       });
 
       const plugin = hot.getPlugin('comments');
@@ -471,7 +502,7 @@ describe('Comments', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
-        beforeSetCellMeta: () => false
+        beforeSetCellMeta: () => false,
       });
 
       const plugin = hot.getPlugin('comments');
@@ -488,7 +519,7 @@ describe('Comments', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
-        afterSetCellMeta: afterSetCellMetaCallback
+        afterSetCellMeta: afterSetCellMetaCallback,
       });
 
       const plugin = hot.getPlugin('comments');
@@ -504,7 +535,7 @@ describe('Comments', () => {
         comments: true,
         cell: [
           { row: 1, col: 1, comment: { value: 'test' } }
-        ]
+        ],
       });
 
       const plugin = hot.getPlugin('comments');
@@ -522,7 +553,7 @@ describe('Comments', () => {
         comments: true,
         cell: [
           { row: 1, col: 1, comment: { value: 'test' } }
-        ]
+        ],
       });
 
       hot.updateSettings({ beforeSetCellMeta: () => false });
@@ -542,7 +573,7 @@ describe('Comments', () => {
         cell: [
           { row: 1, col: 1, comment: { value: 'test' } }
         ],
-        afterSetCellMeta: afterSetCellMetaCallback
+        afterSetCellMeta: afterSetCellMetaCallback,
       });
 
       const plugin = hot.getPlugin('comments');
@@ -588,7 +619,7 @@ describe('Comments', () => {
   it('`updateCommentMeta` & `setComment` functions should extend cellMetaObject properly', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
-      comments: true
+      comments: true,
     });
     const plugin = hot.getPlugin('comments');
     let readOnly;
@@ -615,7 +646,7 @@ describe('Comments', () => {
     handsontable({
       data: createSpreadsheetData(4, 4),
       contextMenu: true,
-      comments: true
+      comments: true,
     });
 
     selectCell(1, 1);
@@ -651,7 +682,7 @@ describe('Comments', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
-        comments: true
+        comments: true,
       });
 
       selectCell(1, 1);
@@ -675,7 +706,7 @@ describe('Comments', () => {
         comments: true,
         cell: [
           { row: 1, col: 1, comment: { value: 'Test comment' } }
-        ]
+        ],
       });
 
       expect(getCellMeta(1, 1).comment.value).toEqual('Test comment');
@@ -701,7 +732,7 @@ describe('Comments', () => {
           { row: 1, col: 1, comment: { value: 'Test comment 1' } },
           { row: 2, col: 2, comment: { value: 'Test comment 2' } },
           { row: 3, col: 3, comment: { value: 'Test comment 3' } },
-        ]
+        ],
       });
 
       selectCell(1, 1, 3, 3);
@@ -727,7 +758,7 @@ describe('Comments', () => {
           { row: 1, col: 1, comment: { value: 'Test comment 1' } },
           { row: 2, col: 2, comment: { value: 'Test comment 2' } },
           { row: 3, col: 3, comment: { value: 'Test comment 3' } },
-        ]
+        ],
       });
 
       selectCell(3, 3, 1, 1);
@@ -751,7 +782,7 @@ describe('Comments', () => {
         comments: true,
         cell: [
           { row: 1, col: 1, comment: { value: 'Test comment' } }
-        ]
+        ],
       });
 
       selectCell(1, 1);
@@ -785,7 +816,7 @@ describe('Comments', () => {
           { row: 1, col: 1, comment: { value: 'Test comment 1' } },
           { row: 2, col: 2, comment: { value: 'Test comment 2' } },
           { row: 3, col: 3, comment: { value: 'Test comment 3' } },
-        ]
+        ],
       });
 
       selectCell(1, 1, 3, 3);
@@ -816,7 +847,7 @@ describe('Comments', () => {
           { row: 1, col: 1, comment: { value: 'Test comment 1' } },
           { row: 2, col: 2, comment: { value: 'Test comment 2' } },
           { row: 3, col: 3, comment: { value: 'Test comment 3' } },
-        ]
+        ],
       });
 
       selectCell(3, 3, 1, 1);
@@ -855,7 +886,7 @@ describe('Comments', () => {
             }
           };
         },
-        afterSetCellMeta: afterSetCellMetaCallback
+        afterSetCellMeta: afterSetCellMetaCallback,
       });
 
       expect(afterSetCellMetaCallback).not.toHaveBeenCalled();
@@ -886,7 +917,7 @@ describe('Comments', () => {
             }
           };
         },
-        beforeSetCellMeta: () => false
+        beforeSetCellMeta: () => false,
       });
 
       expect(getCellMeta(1, 1).comment.value).toEqual('test');
@@ -919,7 +950,7 @@ describe('Comments', () => {
             }
           };
         },
-        afterSetCellMeta: afterSetCellMetaCallback
+        afterSetCellMeta: afterSetCellMetaCallback,
       });
 
       selectCell(0, 0);
@@ -963,7 +994,7 @@ describe('Comments', () => {
             }
           };
         },
-        beforeSetCellMeta: () => false
+        beforeSetCellMeta: () => false,
       });
 
       selectCell(0, 0);
@@ -1110,7 +1141,6 @@ describe('Comments', () => {
         rowHeaders: true,
         colHeaders: true,
         comments: true,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const container2 = $('<div id="hot2"></div>').appendTo(spec().$container).handsontable({
@@ -1119,7 +1149,6 @@ describe('Comments', () => {
         rowHeaders: true,
         colHeaders: true,
         comments: true,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       let commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
@@ -1147,7 +1176,6 @@ describe('Comments', () => {
         rowHeaders: true,
         colHeaders: true,
         comments: true,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const container2 = $('<div id="hot2"></div>').appendTo(spec().$container).handsontable({
@@ -1156,7 +1184,6 @@ describe('Comments', () => {
         rowHeaders: true,
         colHeaders: true,
         comments: true,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       container2.handsontable('destroy');

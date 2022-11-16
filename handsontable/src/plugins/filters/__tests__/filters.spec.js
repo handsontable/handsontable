@@ -183,7 +183,6 @@ describe('Filters', () => {
     'a dropdown menu (`dropdownMenu` plugin is enabled)', () => {
     const warnSpy = spyOn(console, 'warn');
     const hot = handsontable({
-      licenseKey: 'non-commercial-and-evaluation',
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       dropdownMenu: true,
