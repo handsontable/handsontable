@@ -126,7 +126,7 @@ test('remove content from cell, copy content from one cell to another', async({ 
 
   await page.screenshot({ path: `snapshots/table-with-empty-column-${workerInfo.project.name}.png` });
 
-  // zoom entire page - we've tried CTRL+, but looks like it doesn't work
+  // zoom entire page - we've tried CTRL+, but looks like it doesn't work, so we have to make the `transform(scale)` trick
   // eslint-disable-next-line no-restricted-globals
   await page.evaluate(() => { document.body.style.transform = 'scale(2)'; });
 
