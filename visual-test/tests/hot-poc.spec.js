@@ -98,31 +98,38 @@ test('remove content from cell, copy content from one cell to another', async({ 
   // stop holding CTRL button (and its mac equivalent)
   await page.keyboard.up(`${modifier}`);
 
+  // find button in column `name` and try to expand the menu
+  const changeTypeButton = wtSpreader.locator('table thead th:nth-child(4) button.changeType');
+
+  // for some reason Playwright claims that button is not visible and can not click it
+  // we have to use "force" parameter to click anyway
+  // I think we should investigate what is the reason of this behaviour
+  // issue is about entire `thead` element, e.g. this code will fail:
+  // const thead = wtSpreader.locator('table thead');
+  // await thead.screenshot({ path: `snapshots/thead-${workerInfo.project.name}.png` });
+
+  await changeTypeButton.click({ button: 'left', force: true });
+  await page.screenshot({ path: `snapshots/page-with-visible-dropdownMenu-${workerInfo.project.name}.png` });
+
+  // find dropdown menu
+  const dropdownMenu = page.locator('.htMenu.htDropdownMenu.handsontable');
+
+  // take screenshot of page with open dropdown menu and dropdown menu only
+  await page.screenshot({ path: `snapshots/page-with-dropdownmenu-${workerInfo.project.name}.png` });
+  await dropdownMenu.screenshot({ path: `snapshots/dropdownmenu-${workerInfo.project.name}.png` });
+
+  // find and click button "clear column" - by the text this time
+
+  await dropdownMenu.locator('"Clear column"').click({ button: 'left' });
+
+  // await dropdownMenuButton.screenshot({ path: `snapshots/dropdownmenuButton-${workerInfo.project.name}.png` });
+
+  await page.screenshot({ path: `snapshots/table-with-empty-column-${workerInfo.project.name}.png` });
+
   // zoom entire page - we've tried CTRL+, but looks like it doesn't work
   // eslint-disable-next-line no-restricted-globals
   await page.evaluate(() => { document.body.style.transform = 'scale(2)'; });
 
   // make one more screenshot
-  await page.screenshot({ path: `snapshots/4-${workerInfo.project.name}.png` });
-
-  // const tbody = wtSpreader.locator('table tbody');
-
-  // await tbody.screenshot({ path: `snapshots/5-${workerInfo.project.name}.png` });
-
-  const thead = wtSpreader.locator('table thead');
-
-  await thead.screenshot({ path: `snapshots/6-${workerInfo.project.name}.png` });
-
-  const changeType = wtSpreader.locator('table thead th:nth-child(4) button.changeType');
-
-  await thead.screenshot({ path: `snapshots/7-${workerInfo.project.name}.png` });
-  await changeType.click({ button: 'left' });
-
-  // ^ we are trying to test button and click on it, but for some reason Playwright
-  // can not see the `thead` and its children element - it can be found in DOM
-  // but button is marked as `hidden` and not clickable
-  // (line below will throw error cause of found more than one `th` element, so yes - they exists),
-
-  // changeType = wtSpreader.locator('table thead th button.changeType');
-  // await changeType.click({button: "left"});
+  await page.screenshot({ path: `snapshots/page-after-zoom-${workerInfo.project.name}.png` });
 });
