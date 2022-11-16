@@ -256,7 +256,12 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
 :::
 
 
-## Related API reference
+## Related articles
+
+- [Column widths](@/guides/columns/column-width.md)
+- [Row heights](@/guides/rows/row-height.md)
+
+**Related API reference**
 
 - Configuration options:
   - [`height`](@/api/options.md#height)

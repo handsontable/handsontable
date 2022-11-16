@@ -3713,7 +3713,7 @@ export default () => {
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
      *
-     * In the rendering process, the default row height is 23px.
+     * In the rendering process, the default row height is 23 px (22 px + 1 px of the row's bottom border).
      * You can change it to equal or greater than 23px, by setting the `rowHeights` option to one of the following:
      *
      * | Setting     | Description                                                                                         | Example                                                      |
