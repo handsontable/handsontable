@@ -101,10 +101,11 @@ test('remove content from cell, copy content from one cell to another', async({ 
   // find button in column `name` and try to expand the menu
   const changeTypeButton = wtSpreader.locator('table thead th:nth-child(4) button.changeType');
 
-  // for some reason Playwright claims that button is not visible and can not click it
-  // we have to use "force" parameter to click anyway
-  // I think we should investigate what is the reason of this behaviour
+  // for some reason Playwright claims that button is not visible and can not click it,
+  // we have to use "force" parameter to click anyway.
+  // I think we should consider investigation what is the reason of this behaviour,
   // issue is about entire `thead` element, e.g. this code will fail:
+  //
   // const thead = wtSpreader.locator('table thead');
   // await thead.screenshot({ path: `snapshots/thead-${workerInfo.project.name}.png` });
 
