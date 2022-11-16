@@ -137,6 +137,19 @@ afterEach(() => {
   specContext.spec = null;
 });
 
+beforeAll(() => {
+  // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
+  if (!process.env.JEST_WORKER_ID) {
+    $('.jasmine_html-reporter').hide();
+  }
+});
+afterAll(() => {
+  // After the test are finished show the test suite dots
+  if (!process.env.JEST_WORKER_ID) {
+    $('.jasmine_html-reporter').show();
+  }
+});
+
 /**
  * @returns {object} Returns the spec object for currently running test.
  */
@@ -155,10 +168,17 @@ export function hot() {
  * Creates the Handsontable instance.
  *
  * @param {object} options The Handsontable options.
+ * @param {boolean} explicitOptions If set to `true`, the options will be passed to the Handsontable instance as-is
+ * and license key won't be added automatically.
  * @returns {Handsontable}
  */
-export function handsontable(options) {
+export function handsontable(options, explicitOptions = false) {
   const currentSpec = spec();
+
+  // Add a license key to every Handsontable instance.
+  if (options && !explicitOptions) {
+    options.licenseKey = 'non-commercial-and-evaluation';
+  }
 
   currentSpec.$container.handsontable(options);
   currentSpec.$container[0].focus(); // otherwise TextEditor tests do not pass in IE8

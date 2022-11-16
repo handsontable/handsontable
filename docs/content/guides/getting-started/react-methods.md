@@ -29,9 +29,7 @@ The following example implements the `HotTable` component showing how to referen
 
 ::: example #example1 :react
 ```jsx
-import Handsontable from 'handsontable';
 import { useRef } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -39,7 +37,13 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
+  const data = [
+    ['A1', 'B1', 'C1', 'D1'],
+    ['A2', 'B2', 'C2', 'D2'],
+    ['A3', 'B3', 'C3', 'D3'],
+    ['A4', 'B4', 'C4', 'D4'],
+  ];
   const hotTableComponentRef = useRef(null);
 
   const selectCell = () => {
@@ -51,7 +55,7 @@ const ExampleComponent = () => {
     <>
       <HotTable
         ref={hotTableComponentRef}
-        data={Handsontable.helper.createSpreadsheetData(4, 4)}
+        data={data}
         colHeaders={true}
         height="auto"
         licenseKey="non-commercial-and-evaluation"
@@ -63,6 +67,8 @@ const ExampleComponent = () => {
   );
 }
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
