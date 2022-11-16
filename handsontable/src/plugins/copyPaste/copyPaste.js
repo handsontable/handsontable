@@ -12,9 +12,7 @@ import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
 import {
-  getCellsRange,
-  getColumnGroupHeadersRange,
-  getColumnHeadersRange,
+  CopyableRangesFactory,
   normalizeRanges,
 } from './copyableRanges';
 import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
@@ -51,6 +49,9 @@ const META_HEAD = [
  * * `'columnsLimit'` (see {@link CopyPaste#columnsLimit})
  * * `'rowsLimit'` (see {@link CopyPaste#rowsLimit})
  * * `'pasteMode'` (see {@link CopyPaste#pasteMode})
+ * * `'copyColumnHeaders'`
+ * * `'copyColumnGroupHeaders'`
+ * * `'copyColumnHeadersOnly'`
  * * `'uiContainer'` (see {@link CopyPaste#uiContainer}).
  *
  * See [the copy/paste demo](@/guides/cell-features/clipboard.md) for examples.
@@ -64,6 +65,9 @@ const META_HEAD = [
  *   columnsLimit: 25,
  *   rowsLimit: 50,
  *   pasteMode: 'shift_down',
+ *   copyColumnHeaders: true,
+ *   copyColumnGroupHeaders: true,
+ *   copyColumnHeadersOnly: true,
  *   uiContainer: document.body,
  * },
  * ```
@@ -115,12 +119,11 @@ export class CopyPaste extends BasePlugin {
    *
    * @type {HTMLElement}
    */
-   uiContainer = this.hot.rootDocument.body;
+  uiContainer = this.hot.rootDocument.body;
   /**
    * Shows the "Copy with column headers" item in the context menu and extends the context menu for
    * `'copy_with_column_headers'` option that can be used for creating custom menus arrangements.
    *
-   * @private
    * @type {boolean}
    * @default false
    */
@@ -129,7 +132,6 @@ export class CopyPaste extends BasePlugin {
    * Shows the "Copy with column group headers" item in the context menu and extends the context menu for
    * `'copy_with_column_group headers'` option that can be used for creating custom menus arrangements.
    *
-   * @private
    * @type {boolean}
    * @default false
    */
@@ -138,7 +140,6 @@ export class CopyPaste extends BasePlugin {
    * Shows the "Copy column headers only" item in the context menu and extends the context menu for
    * `'copy_column_headers_only'` option that can be used for creating custom menus arrangements.
    *
-   * @private
    * @type {boolean}
    * @default false
    */
@@ -150,24 +151,32 @@ export class CopyPaste extends BasePlugin {
    *  * `'with-column-group-headers'` Copy cells with group column headers;
    *  * `'with-column-headers'` Copy cells with column headers;
    *
-   * @private
    * @type {'cells-only' | 'column-headers-only' | 'with-column-group-headers' | 'with-column-headers'}
    */
   #copyMode = 'cells-only';
   /**
    * Flag that is used to prevent copying when the native shortcut was not pressed.
    *
-   * @private
    * @type {boolean}
    */
   #isTriggeredByCopy = false;
   /**
    * Flag that is used to prevent cutting when the native shortcut was not pressed.
    *
-   * @private
    * @type {boolean}
    */
   #isTriggeredByCut = false;
+  /**
+   * Class that helps generate copyable ranges based on the current selection for different copy mode
+   * types.
+   *
+   * @type {CopyableRangesFactory}
+   */
+  #copyableRangesFactory = new CopyableRangesFactory({
+    countRows: () => this.hot.countRows(),
+    countColumns: () => this.hot.countCols(),
+    countColumnHeaders: () => this.hot.view.getColumnHeadersCount(),
+  });
   /**
    * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
    *
@@ -378,7 +387,8 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    const columnHeadersCount = this.hot.view.getColumnHeadersCount();
+    this.#copyableRangesFactory.setSelectedRange(selectionRange);
+
     const groupedRanges = new Map([
       ['headers', null],
       ['cells', null],
@@ -387,18 +397,18 @@ export class CopyPaste extends BasePlugin {
     let hasCellsCopyLimitReached = false;
 
     if (this.#copyMode === 'column-headers-only') {
-      groupedRanges.set('headers', getColumnGroupHeadersRange(selectionRange, columnHeadersCount));
+      groupedRanges.set('headers', this.#copyableRangesFactory.getColumnGroupHeadersRange());
 
     } else {
       if (this.#copyMode === 'with-column-headers') {
-        groupedRanges.set('headers', getColumnHeadersRange(selectionRange, columnHeadersCount));
+        groupedRanges.set('headers', this.#copyableRangesFactory.getColumnHeadersRange());
 
       } else if (this.#copyMode === 'with-column-group-headers') {
-        groupedRanges.set('headers', getColumnGroupHeadersRange(selectionRange, columnHeadersCount));
+        groupedRanges.set('headers', this.#copyableRangesFactory.getColumnGroupHeadersRange());
       }
 
       // Copy cells only for 'cells-only' or other type that does not match to the known `#copyMode` type.
-      cellsRange = getCellsRange(selectionRange);
+      cellsRange = this.#copyableRangesFactory.getCellsRange();
 
       if (cellsRange !== null) {
         const {
@@ -419,13 +429,8 @@ export class CopyPaste extends BasePlugin {
       }
     }
 
-    this.copyableRanges = [];
-
-    groupedRanges.forEach((range) => {
-      if (range !== null) {
-        this.copyableRanges.push(range);
-      }
-    });
+    this.copyableRanges = Array.from(groupedRanges.values())
+      .filter(range => range !== null);
 
     this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
 

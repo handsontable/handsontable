@@ -458,12 +458,9 @@ export class NestedHeaders extends BasePlugin {
             continue; // eslint-disable-line no-continue
           }
 
-          const {
-            isHidden,
-            isPlaceholder,
-          } = this.#stateManager.getHeaderSettings(row, column) ?? {};
+          const isRoot = this.#stateManager.getHeaderTreeNodeData(row, column)?.isRoot;
 
-          if (isPlaceholder || isHidden) {
+          if (isRoot === false) {
             data[zeroBasedColumnHeaderLevel][zeroBasedColumnIndex] = '';
           }
         }

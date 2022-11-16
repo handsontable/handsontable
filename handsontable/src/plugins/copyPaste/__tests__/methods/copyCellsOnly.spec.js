@@ -21,11 +21,7 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
-        copyPaste: {
-          copyColumnHeadersOnly: true,
-          copyColumnGroupHeaders: true,
-          copyColumnHeaders: true,
-        },
+        copyPaste: true,
         nestedHeaders: [
           ['a1', { label: 'b1', colspan: 4 }],
         ],
@@ -54,11 +50,7 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(2, 2),
         rowHeaders: true,
         colHeaders: true,
-        copyPaste: {
-          copyColumnHeadersOnly: true,
-          copyColumnGroupHeaders: true,
-          copyColumnHeaders: true,
-        },
+        copyPaste: true,
         nestedHeaders: [
           [{ label: 'a1', colspan: 2 }],
         ],
@@ -87,7 +79,10 @@ describe('CopyPaste', () => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
+        copyPaste: true,
       });
+
+      selectCell(1, 1, 2, 3);
 
       // hide all rows
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
@@ -95,8 +90,6 @@ describe('CopyPaste', () => {
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
-
-      selectCell(1, 1, 2, 3);
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -117,7 +110,10 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
+        copyPaste: true,
       });
+
+      selectCell(1, 1, 2, 3);
 
       // hide all columns
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
@@ -125,8 +121,6 @@ describe('CopyPaste', () => {
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
-
-      selectCell(1, 1, 2, 3);
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -147,7 +141,10 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
+        copyPaste: true,
       });
+
+      selectCell(1, 1, 2, 3);
 
       // trim all rows
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
@@ -155,8 +152,6 @@ describe('CopyPaste', () => {
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
-
-      selectAll();
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -174,7 +169,10 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
+        copyPaste: true,
       });
+
+      selectCell(1, 1, 2, 3);
 
       // trim all columns
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
@@ -182,8 +180,6 @@ describe('CopyPaste', () => {
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
-
-      selectAll();
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event

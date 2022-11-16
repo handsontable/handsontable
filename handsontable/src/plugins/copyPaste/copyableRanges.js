@@ -2,87 +2,133 @@ import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 
 /**
- * Returns a new coords object within the dataset range (cells) with `startRow`, `startCol`, `endRow`
- * and `endCol` keys.
+ * The utils class produces the selection ranges in the `{startRow, startCol, endRow, endCol}` format
+ * based on the current table selection. The CopyPaste plugin consumes that ranges to generate
+ * appropriate data ready to copy to the clipboard.
  *
- * @param {CellRange} selectionRange The selection range represented by the CellRange class.
- * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
+ * @private
  */
-export function getCellsRange(selectionRange) {
-  const {
-    row: startRow,
-    col: startCol,
-  } = selectionRange.getTopStartCorner();
-  const {
-    row: endRow,
-    col: endCol,
-  } = selectionRange.getBottomEndCorner();
+export class CopyableRangesFactory {
+  /**
+   * @type {CellRange}
+   */
+  #selectedRange;
+  /**
+   * @type {function(): number}
+   */
+  #countRows;
+  /**
+   * @type {function(): number}
+   */
+  #countColumns;
+  /**
+   * @type {function(): number}
+   */
+  #countColumnHeaders;
 
-  if (selectionRange.getHeight() === 0 || selectionRange.getWidth() === 0) {
-    return null;
+  /* eslint-disable jsdoc/require-description-complete-sentence */
+  /**
+   * @param {{
+   *   countRows: function(): number,
+   *   countColumns: function(): number,
+   *   countColumnHeaders: function(): number
+   * }} dependencies The utils class dependencies.
+   */
+  constructor({ countRows, countColumns, countColumnHeaders }) {
+    this.#countRows = countRows;
+    this.#countColumns = countColumns;
+    this.#countColumnHeaders = countColumnHeaders;
+  }
+  /* eslint-enable jsdoc/require-description-complete-sentence */
+
+  /**
+   * Sets the selection range to be processed.
+   *
+   * @param {CellRange} selectedRange The selection range represented by the CellRange class.
+   */
+  setSelectedRange(selectedRange) {
+    this.#selectedRange = selectedRange;
   }
 
-  return {
-    startRow,
-    startCol,
-    endRow,
-    endCol,
-  };
-}
+  /**
+   * Returns a new coords object within the dataset range (cells) with `startRow`, `startCol`, `endRow`
+   * and `endCol` keys.
+   *
+   * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
+   */
+  getCellsRange() {
+    if (this.#countRows() === 0 || this.#countColumns() === 0) {
+      return null;
+    }
 
-/**
- * Returns a new coords object within the column headers range with `startRow`, `startCol`, `endRow`
- * and `endCol` keys.
- *
- * @param {CellRange} selectionRange The selection range represented by the CellRange class.
- * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
- */
-export function getColumnHeadersRange(selectionRange) {
-  if (selectionRange.getWidth() === 0) {
-    return null;
+    const {
+      row: startRow,
+      col: startCol,
+    } = this.#selectedRange.getTopStartCorner();
+    const {
+      row: endRow,
+      col: endCol,
+    } = this.#selectedRange.getBottomEndCorner();
+
+    return {
+      startRow,
+      startCol,
+      endRow,
+      endCol,
+    };
   }
 
-  const {
-    col: startCol,
-  } = selectionRange.getTopStartCorner();
-  const {
-    col: endCol,
-  } = selectionRange.getBottomEndCorner();
+  /**
+   * Returns a new coords object within the column headers range with `startRow`, `startCol`, `endRow`
+   * and `endCol` keys.
+   *
+   * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
+   */
+  getColumnHeadersRange() {
+    if (this.#countColumns() === 0) {
+      return null;
+    }
 
-  return {
-    startRow: -1,
-    startCol,
-    endRow: -1,
-    endCol,
-  };
-}
+    const {
+      col: startCol,
+    } = this.#selectedRange.getTopStartCorner();
+    const {
+      col: endCol,
+    } = this.#selectedRange.getBottomEndCorner();
 
-/**
- * Returns a new coords object within the column group headers (nested headers) range with `startRow`,
- * `startCol`, `endRow` and `endCol` keys.
- *
- * @param {CellRange} selectionRange The selection range represented by the CellRange class.
- * @param {number} columnHeadersCount The total count of the column header layers.
- * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
- */
-export function getColumnGroupHeadersRange(selectionRange, columnHeadersCount) {
-  if (columnHeadersCount === 0 || selectionRange.getWidth() === 0) {
-    return null;
+    return {
+      startRow: -1,
+      startCol,
+      endRow: -1,
+      endCol,
+    };
   }
 
-  const {
-    col: startCol,
-  } = selectionRange.getTopStartCorner();
-  const {
-    col: endCol,
-  } = selectionRange.getBottomEndCorner();
+  /**
+   * Returns a new coords object within the column group headers (nested headers) range with `startRow`,
+   * `startCol`, `endRow` and `endCol` keys.
+   *
+   * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
+   */
+  getColumnGroupHeadersRange() {
+    if (this.#countColumns() === 0 || this.#countColumnHeaders() === 0) {
+      return null;
+    }
 
-  return {
-    startRow: -columnHeadersCount,
-    startCol,
-    endRow: -1,
-    endCol,
-  };
+    const {
+      col: startCol,
+    } = this.#selectedRange.getTopStartCorner();
+    const {
+      col: endCol,
+    } = this.#selectedRange.getBottomEndCorner();
+
+    return {
+      startRow: -this.#countColumnHeaders(),
+      startCol,
+      endRow: -1,
+      endCol,
+    };
+  }
 }
 
 /**
