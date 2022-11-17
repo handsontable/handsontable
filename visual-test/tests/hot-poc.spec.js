@@ -74,7 +74,7 @@ test('remove content from cell, copy content from one cell to another', async({ 
   // find and click cell 2B by left mouse button
   cell = tbody.locator('> tr:nth-child(2) > td:nth-child(3)');
   // ` { button: 'left' }` is default and not mandatory
-  // I added it here just to show, that we can define which button should be used
+  // I added it here just to show, that we can define which button should be used - guys had asked me about this opportunity
   // await cell.click();
   await cell.click({ button: 'left' });
 
@@ -156,12 +156,6 @@ test('remove content from cell, copy content from one cell to another', async({ 
   // make one more screenshot
   // await page.screenshot({ path: `snapshots/page-after-zoom-${workerInfo.project.name}.png` });
 
-  // await page.mouse.move(box.x + (box.width / 2), box.y + (box.height / 2));
-
-  // scroll HOT content
-  // await page.mouse.wheel(0, 270);
-  // await sleep(1);
-
   // find cell 2A, hold down left mouse button and move mouse to make few cells selected
   cell = tbody.locator('> tr:nth-child(2) > td:nth-child(2)');
   box = await cell.boundingBox(); // || { x: 0, y: 0, width: 0, height: 0 };
@@ -177,15 +171,16 @@ test('remove content from cell, copy content from one cell to another', async({ 
   // select entire row 5
   cell = tbody.locator('> tr:nth-child(5) > th:nth-child(1)');
 
-  // Without coordinates `click` clicks the middle of element,
+  // Without coordinates `click` works on the middle of element,
   // what means that in this case it will deselect checkbox.
-  // We do not want it, so we should define coordinates out of checkbox - here it can be 1, 1
-  // we have to force click, cause button is marked as `hidden` by Playwright
+  // We do not want it, so we should define coordinates out of checkbox - here it can be { 1, 1 }.
+  // We have to use `{ force: true }` to force click,
+  // cause button is marked by Playwright as `hidden` (it is covered by another layer)
   await cell.click({ position: { x: 1, y: 1 }, force: true });
-
   await page.screenshot({ path: `snapshots/selected-row-${workerInfo.project.name}.png` });
 
   // let's change the order of rows
+  // move mouse to the given row, click first cell to select it and move up
   box = await cell.boundingBox(); // || { x: 0, y: 0, width: 0, height: 0 };
   await page.mouse.move(box.x + 1, box.y + 1);
   await page.mouse.down();
