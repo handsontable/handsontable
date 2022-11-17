@@ -24,8 +24,9 @@ test('remove content from cell, copy content from one cell to another', async({ 
   await table.waitFor();
 
   // find .wtHolder and .wtSpreader element - it is needed to scroll the table
-  const wtHolder = table.locator('> .ht_master > .wtHolder');
+  const wtHolder = table.locator('> .ht_master.handsontable > .wtHolder');
   const wtSpreader = table.locator('> .ht_master > .wtHolder > .wtHider .wtSpreader');
+  const thead = table.locator('> .ht_clone_top.handsontable > .wtHolder > .wtHider .wtSpreader table thead');
 
   // scroll entire page down 200px from top
   // eslint-disable-next-line no-restricted-globals
@@ -99,18 +100,10 @@ test('remove content from cell, copy content from one cell to another', async({ 
   await page.keyboard.up(`${modifier}`);
 
   // find button in column `name` and try to expand the menu
-  const changeTypeButton = wtSpreader.locator('table thead th:nth-child(4) button.changeType');
+  const changeTypeButton = thead.locator('th:nth-child(4) button.changeType');
 
-  // for some reason Playwright claims that button is not visible and can not click it,
-  // we have to use "force" parameter to click anyway.
-  // I think we should consider investigation what is the reason of this behaviour,
-  // issue is about entire `thead` element, e.g. this code will fail:
-  //
-  // const thead = wtSpreader.locator('table thead');
-  // await thead.screenshot({ path: `snapshots/thead-${workerInfo.project.name}.png` });
-
-  await changeTypeButton.click({ button: 'left', force: true });
-  await page.screenshot({ path: `snapshots/page-with-visible-dropdownMenu-${workerInfo.project.name}.png` });
+  await changeTypeButton.click({ button: 'left' });
+  // await page.screenshot({ path: `snapshots/page-with-visible-dropdownMenu-${workerInfo.project.name}.png` });
 
   // find dropdown menu
   const dropdownMenu = page.locator('.htMenu.htDropdownMenu.handsontable');
