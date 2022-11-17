@@ -357,13 +357,6 @@ class DataMap {
       numberOfCreatedRows += 1;
     }
 
-    const columnIndexMapperIndexCount = this.instance.columnIndexMapper.getNumberOfIndexes();
-
-    // Needed in case the rows added are the only rows in the table.
-    if (columnIndexMapperIndexCount < columnCount) {
-      this.instance.columnIndexMapper.insertIndexes(columnIndexMapperIndexCount - 1, columnCount);
-    }
-
     this.instance.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
 
     if (mode === 'below') {
@@ -373,6 +366,12 @@ class DataMap {
     this.spliceData(physicalRowIndex, 0, rowsToAdd);
 
     const newVisualRowIndex = this.instance.toVisualRow(physicalRowIndex);
+
+    // In case the created rows are the only ones in the table, the column index mappers need to be rebuilt based on
+    // the number of columns created in the row or the schema.
+    if (this.instance.countSourceRows() === rowsToAdd.length) {
+      this.instance.columnIndexMapper.initToLength(this.instance.getInitialColumnCount());
+    }
 
     this.instance.runHooks('afterCreateRow', newVisualRowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed

@@ -539,4 +539,53 @@ describe('Core_dataSchema', () => {
     expect(dataAtRow.name).toEqual(null);
     expect(dataAtRow.surname).toEqual(null);
   });
+
+  describe('Automatically generated schema', () => {
+    it('should generate a data schema for the array-of-arrays datasets based on the number of columns in the first' +
+      ' row of the dataset, regardless of the `column` setting', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4)
+      });
+
+      expect(getSchema()).toEqual([null, null, null, null]);
+
+      loadData(Handsontable.helper.createSpreadsheetData(1, 2));
+
+      expect(getSchema()).toEqual([null, null]);
+
+      updateData(Handsontable.helper.createSpreadsheetData(2, 6));
+
+      expect(getSchema()).toEqual([null, null, null, null, null, null]);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(3, 3)
+      });
+
+      expect(getSchema()).toEqual([null, null, null]);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(3, 4),
+        columns: [
+          { data: 1 },
+          { data: 3 }
+        ]
+      });
+
+      expect(getSchema()).toEqual([null, null, null, null]);
+    });
+
+    it('should regenerate the schema when a column is added and/or removed', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4)
+      });
+
+      alter('insert_col_start', 1, 2);
+
+      expect(getSchema()).toEqual([null, null, null, null, null, null]);
+
+      alter('remove_col', 0, 5);
+
+      expect(getSchema()).toEqual([null]);
+    });
+  });
 });
