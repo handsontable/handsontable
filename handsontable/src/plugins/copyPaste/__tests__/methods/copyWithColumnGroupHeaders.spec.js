@@ -48,6 +48,33 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
+    // fit('should copy cells with column group headers to the clipboard', () => {
+    //   handsontable({
+    //     data: createSpreadsheetData(5, 5),
+    //     rowHeaders: true,
+    //     colHeaders: true,
+    //     copyPaste: true,
+    //     nestedHeaders: false,
+    //   });
+
+    //   const copyEvent = getClipboardEvent();
+    //   const plugin = getPlugin('CopyPaste');
+
+    //   selectCell(1, 0);
+
+    //   plugin.copyWithColumnGroupHeaders();
+    //   plugin.onCopy(copyEvent); // emulate native "copy" event
+
+    //   expect(copyEvent.clipboardData.getData('text/plain')).toBe('A2');
+    //   expect(copyEvent.clipboardData.getData('text/html')).toBe([
+    //     '<meta name="generator" content="Handsontable"/>' +
+    //       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+    //     '<table><tbody>',
+    //     '<tr><td>A2</td></tr>',
+    //     '</tbody></table>',
+    //   ].join(''));
+    // });
+
     it('should copy cells and column group headers to the clipboard when all cells and headers are selected', () => {
       handsontable({
         data: createSpreadsheetData(2, 2),
@@ -153,10 +180,7 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
         rowHeaders: true,
-        copyPaste: {
-          copyColumnGroupHeaders: true,
-        },
-        contextMenu: true,
+        copyPaste: true,
         nestedHeaders: [
           [{ label: 'a1', colspan: 4 }, 'b1'],
           [{ label: 'a2', colspan: 2 }, { label: 'b2', colspan: 2 }, 'c2'],
@@ -288,6 +312,10 @@ describe('CopyPaste', () => {
         rowHeaders: true,
         colHeaders: true,
         copyPaste: true,
+        nestedHeaders: [
+          ['a1', { label: 'b1', colspan: 4 }],
+          ['a2', { label: 'b2', colspan: 2 }, { label: 'c2', colspan: 2 }],
+        ],
       });
 
       selectAll();

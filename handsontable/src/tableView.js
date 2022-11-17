@@ -76,7 +76,6 @@ class TableView {
    * The total number of the column header renderers applied to the table through the
    * `afterGetColumnHeaderRenderers` hook.
    *
-   * @private
    * @type {number}
    */
   #columnHeadersCount = 0;
@@ -84,7 +83,6 @@ class TableView {
    * The total number of the row header renderers applied to the table through the
    * `afterGetRowHeaderRenderers` hook.
    *
-   * @private
    * @type {number}
    */
   #rowHeadersCount = 0;
@@ -139,7 +137,12 @@ class TableView {
        */
       lastHeight: 0,
     });
+  }
 
+  /**
+   * Initializes the Handsontable renderer class.
+   */
+  init() {
     this.createElements();
     this.registerEvents();
     this.initializeWalkontable();

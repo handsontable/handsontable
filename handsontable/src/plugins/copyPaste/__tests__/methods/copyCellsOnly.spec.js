@@ -24,6 +24,7 @@ describe('CopyPaste', () => {
         copyPaste: true,
         nestedHeaders: [
           ['a1', { label: 'b1', colspan: 4 }],
+          ['a2', { label: 'b2', colspan: 2 }, { label: 'c2', colspan: 2 }],
         ],
       });
 

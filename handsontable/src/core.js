@@ -1168,6 +1168,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.updateSettings(tableMeta, true);
 
     this.view = new TableView(this);
+    this.view.init();
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
     instance.runHooks('init');
@@ -3598,15 +3599,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getColHeader
    * @param {number} [column] Visual column index.
-   * @param {number} [headerLevel=0] The index of header level. The header level accepts positive (0 to N)
-   *                                 and negative (-1 to -N) values. For positive values, 0 points to the
-   *                                 top most header, and for negative direction, -1 points to the most bottom
-   *                                 header (the header closest to the cells).
+   * @param {number} [headerLevel=-1] The index of header level. The header level accepts positive (0 to N)
+   *                                  and negative (-1 to -N) values. For positive values, 0 points to the
+   *                                  top most header, and for negative direction, -1 points to the most bottom
+   *                                  header (the header closest to the cells).
    * @fires Hooks#modifyColHeader
    * @fires Hooks#modifyColumnHeaderValue
    * @returns {Array|string|number} The column header(s).
    */
-  this.getColHeader = function(column, headerLevel = 0) {
+  this.getColHeader = function(column, headerLevel = -1) {
     const columnIndex = instance.runHooks('modifyColHeader', column);
 
     if (columnIndex === void 0) {
@@ -3638,16 +3639,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const physicalColumn = instance.toPhysicalColumn(columnIndex);
     const prop = translateVisualIndexToColumns(physicalColumn);
+    const columnHeadersCount = instance.view.getColumnHeadersCount();
+    let zeroBasedHeaderLevel = headerLevel;
+
+    if (headerLevel < 0) {
+      zeroBasedHeaderLevel = headerLevel + Math.max(columnHeadersCount, 1);
+    }
+
+    if (zeroBasedHeaderLevel < 0 || zeroBasedHeaderLevel >= columnHeadersCount) {
+      return null;
+    }
 
     if (tableMeta.colHeaders === false) {
       result = null;
 
     } else if (tableMeta.columns && isFunction(tableMeta.columns) && tableMeta.columns(prop) &&
-                tableMeta.columns(prop).title) {
+               tableMeta.columns(prop).title) {
       result = tableMeta.columns(prop).title;
 
     } else if (tableMeta.columns && tableMeta.columns[physicalColumn] &&
-                tableMeta.columns[physicalColumn].title) {
+               tableMeta.columns[physicalColumn].title) {
       result = tableMeta.columns[physicalColumn].title;
 
     } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== void 0) {
@@ -3657,7 +3668,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       result = tableMeta.colHeaders(physicalColumn);
 
     } else if (tableMeta.colHeaders && typeof tableMeta.colHeaders !== 'string' &&
-                typeof tableMeta.colHeaders !== 'number') {
+               typeof tableMeta.colHeaders !== 'number') {
       result = spreadsheetColumnLabel(columnIndex); // see #1458
     }
 
