@@ -96,7 +96,7 @@ class DataMap {
      *
      * @type {object}
      */
-    this.duckSchema = this.dataSource && this.dataSource[0] ? duckSchema(this.dataSource[0]) : {};
+    this.duckSchema = this.createDuckSchema();
     /**
      * Cached array of properties to columns.
      *
@@ -280,6 +280,22 @@ class DataMap {
   }
 
   /**
+   * Creates the duck schema based on the current dataset.
+   *
+   * @returns {Array|object}
+   */
+  createDuckSchema() {
+    return this.dataSource && this.dataSource[0] ? duckSchema(this.dataSource[0]) : {};
+  }
+
+  /**
+   * Refresh the data schema.
+   */
+  refreshDuckSchema() {
+    this.duckSchema = this.createDuckSchema();
+  }
+
+  /**
    * Creates row at the bottom of the data array.
    *
    * @param {number} [index] Physical index of the row before which the new row will be inserted.
@@ -311,7 +327,7 @@ class DataMap {
     }
 
     const maxRows = this.tableMeta.maxRows;
-    const columnCount = this.instance.countCols();
+    const columnCount = this.instance.getSchema().length;
     const rowsToAdd = [];
 
     while (numberOfCreatedRows < amount && sourceRowsCount + numberOfCreatedRows < maxRows) {
@@ -339,6 +355,13 @@ class DataMap {
       rowsToAdd.push(row);
 
       numberOfCreatedRows += 1;
+    }
+
+    const columnIndexMapperIndexCount = this.instance.columnIndexMapper.getNumberOfIndexes();
+
+    // Needed in case the rows added are the only rows in the table.
+    if (columnIndexMapperIndexCount < columnCount) {
+      this.instance.columnIndexMapper.insertIndexes(columnIndexMapperIndexCount - 1, columnCount);
     }
 
     this.instance.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
