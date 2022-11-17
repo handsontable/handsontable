@@ -26,6 +26,9 @@ test('remove content from cell, copy content from one cell to another', async({ 
   // find .wtHolder and .wtSpreader element - it is needed to scroll the table
   const wtHolder = table.locator('> .ht_master.handsontable > .wtHolder');
   const wtSpreader = table.locator('> .ht_master > .wtHolder > .wtHider .wtSpreader');
+
+  // We use `thead` from cloned table here - otherwise Playwright won't click the dropdownMenu expander,
+  // cause original table is covered by layer with the cloned one and marked by Playwright as `hidden`.
   const thead = table.locator('> .ht_clone_top.handsontable > .wtHolder > .wtHider .wtSpreader table thead');
 
   // scroll entire page down 200px from top
@@ -100,10 +103,13 @@ test('remove content from cell, copy content from one cell to another', async({ 
   await page.keyboard.up(`${modifier}`);
 
   // find button in column `name` and try to expand the menu
+  // note: we are looking for button in clone of table, not in the original one
+  // button in original table is not visible for Playwright and marked as `hidden`
   const changeTypeButton = thead.locator('th:nth-child(4) button.changeType');
 
+  // it is possible to force Playwright to click hidden elements by adding parameter { force: true }
+  // await changeTypeButton.click({ button: 'left', force: true });
   await changeTypeButton.click({ button: 'left' });
-  // await page.screenshot({ path: `snapshots/page-with-visible-dropdownMenu-${workerInfo.project.name}.png` });
 
   // find dropdown menu
   const dropdownMenu = page.locator('.htMenu.htDropdownMenu.handsontable');
