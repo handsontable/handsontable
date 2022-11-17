@@ -1168,7 +1168,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.updateSettings(tableMeta, true);
 
     this.view = new TableView(this);
-    this.view.init();
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
     instance.runHooks('init');
@@ -3639,16 +3638,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const physicalColumn = instance.toPhysicalColumn(columnIndex);
     const prop = translateVisualIndexToColumns(physicalColumn);
-    const columnHeadersCount = instance.view.getColumnHeadersCount();
-    let zeroBasedHeaderLevel = headerLevel;
-
-    if (headerLevel < 0) {
-      zeroBasedHeaderLevel = headerLevel + Math.max(columnHeadersCount, 1);
-    }
-
-    if (zeroBasedHeaderLevel < 0 || zeroBasedHeaderLevel >= columnHeadersCount) {
-      return null;
-    }
 
     if (tableMeta.colHeaders === false) {
       result = null;

@@ -35,17 +35,17 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(300)).toBe('KO');
   });
 
-  it('should return `null` for all header levels that point to the header beyond the range when `colHeaders` is enabled', () => {
+  it('should return Excel-style column for all header levels that point to the header beyond the range when `colHeaders` is enabled', () => {
     handsontable({
       colHeaders: true
     });
 
     expect(getColHeader(0, -1)).toBe('A'); // the column headers nearest the dataset in the -1 to -N nomenclature
-    expect(getColHeader(0, -2)).toBe(null);
-    expect(getColHeader(0, -20)).toBe(null);
+    expect(getColHeader(0, -2)).toBe('A');
+    expect(getColHeader(0, -20)).toBe('A');
     expect(getColHeader(0, 0)).toBe('A'); // the column headers nearest the dataset in the 0 to N nomenclature
-    expect(getColHeader(0, 1)).toBe(null);
-    expect(getColHeader(0, 20)).toBe(null);
+    expect(getColHeader(0, 1)).toBe('A');
+    expect(getColHeader(0, 20)).toBe('A');
   });
 
   it('should return value at specified index when `colHeaders` is defined as an array', () => {
@@ -172,7 +172,7 @@ describe('Core.getColHeader', () => {
       modifyColumnHeaderValue(value, visualColumnIndex, headerLevel) {
         const zeroBasedHeaderLevel = headerLevel >= 0 ? headerLevel : headerLevel + 4; // 2 number of headers
 
-        return headers[zeroBasedHeaderLevel][visualColumnIndex];
+        return headers[zeroBasedHeaderLevel]?.[visualColumnIndex] ?? 'default';
       },
       afterGetColumnHeaderRenderers(renderers) {
         renderers.length = 0;
@@ -196,8 +196,8 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(1, 1)).toBe('b2');
     expect(getColHeader(2, 2)).toBe('c3');
     expect(getColHeader(3, 3)).toBe('d4');
-    expect(getColHeader(3, 4)).toBe(null); // header level is out of range
-    expect(getColHeader(4, 3)).toBe(null); // column index is out of range
+    expect(getColHeader(3, 4)).toBe('default'); // header level is out of range
+    expect(getColHeader(4, 3)).toBe('default'); // column index is out of range
   });
 
   it('should be possible to get the header values using header level index -1 to -N nomenclature', () => {
@@ -214,7 +214,7 @@ describe('Core.getColHeader', () => {
       modifyColumnHeaderValue(value, visualColumnIndex, headerLevel) {
         const zeroBasedHeaderLevel = headerLevel >= 0 ? headerLevel : headerLevel + 4; // 2 number of headers
 
-        return headers[zeroBasedHeaderLevel][visualColumnIndex];
+        return headers[zeroBasedHeaderLevel]?.[visualColumnIndex] ?? 'default';
       },
       afterGetColumnHeaderRenderers(renderers) {
         renderers.length = 0;
@@ -238,7 +238,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(1, -2)).toBe('c2');
     expect(getColHeader(2, -3)).toBe('b3');
     expect(getColHeader(3, -4)).toBe('a4');
-    expect(getColHeader(3, -5)).toBe(null); // header level is out of range
-    expect(getColHeader(4, -4)).toBe(null); // column index is out of range
+    expect(getColHeader(3, -5)).toBe('default'); // header level is out of range
+    expect(getColHeader(4, -4)).toBe('default'); // column index is out of range
   });
 });

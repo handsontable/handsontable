@@ -33,16 +33,19 @@ describe('Integration with other plugins', () => {
       expect(getColHeader(4)).toBe('E3');
       expect(getColHeader(5)).toBe('F3');
       expect(getColHeader(6)).toBe('');
+      expect(getColHeader(7)).toBe('');
 
       expect(getColHeader(1, -1)).toBe('B3');
       expect(getColHeader(1, -2)).toBe('B2');
       expect(getColHeader(1, -3)).toBe('B1');
-      expect(getColHeader(1, -4)).toBe(null);
+      expect(getColHeader(1, -4)).toBe('');
+      expect(getColHeader(1, -40)).toBe('');
 
       expect(getColHeader(1, 0)).toBe('B1');
       expect(getColHeader(1, 1)).toBe('B2');
       expect(getColHeader(1, 2)).toBe('B3');
-      expect(getColHeader(1, 3)).toBe(null);
+      expect(getColHeader(1, 3)).toBe('');
+      expect(getColHeader(1, 30)).toBe('');
     });
   });
 

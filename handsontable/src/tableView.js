@@ -137,12 +137,7 @@ class TableView {
        */
       lastHeight: 0,
     });
-  }
 
-  /**
-   * Initializes the Handsontable renderer class.
-   */
-  init() {
     this.createElements();
     this.registerEvents();
     this.initializeWalkontable();
