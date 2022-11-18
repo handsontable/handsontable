@@ -1,0 +1,7 @@
+{
+  "title": "Fix a problem with Undo/Redo not working correctly on column-preconfigured instances by modifying the way data schema is generated for AoA-typed data.",
+  "type": "fixed",
+  "issue": 1,
+  "breaking": false,
+  "framework": "none"
+}
