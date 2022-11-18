@@ -3760,14 +3760,29 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the row height.
+   * Returns a row's height, as recognized by Handsontable.
    *
-   * Mind that this method is different from the [AutoRowSize](@/api/autoRowSize.md) plugin's [`getRowHeight()`](@/api/autoRowSize.md#getrowheight) method.
+   * Depending on your configuration, the method returns (in order of priority):
+   *   1. The row height set by the [`ManualRowResize`](@/api/manualRowResize.md) plugin
+   *     (if the plugin is enabled).
+   *   2. The row height set by the [`rowHeights`](@/api/options.md#rowheights) configuration option
+   *     (if the option is set).
+   *   3. The row height as measured in the DOM by the [`AutoRowSize`](@/api/autoRowSize.md) plugin
+   *     (if the plugin is enabled).
+   *   4. `undefined`, if neither [`ManualRowResize`](@/api/manualRowResize.md),
+   *     nor [`rowHeights`](@/api/options.md#rowheights),
+   *     nor [`AutoRowSize`](@/api/autoRowSize.md) is used.
+   *
+   * The height returned includes 1 px of the row's bottom border.
+   *
+   * Mind that this method is different from the
+   * [`getRowHeight()`](@/api/autoRowSize.md#getrowheight) method
+   * of the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
    *
    * @memberof Core#
    * @function getRowHeight
-   * @param {number} row Visual row index.
-   * @returns {number} The given row's height.
+   * @param {number} row A visual row index.
+   * @returns {number|undefined} The height of the specified row, in pixels.
    * @fires Hooks#modifyRowHeight
    */
   this.getRowHeight = function(row) {
@@ -3946,35 +3961,48 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Select cell specified by `row` and `column` values or a range of cells finishing at `endRow`, `endCol`. If the table
-   * was configured to support data column properties that properties can be used to making a selection.
+   * Select a single cell, or a single range of adjacent cells.
    *
-   * By default, viewport will be scrolled to the selection. After the `selectCell` method had finished, the instance
-   * will be listening to keyboard input on the document.
+   * To select a cell, pass its visual row and column indexes, for example: `selectCell(2, 4)`.
+   *
+   * To select a range, pass the visual indexes of the first and last cell in the range, for example: `selectCell(2, 4, 3, 5)`.
+   *
+   * If your columns have properties, you can pass those properties' values instead of column indexes, for example: `selectCell(2, 'first_name')`.
+   *
+   * By default, `selectCell()` also:
+   *  - Scrolls the viewport to the newly-selected cells.
+   *  - Switches the keyboard focus to Handsontable (by calling Handsontable's [`listen()`](#listen) method).
    *
    * @example
    * ```js
    * // select a single cell
    * hot.selectCell(2, 4);
-   * // select a single cell using column property
-   * hot.selectCell(2, 'address');
+   *
    * // select a range of cells
    * hot.selectCell(2, 4, 3, 5);
-   * // select a range of cells using column properties
-   * hot.selectCell(2, 'address', 3, 'phone_number');
-   * // select a range of cells without scrolling to them
-   * hot.selectCell(2, 'address', 3, 'phone_number', false);
+   *
+   * // select a single cell, using a column property
+   * hot.selectCell(2, 'first_name');
+   *
+   * // select a range of cells, using column properties
+   * hot.selectCell(2, 'first_name', 3, 'last_name');
+   *
+   * // select a range of cells, without scrolling to them
+   * hot.selectCell(2, 4, 3, 5, false);
+   *
+   * // select a range of cells, without switching the keyboard focus to Handsontable
+   * hot.selectCell(2, 4, 3, 5, null, false);
    * ```
    *
    * @memberof Core#
    * @function selectCell
-   * @param {number} row Visual row index.
-   * @param {number|string} column Visual column index or column property.
-   * @param {number} [endRow] Visual end row index (if selecting a range).
-   * @param {number|string} [endColumn] Visual end column index or column property (if selecting a range).
-   * @param {boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
-   * @param {boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
-   * @returns {boolean} `true` if selection was successful, `false` otherwise.
+   * @param {number} row A visual row index.
+   * @param {number|string} column A visual column index (`number`), or a column property's value (`string`).
+   * @param {number} [endRow] If selecting a range: the visual row index of the last cell in the range.
+   * @param {number|string} [endColumn] If selecting a range: the visual column index (or a column property's value) of the last cell in the range.
+   * @param {boolean} [scrollToCell=true] `true`: scroll the viewport to the newly-selected cells. `false`: keep the previous viewport.
+   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the previous keyboard focus.
+   * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
    */
   this.selectCell = function(row, column, endRow, endColumn, scrollToCell = true, changeListener = true) {
     if (isUndefined(row) || isUndefined(column)) {
@@ -3985,24 +4013,48 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Make multiple, non-contiguous selection specified by `row` and `column` values or a range of cells
-   * finishing at `endRow`, `endColumn`. The method supports two input formats which are the same as that
-   * produces by `getSelected` and `getSelectedRange` methods.
+   * Select multiple cells or ranges of cells, adjacent or non-adjacent.
    *
-   * By default, viewport will be scrolled to selection. After the `selectCells` method had finished, the instance
-   * will be listening to keyboard input on the document.
+   * You can pass one of the below:
+   * - An array of arrays (which matches the output of Handsontable's [`getSelected()`](#getselected) method).
+   * - An array of [`CellRange`](@/api/cellRange.md) objects (which matches the output of Handsontable's [`getSelectedRange()`](#getselectedrange) method).
+   *
+   * To select multiple cells, pass the visual row and column indexes of each cell, for example: `hot.selectCells([[1, 1], [5, 5]])`.
+   *
+   * To select multiple ranges, pass the visual indexes of the first and last cell in each range, for example: `hot.selectCells([[1, 1, 2, 2], [6, 2, 0, 2]])`.
+   *
+   * If your columns have properties, you can pass those properties' values instead of column indexes, for example: `hot.selectCells([[1, 'first_name'], [5, 'last_name']])`.
+   *
+   * By default, `selectCell()` also:
+   *  - Scrolls the viewport to the newly-selected cells.
+   *  - Switches the keyboard focus to Handsontable (by calling Handsontable's [`listen()`](#listen) method).
    *
    * @example
    * ```js
-   * // Using an array of arrays.
+   * // select non-adjacent cells
+   * hot.selectCells([[1, 1], [5, 5], [10, 10]]);
+   *
+   * // select non-adjacent ranges of cells
+   * hot.selectCells([[1, 1, 2, 2], [10, 10, 20, 20]]);
+   *
+   * // select cells and ranges of cells
    * hot.selectCells([[1, 1, 2, 2], [3, 3], [6, 2, 0, 2]]);
-   * // Using an array of arrays with defined columns as props.
+   *
+   * // select cells, using column properties
    * hot.selectCells([[1, 'id', 2, 'first_name'], [3, 'full_name'], [6, 'last_name', 0, 'first_name']]);
-   * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
+   *
+   * // select multiple ranges, using an array of `CellRange` objects
    * const selected = hot.getSelectedRange();
    *
    * selected[0].from.row = 0;
    * selected[0].from.col = 0;
+   * selected[0].to.row = 5;
+   * selected[0].to.col = 5;
+   *
+   * selected[1].from.row = 10;
+   * selected[1].from.col = 10;
+   * selected[1].to.row = 20;
+   * selected[1].to.col = 20;
    *
    * hot.selectCells(selected);
    * ```
@@ -4010,12 +4062,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @since 0.38.0
    * @function selectCells
-   * @param {Array[]|CellRange[]} coords Visual coords passed as an array of array (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
-   *                                     the same format as `getSelected` method returns or as an CellRange objects
-   *                                     which is the same format what `getSelectedRange` method returns.
-   * @param {boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
-   * @param {boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
-   * @returns {boolean} `true` if selection was successful, `false` otherwise.
+   * @param {Array[]|CellRange[]} coords Visual coordinates,
+   * passed either as an array of arrays (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
+   * or as an array of [`CellRange`](@/api/cellRange.md) objects.
+   * @param {boolean} [scrollToCell=true] `true`: scroll the viewport to the newly-selected cells. `false`: keep the previous viewport.
+   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the previous keyboard focus.
+   * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
    */
   this.selectCells = function(coords = [[]], scrollToCell = true, changeListener = true) {
     if (scrollToCell === false) {
@@ -4093,13 +4145,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Select the whole table. The previous selection will be overwritten.
+   * Select the whole table.
+   *
+   * The previous selection is overwritten.
+   *
+   * ```js
+   * // select all cells in the table, including all headers
+   * hot.selectAll();
+   *
+   * // select all cells in the table, without headers
+   * hot.selectAll(false);
+   * ```
    *
    * @since 0.38.2
    * @memberof Core#
    * @function selectAll
-   * @param {boolean} [includeHeaders=true] `true` If the selection should include the row, column and corner headers,
-   * `false` otherwise.
+   * @param {boolean} [includeHeaders=true] `true`: include all row, column and corner headers.
+   * `false`: don't include any headers.
    */
   this.selectAll = function(includeHeaders = true) {
     const includeRowHeaders = includeHeaders && this.hasRowHeaders();

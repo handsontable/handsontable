@@ -43,8 +43,10 @@ By default:
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
@@ -72,7 +74,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -80,7 +81,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -105,7 +106,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -130,8 +133,10 @@ See the example plugin configuration below:
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   data: [
     ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
@@ -165,7 +170,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -173,7 +177,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -204,7 +208,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -223,8 +229,10 @@ As a result, you can see that different types of data are sorted properly. `Hand
 ::: only-for javascript
 ::: example #example3
 ```js
-const container = document.querySelector('#example3');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   data: [
     { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
@@ -280,7 +288,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -288,7 +295,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -341,7 +348,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -370,8 +379,10 @@ The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `heade
 ::: only-for javascript
 ::: example #example4
 ```js
-const container = document.querySelector('#example4');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   data: [
     { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
@@ -433,7 +444,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -441,7 +451,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -500,7 +510,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+/* end:skip-in-preview */
 ```
 :::
 :::

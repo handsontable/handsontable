@@ -158,6 +158,11 @@ export class Formulas extends BasePlugin {
 
     this.addHook('beforeLoadData', (...args) => this.onBeforeLoadData(...args));
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
+
+    // The `updateData` hooks utilize the same logic as the `loadData` hooks.
+    this.addHook('beforeUpdateData', (...args) => this.onBeforeLoadData(...args));
+    this.addHook('afterUpdateData', (...args) => this.onAfterLoadData(...args));
+
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
     this.addHook('beforeValidate', (...args) => this.onBeforeValidate(...args));

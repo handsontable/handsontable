@@ -14,7 +14,7 @@ describe('settings', () => {
     });
 
     it('should add info under table about missing license key', () => {
-      handsontable({});
+      handsontable({}, true);
 
       const info = spec().$container[0].nextSibling;
 
@@ -29,7 +29,7 @@ describe('settings', () => {
     it('should add info under table about invalid license key', () => {
       handsontable({
         licenseKey: 'invalidKey'
-      });
+      }, true);
 
       const info = spec().$container[0].nextSibling;
 
