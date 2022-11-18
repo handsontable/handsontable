@@ -15,31 +15,6 @@ describe('CopyPaste', () => {
     }
   });
 
-  describe('general functionality', () => {
-    it('should reset the copy mode (internal state) to "cells-only" after each copy operation', () => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        rowHeaders: true,
-        colHeaders: true,
-        copyPaste: true,
-      });
-
-      const copyEvent = getClipboardEvent();
-      const plugin = getPlugin('CopyPaste');
-
-      selectCell(1, 1);
-
-      plugin.copyColumnHeadersOnly();
-      plugin.onCopy(copyEvent); // emulate native "copy" event
-
-      expect(copyEvent.clipboardData.getData('text/plain')).toBe('B');
-
-      plugin.onCopy(copyEvent); // emulate native "copy" event triggered by Cmd/Ctrl+C (copy cells)
-
-      expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
-    });
-  });
-
   describe('enabling/disabling plugin', () => {
     it('should copyPaste be set enabled as default', () => {
       const hot = handsontable();

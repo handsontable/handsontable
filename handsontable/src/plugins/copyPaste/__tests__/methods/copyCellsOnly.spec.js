@@ -22,10 +22,15 @@ describe('CopyPaste', () => {
         rowHeaders: true,
         colHeaders: true,
         copyPaste: true,
-        nestedHeaders: [
-          ['a1', { label: 'b1', colspan: 4 }],
-          ['a2', { label: 'b2', colspan: 2 }, { label: 'c2', colspan: 2 }],
-        ],
+        afterGetColumnHeaderRenderers(renderers) {
+          renderers.length = 0;
+          renderers.push((renderedColumnIndex, TH) => {
+            TH.innerText = this.getColHeader(renderedColumnIndex, 0);
+          });
+          renderers.push((renderedColumnIndex, TH) => {
+            TH.innerText = this.getColHeader(renderedColumnIndex, 1);
+          });
+        },
       });
 
       const copyEvent = getClipboardEvent();
@@ -52,9 +57,15 @@ describe('CopyPaste', () => {
         rowHeaders: true,
         colHeaders: true,
         copyPaste: true,
-        nestedHeaders: [
-          [{ label: 'a1', colspan: 2 }],
-        ],
+        afterGetColumnHeaderRenderers(renderers) {
+          renderers.length = 0;
+          renderers.push((renderedColumnIndex, TH) => {
+            TH.innerText = this.getColHeader(renderedColumnIndex, 0);
+          });
+          renderers.push((renderedColumnIndex, TH) => {
+            TH.innerText = this.getColHeader(renderedColumnIndex, 1);
+          });
+        },
       });
 
       const copyEvent = getClipboardEvent();

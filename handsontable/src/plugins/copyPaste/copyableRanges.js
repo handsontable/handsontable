@@ -79,13 +79,13 @@ export class CopyableRangesFactory {
   }
 
   /**
-   * Returns a new coords object within the column headers range with `startRow`, `startCol`, `endRow`
-   * and `endCol` keys.
+   * Returns a new coords object within the most-bottom column headers range with `startRow`,
+   * `startCol`, `endRow` and `endCol` keys.
    *
    * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
    */
-  getColumnHeadersRange() {
-    if (this.#countColumns() === 0) {
+  getMostBottomColumnHeadersRange() {
+    if (this.#countColumns() === 0 || this.#countColumnHeaders() === 0) {
       return null;
     }
 
@@ -105,12 +105,12 @@ export class CopyableRangesFactory {
   }
 
   /**
-   * Returns a new coords object within the column group headers (nested headers) range with `startRow`,
-   * `startCol`, `endRow` and `endCol` keys.
+   * Returns a new coords object within all column headers layers (including nested headers) range with
+   * `startRow`, `startCol`, `endRow` and `endCol` keys.
    *
    * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
    */
-  getColumnGroupHeadersRange() {
+  getAllColumnHeadersRange() {
     if (this.#countColumns() === 0 || this.#countColumnHeaders() === 0) {
       return null;
     }

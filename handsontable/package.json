@@ -22,7 +22,7 @@
     "lint:fix": "npm run eslint:fix && npm run stylelint:fix",
     "stylelint": "stylelint \"src/**/*.css\" \"test/**/*.css\"",
     "stylelint:fix": "stylelint --fix \"src/**/*.css\" \"test/**/*.css\"",
-    "eslint": "eslint src/ test/ .config/plugin scripts/",
+    "eslint": "eslint --cache src/ test/ .config/plugin scripts/",
     "eslint:fix": "eslint --fix src/ test/ .config/plugin scripts/",
     "tslint": "tslint -p ./test/types -c ./types/tslint.json",
     "dtslint": "dtslint --localTs ../node_modules/typescript/lib types",

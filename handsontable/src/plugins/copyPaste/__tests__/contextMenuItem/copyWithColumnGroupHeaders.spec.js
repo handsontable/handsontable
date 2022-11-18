@@ -36,7 +36,7 @@ describe('CopyPaste', () => {
       expect(readOnlyItem[0]).not.toBeUndefined();
     });
 
-    it('should call plugin\'s `copyWithColumnGroupHeaders()` method after menu item click', () => {
+    it('should call plugin\'s `copyWithAllColumnHeaders()` method after menu item click', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -50,12 +50,12 @@ describe('CopyPaste', () => {
         ],
       });
 
-      spyOn(getPlugin('copyPaste'), 'copyWithColumnGroupHeaders');
+      spyOn(getPlugin('copyPaste'), 'copyWithAllColumnHeaders');
 
       contextMenu(getCell(1, 1));
       simulateClick($('.htContextMenu tbody tr td:contains("Copy with group headers")'));
 
-      expect(getPlugin('copyPaste').copyWithColumnGroupHeaders).toHaveBeenCalled();
+      expect(getPlugin('copyPaste').copyWithAllColumnHeaders).toHaveBeenCalled();
     });
 
     it('should be enabled when the cells are selected and NestedHeaders plugin is enabled', () => {

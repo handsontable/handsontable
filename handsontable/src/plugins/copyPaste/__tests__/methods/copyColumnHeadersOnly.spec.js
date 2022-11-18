@@ -16,15 +16,28 @@ describe('CopyPaste', () => {
   });
 
   describe('`copyColumnHeadersOnly` method', () => {
-    it('should copy only column headers to the clipboard', () => {
+    it('should copy only column headers that are the nearest of the cells', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         copyPaste: true,
-        nestedHeaders: [
-          ['a1', { label: 'b1', colspan: 4 }],
-        ],
+        modifyColumnHeaderValue(value, columnIndex, headerLevel) {
+          if (headerLevel < 0) {
+            headerLevel = headerLevel + this.view.getColumnHeadersCount();
+          }
+
+          return `${value}-${columnIndex}-${headerLevel}`;
+        },
+        afterGetColumnHeaderRenderers(renderers) {
+          renderers.length = 0;
+          renderers.push((renderedColumnIndex, TH) => {
+            TH.innerText = this.getColHeader(renderedColumnIndex, 0);
+          });
+          renderers.push((renderedColumnIndex, TH) => {
+            TH.innerText = this.getColHeader(renderedColumnIndex, 1);
+          });
+        },
       });
 
       const copyEvent = getClipboardEvent();
@@ -32,91 +45,60 @@ describe('CopyPaste', () => {
 
       selectCell(1, 1);
 
-      plugin.copyColumnHeadersOnly();
+      plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
-      expect(copyEvent.clipboardData.getData('text/plain')).toBe('b1');
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('B-1-1');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
         '<meta name="generator" content="Handsontable"/>' +
           '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody>',
-        '<tr><td>b1</td></tr>',
+        '<tr><td>B-1-1</td></tr>',
         '</tbody></table>',
       ].join(''));
     });
 
-    // fit('should copy only column headers added by the `', () => {
-    //   const headers = [
-    //     ['a1', 'a2', 'a3', 'a4'],
-    //     ['b1', 'b2', 'b3', 'b4'],
-    //   ];
-    //   handsontable({
-    //     data: createSpreadsheetData(2, 4),
-    //     copyPaste: true,
-    //     modifyColumnHeaderValue(value, visualColumnIndex, headerLevel) {
-    //       const zeroBasedHeaderLevel = headerLevel >= 0 ? headerLevel : headerLevel + 2; // 2 number of headers
+    it('should copy only column headers that are the nearest of the cells when all cells are selected', () => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        copyPaste: true,
+        modifyColumnHeaderValue(value, columnIndex, headerLevel) {
+          if (headerLevel < 0) {
+            headerLevel = headerLevel + this.view.getColumnHeadersCount();
+          }
 
-    //       return headers[zeroBasedHeaderLevel][visualColumnIndex];
-    //     },
-    //     afterGetColumnHeaderRenderers(renderers) {
-    //       renderers.length = 0;
-    //       renderers.push((renderedColumnIndex, TH) => {
-    //         TH.innerText = this.getColHeader(renderedColumnIndex, 0);
-    //       });
-    //       renderers.push((renderedColumnIndex, TH) => {
-    //         TH.innerText = this.getColHeader(renderedColumnIndex, 1);
-    //       });
-    //     }
-    //   });
+          return `${value}-${columnIndex}-${headerLevel}`;
+        },
+        afterGetColumnHeaderRenderers(renderers) {
+          renderers.length = 0;
+          renderers.push((renderedColumnIndex, TH) => {
+            TH.innerText = this.getColHeader(renderedColumnIndex, 0);
+          });
+          renderers.push((renderedColumnIndex, TH) => {
+            TH.innerText = this.getColHeader(renderedColumnIndex, 1);
+          });
+        },
+      });
 
-    //   const copyEvent = getClipboardEvent();
-    //   const plugin = getPlugin('CopyPaste');
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
 
-    //   selectAll();
+      selectAll();
 
-    //   plugin.copyColumnHeadersOnly();
-    //   plugin.onCopy(copyEvent); // emulate native "copy" event
+      plugin.copyWithAllColumnHeaders();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
 
-    //   // expect(copyEvent.clipboardData.getData('text/plain')).toBe('a1\tb1\t\t\t\na2\tb2\t\tc2\t\t');
-    //   expect(copyEvent.clipboardData.getData('text/plain')).toBe('a1\ta2\ta3\ta4\nb1\tb2\tb3\tb4');
-    //   // expect(copyEvent.clipboardData.getData('text/html')).toBe([
-    //   //   '<meta name="generator" content="Handsontable"/>' +
-    //   //     '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-    //   //   '<table><tbody>',
-    //   //   '<tr><td>a1</td><td></td></tr>',
-    //   //   '</tbody></table>',
-    //   // ].join(''));
-    // });
-
-    // it('should copy only column headers to the clipboard when all cells and headers are selected', () => {
-    //   handsontable({
-    //     data: createSpreadsheetData(2, 5),
-    //     rowHeaders: true,
-    //     colHeaders: true,
-    //     copyPaste: true,
-    //     nestedHeaders: [
-    //       ['a1', { label: 'b1', colspan: 4 }],
-    //       ['a2', { label: 'b2', colspan: 2 }, { label: 'c2', colspan: 2 }],
-    //     ],
-    //   });
-
-    //   const copyEvent = getClipboardEvent();
-    //   const plugin = getPlugin('CopyPaste');
-
-    //   selectAll();
-
-    //   plugin.copyColumnHeadersOnly();
-    //   plugin.onCopy(copyEvent); // emulate native "copy" event
-
-    //   expect(copyEvent.clipboardData.getData('text/plain')).toBe('a1\tb1\t\t\t\na2\tb2\t\tc2\t\t');
-    //   expect(copyEvent.clipboardData.getData('text/html')).toBe([
-    //     '<meta name="generator" content="Handsontable"/>' +
-    //       '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
-    //     '<table><tbody>',
-    //     '<tr><td>a1</td><td></td></tr>',
-    //     '</tbody></table>',
-    //   ].join(''));
-    // });
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('A-0-1\tB-1-1\tC-2-1\tD-3-1');
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table><tbody>',
+        '<tr><td>A-0-1</td><td>B-1-1</td><td>C-2-1</td><td>D-3-1</td></tr>',
+        '</tbody></table>',
+      ].join(''));
+    });
 
     it('should copy column headers to the clipboard when all rows are hidden', () => {
       const hot = handsontable({
@@ -135,7 +117,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      plugin.copyColumnHeadersOnly();
+      plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B\tC\tD');
@@ -165,7 +147,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      plugin.copyColumnHeadersOnly();
+      plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
@@ -193,7 +175,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      plugin.copyColumnHeadersOnly();
+      plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B\tC\tD');
@@ -223,7 +205,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      plugin.copyColumnHeadersOnly();
+      plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
@@ -251,7 +233,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      plugin.copyColumnHeadersOnly();
+      plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('A\tB\tC\tD\tE');
@@ -281,7 +263,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      plugin.copyColumnHeadersOnly();
+      plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
@@ -309,7 +291,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      plugin.copyColumnHeadersOnly();
+      plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
@@ -337,7 +319,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      plugin.copyColumnHeadersOnly();
+      plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('');

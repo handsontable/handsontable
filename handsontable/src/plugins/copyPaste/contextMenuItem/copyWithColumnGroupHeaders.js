@@ -11,7 +11,7 @@ export default function copyWithColumnGroupHeadersItem(copyPastePlugin) {
       return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS);
     },
     callback() {
-      copyPastePlugin.copyWithColumnGroupHeaders();
+      copyPastePlugin.copyWithAllColumnHeaders();
     },
     disabled() {
       if (!this.hasColHeaders() || !this.getSettings().nestedHeaders) {

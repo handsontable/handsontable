@@ -13,7 +13,7 @@ export interface DetailedSettings {
 
 export type Settings = boolean | DetailedSettings;
 export type PasteModeType = 'overwrite' | 'shift_down' | 'shift_right';
-export type CopyModeType = 'cells-only' | 'column-headers-only' | 'with-column-group-headers' | 'with-column-headers';
+export type CopyModeType = 'cells-only' | 'column-headers-only' | 'with-all-column-headers' | 'with-column-headers';
 
 export interface RangeType {
   startRow: number;
@@ -33,7 +33,7 @@ export class CopyPaste extends BasePlugin {
   copy(copyMode?: CopyModeType): void;
   copyCellsOnly(): void;
   copyColumnHeadersOnly(): void;
-  copyWithColumnGroupHeaders(): void;
+  copyWithAllColumnHeaders(): void;
   copyWithColumnHeaders(): void;
   cut(): void;
   getRangedCopyableData(ranges: RangeType[]): string;
