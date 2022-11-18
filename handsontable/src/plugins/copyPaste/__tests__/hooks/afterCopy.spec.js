@@ -22,6 +22,7 @@ describe('CopyPaste', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
+        copyPaste: true,
         afterCopy,
       });
 
@@ -48,6 +49,7 @@ describe('CopyPaste', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
+        copyPaste: true,
         afterCopy,
       });
 
@@ -77,6 +79,7 @@ describe('CopyPaste', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
+        copyPaste: true,
         afterGetColumnHeaderRenderers(renderers) {
           renderers.length = 0;
           renderers.push((renderedColumnIndex, TH) => {
@@ -114,6 +117,7 @@ describe('CopyPaste', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
+        copyPaste: true,
         afterGetColumnHeaderRenderers(renderers) {
           renderers.length = 0;
           renderers.push((renderedColumnIndex, TH) => {
