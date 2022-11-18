@@ -43,10 +43,10 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_ADD_COMMENT]: 'Pievienot komentāru',
   [C.CONTEXTMENU_ITEMS_EDIT_COMMENT]: 'Labot komentāru',
   [C.CONTEXTMENU_ITEMS_REMOVE_COMMENT]: 'Dzēst komentāru',
-  [C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT]: 'Nelabojams komentārs',
+  [C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT]: 'Tikai lasāms komentārs',
 
-  [C.CONTEXTMENU_ITEMS_MERGE_CELLS]: 'Sapludināt šūnas',
-  [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Sadalīt šunas',
+  [C.CONTEXTMENU_ITEMS_MERGE_CELLS]: 'Apvienot šūnas',
+  [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Atvienot šunas',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopēt',
   [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: 'Kopēt ar galvenēm',
