@@ -1,7 +1,7 @@
 /**
  * @preserve
  * Author: Ivan Zarkovic
- * Last updated: May 9, 2022
+ * Last updated: November 18, 2022
  *
  * Description: Definition file for Serbian - Republic of Serbia language-country.
  */
@@ -49,6 +49,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Odvoji ćelije',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopiraj',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: 'Kopiraj sa zaglavljem',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: 'Kopiraj sa zaglavljem grupe',
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: 'Kopiraj samo zaglavlje',
   [C.CONTEXTMENU_ITEMS_CUT]: 'Iseci',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Unesi ugnježdeni red',
