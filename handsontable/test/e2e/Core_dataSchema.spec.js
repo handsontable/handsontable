@@ -14,7 +14,8 @@ describe('Core_dataSchema', () => {
 
   it('should be equal to `getSchema()` when dataSchema is defined in settings (as object)', () => {
     const schema = { id: null, name: { first: null, last: null }, cars: [{ brand: null }] };
-    const hot = handsontable({
+
+    handsontable({
       data: [],
       dataSchema: schema,
       minRows: 5,
@@ -33,7 +34,8 @@ describe('Core_dataSchema', () => {
 
   it('should be equal to `getSchema()` when dataSchema is defined in settings (as object) when columns is a function', () => {
     const schema = { id: null, name: { first: null, last: null }, cars: [{ brand: null }] };
-    const hot = handsontable({
+
+    handsontable({
       data: [],
       dataSchema: schema,
       minRows: 5,
@@ -65,7 +67,8 @@ describe('Core_dataSchema', () => {
 
   it('should be equal to `getSchema()` when dataSchema is defined in settings (as function)', () => {
     const schema = { id: null, name: { first: null, last: null }, cars: [{ brand: null }] };
-    const hot = handsontable({
+
+    handsontable({
       data: [],
       dataSchema() {
         return schema;
@@ -86,7 +89,8 @@ describe('Core_dataSchema', () => {
 
   it('should be equal to `getSchema()` when dataSchema is defined in settings (as function) when columns is a function', () => {
     const schema = { id: null, name: { first: null, last: null }, cars: [{ brand: null }] };
-    const hot = handsontable({
+
+    handsontable({
       data: [],
       dataSchema() {
         return schema;
@@ -119,7 +123,7 @@ describe('Core_dataSchema', () => {
   });
 
   it('should be equal to `getSchema()` when dataSchema is generated based on data structure', () => {
-    const hot = handsontable({
+    handsontable({
       data: [
         { id: 1, name: { first: 'Alan', last: 'Pakoli' }, cars: [{ brand: 'Ford' }] }
       ],
@@ -139,7 +143,7 @@ describe('Core_dataSchema', () => {
   });
 
   it('should be equal to `getSchema()` when dataSchema is generated based on data structure when columns is a function', () => {
-    const hot = handsontable({
+    handsontable({
       data: [
         { id: 1, name: { first: 'Alan', last: 'Pakoli' }, cars: [{ brand: 'Ford' }] }
       ],
