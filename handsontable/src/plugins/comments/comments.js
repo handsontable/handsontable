@@ -450,6 +450,10 @@ export class Comments extends BasePlugin {
     // Used when the requested row is hidden, and the editor needs to be positioned on the previous row's coords.
     const targetingPreviousRow = renderableRow === null;
 
+    // Reset the editor position to (0, 0) so the opening direction calculation wouldn't be influenced by its
+    // previous position
+    this.editor.setPosition(0, 0);
+
     if (renderableRow === null) {
       renderableRow = rowIndexMapper
         .getRenderableFromVisualIndex(rowIndexMapper.getNearestNotHiddenIndex(visualRow, -1));
