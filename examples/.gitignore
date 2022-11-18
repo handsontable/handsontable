@@ -1,5 +1,6 @@
 tmp/
 dist
+.angular
 
 # see the explanation about package-lock.json in /examples/README.md
 */docs/angular/*/package-lock.json

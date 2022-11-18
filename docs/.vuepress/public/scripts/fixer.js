@@ -86,6 +86,9 @@
       } else if (key === 'handsontable/base') {
         ns = 'Handsontable';
 
+      } else if (key === 'hyperformula') {
+        ns = 'HyperFormula';
+
       } else if (key === 'react-dom') {
         ns = 'ReactDOM';
 

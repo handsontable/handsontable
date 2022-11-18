@@ -1,5 +1,37 @@
 import { normalize, pretty } from './htmlNormalize';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
+/**
+ * The function allows you to run the test suites based on different parameters (object configuration, datasets etc).
+ *
+ * For example:
+ * ```
+ * describe('TextEditor', () => {
+ *   using('input value', [1, '1', true], (value) => {
+ *     it('should correctly display the value in the textarea element', {
+ *        // expect()
+ *     });
+ *   })
+ * })
+ * // The jasmine will generate following test cases:
+ * //   * "TextEditor using input value: `1` should correctly display the value in the textarea element";
+ * //   * "TextEditor using input value: `'1'` should correctly display the value in the textarea element"
+ * //   * "TextEditor using input value: `true` should correctly display the value in the textarea element"
+ * ```
+ *
+ * @param {string} name The parameter name to be used within the tests.
+ * @param {Array<*>} parameters An array of parameters.
+ * @param {Function} func Function to execute where the test suite
+ */
+export function using(name, parameters, func) {
+  parameters.forEach((param) => {
+    describe(`using ${name}: \`${JSON.stringify(param)}\``, function() {
+      func.call(this, param);
+    });
+  });
+}
+/* eslint-enable jsdoc/require-description-complete-sentence */
+
 /**
  * @param {number} [delay=100] The delay in ms after which the Promise is resolved.
  * @returns {Promise}
@@ -252,20 +284,30 @@ export function range(start, end) {
 export function createSelectionController({ current, area, fill, custom, activeHeader, header } = {}) {
   const currentCtrl = current || createSelection({
     className: 'current',
+    selectionType: 'cell',
     border: {
       width: 2,
       color: '#4b89ff',
     },
   });
   const areaCtrl = area || createSelection({
+    markIntersections: true,
+    layerLevel: 1,
     className: 'area',
+    selectionType: 'area',
     border: {
       width: 1,
       color: '#4b89ff',
     },
   });
+
+  const areaControllers = new Map([
+    [areaCtrl.layerLevel || 1, areaCtrl]
+  ]);
+
   const fillCtrl = fill || createSelection({
     className: 'fill',
+    selectionType: 'fill',
     border: {
       width: 1,
       color: '#ff0000',
@@ -273,9 +315,11 @@ export function createSelectionController({ current, area, fill, custom, activeH
   });
   const activeHeaderCtrl = activeHeader || createSelection({
     highlightHeaderClassName: 'active_highlight',
+    selectionType: 'active-header',
   });
   const headerCtrl = header || createSelection({
     highlightHeaderClassName: 'highlight',
+    selectionType: 'header',
   });
   const customCtrl = custom || [];
 
@@ -289,11 +333,31 @@ export function createSelectionController({ current, area, fill, custom, activeH
     getActiveHeader() {
       return activeHeaderCtrl;
     },
-    createOrGetArea() {
-      return areaCtrl;
+    createOrGetArea(options = {}) {
+      const optionsWithDefaults = {
+        markIntersections: true,
+        layerLevel: 1,
+        border: {
+          width: 1,
+          color: '#4b89ff',
+        },
+        ...options,
+        className: 'area',
+        selectionType: 'area',
+      };
+
+      if (areaControllers.has(optionsWithDefaults.layerLevel)) {
+        return areaControllers.get(optionsWithDefaults.layerLevel);
+      }
+
+      const newArea = createSelection(optionsWithDefaults);
+
+      areaControllers.set(optionsWithDefaults.layerLevel, newArea);
+
+      return newArea;
     },
     getAreas() {
-      return [areaCtrl];
+      return Array.from(areaControllers.values());
     },
     getFill() {
       return fillCtrl;
@@ -302,7 +366,7 @@ export function createSelectionController({ current, area, fill, custom, activeH
       return [
         currentCtrl,
         fillCtrl,
-        areaCtrl,
+        ...this.getAreas(),
         headerCtrl,
         activeHeaderCtrl,
         ...customCtrl,
@@ -348,6 +412,13 @@ export function getTableInlineStartClone() {
  */
 export function getTableTopInlineStartCornerClone() {
   return $('.ht_clone_top_inline_start_corner');
+}
+
+/**
+ * @returns {jQuery}
+ */
+export function getTableMaster() {
+  return $('.ht_master');
 }
 
 /**

@@ -136,6 +136,39 @@ describe('shortcutManager', () => {
     expect(spy.calls.count()).toBe(1);
   });
 
+  it('should not trigger a callback when IME event is triggered (keyCode 229)', () => {
+    const hot = handsontable();
+    const shortcutManager = hot.getShortcutManager();
+    const gridContext = shortcutManager.getContext('grid');
+    const callback = jasmine.createSpy();
+
+    gridContext.removeShortcutsByKeys(['a']);
+    gridContext.addShortcut({
+      keys: [['a']],
+      callback,
+      group: 'spy',
+    });
+    gridContext.removeShortcutsByKeys(['Enter']);
+    gridContext.addShortcut({
+      keys: [['Enter']],
+      callback,
+      group: 'spy',
+    });
+    hot.listen();
+
+    keyDownUp(['a'], { ime: true });
+
+    expect(callback.calls.count()).toBe(0);
+
+    keyDownUp(['Enter'], { ime: true });
+
+    expect(callback.calls.count()).toBe(0);
+
+    keyDownUp(['Enter'], { ime: false });
+
+    expect(callback.calls.count()).toBe(1);
+  });
+
   it('should run action for specified Command/Control modifier key depending on the operating system the table runs on', () => {
     const hot = handsontable();
     const shortcutManager = hot.getShortcutManager();
@@ -428,5 +461,21 @@ describe('shortcutManager', () => {
     keyDownUp(['control', 'b']);
 
     expect(text).toBe('13456');
+  });
+
+  it('should handle event without key property in a proper way', () => {
+    const externalInputElement = document.createElement('input');
+
+    handsontable({});
+
+    document.body.appendChild(externalInputElement);
+    externalInputElement.select();
+
+    expect(() => {
+      $(externalInputElement).simulate('keydown', {});
+      $(externalInputElement).simulate('keyup', {});
+    }).not.toThrow();
+
+    document.body.removeChild(externalInputElement);
   });
 });

@@ -28,7 +28,7 @@
     "cross-env": "7.0.3",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
-    "puppeteer": "7.0.4",
+    "puppeteer": "14.3.0",
     "react-app-rewired": "2.1.8"
   },
   "license": "SEE LICENSE IN LICENSE.txt",

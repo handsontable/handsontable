@@ -520,6 +520,10 @@ class Menu {
   /**
    * Execute menu command.
    *
+   * The `executeCommand()` method works only for selected cells.
+   *
+   * When no cells are selected, `executeCommand()` doesn't do anything.
+   *
    * @param {Event} [event] The mouse event object.
    */
   executeCommand(event) {

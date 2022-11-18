@@ -143,7 +143,7 @@ export class ContextMenu extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link ContextMenu#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link ContextMenu#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -260,6 +260,10 @@ export class ContextMenu extends BasePlugin {
   /**
    * Execute context menu command.
    *
+   * The `executeCommand()` method works only for selected cells.
+   *
+   * When no cells are selected, `executeCommand()` doesn't do anything.
+   *
    * You can execute all predefined commands:
    *  * `'row_above'` - Insert row above
    *  * `'row_below'` - Insert row below
@@ -281,7 +285,7 @@ export class ContextMenu extends BasePlugin {
    * Or you can execute command registered in settings where `key` is your command name.
    *
    * @param {string} commandName The command name to be executed.
-   * @param {*} params Additional paramteres passed to command executor module.
+   * @param {*} params Additional parameters passed to command executor module.
    */
   executeCommand(commandName, ...params) {
     if (this.itemsFactory === null) {

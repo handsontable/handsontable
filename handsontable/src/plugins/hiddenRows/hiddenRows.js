@@ -45,6 +45,7 @@ export const PLUGIN_PRIORITY = 320;
  *
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -80,6 +81,50 @@ export const PLUGIN_PRIORITY = 320;
  * // to see your changes, re-render your Handsontable instance
  * hot.render();
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * const hotRef = useRef(null);
+ *
+ * ...
+ *
+ * <HotTable
+ *   ref={hotRef}
+ *   data={getData()}
+ *   hiddenRows={{
+ *     copyPasteEnabled: true,
+ *     indicators: true,
+ *     rows: [1, 2, 5]
+ *   }}
+ * />
+ *
+ * // access the `HiddenRows` plugin's instance
+ * const hot = hotRef.current.hotInstance;
+ * const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
+ *
+ * // hide a single row
+ * hiddenRowsPlugin.hideRow(1);
+ *
+ * // hide multiple rows
+ * hiddenRowsPlugin.hideRow(1, 2, 9);
+ *
+ * // hide multiple rows as an array
+ * hiddenRowsPlugin.hideRows([1, 2, 9]);
+ *
+ * // unhide a single row
+ * hiddenRowsPlugin.showRow(1);
+ *
+ * // unhide multiple rows
+ * hiddenRowsPlugin.showRow(1, 2, 9);
+ *
+ * // unhide multiple rows as an array
+ * hiddenRowsPlugin.showRows([1, 2, 9]);
+ *
+ * // to see your changes, re-render your Handsontable instance
+ * hot.render();
+ * ```
+ * :::
  */
 export class HiddenRows extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -107,7 +152,7 @@ export class HiddenRows extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link HiddenRows#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link HiddenRows#enablePlugin} method is called.
    *
    * @returns {boolean}
    */

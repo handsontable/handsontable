@@ -95,7 +95,7 @@ describe('HiddenColumns', () => {
       const plugin = getPlugin('hiddenColumns');
 
       plugin.hideColumns([6, 7, 8]); // visual column indexes after move (physical indexes: 1, 7, 3)
-      alter('insert_col', 0, 3); // visual column index
+      alter('insert_col_start', 0, 3); // visual column index
 
       expect(plugin.isHidden(9)).toBe(true); // 6 -> 9
       expect(hot.getColWidth(9)).toEqual(0);
@@ -137,7 +137,7 @@ describe('HiddenColumns', () => {
       const plugin = getPlugin('hiddenColumns');
 
       plugin.hideColumns([6, 7, 8]); // visual column indexes after move (physical indexes: 1, 7, 3)
-      alter('insert_col', 7, 2); // visual column index
+      alter('insert_col_start', 7, 2); // visual column index
 
       expect(plugin.isHidden(6)).toBe(true);
       expect(hot.getColWidth(6)).toEqual(0);

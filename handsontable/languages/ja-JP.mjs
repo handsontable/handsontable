@@ -1,15 +1,12 @@
 var _dictionary;
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 /**
  * @preserve
  * Authors: hand-dot
  * Last updated: Jan 28, 2018
  *
  * Description: Definition file for Japanese - Japan language-country.
- */
-import Handsontable from "handsontable";
+ */import Handsontable from "handsontable";
 var C = Handsontable.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'ja-JP'

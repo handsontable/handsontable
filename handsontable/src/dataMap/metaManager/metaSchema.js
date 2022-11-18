@@ -7,18 +7,19 @@ import { isObjectEqual } from '../../helpers/object';
  * @class Options
  * @description
  *
- * [Configuration options](@/guides/getting-started/setting-options.md) let you heavily customize your Handsontable instance. For example, you can:
+ * [Configuration options](@/guides/getting-started/configuration-options.md) let you heavily customize your Handsontable instance. For example, you can:
  *
  * - Enable and disable built-in features
- * - Enable and configure additional [plugins](@/guides/building-and-testing/plugins.md)
+ * - Enable and configure additional [plugins](@/guides/tools-and-building/custom-plugins.md)
  * - Personalize Handsontable's look
  * - Adjust Handsontable's behavior
  * - Implement your own custom features
  *
- * To apply [configuration options](@/guides/getting-started/setting-options.md), pass them as
- * a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid),
+ * To apply [configuration options](@/guides/getting-started/configuration-options.md), pass them as
+ * a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-handsontable),
  * using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
  *
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  *
@@ -37,21 +38,59 @@ import { isObjectEqual } from '../../helpers/object';
  *   manualRowMove: true,
  * });
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   // configuration options, in the object literal notation
+ *   licenseKey='non-commercial-and-evaluation'
+ *   data={Handsontable.helper.createSpreadsheetData(5, 10)}
+ *   width={400}
+ *   height={300}
+ *   colHeaders={true}
+ *   rowHeaders={true}
+ *   customBorders={true}
+ *   dropdownMenu={true}
+ *   multiColumnSorting={true}
+ *   filters={true}
+ *   manualRowMove={true}
+ * />
+ * ```
+ * :::
  *
  * Depending on your needs, you can apply [configuration options](@/api/options.md) to different elements of your grid:
- * - [The entire grid](@/guides/getting-started/setting-options.md#setting-grid-options)
- * - [Individual columns](@/guides/getting-started/setting-options.md#setting-column-options)
- * - [Individual rows](@/guides/getting-started/setting-options.md#setting-row-options)
- * - [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options)
- * - [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic)
+ * - [The entire grid](@/guides/getting-started/configuration-options.md#setting-grid-options)
+ * - [Individual columns](@/guides/getting-started/configuration-options.md#setting-column-options)
+ * - [Individual rows](@/guides/getting-started/configuration-options.md#setting-row-options)
+ * - [Individual cells](@/guides/getting-started/configuration-options.md#setting-cell-options)
+ * - [Individual grid elements, based on any logic you implement](@/guides/getting-started/configuration-options.md#implementing-custom-logic)
  *
  * Read more:
- * - [Configuration options &#8594;](@/guides/getting-started/setting-options.md)
+ * - [Configuration options](@/guides/getting-started/configuration-options.md)
  */
 export default () => {
   return {
 
     /* eslint-disable jsdoc/require-description-complete-sentence */
+
+    /**
+     * Information on which of the meta properties were added automatically.
+     * For example: setting the `renderer` property directly won't extend the `_automaticallyAssignedMetaProps`
+     * entry, but setting a `type` will modify it to:
+     * ```
+     * _automaticallyAssignedMetaProps: {
+     *   renderer: true,
+     *   editor: true,
+     *   validator: true
+     * }
+     * ```
+     *
+     * @private
+     * @type {object}
+     * @default {}
+     */
+    _automaticallyAssignedMetaProps: {},
 
     /**
      * The `activeHeaderClassName` option lets you add a CSS class name
@@ -91,10 +130,14 @@ export default () => {
      *
      * You can set the `allowEmpty` option to one of the following:
      *
-     * | Setting          | Description                                                                                                                           |
-     * | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default) | - Accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` and `''` values as `valid`              |
-     * | `false`          | - Don't accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` and `''` values with as `invalid` |
+     * | Setting          | Description                                                                                                                          |
+     * | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `true` (default) | - Accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` or `''` values as `valid`              |
+     * | `false`          | - Don't accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` or `''` values with as `invalid` |
+     *
+     * ::: tip
+     * To use the [`allowEmpty`](#allowempty) option, you need to set the [`validator`](#validator) option (or the [`type`](#type) option).
+     * :::
      *
      * @memberof Options#
      * @type {boolean}
@@ -103,15 +146,15 @@ export default () => {
      *
      * @example
      * ```js
-     * // allow empty values in every cell of the entire grid
+     * // allow empty values in each cell of the entire grid
      * allowEmpty: true,
      *
      * // or
      * columns: [
      *   {
-     *     data: 'date',
+     *     type: 'date',
      *     dateFormat: 'DD/MM/YYYY',
-     *     // allow empty values in every cell of the 'date' column
+     *     // allow empty values in each cell of the 'date' column
      *     allowEmpty: true
      *   }
      * ],
@@ -134,8 +177,8 @@ export default () => {
      * __Warning:__ Setting the `allowHtml` option to `true` can cause serious XSS vulnerabilities.
      *
      * Read more:
-     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
-     * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
+     * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type.md)
      * - [`source`](#source)
      *
      * @memberof Options#
@@ -147,7 +190,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['<strong>foo</strong>', '<strong>bar</strong>']
@@ -209,9 +252,9 @@ export default () => {
      * Setting the `allowInvalid` option to `false` can be useful when used with the [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode).
      *
      * Read more:
-     * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
-     * - [Cell editor &#8594;](@/guides/cell-functions/cell-editor.md)
-     * - [Autocomplete strict mode &#8594;](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode)
+     * - [Cell validator](@/guides/cell-functions/cell-validator.md)
+     * - [Cell editor](@/guides/cell-functions/cell-editor.md)
+     * - [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode)
      *
      * @memberof Options#
      * @type {boolean}
@@ -233,7 +276,7 @@ export default () => {
      * - **Remove column**
      *
      * Read more:
-     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     * - [Context menu](@/guides/accessories-and-menus/context-menu.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -253,7 +296,7 @@ export default () => {
      * - **Remove row**
      *
      * Read more:
-     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     * - [Context menu](@/guides/accessories-and-menus/context-menu.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -296,7 +339,7 @@ export default () => {
      * Using the [`colWidths`](#colWidths) option forcibly disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
      * Read more:
-     * - [Plugins: `AutoColumnSize` &#8594;](@/api/autoColumnSize.md)
+     * - [Plugins: `AutoColumnSize`](@/api/autoColumnSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -342,7 +385,7 @@ export default () => {
      * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
      *
      * Read more:
-     * - [Plugins: `AutoRowSize` &#8594;](@/api/autoRowSize.md)
+     * - [Plugins: `AutoRowSize`](@/api/autoRowSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -417,7 +460,7 @@ export default () => {
      * | `true`  | Enable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin  |
      *
      * Read more:
-     * - [Plugins: `BindRowsWithHeaders` &#8594;](@/api/bindRowsWithHeaders.md)
+     * - [Plugins: `BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
      *
      * @memberof Options#
      * @type {boolean|string}
@@ -433,13 +476,13 @@ export default () => {
     bindRowsWithHeaders: void 0,
 
     /**
-     * The `cell` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to individual cells.
+     * The `cell` option lets you apply [configuration options](@/guides/getting-started/configuration-options.md) to individual cells.
      *
-     * The `cell` option overwrites the [top-level grid options](@/guides/getting-started/setting-options.md#setting-grid-options),
+     * The `cell` option overwrites the [top-level grid options](@/guides/getting-started/configuration-options.md#setting-grid-options),
      * and the [`columns`](#columns) options.
      *
      * Read more:
-     * - [Configuration options: Setting cell options &#8594;](@/guides/getting-started/setting-options.md#setting-cell-options)
+     * - [Configuration options: Setting cell options](@/guides/getting-started/configuration-options.md#setting-cell-options)
      * - [`columns`](#columns)
      *
      * @memberof Options#
@@ -464,7 +507,7 @@ export default () => {
 
     /**
      * @description
-     * The `cells` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to
+     * The `cells` option lets you apply any other [configuration options](@/guides/getting-started/configuration-options.md) to
      * individual grid elements (columns, rows, cells), based on any logic you implement.
      *
      * The `cells` option overwrites all other options (including options set by [`columns`](#columns) and [`cell`](#cell)).
@@ -477,8 +520,8 @@ export default () => {
      * | `prop`    | No       | String \| Number | If [`data`](#data) is set to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same number as `column`.<br><br>If [`data`](#data) is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for the column's data object. |
      *
      * Read more:
-     * - [Configuration options: Implementing custom logic &#8594;](@/guides/getting-started/setting-options.md#implementing-custom-logic)
-     * - [Configuration options: Setting row options &#8594;](@/guides/getting-started/setting-options.md#setting-row-options)
+     * - [Configuration options: Implementing custom logic](@/guides/getting-started/configuration-options.md#implementing-custom-logic)
+     * - [Configuration options: Setting row options](@/guides/getting-started/configuration-options.md#setting-row-options)
      * - [`columns`](#columns)
      * - [`cell`](#cell)
      *
@@ -517,8 +560,8 @@ export default () => {
      * | A string         | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell is checked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns a string of your choice |
      *
      * Read more:
-     * - [Checkbox cell type: Checkbox template &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
-     * - [`getDataAtCell()` &#8594;](@/api/core.md#getDataAtCell)
+     * - [Checkbox cell type: Checkbox template](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
+     * - [`getDataAtCell()`](@/api/core.md#getDataAtCell)
      * - [`uncheckedTemplate`](#uncheckedTemplate)
      *
      * @memberof Options#
@@ -530,13 +573,13 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `checkbox`
+     *     // set the `type` of each cell in this column to `checkbox`
      *     // when checked, the cell's value is `true`
      *     // when unchecked, the cell's value is `false`
      *     type: 'checkbox',
      *   },
      *   {
-     *     // set the `type` of every cell in this column to `checkbox`
+     *     // set the `type` of each cell in this column to `checkbox`
      *     type: 'checkbox',
      *     // when checked, the cell's value is `'Yes'`
      *     checkedTemplate: 'Yes',
@@ -558,10 +601,15 @@ export default () => {
      * | A string            | Add a single CSS class name to every currently-selected element  |
      * | An array of strings | Add multiple CSS class names to every currently-selected element |
      *
-     * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/setting-options.md#cascading-configuration).
+     * ::: tip
+     * Don't change the `className` metadata of the [column summary](@/guides/columns/column-summary.md) row.
+     * To style the summary row, use the class name assigned automatically by the [`ColumnSummary`](@/api/columnSummary.md) plugin: `columnSummaryResult`.
+     * :::
+     *
+     * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration).
      *
      * Read more:
-     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      * - [`currentRowClassName`](#currentRowClassName)
      * - [`currentColClassName`](#currentColClassName)
      * - [`currentHeaderClassName`](#currentHeaderClassName)
@@ -604,7 +652,7 @@ export default () => {
      * | A function | Define your own column headers, using a function                     |
      *
      * Read more:
-     * - [Column header &#8594;](@/guides/columns/column-header.md)
+     * - [Column header](@/guides/columns/column-header.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -640,7 +688,7 @@ export default () => {
      * | An array of objects  | Enable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin for selected column headers |
      *
      * Read more:
-     * - [Plugins: `CollapsibleColumns` &#8594;](@/api/collapsibleColumns.md)
+     * - [Plugins: `CollapsibleColumns`](@/api/collapsibleColumns.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -690,21 +738,22 @@ export default () => {
 
     /**
      * @description
-     * The `columns` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to individual columns (or ranges of columns).
+     * The `columns` option lets you apply any other [configuration options](@/guides/getting-started/configuration-options.md) to individual columns (or ranges of columns).
      *
      * You can set the `columns` option to one of the following:
      * - An array of objects (each object represents one column)
      * - A function that returns an array of objects
      *
-     * The `columns` option overwrites the [top-level grid options](@/guides/getting-started/setting-options.md#setting-grid-options).
+     * The `columns` option overwrites the [top-level grid options](@/guides/getting-started/configuration-options.md#setting-grid-options).
      *
-     * When you use the `columns` option, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) are ignored.
+     * When you use `columns`, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) options are ignored.
      *
      * Read more:
-     * - [Configuration options: Setting column options &#8594;](@/guides/getting-started/setting-options.md#setting-column-options)
+     * - [Configuration options: Setting column options](@/guides/getting-started/configuration-options.md#setting-column-options)
      * - [`startCols`](#startCols)
      * - [`minCols`](#minCols)
      * - [`maxCols`](#maxCols)
+     * - [`data`](#data)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -774,8 +823,8 @@ export default () => {
      * | `sortOrder` | `'asc'` \| `'desc'` | The sorting order:<br>`'asc'`: ascending<br>`'desc'`: descending |
      *
      * Read more:
-     * - [Row sorting &#8594;](@/guides/rows/row-sorting.md)
-     * - [Row sorting: Custom compare functions &#8594;](@/guides/rows/row-sorting.md#custom-compare-functions)
+     * - [Row sorting](@/guides/rows/row-sorting.md)
+     * - [Row sorting: Custom compare functions](@/guides/rows/row-sorting.md#custom-compare-functions)
      * - [`multiColumnSorting`](#multiColumnSorting)
      *
      * @memberof Options#
@@ -843,8 +892,8 @@ export default () => {
      * | `customFunction`         | A function                                                              | [Custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function)                         |
      *
      * Read more:
-     * - [Column summary &#8594;](@/guides/columns/column-summary.md)
-     * - [Plugins: `ColumnSummary` &#8594;](@/api/columnSummary.md)
+     * - [Column summary](@/guides/columns/column-summary.md)
+     * - [Plugins: `ColumnSummary`](@/api/columnSummary.md)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -893,8 +942,8 @@ export default () => {
      * Setting the `colWidths` option disables the {@link AutoColumnSize} plugin.
      *
      * Read more:
-     * - [Column width &#8594;](@/guides/columns/column-width.md)
-     * - [Hooks: `modifyColWidth` &#8594;](@/api/hooks.md#modifyColWidth)
+     * - [Column width](@/guides/columns/column-width.md)
+     * - [Hooks: `modifyColWidth`](@/api/hooks.md#modifyColWidth)
      * - [`autoColumnSize`](#autoColumnSize)
      *
      * @memberof Options#
@@ -929,7 +978,7 @@ export default () => {
      * that have comments.
      *
      * Read more:
-     * - [Comments &#8594;](@/guides/cell-features/comments.md)
+     * - [Comments](@/guides/cell-features/comments.md)
      * - [`comments`](#comments)
      * - [`readOnlyCellClassName`](#readOnlyCellClassName)
      * - [`currentRowClassName`](#currentRowClassName)
@@ -950,7 +999,7 @@ export default () => {
      * @example
      * ```js
      * // add a `has-comment` CSS class name
-     * // to every cell that has a comment
+     * // to each cell that has a comment
      * commentedCellClassName: 'has-comment',
      * ```
      */
@@ -977,8 +1026,8 @@ export default () => {
      * | `style`        | An object                   | Set comment boxes' `width` and `height` (in pixels) |
      *
      * Read more:
-     * - [Comments &#8594;](@/guides/cell-features/comments.md)
-     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     * - [Comments](@/guides/cell-features/comments.md)
+     * - [Context menu](@/guides/accessories-and-menus/context-menu.md)
      * - [`width`](#width)
      * - [`height`](#height)
      * - [`readOnly`](#readOnly)
@@ -1025,11 +1074,11 @@ export default () => {
      * | An object | - Enable the [`ContextMenu`](@/api/contextMenu.md) plugin<br>- Apply a [custom context menu configuration](@/guides/accessories-and-menus/context-menu.md#context-menu-with-fully-custom-configuration) |
      *
      * Read more:
-     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
-     * - [Context menu: Context menu with default options &#8594;](@/guides/accessories-and-menus/context-menu.md#context-menu-with-default-options)
-     * - [Context menu: Context menu with specific options &#8594;](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options)
-     * - [Context menu: Context menu with fully custom configuration options &#8594;](@/guides/accessories-and-menus/context-menu.md#context-menu-with-fully-custom-configuration)
-     * - [Plugins: `ContextMenu` &#8594;](@/api/contextMenu.md)
+     * - [Context menu](@/guides/accessories-and-menus/context-menu.md)
+     * - [Context menu: Context menu with default options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-default-options)
+     * - [Context menu: Context menu with specific options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options)
+     * - [Context menu: Context menu with fully custom configuration options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-fully-custom-configuration)
+     * - [Plugins: `ContextMenu`](@/api/contextMenu.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|object}
@@ -1080,15 +1129,15 @@ export default () => {
      *
      * You can set the `copyable` option to one of the following:
      *
-     * | Setting                                                                                                        | Description                                                                                                                        |
-     * | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add the cell's value to the clipboard |
-     * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - Disable copying for this cell                                                                                                    |
+     * | Setting                                                                                                        | Description                                                                                                            |
+     * | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default)                                                                                               | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add the cell's value to the clipboard         |
+     * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>, add an empty string (`""`) to the clipboard   |
      *
      * Read more:
-     * - [Clipboard &#8594;](@/guides/cell-features/clipboard.md)
-     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
-     * - [Password cell type &#8594;](@/guides/cell-types/password-cell-type.md)
+     * - [Clipboard](@/guides/cell-features/clipboard.md)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
+     * - [Password cell type](@/guides/cell-types/password-cell-type.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1097,17 +1146,17 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable copying for every cell of the entire grid
+     * // enable copying for each cell of the entire grid
      * copyable: true,
      *
      * // enable copying for individual columns
      * columns: [
      *   {
-     *     // enable copying for every cell of this column
+     *     // enable copying for each cell of this column
      *     copyable: true
      *   },
      *   {
-     *     // disable copying for every cell of this column
+     *     // disable copying for each cell of this column
      *     copyable: false
      *   }
      * ]
@@ -1146,7 +1195,7 @@ export default () => {
      * | `uiContainer`  | An HTML element                                    | A UI container for the secondary focusable element                                                                                                                                      |
      *
      * Read more:
-     * - [Plugins: `CopyPaste` &#8594;](@/api/copyPaste.md)
+     * - [Plugins: `CopyPaste`](@/api/copyPaste.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -1175,17 +1224,21 @@ export default () => {
     copyPaste: true,
 
     /**
-     * The `correctFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' date format correction.
+     * The `correctFormat` option configures whether incorrectly-formatted times and dates are amended or not.
      *
-     * You can set the `correctFormat` option to one of the following
+     * When the user enters dates and times, Handsontable can automatically adjust their format
+     * to match the [`dateFormat`](#dateFormat) and [`timeFormat`](@/guides/cell-types/time-cell-type.md) settings.
      *
-     * | Setting           | Description                                                           |
-     * | ----------------- | --------------------------------------------------------------------- |
-     * | `false` (default) | Don't correct dates                                                   |
-     * | `true`            | Enforce the date format set by the [`dateFormat`](#dateFormat) option |
+     * You can set the `correctFormat` option to one of the following:
+     *
+     * | Setting           | Description                                                                                                                                               |
+     * | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Don't correct the format of the entered date or time (treat the entered date or time as invalid)                                                          |
+     * | `true`            | Correct the format of the entered date or time to match the [`dateFormat`](#dateFormat) or [`timeFormat`](@/guides/cell-types/time-cell-type.md) settings |
      *
      * Read more:
-     * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
+     * - [Date cell type](@/guides/cell-types/date-cell-type.md)
+     * - [Time cell type](@/guides/cell-types/time-cell-type.md)
      * - [`dateFormat`](#dateFormat)
      *
      * @memberof Options#
@@ -1197,11 +1250,20 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *   // set the `type` of every cell in this column to `date`
+     *   // set the `type` of each cell in this column to `date`
      *   type: 'date',
      *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
      *   dateFormat: 'YYYY-MM-DD',
      *   // enforce the `YYYY-MM-DD` date format
+     *   correctFormat: true
+     *   },
+     *
+     *   {
+     *   // set the `type` of each cell in this column to `time`
+     *   type: 'time',
+     *   // for every `time` cell of this column, set the time format to `h:mm:ss a`
+     *   timeFormat: 'h:mm:ss a',
+     *   // enforce the `h:mm:ss a` time format
      *   correctFormat: true
      *   },
      * ],
@@ -1211,7 +1273,7 @@ export default () => {
 
     /**
      * The `currentColClassName` option lets you add a CSS class name
-     * to every cell of the currently-visible, currently-selected columns.
+     * to each cell of the currently-visible, currently-selected columns.
      *
      * Read more:
      * - [`currentRowClassName`](#currentRowClassName)
@@ -1233,7 +1295,7 @@ export default () => {
      * @example
      * ```js
      * // add a `your-class-name` CSS class name
-     * // to every cell of the currently-visible, currently-selected columns
+     * // to each cell of the currently-visible, currently-selected columns
      * currentColClassName: 'your-class-name',
      * ```
      */
@@ -1270,7 +1332,7 @@ export default () => {
 
     /**
      * The `currentRowClassName` option lets you add a CSS class name
-     * to every cell of the currently-visible, currently-selected rows.
+     * to each cell of the currently-visible, currently-selected rows.
      *
      * Read more:
      * - [`currentColClassName`](#currentColClassName)
@@ -1292,7 +1354,7 @@ export default () => {
      * @example
      * ```js
      * // add a `your-class-name` CSS class name
-     * // to every cell of the currently-visible, currently-selected rows
+     * // to each cell of the currently-visible, currently-selected rows
      * currentRowClassName: 'your-class-name',
      * ```
      */
@@ -1334,9 +1396,9 @@ export default () => {
      * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the width (`width`) and color (`color`) of the bottom border. |
      *
      * Read more:
-     * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
-     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
-     * - [Plugins: `CustomBorders` &#8594;](@/api/customBorders.md)
+     * - [Formatting cells: Custom cell borders](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
+     * - [Context menu](@/guides/accessories-and-menus/context-menu.md)
+     * - [Plugins: `CustomBorders`](@/api/customBorders.md)
      * - [Layout direction](@/guides/internationalization/layout-direction.md)
      * - [`layoutDirection`](#layoutDirection)
      *
@@ -1421,9 +1483,13 @@ export default () => {
      * - Either to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
      * - Or to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects).
      *
+     * If you don't set the `data` option (or set it to `null`), Handsontable renders as an empty 5x5 grid by default.
+     *
      * Read more:
-     * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
+     * - [Binding to data](@/guides/getting-started/binding-to-data.md)
      * - [`dataSchema`](#dataSchema)
+     * - [`startRows`](#startRows)
+     * - [`startCols`](#startCols)
      *
      * @memberof Options#
      * @type {Array[]|object[]}
@@ -1453,15 +1519,22 @@ export default () => {
 
     /**
      * @description
-     * If the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
+     * When the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
      * (or is empty), the `dataSchema` option defines the structure of new rows.
      *
+     * Using the `dataSchema` option, you can start out with an empty grid.
+     *
+     * You can set the `dataSchema` option to one of the following:
+     * - An object
+     * - A function
+     *
      * Read more:
-     * - [Binding to data: Array of objects with custom data schema &#8594;](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
+     * - [Binding to data: Array of objects with custom data schema](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
+     * - [Binding to data: Function data source and schema](@/guides/getting-started/binding-to-data.md#function-data-source-and-schema)
      * - [`data`](#data)
      *
      * @memberof Options#
-     * @type {object}
+     * @type {object|Function}
      * @default undefined
      * @category Core
      *
@@ -1484,15 +1557,14 @@ export default () => {
     dataSchema: void 0,
 
     /**
-     * The `dateFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' date format.
+     * The `dateFormat` option configures the date format accepted by [`date`](@/guides/cell-types/date-cell-type.md) cells.
      *
-     * You can set the `dateFormat` option to a date format string. The default value is: `'DD/MM/YYYY'`.
+     * You can set the `dateFormat` option to a string with a proper date format. The default value is: `'DD/MM/YYYY'`.
      *
-     * To enforce the date format set by the `dateFormat` option,
-     * use the [`correctFormat`](#correctFormat) option.
+     * To automatically correct dates whose format doesn't match the `dateFormat` setting, use the [`correctFormat`](#correctFormat) option.
      *
      * Read more:
-     * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
+     * - [Date cell type](@/guides/cell-types/date-cell-type.md)
      * - [`correctFormat`](#correctFormat)
      * - [`defaultDate`](#defaultDate)
      *
@@ -1505,7 +1577,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *   // set the `type` of every cell in this column to `date`
+     *   // set the `type` of each cell in this column to `date`
      *   type: 'date',
      *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
      *   dateFormat: 'YYYY-MM-DD',
@@ -1516,16 +1588,16 @@ export default () => {
     dateFormat: 'DD/MM/YYYY',
 
     /**
-     * The `datePickerConfig` option configures the `date` [cell editor](@/guides/cell-functions/cell-editor.md)'s date picker, which uses an external dependency: [Pikaday](https://github.com/Pikaday/Pikaday/tree/1.8.0).
+     * The `datePickerConfig` option configures the `date` [cell editor](@/guides/cell-functions/cell-editor.md)'s date picker, which uses an external dependency: [Pikaday](https://github.com/Pikaday/Pikaday/tree/1.8.2).
      *
-     * You can set the `datePickerConfig` option to an object with any of the available [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration),
+     * You can set the `datePickerConfig` option to an object with any of the available [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration),
      * except for the following, which are always overwritten by the `date` [cell editor](@/guides/cell-functions/cell-editor.md):
      * - `bound`
      * - `container`
      * - `field`
      * - `trigger`
      *
-     * If the `datePickerConfig` option is not defined, the `date` [cell editor](@/guides/cell-functions/cell-editor.md) overwrites the following [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration) as well:
+     * If the `datePickerConfig` option is not defined, the `date` [cell editor](@/guides/cell-functions/cell-editor.md) overwrites the following [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration) as well:
      *
      * | Pikaday option       | Handsontable's setting |
      * | -------------------- | ---------------------- |
@@ -1535,8 +1607,8 @@ export default () => {
      * Read more:
      * - [`editor`](#editor)
      * - [`dateFormat`](#dateFormat)
-     * - [Cell editor &#8594;](@/guides/cell-functions/cell-editor.md)
-     * - [All Pikaday options &#8594;](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration)
+     * - [Cell editor](@/guides/cell-functions/cell-editor.md)
+     * - [All Pikaday options &#8594;](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration)
      *
      * @memberof Options#
      * @type {object}
@@ -1552,7 +1624,7 @@ export default () => {
      * You can set the `defaultDate` option to a string.
      *
      * Read more:
-     * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
+     * - [Date cell type](@/guides/cell-types/date-cell-type.md)
      * - [`dateFormat`](#dateFormat)
      *
      * @memberof Options#
@@ -1564,7 +1636,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `date`
+     *     // set the `type` of each cell in this column to `date`
      *     type: 'date',
      *     // in every empty `date` cell of this column, display `2015-02-02`
      *     defaultDate: '2015-02-02'
@@ -1591,7 +1663,7 @@ export default () => {
      * | An array          | A combination of `'current'`, `'area'`, and/or `'header'`                                           |
      *
      * Read more:
-     * - [Selection &#8594;](@/guides/cell-features/selection.md)
+     * - [Selection](@/guides/cell-features/selection.md)
      *
      * @memberof Options#
      * @type {boolean|string|string[]}
@@ -1630,7 +1702,7 @@ export default () => {
      * | `false`          | Don't scroll the viewport                                                   |
      *
      * Read more:
-     * - [Plugins: `DragToScroll` &#8594;](@/api/dragToScroll.md)
+     * - [Plugins: `DragToScroll`](@/api/dragToScroll.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1658,8 +1730,8 @@ export default () => {
      * | An object | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Apply a custom dropdown menu configuration                                                                                  |
      *
      * Read more:
-     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
-     * - [Plugins: `DropdownMenu` &#8594;](@/api/dropdownMenu.md)
+     * - [Context menu](@/guides/accessories-and-menus/context-menu.md)
+     * - [Plugins: `DropdownMenu`](@/api/dropdownMenu.md)
      *
      * @memberof Options#
      * @type {boolean|object|string[]}
@@ -1733,9 +1805,9 @@ export default () => {
      * options all at once, use the [`type`](#type) option.
      *
      * Read more:
-     * - [Cell editor &#8594;](@/guides/cell-functions/cell-editor.md)
-     * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
-     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Cell editor](@/guides/cell-functions/cell-editor.md)
+     * - [Cell type](@/guides/cell-types/cell-type.md)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      * - [`type`](#type)
      *
      * @memberof Options#
@@ -1745,17 +1817,17 @@ export default () => {
      *
      * @example
      * ```js
-     * // use the `numeric` editor for every cell of the entire grid
+     * // use the `numeric` editor for each cell of the entire grid
      * editor: 'numeric',
      *
      * // apply the `editor` option to individual columns
      * columns: [
      *   {
-     *     // use the `autocomplete` editor for every cell of this column
+     *     // use the `autocomplete` editor for each cell of this column
      *     editor: 'autocomplete'
      *   },
      *   {
-     *     // disable editing cells through cell editors for every cell of this column
+     *     // disable editing cells through cell editors for each cell of this column
      *     editor: false
      *   }
      * ]
@@ -1855,7 +1927,7 @@ export default () => {
      * | `direction`     | `'vertical'` \| `'horizontal'` | `'vertical'`: Enable vertical autofill<br>`'horizontal'`: Enable horizontal autofill                      |
      *
      * Read more:
-     * - [AutoFill values &#8594;](@/guides/cell-features/autofill-values.md)
+     * - [AutoFill values](@/guides/cell-features/autofill-values.md)
      *
      * @memberof Options#
      * @type {boolean|string|object}
@@ -1906,7 +1978,7 @@ export default () => {
      * | `false`          | When the end user types into the input area, all options are displayed<br>(options matching the input are put in bold |
      *
      * Read more:
-     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type.md)
      * - [`source`](#source)
      * - [`filteringCaseSensitive`](#filteringCaseSensitive)
      *
@@ -1918,7 +1990,7 @@ export default () => {
      * @example
      * ```js
      * columns: [{
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C'],
@@ -1943,7 +2015,7 @@ export default () => {
      * | `true`            | [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells' input is case-sensitive     |
      *
      * Read more:
-     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type.md)
      * - [`source`](#source)
      * - [`filter`](#filter)
      *
@@ -1977,8 +2049,8 @@ export default () => {
      * | `true`  | Enable the [`Filters`](@/api/filters.md) plugin  |
      *
      * Read more:
-     * - [Column filter &#8594;](@/guides/columns/column-filter.md)
-     * - [Plugins: `Filters` &#8594;](@/api/filters.md)
+     * - [Column filter](@/guides/columns/column-filter.md)
+     * - [Plugins: `Filters`](@/api/filters.md)
      * - [`dropdownMenu`](#dropdownMenu)
      *
      * @memberof Options#
@@ -2025,8 +2097,8 @@ export default () => {
      * If your grid's [layout direction](@/guides/internationalization/layout-direction.md) is RTL, the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the right-hand edge of the grid.
      *
      * Read more:
-     * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
-     * - [Layout direction &#8594;](@/guides/internationalization/layout-direction.md)
+     * - [Column freezing](@/guides/columns/column-freezing.md)
+     * - [Layout direction](@/guides/internationalization/layout-direction.md)
      * - [`fixedColumnsLeft`](#fixedcolumnsleft)
      * - [`layoutDirection`](#layoutDirection)
      *
@@ -2063,7 +2135,7 @@ export default () => {
      * at the bottom of the grid.
      *
      * Read more:
-     * - [Row freezing &#8594;](@/guides/rows/row-freezing.md)
+     * - [Row freezing](@/guides/rows/row-freezing.md)
      *
      * @memberof Options#
      * @type {number}
@@ -2082,7 +2154,7 @@ export default () => {
      * The `fixedRowsTop` option sets the number of [frozen rows](@/guides/rows/row-freezing.md) at the top of the grid.
      *
      * Read more:
-     * - [Row freezing &#8594;](@/guides/rows/row-freezing.md)
+     * - [Row freezing](@/guides/rows/row-freezing.md)
      *
      * @memberof Options#
      * @type {number}
@@ -2102,7 +2174,7 @@ export default () => {
      *
      * The [`Formulas`](@/api/formulas.md) plugin uses the [HyperFormula](https://handsontable.github.io/hyperformula/) calculation engine.
      * To install [HyperFormula](https://handsontable.github.io/hyperformula/), read the following:
-     * - [Formula calculation: Initialization methods &#8594;](@/guides/formulas/formula-calculation.md#initialization-methods)
+     * - [Formula calculation: Initialization methods](@/guides/formulas/formula-calculation.md#initialization-methods)
      *
      * You can set the `formulas` option to an object with the following properties:
      *
@@ -2113,8 +2185,8 @@ export default () => {
      * | `sheetName` | A string                                                                                                                                                                                                               |
      *
      * Read more:
-     * - [Plugins: `Formulas` &#8594;](@/api/formulas.md)
-     * - [Formula calculation &#8594;](@/guides/formulas/formula-calculation.md)
+     * - [Plugins: `Formulas`](@/api/formulas.md)
+     * - [Formula calculation](@/guides/formulas/formula-calculation.md)
      * - [HyperFormula documentation: Client-side installation](https://handsontable.github.io/hyperformula/guide/client-side-installation)
      * - [HyperFormula documentation: Configuration options](https://handsontable.github.io/hyperformula/api/interfaces/configparams.html)
      *
@@ -2216,7 +2288,7 @@ export default () => {
      * | A function that returns a valid number or string                           | `height() { return 500; }` |
      *
      * Read more:
-     * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
+     * - [Grid size](@/guides/getting-started/grid-size.md)
      *
      * @memberof Options#
      * @type {number|string|Function}
@@ -2259,8 +2331,8 @@ export default () => {
      * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden columns<br>`false`: display UI markers                                                    |
      *
      * Read more:
-     * - [Plugins: `HiddenColumns` &#8594;](@/api/hiddenColumns.md)
-     * - [Column hiding &#8594;](@/guides/columns/column-hiding.md)
+     * - [Plugins: `HiddenColumns`](@/api/hiddenColumns.md)
+     * - [Column hiding](@/guides/columns/column-hiding.md)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2305,8 +2377,8 @@ export default () => {
      * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden rows<br>`false`: display UI markers                                                 |
      *
      * Read more:
-     * - [Plugins: `HiddenRows` &#8594;](@/api/hiddenRows.md)
-     * - [Row hiding &#8594;](@/guides/rows/row-hiding.md)
+     * - [Plugins: `HiddenRows`](@/api/hiddenRows.md)
+     * - [Row hiding](@/guides/rows/row-hiding.md)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2336,7 +2408,7 @@ export default () => {
      * that were marked as `invalid` by the [cell validator](@/guides/cell-functions/cell-validator.md).
      *
      * Read more:
-     * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
+     * - [Cell validator](@/guides/cell-functions/cell-validator.md)
      * - [`currentRowClassName`](#currentRowClassName)
      * - [`currentHeaderClassName`](#currentHeaderClassName)
      * - [`activeHeaderClassName`](#activeHeaderClassName)
@@ -2456,7 +2528,7 @@ export default () => {
      * | `property`  | A string                          | - A [`data`](#data) object property name that's used as the label's text <br>- Works only when the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects) |
      *
      * Read more:
-     * - [Checkbox cell type: Checkbox labels &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-labels)
+     * - [Checkbox cell type: Checkbox labels](@/guides/cell-types/checkbox-cell-type.md#checkbox-labels)
      *
      * @memberof Options#
      * @type {object}
@@ -2497,11 +2569,12 @@ export default () => {
      * | `'pl-PL'`           | Polish - Poland             |
      * | `'pt-BR'`           | Portuguese - Brazil         |
      * | `'ru-RU'`           | Russian - Russia            |
+     * | `'sr-SP'`           | Serbian (Latin) - Serbia    |
      * | `'zh-CN'`           | Chinese - China             |
      * | `'zh-TW'`           | Chinese - Taiwan            |
      *
      * Read more:
-     * - [Language &#8594;](@/guides/internationalization/language.md)
+     * - [Language](@/guides/internationalization/language.md)
      * - [`locale`](#locale)
      * - [`layoutDirection`](#layoutdirection)
      *
@@ -2521,9 +2594,9 @@ export default () => {
     /**
      * The `layoutDirection` option configures whether Handsontable renders from the left to the right, or from the right to the left.
      *
-     * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
+     * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-handsontable). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
      *
-     * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/setting-options.md#setting-grid-options).
+     * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/configuration-options.md#setting-grid-options).
      * You can't set it for individual columns, rows, or cells.
      *
      * You can set the `layoutDirection` option to one of the following strings:
@@ -2535,8 +2608,8 @@ export default () => {
      * | `ltr`               | Render Handsontable from the left to the right,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `rtl` |
      *
      * Read more:
-     * - [Layout direction &#8594;](@/guides/internationalization/layout-direction.md)
-     * - [Language &#8594;](@/guides/internationalization/language.md)
+     * - [Layout direction](@/guides/internationalization/layout-direction.md)
+     * - [Language](@/guides/internationalization/language.md)
      * - [`language`](#language)
      * - [`locale`](#locale)
      * - [`fixedColumnsStart`](#fixedcolumnsstart)
@@ -2575,7 +2648,7 @@ export default () => {
      * | `'non-commercial-and-evaluation'`                                                                       | For [non-commercial use](@/guides/technical-specification/software-license.md#non-commercial-use) |
      *
      * Read more:
-     * - [License key &#8594;](@/guides/getting-started/license-key.md)
+     * - [License key](@/guides/getting-started/license-key.md)
      *
      * @memberof Options#
      * @type {string}
@@ -2601,7 +2674,7 @@ export default () => {
      * and for [individual columns](@/guides/internationalization/locale.md#setting-a-column-s-locale).
      *
      * Read more:
-     * - [Locale &#8594;](@/guides/internationalization/locale.md)
+     * - [Locale](@/guides/internationalization/locale.md)
      * - [`language`](#language)
      * - [`layoutDirection`](#layoutdirection)
      *
@@ -2641,7 +2714,7 @@ export default () => {
      * | `false`  | Disable the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin |
      *
      * Read more:
-     * - [Column freezing &#8594;](@/guides/columns/column-freezing.md#user-triggered-freeze)
+     * - [Column freezing](@/guides/columns/column-freezing.md#user-triggered-freeze)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2668,7 +2741,7 @@ export default () => {
      * | An array | - Enable the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin<br>- Move individual columns at initialization |
      *
      * Read more:
-     * - [Column moving &#8594;](@/guides/columns/column-moving.md)
+     * - [Column moving](@/guides/columns/column-moving.md)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -2702,7 +2775,7 @@ export default () => {
      * | An array | - Enable the [`ManualColumnResize`](@/api/manualColumnResize.md) plugin<br>- Set initial widths of individual columns |
      *
      * Read more:
-     * - [Column width: Column stretching &#8594;](@/guides/columns/column-width.md#column-stretching)
+     * - [Column width: Column stretching](@/guides/columns/column-width.md#column-stretching)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -2736,7 +2809,7 @@ export default () => {
      * | An array | - Enable the [`ManualRowMove`](@/api/manualRowMove.md) plugin<br>- Move individual rows at initialization |
      *
      * Read more:
-     * - [Row moving &#8594;](@/guides/rows/row-moving.md)
+     * - [Row moving](@/guides/rows/row-moving.md)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -2770,7 +2843,7 @@ export default () => {
      * | An array | - Enable the [`ManualRowResize`](@/api/manualRowResize.md) plugin<br>- Set initial heights of individual rows |
      *
      * Read more:
-     * - [Row height: Adjust the row height manually &#8594;](@/guides/rows/row-height.md#adjust-the-row-height-manually)
+     * - [Row height: Adjust the row height manually](@/guides/rows/row-height.md#adjust-the-row-height-manually)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -2856,7 +2929,7 @@ export default () => {
      * | `colspan` | The height (as a number of columns ) of the merged section |
      *
      * Read more:
-     * - [Merge cells &#8594;](@/guides/cell-features/merge-cells.md)
+     * - [Merge cells](@/guides/cell-features/merge-cells.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -2866,7 +2939,7 @@ export default () => {
      * @example
      * ```js
      * // enable the `MergeCells` plugin
-     * margeCells: true,
+     * mergeCells: true,
      *
      * // enable the `MergeCells` plugin
      * // and merge specific cells at initialization
@@ -3015,7 +3088,7 @@ export default () => {
      * | `sortOrder` | `'asc'` \| `'desc'` | The sorting order:<br>`'asc'`: ascending<br>`'desc'`: descending |
      *
      * Read more:
-     * - [Row sorting &#8594;](@/guides/rows/row-sorting.md)
+     * - [Row sorting](@/guides/rows/row-sorting.md)
      * - [`columnSorting`](#columnSorting)
      *
      * @memberof Options#
@@ -3065,9 +3138,17 @@ export default () => {
      * @description
      * The `nestedHeaders` option configures the [`NestedHeaders`](@/api/nestedHeaders.md) plugin.
      *
-     * You can set the `nestedHeaders` option to an array of arrays:
-     * - Each array configures one set of nested headers.
-     * - Each array element configures one header, and can be one of the following:
+     * You can set the `nestedHeaders` option to one of the following:
+     *
+     * | Setting           | Description                                                                                                                           |
+     * | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Disable the [`NestedHeaders`](@/api/nestedHeaders.md) plugin                                                                          |
+     * | `true`            | - Enable the [`NestedHeaders`](@/api/nestedHeaders.md) plugin<br>- Don't configure any nested headers                                 |
+     * | Array of arrays   | - Enable the [`NestedHeaders`](@/api/nestedHeaders.md) plugin<br>- Configure headers that are nested on Handsontable's initialization |
+     *
+     * If you set the `nestedHeaders` option to an array of arrays, each array configures one set of nested headers.
+     *
+     * Each array element configures one header, and can be one of the following:
      *
      * | Array element | Description                                                                                  |
      * | ------------- | -------------------------------------------------------------------------------------------- |
@@ -3075,11 +3156,11 @@ export default () => {
      * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width |
      *
      * Read more:
-     * - [Plugins: `NestedHeaders` &#8594;](@/api/nestedHeaders.md)
-     * - [Column groups: Nested headers &#8594;](@/guides/columns/column-groups.md#nested-headers)
+     * - [Plugins: `NestedHeaders`](@/api/nestedHeaders.md)
+     * - [Column groups: Nested headers](@/guides/columns/column-groups.md#nested-headers)
      *
      * @memberof Options#
-     * @type {Array[]}
+     * @type {boolean|Array[]}
      * @default undefined
      * @category NestedHeaders
      *
@@ -3106,7 +3187,7 @@ export default () => {
      * | `true`            | Enable the [`NestedRows`](@/api/nestedRows.md) plugin  |
      *
      * Read more:
-     * - [Plugins: `NestedRows` &#8594;](@/api/nestedRows.md)
+     * - [Plugins: `NestedRows`](@/api/nestedRows.md)
      *
      * @example
      * ```js
@@ -3123,7 +3204,7 @@ export default () => {
 
     /**
      * The `noWordWrapClassName` option lets you add a CSS class name
-     * to every cell that has the [`wordWrap`](#wordWrap) option set to `false`.
+     * to each cell that has the [`wordWrap`](#wordWrap) option set to `false`.
      *
      * Read more:
      * - [`wordWrap`](#wordWrap)
@@ -3145,7 +3226,7 @@ export default () => {
      * @example
      * ```js
      * // add an `is-noWrapCell` CSS class name
-     * // to every cell that doesn't wrap content
+     * // to each cell that doesn't wrap content
      * noWordWrapClassName: 'is-noWrapCell',
      * ```
      */
@@ -3153,7 +3234,8 @@ export default () => {
 
     /**
      * The `numericFormat` option configures the number format and the currency format
-     * of [`numeric`](@/guides/cell-types/numeric-cell-type.md) cells` displayed output.
+     * of [`numeric`](@/guides/cell-types/numeric-cell-type.md) cells` displayed output
+     * in the numeric cell renderer.
      *
      * You can set the `numericFormat` option to an object with the following properties:
      *
@@ -3162,16 +3244,13 @@ export default () => {
      * | `pattern`   | All [`numbro.js` number formats](https://numbrojs.com/format.html#numbers)    | Number format   |
      * | `culture`   | All [`numbro.js` currency formats](https://numbrojs.com/format.html#currency) | Currency format |
      *
-     * The `numericFormat` option as no effect on cells' input data.
-     * To enter numeric data into Handsontable, use:
-     * - Either floats (separated by a dot, or a comma)
-     * - Or integers
+     * The `numericFormat` option as no effect on the numeric cell editor.
      *
      * In the source data, numeric data is stored as JavaScript numbers.
      *
      * Read more:
-     * - [Numeric cell type &#8594;](@/guides/cell-types/numeric-cell-type.md)
-     * - [Third-party licenses &#8594;](@/guides/technical-specification/third-party-licenses.md)
+     * - [Numeric cell type](@/guides/cell-types/numeric-cell-type.md)
+     * - [Third-party licenses](@/guides/technical-specification/third-party-licenses.md)
      *
      * @memberof Options#
      * @since 0.35.0
@@ -3183,7 +3262,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `numeric`
+     *     // set the `type` of each cell in this column to `numeric`
      *     type: 'numeric',
      *     // set the `numericFormat` option for every `numeric` cell of this column
      *     numericFormat: {
@@ -3265,8 +3344,8 @@ export default () => {
      * | `true`            | Enable the [`PersistentState`](@/api/persistentState.md) plugin  |
      *
      * Read more:
-     * - [Saving data: Saving data locally &#8594;](@/guides/getting-started/saving-data.md#saving-data-locally)
-     * - [Plugins: `PersistentState` &#8594;](@/api/persistentState.md)
+     * - [Saving data: Saving data locally](@/guides/getting-started/saving-data.md#saving-data-locally)
+     * - [Plugins: `PersistentState`](@/api/persistentState.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3324,7 +3403,7 @@ export default () => {
      * that contain [`placeholder`](#placeholder) text.
      *
      * Read more:
-     * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
+     * - [Cell validator](@/guides/cell-functions/cell-validator.md)
      * - [`placeholder`](#placeholder)
      * - [`currentRowClassName`](#currentRowClassName)
      * - [`currentHeaderClassName`](#currentHeaderClassName)
@@ -3344,7 +3423,7 @@ export default () => {
      * @example
      * ```js
      * // add a `has-placeholder` CSS class name
-     * // to every cell that contains `placeholder` text
+     * // to each cell that contains `placeholder` text
      * placeholderCellClassName: 'has-placeholder',
      * ```
      */
@@ -3379,7 +3458,7 @@ export default () => {
      * The `preventWheel` option configures preventing the `wheel` event's default action
      * on overlays.
      *
-     * You can set the `preventOverflow` option to one of the following:
+     * You can set the `preventWheel` option to one of the following:
      *
      * | Setting           | Description                                      |
      * | ----------------- | ------------------------------------------------ |
@@ -3411,8 +3490,10 @@ export default () => {
      * | `false` (default) | Set as editable                                                                                                           |
      * | `true`            | - Set as read-only<br>- Add the [`readOnlyCellClassName`](#readOnlyCellClassName) CSS class name (by default: `htDimmed`) |
      *
+     * `readOnly` cells can't be changed by the [`populateFromArray()`](@/api/core.md#populatefromarray) method.
+     *
      * Read more:
-     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3467,7 +3548,7 @@ export default () => {
      * | `true`            | Disable [row virtualization](@/guides/rows/row-virtualization.md)<br>(render all rows of the grid) |
      *
      * Read more:
-     * - [Row virtualization &#8594;](@/guides/rows/row-virtualization.md)
+     * - [Row virtualization](@/guides/rows/row-virtualization.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3508,9 +3589,9 @@ export default () => {
      * options all at once, use the [`type`](#type) option.
      *
      * Read more:
-     * - [Cell renderer &#8594;](@/guides/cell-functions/cell-renderer.md)
-     * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
-     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Cell renderer](@/guides/cell-functions/cell-renderer.md)
+     * - [Cell type](@/guides/cell-types/cell-type.md)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      * - [`type`](#type)
      *
      * @memberof Options#
@@ -3520,7 +3601,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // use the `numeric` renderer for every cell of the entire grid
+     * // use the `numeric` renderer for each cell of the entire grid
      * renderer: `'numeric'`,
      *
      * // add a custom renderer function
@@ -3532,11 +3613,11 @@ export default () => {
      * // apply the `renderer` option to individual columns
      * columns: [
      *   {
-     *     // use the `autocomplete` renderer for every cell of this column
+     *     // use the `autocomplete` renderer for each cell of this column
      *     renderer: 'autocomplete'
      *   },
      *   {
-     *     // use the `myCustomRenderer` renderer for every cell of this column
+     *     // use the `myCustomRenderer` renderer for each cell of this column
      *     renderer: 'myCustomRenderer'
      *   }
      * ]
@@ -3557,7 +3638,7 @@ export default () => {
      * | A function | Define your own row headers, using a function                     |
      *
      * Read more:
-     * - [Row header &#8594;](@/guides/rows/row-header.md)
+     * - [Row header](@/guides/rows/row-header.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -3625,7 +3706,7 @@ export default () => {
      * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
      *
      * Read more:
-     * - [Row height &#8594;](@/guides/rows/row-height.md)
+     * - [Row height](@/guides/rows/row-height.md)
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -3675,9 +3756,9 @@ export default () => {
      * | `callback`          | A function        | Add a [custom callback function](@/guides/accessories-and-menus/searching-values.md#custom-callback) |
      *
      * Read more:
-     * - [Searching values &#8594;](@/guides/accessories-and-menus/searching-values.md)
-     * - [Searching values: Custom query method &#8594;](@/guides/accessories-and-menus/searching-values.md#custom-query-method)
-     * - [Searching values: Custom callback &#8594;](@/guides/accessories-and-menus/searching-values.md#custom-callback)
+     * - [Searching values](@/guides/accessories-and-menus/searching-values.md)
+     * - [Searching values: Custom query method](@/guides/accessories-and-menus/searching-values.md#custom-query-method)
+     * - [Searching values: Custom callback](@/guides/accessories-and-menus/searching-values.md#custom-callback)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -3719,7 +3800,7 @@ export default () => {
      * | `'multiple'` | Allow the user to select multiple ranges of cells at a time. |
      *
      * Read more:
-     * - [Selection: Selecting ranges &#8594;](@/guides/cell-features/selection.md#selecting-ranges)
+     * - [Selection: Selecting ranges](@/guides/cell-features/selection.md#selecting-ranges)
      *
      * @memberof Options#
      * @type {string}
@@ -3752,7 +3833,7 @@ export default () => {
      * | A function                      | A function that returns an object with key-string pairs                       |
      *
      * Read more:
-     * - [Select cell type &#8594;](@/guides/cell-types/select-cell-type.md)
+     * - [Select cell type](@/guides/cell-types/select-cell-type.md)
      *
      * @memberof Options#
      * @type {string[]|object|Function}
@@ -3763,7 +3844,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `select`
+     *     // set the `type` of each cell in this column to `select`
      *     type: 'select',
      *     // set the first option's value and label to `A`
      *     // set the second option's value and label to `B`
@@ -3771,7 +3852,7 @@ export default () => {
      *     selectOptions: ['A', 'B', 'C'],
      *   },
      *   {
-     *     // set the `type` of every cell in this column to `select`
+     *     // set the `type` of each cell in this column to `select`
      *     type: 'select',
      *     selectOptions: {
      *       // set the first option's value to `value1` and label to `Label 1`
@@ -3783,7 +3864,7 @@ export default () => {
      *     },
      *   },
      *   {
-     *     // set the `type` of every cell in this column to `select`
+     *     // set the `type` of each cell in this column to `select`
      *     type: 'select',
      *     // set `selectOption` to a function that returns available options as an object
      *     selectOptions(visualRow, visualColumn, prop) {
@@ -3812,7 +3893,7 @@ export default () => {
      * | `true`            | - Disable pasting data into this column<br>- On pasting, paste data into the next column to the right |
      *
      * Read more:
-     * - [Configuration options: Setting column options &#8594;](@/guides/getting-started/setting-options.md#setting-column-options)
+     * - [Configuration options: Setting column options](@/guides/getting-started/configuration-options.md#setting-column-options)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3846,7 +3927,7 @@ export default () => {
      * | `true`            | - Disable pasting data into this row<br>- On pasting, paste data into the row below |
      *
      * Read more:
-     * - [Configuration options: Setting row options &#8594;](@/guides/getting-started/setting-options.md#setting-row-options)
+     * - [Configuration options: Setting row options](@/guides/getting-started/configuration-options.md#setting-row-options)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3882,7 +3963,7 @@ export default () => {
      *
      * Read more:
      * - [`source`](#source)
-     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3892,7 +3973,7 @@ export default () => {
      * @example
      * ```js
      * columns: [{
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['D', 'C', 'B', 'A'],
@@ -3913,8 +3994,8 @@ export default () => {
      * - A function
      *
      * Read more:
-     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
-     * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
+     * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type.md)
      * - [`strict`](#strict)
      * - [`allowHtml`](#allowHtml)
      * - [`filter`](#filter)
@@ -3929,7 +4010,7 @@ export default () => {
      * ```js
      * // set `source` to an array
      * columns: [{
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C', 'D']
@@ -3937,7 +4018,7 @@ export default () => {
      *
      * // set `source` to a function
      * columns: [{
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // for every `autocomplete` cell in this column, fetch data from an external source
      *   source(query, callback) {
@@ -4002,7 +4083,7 @@ export default () => {
      * | `'all'`            | Fit the grid to the container, by stretching all columns evenly   |
      *
      * Read more:
-     * - [Column width: Column stretching &#8594;](@/guides/columns/column-width.md#column-stretching)
+     * - [Column width: Column stretching](@/guides/columns/column-width.md#column-stretching)
      *
      * @memberof Options#
      * @type {string}
@@ -4019,18 +4100,17 @@ export default () => {
     stretchH: 'none',
 
     /**
-     * The `strict` option configures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
-     * cells' strict/lazy mode.
+     * The `strict` option configures the behavior of [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells.
      *
      * You can set the `strict` option to one of the following:
      *
-     * | Setting | Mode                                                                                  | Description                                                                                                                                       |
-     * | ------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode) | The value entered must match an autocomplete option (case-sensitive)                                                                              |
-     * | `false` | [Lazy mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-lazy-mode)     | The value entered doesn't have to match an autocomplete option.<br>The end user can:<br>- Choose from suggested options<br>- Enter a custom value |
+     * | Setting | Mode                                                                                          | Description                                                                                |
+     * | ------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+     * | `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode)         | The end user:<br>- Can only choose one of suggested values<br>- Can't enter a custom value |
+     * | `false` | [Flexible mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-flexible-mode)     | The end user:<br>- Can choose one of suggested values<br>- Can enter a custom value        |
      *
      * Read more:
-     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type.md)
      * - [`source`](#source)
      *
      * @memberof Options#
@@ -4042,7 +4122,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *   // set the `type` of every cell in this column to `autocomplete`
+     *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C'],
@@ -4134,7 +4214,7 @@ export default () => {
      * You can set the `title` option to a string.
      *
      * Read more:
-     * - [Column header &#8594;](@/guides/columns/column-header.md)
+     * - [Column header](@/guides/columns/column-header.md)
      * - [`columns`](#columns)
      *
      * @memberof Options#
@@ -4172,8 +4252,8 @@ export default () => {
      * | `false`          | Scale the dropdown/autocomplete list's width to the list's content              |
      *
      * Read more:
-     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
-     * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
+     * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -4185,13 +4265,13 @@ export default () => {
      * columns: [
      *   {
      *     type: 'autocomplete',
-     *     // for every cell of this column
+     *     // for each cell of this column
      *     // make the `autocomplete` list's width the same as the edited cell's width
      *     trimDropdown: true,
      *   },
      *   {
      *     type: 'dropdown',
-     *     // for every cell of this column
+     *     // for each cell of this column
      *     // scale the `dropdown` list's width to the list's content
      *     trimDropdown: false,
      *   }
@@ -4206,15 +4286,15 @@ export default () => {
      *
      * You can set the `trimRows` option to one of the following:
      *
-     * | Setting  | Description                                                                                   |
-     * | -------- | --------------------------------------------------------------------------------------------- |
-     * | `false`  | Disable the [`TrimRows`](@/api/trimRows.md) plugin                                            |
-     * | `true`   | Enable the [`TrimRows`](@/api/trimRows.md) plugin                                             |
-     * | An array | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
+     * | Setting                          | Description                                                                                   |
+     * | -------------------------------- | --------------------------------------------------------------------------------------------- |
+     * | `false`                          | Disable the [`TrimRows`](@/api/trimRows.md) plugin                                            |
+     * | `true`                           | Enable the [`TrimRows`](@/api/trimRows.md) plugin                                             |
+     * | An array of physical row indexes | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
      *
      * Read more:
-     * - [Plugins: `TrimRows` &#8594;](@/api/trimRows.md)
-     * - [Row trimming &#8594;](@/guides/rows/row-trimming.md)
+     * - [Plugins: `TrimRows`](@/api/trimRows.md)
+     * - [Row trimming](@/guides/rows/row-trimming.md)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -4227,23 +4307,24 @@ export default () => {
      * trimRows: true,
      *
      * // enable the `TrimRows` plugin
-     * // trim rows 5, 10, and 15 at Handsontable's initialization
+     * // at Handsontable's initialization, trim rows 5, 10, and 15
      * trimRows: [5, 10, 15],
      * ```
      */
     trimRows: void 0,
 
     /**
-     * The `trimWhitespace` option configures automatic whitespace removal.
+     * The `trimWhitespace` option configures automatic whitespace removal. This option
+     * affects the cell renderer and the cell editor.
      *
      * You can set the `trimWhitespace` option to one of the following:
      *
      * | Setting          | Description                                                     |
      * | ---------------- | --------------------------------------------------------------- |
-     * | `true` (default) | Remove whitespace at the beginning and at the end of every cell |
+     * | `true` (default) | Remove whitespace at the beginning and at the end of each cell |
      * | `false`          | Don't remove whitespace                                         |
      *
-     * @memberof Options#tr
+     * @memberof Options#
      * @type {boolean}
      * @default true
      * @category Core
@@ -4282,11 +4363,11 @@ export default () => {
      * | [`'time`'](@/guides/cell-types/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                 |
      *
      * Read more:
-     * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
-     * - [Cell renderer &#8594;](@/guides/cell-functions/cell-renderer.md)
-     * - [Cell editor &#8594;](@/guides/cell-functions/cell-editor.md)
-     * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
-     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Cell type](@/guides/cell-types/cell-type.md)
+     * - [Cell renderer](@/guides/cell-functions/cell-renderer.md)
+     * - [Cell editor](@/guides/cell-functions/cell-editor.md)
+     * - [Cell validator](@/guides/cell-functions/cell-validator.md)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      * - [`renderer`](#renderer)
      * - [`editor`](#editor)
      * - [`validator`](#validator)
@@ -4298,17 +4379,17 @@ export default () => {
      *
      * @example
      * ```js
-     * // use the `numeric` cell type for every cell of the entire grid
+     * // set the `numeric` cell type for each cell of the entire grid
      * type: `'numeric'`,
      *
      * // apply the `type` option to individual columns
      * columns: [
      *   {
-     *     // use the `autocomplete` cell type for every cell of this column
+     *     // set the `autocomplete` cell type for each cell of this column
      *     type: 'autocomplete'
      *   },
      *   {
-     *     // use the `myCustomCellType` cell type for every cell of this column
+     *     // set the `myCustomCellType` cell type for each cell of this column
      *     type: 'myCustomCellType'
      *   }
      * ]
@@ -4328,8 +4409,8 @@ export default () => {
      * | A string          | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell is unchecked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns a string of your choice |
      *
      * Read more:
-     * - [Checkbox cell type: Checkbox template &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
-     * - [`getDataAtCell()` &#8594;](@/api/core.md#getDataAtCell)
+     * - [Checkbox cell type: Checkbox template](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
+     * - [`getDataAtCell()`](@/api/core.md#getDataAtCell)
      * - [`checkedTemplate`](#checkedTemplate)
      *
      * @memberof Options#
@@ -4341,13 +4422,13 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the `type` of every cell in this column to `checkbox`
+     *     // set the `type` of each cell in this column to `checkbox`
      *     // when unchecked, the cell's value is `false`
      *     // when checked, the cell's value is `true`
      *     type: 'checkbox',
      *   },
      *   {
-     *     // set the `type` of every cell in this column to `checkbox`
+     *     // set the `type` of each cell in this column to `checkbox`
      *     // when unchecked, the cell's value is `'No'`
      *     // when checked, the cell's value is `'Yes'`
      *     type: 'checkbox',
@@ -4375,7 +4456,7 @@ export default () => {
      * set the `undo` option to `false`.
      *
      * Read more:
-     * - [Undo and redo &#8594;](@/guides/accessories-and-menus/undo-redo.md)
+     * - [Undo and redo](@/guides/accessories-and-menus/undo-redo.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -4418,9 +4499,9 @@ export default () => {
      * options all at once, use the [`type`](#type) option.
      *
      * Read more:
-     * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
-     * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
-     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Cell validator](@/guides/cell-functions/cell-validator.md)
+     * - [Cell type](@/guides/cell-types/cell-type.md)
+     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options.md#cascading-configuration)
      * - [`type`](#type)
      *
      * @memberof Options#
@@ -4463,7 +4544,7 @@ export default () => {
      * | A number           | Set the offset manually                                 |
      *
      * Read more:
-     * - [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
      * @memberof Options#
      * @type {number|string}
@@ -4491,8 +4572,8 @@ export default () => {
      * | A number           | Set the offset manually                                 |
      *
      * Read more:
-     * - [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
-     * - [Column virtualization &#8594;](@/guides/columns/column-virtualization.md)
+     * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+     * - [Column virtualization](@/guides/columns/column-virtualization.md)
      *
      * @memberof Options#
      * @type {number|string}
@@ -4514,8 +4595,8 @@ export default () => {
      * When the number of list options exceeds the `visibleRows` number, a scrollbar appears.
      *
      * Read more:
-     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
-     * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
+     * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type.md)
      *
      * @memberof Options#
      * @type {number}
@@ -4528,13 +4609,13 @@ export default () => {
      *   {
      *     type: 'autocomplete',
      *     // set the `autocomplete` list's height to 15 options
-     *     // for every cell of this column
+     *     // for each cell of this column
      *     visibleRows: 15,
      *   },
      *   {
      *     type: 'dropdown',
      *     // set the `dropdown` list's height to 5 options
-     *     // for every cell of this column
+     *     // for each cell of this column
      *     visibleRows: 5,
      *   }
      * ],
@@ -4554,7 +4635,7 @@ export default () => {
      * | A function that returns a valid number or string                           | `width() { return 500; }` |
      *
      * Read more:
-     * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
+     * - [Grid size](@/guides/getting-started/grid-size.md)
      *
      * @memberof Options#
      * @type {number|string|Function}

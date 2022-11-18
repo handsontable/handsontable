@@ -15,10 +15,11 @@ import { useRecorder } from './recorder';
  * @class ShortcutManager
  * @param {object} options The manager's options
  * @param {EventTarget} options.ownerWindow A starting `window` element
+ * @param {Function} options.handleEvent A condition on which `event` is handled.
  * @param {Function} options.beforeKeyDown A hook fired before the `keydown` event is handled. You can use it to [block a keyboard shortcut's actions](@/guides/accessories-and-menus/keyboard-shortcuts.md#blocking-a-keyboard-shortcut-s-actions).
  * @param {Function} options.afterKeyDown A hook fired after the `keydown` event is handled
  */
-export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown }) => {
+export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown, afterKeyDown }) => {
   /**
    * A unique map that stores keyboard shortcut contexts.
    *
@@ -94,7 +95,7 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
    *
    * @private
    */
-  const keyRecorder = useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, (event, keys) => {
+  const keyRecorder = useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDown, (event, keys) => {
     const activeContext = getContext(getActiveContextName());
     let isExecutionCancelled = false;
 

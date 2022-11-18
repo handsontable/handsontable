@@ -588,7 +588,7 @@ describe('Formulas general', () => {
         height: 300,
       });
 
-      hot.alter('insert_row', 1, 2);
+      hot.alter('insert_row_above', 1, 2);
 
       expect(hot.getDataAtRow(0)).toEqual([0, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 0]);
       expect(hot.getDataAtRow(1)).toEqual([null, null, null, null, null, null]);
@@ -609,7 +609,7 @@ describe('Formulas general', () => {
         height: 300
       });
 
-      hot.alter('insert_row', 2, 3);
+      hot.alter('insert_row_above', 2, 3);
       hot.setDataAtCell(3, 0, 2234);
 
       expect(hot.getDataAtRow(0)).toEqual([0, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 0]);
@@ -635,7 +635,7 @@ describe('Formulas general', () => {
         contextMenu: true,
       });
 
-      hot.alter('insert_col', 1, 2);
+      hot.alter('insert_col_start', 1, 2);
 
       expect(hot.getDataAtRow(0)).toEqual([0, null, null, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 0]);
       expect(hot.getDataAtRow(1)).toEqual([2009, null, null, 0, 2941, 4303, 354, 5814]);
@@ -655,7 +655,7 @@ describe('Formulas general', () => {
         contextMenu: true,
       });
 
-      hot.alter('insert_col', 1, 2);
+      hot.alter('insert_col_start', 1, 2);
       hot.setDataAtCell(1, 3, 2);
 
       expect(hot.getDataAtRow(0)).toEqual([2, null, null, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 2]);
@@ -736,7 +736,7 @@ describe('Formulas general', () => {
         height: 300
       });
 
-      hot.alter('insert_row', 3, 2);
+      hot.alter('insert_row_above', 3, 2);
       hot.setDataAtCell(6, 1, '=SUM(A2:A4)');
 
       hot.alter('remove_row', 2, 3);
@@ -785,7 +785,7 @@ describe('Formulas general', () => {
         height: 300
       });
 
-      hot.alter('insert_row', 3, 2);
+      hot.alter('insert_row_above', 3, 2);
       hot.setDataAtCell(6, 1, '=SUM(A2:A4)');
 
       hot.alter('remove_row', 0, 4);
@@ -971,9 +971,9 @@ describe('Formulas general', () => {
       hot.alter('remove_col', 3);
       hot.alter('remove_row', 2);
       hot.alter('remove_row', 2);
-      hot.alter('insert_row', 0);
+      hot.alter('insert_row_above', 0);
       hot.alter('remove_col', 3);
-      hot.alter('insert_col', 3);
+      hot.alter('insert_col_start', 3);
 
       expect(hot.getSourceDataAtRow(0)).toEqual([null, null, null, null, null]);
       expect(hot.getSourceDataAtRow(1)).toEqual(['=$B$3', 'Maserati', 'Mazda', null, '=A$2']);
@@ -1020,10 +1020,10 @@ describe('Formulas general', () => {
         contextMenu: true,
       });
 
-      hot.alter('insert_row', 1, 3);
-      hot.alter('insert_col', 1);
-      hot.alter('insert_col', 4, 2);
-      hot.alter('insert_row', 5);
+      hot.alter('insert_row_above', 1, 3);
+      hot.alter('insert_col_start', 1);
+      hot.alter('insert_col_start', 4, 2);
+      hot.alter('insert_row_above', 5);
       hot.undo();
 
       expect(hot.getSourceDataAtRow(0))
@@ -1082,10 +1082,10 @@ describe('Formulas general', () => {
         contextMenu: true,
       });
 
-      hot.alter('insert_row', 1, 3);
-      hot.alter('insert_col', 1);
-      hot.alter('insert_col', 4, 2);
-      hot.alter('insert_row', 5);
+      hot.alter('insert_row_above', 1, 3);
+      hot.alter('insert_col_start', 1);
+      hot.alter('insert_col_start', 4, 2);
+      hot.alter('insert_row_above', 5);
       hot.undo();
       hot.undo();
       hot.undo();
@@ -1366,7 +1366,7 @@ describe('Formulas general', () => {
         }
       });
 
-      alter('insert_col', 0);
+      alter('insert_col_start', 0);
       alter('remove_col', 0);
 
       expect(getSourceData()).toEqual([
@@ -2209,7 +2209,7 @@ describe('Formulas general', () => {
         maxRows: 10000
       });
 
-      hot.alter('insert_row', 0, 20000);
+      hot.alter('insert_row_above', 0, 20000);
 
       expect(hot.countRows()).toEqual(0);
     });
@@ -2224,7 +2224,7 @@ describe('Formulas general', () => {
         maxCols: 10000
       });
 
-      hot.alter('insert_col', 0, 20000);
+      hot.alter('insert_col_start', 0, 20000);
 
       expect(hot.countCols()).toEqual(0);
     });
@@ -2654,7 +2654,7 @@ describe('Formulas general', () => {
           trimRows: [2, 3, 4]
         });
 
-        hot.alter('insert_row', 2, 2);
+        hot.alter('insert_row_above', 2, 2);
 
         expect(hot.getData()).toEqual([
           [1, 'a', 'b', '1c'],
@@ -2678,7 +2678,7 @@ describe('Formulas general', () => {
           manualColumnMove: [1, 0, 2, 3]
         });
 
-        hot.alter('insert_col', 1, 2);
+        hot.alter('insert_col_start', 1, 2);
 
         expect(hot.getData()).toEqual([
           ['a', null, null, 1, 'b', '1c'],
@@ -2686,6 +2686,44 @@ describe('Formulas general', () => {
         ]);
       });
     });
+  });
+
+  it('should not overwrite source data by formula calculation values when there are some merge cells', () => {
+    handsontable({
+      data: [
+        [null, '=SUM(C1*2)', 3, '=SUM(C1*2)', null],
+        [null, null, null, null, null],
+        [null, null, null, null, null],
+        [null, '=SUM(D1*3)', null, null, null],
+      ],
+      formulas: {
+        engine: HyperFormula
+      },
+      mergeCells: [{
+        row: 0,
+        col: 3,
+        rowspan: 2,
+        colspan: 2
+      }, {
+        row: 3,
+        col: 1,
+        rowspan: 1,
+        colspan: 2
+      }],
+    });
+
+    expect(getSourceData()).toEqual([
+      [null, '=SUM(C1*2)', 3, '=SUM(C1*2)', null],
+      [null, null, null, null, null],
+      [null, null, null, null, null],
+      [null, '=SUM(D1*3)', null, null, null],
+    ]);
+    expect(getData()).toEqual([
+      [null, 6, 3, 6, null],
+      [null, null, null, null, null],
+      [null, null, null, null, null],
+      [null, 18, null, null, null]
+    ]);
   });
 
   it('should not crash when declaring a named expression with a sheet name that contains a `-` (#8057)', () => {

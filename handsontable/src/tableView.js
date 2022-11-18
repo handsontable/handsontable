@@ -427,7 +427,7 @@ class TableView {
   countRenderableIndexes(indexMapper, maxElements) {
     const consideredElements = Math.min(indexMapper.getNotTrimmedIndexesLength(), maxElements);
     // Don't take hidden indexes into account. We are looking just for renderable indexes.
-    const firstNotHiddenIndex = indexMapper.getFirstNotHiddenIndex(consideredElements - 1, -1);
+    const firstNotHiddenIndex = indexMapper.getNearestNotHiddenIndex(consideredElements - 1, -1);
 
     // There are no renderable indexes.
     if (firstNotHiddenIndex === null) {
@@ -496,7 +496,7 @@ class TableView {
       return 0;
     }
 
-    const firstVisibleIndex = indexMapper.getFirstNotHiddenIndex(visualIndex, incrementBy);
+    const firstVisibleIndex = indexMapper.getNearestNotHiddenIndex(visualIndex, incrementBy);
     const renderableIndex = indexMapper.getRenderableFromVisualIndex(firstVisibleIndex);
 
     if (!Number.isInteger(renderableIndex)) {
@@ -828,7 +828,7 @@ class TableView {
         const newVisualRow = this.instance
           .runHooks('beforeHighlightingRowHeader', visualRow, headerLevel, highlightMeta);
 
-        return rowMapper.getRenderableFromVisualIndex(rowMapper.getFirstNotHiddenIndex(newVisualRow, 1));
+        return rowMapper.getRenderableFromVisualIndex(rowMapper.getNearestNotHiddenIndex(newVisualRow, 1));
       },
       onBeforeHighlightingColumnHeader: (renderableColumn, headerLevel, highlightMeta) => {
         const columnMapper = this.instance.columnIndexMapper;
@@ -837,7 +837,7 @@ class TableView {
         const newVisualColumn = this.instance
           .runHooks('beforeHighlightingColumnHeader', visualColumn, headerLevel, highlightMeta);
 
-        return columnMapper.getRenderableFromVisualIndex(columnMapper.getFirstNotHiddenIndex(newVisualColumn, 1));
+        return columnMapper.getRenderableFromVisualIndex(columnMapper.getNearestNotHiddenIndex(newVisualColumn, 1));
       },
       onAfterDrawSelection: (currentRow, currentColumn, layerLevel) => {
         let cornersOfSelection;
@@ -897,13 +897,13 @@ class TableView {
           // Result of the hook is handled by the Walkontable (renderable indexes).
           return [
             visualRowFrom >= 0 ? rowMapper.getRenderableFromVisualIndex(
-              rowMapper.getFirstNotHiddenIndex(visualRowFrom, 1)) : visualRowFrom,
+              rowMapper.getNearestNotHiddenIndex(visualRowFrom, 1)) : visualRowFrom,
             visualColumnFrom >= 0 ? columnMapper.getRenderableFromVisualIndex(
-              columnMapper.getFirstNotHiddenIndex(visualColumnFrom, 1)) : visualColumnFrom,
+              columnMapper.getNearestNotHiddenIndex(visualColumnFrom, 1)) : visualColumnFrom,
             visualRowTo >= 0 ? rowMapper.getRenderableFromVisualIndex(
-              rowMapper.getFirstNotHiddenIndex(visualRowTo, -1)) : visualRowTo,
+              rowMapper.getNearestNotHiddenIndex(visualRowTo, -1)) : visualRowTo,
             visualColumnTo >= 0 ? columnMapper.getRenderableFromVisualIndex(
-              columnMapper.getFirstNotHiddenIndex(visualColumnTo, -1)) : visualColumnTo
+              columnMapper.getNearestNotHiddenIndex(visualColumnTo, -1)) : visualColumnTo
           ];
         }
       },
@@ -1129,18 +1129,21 @@ class TableView {
    *
    * @private
    * @param {number} visualColumnIndex Visual column index.
-   * @param {HTMLTableHeaderCellElement} TH The table header element.
+   * @param {HTMLTableCellElement} TH The table header element.
+   * @param {Function} label The function that returns the header label.
+   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
+   *                                 values counting from 0 to N).
    */
-  appendColHeader(visualColumnIndex, TH) {
+  appendColHeader(visualColumnIndex, TH, label = this.instance.getColHeader, headerLevel = 0) {
     if (TH.firstChild) {
       const container = TH.firstChild;
 
       if (hasClass(container, 'relative')) {
-        this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, this.instance.getColHeader);
+        this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, label);
 
       } else {
         empty(TH);
-        this.appendColHeader(visualColumnIndex, TH);
+        this.appendColHeader(visualColumnIndex, TH, headerLevel);
       }
 
     } else {
@@ -1150,13 +1153,13 @@ class TableView {
 
       div.className = 'relative';
       span.className = 'colHeader';
-      this.updateCellHeader(span, visualColumnIndex, this.instance.getColHeader);
+      this.updateCellHeader(span, visualColumnIndex, label);
 
       div.appendChild(span);
       TH.appendChild(div);
     }
 
-    this.instance.runHooks('afterGetColHeader', visualColumnIndex, TH);
+    this.instance.runHooks('afterGetColHeader', visualColumnIndex, TH, headerLevel);
   }
 
   /**
@@ -1262,6 +1265,26 @@ class TableView {
   getLastFullyVisibleRow() {
     return this.instance.rowIndexMapper
       .getVisualFromRenderableIndex(this.instance.view._wt.wtScroll.getLastVisibleRow());
+  }
+
+  /**
+   * Returns the first fully visible column in the table viewport.
+   *
+   * @returns {number}
+   */
+  getFirstFullyVisibleColumn() {
+    return this.instance.columnIndexMapper
+      .getVisualFromRenderableIndex(this.instance.view._wt.wtScroll.getFirstVisibleColumn());
+  }
+
+  /**
+   * Returns the last fully visible column in the table viewport.
+   *
+   * @returns {number}
+   */
+  getLastFullyVisibleColumn() {
+    return this.instance.columnIndexMapper
+      .getVisualFromRenderableIndex(this.instance.view._wt.wtScroll.getLastVisibleColumn());
   }
 
   /**

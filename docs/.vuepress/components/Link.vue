@@ -35,12 +35,23 @@ export default {
     }
   },
 
+  data() {
+    return {
+      latestVersion: null,
+    };
+  },
+
   computed: {
     parsedHref() {
+      const frameworkDir = `${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
       let href = this.href;
 
-      if (!this.isExternal && this.hideLatestVersion && this.$page.currentVersion === this.$page.latestVersion) {
-        href = href.replace(`${this.$page.currentVersion}/`, '');
+      if (!this.isExternal) {
+        if (this.hideLatestVersion && this.$page.currentVersion === this.$page.latestVersion) {
+          href = href.replace('/{docsVersion}/', `/${frameworkDir}/`);
+        } else {
+          href = href.replace('/{docsVersion}/', `/${this.$page.currentVersion}/${frameworkDir}/`);
+        }
       }
 
       return href;
@@ -55,6 +66,6 @@ export default {
     focusoutAction() {
       this.$emit('focusout');
     }
-  }
+  },
 };
 </script>

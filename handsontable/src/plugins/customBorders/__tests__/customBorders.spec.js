@@ -211,6 +211,41 @@ describe('CustomBorders', () => {
                       'Please use only the option "start"/"end".');
     });
 
+    it('should create a deep clone of the borders object configuration', () => {
+      const customBorders = [{
+        row: 2,
+        col: 2,
+        left: RED_BORDER,
+        right: GREEN_BORDER,
+      }];
+
+      handsontable({
+        customBorders,
+      });
+
+      expect(customBorders).toEqual([
+        {
+          row: 2,
+          col: 2,
+          left: RED_BORDER,
+          right: GREEN_BORDER,
+        }
+      ]);
+      expect(getPlugin('customBorders').savedBorders).not.toBe(customBorders);
+
+      updateSettings({ customBorders });
+
+      expect(customBorders).toEqual([
+        {
+          row: 2,
+          col: 2,
+          left: RED_BORDER,
+          right: GREEN_BORDER,
+        }
+      ]);
+      expect(getPlugin('customBorders').savedBorders).not.toBe(customBorders);
+    });
+
     it('should be possible to update borders using backward compatible API ("left"/"right") even when Handsontable was initialized using new API ("start"/"end")', () => {
       handsontable({
         customBorders: [{

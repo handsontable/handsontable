@@ -1151,7 +1151,7 @@ describe('NestedRows', () => {
 
       const dataAtStart = getData();
 
-      alter('insert_row', 0, 2);
+      alter('insert_row_above', 0, 2);
 
       expect(getData()).toEqual([[null, null, null, null], [null, null, null, null], ...dataAtStart]);
 
@@ -1159,7 +1159,7 @@ describe('NestedRows', () => {
 
       expect(getData()).toEqual(dataAtStart);
 
-      alter('insert_row', 0, 2);
+      alter('insert_row_above', 0, 2);
 
       expect(getData()).toEqual([[null, null, null, null], [null, null, null, null], ...dataAtStart]);
     });
@@ -1174,11 +1174,11 @@ describe('NestedRows', () => {
 
         const dataAtStart = getData();
 
-        alter('insert_row', 0, 1);
+        alter('insert_row_above', 0, 1);
 
         setDataAtCell(0, 0, 'value');
 
-        alter('insert_row', 0, 1);
+        alter('insert_row_above', 0, 1);
 
         expect(getData()).toEqual([[null, null, null, null], ['value', null, null, null], ...dataAtStart]);
       });
@@ -1232,7 +1232,7 @@ describe('NestedRows', () => {
 
       const dataAtStart = getData();
 
-      alter('insert_row', 0, 1);
+      alter('insert_row_above', 0, 1);
 
       expect(getData()).toEqual([[null, null, null, null], ...dataAtStart]);
     });
@@ -1251,7 +1251,7 @@ describe('NestedRows', () => {
 
       const dataAtStart = getData();
 
-      alter('insert_row', 0, 1);
+      alter('insert_row_above', 0, 1);
 
       expect(getData()).toEqual([[null, null, null, null], ...dataAtStart]);
     });

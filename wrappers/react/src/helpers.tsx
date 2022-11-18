@@ -221,7 +221,7 @@ export function addUnsafePrefixes(instance: {
   componentWillMount: Function
 }): void {
   const reactSemverArray = React.version.split('.').map((v) => parseInt(v));
-  const shouldPrefix = reactSemverArray[0] >= 16 && reactSemverArray[1] >= 3;
+  const shouldPrefix = (reactSemverArray[0] >= 16 && reactSemverArray[1] >= 3) || reactSemverArray[0] >= 17;
 
   if (shouldPrefix) {
     instance.UNSAFE_componentWillUpdate = instance.componentWillUpdate;

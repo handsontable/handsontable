@@ -372,8 +372,10 @@ class Table {
       }
     }
 
+    let positionChanged = false;
+
     if (this.isMaster) {
-      let positionChanged = wtOverlays.topOverlay.resetFixedPosition();
+      positionChanged = wtOverlays.topOverlay.resetFixedPosition();
 
       if (wtOverlays.bottomOverlay.clone) {
         positionChanged = wtOverlays.bottomOverlay.resetFixedPosition() || positionChanged;
@@ -388,17 +390,17 @@ class Table {
       if (wtOverlays.bottomInlineStartCornerOverlay && wtOverlays.bottomInlineStartCornerOverlay.clone) {
         wtOverlays.bottomInlineStartCornerOverlay.resetFixedPosition();
       }
-
-      if (positionChanged) {
-        // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
-        // remove `innerBorderTop` and `innerBorderInlineStart` CSS classes to the DOM element. This happens
-        // when there is a switch between rendering from 0 to N rows/columns and vice versa).
-        wtOverlays.refreshAll();
-        wtOverlays.adjustElementsSize();
-      }
     }
 
-    this.refreshSelections(runFastDraw);
+    if (positionChanged) {
+      // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
+      // remove `innerBorderTop` and `innerBorderInlineStart` CSS classes to the DOM element. This happens
+      // when there is a switch between rendering from 0 to N rows/columns and vice versa).
+      wtOverlays.refreshAll(); // `refreshAll()` internally already calls `refreshSelections()` method
+      wtOverlays.adjustElementsSize();
+    } else {
+      this.refreshSelections(runFastDraw);
+    }
 
     if (syncScroll) {
       wtOverlays.syncScrollWithMaster();

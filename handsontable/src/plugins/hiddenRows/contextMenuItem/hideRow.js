@@ -31,14 +31,10 @@ export default function hideRowItem(hiddenRowsPlugin) {
         rowsToHide.push(visualRow);
       }
 
-      const firstHiddenRow = rowsToHide[0];
-      const lastHiddenRow = rowsToHide[rowsToHide.length - 1];
-
-      // Looking for a visual index on the top and then (when not found) on the bottom.
-      const rowToSelect = this.rowIndexMapper.getFirstNotHiddenIndex(
-        lastHiddenRow + 1, 1, true, firstHiddenRow - 1);
-
       hiddenRowsPlugin.hideRows(rowsToHide);
+
+      const lastHiddenRow = rowsToHide[rowsToHide.length - 1];
+      const rowToSelect = this.rowIndexMapper.getNearestNotHiddenIndex(lastHiddenRow, 1, true);
 
       if (Number.isInteger(rowToSelect) && rowToSelect >= 0) {
         this.selectRows(rowToSelect);

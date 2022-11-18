@@ -19,13 +19,19 @@ const getHotUrls = (version) => {
     languagesJs: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/languages/all.js`
   };
 };
-const getCommonScript = (scriptName) => {
+const getCommonScript = (scriptName, version) => {
   if (isBrowser) {
     // eslint-disable-next-line no-restricted-globals
-    return [`${window.location.origin}/docs/scripts/${scriptName}.js`, ['require', 'exports']];
+    return [
+      `${window.location.origin}/docs/${version === 'next' ? '' : `${version}/`}scripts/${scriptName}.js`,
+      ['require', 'exports']
+    ];
   }
 
-  return [`https://handsontable.com/docs/scripts/${scriptName}.js`, ['require', 'exports']];
+  // eslint-disable-next-line global-require
+  const { getDocsBaseFullUrl } = require('../helpers');
+
+  return [`${getDocsBaseFullUrl()}/scripts/${scriptName}.js`, ['require', 'exports']];
 };
 
 /**
@@ -39,8 +45,8 @@ const getCommonScript = (scriptName) => {
 const buildDependencyGetter = (version) => {
   const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version);
   const mappedVersion = formatVersion(version);
-  const fixer = getCommonScript('fixer');
-  const helpers = getCommonScript('helpers');
+  const fixer = getCommonScript('fixer', version);
+  const helpers = getCommonScript('helpers', version);
 
   return (dependency) => {
     /* eslint-disable max-len */
@@ -48,8 +54,8 @@ const buildDependencyGetter = (version) => {
       fixer,
       helpers,
       hot: [handsontableJs, ['Handsontable'], handsontableCss],
-      react: ['https://cdn.jsdelivr.net/npm/react@17/umd/react.development.js', ['React']],
-      'react-dom': ['https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
+      react: ['https://cdn.jsdelivr.net/npm/react@17/umd/react.production.min.js', ['React']],
+      'react-dom': ['https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.production.min.js', ['ReactDOM']],
       'hot-react': [`https://cdn.jsdelivr.net/npm/@handsontable/react@${mappedVersion}/dist/react-handsontable.js`, ['Handsontable.react']],
       'react-redux': ['https://cdnjs.cloudflare.com/ajax/libs/react-redux/7.2.4/react-redux.min.js'],
       'react-colorful': ['https://cdn.jsdelivr.net/npm/react-colorful@5.5.1/dist/index.min.js'],
@@ -119,4 +125,9 @@ const getDependencies = (version, preset) => {
   return presetMap[preset].map(x => getter(x));
 };
 
-module.exports = { getDependencies, buildDependencyGetter, presetMap };
+module.exports = {
+  isBrowser,
+  getDependencies,
+  buildDependencyGetter,
+  presetMap
+};

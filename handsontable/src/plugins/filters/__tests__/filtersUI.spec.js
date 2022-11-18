@@ -233,6 +233,78 @@ describe('Filters UI', () => {
       ]);
     });
 
+    it('should appear an empty conditional options menu when the dropdown is opened using API and ' +
+       'the table has no selection', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      getPlugin('dropdownMenu').open({
+        top: 100,
+        left: 100,
+      });
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+
+      const menuItems = $(conditionMenuRootElements().first).find('.htCore tr').map(function() {
+        return this.textContent;
+      }).toArray();
+
+      expect(menuItems).toEqual([
+        'None',
+      ]);
+    });
+
+    it('should appear conditional options menu based on the selection highlight when the dropdown is opened ' +
+       'using API and the table has non-contiguous selection', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      // the highlight cell points to the 6, 3 (the selected column is 3)
+      selectCells([
+        [1, 0, 2, 1],
+        [4, 2, 4, 4],
+        [6, 3, 6, 1],
+      ]);
+      getPlugin('dropdownMenu').open({
+        top: 100,
+        left: 100,
+      });
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+
+      const menuItems = $(conditionMenuRootElements().first).find('.htCore tr').map(function() {
+        return this.textContent;
+      }).toArray();
+
+      expect(menuItems).toEqual([
+        'None',
+        '',
+        'Is empty',
+        'Is not empty',
+        '',
+        'Is equal to',
+        'Is not equal to',
+        '',
+        'Before',
+        'After',
+        'Is between',
+        '',
+        'Tomorrow',
+        'Today',
+        'Yesterday',
+      ]);
+    });
+
     it('should not select dropdown menu item while pressing arrow up key when filter\'s input component is focused (#6506)', async() => {
       handsontable({
         data: getDataForFilters(),
@@ -861,6 +933,50 @@ describe('Filters UI', () => {
       expect(dropdownMenuRootElement().querySelector('.htFiltersMenuValue .htUIMultipleSelect')).not.toBeNull();
     });
 
+    it('should appear an empty list when the dropdown is opened using API and the table has no selection', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      getPlugin('dropdownMenu').open({
+        top: 100,
+        left: 100,
+      });
+
+      expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(0);
+    });
+
+    it('should appear a list from the column selected by the selection highlight when the dropdown is opened ' +
+       'using API and the table has non-contiguous selection', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      // the highlight cell points to the 6, 3 (the selected column is 3)
+      selectCells([
+        [1, 0, 2, 1],
+        [4, 2, 4, 4],
+        [6, 3, 6, 1],
+      ]);
+      getPlugin('dropdownMenu').open({
+        top: 100,
+        left: 100,
+      });
+
+      expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(7);
+      expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('2014-01-08');
+    });
+
     it('should not scroll the view after selecting the item (test for checking if the event bubbling is not blocked, #6497)', async() => {
       handsontable({
         data: getDataForFilters().slice(0, 15),
@@ -1352,6 +1468,58 @@ describe('Filters UI', () => {
       expect(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonCancel input').value)
         .toBe('Cancel');
     });
+
+    it('should close the menu after clicking the "OK" button when the dropdown is opened using API and ' +
+       'the table has no selection', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      getPlugin('dropdownMenu').open({
+        top: 100,
+        left: 100,
+      });
+
+      expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
+
+      mouseClick(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonOK input'));
+
+      expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
+    });
+
+    it('should close the menu after clicking the "OK" button when the dropdown is opened using API and ' +
+       'the table has non-contiguous selection', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      // the highlight cell points to the 6, 3 (the selected column is 3)
+      selectCells([
+        [1, 0, 2, 1],
+        [4, 2, 4, 4],
+        [6, 3, 6, 1],
+      ]);
+      getPlugin('dropdownMenu').open({
+        top: 100,
+        left: 100,
+      });
+
+      expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
+
+      mouseClick(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonOK input'));
+
+      expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
+    });
   });
 
   describe('Cooperation with Manual Column Move plugin #32', () => {
@@ -1676,7 +1844,7 @@ describe('Filters UI', () => {
     simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(2) [type=checkbox]'));
     simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-    hot().alter('insert_col', 0);
+    hot().alter('insert_col_start', 0);
     hot().alter('remove_col', 2);
 
     {
@@ -2252,8 +2420,8 @@ describe('Filters UI', () => {
 
       inputs[0].value = '1';
       inputs[1].value = '15';
-      keyUp('1', {}, inputs[0]);
-      keyUp('5', {}, inputs[1]);
+      keyUp('1', { target: inputs[0] });
+      keyUp('5', { target: inputs[1] });
       simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       await sleep(10);
@@ -3137,7 +3305,7 @@ describe('Filters UI', () => {
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-        alter('insert_row', 1, 5);
+        alter('insert_row_above', 1, 5);
 
         dropdownMenu(2);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
@@ -3159,7 +3327,7 @@ describe('Filters UI', () => {
         expect(getData().length).toBe(9);
         expect(getDataAtCol(0).join()).toBe('24,17,14,16,23,32,26,28,21');
 
-        alter('insert_row', 1, 1);
+        alter('insert_row_above', 1, 1);
 
         expect(getData().length).toBe(10);
         expect(getDataAtCol(0).join()).toBe('24,,17,14,16,23,32,26,28,21');
@@ -3344,7 +3512,7 @@ describe('Filters UI', () => {
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-        alter('insert_row', 1, 5);
+        alter('insert_row_above', 1, 5);
 
         dropdownMenu(2);
         $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
@@ -3366,7 +3534,7 @@ describe('Filters UI', () => {
         expect(getData().length).toBe(9);
         expect(getDataAtCol(0).join()).toBe('24,17,14,16,23,32,26,28,21');
 
-        alter('insert_row', 1, 1);
+        alter('insert_row_above', 1, 1);
 
         expect(getData().length).toBe(10);
         expect(getDataAtCol(0).join()).toBe('24,,17,14,16,23,32,26,28,21');

@@ -1105,7 +1105,7 @@ describe('WalkontableTable', () => {
   });
 
   it('should remove rows if they were removed in data source', function() {
-    this.data.splice(8, this.data.length - 8); // second param is required by IE8
+    this.data.splice(8);
 
     const wt = walkontable({
       data: getData,
@@ -1116,7 +1116,7 @@ describe('WalkontableTable', () => {
     wt.draw();
     expect(spec().$table.find('tbody tr').length).toBe(8);
 
-    this.data.splice(7, this.data.length - 7); // second param is required by IE8
+    this.data.splice(7);
     wt.draw();
     expect(spec().$table.find('tbody tr').length).toBe(7);
   });
@@ -1162,6 +1162,92 @@ describe('WalkontableTable', () => {
     wt.draw();
     expect(spec().$table.find('thead tr:first').children().length).toBe(4);
     expect(spec().$table.find('tbody tr:first').children().length).toBe(4);
+  });
+
+  it('should render oversized columns correctly across the entire range of the horizontal table scrollbar', async() => {
+    createDataArray(10, 10);
+    spec().$wrapper.width(300);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      columnWidth: 2000, // the columns are wider than table viewport width
+    });
+
+    wt.draw();
+    getTableMaster().find('.wtHolder').scrollLeft(100);
+
+    const firstRow = getTableMaster().find('tbody tr:first');
+
+    expect(firstRow.find('td').length).toBe(1);
+    expect(firstRow.find('td:first').text()).toBe('0');
+    expect(firstRow.find('td:last').text()).toBe('0');
+
+    getTableMaster().find('.wtHolder').scrollLeft(2000);
+
+    await sleep(20);
+
+    expect(firstRow.find('td').length).toBe(1);
+    expect(firstRow.find('td:first').text()).toBe('a');
+    expect(firstRow.find('td:last').text()).toBe('a');
+
+    getTableMaster().find('.wtHolder').scrollLeft(3500);
+
+    await sleep(20);
+
+    expect(firstRow.find('td').length).toBe(1);
+    expect(firstRow.find('td:first').text()).toBe('a');
+    expect(firstRow.find('td:last').text()).toBe('a');
+
+    getTableMaster().find('.wtHolder').scrollLeft(4000);
+
+    await sleep(20);
+
+    expect(firstRow.find('td').length).toBe(1);
+    expect(firstRow.find('td:first').text()).toBe('b');
+    expect(firstRow.find('td:last').text()).toBe('b');
+  });
+
+  it('should render oversized rows correctly across the entire range of the vertical table scrollbar', async() => {
+    createDataArray(10, 10);
+    spec().$wrapper.width(300);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      rowHeight: 2000, // the rows are wider than table viewport height
+    });
+
+    wt.draw();
+    getTableMaster().find('.wtHolder').scrollTop(100);
+
+    const firstRow = getTableMaster().find('tbody tr:first');
+
+    expect(getTableMaster().find('tbody tr').length).toBe(1);
+    expect(firstRow.find('td:first').text()).toBe('0');
+
+    getTableMaster().find('.wtHolder').scrollTop(2000);
+
+    await sleep(20);
+
+    expect(getTableMaster().find('tbody tr').length).toBe(1);
+    expect(firstRow.find('td:first').text()).toBe('1');
+
+    getTableMaster().find('.wtHolder').scrollTop(3500);
+
+    await sleep(20);
+
+    expect(getTableMaster().find('tbody tr').length).toBe(1);
+    expect(firstRow.find('td:first').text()).toBe('1');
+
+    getTableMaster().find('.wtHolder').scrollTop(4000);
+
+    await sleep(20);
+
+    expect(getTableMaster().find('tbody tr').length).toBe(1);
+    expect(firstRow.find('td:first').text()).toBe('2');
   });
 
   it('should use column width function to get column width', () => {

@@ -1,7 +1,7 @@
 import './css/bootstrap.css';
 import './3rdparty/walkontable/css/walkontable.scss';
 import './css/handsontable.scss';
-import './css/mobile.handsontable.css';
+import './css/mobile.handsontable.scss';
 
 import Core from './core';
 import { rootInstanceSymbol } from './utils/rootInstance';

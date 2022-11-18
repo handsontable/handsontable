@@ -1,15 +1,12 @@
 var _dictionary;
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 /**
  * @preserve
  * Authors: Stefan Salzl, Thomas Senn
  * Last updated: Feb 05, 2018
  *
  * Description: Definition file for French - France language-country.
- */
-import Handsontable from "handsontable";
+ */import Handsontable from "handsontable";
 var C = Handsontable.languages.dictionaryKeys;
 var dictionary = (_dictionary = {
   languageCode: 'fr-FR'

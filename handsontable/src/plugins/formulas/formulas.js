@@ -121,7 +121,7 @@ export class Formulas extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link Formulas#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link Formulas#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -509,12 +509,17 @@ export class Formulas extends BasePlugin {
       // Validate the cells that depend on the calculated formulas. Skip that cells
       // where the user directly changes the values - the Core triggers those validators.
       if (sheetId !== void 0 && !changedCellsSet.has(addressId)) {
-        const hot = getRegisteredHotInstances(this.engine).get(sheetId);
+        const boundHot = getRegisteredHotInstances(this.engine).get(sheetId);
+
+        // if `sheetId` is not bound to any Handsontable instance, skip the validation process
+        if (!boundHot) {
+          return;
+        }
 
         // It will just re-render certain cell when necessary.
-        hot.validateCell(
-          hot.getDataAtCell(visualRow, visualColumn),
-          hot.getCellMeta(visualRow, visualColumn),
+        boundHot.validateCell(
+          boundHot.getDataAtCell(visualRow, visualColumn),
+          boundHot.getCellMeta(visualRow, visualColumn),
           () => {}
         );
       }

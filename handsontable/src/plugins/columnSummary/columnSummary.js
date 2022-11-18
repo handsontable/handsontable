@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import { objectEach } from '../../helpers/object';
 import Endpoints from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { isNullishOrNaN } from './utils';
 
 export const PLUGIN_KEY = 'columnSummary';
 export const PLUGIN_PRIORITY = 220;
@@ -33,6 +34,8 @@ export const PLUGIN_PRIORITY = 220;
  * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function) |
  *
  * @example
+ * ::: only-for javascript
+ * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
  *   data: getData(),
@@ -58,6 +61,37 @@ export const PLUGIN_PRIORITY = 220;
  *     }
  *   ]
  * });
+ * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={getData()}
+ *   colHeaders={true}
+ *   rowHeaders={true}
+ *   columnSummary={[
+ *     {
+ *       type: 'min',
+ *       destinationRow: 4,
+ *       destinationColumn: 1,
+ *     },
+ *     {
+ *       type: 'max',
+ *       destinationRow: 0,
+ *       destinationColumn: 3,
+ *       reversedRowCoords: true
+ *     },
+ *     {
+ *       type: 'sum',
+ *       destinationRow: 4,
+ *       destinationColumn: 5,
+ *       forceNumeric: true
+ *     }
+ *   ]}
+ * />
+ * ```
+ * :::
  */
 export class ColumnSummary extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -81,7 +115,7 @@ export class ColumnSummary extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link ColumnSummary#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link ColumnSummary#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -193,11 +227,15 @@ export class ColumnSummary extends BasePlugin {
     let biggestDecimalPlacesCount = 0;
 
     do {
-      cellValue = this.getCellValue(i, col) || 0;
-      const decimalPlaces = (((`${cellValue}`).split('.')[1] || []).length) || 1;
+      cellValue = this.getCellValue(i, col);
+      cellValue = isNullishOrNaN(cellValue) ? null : cellValue;
 
-      if (decimalPlaces > biggestDecimalPlacesCount) {
-        biggestDecimalPlacesCount = decimalPlaces;
+      if (cellValue !== null) {
+        const decimalPlaces = (((`${cellValue}`).split('.')[1] || []).length) || 1;
+
+        if (decimalPlaces > biggestDecimalPlacesCount) {
+          biggestDecimalPlacesCount = decimalPlaces;
+        }
       }
 
       sum += cellValue || 0;
@@ -250,7 +288,7 @@ export class ColumnSummary extends BasePlugin {
    * @param {Array} rowRange Range for the calculation.
    * @param {number} col Column index.
    * @param {string} type `'min'` or `'max'`.
-   * @returns {number} Min or max value.
+   * @returns {number|null} Min or max value.
    */
   getPartialMinMax(rowRange, col, type) {
     let result = null;
@@ -258,7 +296,8 @@ export class ColumnSummary extends BasePlugin {
     let cellValue;
 
     do {
-      cellValue = this.getCellValue(i, col) || null;
+      cellValue = this.getCellValue(i, col);
+      cellValue = isNullishOrNaN(cellValue) ? null : cellValue;
 
       if (result === null) {
         result = cellValue;
@@ -297,8 +336,9 @@ export class ColumnSummary extends BasePlugin {
 
     do {
       cellValue = this.getCellValue(i, col);
+      cellValue = isNullishOrNaN(cellValue) ? null : cellValue;
 
-      if (!cellValue) {
+      if (cellValue === null) {
         counter += 1;
       }
 

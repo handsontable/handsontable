@@ -19,12 +19,12 @@
       :to="item.path"
       @click.native="toggleOpen()"
     >
+            <span
+              v-if="collapsable"
+              class="arrow"
+              :class="isOpen ? 'down' : 'right'"
+            />
       <span>{{ item.title }}</span>
-      <span
-        v-if="collapsable"
-        class="arrow"
-        :class="isOpen ? 'down' : 'right'"
-      />
     </RouterLink>
 
     <p
@@ -33,12 +33,12 @@
       :class="{ open:isOpen }"
       @click="toggleOpen()"
     >
-      <span>{{ item.title }}</span>
       <span
         v-if="collapsable"
         class="arrow"
         :class="isOpen ? 'down' : 'right'"
       />
+      <span>{{ item.title }}</span>
     </p>
 
     <DropdownTransition>
@@ -130,7 +130,7 @@ export default {
   cursor pointer
   font-size 1.1em
   font-weight bold
-  padding 0.35rem 1.5rem 0.35rem 1.25rem
+  padding 0.35rem 1.5rem 0.35rem 1.5rem
   width 100%
   box-sizing border-box
   margin 0

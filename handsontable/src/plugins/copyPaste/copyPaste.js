@@ -139,7 +139,7 @@ export class CopyPaste extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link CopyPaste#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link CopyPaste#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -310,6 +310,8 @@ export class CopyPaste extends BasePlugin {
 
   /**
    * Simulates the paste action.
+   *
+   * Due to security reasons, modern browsers disallow reading from the system clipboard.
    *
    * @param {string} pastableText Value as raw string to paste.
    * @param {string} [pastableHtml=''] Value as HTML to paste.

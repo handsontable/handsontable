@@ -96,6 +96,30 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
       expect(countVisibleCustomBorders()).toBe(0); // TODO this assertion checks current behavior that looks like a bug. I would expect 3
       expect(countCustomBorders()).toBe(0);
     });
+
+    it('should not throw an error when the same borders object is passed by reference', () => {
+      const customBorders = [{
+        row: 2,
+        col: 2,
+        left: RED_BORDER,
+        right: GREEN_BORDER,
+      }];
+
+      handsontable({
+        customBorders,
+      });
+
+      expect(() => {
+        customBorders.push({
+          row: 2,
+          col: 2,
+          left: RED_BORDER,
+          right: GREEN_BORDER,
+        });
+
+        updateSettings({ customBorders });
+      }).not.toThrow();
+    });
   });
 
   it('should translate borders declared using new "start"/"end" API to backward compatible format', () => {

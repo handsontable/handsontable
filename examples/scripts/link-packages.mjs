@@ -16,14 +16,17 @@ import examplesPackageJson from '../package.json' assert { type: 'json' };
 import mainPackageJson from '../../package.json' assert { type: 'json' };
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const workspaces = examplesPackageJson.workspaces;
+const exampleFrameworkSubdirs = examplesPackageJson.internal.framework_dirs;
 const hotWorkspaces = mainPackageJson.workspaces;
 const isPackageRequired = (packageName, packageLocation) => {
   const frameworkName = packageName.split('/').pop() || null;
+  const isLegacyAngularExample = packageLocation.includes('/angular-9/') || packageLocation.includes('/angular-10/');
 
   return (
     // If the required package is handsontable
     packageName === 'handsontable' ||
+    // If the required package is @handsontable/angular
+    (frameworkName === 'angular' && packageName === '@handsontable/angular' && !isLegacyAngularExample) ||
     // If it's in the framework directory
     packageLocation.split('/').pop().includes(frameworkName) ||
     // If it's deeper in the framework directory
@@ -79,7 +82,7 @@ for (const hotPackageGlob of hotWorkspaces) {
   }
 }
 
-workspaces.forEach((packagesLocation) => {
+exampleFrameworkSubdirs.forEach((packagesLocation) => {
   const subdirs = glob.sync(`./${packagesLocation}`);
 
   subdirs.forEach((packageLocation) => {
@@ -103,7 +106,7 @@ workspaces.forEach((packagesLocation) => {
       }
 
       // Additional linking to all the examples for Angular (required to load css files from `angular.json`)
-      if (frameworkName === `angular`) {
+      if (/^angular(-\d+)?$/.test(frameworkName)) {
         const angularPackageJson = fse.readJSONSync(`${packageLocation}/package.json`);
         const workspacesList = angularPackageJson?.workspaces.packages || angularPackageJson?.workspaces;
 

@@ -29,21 +29,6 @@ describe('settings', () => {
       expect($(hot.rootElement).width()).not.toBe(initialWidth);
     });
 
-    it('should reset the table width', () => {
-      const hot = handsontable({
-        startRows: 5,
-        startCols: 15,
-        width: 200,
-        height: 100,
-      });
-
-      updateSettings({
-        width: null
-      });
-
-      expect(hot.rootElement.style.width).toBe('');
-    });
-
     it('should update the table width after setting the new value as "auto"', () => {
       const hot = handsontable({
         startRows: 5,

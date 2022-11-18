@@ -15,7 +15,6 @@ import {
   spawnProcess,
   displayErrorMessage,
   displaySeparator,
-  CURRENT_VERSION
 } from './utils/index.mjs';
 
 const argv = yargs(hideBin(process.argv))
@@ -127,13 +126,6 @@ displaySeparator();
 
   // Create the examples/[version] directory.
   await spawnProcess(`npm run examples:version ${finalVersion}`);
-
-  // If the new version is a major or a minor update, generate a new docs directory.
-  if (['major', 'minor'].includes(semver.diff(CURRENT_VERSION, finalVersion))) {
-    await spawnProcess(`npm run docs:version -- ${finalVersion}`, {
-      cwd: 'docs'
-    });
-  }
 
   if (argv.commit === true) {
     // Commit the changes to the release branch.

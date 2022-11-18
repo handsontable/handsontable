@@ -101,7 +101,7 @@ export class ManualColumnMove extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link ManualColumnMove#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link ManualColumnMove#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -407,8 +407,13 @@ export class ManualColumnMove extends BasePlugin {
    */
   refreshPositions() {
     const priv = privatePool.get(this);
-    const firstVisible = this.hot.view._wt.wtTable.getFirstVisibleColumn();
-    const lastVisible = this.hot.view._wt.wtTable.getLastVisibleColumn();
+    const firstVisible = this.hot.view.getFirstFullyVisibleColumn();
+
+    if (this.isFixedColumnsStart(priv.hoveredColumn) && firstVisible > 0) {
+      this.hot.scrollViewportTo(
+        void 0, this.hot.columnIndexMapper.getNearestNotHiddenIndex(firstVisible - 1, -1));
+    }
+
     const wtTable = this.hot.view._wt.wtTable;
     const scrollableElement = this.hot.view._wt.wtOverlays.scrollableElement;
     const scrollStart = typeof scrollableElement.scrollX === 'number' ?
@@ -460,21 +465,9 @@ export class ManualColumnMove extends BasePlugin {
       // unfortunately first column is bigger than rest
       tdOffsetStart += priv.target.TD.offsetWidth;
 
-      if (priv.target.col > lastVisible && lastVisible < priv.countCols) {
-        this.hot.scrollViewportTo(void 0, lastVisible + 1, void 0, true);
-      }
-
     } else {
       // elsewhere on table
       priv.target.col = priv.hoveredColumn;
-
-      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumnsStart && firstVisible > 0) {
-        this.hot.scrollViewportTo(void 0, firstVisible - 1);
-      }
-    }
-
-    if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumnsStart && firstVisible > 0) {
-      this.hot.scrollViewportTo(void 0, firstVisible - 1);
     }
 
     let backlightStart = mouseOffsetStart;

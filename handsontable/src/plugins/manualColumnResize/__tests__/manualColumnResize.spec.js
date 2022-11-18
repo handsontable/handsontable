@@ -124,7 +124,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 3)).toBe(50);
     expect(colWidth(spec().$container, 4)).toBe(50);
 
-    alter('insert_col', 0);
+    alter('insert_col_start', 0);
 
     expect(colWidth(spec().$container, 0)).toBe(50); // Added new row here.
     expect(colWidth(spec().$container, 1)).toBe(50);
@@ -133,7 +133,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 4)).toBe(50);
     expect(colWidth(spec().$container, 5)).toBe(50);
 
-    alter('insert_col', 3);
+    alter('insert_col_start', 3);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(50);
@@ -143,7 +143,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 5)).toBe(50);
     expect(colWidth(spec().$container, 6)).toBe(50);
 
-    alter('insert_col', 5);
+    alter('insert_col_start', 5);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(50);

@@ -19,4 +19,4 @@ jobs:
 
       - name: NPM audit
         run: |
-          npm audit --production
+          npm audit --omit=dev --omit=peer

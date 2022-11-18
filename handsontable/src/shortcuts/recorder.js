@@ -1,6 +1,7 @@
 import { createKeysObserver } from './keyObserver';
 import { normalizeEventKey } from './utils';
 import { isImmediatePropagationStopped } from '../helpers/dom/event';
+import { getParentWindow } from '../helpers/dom/element';
 import { isMacOS } from '../helpers/browser';
 
 const MODIFIER_KEYS = ['meta', 'alt', 'shift', 'control'];
@@ -12,12 +13,13 @@ const modifierKeysObserver = createKeysObserver();
  * A key recorder, used for tracking key events.
  *
  * @param {EventTarget} ownerWindow A starting `window` element
- * @param {Function} beforeKeyDown A hook fired before the `keydown` event is handled. You can use it to [block a keyboard shortcut's actions](@/guides/accessories-and-menus/keyboard-shortcuts.md#blocking-a-keyboard-shortcut-s-actions).
+ * @param {Function} handleEvent A condition on which event is handled.
+ * @param {Function} beforeKeyDown A hook fired before the `keydown` event is handled.
  * @param {Function} afterKeyDown A hook fired after the `keydown` event is handled
  * @param {Function} callback `KeyEvent`'s listener's callback function
  * @returns {object}
  */
-export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) {
+export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDown, callback) {
   /**
    * Check if a pressed key is tracked or not.
    *
@@ -74,9 +76,16 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
    * @param {KeyboardEvent} event The event object
    */
   const onkeydown = (event) => {
+    if (handleEvent(event) === false) {
+      return;
+    }
+
     const result = beforeKeyDown(event);
 
-    if (result === false || isImmediatePropagationStopped(event)) {
+    // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is
+    // produced when unfinished character is entering using the IME editor. It is fired on macOS,
+    // Windows and linux (ubuntu) with installed ibus-pinyin package.
+    if (event.keyCode === 229 || result === false || isImmediatePropagationStopped(event)) {
       return;
     }
 
@@ -109,6 +118,10 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
    * @param {KeyboardEvent} event The event object
    */
   const onkeyup = (event) => {
+    if (handleEvent(event) === false) {
+      return;
+    }
+
     const pressedKey = normalizeEventKey(event.key);
 
     if (isModifierKey(pressedKey) === false) {
@@ -134,11 +147,11 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
     let eventTarget = ownerWindow;
 
     while (eventTarget) {
-      eventTarget.addEventListener('keydown', onkeydown);
-      eventTarget.addEventListener('keyup', onkeyup);
-      eventTarget.addEventListener('blur', onblur);
+      eventTarget.document.documentElement.addEventListener('keydown', onkeydown);
+      eventTarget.document.documentElement.addEventListener('keyup', onkeyup);
+      eventTarget.document.documentElement.addEventListener('blur', onblur);
 
-      eventTarget = eventTarget.frameElement;
+      eventTarget = getParentWindow(eventTarget);
     }
   };
 
@@ -149,11 +162,11 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
     let eventTarget = ownerWindow;
 
     while (eventTarget) {
-      eventTarget.removeEventListener('keydown', onkeydown);
-      eventTarget.removeEventListener('keyup', onkeyup);
-      eventTarget.removeEventListener('blur', onblur);
+      eventTarget.document.documentElement.removeEventListener('keydown', onkeydown);
+      eventTarget.document.documentElement.removeEventListener('keyup', onkeyup);
+      eventTarget.document.documentElement.removeEventListener('blur', onblur);
 
-      eventTarget = eventTarget.frameElement;
+      eventTarget = getParentWindow(eventTarget);
     }
   };
 

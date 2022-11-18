@@ -943,7 +943,7 @@ describe('Filters', () => {
       plugin.addCondition(1, 'contains', ['b']);
       plugin.filter();
 
-      alter('insert_col', 1);
+      alter('insert_col_start', 1);
       dropdownMenu(2);
 
       expect(getData()).toEqual([

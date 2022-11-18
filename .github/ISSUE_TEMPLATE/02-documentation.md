@@ -1,8 +1,8 @@
 ---
 name: "Handsontable Documentation"
 about: Issues regarding Handsontable documentation.
-title: ""
-labels: "Docs"
+title: "Docs: "
+labels: "Docs: Content"
 assignees: ""
 ---
 

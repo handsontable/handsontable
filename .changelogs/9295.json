@@ -1,7 +1,0 @@
-{
-  "title": "Fixed the issue where Handsontable initialized within the `<form>` element could trigger a dropdown menu while pressing the `enter` key on different form's input elements.",
-  "type": "fixed",
-  "issue": 9295,
-  "breaking": false,
-  "framework": "none"
-}

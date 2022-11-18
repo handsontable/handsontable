@@ -53,4 +53,80 @@ describe('WalkontableViewport', () => {
         .toBe(document.documentElement.offsetWidth - (BODY_MARGIN * 2)); // body margin from the left and right
     });
   });
+
+  describe('hasVerticalScroll()', () => {
+    it('should return `false` when the table\'s viewport is bigger than dataset', () => {
+      createDataArray(6, 6);
+
+      spec().$wrapper.width(400).height(300);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+
+      expect(wt.wtViewport.hasVerticalScroll()).toBe(false);
+    });
+
+    it('should return `true` when the dataset is bigger than table\'s viewport', () => {
+      createDataArray(50, 6);
+
+      spec().$wrapper.width(400).height(300);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+
+      expect(wt.wtViewport.hasVerticalScroll()).toBe(true);
+    });
+  });
+
+  describe('hasHorizontalScroll()', () => {
+    it('should return `false` when the table\'s viewport is bigger than dataset', () => {
+      createDataArray(6, 6);
+
+      spec().$wrapper.width(400).height(300);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+
+      expect(wt.wtViewport.hasHorizontalScroll()).toBe(false);
+    });
+
+    it('should return `true` when the dataset is bigger than table\'s viewport', () => {
+      createDataArray(6, 50);
+
+      spec().$wrapper.width(400).height(300);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+
+      expect(wt.wtViewport.hasHorizontalScroll()).toBe(true);
+    });
+  });
 });

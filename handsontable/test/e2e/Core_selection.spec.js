@@ -3254,7 +3254,7 @@ describe('Core_selection', () => {
       });
 
       selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 0]]);
-      alter('insert_row', 1, 3);
+      alter('insert_row_above', 1, 3);
 
       expect(getSelected()).toEqual([[2, 2, 5, 5], [6, 1, 6, 1], [3, 3, 6, 6], [11, 0, 11, 0]]);
       // By design only last selection is interactive.
@@ -3286,7 +3286,7 @@ describe('Core_selection', () => {
       });
 
       selectRows(3, 5);
-      alter('insert_row', 1, 3);
+      alter('insert_row_above', 1, 3);
 
       expect(getSelected()).toEqual([[6, -1, 8, 9]]);
       expect(`
@@ -3317,7 +3317,7 @@ describe('Core_selection', () => {
       });
 
       selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 0]]);
-      alter('insert_row', 9, 3);
+      alter('insert_row_above', 9, 3);
 
       expect(getSelected()).toEqual([[2, 2, 5, 5], [6, 1, 6, 1], [3, 3, 6, 6], [8, 0, 8, 0]]);
       expect(`
@@ -3348,7 +3348,7 @@ describe('Core_selection', () => {
       });
 
       selectRows(3, 5);
-      alter('insert_row', 5, 3);
+      alter('insert_row_above', 5, 3);
 
       expect(getSelected()).toEqual([[3, -1, 5, 9]]);
       expect(`
@@ -3379,7 +3379,7 @@ describe('Core_selection', () => {
       });
 
       selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 5]]);
-      alter('insert_col', 1, 3);
+      alter('insert_col_start', 1, 3);
 
       expect(getSelected()).toEqual([[2, 2, 5, 5], [6, 1, 6, 1], [3, 3, 6, 6], [8, 8, 8, 8]]);
       // By design only last selection is interactive.
@@ -3408,7 +3408,7 @@ describe('Core_selection', () => {
       });
 
       selectColumns(3, 5);
-      alter('insert_col', 1, 3);
+      alter('insert_col_start', 1, 3);
 
       expect(getSelected()).toEqual([[-1, 6, 9, 8]]);
       expect(`
@@ -3436,7 +3436,7 @@ describe('Core_selection', () => {
       });
 
       selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 5]]);
-      alter('insert_col', 6, 3);
+      alter('insert_col_start', 6, 3);
 
       expect(getSelected()).toEqual([[2, 2, 5, 5], [6, 1, 6, 1], [3, 3, 6, 6], [8, 5, 8, 5]]);
       expect(`
@@ -3464,7 +3464,7 @@ describe('Core_selection', () => {
       });
 
       selectColumns(3, 5);
-      alter('insert_col', 5, 3);
+      alter('insert_col_start', 5, 3);
 
       expect(getSelected()).toEqual([[-1, 3, 9, 5]]);
       expect(`

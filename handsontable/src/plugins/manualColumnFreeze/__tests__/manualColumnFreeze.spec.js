@@ -151,7 +151,6 @@ describe('manualColumnFreeze', () => {
   });
 
   describe('functionality', () => {
-
     it('should add a \'freeze column\' context menu entry for non-fixed columns', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),

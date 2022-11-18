@@ -97,15 +97,19 @@ export class BottomInlineStartCornerOverlay extends Overlay {
    * Reposition the overlay.
    */
   repositionOverlay() {
-    const { wtTable } = this.wot;
+    const { wtTable, wtViewport } = this.wot;
     const { rootDocument } = this.domBindings;
     const cloneRoot = this.clone.wtTable.holder.parentNode;
-    let scrollbarWidth = getScrollbarWidth(rootDocument);
+    let bottomOffset = 0;
 
-    if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
-      scrollbarWidth = 0;
+    if (!wtViewport.hasVerticalScroll()) {
+      bottomOffset += (wtViewport.getWorkspaceHeight() - wtTable.getTotalHeight());
     }
 
-    cloneRoot.style.bottom = `${scrollbarWidth}px`;
+    if (wtViewport.hasVerticalScroll() && wtViewport.hasHorizontalScroll()) {
+      bottomOffset += getScrollbarWidth(rootDocument);
+    }
+
+    cloneRoot.style.bottom = `${bottomOffset}px`;
   }
 }

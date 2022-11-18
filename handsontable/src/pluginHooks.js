@@ -11,6 +11,7 @@ import { fastCall } from './helpers/function';
  *
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * // Using events as callbacks:
  * ...
@@ -24,7 +25,25 @@ import { fastCall } from './helpers/function';
  * });
  * ...
  * ```
+ * :::
  *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   afterChange={(changes, source) => {
+ *     fetch('save.php', {
+ *       method: 'POST',
+ *       headers: {
+ *         'Accept': 'application/json',
+ *         'Content-Type': 'application/json'
+ *       },
+ *       body: JSON.stringify(changes)
+ *     });
+ *   }}
+ * />
+ * :::
+ *
+ * ::: only-for javascript
  * ```js
  * // Using events as plugin hooks:
  * ...
@@ -49,6 +68,42 @@ import { fastCall } from './helpers/function';
  *   // function body - will only run in #example2
  * });
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * const hotRef1 = useRef(null);
+ * const hotRef2 = useRef(null);
+ *
+ * // Using events as plugin hooks:
+ * ...
+ *
+ * <HotTable
+ *   ref={hotRef1}
+ *   myPlugin={true}
+ * });
+ *
+ * <HotTable
+ *   ref={hotRef2}
+ *   myPlugin={false}
+ * });
+ *
+ * ...
+ *
+ * const hot2 = hotRef2.current.hotInstance;
+ * // local hook (has same effect as a callback)
+ * hot2.addHook('afterChange', function() {
+ *   // function body - will only run in #example2
+ * });
+ *
+ * // global hook
+ * Handsontable.hooks.add('afterChange', function() {
+ *   // Fired twice - for hot1 and hot2
+ *   if (this.getSettings().myPlugin) {
+ *     // function body - will only run for first instance
+ *   }
+ * });
+ * :::
  * ...
  */
 
@@ -69,18 +124,32 @@ const REGISTERED_HOOKS = [
    * __Note:__ For performance reasons, the `changes` array is null for `"loadData"` source.
    *
    * @event Hooks#afterChange
-   * @param {Array} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`.
+   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
    * @param {string} [source] String that identifies source of hook call ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @example
+   * ::: only-for javascript
    * ```js
    * new Handsontable(element, {
    *   afterChange: (changes) => {
-   *     changes.forEach(([row, prop, oldValue, newValue]) => {
+   *     changes?.forEach(([row, prop, oldValue, newValue]) => {
    *       // Some logic...
    *     });
    *   }
    * })
    * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   afterChange={(changes, source) => {
+   *     changes?.forEach(([row, prop, oldValue, newValue]) => {
+   *       // Some logic...
+   *     });
+   *   }}
+   * />
+   * ```
+   * :::
    */
   'afterChange',
 
@@ -172,6 +241,7 @@ const REGISTERED_HOOKS = [
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*} If `false` then creating columns is cancelled.
    * @example
+   * ::: only-for javascript
    * ```js
    * // Return `false` to cancel column inserting.
    * new Handsontable(element, {
@@ -180,6 +250,18 @@ const REGISTERED_HOOKS = [
    *   }
    * });
    * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * // Return `false` to cancel column inserting.
+   * <HotTable
+   *   beforeCreateCol={(data, coords) => {
+   *     return false;
+   *   }}
+   * />
+   * ```
+   * :::
    */
   'beforeCreateCol',
 
@@ -218,7 +300,7 @@ const REGISTERED_HOOKS = [
   'afterCreateRow',
 
   /**
-   * Fired after the current cell is deselected.
+   * Fired after all selected cells are deselected.
    *
    * @event Hooks#afterDeselect
    */
@@ -274,9 +356,13 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after retrieving information about a column header and appending it to the table header.
    *
+   * Since the 12.2 the hook is triggered with the 3rd `headerLevel` argument.
+   *
    * @event Hooks#afterGetColHeader
    * @param {number} column Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
+   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
+   *                                 values counting from 0 to N).
    */
   'afterGetColHeader',
 
@@ -302,8 +388,8 @@ const REGISTERED_HOOKS = [
    * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#afterLoadData
    * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
@@ -317,8 +403,8 @@ const REGISTERED_HOOKS = [
    * modifies Handsontable's [`data`](@/api/options.md#data).
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#afterUpdateData
    * @since 11.1.0
@@ -495,6 +581,7 @@ const REGISTERED_HOOKS = [
    * @param {object} preventScrolling Object with `value` property where its value change will be observed.
    * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    * @example
+   * ::: only-for javascript
    * ```js
    * new Handsontable(element, {
    *   afterSelection: (row, column, row2, column2, preventScrolling, selectionLayerLevel) => {
@@ -506,6 +593,21 @@ const REGISTERED_HOOKS = [
    *   }
    * })
    * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   afterSelection={(row, column, row2, column2, preventScrolling, selectionLayerLevel) => {
+   *     // If set to `false` (default): when cell selection is outside the viewport,
+   *     // Handsontable scrolls the viewport to cell selection's end corner.
+   *     // If set to `true`: when cell selection is outside the viewport,
+   *     // Handsontable doesn't scroll to cell selection's end corner.
+   *     preventScrolling.value = true;
+   *   }}
+   * />
+   * ```
+   * :::
    */
   'afterSelection',
 
@@ -523,6 +625,7 @@ const REGISTERED_HOOKS = [
    * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    * @example
    * ```js
+   * ::: only-for javascript
    * new Handsontable(element, {
    *   afterSelectionByProp: (row, column, row2, column2, preventScrolling, selectionLayerLevel) => {
    *     // setting if prevent scrolling after selection
@@ -530,6 +633,18 @@ const REGISTERED_HOOKS = [
    *   }
    * })
    * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   afterSelectionByProp={(row, column, row2, column2, preventScrolling, selectionLayerLevel) => {
+   *     // setting if prevent scrolling after selection
+   *     preventScrolling.value = true;
+   *   }}
+   * />
+   * ```
+   * :::
    */
   'afterSelectionByProp',
 
@@ -634,7 +749,7 @@ const REGISTERED_HOOKS = [
    * @param {string|number} prop Property name / visual column index.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
-   * @returns {void | boolean} If `false` the cell will be marked as invalid, `true` otherwise.
+   * @returns {undefined | boolean} If `false` the cell will be marked as invalid, `true` otherwise.
    */
   'afterValidate',
 
@@ -706,31 +821,39 @@ const REGISTERED_HOOKS = [
   'beforeCellAlignment',
 
   /**
-   * Fired before one or more cells is changed. Its main purpose is to alter changes silently after input and before
-   * table rendering.
+   * Fired before one or more cells are changed.
+   *
+   * Use this hook to silently alter the user's changes before Handsontable re-renders.
+   *
+   * To ignore the user's changes, use a nullified array or return `false`.
    *
    * @event Hooks#beforeChange
-   * @param {Array[]} changes 2D array containing information about each of the edited cells.
+   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
-   * @returns {void | boolean} If `false` all changes were cancelled, `true` otherwise.
+   * @returns {undefined | boolean} If `false` all changes were cancelled, `true` otherwise.
    * @example
+   * ::: only-for javascript
    * ```js
-   * // To disregard a single change, set changes[i] to null or remove it from array using changes.splice(i, 1).
-   * new Handsontable(element, {
-   *   beforeChange: (changes, source) => {
-   *     // [[row, prop, oldVal, newVal], ...]
-   *     changes[0] = null;
-   *   }
-   * });
-   * // To alter a single change, overwrite the desired value to changes[i][3].
+   * // to alter a single change, overwrite the value with `changes[i][3]`
    * new Handsontable(element, {
    *   beforeChange: (changes, source) => {
    *     // [[row, prop, oldVal, newVal], ...]
    *     changes[0][3] = 10;
    *   }
    * });
-   * // To cancel all edit, return false from the callback or set array length to 0 (changes.length = 0).
+   *
+   * // to ignore a single change, set `changes[i]` to `null`
+   * // or remove `changes[i]` from the array, by using `changes.splice(i, 1)`
+   * new Handsontable(element, {
+   *   beforeChange: (changes, source) => {
+   *     // [[row, prop, oldVal, newVal], ...]
+   *     changes[0] = null;
+   *   }
+   * });
+   *
+   * // to ignore all changes, return `false`
+   * // or set the array's length to 0, by using `changes.length = 0`
    * new Handsontable(element, {
    *   beforeChange: (changes, source) => {
    *     // [[row, prop, oldVal, newVal], ...]
@@ -738,6 +861,37 @@ const REGISTERED_HOOKS = [
    *   }
    * });
    * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * // to alter a single change, overwrite the desired value with `changes[i][3]`
+   * <HotTable
+   *   beforeChange={(changes, source) => {
+   *     // [[row, prop, oldVal, newVal], ...]
+   *     changes[0][3] = 10;
+   *   }}
+   * />
+   *
+   * // to ignore a single change, set `changes[i]` to `null`
+   * // or remove `changes[i]` from the array, by using changes.splice(i, 1).
+   * <HotTable
+   *   beforeChange={(changes, source) => {
+   *     // [[row, prop, oldVal, newVal], ...]
+   *     changes[0] = null;
+   *   }}
+   * />
+   *
+   * // to ignore all changes, return `false`
+   * // or set the array's length to 0 (`changes.length = 0`)
+   * <HotTable
+   *   beforeChange={(changes, source) => {
+   *     // [[row, prop, oldVal, newVal], ...]
+   *     return false;
+   *   }}
+   * />
+   * ```
+   * :::
    */
   'beforeChange',
 
@@ -803,8 +957,8 @@ const REGISTERED_HOOKS = [
    * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#beforeLoadData
    * @since 8.0.0
@@ -820,8 +974,8 @@ const REGISTERED_HOOKS = [
    * modifies Handsontable's [`data`](@/api/options.md#data).
    *
    * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   * - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
+   * - [Binding to data](@/guides/getting-started/binding-to-data.md)
+   * - [Saving data](@/guides/getting-started/saving-data.md)
    *
    * @event Hooks#beforeUpdateData
    * @since 11.1.0
@@ -984,7 +1138,7 @@ const REGISTERED_HOOKS = [
    * @param {number} column Visual column index.
    * @param {string} key The updated meta key.
    * @param {*} value The updated meta value.
-   * @returns {*|boolean} If false is returned the action is canceled.
+   * @returns {boolean|undefined} If false is returned the action is canceled.
    */
   'beforeSetCellMeta',
 
@@ -1134,6 +1288,7 @@ const REGISTERED_HOOKS = [
    * @param {boolean} topmost If set to `true`, it returns the TD element from the topmost overlay. For example,
    *                          if the wanted cell is in the range of fixed rows, it will return a TD element
    *                          from the `top` overlay.
+   * @returns {undefined|number[]}
    */
   'modifyGetCellCoords',
 
@@ -1168,8 +1323,9 @@ const REGISTERED_HOOKS = [
   'beforeHighlightingColumnHeader',
 
   /**
-   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
-   * {@link Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage.
+   *
+   * The `persistentStateLoad` hook is fired even when the {@link Options#persistentState} option is disabled.
    *
    * @event Hooks#persistentStateLoad
    * @param {string} key Key.
@@ -1187,8 +1343,9 @@ const REGISTERED_HOOKS = [
   'persistentStateReset',
 
   /**
-   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage. This hook is fired when
-   * {@link Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage.
+   *
+   * The `persistentStateSave` hook is fired even when the {@link Options#persistentState} option is disabled.
    *
    * @event Hooks#persistentStateSave
    * @param {string} key Key.
@@ -1205,7 +1362,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeColumnSort
    * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
    * @param {Array} destinationSortConfigs Destination sort configuration (for all sorted columns).
-   * @returns {boolean | void} If `false` the column will not be sorted, `true` otherwise.
+   * @returns {boolean | undefined} If `false` the column will not be sorted, `true` otherwise.
    */
   'beforeColumnSort',
 
@@ -1247,6 +1404,7 @@ const REGISTERED_HOOKS = [
    *                       which will be cut out.
    * @returns {*} If returns `false` then operation of the cutting out is canceled.
    * @example
+   * ::: only-for javascript
    * ```js
    * // To disregard a single row, remove it from the array using data.splice(i, 1).
    * new Handsontable(element, {
@@ -1264,6 +1422,27 @@ const REGISTERED_HOOKS = [
    *   }
    * });
    * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * // To disregard a single row, remove it from the array using data.splice(i, 1).
+   * <HotTable
+   *   beforeCut={(data, coords) => {
+   *     // data -> [[1, 2, 3], [4, 5, 6]]
+   *     data.splice(0, 1);
+   *     // data -> [[4, 5, 6]]
+   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   }}
+   * />
+   * // To cancel a cutting action, just return `false`.
+   * <HotTable
+   *   beforeCut={(data, coords) => {
+   *     return false;
+   *   }}
+   * />
+   * ```
+   * :::
    */
   'beforeCut',
 
@@ -1288,6 +1467,7 @@ const REGISTERED_HOOKS = [
    * @returns {*} If returns `false` then copying is canceled.
    *
    * @example
+   * ::: only-for javascript
    * ```js
    * // To disregard a single row, remove it from array using data.splice(i, 1).
    * ...
@@ -1310,6 +1490,32 @@ const REGISTERED_HOOKS = [
    * });
    * ...
    * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * // To disregard a single row, remove it from array using data.splice(i, 1).
+   * ...
+   * <HotTable
+   *   beforeCopy={(data, coords) => {
+   *     // data -> [[1, 2, 3], [4, 5, 6]]
+   *     data.splice(0, 1);
+   *     // data -> [[4, 5, 6]]
+   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   }}
+   * />
+   * ...
+   *
+   * // To cancel copying, return false from the callback.
+   * ...
+   * <HotTable
+   *   beforeCopy={(data, coords) => {
+   *     return false;
+   *   }}
+   * />
+   * ...
+   * ```
+   * :::
    */
   'beforeCopy',
 
@@ -1335,6 +1541,7 @@ const REGISTERED_HOOKS = [
    * @returns {*} If returns `false` then pasting is canceled.
    * @example
    * ```js
+   * ::: only-for javascript
    * // To disregard a single row, remove it from array using data.splice(i, 1).
    * new Handsontable(example, {
    *   beforePaste: (data, coords) => {
@@ -1351,6 +1558,27 @@ const REGISTERED_HOOKS = [
    *   }
    * });
    * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * // To disregard a single row, remove it from array using data.splice(i, 1).
+   * <HotTable
+   *   beforePaste={(data, coords) => {
+   *     // data -> [[1, 2, 3], [4, 5, 6]]
+   *     data.splice(0, 1);
+   *     // data -> [[4, 5, 6]]
+   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   }}
+   * />
+   * // To cancel pasting, return false from the callback.
+   * <HotTable
+   *   beforePaste={(data, coords) => {
+   *     return false;
+   *   }}
+   * />
+   * ```
+   * :::
    */
   'beforePaste',
 
@@ -1364,6 +1592,27 @@ const REGISTERED_HOOKS = [
    *                       that correspond to the previously selected area.
    */
   'afterPaste',
+
+  /**
+   * Fired by the {@link ManualColumnFreeze} plugin, before freezing a column.
+   *
+   * @event Hooks#beforeColumnFreeze
+   * @since 12.1.0
+   * @param {number} column The visual index of the column that is going to freeze.
+   * @param {boolean} freezePerformed If `true`: the column is going to freeze. If `false`: the column is not going to freeze (which might happen if the column is already frozen).
+   * @returns {boolean|undefined} If `false`: the column is not going to freeze, and the `afterColumnFreeze` hook won't fire.
+   */
+  'beforeColumnFreeze',
+
+  /**
+   * Fired by the {@link ManualColumnFreeze} plugin, right after freezing a column.
+   *
+   * @event Hooks#afterColumnFreeze
+   * @since 12.1.0
+   * @param {number} column The visual index of the frozen column.
+   * @param {boolean} freezePerformed If `true`: the column got successfully frozen. If `false`: the column didn't get frozen.
+   */
+  'afterColumnFreeze',
 
   /**
    * Fired by {@link ManualColumnMove} plugin before change order of the visual indexes. This hook is fired when
@@ -1381,7 +1630,7 @@ const REGISTERED_HOOKS = [
    *                                     [documentation](@/guides/columns/column-moving.md).
    *                                     It's `undefined` when `dragColumns` function wasn't called.
    * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
-   * @returns {void | boolean} If `false` the column will not be moved, `true` otherwise.
+   * @returns {undefined | boolean} If `false` the column will not be moved, `true` otherwise.
    */
   'beforeColumnMove',
 
@@ -1404,6 +1653,27 @@ const REGISTERED_HOOKS = [
    * @param {boolean} orderChanged Indicates if order of columns was changed by move.
    */
   'afterColumnMove',
+
+  /**
+   * Fired by the {@link ManualColumnFreeze} plugin, before unfreezing a column.
+   *
+   * @event Hooks#beforeColumnUnfreeze
+   * @since 12.1.0
+   * @param {number} column The visual index of the column that is going to unfreeze.
+   * @param {boolean} unfreezePerformed If `true`: the column is going to unfreeze. If `false`: the column is not going to unfreeze (which might happen if the column is already unfrozen).
+   * @returns {boolean|undefined} If `false`: the column is not going to unfreeze, and the `afterColumnUnfreeze` hook won't fire.
+   */
+  'beforeColumnUnfreeze',
+
+  /**
+   * Fired by the {@link ManualColumnFreeze} plugin, right after unfreezing a column.
+   *
+   * @event Hooks#afterColumnUnfreeze
+   * @since 12.1.0
+   * @param {number} column The visual index of the unfrozen column.
+   * @param {boolean} unfreezePerformed If `true`: the column got successfully unfrozen. If `false`: the column didn't get unfrozen.
+   */
+  'afterColumnUnfreeze',
 
   /**
    * Fired by {@link ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when
@@ -1476,7 +1746,7 @@ const REGISTERED_HOOKS = [
    * @param {number} newSize Calculated new row height.
    * @param {number} row Visual index of the resized row.
    * @param {boolean} isDoubleClick Flag that determines whether there was a double-click.
-   * @returns {number} Returns the new row size or `undefined` if row size should be calculated automatically.
+   * @returns {number|undefined} Returns the new row size or `undefined` if row size should be calculated automatically.
    */
   'beforeRowResize',
 
@@ -1513,7 +1783,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeStretchingColumnWidth
    * @param {number} stretchedWidth Calculated width.
    * @param {number} column Visual column index.
-   * @returns {number} Returns new width which will be applied to the column element.
+   * @returns {number|undefined} Returns new width which will be applied to the column element.
    */
   'beforeStretchingColumnWidth',
 
@@ -1575,16 +1845,26 @@ const REGISTERED_HOOKS = [
   'afterFilter',
 
   /**
-   * Called when a value is updated in the engine.
+   * Fired by the {@link Formulas} plugin, when any cell value changes.
+   *
+   * Returns an array of objects that contains:
+   * - The addresses (`sheet`, `row`, `col`) and new values (`newValue`) of the changed cells.
+   * - The addresses and new values of any cells that had to be recalculated (because their formulas depend on the cells that changed).
+   *
+   * This hook gets also fired on Handsontable's initialization, returning the addresses and values of all cells.
+   *
+   * Read more:
+   * - [Guides: Formula calculation](@/guides/formulas/formula-calculation.md)
+   * - [HyperFormula documentation: `valuesUpdated`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#valuesupdated)
    *
    * @since 9.0.0
    * @event Hooks#afterFormulasValuesUpdate
-   * @param {Array} changes The values and location of applied changes.
+   * @param {Array} changes The addresses and new values of all the changed and recalculated cells.
    */
   'afterFormulasValuesUpdate',
 
   /**
-   * Called when a named expression is added to the Formulas' engine instance.
+   * Fired when a named expression is added to the Formulas' engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionAdded
@@ -1594,7 +1874,7 @@ const REGISTERED_HOOKS = [
   'afterNamedExpressionAdded',
 
   /**
-   * Called when a named expression is removed from the Formulas' engine instance.
+   * Fired when a named expression is removed from the Formulas' engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionRemoved
@@ -1604,7 +1884,7 @@ const REGISTERED_HOOKS = [
   'afterNamedExpressionRemoved',
 
   /**
-   * Called when a new sheet is added to the Formulas' engine instance.
+   * Fired when a new sheet is added to the Formulas' engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterSheetAdded
@@ -1613,7 +1893,7 @@ const REGISTERED_HOOKS = [
   'afterSheetAdded',
 
   /**
-   * Called when a sheet in the Formulas' engine instance is renamed.
+   * Fired when a sheet in the Formulas' engine instance is renamed.
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRenamed
@@ -1623,7 +1903,7 @@ const REGISTERED_HOOKS = [
   'afterSheetRenamed',
 
   /**
-   * Called when a sheet is removed from the Formulas' engine instance.
+   * Fired when a sheet is removed from the Formulas' engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRemoved

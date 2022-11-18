@@ -59,9 +59,9 @@ describe('textRenderer', () => {
     it('should trim whitespaces if trimWhitespace is set as true', () => {
       const TD = document.createElement('td');
       const instance = getInstance({
-        trimWhitespace: true,
+        trimWhitespace: false,
       });
-      const cellMeta = {};
+      const cellMeta = { trimWhitespace: true }; // cell meta layer has priority
 
       textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
 
@@ -72,9 +72,9 @@ describe('textRenderer', () => {
       const TD = document.createElement('td');
       const instance = getInstance({
         wordWrap: true,
-        trimWhitespace: true
+        trimWhitespace: false
       });
-      const cellMeta = {};
+      const cellMeta = { trimWhitespace: true }; // cell meta layer has priority
 
       textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
 
