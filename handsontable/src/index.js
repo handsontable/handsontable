@@ -1,5 +1,4 @@
 import Handsontable from './base';
-
 import { registerAllModules } from './registry';
 import EventManager, { getListenersCounter } from './eventManager';
 import { getRegisteredMapsCounter } from './translations';
