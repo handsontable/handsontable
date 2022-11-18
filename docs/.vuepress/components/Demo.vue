@@ -29,7 +29,8 @@ export default {
     },
   },
   mounted() {
-    const url = `https://examples.handsontable.com/examples/${this.fullVersionNumber}/docs/${this.framework}/demo/index.html`;
+    const hostname = 'examples.handsontable.com';
+    const url = `https://${hostname}/examples/${this.fullVersionNumber}/docs/${this.framework}/demo/index.html`;
 
     fetch(url)
       .then((response) => {
