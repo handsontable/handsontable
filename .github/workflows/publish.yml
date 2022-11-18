@@ -2,14 +2,6 @@ name: Publish prerelease in NPM
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: [Tests]
-    types: [completed]
-    branches:
-      - 'develop'
-      - 'release/**'
-      - '!release/**-**'
-      - 'feature/**'
 
 env:
   NODE_VERSION: 16
