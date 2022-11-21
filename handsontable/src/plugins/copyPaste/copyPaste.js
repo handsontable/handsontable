@@ -268,8 +268,8 @@ export class CopyPaste extends BasePlugin {
    *
    * @param {'cells-only' | 'column-headers-only' | 'with-all-column-headers' | 'with-column-headers'} [copyMode='cells-only']
    * Defines the data range to copy. Possible values: `cells-only` (copy selected cells only),
-   * `column-headers-only` (copy column headers only), `with-all-column-headers` (copy cells
-   * with all column headers) or `with-column-headers` (copy cells with column headers).
+   * `column-headers-only` (copy the most-bottom column headers only), `with-all-column-headers` (copy cells
+   * with all column headers levels) or `with-column-headers` (copy cells with the most-bottom column headers).
    */
   copy(copyMode = 'cells-only') {
     this.#copyMode = copyMode;
@@ -286,19 +286,19 @@ export class CopyPaste extends BasePlugin {
     this.copy('cells-only');
   }
   /**
-   * Copies the column headers into the clipboard.
+   * Copies only the most-bottom column headers into the clipboard.
    */
   copyColumnHeadersOnly() {
     this.copy('column-headers-only');
   }
   /**
-   * Copies the selected cell/cells including column group headers into the clipboard.
+   * Copies the selected cell/cells and all column headers levels (including column group) into the clipboard.
    */
   copyWithAllColumnHeaders() {
     this.copy('with-column-group-headers');
   }
   /**
-   * Copies the selected cell/cells including column headers into the clipboard.
+   * Copies the selected cell/cells and most-bottom column headers into the clipboard.
    */
   copyWithColumnHeaders() {
     this.copy('with-column-headers');
