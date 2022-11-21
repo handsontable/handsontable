@@ -1209,12 +1209,15 @@ export default () => {
      *
      * If you set the `copyPaste` option to an object, you can set the following `CopyPaste` plugin options:
      *
-     * | Option         | Possible settings                                  | Description                                                                                                                                                                             |
-     * | -------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `columnsLimit` | A number (default: `Infinity`)                       | A maximum number of columns that can be copied                                                                                                                                        |
-     * | `rowsLimit`    | A number (default: `Infinity`)                       | A maximum number of columns that can be copied                                                                                                                                        |
-     * | `pasteMode`    | `'overwrite'` \| `'shift_down'` \| `'shift_right'` | When pasting:<br>`'overwrite'`: overwrite currently-selected cells<br>`'shift_down'`: move currently-selected cells down<br>`'shift_right'`: move currently-selected cells to the right |
-     * | `uiContainer`  | An HTML element                                    | A UI container for the secondary focusable element                                                                                                                                      |
+     * | Option                   | Possible settings                                  | Description                                                                                                                                                                             |
+     * | ------------------------ | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `columnsLimit`           | A number (default: `Infinity`)                     | A maximum number of columns that can be copied                                                                                                                                          |
+     * | `rowsLimit`              | A number (default: `Infinity`)                     | A maximum number of columns that can be copied                                                                                                                                          |
+     * | `pasteMode`              | `'overwrite'` \| `'shift_down'` \| `'shift_right'` | When pasting:<br>`'overwrite'`: overwrite currently-selected cells<br>`'shift_down'`: move currently-selected cells down<br>`'shift_right'`: move currently-selected cells to the right |
+     * | `copyColumnHeaders`      | Boolean (default: `false`)                         | `true`: add the option to copy cells along with their nearest column headers                                                                                                            |
+     * | `copyColumnGroupHeaders` | Boolean (default: `false`)                         | `true`: add the option to copy cells along with all their related columns headers                                                                                                       |
+     * | `copyColumnHeadersOnly`  | Boolean (default: `false`)                         | `true`: add the option to copy just column headers (without copying cells)                                                                                                              |
+     * | `uiContainer`            | An HTML element                                    | A UI container for the secondary focusable element                                                                                                                                      |
      *
      * Read more:
      * - [Plugins: `CopyPaste`](@/api/copyPaste.md)
@@ -1234,10 +1237,22 @@ export default () => {
      * copyPaste: {
      *   // set the maximum number of columns that can be copied
      *   columnsLimit: 25,
+     *
      *   // set the maximum number of rows that can be copied
      *   rowsLimit: 50,
+     *
      *   // set the paste behavior
      *   pasteMode: 'shift_down',
+     *
+     *   // add the option to copy cells along with their nearest column headers
+     *   copyColumnHeaders: true,
+     *
+     *   // add the option to copy cells along with all their related columns headers
+     *   copyColumnGroupHeaders: true,
+     *
+     *   // add the option to copy just column headers (without copying cells)
+     *   copyColumnHeadersOnly: true,
+     *
      *   // set the UI container
      *   uiContainer: document.body,
      * },

@@ -319,11 +319,11 @@ Examples of how to use them are provided in their descriptions.
 
 ## Related keyboard shortcuts
 
-| Windows                                | macOS                                 | Action                                                        |  Excel  | Sheets  |
-| -------------------------------------- | ------------------------------------- | ------------------------------------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd> + <kbd>**X**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**X**</kbd> | Cut the contents of the selected cells into the system clipboard  | &check; | &check; |
-| <kbd>**Ctrl**</kbd> + <kbd>**C**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**C**</kbd> | Copy the contents of the selected cells into the system clipboard | &check; | &check; |
-| <kbd>**Ctrl**</kbd> + <kbd>**V**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**V**</kbd> | Paste from the system clipboard                               | &check; | &check; |
+| Windows                                | macOS                                 | Action                                                          |  Excel  | Sheets  |
+| -------------------------------------- | ------------------------------------- | --------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd> + <kbd>**X**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**X**</kbd> | Cut the contents of the selected cells to the system clipboard  | &check; | &check; |
+| <kbd>**Ctrl**</kbd> + <kbd>**C**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
+| <kbd>**Ctrl**</kbd> + <kbd>**V**</kbd> | <kbd>**Cmd**</kbd> + <kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
 
 ## Related API reference
 

@@ -121,7 +121,7 @@ export class CopyPaste extends BasePlugin {
    */
   uiContainer = this.hot.rootDocument.body;
   /**
-   * Shows the "Copy with column headers" item in the context menu and extends the context menu for
+   * Shows the "Copy with headers" item in the context menu and extends the context menu with the
    * `'copy_with_column_headers'` option that can be used for creating custom menus arrangements.
    *
    * @type {boolean}
@@ -129,7 +129,7 @@ export class CopyPaste extends BasePlugin {
    */
   #enableCopyColumnHeaders = false;
   /**
-   * Shows the "Copy with column group headers" item in the context menu and extends the context menu for
+   * Shows the "Copy with group headers" item in the context menu and extends the context menu with the
    * `'copy_with_column_group headers'` option that can be used for creating custom menus arrangements.
    *
    * @type {boolean}
@@ -137,7 +137,7 @@ export class CopyPaste extends BasePlugin {
    */
   #enableCopyColumnGroupHeaders = false;
   /**
-   * Shows the "Copy column headers only" item in the context menu and extends the context menu for
+   * Shows the "Copy headers only" item in the context menu and extends the context menu with the
    * `'copy_column_headers_only'` option that can be used for creating custom menus arrangements.
    *
    * @type {boolean}
@@ -262,7 +262,7 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Copies the selected cell with or without column headers into the clipboard.
+   * Copies the selected cell with or without column headers to the clipboard.
    *
    * @param {'cells-only' | 'column-headers-only' | 'with-column-group-headers' | 'with-column-headers'} [copyMode='cells-only']
    * Defines the data range to copy. Possible values: `cells-only` (copy selected cells only),
@@ -278,32 +278,32 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Copies the selected cell/cells into the clipboard.
+   * Copies the selected cell/cells to the clipboard.
    */
   copyCellsOnly() {
     this.copy('cells-only');
   }
   /**
-   * Copies the column headers into the clipboard.
+   * Copies the column headers to the clipboard.
    */
   copyColumnHeadersOnly() {
     this.copy('column-headers-only');
   }
   /**
-   * Copies the selected cell/cells including column group headers into the clipboard.
+   * Copies the selected cell/cells including column group headers to the clipboard.
    */
   copyWithColumnGroupHeaders() {
     this.copy('with-column-group-headers');
   }
   /**
-   * Copies the selected cell/cells including column headers into the clipboard.
+   * Copies the selected cell/cells including column headers to the clipboard.
    */
   copyWithColumnHeaders() {
     this.copy('with-column-headers');
   }
 
   /**
-   * Cuts the selected cell into the clipboard.
+   * Cuts the selected cell to the clipboard.
    */
   cut() {
     this.#isTriggeredByCut = true;
