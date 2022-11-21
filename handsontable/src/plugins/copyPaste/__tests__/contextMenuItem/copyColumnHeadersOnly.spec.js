@@ -13,7 +13,7 @@ describe('CopyPaste', () => {
   });
 
   describe('context menu `copy_column_headers_only` action', () => {
-    it('should be available while creating custom menu', () => {
+    it('should be available with different noun forms while creating custom menu', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -24,13 +24,49 @@ describe('CopyPaste', () => {
         }
       });
 
-      contextMenu(getCell(1, 1));
+      selectCell(1, 1);
+      contextMenu();
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-        return this.textContent === 'Copy headers only';
-      });
+      {
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Copy header only';
+        });
 
-      expect(readOnlyItem[0]).not.toBeUndefined();
+        expect(readOnlyItem[0]).not.toBeUndefined();
+      }
+
+      selectCell(1, 1, 2, 1); // 2 rows are selected
+      contextMenu();
+
+      {
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Copy header only';
+        });
+
+        expect(readOnlyItem[0]).not.toBeUndefined();
+      }
+
+      selectCell(1, 1, 1, 2); // 2 columns are selected
+      contextMenu();
+
+      {
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Copy headers only';
+        });
+
+        expect(readOnlyItem[0]).not.toBeUndefined();
+      }
+
+      selectCells([[0, 0, 0, 0], [1, 1, 1, 2]]); // the last layer has selected 2 columns
+      contextMenu();
+
+      {
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Copy headers only';
+        });
+
+        expect(readOnlyItem[0]).not.toBeUndefined();
+      }
     });
 
     it('should call plugin\'s `copyColumnHeadersOnly()` method after menu item click', () => {
@@ -47,7 +83,7 @@ describe('CopyPaste', () => {
       spyOn(getPlugin('copyPaste'), 'copyColumnHeadersOnly');
 
       contextMenu(getCell(1, 1));
-      simulateClick($('.htContextMenu tbody tr td:contains("Copy headers only")'));
+      simulateClick($('.htContextMenu tbody tr td:contains("Copy header only")'));
 
       expect(getPlugin('copyPaste').copyColumnHeadersOnly).toHaveBeenCalled();
     });
@@ -66,7 +102,7 @@ describe('CopyPaste', () => {
       contextMenu(getCell(1, 1));
 
       const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-        return this.textContent === 'Copy headers only';
+        return this.textContent === 'Copy header only';
       });
 
       expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
@@ -86,7 +122,7 @@ describe('CopyPaste', () => {
       contextMenu(getCell(1, 1));
 
       const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-        return this.textContent === 'Copy headers only';
+        return this.textContent === 'Copy header only';
       });
 
       expect(readOnlyItem.hasClass('htDisabled')).toBe(true);

@@ -8,7 +8,10 @@ export default function copyWithColumnGroupHeadersItem(copyPastePlugin) {
   return {
     key: 'copy_with_column_group_headers',
     name() {
-      return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS);
+      const selectedRange = this.getSelectedRangeLast();
+      const nounForm = selectedRange ? Math.min(selectedRange.getWidth() - 1, 1) : 0;
+
+      return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS, nounForm);
     },
     callback() {
       copyPastePlugin.copyWithAllColumnHeaders();

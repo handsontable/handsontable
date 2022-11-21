@@ -67,9 +67,9 @@ describe('CopyPaste', () => {
         'Read only',
         'Alignment',
         'Copy',
-        'Copy with headers',
-        'Copy with group headers',
-        'Copy headers only',
+        'Copy with header',
+        'Copy with group header',
+        'Copy header only',
         'Cut',
       ].join(''));
     });

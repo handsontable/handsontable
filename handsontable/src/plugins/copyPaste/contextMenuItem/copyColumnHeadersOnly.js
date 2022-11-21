@@ -8,7 +8,10 @@ export default function copyColumnHeadersOnlyItem(copyPastePlugin) {
   return {
     key: 'copy_column_headers_only',
     name() {
-      return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY);
+      const selectedRange = this.getSelectedRangeLast();
+      const nounForm = selectedRange ? Math.min(selectedRange.getWidth() - 1, 1) : 0;
+
+      return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY, nounForm);
     },
     callback() {
       copyPastePlugin.copyColumnHeadersOnly();
