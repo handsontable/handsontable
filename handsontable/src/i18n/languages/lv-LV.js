@@ -49,9 +49,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Atvienot šunas',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopēt',
-  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: 'Kopēt ar galvenēm',
-  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: 'Kopēt ar grupu galvenēm',
-  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: 'Kopēt tikai galvenes',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Kopēt ar galveni', 'Kopēt ar galvenēm'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: ['Kopēt ar grupas galveni', 'Kopēt ar grupas galvenēm'],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Kopēt tikai galveni', 'Kopēt tikai galvenes'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Izgriezt',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Ievietot pakārtoto rindu',
