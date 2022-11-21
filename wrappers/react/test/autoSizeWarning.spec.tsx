@@ -1,5 +1,5 @@
 import React from 'react';
-import { registerAllModules } from 'tmp-hot/registry';
+import { registerAllModules } from 'handsontable/registry';
 import {
   HotTable
 } from '../src/hotTable';

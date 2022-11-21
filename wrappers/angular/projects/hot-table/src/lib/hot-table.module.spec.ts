@@ -1,4 +1,4 @@
-import { HotTableModule } from 'tmp-hot-angular';
+import { HotTableModule } from '@handsontable/angular';
 import { version } from '../../package.json';
 
 

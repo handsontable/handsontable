@@ -20,7 +20,7 @@
       "dom"
     ],
     "paths": {
-      "tmp-hot-angular": [
+      "@handsontable/angular": [
         "dist/hot-table"
       ]
     }

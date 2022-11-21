@@ -1,5 +1,5 @@
 import React from 'react';
-import Handsontable from 'tmp-hot/base';
+import Handsontable from 'handsontable/base';
 import { HotEditorProps } from './types';
 
 class BaseEditorComponent<P = {}, S = {}, SS = any> extends React.Component<P | HotEditorProps, S> implements Handsontable.editors.BaseEditor {

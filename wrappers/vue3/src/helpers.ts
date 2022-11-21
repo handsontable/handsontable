@@ -1,4 +1,4 @@
-import Handsontable from 'tmp-hot/base';
+import Handsontable from 'handsontable/base';
 import { HotTableProps, VueProps } from './types';
 
 const unassignedPropSymbol = Symbol('unassigned');

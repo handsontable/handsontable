@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import Handsontable from 'tmp-hot/base';
-import { HotTableModule, HotTableRegisterer } from 'tmp-hot-angular';
+import Handsontable from 'handsontable/base';
+import { HotTableModule, HotTableRegisterer } from '@handsontable/angular';
 import { HOT_DESTROYED_WARNING } from '../lib/hot-table-registerer.service';
 import { createSpreadsheetData } from './helpers';
 import {
   registerPlugin,
   CopyPaste,
-} from 'tmp-hot/plugins';
+} from 'handsontable/plugins';
 
 registerPlugin(CopyPaste);
 

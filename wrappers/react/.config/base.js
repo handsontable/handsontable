@@ -44,6 +44,6 @@ export const baseConfig = {
   external: [
     'react',
     'react-dom',
-    'tmp-hot/base',
+    'handsontable/base',
   ],
 };

@@ -16,7 +16,7 @@ const minConfig = {
     globals: {
       react: 'React',
       'react-dom': 'ReactDOM',
-      'tmp-hot/base': 'Handsontable'
+      'handsontable/base': 'Handsontable'
     }
   },
   plugins: baseConfig.plugins.concat([

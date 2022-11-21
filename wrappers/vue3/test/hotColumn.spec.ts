@@ -1,5 +1,5 @@
 import { config, mount } from '@vue/test-utils';
-import { registerAllCellTypes } from 'tmp-hot/registry';
+import { registerAllCellTypes } from 'handsontable/registry';
 import HotTable from '../src/HotTable.vue';
 import HotColumn from '../src/HotColumn.vue';
 import {

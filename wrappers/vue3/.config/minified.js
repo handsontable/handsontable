@@ -14,7 +14,7 @@ const minConfig = {
     exports: 'named',
     globals: {
       vue: 'Vue',
-      'tmp-hot/base': 'Handsontable'
+      'handsontable/base': 'Handsontable'
     }
   },
   plugins: baseConfig.plugins.concat([
