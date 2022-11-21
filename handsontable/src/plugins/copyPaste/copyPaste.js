@@ -175,6 +175,8 @@ export class CopyPaste extends BasePlugin {
   #copyableRangesFactory = new CopyableRangesFactory({
     countRows: () => this.hot.countRows(),
     countColumns: () => this.hot.countCols(),
+    rowsLimit: () => this.rowsLimit,
+    columnsLimit: () => this.columnsLimit,
     countColumnHeaders: () => this.hot.view.getColumnHeadersCount(),
   });
   /**
@@ -393,8 +395,6 @@ export class CopyPaste extends BasePlugin {
       ['headers', null],
       ['cells', null],
     ]);
-    let cellsRange = null;
-    let hasCellsCopyLimitReached = false;
 
     if (this.#copyMode === 'column-headers-only') {
       groupedRanges.set('headers', this.#copyableRangesFactory.getMostBottomColumnHeadersRange());
@@ -407,34 +407,18 @@ export class CopyPaste extends BasePlugin {
         groupedRanges.set('headers', this.#copyableRangesFactory.getAllColumnHeadersRange());
       }
 
-      // Copy cells only for 'cells-only' or other type that does not match to the known `#copyMode` type.
-      cellsRange = this.#copyableRangesFactory.getCellsRange();
-
-      if (cellsRange !== null) {
-        const {
-          startRow, startCol, endRow, endCol
-        } = cellsRange;
-
-        const finalEndRow = Math.min(endRow, startRow + this.rowsLimit - 1);
-        const finalEndCol = Math.min(endCol, startCol + this.columnsLimit - 1);
-
-        hasCellsCopyLimitReached = endRow !== finalEndRow || endCol !== finalEndCol;
-
-        groupedRanges.set('cells', {
-          startRow,
-          startCol,
-          endRow: finalEndRow,
-          endCol: finalEndCol
-        });
-      }
+      groupedRanges.set('cells', this.#copyableRangesFactory.getCellsRange());
     }
 
     this.copyableRanges = Array.from(groupedRanges.values())
-      .filter(range => range !== null);
+      .filter(range => range !== null)
+      .map(({ startRow, startCol, endRow, endCol }) => ({ startRow, startCol, endRow, endCol }));
 
     this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
 
-    if (cellsRange !== null && hasCellsCopyLimitReached) {
+    const cellsRange = groupedRanges.set('cells');
+
+    if (cellsRange !== null && cellsRange.isRangeTrimmed) {
       const {
         startRow, startCol, endRow, endCol
       } = cellsRange;

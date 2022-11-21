@@ -24,6 +24,14 @@ export class CopyableRangesFactory {
   /**
    * @type {function(): number}
    */
+  #rowsLimit;
+  /**
+   * @type {function(): number}
+   */
+  #columnsLimit;
+  /**
+   * @type {function(): number}
+   */
   #countColumnHeaders;
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -31,12 +39,16 @@ export class CopyableRangesFactory {
    * @param {{
    *   countRows: function(): number,
    *   countColumns: function(): number,
+   *   rowsLimit: function(): number,
+   *   columnsLimit: function(): number,
    *   countColumnHeaders: function(): number
    * }} dependencies The utils class dependencies.
    */
-  constructor({ countRows, countColumns, countColumnHeaders }) {
+  constructor({ countRows, countColumns, rowsLimit, columnsLimit, countColumnHeaders }) {
     this.#countRows = countRows;
     this.#countColumns = countColumns;
+    this.#rowsLimit = rowsLimit;
+    this.#columnsLimit = columnsLimit;
     this.#countColumnHeaders = countColumnHeaders;
   }
   /* eslint-enable jsdoc/require-description-complete-sentence */
@@ -70,11 +82,16 @@ export class CopyableRangesFactory {
       col: endCol,
     } = this.#selectedRange.getBottomEndCorner();
 
+    const finalEndRow = Math.min(endRow, Math.max(startRow + this.#rowsLimit() - 1, startRow));
+    const finalEndCol = Math.min(endCol, Math.max(startCol + this.#columnsLimit() - 1, startCol));
+    const isRangeTrimmed = endRow !== finalEndRow || endCol !== finalEndCol;
+
     return {
+      isRangeTrimmed,
       startRow,
       startCol,
-      endRow,
-      endCol,
+      endRow: finalEndRow,
+      endCol: finalEndCol,
     };
   }
 
@@ -96,11 +113,15 @@ export class CopyableRangesFactory {
       col: endCol,
     } = this.#selectedRange.getBottomEndCorner();
 
+    const finalEndCol = Math.min(endCol, Math.max(startCol + this.#columnsLimit() - 1, startCol));
+    const isRangeTrimmed = endCol !== finalEndCol;
+
     return {
+      isRangeTrimmed,
       startRow: -1,
       startCol,
       endRow: -1,
-      endCol,
+      endCol: finalEndCol,
     };
   }
 
@@ -122,11 +143,15 @@ export class CopyableRangesFactory {
       col: endCol,
     } = this.#selectedRange.getBottomEndCorner();
 
+    const finalEndCol = Math.min(endCol, Math.max(startCol + this.#columnsLimit() - 1, startCol));
+    const isRangeTrimmed = endCol !== finalEndCol;
+
     return {
+      isRangeTrimmed,
       startRow: -this.#countColumnHeaders(),
       startCol,
       endRow: -1,
-      endCol,
+      endCol: finalEndCol,
     };
   }
 }
