@@ -92,39 +92,42 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 You can define items in the menu by passing the [`contextMenu`](@/api/options.md#contextmenu) option as an array of keys which are strings:
 
-| Key                                  | Purpose                          | Extra conditions                                                   |
-| ------------------------------------ | -------------------------------- | ------------------------------------------------------------------ |
-| [`row_above`](@/api/contextMenu.md) | Insert row above action          |                                                                    |
-| [`row_below`](@/api/contextMenu.md)                          | Insert row below action          |                                                                    |
-| [`col_left`](@/api/contextMenu.md)                           | Insert column left action        |                                                                    |
-| [`col_right`](@/api/contextMenu.md)                          | Insert column right action       |                                                                    |
-| [`---------`](@/api/contextMenu.md)                          | Separator                        |                                                                    |
-| [`remove_row`](@/api/contextMenu.md)                         | Remove row action                |                                                                    |
-| [`clear_column`](@/api/contextMenu.md)                       | Clear column values action       |                                                                    |
-| [`undo`](@/api/contextMenu.md)                               | Undo action                      | Plugin [UndoRedo](@/api/undoRedo.md) turned on                     |
-| [`redo`](@/api/contextMenu.md)                               | Redo action                      | Plugin [UndoRedo](@/api/undoRedo.md) turned on                     |
-| [`make_read_only`](@/api/contextMenu.md)                     | Make read only action            |                                                                    |
-| [`alignment`](@/api/contextMenu.md)                          | Alignment actions                |                                                                    |
-| [`cut`](@/api/contextMenu.md)                                | Cut action                       | Plugin [CopyPaste](@/api/copyPaste.md) turned on                   |
-| [`copy`](@/api/contextMenu.md)                               | Copy action                      | Plugin [CopyPaste](@/api/copyPaste.md) turned on                   |
-| [`freeze_column`](@/api/contextMenu.md)                      | Freeze column action             | Plugin [ManualColumnFreeze](@/api/manualColumnFreeze.md) turned on |
-| [`unfreeze_column`](@/api/contextMenu.md)                    | Unfreeze column action           | Plugin [ManualColumnFreeze](@/api/manualColumnFreeze.md) turned on |
-| [`borders`](@/api/contextMenu.md)                            | Custom borders actions           | Plugin [CustomBorders](@/api/customBorders.md) turned on           |
-| [`commentsAddEdit`](@/api/contextMenu.md)                    | Add and edit comment actions     | Plugin [Comments](@/api/comments.md) turned on                     |
-| [`commentsRemove`](@/api/contextMenu.md)                     | Remove comment action            | Plugin [Comments](@/api/comments.md) turned on                     |
-| [`commentsReadOnly`](@/api/contextMenu.md)                   | Make comment read only action    | Plugin [Comments](@/api/comments.md) turned on                     |
-| [`mergeCells`](@/api/contextMenu.md)                         | Merge and unmerge cells actions  | Plugin [MergeCells](@/api/mergeCells.md) turned on                 |
-| [`add_child`](@/api/contextMenu.md)                          | Insert child row action          | Plugin [NestedRows](@/api/nestedRows.md) turned on                 |
-| [`detach_from_parent`](@/api/contextMenu.md)                 | Detach from parent row action    | Plugin [NestedRows](@/api/nestedRows.md) turned on                 |
-| [`hidden_columns_hide`](@/api/contextMenu.md)                | Hide column(s) action            | Plugin [HiddenColumns](@/api/hiddenColumns.md) turned on           |
-| [`hidden_columns_show`](@/api/contextMenu.md)                | Show hidden column(s) action     | Plugin [HiddenColumns](@/api/hiddenColumns.md) turned on           |
-| [`hidden_rows_hide`](@/api/contextMenu.md)                   | Hide row(s) action               | Plugin [HiddenRows](@/api/hiddenRows.md) turned on                 |
-| [`hidden_rows_show`](@/api/contextMenu.md)                   | Show hidden row(s) action        | Plugin [HiddenRows](@/api/hiddenRows.md) turned on                 |
-| [`filter_by_condition`](@/api/contextMenu.md)                | First conditions select element  | Plugin [Filters](@/api/filters.md) turned on                       |
-| [`filter_operators`](@/api/contextMenu.md)                   | Operation select element         | Plugin [Filters](@/api/filters.md) turned on                       |
-| [`filter_by_condition2`](@/api/contextMenu.md)               | Second conditions select element | Plugin [Filters](@/api/filters.md) turned on                       |
-| [`filter_by_value`](@/api/contextMenu.md)                    | Value select element             | Plugin [Filters](@/api/filters.md) turned on                       |
-| [`filter_action_bar`](@/api/contextMenu.md)                  | Action bar element               | Plugin [Filters](@/api/filters.md) turned on                       |
+| Key                                                      | Action, plugins required                                                                                                                              |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`row_above`](@/api/contextMenu.md)                      | Insert a row above                                                                                                                                    |
+| [`row_below`](@/api/contextMenu.md)                      | Insert a row below                                                                                                                                    |
+| [`col_left`](@/api/contextMenu.md)                       | Insert a column to the left                                                                                                                           |
+| [`col_right`](@/api/contextMenu.md)                      | Insert a column to the right                                                                                                                          |
+| [`---------`](@/api/contextMenu.md)                      | The menu items separator                                                                                                                              |
+| [`remove_row`](@/api/contextMenu.md)                     | Remove the selected row                                                                                                                               |
+| [`clear_column`](@/api/contextMenu.md)                   | Delete the data of the selected columns                                                                                                               |
+| [`undo`](@/api/contextMenu.md)                           | Undo the last action ([`UndoRedo`](@/api/undoRedo.md))                                                                                                |
+| [`redo`](@/api/contextMenu.md)                           | Redo the last action ([`UndoRedo`](@/api/undoRedo.md))                                                                                                |
+| [`make_read_only`](@/api/contextMenu.md)                 | Make the selected cells read-only                                                                                                                     |
+| [`alignment`](@/api/contextMenu.md)                      | Align text                                                                                                                                            |
+| [`cut`](@/api/contextMenu.md)                            | Cut the contents of the selected cells into the system plugin ([`CopyPaste`](@/api/copyPaste.md))                                                     |
+| [`copy`](@/api/contextMenu.md)                           | Copy the contents of the selected cells into the system clipboard ([`CopyPaste`](@/api/copyPaste.md))                                                 |
+| [`copy_with_column_headers`](@/api/contextMenu.md)       | Copy the contents of the selected cells and their nearest column headers ([`CopyPaste`](@/api/copyPaste.md))                                          |
+| [`copy_with_column_group_headers`](@/api/contextMenu.md) | Copy the contents of the selected cells and all related column headers ([`CopyPaste`](@/api/copyPaste.md), [`NestedHeaders`](@/api/nestedHeaders.md)) |
+| [`copy_column_headers_only`](@/api/contextMenu.md)       | Copy the contents of column headers that are nearest to the selected cells ([`CopyPaste`](@/api/copyPaste.md))                                        |
+| [`freeze_column`](@/api/contextMenu.md)                  | Freeze the selected column ([`ManualColumnFreeze`](@/api/manualColumnFreeze.md))                                                                      |
+| [`unfreeze_column`](@/api/contextMenu.md)                | Unfreeze the selected column ([`ManualColumnFreeze`](@/api/manualColumnFreeze.md))                                                                    |
+| [`borders`](@/api/contextMenu.md)                        | Add borders around the selected cells ([`CustomBorders`](@/api/customBorders.md))                                                                     |
+| [`commentsAddEdit`](@/api/contextMenu.md)                | Add or edit a comment ([`Comments`](@/api/comments.md))                                                                                               |
+| [`commentsRemove`](@/api/contextMenu.md)                 | Remove the comment ([`Comments`](@/api/comments.md))                                                                                                  |
+| [`commentsReadOnly`](@/api/contextMenu.md)               | Make the comment read-only ([`Comments`](@/api/comments.md))                                                                                          |
+| [`mergeCells`](@/api/contextMenu.md)                     | Merge or unmerge the selected cells ([`MergeCells`](@/api/mergeCells.md))                                                                             |
+| [`add_child`](@/api/contextMenu.md)                      | Insert a child row ([`NestedRows`](@/api/nestedRows.md))                                                                                              |
+| [`detach_from_parent`](@/api/contextMenu.md)             | Detach the selected row from its parent row ([`NestedRows`](@/api/nestedRows.md))                                                                     |
+| [`hidden_columns_hide`](@/api/contextMenu.md)            | Hide the selected columns ([`HiddenColumns`](@/api/hiddenColumns.md))                                                                                 |
+| [`hidden_columns_show`](@/api/contextMenu.md)            | Show hidden columns ([`HiddenColumns`](@/api/hiddenColumns.md))                                                                                       |
+| [`hidden_rows_hide`](@/api/contextMenu.md)               | Hide the selected rows ([`HiddenRows`](@/api/hiddenRows.md))                                                                                          |
+| [`hidden_rows_show`](@/api/contextMenu.md)               | Show hidden rows ([`HiddenRows`](@/api/hiddenRows.md))                                                                                                |
+| [`filter_by_condition`](@/api/contextMenu.md)            | Add a first filter condition ([`Filters`](@/api/filters.md))                                                                                          |
+| [`filter_by_condition2`](@/api/contextMenu.md)           | Add a second filter condition ([`Filters`](@/api/filters.md))                                                                                         |
+| [`filter_operators`](@/api/contextMenu.md)               | Select a filter parameter ([`Filters`](@/api/filters.md))                                                                                             |
+| [`filter_by_value`](@/api/contextMenu.md)                | Add a filter value ([`Filters`](@/api/filters.md))                                                                                                    |
+| [`filter_action_bar`](@/api/contextMenu.md)              | Apply the configured filter ([`Filters`](@/api/filters.md))                                                                                           |
 
 ::: only-for javascript
 ::: example #example2
