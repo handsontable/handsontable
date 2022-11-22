@@ -175,11 +175,11 @@ describe('ContextMenu', () => {
       expect(`
         |   |
         |===|
-        | - |
-        | - |
-        | - |
-        | - |
-        | - |
+        | * |
+        | * |
+        | * |
+        | * |
+        | * |
         `).toBeMatchToSelectionPattern();
     });
 

@@ -136,7 +136,9 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
     this.addHook('modifyColWidth', (...args) => this.onModifyColWidth(...args));
+    this.addHook('modifyColumnHeaderValue', (...args) => this.onModifyColumnHeaderValue(...args));
     this.addHook('beforeHighlightingColumnHeader', (...args) => this.onBeforeHighlightingColumnHeader(...args));
+    this.addHook('beforeCopy', (...args) => this.onBeforeCopy(...args));
     this.addHook(
       'afterViewportColumnCalculatorOverride',
       (...args) => this.onAfterViewportColumnCalculatorOverride(...args)
@@ -313,10 +315,10 @@ export class NestedHeaders extends BasePlugin {
     return (renderedColumnIndex, TH) => {
       const { columnIndexMapper, view } = this.hot;
 
-      let visualColumnsIndex = columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
+      let visualColumnIndex = columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
 
-      if (visualColumnsIndex === null) {
-        visualColumnsIndex = renderedColumnIndex;
+      if (visualColumnIndex === null) {
+        visualColumnIndex = renderedColumnIndex;
       }
 
       TH.removeAttribute('colspan');
@@ -324,10 +326,9 @@ export class NestedHeaders extends BasePlugin {
 
       const {
         colspan,
-        label,
         isHidden,
         isPlaceholder,
-      } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnsIndex) ?? { label: '' };
+      } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? { label: '' };
 
       if (isPlaceholder || isHidden) {
         addClass(TH, 'hiddenHeader');
@@ -346,8 +347,37 @@ export class NestedHeaders extends BasePlugin {
         }
       }
 
-      this.hot.view.appendColHeader(visualColumnsIndex, TH, () => label, headerLevel);
+      this.hot.view.appendColHeader(
+        visualColumnIndex,
+        TH,
+        (...args) => this.getColumnHeaderValue(...args),
+        headerLevel
+      );
     };
+  }
+
+  /**
+   * Returns the column header value for specified column and header level index.
+   *
+   * @private
+   * @param {number} visualColumnIndex Visual column index.
+   * @param {number} headerLevel The index of header level. The header level accepts positive (0 to N)
+   *                             and negative (-1 to -N) values. For positive values, 0 points to the
+   *                             top most header, and for negative direction, -1 points to the most bottom
+   *                             header (the header closest to the cells).
+   * @returns {string} Returns the column header value to update.
+   */
+  getColumnHeaderValue(visualColumnIndex, headerLevel) {
+    const {
+      isHidden,
+      isPlaceholder,
+    } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? {};
+
+    if (isPlaceholder || isHidden) {
+      return '';
+    }
+
+    return this.hot.getColHeader(visualColumnIndex, headerLevel);
   }
 
   /**
@@ -393,7 +423,53 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Allows to block the column selection that is controlled by the core Selection module.
+   * Listens the `beforeCopy` hook that allows processing the copied column headers so that the
+   * merged column headers do not propagate the value for each column but only once at the beginning
+   * of the column.
+   *
+   * @private
+   * @param {Array[]} data An array of arrays which contains data to copied.
+   * @param {object[]} copyableRanges An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
+   *                                  which will copied.
+   * @param {{ columnHeadersCount: number }} copiedHeadersCount An object with keys that holds information with
+   *                                                            the number of copied headers.
+   */
+  onBeforeCopy(data, copyableRanges, { columnHeadersCount }) {
+    if (columnHeadersCount === 0) {
+      return;
+    }
+
+    for (let rangeIndex = 0; rangeIndex < copyableRanges.length; rangeIndex++) {
+      const { startRow, startCol, endRow, endCol } = copyableRanges[rangeIndex];
+      const rowsCount = endRow - startRow + 1;
+      const columnsCount = startCol - endCol + 1;
+
+      // do not process dataset ranges and column headers where only one column is copied
+      if (startRow >= 0 || columnsCount === 1) {
+        break;
+      }
+
+      for (let column = startCol; column <= endCol; column++) {
+        for (let row = startRow; row <= endRow; row++) {
+          const zeroBasedColumnHeaderLevel = rowsCount + row;
+          const zeroBasedColumnIndex = column - startCol;
+
+          if (zeroBasedColumnIndex === 0) {
+            continue; // eslint-disable-line no-continue
+          }
+
+          const isRoot = this.#stateManager.getHeaderTreeNodeData(row, column)?.isRoot;
+
+          if (isRoot === false) {
+            data[zeroBasedColumnHeaderLevel][zeroBasedColumnIndex] = '';
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Allows blocking the column selection that is controlled by the core Selection module.
    *
    * @private
    * @param {MouseEvent} event Mouse event.
@@ -573,6 +649,27 @@ export class NestedHeaders extends BasePlugin {
     const cachedWidth = this.ghostTable.getWidth(column);
 
     return width > cachedWidth ? width : cachedWidth;
+  }
+
+  /**
+   * Listens the `modifyColumnHeaderValue` hook that overwrites the column headers values based on
+   * the internal state and settings of the plugin.
+   *
+   * @private
+   * @param {string} value The column header value.
+   * @param {number} visualColumnIndex The visual column index.
+   * @param {number} headerLevel The index of header level. The header level accepts positive (0 to N)
+   *                             and negative (-1 to -N) values. For positive values, 0 points to the
+   *                             top most header, and for negative direction, -1 points to the most bottom
+   *                             header (the header closest to the cells).
+   * @returns {string} Returns the column header value to update.
+   */
+  onModifyColumnHeaderValue(value, visualColumnIndex, headerLevel) {
+    const {
+      label,
+    } = this.#stateManager.getHeaderTreeNodeData(headerLevel, visualColumnIndex) ?? { label: '' };
+
+    return label;
   }
 
   /**

@@ -13,78 +13,117 @@ describe('ContextMenu', () => {
   });
 
   describe('cut', () => {
-    describe('UI', () => {
-      it('should enable the item when all rows are hidden', () => {
-        handsontable({
-          data: createSpreadsheetData(5, 5),
-          colHeaders: true,
-          contextMenu: true,
-          hiddenRows: { // The HidingMap should be used instead of the plugin.
-            rows: [0, 1, 2, 3, 4],
-          },
-        });
-
-        contextMenu(getCell(-1, 1)); // Column header "B"
-
-        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-          return this.textContent === 'Cut';
-        });
-
-        expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
+    it('should be available while creating custom menu', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: ['cut'],
       });
 
-      it('should enable the item when all columns are hidden', () => {
-        handsontable({
-          data: createSpreadsheetData(5, 5),
-          rowHeaders: true,
-          contextMenu: true,
-          hiddenColumns: { // The HidingMap should be used instead of the plugin.
-            columns: [0, 1, 2, 3, 4],
-          },
-        });
+      contextMenu(getCell(1, 1));
 
-        contextMenu(getCell(1, -1)); // Row header "2"
-
-        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-          return this.textContent === 'Cut';
-        });
-
-        expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        return this.textContent === 'Cut';
       });
 
-      it('should disable the item when all rows are trimmed', () => {
-        handsontable({
-          data: createSpreadsheetData(5, 5),
-          colHeaders: true,
-          contextMenu: true,
-          trimRows: [0, 1, 2, 3, 4], // The TrimmingMap should be used instead of the plugin.
-        });
+      expect(readOnlyItem[0]).not.toBeUndefined();
+    });
 
-        contextMenu(getCell(-1, 1)); // Column header "B"
-
-        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-          return this.textContent === 'Cut';
-        });
-
-        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+    it('should call plugin\'s `cut()` method after menu item click', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
       });
 
-      it('should disable the item when all columns are trimmed', () => {
-        handsontable({
-          data: createSpreadsheetData(5, 5),
-          rowHeaders: true,
-          contextMenu: true,
-          columns: [], // The TrimmingMap should be used instead of the `columns` option.
-        });
+      spyOn(getPlugin('copyPaste'), 'cut');
 
-        contextMenu(getCell(1, -1)); // Row header "2"
+      contextMenu(getCell(1, 1));
+      simulateClick($('.htContextMenu tbody tr td:contains("Cut")'));
 
-        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-          return this.textContent === 'Cut';
-        });
+      expect(getPlugin('copyPaste').cut).toHaveBeenCalled();
+    });
 
-        expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+    it('should enable the item when all rows are hidden', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        contextMenu: true,
       });
+
+      // hide all rows
+      hot.rowIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
+      render();
+
+      contextMenu(getCell(-1, 1)); // Column header "B"
+
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        return this.textContent === 'Cut';
+      });
+
+      expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
+    });
+
+    it('should enable the item when all columns are hidden', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      // hide all columns
+      hot.columnIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
+      render();
+
+      contextMenu(getCell(1, -1)); // Row header "2"
+
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        return this.textContent === 'Cut';
+      });
+
+      expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
+    });
+
+    it('should disable the item when all rows are trimmed', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        contextMenu: true,
+      });
+
+      // trim all rows
+      hot.rowIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
+      render();
+
+      contextMenu(getCell(-1, 1)); // Column header "B"
+
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        return this.textContent === 'Cut';
+      });
+
+      expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
+    });
+
+    it('should disable the item when all columns are trimmed', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      // trim all columns
+      hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
+      render();
+
+      contextMenu(getCell(1, -1)); // Row header "2"
+
+      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+        return this.textContent === 'Cut';
+      });
+
+      expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
     });
   });
 });

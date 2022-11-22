@@ -1,0 +1,7 @@
+{
+  "title": "Add feature that allows copy the column headers into the clipboard",
+  "type": "added",
+  "issue": 2288,
+  "breaking": false,
+  "framework": "none"
+}
