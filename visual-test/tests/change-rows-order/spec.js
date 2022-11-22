@@ -7,12 +7,12 @@ test('change order of rows', async({ page }, workerInfo) => {
   await page.goto('https://handsontable.com/demo');
   await expect(page).toHaveTitle('Data grid demo - Handsontable data grid for JavaScript, React, Angular, and Vue.');
 
-  const table = page.locator(helper.HOT.findMainTableBy);
+  const table = page.locator(helper.mainTableSelector);
 
   await table.waitFor();
 
-  const tbody = table.locator(helper.findTableBody);
-  const cell = tbody.locator(helper.findTh(5, 1));
+  const tbody = table.locator(helper.mainTableSelectorBody);
+  const cell = tbody.locator(helper.findCell({ row: 5, cell: 1, cellType: 'th' }));
 
   // Without coordinates `click` works on the middle of element,
   // what means that in this case it will deselect checkbox.

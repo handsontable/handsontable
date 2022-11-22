@@ -1,16 +1,9 @@
 export const helpers = {
-  HOT: {
-    findMainTableBy: '#hot'
-  },
+  mainTableSelector: '#hot',
+  mainTableSelectorBody: '> .ht_master > .wtHolder > .wtHider .wtSpreader table tbody',
+  mainTableSelectorHead: '> .ht_master > .wtHolder > .wtHider .wtSpreader table thead',
 
-  findTd(tr, td) {
-    return `> tr:nth-child(${tr}) > td:nth-child(${td})`;
+  findCell(options = { row: 1, cell: 1, cellType: 'td' }) {
+    return `> tr:nth-child(${options.row}) > ${options.cellType}:nth-child(${options.cell})`;
   },
-
-  findTh(tr, th) {
-    return `> tr:nth-child(${tr}) > th:nth-child(${th})`;
-  },
-
-  findTableBody: '> .ht_master > .wtHolder > .wtHider .wtSpreader table tbody',
-  findTableHead: '> .ht_master > .wtHolder > .wtHider .wtSpreader table thead',
 };

@@ -26,6 +26,6 @@ jobs:
           registry-url: https://registry.npmjs.org/
           cache: 'npm'
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
+          NODE_AUTH_TOKEN: ${{ secrets.ARGOS_TOKEN }}
       - run: npm install
       - run: npm run visual-test

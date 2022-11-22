@@ -8,6 +8,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@argos-ci/cli": "^0.2.5",
     "@playwright/test": "^1.27.1"
   }
 }
