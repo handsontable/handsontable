@@ -371,8 +371,10 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterGetColHeader
    * @param {number} column Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
-   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
-   *                                 values counting from 0 to N).
+   * @param {number} [headerLevel=0] The index of header level. The header level accepts positive (0 to N)
+   *                                 and negative (-1 to -N) values. For positive values, 0 points to the
+   *                                 top most header, and for negative direction, -1 points to the most bottom
+   *                                 header (the header closest to the cells).
    */
   'afterGetColHeader',
 
@@ -1461,7 +1463,7 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterCut
-   * @param {Array[]} data An array of arrays which contains the cutted out data.
+   * @param {Array[]} data An array of arrays which contains the cut out data.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                       which was cut out.
    */
@@ -1470,10 +1472,14 @@ const REGISTERED_HOOKS = [
   /**
    * Fired before values are copied into clipboard.
    *
+   * Since the 12.3.0 the hook is triggered with the 3rd `copiedHeadersCount` argument.
+   *
    * @event Hooks#beforeCopy
    * @param {Array[]} data An array of arrays which contains data to copied.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                         which will copied.
+   * @param {{ columnHeadersCount: number }} copiedHeadersCount An object with keys that holds information with
+   *                                                            the number of copied headers.
    * @returns {*} If returns `false` then copying is canceled.
    *
    * @example
@@ -1928,6 +1934,21 @@ const REGISTERED_HOOKS = [
    * @event Hooks#modifyColumnHeaderHeight
    */
   'modifyColumnHeaderHeight',
+
+  /**
+   * Fired while retrieving the column header value.
+   *
+   * @since 12.3.0
+   * @event Hooks#modifyColumnHeaderValue
+   * @param {string} value The column header value.
+   * @param {number} visualColumnIndex The visual column index.
+   * @param {number} [headerLevel=0] The index of header level. The header level accepts positive (0 to N)
+   *                                 and negative (-1 to -N) values. For positive values, 0 points to the
+   *                                 top most header, and for negative direction, -1 points to the most bottom
+   *                                 header (the header closest to the cells).
+   * @returns {string} Returns the column header value to update.
+   */
+  'modifyColumnHeaderValue',
 
   /**
    * Fired by {@link UndoRedo} plugin before the undo action. Contains information about the action that is being undone.

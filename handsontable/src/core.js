@@ -3593,15 +3593,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Returns an array of column headers (in string format, if they are enabled). If param `column` is given, it
    * returns the header at the given column.
    *
+   * Since the 12.3.0 the method accepts the 2nd `headerLevel` argument.
+   *
    * @memberof Core#
    * @function getColHeader
    * @param {number} [column] Visual column index.
+   * @param {number} [headerLevel=-1] The index of header level. The header level accepts positive (0 to N)
+   *                                  and negative (-1 to -N) values. For positive values, 0 points to the
+   *                                  top most header, and for negative direction, -1 points to the most bottom
+   *                                  header (the header closest to the cells).
    * @fires Hooks#modifyColHeader
+   * @fires Hooks#modifyColumnHeaderValue
    * @returns {Array|string|number} The column header(s).
    */
-  this.getColHeader = function(column) {
+  this.getColHeader = function(column, headerLevel = -1) {
     const columnIndex = instance.runHooks('modifyColHeader', column);
-    let result = tableMeta.colHeaders;
 
     if (columnIndex === void 0) {
       const out = [];
@@ -3611,48 +3617,51 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         out.push(instance.getColHeader(i));
       }
 
-      result = out;
-
-    } else {
-      const translateVisualIndexToColumns = function(visualColumnIndex) {
-        const arr = [];
-        const columnsLen = instance.countCols();
-        let index = 0;
-
-        for (; index < columnsLen; index++) {
-          if (isFunction(tableMeta.columns) && tableMeta.columns(index)) {
-            arr.push(index);
-          }
-        }
-
-        return arr[visualColumnIndex];
-      };
-
-      const physicalColumn = instance.toPhysicalColumn(columnIndex);
-      const prop = translateVisualIndexToColumns(physicalColumn);
-
-      if (tableMeta.colHeaders === false) {
-        result = null;
-
-      } else if (tableMeta.columns && isFunction(tableMeta.columns) && tableMeta.columns(prop) &&
-                 tableMeta.columns(prop).title) {
-        result = tableMeta.columns(prop).title;
-
-      } else if (tableMeta.columns && tableMeta.columns[physicalColumn] &&
-                 tableMeta.columns[physicalColumn].title) {
-        result = tableMeta.columns[physicalColumn].title;
-
-      } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== void 0) {
-        result = tableMeta.colHeaders[physicalColumn];
-
-      } else if (isFunction(tableMeta.colHeaders)) {
-        result = tableMeta.colHeaders(physicalColumn);
-
-      } else if (tableMeta.colHeaders && typeof tableMeta.colHeaders !== 'string' &&
-                 typeof tableMeta.colHeaders !== 'number') {
-        result = spreadsheetColumnLabel(columnIndex); // see #1458
-      }
+      return out;
     }
+
+    let result = tableMeta.colHeaders;
+
+    const translateVisualIndexToColumns = function(visualColumnIndex) {
+      const arr = [];
+      const columnsLen = instance.countCols();
+      let index = 0;
+
+      for (; index < columnsLen; index++) {
+        if (isFunction(tableMeta.columns) && tableMeta.columns(index)) {
+          arr.push(index);
+        }
+      }
+
+      return arr[visualColumnIndex];
+    };
+
+    const physicalColumn = instance.toPhysicalColumn(columnIndex);
+    const prop = translateVisualIndexToColumns(physicalColumn);
+
+    if (tableMeta.colHeaders === false) {
+      result = null;
+
+    } else if (tableMeta.columns && isFunction(tableMeta.columns) && tableMeta.columns(prop) &&
+               tableMeta.columns(prop).title) {
+      result = tableMeta.columns(prop).title;
+
+    } else if (tableMeta.columns && tableMeta.columns[physicalColumn] &&
+               tableMeta.columns[physicalColumn].title) {
+      result = tableMeta.columns[physicalColumn].title;
+
+    } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== void 0) {
+      result = tableMeta.colHeaders[physicalColumn];
+
+    } else if (isFunction(tableMeta.colHeaders)) {
+      result = tableMeta.colHeaders(physicalColumn);
+
+    } else if (tableMeta.colHeaders && typeof tableMeta.colHeaders !== 'string' &&
+               typeof tableMeta.colHeaders !== 'number') {
+      result = spreadsheetColumnLabel(columnIndex); // see #1458
+    }
+
+    result = instance.runHooks('modifyColumnHeaderValue', result, column, headerLevel);
 
     return result;
   };
