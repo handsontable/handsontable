@@ -148,10 +148,10 @@ export class CopyPaste extends BasePlugin {
    * Defines the data range to copy. Possible values:
    *  * `'cells-only'` Copy selected cells only;
    *  * `'column-headers-only'` Copy column headers only;
-   *  * `'with-column-group-headers'` Copy cells with group column headers;
+   *  * `'with-all-column-headers'` Copy cells with all column headers;
    *  * `'with-column-headers'` Copy cells with column headers;
    *
-   * @type {'cells-only' | 'column-headers-only' | 'with-column-group-headers' | 'with-column-headers'}
+   * @type {'cells-only' | 'column-headers-only' | 'with-all-column-headers' | 'with-column-headers'}
    */
   #copyMode = 'cells-only';
   /**
@@ -175,6 +175,8 @@ export class CopyPaste extends BasePlugin {
   #copyableRangesFactory = new CopyableRangesFactory({
     countRows: () => this.hot.countRows(),
     countColumns: () => this.hot.countCols(),
+    rowsLimit: () => this.rowsLimit,
+    columnsLimit: () => this.columnsLimit,
     countColumnHeaders: () => this.hot.view.getColumnHeadersCount(),
   });
   /**
@@ -262,12 +264,12 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Copies the selected cell with or without column headers to the clipboard.
+   * Copies the selected cell with or without column headers into the clipboard.
    *
-   * @param {'cells-only' | 'column-headers-only' | 'with-column-group-headers' | 'with-column-headers'} [copyMode='cells-only']
+   * @param {'cells-only' | 'column-headers-only' | 'with-all-column-headers' | 'with-column-headers'} [copyMode='cells-only']
    * Defines the data range to copy. Possible values: `cells-only` (copy selected cells only),
-   * `column-headers-only` (copy column headers only), `with-column-group-headers` (copy cells
-   * with group column headers) or `with-column-headers` (copy cells with column headers).
+   * `column-headers-only` (copy the most-bottom column headers only), `with-all-column-headers` (copy cells
+   * with all column headers levels) or `with-column-headers` (copy cells with the most-bottom column headers).
    */
   copy(copyMode = 'cells-only') {
     this.#copyMode = copyMode;
@@ -278,32 +280,32 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Copies the selected cell/cells to the clipboard.
+   * Copies the selected cell/cells into the clipboard.
    */
   copyCellsOnly() {
     this.copy('cells-only');
   }
   /**
-   * Copies the column headers to the clipboard.
+   * Copies only the most-bottom column headers into the clipboard.
    */
   copyColumnHeadersOnly() {
     this.copy('column-headers-only');
   }
   /**
-   * Copies the selected cell/cells including column group headers to the clipboard.
+   * Copies the selected cell/cells and all column headers levels (including column group) into the clipboard.
    */
-  copyWithColumnGroupHeaders() {
+  copyWithAllColumnHeaders() {
     this.copy('with-column-group-headers');
   }
   /**
-   * Copies the selected cell/cells including column headers to the clipboard.
+   * Copies the selected cell/cells and most-bottom column headers into the clipboard.
    */
   copyWithColumnHeaders() {
     this.copy('with-column-headers');
   }
 
   /**
-   * Cuts the selected cell to the clipboard.
+   * Cuts the selected cell into the clipboard.
    */
   cut() {
     this.#isTriggeredByCut = true;
@@ -393,48 +395,30 @@ export class CopyPaste extends BasePlugin {
       ['headers', null],
       ['cells', null],
     ]);
-    let cellsRange = null;
-    let hasCellsCopyLimitReached = false;
 
     if (this.#copyMode === 'column-headers-only') {
-      groupedRanges.set('headers', this.#copyableRangesFactory.getColumnGroupHeadersRange());
+      groupedRanges.set('headers', this.#copyableRangesFactory.getMostBottomColumnHeadersRange());
 
     } else {
       if (this.#copyMode === 'with-column-headers') {
-        groupedRanges.set('headers', this.#copyableRangesFactory.getColumnHeadersRange());
+        groupedRanges.set('headers', this.#copyableRangesFactory.getMostBottomColumnHeadersRange());
 
       } else if (this.#copyMode === 'with-column-group-headers') {
-        groupedRanges.set('headers', this.#copyableRangesFactory.getColumnGroupHeadersRange());
+        groupedRanges.set('headers', this.#copyableRangesFactory.getAllColumnHeadersRange());
       }
 
-      // Copy cells only for 'cells-only' or other type that does not match to the known `#copyMode` type.
-      cellsRange = this.#copyableRangesFactory.getCellsRange();
-
-      if (cellsRange !== null) {
-        const {
-          startRow, startCol, endRow, endCol
-        } = cellsRange;
-
-        const finalEndRow = Math.min(endRow, startRow + this.rowsLimit - 1);
-        const finalEndCol = Math.min(endCol, startCol + this.columnsLimit - 1);
-
-        hasCellsCopyLimitReached = endRow !== finalEndRow || endCol !== finalEndCol;
-
-        groupedRanges.set('cells', {
-          startRow,
-          startCol,
-          endRow: finalEndRow,
-          endCol: finalEndCol
-        });
-      }
+      groupedRanges.set('cells', this.#copyableRangesFactory.getCellsRange());
     }
 
     this.copyableRanges = Array.from(groupedRanges.values())
-      .filter(range => range !== null);
+      .filter(range => range !== null)
+      .map(({ startRow, startCol, endRow, endCol }) => ({ startRow, startCol, endRow, endCol }));
 
     this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
 
-    if (cellsRange !== null && hasCellsCopyLimitReached) {
+    const cellsRange = groupedRanges.get('cells');
+
+    if (cellsRange !== null && cellsRange.isRangeTrimmed) {
       const {
         startRow, startCol, endRow, endCol
       } = cellsRange;

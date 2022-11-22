@@ -24,6 +24,14 @@ export class CopyableRangesFactory {
   /**
    * @type {function(): number}
    */
+  #rowsLimit;
+  /**
+   * @type {function(): number}
+   */
+  #columnsLimit;
+  /**
+   * @type {function(): number}
+   */
   #countColumnHeaders;
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -31,12 +39,16 @@ export class CopyableRangesFactory {
    * @param {{
    *   countRows: function(): number,
    *   countColumns: function(): number,
+   *   rowsLimit: function(): number,
+   *   columnsLimit: function(): number,
    *   countColumnHeaders: function(): number
    * }} dependencies The utils class dependencies.
    */
-  constructor({ countRows, countColumns, countColumnHeaders }) {
+  constructor({ countRows, countColumns, rowsLimit, columnsLimit, countColumnHeaders }) {
     this.#countRows = countRows;
     this.#countColumns = countColumns;
+    this.#rowsLimit = rowsLimit;
+    this.#columnsLimit = columnsLimit;
     this.#countColumnHeaders = countColumnHeaders;
   }
   /* eslint-enable jsdoc/require-description-complete-sentence */
@@ -70,47 +82,26 @@ export class CopyableRangesFactory {
       col: endCol,
     } = this.#selectedRange.getBottomEndCorner();
 
+    const finalEndRow = this.#trimRowsRange(startRow, endRow);
+    const finalEndCol = this.#trimColumnsRange(startCol, endCol);
+    const isRangeTrimmed = endRow !== finalEndRow || endCol !== finalEndCol;
+
     return {
+      isRangeTrimmed,
       startRow,
       startCol,
-      endRow,
-      endCol,
+      endRow: finalEndRow,
+      endCol: finalEndCol,
     };
   }
 
   /**
-   * Returns a new coords object within the column headers range with `startRow`, `startCol`, `endRow`
-   * and `endCol` keys.
-   *
-   * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
-   */
-  getColumnHeadersRange() {
-    if (this.#countColumns() === 0) {
-      return null;
-    }
-
-    const {
-      col: startCol,
-    } = this.#selectedRange.getTopStartCorner();
-    const {
-      col: endCol,
-    } = this.#selectedRange.getBottomEndCorner();
-
-    return {
-      startRow: -1,
-      startCol,
-      endRow: -1,
-      endCol,
-    };
-  }
-
-  /**
-   * Returns a new coords object within the column group headers (nested headers) range with `startRow`,
+   * Returns a new coords object within the most-bottom column headers range with `startRow`,
    * `startCol`, `endRow` and `endCol` keys.
    *
    * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
    */
-  getColumnGroupHeadersRange() {
+  getMostBottomColumnHeadersRange() {
     if (this.#countColumns() === 0 || this.#countColumnHeaders() === 0) {
       return null;
     }
@@ -122,12 +113,68 @@ export class CopyableRangesFactory {
       col: endCol,
     } = this.#selectedRange.getBottomEndCorner();
 
+    const finalEndCol = this.#trimColumnsRange(startCol, endCol);
+    const isRangeTrimmed = endCol !== finalEndCol;
+
     return {
+      isRangeTrimmed,
+      startRow: -1,
+      startCol,
+      endRow: -1,
+      endCol: finalEndCol,
+    };
+  }
+
+  /**
+   * Returns a new coords object within all column headers layers (including nested headers) range with
+   * `startRow`, `startCol`, `endRow` and `endCol` keys.
+   *
+   * @returns {{startRow: number, startCol: number, endRow: number, endCol: number} | null}
+   */
+  getAllColumnHeadersRange() {
+    if (this.#countColumns() === 0 || this.#countColumnHeaders() === 0) {
+      return null;
+    }
+
+    const {
+      col: startCol,
+    } = this.#selectedRange.getTopStartCorner();
+    const {
+      col: endCol,
+    } = this.#selectedRange.getBottomEndCorner();
+
+    const finalEndCol = this.#trimColumnsRange(startCol, endCol);
+    const isRangeTrimmed = endCol !== finalEndCol;
+
+    return {
+      isRangeTrimmed,
       startRow: -this.#countColumnHeaders(),
       startCol,
       endRow: -1,
-      endCol,
+      endCol: finalEndCol,
     };
+  }
+
+  /**
+   * Trimmed the columns range to the limit.
+   *
+   * @param {*} startColumn The lowest column index in the range.
+   * @param {*} endColumn The highest column index in the range.
+   * @returns {number} Returns trimmed column index if it exceeds the limit.
+   */
+  #trimColumnsRange(startColumn, endColumn) {
+    return Math.min(endColumn, Math.max(startColumn + this.#columnsLimit() - 1, startColumn));
+  }
+
+  /**
+   * Trimmed the rows range to the limit.
+   *
+   * @param {*} startRow The lowest row index in the range.
+   * @param {*} endRow The highest row index in the range.
+   * @returns {number} Returns trimmed row index if it exceeds the limit.
+   */
+  #trimRowsRange(startRow, endRow) {
+    return Math.min(endRow, Math.max(startRow + this.#rowsLimit() - 1, startRow));
   }
 }
 

@@ -13,7 +13,7 @@ describe('CopyPaste', () => {
   });
 
   describe('context menu `copy_with_column_group_headers` action', () => {
-    it('should be available while creating custom menu', () => {
+    it('should be available with different noun forms while creating custom menu', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -27,16 +27,52 @@ describe('CopyPaste', () => {
         ],
       });
 
-      contextMenu(getCell(1, 1));
+      selectCell(1, 1);
+      contextMenu();
 
-      const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-        return this.textContent === 'Copy with group headers';
-      });
+      {
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Copy with group header';
+        });
 
-      expect(readOnlyItem[0]).not.toBeUndefined();
+        expect(readOnlyItem[0]).not.toBeUndefined();
+      }
+
+      selectCell(1, 1, 2, 1); // 2 rows are selected
+      contextMenu();
+
+      {
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Copy with group header';
+        });
+
+        expect(readOnlyItem[0]).not.toBeUndefined();
+      }
+
+      selectCell(1, 1, 1, 2); // 2 columns are selected
+      contextMenu();
+
+      {
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Copy with group headers';
+        });
+
+        expect(readOnlyItem[0]).not.toBeUndefined();
+      }
+
+      selectCells([[0, 0, 0, 0], [1, 1, 1, 2]]); // the last layer has selected 2 columns
+      contextMenu();
+
+      {
+        const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
+          return this.textContent === 'Copy with group headers';
+        });
+
+        expect(readOnlyItem[0]).not.toBeUndefined();
+      }
     });
 
-    it('should call plugin\'s `copyWithColumnGroupHeaders()` method after menu item click', () => {
+    it('should call plugin\'s `copyWithAllColumnHeaders()` method after menu item click', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -50,12 +86,12 @@ describe('CopyPaste', () => {
         ],
       });
 
-      spyOn(getPlugin('copyPaste'), 'copyWithColumnGroupHeaders');
+      spyOn(getPlugin('copyPaste'), 'copyWithAllColumnHeaders');
 
       contextMenu(getCell(1, 1));
-      simulateClick($('.htContextMenu tbody tr td:contains("Copy with group headers")'));
+      simulateClick($('.htContextMenu tbody tr td:contains("Copy with group header")'));
 
-      expect(getPlugin('copyPaste').copyWithColumnGroupHeaders).toHaveBeenCalled();
+      expect(getPlugin('copyPaste').copyWithAllColumnHeaders).toHaveBeenCalled();
     });
 
     it('should be enabled when the cells are selected and NestedHeaders plugin is enabled', () => {
@@ -75,7 +111,7 @@ describe('CopyPaste', () => {
       contextMenu(getCell(1, 1));
 
       const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-        return this.textContent === 'Copy with group headers';
+        return this.textContent === 'Copy with group header';
       });
 
       expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
@@ -95,7 +131,7 @@ describe('CopyPaste', () => {
       contextMenu(getCell(1, 1));
 
       const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-        return this.textContent === 'Copy with group headers';
+        return this.textContent === 'Copy with group header';
       });
 
       expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
@@ -115,7 +151,7 @@ describe('CopyPaste', () => {
       contextMenu(getCell(1, 1));
 
       const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
-        return this.textContent === 'Copy with group headers';
+        return this.textContent === 'Copy with group header';
       });
 
       expect(readOnlyItem.hasClass('htDisabled')).toBe(true);

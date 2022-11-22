@@ -24,6 +24,29 @@ describe('CopyPaste', () => {
       // simulated mouse events doesn't run the true browser event
     });
 
+    it('should reset the copy mode (internal state) to "cells-only" after each copy operation', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        copyPaste: true,
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(1, 1);
+
+      plugin.copyColumnHeadersOnly();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('B');
+
+      plugin.onCopy(copyEvent); // emulate native "copy" event triggered by Cmd/Ctrl+C (copy cells)
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
+    });
+
     it('should copy special characters to the clipboard', () => {
       handsontable({
         colHeaders: ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~'],

@@ -74,4 +74,58 @@ describe('Integration with other plugins', () => {
       expect(afterDropdownMenuShow).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('CopyPaste', () => {
+    beforeEach(() => {
+      // Installing spy stabilizes the tests. Without that on CI and real browser there are some
+      // differences in results.
+      spyOn(document, 'execCommand');
+    });
+
+    it('should copy cells and all column nested headers to the clipboard', () => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        copyPaste: {
+          copyColumnHeaders: true,
+          copyColumnGroupHeaders: true,
+          copyColumnHeadersOnly: true,
+        },
+        nestedHeaders: [
+          [{ label: 'a1', colspan: 3 }, 'b1'],
+          [{ label: 'a2', colspan: 2 }, 'b2', 'c2'],
+          [{ label: 'a3', colspan: 2 }, 'b3', 'c3'],
+        ],
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectAll();
+
+      plugin.copyWithAllColumnHeaders();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe([
+        'a1\t\t\tb1',
+        'a2\t\tb2\tc2',
+        'a3\t\tb3\tc3',
+        'A1\tB1\tC1\tD1',
+        'A2\tB2\tC2\tD2',
+      ].join('\n'));
+      expect(copyEvent.clipboardData.getData('text/html')).toBe([
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<table><tbody>',
+        '<tr><td>a1</td><td></td><td></td><td>b1</td></tr>',
+        '<tr><td>a2</td><td></td><td>b2</td><td>c2</td></tr>',
+        '<tr><td>a3</td><td></td><td>b3</td><td>c3</td></tr>',
+        '<tr><td>A1</td><td>B1</td><td>C1</td><td>D1</td></tr>',
+        '<tr><td>A2</td><td>B2</td><td>C2</td><td>D2</td></tr>',
+        '</tbody></table>',
+      ].join(''));
+    });
+  });
 });
