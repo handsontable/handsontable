@@ -82,8 +82,8 @@ export class CopyableRangesFactory {
       col: endCol,
     } = this.#selectedRange.getBottomEndCorner();
 
-    const finalEndRow = Math.min(endRow, Math.max(startRow + this.#rowsLimit() - 1, startRow));
-    const finalEndCol = Math.min(endCol, Math.max(startCol + this.#columnsLimit() - 1, startCol));
+    const finalEndRow = this.#trimRowsRange(startRow, endRow);
+    const finalEndCol = this.#trimColumnsRange(startCol, endCol);
     const isRangeTrimmed = endRow !== finalEndRow || endCol !== finalEndCol;
 
     return {
@@ -113,7 +113,7 @@ export class CopyableRangesFactory {
       col: endCol,
     } = this.#selectedRange.getBottomEndCorner();
 
-    const finalEndCol = Math.min(endCol, Math.max(startCol + this.#columnsLimit() - 1, startCol));
+    const finalEndCol = this.#trimColumnsRange(startCol, endCol);
     const isRangeTrimmed = endCol !== finalEndCol;
 
     return {
@@ -143,7 +143,7 @@ export class CopyableRangesFactory {
       col: endCol,
     } = this.#selectedRange.getBottomEndCorner();
 
-    const finalEndCol = Math.min(endCol, Math.max(startCol + this.#columnsLimit() - 1, startCol));
+    const finalEndCol = this.#trimColumnsRange(startCol, endCol);
     const isRangeTrimmed = endCol !== finalEndCol;
 
     return {
@@ -153,6 +153,28 @@ export class CopyableRangesFactory {
       endRow: -1,
       endCol: finalEndCol,
     };
+  }
+
+  /**
+   * Trimmed the columns range to the limit.
+   *
+   * @param {*} startColumn The lowest column index in the range.
+   * @param {*} endColumn The highest column index in the range.
+   * @returns {number} Returns trimmed column index if it exceeds the limit.
+   */
+  #trimColumnsRange(startColumn, endColumn) {
+    return Math.min(endColumn, Math.max(startColumn + this.#columnsLimit() - 1, startColumn));
+  }
+
+  /**
+   * Trimmed the rows range to the limit.
+   *
+   * @param {*} startRow The lowest row index in the range.
+   * @param {*} endRow The highest row index in the range.
+   * @returns {number} Returns trimmed row index if it exceeds the limit.
+   */
+  #trimRowsRange(startRow, endRow) {
+    return Math.min(endRow, Math.max(startRow + this.#rowsLimit() - 1, startRow));
   }
 }
 
