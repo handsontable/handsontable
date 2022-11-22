@@ -416,7 +416,7 @@ export class CopyPaste extends BasePlugin {
 
     this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
 
-    const cellsRange = groupedRanges.set('cells');
+    const cellsRange = groupedRanges.get('cells');
 
     if (cellsRange !== null && cellsRange.isRangeTrimmed) {
       const {
