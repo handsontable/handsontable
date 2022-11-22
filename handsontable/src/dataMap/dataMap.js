@@ -327,7 +327,7 @@ class DataMap {
     }
 
     const maxRows = this.tableMeta.maxRows;
-    const columnCount = this.instance.getSchema().length;
+    const columnCount = this.getSchema().length;
     const rowsToAdd = [];
 
     while (numberOfCreatedRows < amount && sourceRowsCount + numberOfCreatedRows < maxRows) {
@@ -465,6 +465,8 @@ class DataMap {
     this.instance.runHooks('afterCreateCol', newVisualColumnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
 
+    this.refreshDuckSchema();
+
     return {
       delta: numberOfCreatedCols,
       startPhysicalIndex,
@@ -583,6 +585,8 @@ class DataMap {
     this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
 
     this.instance.forceFullRender = true; // used when data was changed
+
+    this.refreshDuckSchema();
 
     return true;
   }

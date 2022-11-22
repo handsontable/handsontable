@@ -565,8 +565,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           if (colDelta) {
             metaManager.createColumn(startColumnPhysicalIndex, amount);
 
-            datamap.refreshDuckSchema();
-
             if (Array.isArray(tableMeta.colHeaders)) {
               const spliceArray = [instance.toVisualColumn(startColumnPhysicalIndex), 0];
 
@@ -703,8 +701,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               offset += groupAmount;
             });
-
-            datamap.refreshDuckSchema();
           };
 
           if (Array.isArray(index)) {
