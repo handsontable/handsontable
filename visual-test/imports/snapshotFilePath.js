@@ -1,3 +1,6 @@
+/**
+ *
+ */
 export default function snapshotFilePath(fileName, workerInfo) {
   // slash fix for windows
   const titlePath = workerInfo.titlePath[0].split('\\').join('/').split('/')[0];
