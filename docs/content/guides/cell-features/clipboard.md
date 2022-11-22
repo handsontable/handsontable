@@ -111,13 +111,13 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ### Copy with headers
 
-Copy the contents of column headers, using the additional [context menu](@/guides/accessories-and-menus/context-menu.md) actions:
+Let your users copy the contents of column headers, using the additional [`CopyPaste`](@/guides/accessories-and-menus/context-menu.md) actions:
 
-| Action                  | [`CopyPaste`](@/api/copyPaste.md) option               | Copied area                                                               |
-| ----------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------- |
-| Copy with headers       | [`copyColumnHeaders`](@/api/options.md#copypaste)      | ![copy_with_headers]({{$basePath}}/img/copy_with_headers.png)             |
-| Copy with group headers | [`copyColumnGroupHeaders`](@/api/options.md#copypaste) | ![copy_with_group_headers]({{$basePath}}/img/copy_with_group_headers.png) |
-| Copy headers only       | [`copyColumnHeadersOnly`](@/api/options.md#copypaste)  | ![copy_headers_only]({{$basePath}}/img/copy_headers_only.png)             |
+| Context menu item       | Option                                                                    | Copied area                                                               |
+| ----------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Copy with headers       | [`copyColumnHeaders`](@/api/options.md#copypaste-additional-options)      | ![copy_with_headers]({{$basePath}}/img/copy_with_headers.png)             |
+| Copy with group headers | [`copyColumnGroupHeaders`](@/api/options.md#copypaste-additional-options) | ![copy_with_group_headers]({{$basePath}}/img/copy_with_group_headers.png) |
+| Copy headers only       | [`copyColumnHeadersOnly`](@/api/options.md#copypaste-additional-options)  | ![copy_headers_only]({{$basePath}}/img/copy_headers_only.png)             |
 
 To enable these features, configure the [`CopyPaste`](@/api/copyPaste.md) plugin like this:
 

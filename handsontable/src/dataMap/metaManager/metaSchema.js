@@ -1207,6 +1207,8 @@ export default () => {
      * | `false`           | Disable the [`CopyPaste`](@/api/copyPaste.md) plugin                                                                   |
      * | An object         | - Enable the [`CopyPaste`](@/api/copyPaste.md) plugin<br>- Modify the [`CopyPaste`](@/api/copyPaste.md) plugin options |
      *
+     * ##### copyPaste: Additional options
+     *
      * If you set the `copyPaste` option to an object, you can set the following `CopyPaste` plugin options:
      *
      * | Option                   | Possible settings                                  | Description                                                                                                                                                                             |
