@@ -1,5 +1,5 @@
 {
-  "title": "Exported the `CellCoords` and `CellRange` classes to the public API.",
+  "title": "Exported the `CellCoords` and `CellRange` classes, to make them part of the public API.",
   "type": "added",
   "issue": 9755,
   "breaking": false,
