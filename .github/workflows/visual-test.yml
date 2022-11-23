@@ -24,5 +24,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm install
+        continue-on-error: true
       - run: npm run visual-test
-      
+
