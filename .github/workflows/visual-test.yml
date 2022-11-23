@@ -26,4 +26,4 @@ jobs:
       - run: npm install
       - run: npm run visual-test
       - run: npm install --save-dev @argos-ci/cli
-      - run: npx @argos-ci/cli upload ./visual-test/tests/screenshots
+      - run: npx @argos-ci/cli upload ./visual-test/tests
