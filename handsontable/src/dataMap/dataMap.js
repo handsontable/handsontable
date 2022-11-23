@@ -96,7 +96,7 @@ class DataMap {
      *
      * @type {object}
      */
-    this.duckSchema = this.dataSource && this.dataSource[0] ? duckSchema(this.dataSource[0]) : {};
+    this.duckSchema = this.createDuckSchema();
     /**
      * Cached array of properties to columns.
      *
@@ -280,6 +280,22 @@ class DataMap {
   }
 
   /**
+   * Creates the duck schema based on the current dataset.
+   *
+   * @returns {Array|object}
+   */
+  createDuckSchema() {
+    return this.dataSource && this.dataSource[0] ? duckSchema(this.dataSource[0]) : {};
+  }
+
+  /**
+   * Refresh the data schema.
+   */
+  refreshDuckSchema() {
+    this.duckSchema = this.createDuckSchema();
+  }
+
+  /**
    * Creates row at the bottom of the data array.
    *
    * @param {number} [index] Physical index of the row before which the new row will be inserted.
@@ -311,7 +327,7 @@ class DataMap {
     }
 
     const maxRows = this.tableMeta.maxRows;
-    const columnCount = this.instance.countCols();
+    const columnCount = this.getSchema().length;
     const rowsToAdd = [];
 
     while (numberOfCreatedRows < amount && sourceRowsCount + numberOfCreatedRows < maxRows) {
@@ -350,6 +366,12 @@ class DataMap {
     this.spliceData(physicalRowIndex, 0, rowsToAdd);
 
     const newVisualRowIndex = this.instance.toVisualRow(physicalRowIndex);
+
+    // In case the created rows are the only ones in the table, the column index mappers need to be rebuilt based on
+    // the number of columns created in the row or the schema.
+    if (this.instance.countSourceRows() === rowsToAdd.length) {
+      this.instance.columnIndexMapper.initToLength(this.instance.getInitialColumnCount());
+    }
 
     this.instance.runHooks('afterCreateRow', newVisualRowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -442,6 +464,8 @@ class DataMap {
 
     this.instance.runHooks('afterCreateCol', newVisualColumnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
+
+    this.refreshDuckSchema();
 
     return {
       delta: numberOfCreatedCols,
@@ -561,6 +585,8 @@ class DataMap {
     this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
 
     this.instance.forceFullRender = true; // used when data was changed
+
+    this.refreshDuckSchema();
 
     return true;
   }

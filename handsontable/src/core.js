@@ -1069,9 +1069,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                   const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : (orgValue[0] || orgValue));
                   const valueSchema = duckSchema(Array.isArray(value) ? value : (value[0] || value));
 
-                  /* eslint-disable max-depth */
-                  if (isObjectEqual(orgValueSchema, valueSchema)) {
+                  // Allow overwriting values with the same object-based schema or any array-based schema.
+                  if (
+                    isObjectEqual(orgValueSchema, valueSchema) ||
+                    (Array.isArray(orgValueSchema) && Array.isArray(valueSchema))
+                  ) {
                     value = deepClone(value);
+
                   } else {
                     pushData = false;
                   }
