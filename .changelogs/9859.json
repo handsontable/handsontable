@@ -1,0 +1,7 @@
+{
+  "title": "Add missing TypeScript definitions for the manual column freeze hooks.",
+  "type": "added",
+  "issue": 9859,
+  "breaking": false,
+  "framework": "none"
+}
