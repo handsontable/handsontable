@@ -24,7 +24,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm install
-      - name: run visual tests and upload to Argos CI
+      - name: run visual tests
+        run: npm run visual-test
+      - name: upload images to Argos CI
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
-        run: npm run visual-test
+        run: npx @argos-ci/cli upload ./visual-test/tests
