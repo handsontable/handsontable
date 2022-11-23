@@ -80,7 +80,9 @@ displaySeparator();
       await spawnProcess(`git pull origin ${docsVersion}`);
 
     } else {
-      await spawnProcess(`git checkout -b ${docsVersion}`);
+      // Create a new branch based on the `master` branch (not `develop` branch). Thanks to that, the docs
+      // branch will not contain the code changes made between freeze and release.
+      await spawnProcess(`git checkout -b ${docsVersion} master`);
       // Remove "/content/api/" entry from the ./docs/.gitignore file so generated API
       // docs can be committed to the branch.
       await execa.command('cat ./.gitignore | grep -v "^/content/api/$" | tee .gitignore', {
