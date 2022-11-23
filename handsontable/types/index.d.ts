@@ -261,6 +261,9 @@ declare namespace Handsontable {
     ColumnSettings,
     GridSettings,
     NumericFormatOptions,
+    // coords
+    CellCoords,
+    CellRange,
 
     RecordTranslation,
   };
