@@ -29,3 +29,4 @@ jobs:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
       - run: npm install
       - run: npm run visual-test
+      - run: npx @argos-ci/cli upload ./tests/screenshots
