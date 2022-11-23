@@ -1,10 +1,17 @@
 import CellCoords from './../cell/coords';
 
 /**
- * CellRange holds cell coordinates as {@link CellCoords} instances. This object represent unit of the selection layer which
- * can contains multiple contiguous cells or single cell.
+ * @description
  *
- * @util
+ * CellRange holds cell coordinates as {@link CellCoords} instances. This object represent unit
+ * of the selection layer which can contains multiple contiguous cells or single cell.
+ *
+ * The class is available to import as:
+ * ```js
+ * import Handsontable, { CellRange } from '/handsontable';
+ * // or modularized version
+ * import Handsontable, { CellRange } from '/handsontable/base';
+ * ```
  */
 class CellRange {
   /**
@@ -12,6 +19,7 @@ class CellRange {
    * when you press Enter. The highlight cannot point to headers (negative values) so its
    * coordinates object is normalized while assigning.
    *
+   * @private
    * @type {CellCoords}
    */
   highlight = null;
@@ -19,12 +27,14 @@ class CellRange {
    * Usually the same as highlight, but in Excel there is distinction - one can change
    * highlight within a selection.
    *
+   * @private
    * @type {CellCoords}
    */
   from = null;
   /**
    * End selection.
    *
+   * @private
    * @type {CellCoords}
    */
   to = null;
@@ -668,7 +678,7 @@ class CellRange {
 
   /**
    * @param {CellRange} range The cells range to compare with.
-   * @returns {Array}
+   * @returns {Array<'top' | 'right' | 'bottom' | 'left'>}
    */
   getBordersSharedWith(range) {
     if (!this.includesRange(range)) {
@@ -708,7 +718,7 @@ class CellRange {
   /**
    * Get inner selected cell coords defined by this range.
    *
-   * @returns {Array}
+   * @returns {CellCoords[]}
    */
   getInner() {
     const topStart = this.getOuterTopStartCorner();
@@ -729,7 +739,7 @@ class CellRange {
   /**
    * Get all selected cell coords defined by this range.
    *
-   * @returns {Array}
+   * @returns {CellCoords[]}
    */
   getAll() {
     const topStart = this.getOuterTopStartCorner();
@@ -757,7 +767,7 @@ class CellRange {
    * Runs a callback function against all cells in the range. You can break the iteration by returning
    * `false` in the callback function.
    *
-   * @param {Function} callback The callback function.
+   * @param {function(number, number): boolean} callback The callback function.
    */
   forAll(callback) {
     const topStart = this.getOuterTopStartCorner();
@@ -786,8 +796,8 @@ class CellRange {
   /**
    * Convert CellRange to literal object.
    *
-   * @returns {object} Returns a literal object with `from` and `to` properties which each of that object
-   *                  contains `row` and `col` keys.
+   * @returns {{from: {row: number, col: number}, to: {row: number, col: number}}} Returns a literal object with `from` and `to` properties which each of that object
+   * contains `row` and `col` keys.
    */
   toObject() {
     return {

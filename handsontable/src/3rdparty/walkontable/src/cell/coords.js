@@ -1,7 +1,15 @@
 /**
- * CellCoords holds cell coordinates (row, column) and few method to validate them and retrieve as an array or an object.
+ * @description
  *
- * @util
+ * CellCoords holds cell coordinates (row, column) and few method to validate them and retrieve
+ * as an array or an object.
+ *
+ * The class is available to import as:
+ * ```js
+ * import Handsontable, { CellCoords } from '/handsontable';
+ * // or modularized version
+ * import Handsontable, { CellCoords } from '/handsontable/base';
+ * ```
  */
 class CellCoords {
   /**
@@ -66,7 +74,7 @@ class CellCoords {
   /**
    * Checks if tested coordinates are positioned in south-east from this cell coordinates.
    *
-   * @param {object} testedCoords Cell coordinates to check.
+   * @param {CellCoords} testedCoords Cell coordinates to check.
    * @returns {boolean}
    */
   isSouthEastOf(testedCoords) {
@@ -77,7 +85,7 @@ class CellCoords {
   /**
    * Checks if tested coordinates are positioned in north-east from this cell coordinates.
    *
-   * @param {object} testedCoords Cell coordinates to check.
+   * @param {CellCoords} testedCoords Cell coordinates to check.
    * @returns {boolean}
    */
   isNorthWestOf(testedCoords) {
@@ -88,7 +96,7 @@ class CellCoords {
   /**
    * Checks if tested coordinates are positioned in south-west from this cell coordinates.
    *
-   * @param {object} testedCoords Cell coordinates to check.
+   * @param {CellCoords} testedCoords Cell coordinates to check.
    * @returns {boolean}
    */
   isSouthWestOf(testedCoords) {
@@ -99,7 +107,7 @@ class CellCoords {
   /**
    * Checks if tested coordinates are positioned in north-east from this cell coordinates.
    *
-   * @param {object} testedCoords Cell coordinates to check.
+   * @param {CellCoords} testedCoords Cell coordinates to check.
    * @returns {boolean}
    */
   isNorthEastOf(testedCoords) {
@@ -132,7 +140,7 @@ class CellCoords {
   /**
    * Converts CellCoords to literal object with `row` and `col` properties.
    *
-   * @returns {object} Returns a literal object with `row` and `col` properties.
+   * @returns {{row: number, col: number}} Returns a literal object with `row` and `col` properties.
    */
   toObject() {
     return {
