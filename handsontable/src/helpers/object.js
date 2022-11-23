@@ -10,7 +10,8 @@ export function duckSchema(object) {
   let schema;
 
   if (Array.isArray(object)) {
-    schema = [];
+    schema = object.length ? new Array(object.length).fill(null) : [];
+
   } else {
     schema = {};
 
