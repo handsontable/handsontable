@@ -24,6 +24,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm install
-        continue-on-error: true
-      - run: npm run visual-test
-
+      - name: run visual tests and upllad to Argos CI
+        env:
+          ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
+        run: npm run visual-test
