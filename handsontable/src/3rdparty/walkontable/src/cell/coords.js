@@ -1,7 +1,8 @@
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
  *
- * CellCoords holds cell coordinates (row, column) and few method to validate them and retrieve
+ * The CellCoords class holds cell coordinates (row, column) and few method to validate them and retrieve
  * as an array or an object.
  *
  * The class is available to import as:
