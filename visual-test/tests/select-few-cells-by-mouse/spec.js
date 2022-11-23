@@ -1,4 +1,4 @@
-import snapshotFilePath from '../../imports/snapshotFilePath';
+import screenshotFilePath from '../../imports/screenshotFilePath';
 
 const { test, expect } = require('@playwright/test');
 
@@ -26,5 +26,5 @@ test('select cells by mouse', async({ page }, workerInfo) => {
     cellCoordinates.x + (cellCoordinates.width / 2) + 100, cellCoordinates.y + (cellCoordinates.height / 2) + 100
   );
   await page.mouse.up();
-  await page.screenshot({ path: snapshotFilePath('1', workerInfo) });
+  await page.screenshot({ path: screenshotFilePath('1', workerInfo) });
 });

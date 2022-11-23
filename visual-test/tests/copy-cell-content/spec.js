@@ -1,4 +1,4 @@
-import snapshotFilePath from '../../imports/snapshotFilePath';
+import screenshotFilePath from '../../imports/screenshotFilePath';
 import getModifier from '../../imports/getModifier';
 
 const { test, expect } = require('@playwright/test');
@@ -22,7 +22,7 @@ test('copy content from one cell to another, modify cell content', async({ page 
   cell = tbody.locator('> tr:nth-child(2) > td:nth-child(3)');
 
   await cell.click();
-  await page.screenshot({ path: snapshotFilePath('1', workerInfo) });
+  await page.screenshot({ path: screenshotFilePath('1', workerInfo) });
   await page.keyboard.press(`${modifier}+c`);
   await cell.press('Delete');
 
@@ -37,9 +37,9 @@ test('copy content from one cell to another, modify cell content', async({ page 
   cell = tbody.locator('> tr:nth-child(3) > td:nth-child(3)');
   await cell.click();
 
-  await page.screenshot({ path: snapshotFilePath('2', workerInfo) });
+  await page.screenshot({ path: screenshotFilePath('2', workerInfo) });
   await page.keyboard.down(`${modifier}`);
   await page.keyboard.press('v');
   await page.keyboard.up(`${modifier}`);
-  await page.screenshot({ path: snapshotFilePath('3', workerInfo) });
+  await page.screenshot({ path: screenshotFilePath('3', workerInfo) });
 });

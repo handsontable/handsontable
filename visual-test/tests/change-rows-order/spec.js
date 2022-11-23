@@ -1,4 +1,4 @@
-import snapshotFilePath from '../../imports/snapshotFilePath';
+import screenshotFilePath from '../../imports/screenshotFilePath';
 import { helpers as helper } from '../../imports/helpers';
 
 const { test, expect } = require('@playwright/test');
@@ -22,7 +22,7 @@ test('change order of rows', async({ page }, workerInfo) => {
   // cause button is marked by Playwright as `hidden`
   // (it is covered by another layer nad in deafult Playwright won't click it)
   await cell.click({ position: { x: 1, y: 1 }, force: true });
-  await page.screenshot({ path: snapshotFilePath('1', workerInfo) });
+  await page.screenshot({ path: screenshotFilePath('1', workerInfo) });
 
   const cellCoordinates = await cell.boundingBox();
 
@@ -30,5 +30,5 @@ test('change order of rows', async({ page }, workerInfo) => {
   await page.mouse.down();
   await page.mouse.move(cellCoordinates.x + 1, cellCoordinates.y - 50);
   await page.mouse.up();
-  await page.screenshot({ path: snapshotFilePath('2', workerInfo) });
+  await page.screenshot({ path: screenshotFilePath('2', workerInfo) });
 });

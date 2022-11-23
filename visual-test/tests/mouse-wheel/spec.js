@@ -1,4 +1,4 @@
-import snapshotFilePath from '../../imports/snapshotFilePath';
+import screenshotFilePath from '../../imports/screenshotFilePath';
 
 const { test, expect } = require('@playwright/test');
 
@@ -17,15 +17,15 @@ test('test mouse wheel', async({ page }, workerInfo) => {
   await table.waitFor();
   await page.mouse.wheel(0, 200);
   await page.waitForTimeout(1000);
-  await page.screenshot({ path: snapshotFilePath('1', workerInfo) });
+  await page.screenshot({ path: screenshotFilePath('1', workerInfo) });
 
   await page.mouse.move(
     tbodyCoordinates.x + (tbodyCoordinates.width / 2), tbodyCoordinates.y + (tbodyCoordinates.height / 2)
   );
   await page.mouse.wheel(0, 270);
   await page.waitForTimeout(1000);
-  await page.screenshot({ path: snapshotFilePath('2', workerInfo) });
+  await page.screenshot({ path: screenshotFilePath('2', workerInfo) });
   await page.mouse.wheel(0, -270);
   await page.waitForTimeout(1000);
-  await page.screenshot({ path: snapshotFilePath('3', workerInfo) });
+  await page.screenshot({ path: screenshotFilePath('3', workerInfo) });
 });

@@ -1,4 +1,4 @@
-import snapshotFilePath from '../../imports/snapshotFilePath';
+import screenshotFilePath from '../../imports/screenshotFilePath';
 
 const { test, expect } = require('@playwright/test');
 
@@ -20,8 +20,8 @@ test('expand dropdown menu and clear column', async({ page }, workerInfo) => {
   await changeTypeButton.click();
   const dropdownMenu = page.locator('.htMenu.htDropdownMenu.handsontable');
 
-  await page.screenshot({ path: snapshotFilePath('1', workerInfo) });
-  await dropdownMenu.screenshot({ path: snapshotFilePath('2', workerInfo) });
+  await page.screenshot({ path: screenshotFilePath('1', workerInfo) });
+  await dropdownMenu.screenshot({ path: screenshotFilePath('2', workerInfo) });
   await dropdownMenu.locator('"Clear column"').click();
-  await page.screenshot({ path: snapshotFilePath('3', workerInfo) });
+  await page.screenshot({ path: screenshotFilePath('3', workerInfo) });
 });
