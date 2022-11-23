@@ -5,5 +5,6 @@ await spawnProcess('npm install');
 await spawnProcess('npx playwright install --with-deps');
 await spawnProcess('npx playwright test');
 await spawnProcess('npm install --save-dev @argos-ci/cli');
+console.log(process);
 await spawnProcess('npx @argos-ci/cli upload ./tests');
 
