@@ -3,10 +3,7 @@ name: Visual tests
 on:
   workflow_dispatch:
   push:
-    branches: [ "develop" ]
-  pull_request:
-    branches: [ "develop" ]
-
+  
 env:
   NODE_VERSION: 16
 
@@ -28,4 +25,3 @@ jobs:
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
         run: npm run visual-test
-        
