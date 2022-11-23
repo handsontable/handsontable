@@ -1,0 +1,7 @@
+{
+  "title": "Export `CellCoords` and `CellRange` classes to the public.",
+  "type": "added",
+  "issue": 9755,
+  "breaking": false,
+  "framework": "none"
+}
