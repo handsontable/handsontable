@@ -69,6 +69,8 @@ import {
 } from './validators';
 import * as helper from './helpers';
 import * as dom from './helpers/dom';
+import CellCoords from './3rdparty/walkontable/src/cell/coords';
+import CellRange from './3rdparty/walkontable/src/cell/range';
 import EventManager from './eventManager';
 import { Hooks } from './pluginHooks';
 // plugins
@@ -517,4 +519,8 @@ declare class Handsontable extends Core {
   static version: string;
 }
 
+export {
+  CellCoords,
+  CellRange,
+};
 export default Handsontable;

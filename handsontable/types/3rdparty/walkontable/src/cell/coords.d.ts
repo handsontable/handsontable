@@ -1,5 +1,5 @@
 export default class CellCoords {
-  constructor(row: number, column: number);
+  constructor(row: number, column: number, isRtl: boolean = false);
 
   row: number;
   col: number;

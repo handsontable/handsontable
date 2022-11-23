@@ -1,6 +1,12 @@
-import Handsontable from 'handsontable';
+import Handsontable, {
+  CellCoords,
+  CellRange,
+} from 'handsontable';
 
 const elem = document.createElement('div');
+
+const cellCoords = new CellCoords(1, 2);
+const cellRange = new CellRange(cellCoords, cellCoords, cellCoords);
 
 // Verify the various top-level namespace APIs exist
 Handsontable.baseVersion.toUpperCase();
