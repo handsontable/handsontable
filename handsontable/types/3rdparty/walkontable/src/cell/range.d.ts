@@ -3,7 +3,7 @@ import CellCoords from './coords';
 type DirectionType = 'NW-SE' | 'NE-SW' | 'SE-NW' | 'SW-NE';
 
 export default class CellRange {
-  constructor(highlight: CellCoords, from?: CellCoords, to?: CellCoords, isRtl: boolean = false);
+  constructor(highlight: CellCoords, from?: CellCoords, to?: CellCoords, isRtl?: boolean);
 
   highlight: CellCoords;
   from: CellCoords;
