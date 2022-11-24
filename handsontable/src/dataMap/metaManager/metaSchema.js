@@ -1211,18 +1211,19 @@ export default () => {
      *
      * If you set the `copyPaste` option to an object, you can set the following `CopyPaste` plugin options:
      *
-     * | Option                   | Possible settings                                  | Description                                                                                                                                                                             |
-     * | ------------------------ | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `columnsLimit`           | A number (default: `Infinity`)                     | A maximum number of columns that can be copied                                                                                                                                          |
-     * | `rowsLimit`              | A number (default: `Infinity`)                     | A maximum number of columns that can be copied                                                                                                                                          |
-     * | `pasteMode`              | `'overwrite'` \| `'shift_down'` \| `'shift_right'` | When pasting:<br>`'overwrite'`: overwrite currently-selected cells<br>`'shift_down'`: move currently-selected cells down<br>`'shift_right'`: move currently-selected cells to the right |
-     * | `copyColumnHeaders`      | Boolean (default: `false`)                         | `true`: add the option to copy cells along with their nearest column headers                                                                                                            |
-     * | `copyColumnGroupHeaders` | Boolean (default: `false`)                         | `true`: add the option to copy cells along with all their related columns headers                                                                                                       |
-     * | `copyColumnHeadersOnly`  | Boolean (default: `false`)                         | `true`: add the option to copy just column headers (without copying cells)                                                                                                              |
-     * | `uiContainer`            | An HTML element                                    | A UI container for the secondary focusable element                                                                                                                                      |
+     * | Option                   | Possible settings                                  | Description                                                                                                                                                                                         |
+     * | ------------------------ | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `columnsLimit`           | A number (default: `Infinity`)                     | The maximum number of columns that can be copied                                                                                                                                                    |
+     * | `rowsLimit`              | A number (default: `Infinity`)                     | The maximum number of columns that can be copied                                                                                                                                                    |
+     * | `pasteMode`              | `'overwrite'` \| `'shift_down'` \| `'shift_right'` | When pasting:<br>`'overwrite'`: overwrite the currently-selected cells<br>`'shift_down'`: move the currently-selected cells down<br>`'shift_right'`: move the currently-selected cells to the right |
+     * | `copyColumnHeaders`      | Boolean (default: `false`)                         | `true`: add the option to copy cells along with their nearest column headers                                                                                                                        |
+     * | `copyColumnGroupHeaders` | Boolean (default: `false`)                         | `true`: add the option to copy cells along with all their related columns headers                                                                                                                   |
+     * | `copyColumnHeadersOnly`  | Boolean (default: `false`)                         | `true`: add the option to copy just column headers that are nearest to the selected cells (without copying cells)                                                                                   |
+     * | `uiContainer`            | An HTML element                                    | The UI container for the secondary focusable element                                                                                                                                                |
      *
      * Read more:
      * - [Plugins: `CopyPaste`](@/api/copyPaste.md)
+     * - [Guides: Clipboard](@/guides/cell-features/clipboard.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -1231,16 +1232,18 @@ export default () => {
      *
      * @example
      * ```js
-     * // disable the `CopyPaste` plugin
+     * // enable the plugin with the default configuration
+     * copyPaste: true // set by default
+     *
+     * // disable the plugin
      * copyPaste: false,
      *
-     * // enable the `CopyPaste` plugin
-     * // and modify the `CopyPaste` plugin options
+     * // enable the plugin with a custom configuration
      * copyPaste: {
-     *   // set the maximum number of columns that can be copied
+     *   // set a maximum number of columns that can be copied
      *   columnsLimit: 25,
      *
-     *   // set the maximum number of rows that can be copied
+     *   // set a maximum number of rows that can be copied
      *   rowsLimit: 50,
      *
      *   // set the paste behavior
@@ -1255,7 +1258,7 @@ export default () => {
      *   // add the option to copy just column headers (without copying cells)
      *   copyColumnHeadersOnly: true,
      *
-     *   // set the UI container
+     *   // set a UI container
      *   uiContainer: document.body,
      * },
      * ```

@@ -1407,7 +1407,7 @@ const REGISTERED_HOOKS = [
   'modifyCopyableRange',
 
   /**
-   * Fired by {@link CopyPaste} plugin before copying the values into clipboard and before clearing values of
+   * Fired by {@link CopyPaste} plugin before copying the values to the clipboard and before clearing values of
    * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforeCut
@@ -1470,7 +1470,7 @@ const REGISTERED_HOOKS = [
   'afterCut',
 
   /**
-   * Fired before values are copied into clipboard.
+   * Fired before values are copied to the clipboard.
    *
    * Since the 12.3.0 the hook is triggered with the 3rd `copiedHeadersCount` argument.
    *

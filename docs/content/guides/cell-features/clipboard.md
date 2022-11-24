@@ -111,7 +111,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ### Copy with headers
 
-Let your users copy the contents of column headers, using the additional [`CopyPaste`](@/guides/accessories-and-menus/context-menu.md) options:
+Let the user copy the contents of column headers, using the additional [`CopyPaste`](@/guides/accessories-and-menus/context-menu.md) options:
 
 | Context menu item       | Option                                                                    | Copied area                                                               |
 | ----------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
