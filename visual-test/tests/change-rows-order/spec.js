@@ -12,7 +12,7 @@ test('change order of rows', async({ page }, workerInfo) => {
   await table.waitFor();
 
   const tbody = table.locator(helper.mainTableSelectorBody);
-  const cell = tbody.locator(helper.findCell({ row: 5, cell: 1, cellType: 'th' }));
+  const cell = tbody.locator(helper.findCell({ row: 6, cell: 1, cellType: 'th' }));
 
   // Without coordinates `click` works on the middle of element,
   // what means that in this case it will deselect checkbox.
