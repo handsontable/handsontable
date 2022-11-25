@@ -172,7 +172,6 @@ export class CopyPaste extends BasePlugin {
    * @type {boolean}
    */
   #isTriggeredByCut = false;
-
   /**
    * Class that helps generate copyable ranges based on the current selection for different copy mode
    * types.
