@@ -102,7 +102,6 @@ export class CopyPaste extends BasePlugin {
    * @default Infinity
    */
   rowsLimit = Infinity;
-
   /**
    * When pasting:
    * - `'overwrite'`: overwrite the currently-selected cells
