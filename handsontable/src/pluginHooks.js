@@ -1538,6 +1538,7 @@ const REGISTERED_HOOKS = [
    * @param {Array[]} data An array of arrays which contains the copied data.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                         which was copied.
+   * @param {{ columnHeadersCount: number }} copiedHeadersCount (Since 12.3.0) The number of copied column headers.
    */
   'afterCopy',
 
