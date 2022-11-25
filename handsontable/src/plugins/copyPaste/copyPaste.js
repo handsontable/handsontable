@@ -186,7 +186,6 @@ export class CopyPaste extends BasePlugin {
     columnsLimit: () => this.columnsLimit,
     countColumnHeaders: () => this.hot.view.getColumnHeadersCount(),
   });
-
   /**
    * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
    *
