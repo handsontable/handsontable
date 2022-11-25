@@ -194,7 +194,6 @@ export class CopyPaste extends BasePlugin {
    * @type {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>}
    */
   copyableRanges = [];
-
   /**
    * Provides focusable element to support IME and copy/paste/cut actions.
    *
