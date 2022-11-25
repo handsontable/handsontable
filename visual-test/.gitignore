@@ -2,5 +2,6 @@ node_modules/
 /test-results/
 /playwright-report/
 /playwright/.cache/
-/tests/*/screenshots/
+/tests/screenshots/
 /tests/*/snapshots
+/tests/*/screenshots

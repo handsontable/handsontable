@@ -1,6 +1,6 @@
 export default function screenshotFilePath(fileName, workerInfo) {
   // slash fix for windows
-  const titlePath = workerInfo.titlePath[0].split('\\').join('/').split('/')[0];
+  const titlePath = workerInfo.titlePath[0].split('.spec.js')[0];
 
-  return `tests/${titlePath}/screenshots/${workerInfo.project.name}/${fileName}.png`;
+  return `./tests/screenshots/${titlePath}/${workerInfo.project.name}/${fileName}.png`;
 }
