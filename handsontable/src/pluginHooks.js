@@ -371,7 +371,7 @@ const REGISTERED_HOOKS = [
    * @param {HTMLTableCellElement} TH Header's TH element.
    * @param {number} [headerLevel=0] (Since 12.2.0) Header level index. Accepts positive (0 to n)
    *                                 and negative (-1 to -n) values. For positive values, 0 points to the
-   *                                 topmost header. For negative values, -1 points to the bottommost
+   *                                 topmost header. For negative values, -1 points to the bottom-most
    *                                 header (the header closest to the cells).
    */
   'afterGetColHeader',
@@ -1939,7 +1939,7 @@ const REGISTERED_HOOKS = [
    * @param {number} visualColumnIndex A visual column index.
    * @param {number} [headerLevel=0] Header level index. Accepts positive (0 to n)
    *                                 and negative (-1 to -n) values. For positive values, 0 points to the
-   *                                 topmost header. For negative values, -1 points to the bottommost
+   *                                 topmost header. For negative values, -1 points to the bottom-most
    *                                 header (the header closest to the cells).
    * @returns {string} The column header value to be updated.
    */

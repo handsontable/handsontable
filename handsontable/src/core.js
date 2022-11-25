@@ -3596,12 +3596,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Gets the values of column headers (if column headers are [enabled](@/api/options.md#colheaders)).
    *
-   * To get an array with the values of all column headers, call `getColHeader()` with no arguments.
+   * To get an array with the values of all
+   * [bottom-most](@/guides/cell-features/clipboard.md#copy-with-headers) column headers,
+   * call `getColHeader()` with no arguments.
    *
-   * To get the value of a specific column header , use the `column` parameter.
+   * To get the value of the bottom-most header of a specific column, use the `column` parameter.
    *
-   * To get the values of column headers at [a specific level](@/guides/columns/column-groups.md),
-   * use the `headerLevel` parameter.
+   * To get the value of a [specific-level](@/guides/columns/column-groups.md) header
+   * of a specific column, use the `column` and `headerLevel` parameters.
    *
    * Read more:
    * - [Guides: Column groups](@/guides/columns/column-groups.md)
@@ -3609,14 +3611,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * - [Guides: Copy with headers](@/guides/cell-features/clipboard.md#copy-with-headers)
    *
    * ```js
-   * // get the contents of all column headers
+   * // get the contents of all bottom-most column headers
    * hot.getColHeader();
    *
-   * // get the contents of a specific column header
+   * // get the contents of the bottom-most header of a specific column
    * hot.getColHeader(5);
-   *
-   * // get the contents of all column headers at a specific level
-   * hot. getColHeader(null, -2)
    *
    * // get the contents of a specific column header at a specific level
    * hot.getColHeader(5, -2);
@@ -3627,7 +3626,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} [column] A visual column index.
    * @param {number} [headerLevel=-1] (Since 12.3.0) Header level index. Accepts positive (0 to n)
    *                                  and negative (-1 to -n) values. For positive values, 0 points to the
-   *                                  topmost header. For negative values, -1 points to the bottommost
+   *                                  topmost header. For negative values, -1 points to the bottom-most
    *                                  header (the header closest to the cells).
    * @fires Hooks#modifyColHeader
    * @fires Hooks#modifyColumnHeaderValue
