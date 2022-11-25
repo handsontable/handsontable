@@ -193,6 +193,8 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 
 Note that some callbacks are checked on this page by default.
 
+::: example #example1 --html 1 --css 2 --js 3
+```html
 <div class="example-container">
   <div class="example-table-container">
     <div id="example1"></div>
@@ -202,53 +204,52 @@ Note that some callbacks are checked on this page by default.
   <ul id="hooksList">
     <li><label><input type="checkbox" id="check_select_all">Select all</label></li>
   </ul>
-  <style>
-    #example1_events {
-      height: 166px;
-      padding: 6px;
-      margin: 10px 0;
-      overflow-y: scroll;
-      font-size: 13px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-    #example1_events div {
-      padding: 4px 0;
-    }
-    #example1_events div:nth-child(odd) {
-      background-color: rgba(255, 255 ,255, 0.1);
-    }
-    #example1 {
-      margin-top: 0;
-    }
-    #example3 .controls {
-      margin: 0 0 16px;
-      padding: 0;
-    }
-    #example3 .controls label {
-      display: inline-block;
-      padding: 3px 0;
-    }
-    #example3 .controls label input {
-      margin-right: 6px;
-    }
-    #hooksList {
-      padding: 0;
-      height: 300px;
-      overflow: auto;
-    }
-    #hooksList li {
-      list-style: none;
-      width: 33%;
-      display: inline-block;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-  </style>
 </div>
-
-<HandsontablePreview>
+```
+```css
+#example1_events {
+  height: 166px;
+  padding: 6px;
+  margin: 10px 0;
+  overflow-y: scroll;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+#example1_events div {
+  padding: 4px 0;
+}
+#example1_events div:nth-child(odd) {
+  background-color: rgba(255, 255 ,255, 0.1);
+}
+#example1 {
+  margin-top: 0;
+}
+#example3 .controls {
+  margin: 0 0 16px;
+  padding: 0;
+}
+#example3 .controls label {
+  display: inline-block;
+  padding: 3px 0;
+}
+#example3 .controls label input {
+  margin-right: 6px;
+}
+#hooksList {
+  padding: 0;
+  height: 300px;
+  overflow: auto;
+}
+#hooksList li {
+  list-style: none;
+  width: 33%;
+  display: inline-block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+```
 ```js
 const config = {
   data: [
@@ -356,7 +357,7 @@ document.querySelector('#hooksList input[type=checkbox]').addEventListener('clic
   }
 });
 ```
-</HandsontablePreview>
+:::
 
 ## Definition for `source` argument
 
