@@ -4,18 +4,18 @@ import screenshotFilePath from '../imports/screenshotFilePath';
 import { helpers as helper } from '../imports/helpers';
 // eslint-disable-next-line no-unused-vars
 const { test, expect } = require('@playwright/test');
-// eslint-disable-next-line no-unused-vars, prefer-const
-let screenshotsCount = 0;
 
 /* ======= */
 
 const testTitle = 'Expand dropdown menu and clear column';
 const testURL = 'https://handsontable.com/demo';
 const expectedTitle = 'Data grid demo - Handsontable data grid for JavaScript, React, Angular, and Vue.';
+const stylesToAdd = ['cookieInfo'];
 
-test(testTitle, async({ page }, workerInfo) => {
+// eslint-disable-next-line no-unused-vars
+test(testTitle, async({ page }, workerInfo, screenshotsCount = 0) => {
   await page.goto(testURL);
-  await page.addStyleTag({ path: helper.cssPath.cookieInfo });
+  stylesToAdd.forEach(item => page.addStyleTag({ path: helper.cssPath[item] }));
   await expect(page).toHaveTitle(expectedTitle);
 
   const table = page.locator(helper.mainTableSelector);
