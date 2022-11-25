@@ -265,7 +265,7 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Enables the [`CopyPaste`](#copypaste) plugin for your Handsontable instance.
+   * Disables the [`CopyPaste`](#copypaste) plugin for your Handsontable instance.
    */
   disablePlugin() {
     if (this.focusableElement) {
