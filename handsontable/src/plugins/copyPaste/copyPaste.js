@@ -94,7 +94,6 @@ export class CopyPaste extends BasePlugin {
    * @default Infinity
    */
   columnsLimit = Infinity;
-
   /**
    * The maximum number of rows than can be copied to the clipboard.
    *
@@ -102,7 +101,6 @@ export class CopyPaste extends BasePlugin {
    * @default Infinity
    */
   rowsLimit = Infinity;
-
   /**
    * When pasting:
    * - `'overwrite'`: overwrite the currently-selected cells
@@ -113,14 +111,12 @@ export class CopyPaste extends BasePlugin {
    * @default 'overwrite'
    */
   pasteMode = 'overwrite';
-
   /**
    * The UI container for the secondary focusable element.
    *
    * @type {HTMLElement}
    */
   uiContainer = this.hot.rootDocument.body;
-
   /**
    * Shows the "Copy with headers" item in the context menu and extends the context menu with the
    * `'copy_with_column_headers'` option that can be used for creating custom menus arrangements.
@@ -129,7 +125,6 @@ export class CopyPaste extends BasePlugin {
    * @default false
    */
   #enableCopyColumnHeaders = false;
-
   /**
    * Shows the "Copy with group headers" item in the context menu and extends the context menu with the
    * `'copy_with_column_group headers'` option that can be used for creating custom menus arrangements.
@@ -138,7 +133,6 @@ export class CopyPaste extends BasePlugin {
    * @default false
    */
   #enableCopyColumnGroupHeaders = false;
-
   /**
    * Shows the "Copy headers only" item in the context menu and extends the context menu with the
    * `'copy_column_headers_only'` option that can be used for creating custom menus arrangements.
@@ -147,7 +141,6 @@ export class CopyPaste extends BasePlugin {
    * @default false
    */
   #enableCopyColumnHeadersOnly = false;
-
   /**
    * Defines the data range to copy. Possible values:
    *  * `'cells-only'` Copy selected cells only;
@@ -158,14 +151,12 @@ export class CopyPaste extends BasePlugin {
    * @type {'cells-only' | 'column-headers-only' | 'with-all-column-headers' | 'with-column-headers'}
    */
   #copyMode = 'cells-only';
-
   /**
    * Flag that is used to prevent copying when the native shortcut was not pressed.
    *
    * @type {boolean}
    */
   #isTriggeredByCopy = false;
-
   /**
    * Flag that is used to prevent cutting when the native shortcut was not pressed.
    *
