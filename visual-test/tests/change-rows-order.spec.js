@@ -1,11 +1,22 @@
-import screenshotFilePath from '../../imports/screenshotFilePath';
-import { helpers as helper } from '../../imports/helpers';
-
+// eslint-disable-next-line no-unused-vars
+import screenshotFilePath from '../imports/screenshotFilePath';
+// eslint-disable-next-line no-unused-vars
+import { helpers as helper } from '../imports/helpers';
+// eslint-disable-next-line no-unused-vars
 const { test, expect } = require('@playwright/test');
+// eslint-disable-next-line no-unused-vars, prefer-const
+let screenshotsCount = 0;
 
-test('change order of rows', async({ page }, workerInfo) => {
-  await page.goto('https://handsontable.com/demo');
-  await expect(page).toHaveTitle('Data grid demo - Handsontable data grid for JavaScript, React, Angular, and Vue.');
+/* ======= */
+
+const testTitle = 'Change order of rows';
+const testURL = 'https://handsontable.com/demo';
+const expectedTitle = 'Data grid demo - Handsontable data grid for JavaScript, React, Angular, and Vue.';
+
+test(testTitle, async({ page }, workerInfo) => {
+  await page.goto(testURL);
+  await page.addStyleTag({ path: helper.cssPath.cookieInfo });
+  await expect(page).toHaveTitle(expectedTitle);
 
   const table = page.locator(helper.mainTableSelector);
 
@@ -22,7 +33,7 @@ test('change order of rows', async({ page }, workerInfo) => {
   // cause button is marked by Playwright as `hidden`
   // (it is covered by another layer nad in deafult Playwright won't click it)
   await cell.click({ position: { x: 1, y: 1 }, force: true });
-  await page.screenshot({ path: screenshotFilePath('1', workerInfo) });
+  await page.screenshot({ path: screenshotFilePath(screenshotsCount += 1, workerInfo) });
 
   const cellCoordinates = await cell.boundingBox();
 
@@ -30,5 +41,5 @@ test('change order of rows', async({ page }, workerInfo) => {
   await page.mouse.down();
   await page.mouse.move(cellCoordinates.x + 1, cellCoordinates.y - 50);
   await page.mouse.up();
-  await page.screenshot({ path: screenshotFilePath('2', workerInfo) });
+  await page.screenshot({ path: screenshotFilePath(screenshotsCount += 1, workerInfo) });
 });
