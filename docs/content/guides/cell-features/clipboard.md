@@ -195,8 +195,8 @@ export const ExampleComponent = () => {
     rowHeaders={true}
     height="auto"
     nestedHeaders={[
-      ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
-      ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+      ['A', { label: 'B', colspan: 2 }, { label: 'C', colspan: 2 }, { label: 'D', colspan: 2 }, { label: 'E', colspan: 2 }, 'F'],
+      ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
     ]}
     licenseKey="non-commercial-and-evaluation"
       >
