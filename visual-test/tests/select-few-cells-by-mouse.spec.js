@@ -1,7 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-import screenshotFilePath from '../imports/screenshotFilePath';
-// eslint-disable-next-line no-unused-vars
-import { helpers as helper } from '../imports/helpers';
+import { helpers } from '../imports/helpers';
 // eslint-disable-next-line no-unused-vars
 const { test, expect } = require('@playwright/test');
 
@@ -9,22 +7,24 @@ const { test, expect } = require('@playwright/test');
 
 const testTitle = 'Select cells by mouse';
 const testURL = 'https://handsontable.com/demo';
-const expectedTitle = 'Data grid demo - Handsontable data grid for JavaScript, React, Angular, and Vue.';
+const expectedPageTitle = 'Data grid demo - Handsontable data grid for JavaScript, React, Angular, and Vue.';
 const stylesToAdd = ['cookieInfo'];
 
 // eslint-disable-next-line no-unused-vars
-test(testTitle, async({ page }, workerInfo, screenshotsCount = 0) => {
-  await page.goto(testURL);
-  stylesToAdd.forEach(item => page.addStyleTag({ path: helper.cssPath[item] }));
-  await expect(page).toHaveTitle(expectedTitle);
+test(testTitle, async({ page }, workerInfo) => {
+  helpers.init(workerInfo);
 
-  const table = page.locator(helper.mainTableSelector);
+  await page.goto(testURL);
+  stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath[item] }));
+  await expect(page).toHaveTitle(expectedPageTitle);
+
+  const table = page.locator(helpers.selectors.mainTable);
 
   await table.waitFor();
 
-  const tbody = table.locator(helper.mainTableSelectorBody);
+  const tbody = table.locator(helpers.selectors.mainTableBody);
 
-  const cell = tbody.locator(helper.findCell({ row: 2, cell: 2, cellType: 'td' }));
+  const cell = tbody.locator(helpers.findCell({ row: 2, cell: 2, cellType: 'td' }));
   const cellCoordinates = await cell.boundingBox();
 
   await page.mouse.move(
@@ -35,5 +35,5 @@ test(testTitle, async({ page }, workerInfo, screenshotsCount = 0) => {
     cellCoordinates.x + (cellCoordinates.width / 2) + 100, cellCoordinates.y + (cellCoordinates.height / 2) + 100
   );
   await page.mouse.up();
-  await page.screenshot({ path: screenshotFilePath(screenshotsCount += 1, workerInfo) });
+  await page.screenshot({ path: helpers.screenshotPath() });
 });

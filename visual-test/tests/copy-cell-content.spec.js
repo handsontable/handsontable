@@ -1,7 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-import screenshotFilePath from '../imports/screenshotFilePath';
-// eslint-disable-next-line no-unused-vars
-import { helpers as helper } from '../imports/helpers';
+import { helpers } from '../imports/helpers';
 // eslint-disable-next-line no-unused-vars
 const { test, expect } = require('@playwright/test');
 
@@ -9,43 +7,44 @@ const { test, expect } = require('@playwright/test');
 
 const testTitle = 'Copy content from one cell to another, modify cell content';
 const testURL = 'https://handsontable.com/demo';
-const expectedTitle = 'Data grid demo - Handsontable data grid for JavaScript, React, Angular, and Vue.';
+const expectedPageTitle = 'Data grid demo - Handsontable data grid for JavaScript, React, Angular, and Vue.';
 const stylesToAdd = ['cookieInfo'];
 
 // eslint-disable-next-line no-unused-vars
-test(testTitle, async({ page }, workerInfo, screenshotsCount = 0) => {
-  await page.goto(testURL);
-  stylesToAdd.forEach(item => page.addStyleTag({ path: helper.cssPath[item] }));
-  await expect(page).toHaveTitle(expectedTitle);
+test(testTitle, async({ page }, workerInfo) => {
+  helpers.init(workerInfo);
 
-  const table = page.locator(helper.mainTableSelector);
+  await page.goto(testURL);
+  stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath[item] }));
+  await expect(page).toHaveTitle(expectedPageTitle);
+
+  const table = page.locator(helpers.selectors.mainTable);
 
   await table.waitFor();
 
-  const tbody = table.locator(helper.mainTableSelectorBody);
+  const tbody = table.locator(helpers.selectors.mainTableBody);
 
-  let cell = tbody.locator(helper.findCell({ row: 2, cell: 3, cellType: 'td' }));
-  const modifier = helper.modifier(workerInfo);
+  let cell = tbody.locator(helpers.findCell({ row: 2, cell: 3, cellType: 'td' }));
 
   await cell.click();
-  await page.screenshot({ path: screenshotFilePath(screenshotsCount += 1, workerInfo) });
-  await page.keyboard.press(`${modifier}+c`);
+  await page.screenshot({ path: helpers.screenshotPath() });
+  await page.keyboard.press(`${helpers.modifier}+c`);
   await cell.press('Delete');
 
-  cell = tbody.locator(helper.findCell({ row: 3, cell: 3, cellType: 'td' }));
+  cell = tbody.locator(helpers.findCell({ row: 3, cell: 3, cellType: 'td' }));
   await cell.dblclick();
   await cell.type('-test');
 
-  cell = tbody.locator(helper.findCell({ row: 4, cell: 3, cellType: 'td' }));
+  cell = tbody.locator(helpers.findCell({ row: 4, cell: 3, cellType: 'td' }));
   await cell.click();
   await page.keyboard.press('Delete');
 
-  cell = tbody.locator(helper.findCell({ row: 3, cell: 3, cellType: 'td' }));
+  cell = tbody.locator(helpers.findCell({ row: 3, cell: 3, cellType: 'td' }));
   await cell.click();
 
-  await page.screenshot({ path: screenshotFilePath(screenshotsCount += 1, workerInfo) });
-  await page.keyboard.down(`${modifier}`);
+  await page.screenshot({ path: helpers.screenshotPath() });
+  await page.keyboard.down(`${helpers.modifier}`);
   await page.keyboard.press('v');
-  await page.keyboard.up(`${modifier}`);
-  await page.screenshot({ path: screenshotFilePath(screenshotsCount += 1, workerInfo) });
+  await page.keyboard.up(`${helpers.modifier}`);
+  await page.screenshot({ path: helpers.screenshotPath() });
 });
