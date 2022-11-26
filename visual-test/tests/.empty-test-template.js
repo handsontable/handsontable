@@ -10,7 +10,6 @@ const testURL = '';
 const expectedPageTitle = '';
 const stylesToAdd = ['cookieInfo'];
 
-// eslint-disable-next-line no-unused-vars
 test(testTitle, async({ page }, workerInfo) => {
   helpers.init(workerInfo);
 

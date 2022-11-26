@@ -10,7 +10,6 @@ const testURL = 'https://handsontable.com/demo';
 const expectedPageTitle = 'Data grid demo - Handsontable data grid for JavaScript, React, Angular, and Vue.';
 const stylesToAdd = ['cookieInfo'];
 
-// eslint-disable-next-line no-unused-vars
 test(testTitle, async({ page }, workerInfo) => {
   helpers.init(workerInfo);
 
