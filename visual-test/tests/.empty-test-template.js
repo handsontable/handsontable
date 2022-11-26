@@ -1,6 +1,5 @@
-// eslint-disable-next-line no-unused-vars
 import { helpers } from '../imports/helpers';
-// eslint-disable-next-line no-unused-vars
+
 const { test, expect } = require('@playwright/test');
 
 /* ======= */
