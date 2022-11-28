@@ -378,6 +378,10 @@ For more information on this release, see:
 *   Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behaviour of the AutoColumnSize sampling. ([#3339](https://github.com/handsontable/handsontable/issues/3339))
 *   Added support for hiding columns for the `NestedHeaders` plugin. ([#6879](https://github.com/handsontable/handsontable/issues/6879))
 *   Added ability to skip stacking actions by the `UndoRedo` plugin and introduced new hooks. ([#6948](https://github.com/handsontable/handsontable/issues/6948))
+*   Added 2 new hooks, [`beforeHighlightingColumnHeader`](@/api/hooks.md#beforehighlightingcolumnheader) and [`beforeHighlightingRowHeader`](@/api/hooks.md#beforehighlightingrowheader). Use them to retrieve a header element (`<th>`) before it gets highlighted. ([#7528](https://github.com/handsontable/handsontable/pull/7528))
+*   Added a new method, [`indexMapper.unregisterAll()`](@/api/indexMapper.md#unregisterall). Use it to unregister all collected index maps from all map collections types. ([#7528](https://github.com/handsontable/handsontable/pull/7528))
+*   Added a new method, [`indexMapper.createChangesObserver()`](@/api/indexMapper.md#createchangesobserver). Use it to listen to any changes made to indexes while Handsontable is running. ([#7528](https://github.com/handsontable/handsontable/pull/7528))
+*   Added a new method, [`indexMapper.createAndRegisterIndexMap()`](@/api/indexMapper.md#createandregisterindexmap). Use it to create and register a new index map. ([#7528](https://github.com/handsontable/handsontable/pull/7528))
 
 **Fixed**
 

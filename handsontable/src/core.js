@@ -3595,21 +3595,43 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns an array of column headers (in string format, if they are enabled). If param `column` is given, it
-   * returns the header at the given column.
+   * Gets the values of column headers (if column headers are [enabled](@/api/options.md#colheaders)).
    *
-   * Since the 12.3.0 the method accepts the 2nd `headerLevel` argument.
+   * To get an array with the values of all
+   * [bottom-most](@/guides/cell-features/clipboard.md#copy-with-headers) column headers,
+   * call `getColHeader()` with no arguments.
+   *
+   * To get the value of the bottom-most header of a specific column, use the `column` parameter.
+   *
+   * To get the value of a [specific-level](@/guides/columns/column-groups.md) header
+   * of a specific column, use the `column` and `headerLevel` parameters.
+   *
+   * Read more:
+   * - [Guides: Column groups](@/guides/columns/column-groups.md)
+   * - [Options: `colHeaders`](@/api/options.md#colheaders)
+   * - [Guides: Copy with headers](@/guides/cell-features/clipboard.md#copy-with-headers)
+   *
+   * ```js
+   * // get the contents of all bottom-most column headers
+   * hot.getColHeader();
+   *
+   * // get the contents of the bottom-most header of a specific column
+   * hot.getColHeader(5);
+   *
+   * // get the contents of a specific column header at a specific level
+   * hot.getColHeader(5, -2);
+   * ```
    *
    * @memberof Core#
    * @function getColHeader
-   * @param {number} [column] Visual column index.
-   * @param {number} [headerLevel=-1] The index of header level. The header level accepts positive (0 to N)
-   *                                  and negative (-1 to -N) values. For positive values, 0 points to the
-   *                                  top most header, and for negative direction, -1 points to the most bottom
+   * @param {number} [column] A visual column index.
+   * @param {number} [headerLevel=-1] (Since 12.3.0) Header level index. Accepts positive (0 to n)
+   *                                  and negative (-1 to -n) values. For positive values, 0 points to the
+   *                                  topmost header. For negative values, -1 points to the bottom-most
    *                                  header (the header closest to the cells).
    * @fires Hooks#modifyColHeader
    * @fires Hooks#modifyColumnHeaderValue
-   * @returns {Array|string|number} The column header(s).
+   * @returns {Array|string|number} Column header values.
    */
   this.getColHeader = function(column, headerLevel = -1) {
     const columnIndex = instance.runHooks('modifyColHeader', column);
