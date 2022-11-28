@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm install
-      - name: run visual tests and upload images to Argos CI
+      - name: run visual tests and upload images to Argos CI, Viswiz
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
           VISWIZ_API_KEY: ${{ secrets.VISWIZ_API_KEY }}
