@@ -12,11 +12,13 @@ if (isBaseBranch) {
   listOfActiveBranches.split("\n").forEach((item) => {
     item = item.trim();
 
+    console.log(item);
+
     if (item.startsWith('*')) {
       return;
     }
 
-    if (baseBranches.includes('item')) {
+    if (baseBranches.includes(item)) {
       return;
     }
 
