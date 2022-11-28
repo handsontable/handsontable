@@ -5,28 +5,9 @@ import {
   assert,
   isNullish,
 } from '../utils';
-import {
-  registerCellType,
-  AutocompleteCellType,
-  CheckboxCellType,
-  DateCellType,
-  DropdownCellType,
-  HandsontableCellType,
-  NumericCellType,
-  PasswordCellType,
-  TextCellType,
-  TimeCellType,
-} from '../../../cellTypes';
+import { registerAllCellTypes, getCellType } from '../../../cellTypes';
 
-registerCellType(AutocompleteCellType);
-registerCellType(CheckboxCellType);
-registerCellType(DateCellType);
-registerCellType(DropdownCellType);
-registerCellType(HandsontableCellType);
-registerCellType(NumericCellType);
-registerCellType(PasswordCellType);
-registerCellType(TextCellType);
-registerCellType(TimeCellType);
+registerAllCellTypes();
 
 describe('MetaManager utils', () => {
   describe('expandMetaType', () => {
@@ -45,89 +26,95 @@ describe('MetaManager utils', () => {
           this.copyPaste = false;
         }
       }
+      const type = { copyPaste: true, test: 'foo' };
+      const extendedType = expandMetaType(type, new Child());
 
-      expect(expandMetaType({ copyPaste: true, test: 'foo' }, new Child())).toEqual({ test: 'foo' });
-
+      expect(extendedType).toEqual({
+        test: 'foo'
+      });
       expect(expandMetaType('autocomplete', { editor: () => {} })).toEqual({
-        renderer: expect.any(Function),
-        validator: expect.any(Function),
+        renderer: getCellType('autocomplete').renderer,
+        validator: getCellType('autocomplete').validator,
       });
     });
 
     it('should return a copy of the object that is holding by "type" property', () => {
       const type = { copyPaste: true, test: 'foo' };
 
-      expect(expandMetaType(type)).not.toBe(type);
-      expect(expandMetaType(type)).toEqual(type);
+      expect(expandMetaType(type, {})).not.toBe(type);
+      expect(expandMetaType(type, {})).toEqual({
+        copyPaste: true,
+        test: 'foo',
+      });
     });
 
     it('should return the object with defined properties defined by "autocomplete" cell type', () => {
-      expect(expandMetaType('autocomplete')).toEqual({
-        editor: expect.any(Function),
-        renderer: expect.any(Function),
-        validator: expect.any(Function),
+      expect(expandMetaType('autocomplete', {})).toEqual({
+        editor: getCellType('autocomplete').editor,
+        renderer: getCellType('autocomplete').renderer,
+        validator: getCellType('autocomplete').validator,
       });
     });
 
     it('should return the object with defined properties defined by "checkbox" cell type', () => {
-      expect(expandMetaType('checkbox')).toEqual({
-        editor: expect.any(Function),
-        renderer: expect.any(Function),
+      expect(expandMetaType('checkbox', {})).toEqual({
+        editor: getCellType('checkbox').editor,
+        renderer: getCellType('checkbox').renderer,
       });
     });
 
     it('should return the object with defined properties defined by "date" cell type', () => {
-      expect(expandMetaType('date')).toEqual({
-        editor: expect.any(Function),
-        renderer: expect.any(Function),
-        validator: expect.any(Function),
+      expect(expandMetaType('date', {})).toEqual({
+        editor: getCellType('date').editor,
+        renderer: getCellType('date').renderer,
+        validator: getCellType('date').validator,
       });
     });
 
     it('should return the object with defined properties defined by "dropdown" cell type', () => {
-      expect(expandMetaType('dropdown')).toEqual({
-        editor: expect.any(Function),
-        renderer: expect.any(Function),
-        validator: expect.any(Function),
+      expect(expandMetaType('dropdown', {})).toEqual({
+        editor: getCellType('dropdown').editor,
+        renderer: getCellType('dropdown').renderer,
+        validator: getCellType('dropdown').validator,
       });
     });
 
     it('should return the object with defined properties defined by "handsontable" cell type', () => {
-      expect(expandMetaType('handsontable')).toEqual({
-        editor: expect.any(Function),
-        renderer: expect.any(Function),
+      expect(expandMetaType('handsontable', {})).toEqual({
+        editor: getCellType('handsontable').editor,
+        renderer: getCellType('handsontable').renderer,
       });
     });
 
     it('should return the object with defined properties defined by "numeric" cell type', () => {
-      expect(expandMetaType('numeric')).toEqual({
+      expect(expandMetaType('numeric', {})).toEqual({
         dataType: 'number',
-        editor: expect.any(Function),
-        renderer: expect.any(Function),
-        validator: expect.any(Function),
+        editor: getCellType('numeric').editor,
+        renderer: getCellType('numeric').renderer,
+        validator: getCellType('numeric').validator,
       });
     });
 
     it('should return the object with defined properties defined by "password" cell type', () => {
-      expect(expandMetaType('password')).toEqual({
-        editor: expect.any(Function),
-        renderer: expect.any(Function),
+      expect(expandMetaType('password', {})).toEqual({
+        editor: getCellType('password').editor,
+        renderer: getCellType('password').renderer,
         copyable: false,
       });
     });
 
     it('should return the object with defined properties defined by "text" cell type', () => {
-      expect(expandMetaType('text')).toEqual({
-        editor: expect.any(Function),
-        renderer: expect.any(Function),
+      expect(expandMetaType('text', {})).toEqual({
+        editor: getCellType('text').editor,
+        renderer: getCellType('text').renderer,
       });
     });
 
     it('should return the object with defined properties defined by "time" cell type', () => {
-      expect(expandMetaType('time')).toEqual({
-        editor: expect.any(Function),
-        renderer: expect.any(Function),
-        validator: expect.any(Function),
+      expect(expandMetaType('time', {})).toEqual({
+        editor: getCellType('time').editor,
+        renderer: getCellType('time').renderer,
+        validator: getCellType('time').validator,
       });
     });
   });

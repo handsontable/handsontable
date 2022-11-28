@@ -16,9 +16,11 @@ import {
 import {
   registerCellType,
   CheckboxCellType,
+  TextCellType,
 } from 'handsontable/cellTypes';
 
 registerCellType(CheckboxCellType);
+registerCellType(TextCellType);
 
 registerPlugin(AutoColumnSize);
 registerPlugin(AutoRowSize);

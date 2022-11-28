@@ -81,6 +81,6 @@ export default class GlobalMeta {
    */
   updateMeta(settings) {
     extend(this.meta, settings);
-    extend(this.meta, expandMetaType(settings.type, settings));
+    extend(this.meta, expandMetaType(settings.type ?? this.meta.type, settings));
   }
 }

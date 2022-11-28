@@ -25,7 +25,7 @@ import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse, isNumericLike } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataMap/dataSource';
-import { cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
+import { spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { ViewportColumnsCalculator } from './3rdparty/walkontable/src';
@@ -3330,14 +3330,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return !(instance.dataType === 'object' || tableMeta.columns);
   };
 
-  const rendererLookup = cellMethodLookupFactory('renderer');
-
   /**
    * Returns the cell renderer function by given `row` and `column` arguments.
    *
    * @memberof Core#
    * @function getCellRenderer
-   * @param {number|object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {number|object} rowOrMeta Visual row index or cell meta object (see {@link Core#getCellMeta}).
    * @param {number} column Visual column index.
    * @returns {Function} The renderer function.
    * @example
@@ -3348,8 +3346,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.getCellRenderer(hot.getCellMeta(1, 1));
    * ```
    */
-  this.getCellRenderer = function(row, column) {
-    return getRenderer(rendererLookup.call(this, row, column));
+  this.getCellRenderer = function(rowOrMeta, column) {
+    return getRenderer(typeof rowOrMeta === 'number' ?
+      instance.getCellMeta(rowOrMeta, column).renderer : rowOrMeta.renderer);
   };
 
   /**
@@ -3357,7 +3356,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getCellEditor
-   * @param {number} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {number} rowOrMeta Visual row index or cell meta object (see {@link Core#getCellMeta}).
    * @param {number} column Visual column index.
    * @returns {Function} The editor class.
    * @example
@@ -3368,28 +3367,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.getCellEditor(hot.getCellMeta(1, 1));
    * ```
    */
-  this.getCellEditor = cellMethodLookupFactory('editor');
-
-  const validatorLookup = cellMethodLookupFactory('validator');
+  this.getCellEditor = function(rowOrMeta, column) {
+    return typeof rowOrMeta === 'number' ?
+      instance.getCellMeta(rowOrMeta, column).editor : rowOrMeta.editor;
+  };
 
   /**
    * Returns the cell validator by `row` and `column`.
    *
    * @memberof Core#
    * @function getCellValidator
-   * @param {number|object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {number|object} rowOrMeta Visual row index or cell meta object (see {@link Core#getCellMeta}).
    * @param {number} column Visual column index.
    * @returns {Function|RegExp|undefined} The validator function.
    * @example
    * ```js
-   * // Get cell valiator using `row` and `column` coordinates.
+   * // Get cell validator using `row` and `column` coordinates.
    * hot.getCellValidator(1, 1);
-   * // Get cell valiator using cell meta object.
+   * // Get cell validator using cell meta object.
    * hot.getCellValidator(hot.getCellMeta(1, 1));
    * ```
    */
-  this.getCellValidator = function(row, column) {
-    let validator = validatorLookup.call(this, row, column);
+  this.getCellValidator = function(rowOrMeta, column) {
+    let validator = typeof rowOrMeta === 'number' ?
+      instance.getCellMeta(rowOrMeta, column).validator : rowOrMeta.validator;
 
     if (typeof validator === 'string') {
       validator = getValidator(validator);

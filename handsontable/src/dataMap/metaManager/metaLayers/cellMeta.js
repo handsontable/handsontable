@@ -139,10 +139,6 @@ export default class CellMeta {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
     cellMeta[key] = value;
-
-    if (cellMeta._automaticallyAssignedMetaProps[key] === true) {
-      cellMeta._automaticallyAssignedMetaProps[key] = void 0;
-    }
   }
 
   /**
@@ -178,7 +174,7 @@ export default class CellMeta {
 
   /**
    * Returns all cell meta objects that were created during the Handsontable operation but for
-   * specyfic row index.
+   * specific row index.
    *
    * @param {number} physicalRow The physical row index.
    * @returns {object[]}

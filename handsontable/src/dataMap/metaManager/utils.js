@@ -2,42 +2,45 @@ import { hasOwnProperty, isObject, objectEach, inherit } from '../../helpers/obj
 import { getCellType } from '../../cellTypes/registry';
 
 /**
+ * Checks if the given property can be overwritten based on the `_automaticallyAssignedMetaProps` meta prop.
+ *
+ * @param {string} propertyName The property name to check.
+ * @param {object} currentState The current object meta settings.
+ * @returns {boolean}
+ */
+function canBeOverwritten(propertyName, currentState) {
+  if (propertyName === 'CELL_TYPE') {
+    return false;
+  }
+
+  return currentState._automaticallyAssignedMetaProps.has(propertyName) ||
+    !hasOwnProperty(currentState, propertyName);
+}
+
+/**
  * Expands "type" property of the meta object to single values. For example `type: 'numeric'` sets
  * "renderer", "editor", "validator" properties to specific functions designed for numeric values.
  * If "type" is passed as an object that object will be returned, excluding properties that
  * already exist in the "metaObject" if passed.
  *
- * @param {object|string} type Type to expand;.
- * @param {object|undefined} [metaObject] Source meta object.
+ * @param {object|string} type Type to expand.
+ * @param {object|undefined} metaObject Source meta object.
  * @returns {object|undefined}
  */
 export function expandMetaType(type, metaObject) {
-  const validType = typeof type === 'string' ? getCellType(type) : type;
+  const isStringBasedType = typeof type === 'string';
+  const validType = isStringBasedType ? getCellType(type) : type;
 
   if (!isObject(validType)) {
     return;
   }
 
-  const preventSourceOverwrite = isObject(metaObject);
   const expandedType = {};
 
   objectEach(validType, (value, property) => {
-    if (
-      property !== 'CELL_TYPE' &&
-      (
-        !preventSourceOverwrite || (
-          preventSourceOverwrite &&
-          (
-            !hasOwnProperty(metaObject, property) ||
-            metaObject?._automaticallyAssignedMetaProps?.[property] === true
-          )
-        )
-      )) {
+    if (canBeOverwritten(property, metaObject)) {
       expandedType[property] = value;
-
-      if (metaObject?._automaticallyAssignedMetaProps) {
-        metaObject._automaticallyAssignedMetaProps[property] = true;
-      }
+      metaObject._automaticallyAssignedMetaProps?.add(property);
     }
   });
 

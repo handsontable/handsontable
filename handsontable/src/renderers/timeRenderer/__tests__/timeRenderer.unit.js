@@ -8,11 +8,17 @@ import {
   getRenderer,
   registerRenderer,
 } from '../../registry';
+import {
+  registerCellType,
+  TextCellType,
+} from '../../../cellTypes';
+
+registerCellType(TextCellType);
 
 describe('timeRenderer', () => {
   describe('registering', () => {
     it('should throw an error if renderer is not registered', () => {
-      expect(getRegisteredRendererNames()).toEqual([]);
+      expect(getRegisteredRendererNames()).toEqual(['text']);
       expect(() => {
         getRenderer(RENDERER_TYPE);
       }).toThrowError();
@@ -21,7 +27,7 @@ describe('timeRenderer', () => {
     it('should register renderer', () => {
       registerRenderer(RENDERER_TYPE, timeRenderer);
 
-      expect(getRegisteredRendererNames()).toEqual([RENDERER_TYPE]);
+      expect(getRegisteredRendererNames()).toEqual(['text', RENDERER_TYPE]);
       expect(getRenderer(RENDERER_TYPE)).toBeInstanceOf(Function);
     });
   });
