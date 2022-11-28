@@ -8,7 +8,8 @@ export const helpers = {
   },
 
   cssPath: {
-    cookieInfo: './tests-css/removeCookieInfo.css',
+    cookieInfo: './tests-css/remove-cookie-info.css',
+    changeCellsBackground: './tests-css/change-cells-background.css',
     changeCellTextColor: './tests-css/change-cell-text-color.css',
   },
 
