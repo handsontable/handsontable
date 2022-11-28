@@ -24,8 +24,8 @@ jobs:
       - name: run visual tests
         run: node scripts/visual-test.mjs
       - name: upload visual test screenshot
-      env:
-        ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
-        VISWIZ_API_KEY: ${{ secrets.VISWIZ_API_KEY }}
-        VISWIZ_PROJECT_ID: ${{ secrets.VISWIZ_PROJECT_ID }}
-      run: node scripts/visual-test-upload-screenshot.mjs
+        env:
+          ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
+          VISWIZ_API_KEY: ${{ secrets.VISWIZ_API_KEY }}
+          VISWIZ_PROJECT_ID: ${{ secrets.VISWIZ_PROJECT_ID }}
+        run: node scripts/visual-test-upload-screenshot.mjs
