@@ -20,17 +20,15 @@ test(testTitle, async({ page }, workerInfo) => {
 
   await table.waitFor();
 
-  const tbody = table.locator(helpers.selectors.mainTableBody);
-  const cell = tbody.locator(helpers.findCell({ row: 6, cell: 1, cellType: 'th' }));
+  const mainTableFirstColumn = table.locator(helpers.selectors.mainTableFirstColumn);
+  const cell = mainTableFirstColumn.locator(helpers.findCell({ row: 6, cell: 1, cellType: 'th' }));
 
   // Without coordinates `click` works on the middle of element,
   // what means that in this case it will deselect checkbox.
   // We do not want it, so we should define coordinates out of checkbox, but still in cell
   // - here it can be { 1, 1 }.
-  // We have to use `{ force: true }` to force click,
-  // cause button is marked by Playwright as `hidden`
-  // (it is covered by another layer nad in deafult Playwright won't click it)
-  await cell.click({ position: { x: 1, y: 1 }, force: true });
+
+  await cell.click({ position: { x: 1, y: 1 } });
   await page.screenshot({ path: helpers.screenshotPath() });
 
   const cellCoordinates = await cell.boundingBox();

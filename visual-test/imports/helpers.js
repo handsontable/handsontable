@@ -1,10 +1,10 @@
 export const helpers = {
   selectors: {
     mainTable: '#hot',
-    mainTableBody: '> .ht_master > .wtHolder > .wtHider .wtSpreader table tbody',
-    mainTableHead: '> .ht_master > .wtHolder > .wtHider .wtSpreader table thead',
+    mainTableBody: '> .ht_master.handsontable table tbody',
+    mainTableHead: '> .ht_clone_top.handsontable table thead',
+    mainTableFirstColumn: '> .ht_clone_inline_start.ht_clone_left.handsontable table tbody',
     dropdownMenu: '.htMenu.htDropdownMenu.handsontable',
-    expandDropdownMenuButton: 'button.changeType',
   },
 
   cssPath: {
@@ -27,5 +27,9 @@ export const helpers = {
     const titlePath = this.workerInfo.titlePath[0].split('.spec.js')[0];
 
     return `./tests/screenshots/${titlePath}/${this.workerInfo.project.name}/${this.screenshotsCount}.png`;
+  },
+
+  findDropdownMenuExpander(options = { col: 1 }) {
+    return `${this.selectors.mainTableHead} > tr > th:nth-child(${options.col + 1}) button.changeType`;
   }
 };

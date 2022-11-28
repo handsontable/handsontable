@@ -20,11 +20,9 @@ test(testTitle, async({ page }, workerInfo) => {
 
   await table.waitFor();
 
-  const thead = table.locator(helpers.selectors.mainTableHead);
-  const cell = thead.locator(helpers.findCell({ row: 1, cell: 4, cellType: 'th' }));
-  const changeTypeButton = cell.locator(helpers.selectors.expandDropdownMenuButton);
+  const changeTypeButton = table.locator(helpers.findDropdownMenuExpander({ col: 2 }));
 
-  await changeTypeButton.click({ force: true });
+  await changeTypeButton.click();
   const dropdownMenu = page.locator(helpers.selectors.dropdownMenu);
 
   await page.screenshot({ path: helpers.screenshotPath() });
