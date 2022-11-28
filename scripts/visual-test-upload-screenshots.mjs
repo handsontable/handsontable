@@ -2,7 +2,7 @@
 import moment from 'moment';
 import { spawnProcess } from './utils/processes.mjs';
 
-const currentDate = moment().format('YYYY-MM-DD.hh:mm:ss');
+const currentDate = moment().format('hhmmss');
 
 process.chdir('./visual-test');
 await spawnProcess('npx @argos-ci/cli upload tests/screenshots');
