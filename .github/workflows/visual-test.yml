@@ -21,9 +21,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm install
-      - name: run visual tests
+      - name: Run visual tests
         run: node scripts/visual-test-build.mjs
-      - name: upload visual test screenshot
+      - name: Upload visual tests screenshots
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
           VISWIZ_API_KEY: ${{ secrets.VISWIZ_API_KEY }}
