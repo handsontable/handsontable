@@ -16,7 +16,7 @@ describe('CopyPaste', () => {
   });
 
   describe('`copyColumnHeadersOnly` method', () => {
-    it('should copy only the most-bottom column headers into the clipboard', () => {
+    it('should copy only the most-bottom column headers to the clipboard', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
