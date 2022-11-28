@@ -8,6 +8,8 @@ const isBaseBranch = baseBranches.includes(currentBranchName);
 if (isBaseBranch) {
   const listOfActiveBranches = (await spawnProcess('git branch', { silent: true })).stdout;
 
+  console.log(listOfActiveBranches);
+
   // eslint-disable-next-line quotes, no-restricted-syntax
   for (let item of listOfActiveBranches.split("\n")) {
     item = item.trim();
