@@ -222,7 +222,7 @@ export class IndexMapper {
   }
 
   /**
-   * Creates and register a new `IndexMap` for a specified `IndexMapper` instance.
+   * Creates and registers a new `IndexMap` for a specified `IndexMapper` instance.
    *
    * @param {string} indexName A unique index name.
    * @param {string} mapType The index map type (e.g., "hiding", "trimming", "physicalIndexToValue").
