@@ -39,28 +39,25 @@ const META_HEAD = [
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
- * This plugin enables the copy/paste functionality in the Handsontable. The functionality works for API, Context Menu,
- * using keyboard shortcuts and menu bar from the browser.
- * Possible values:
- * * `true` (to enable default options),
- * * `false` (to disable completely).
+ * Copy, cut, and paste data by using the `CopyPaste` plugin.
  *
- * or an object with values:
- * * `'columnsLimit'` (see {@link CopyPaste#columnsLimit})
- * * `'rowsLimit'` (see {@link CopyPaste#rowsLimit})
- * * `'pasteMode'` (see {@link CopyPaste#pasteMode})
- * * `'copyColumnHeaders'`
- * * `'copyColumnGroupHeaders'`
- * * `'copyColumnHeadersOnly'`
- * * `'uiContainer'` (see {@link CopyPaste#uiContainer}).
+ * Control the `CopyPaste` plugin programmatically through its [API methods](#methods).
  *
- * See [the copy/paste demo](@/guides/cell-features/clipboard.md) for examples.
+ * The user can access the copy-paste features through:
+ * - The [context menu](@/guides/cell-features/clipboard.md#context-menu).
+ * - The [keyboard shortcuts](@/guides/cell-features/clipboard.md#related-keyboard-shortcuts).
+ * - The browser's menu bar.
+ *
+ * Read more:
+ * - [Guides: Clipboard](@/guides/cell-features/clipboard.md)
+ * - [Configuration options: `copyPaste`](@/api/options.md#copypaste)
  *
  * @example
  * ```js
- * // Enables the plugin with default values
+ * // enable the plugin with the default configuration
  * copyPaste: true,
- * // Enables the plugin with custom values
+ *
+ * // or, enable the plugin with a custom configuration
  * copyPaste: {
  *   columnsLimit: 25,
  *   rowsLimit: 50,
@@ -91,37 +88,37 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Maximum number of columns than can be copied to clipboard using <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>.
+   * The maximum number of columns than can be copied to the clipboard.
    *
    * @type {number}
    * @default Infinity
    */
   columnsLimit = Infinity;
   /**
-   * Maximum number of rows than can be copied to clipboard using <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>.
+   * The maximum number of rows than can be copied to the clipboard.
    *
    * @type {number}
    * @default Infinity
    */
   rowsLimit = Infinity;
   /**
-   * Defines paste (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**V**</kbd>) behavior.
-   * * Default value `"overwrite"` will paste clipboard value over current selection.
-   * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
-   * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
+   * When pasting:
+   * - `'overwrite'`: overwrite the currently-selected cells
+   * - `'shift_down'`: move currently-selected cells down
+   * - `'shift_right'`: move currently-selected cells to the right
    *
    * @type {string}
    * @default 'overwrite'
    */
   pasteMode = 'overwrite';
   /**
-   * UI container for the secondary focusable element.
+   * The UI container for the secondary focusable element.
    *
    * @type {HTMLElement}
    */
   uiContainer = this.hot.rootDocument.body;
   /**
-   * Shows the "Copy with column headers" item in the context menu and extends the context menu for
+   * Shows the "Copy with headers" item in the context menu and extends the context menu with the
    * `'copy_with_column_headers'` option that can be used for creating custom menus arrangements.
    *
    * @type {boolean}
@@ -129,7 +126,7 @@ export class CopyPaste extends BasePlugin {
    */
   #enableCopyColumnHeaders = false;
   /**
-   * Shows the "Copy with column group headers" item in the context menu and extends the context menu for
+   * Shows the "Copy with group headers" item in the context menu and extends the context menu with the
    * `'copy_with_column_group headers'` option that can be used for creating custom menus arrangements.
    *
    * @type {boolean}
@@ -137,7 +134,7 @@ export class CopyPaste extends BasePlugin {
    */
   #enableCopyColumnGroupHeaders = false;
   /**
-   * Shows the "Copy column headers only" item in the context menu and extends the context menu for
+   * Shows the "Copy headers only" item in the context menu and extends the context menu with the
    * `'copy_column_headers_only'` option that can be used for creating custom menus arrangements.
    *
    * @type {boolean}
@@ -195,8 +192,10 @@ export class CopyPaste extends BasePlugin {
   focusableElement = void 0;
 
   /**
-   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` then the {@link CopyPaste#enablePlugin} method is called.
+   * Checks if the [`CopyPaste`](#copypaste) plugin is enabled.
+   *
+   * This method gets called by Handsontable's [`beforeInit`](@/api/hooks.md#beforeinit) hook.
+   * If it returns `true`, the [`enablePlugin()`](#enableplugin) method gets called.
    *
    * @returns {boolean}
    */
@@ -205,7 +204,7 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Enables the plugin functionality for this Handsontable instance.
+   * Enables the [`CopyPaste`](#copypaste) plugin for your Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -238,9 +237,10 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Updates the plugin's state.
+   * Updates the state of the [`CopyPaste`](#copypaste) plugin.
    *
-   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   * Gets called when [`updateSettings()`](@/api/core.md#updatesettings)
+   * is invoked with any of the following configuration options:
    *  - [`copyPaste`](@/api/options.md#copypaste)
    *  - [`fragmentSelection`](@/api/options.md#fragmentselection)
    */
@@ -253,7 +253,7 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Disables the plugin functionality for this Handsontable instance.
+   * Disables the [`CopyPaste`](#copypaste) plugin for your Handsontable instance.
    */
   disablePlugin() {
     if (this.focusableElement) {
@@ -264,12 +264,18 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Copies the selected cell with or without column headers into the clipboard.
+   * Copies the contents of the selected cells (and/or their related column headers) to the system clipboard.
    *
-   * @param {'cells-only' | 'column-headers-only' | 'with-all-column-headers' | 'with-column-headers'} [copyMode='cells-only']
-   * Defines the data range to copy. Possible values: `cells-only` (copy selected cells only),
-   * `column-headers-only` (copy the most-bottom column headers only), `with-all-column-headers` (copy cells
-   * with all column headers levels) or `with-column-headers` (copy cells with the most-bottom column headers).
+   * Takes an optional parameter (`copyMode`) that defines the scope of copying:
+   *
+   * | `copyMode` value            | Description                                                     |
+   * | --------------------------- | --------------------------------------------------------------- |
+   * | `'cells-only'` (default)    | Copy the selected cells                                         |
+   * | `'with-column-headers'`     | - Copy the selected cells<br>- Copy the nearest column headers  |
+   * | `'with-all-column-headers'` | - Copy the selected cells<br>- Copy all related columns headers |
+   * | `'column-headers-only'`     | Copy the nearest column headers (without copying cells)         |
+   *
+   * @param {string} [copyMode='cells-only'] Copy mode.
    */
   copy(copyMode = 'cells-only') {
     this.#copyMode = copyMode;
@@ -280,32 +286,32 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Copies the selected cell/cells into the clipboard.
+   * Copies the contents of the selected cells.
    */
   copyCellsOnly() {
     this.copy('cells-only');
   }
   /**
-   * Copies only the most-bottom column headers into the clipboard.
+   * Copies the contents of column headers that are nearest to the selected cells.
    */
   copyColumnHeadersOnly() {
     this.copy('column-headers-only');
   }
   /**
-   * Copies the selected cell/cells and all column headers levels (including column group) into the clipboard.
+   * Copies the contents of the selected cells and all their related column headers.
    */
   copyWithAllColumnHeaders() {
     this.copy('with-column-group-headers');
   }
   /**
-   * Copies the selected cell/cells and most-bottom column headers into the clipboard.
+   * Copies the contents of the selected cells and their nearest column headers.
    */
   copyWithColumnHeaders() {
     this.copy('with-column-headers');
   }
 
   /**
-   * Cuts the selected cell into the clipboard.
+   * Cuts the contents of the selected cells to the system clipboard.
    */
   cut() {
     this.#isTriggeredByCut = true;
@@ -315,32 +321,32 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Creates copyable text related to range objects.
+   * Converts the contents of multiple ranges (`ranges`) into a single string.
    *
    * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges Array of objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
-   * @returns {string} Returns string which will be copied into clipboard.
+   * @returns {string} A string that will be copied to the clipboard.
    */
   getRangedCopyableData(ranges) {
     return stringify(this.getRangedData(ranges));
   }
 
   /**
-   * Creates copyable text related to range objects.
+   * Converts the contents of multiple ranges (`ranges`) into an array of arrays.
    *
    * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
-   * @returns {Array[]} Returns array of arrays which will be copied into clipboard.
+   * @returns {Array[]} An array of arrays that will be copied to the clipboard.
    */
   getRangedData(ranges) {
     const data = [];
     const { rows, columns } = normalizeRanges(ranges);
 
-    // Concat all rows and columns data defined in ranges into one copyable string
+    // concatenate all rows and columns data defined in ranges into one copyable string
     arrayEach(rows, (row) => {
       const rowSet = [];
 
       arrayEach(columns, (column) => {
         if (row < 0) {
-          // 'row' as the second argument act here as 'headerLevel' argument
+          // `row` as the second argument acts here as the `headerLevel` argument
           rowSet.push(this.hot.getColHeader(column, row));
         } else {
           rowSet.push(this.hot.getCopyableData(row, column));
@@ -356,10 +362,10 @@ export class CopyPaste extends BasePlugin {
   /**
    * Simulates the paste action.
    *
-   * Due to security reasons, modern browsers disallow reading from the system clipboard.
+   * For security reasons, modern browsers don't allow reading from the system clipboard.
    *
-   * @param {string} pastableText Value as raw string to paste.
-   * @param {string} [pastableHtml=''] Value as HTML to paste.
+   * @param {string} pastableText The value to paste, as a raw string.
+   * @param {string} [pastableHtml=''] The value to paste, as HTML.
    */
   paste(pastableText = '', pastableHtml = pastableText) {
     if (!pastableText && !pastableHtml) {
@@ -771,7 +777,7 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Destroys the plugin instance.
+   * Destroys the `CopyPaste` plugin instance.
    */
   destroy() {
     if (this.focusableElement) {

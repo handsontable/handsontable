@@ -16,7 +16,7 @@ describe('CopyPaste', () => {
   });
 
   describe('`copyWithColumnHeaders` method', () => {
-    it('should copy the most-bottom column headers with cells into the clipboard', () => {
+    it('should copy the most-bottom column headers with cells to the clipboard', () => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -62,7 +62,7 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy the most-bottom column headers with cells into the clipboard when all cells and headers are selected', () => {
+    it('should copy the most-bottom column headers with cells to the clipboard when all cells and headers are selected', () => {
       handsontable({
         data: createSpreadsheetData(2, 3),
         rowHeaders: true,
