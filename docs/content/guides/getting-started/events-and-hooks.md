@@ -193,7 +193,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 
 Note that some callbacks are checked on this page by default.
 
-::: example-without-tabs #example1 --html 1 --css 2 --js 3
+::: example-without-tabs #example1
 ```html
 <div class="example-container">
   <div class="example-table-container">

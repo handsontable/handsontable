@@ -3,7 +3,7 @@
  *
  * @type {RegExp}
  */
-const EXAMPLE_REGEX = /^(example-without-tabs)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
+const EXAMPLE_REGEX = /^(example-without-tabs)\s*(#\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const { buildCode } = require('../examples/code-builder');
 
@@ -39,28 +39,21 @@ module.exports = function(docsVersion, base) {
       const m = token.info.trim().match(EXAMPLE_REGEX);
 
       if (token.nesting === 1 && m) { // open preview
-        let [, , id, klass, preset, args] = m;
+        let [, , id, preset] = m;
 
         id = id ? id.substring(1) : 'example1';
-        klass = klass ? klass.substring(1) : '';
         preset = preset ? preset.substring(1) : 'hot';
-        args = args || '';
 
-        const htmlPos = args.match(/--html (\d*)/)?.[1];
-        const htmlIndex = htmlPos ? index + Number.parseInt(htmlPos, 10) : 0;
-        const htmlToken = htmlPos ? tokens[htmlIndex] : undefined;
-        const htmlContent = htmlToken
-          ? htmlToken.content
-          : `<div id="${id}" class="hot ${klass}"></div>`;
+        const htmlIndex = index + 1;
+        const htmlToken = tokens[htmlIndex];
+        const htmlContent = htmlToken.content;
         const htmlContentRoot = `<div data-preset-type="${preset}" data-example-id="${id}" >${htmlContent}</div>`;
 
-        const cssPos = args.match(/--css (\d*)/)?.[1];
-        const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;
-        const cssToken = cssPos ? tokens[cssIndex] : undefined;
-        const cssContent = cssToken ? cssToken.content : '';
+        const cssIndex = index + 2;
+        const cssToken = tokens[cssIndex];
+        const cssContent = cssToken.content;
 
-        const jsPos = args.match(/--js (\d*)/)?.[1] || 1;
-        const jsIndex = index + Number.parseInt(jsPos, 10);
+        const jsIndex = index + 3;
         const jsToken = tokens[jsIndex];
 
         jsToken.content = jsToken.content.replaceAll('{{$basePath}}', base);
