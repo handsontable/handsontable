@@ -6,13 +6,13 @@ const currentBranchName = (await spawnProcess('git rev-parse --abbrev-ref HEAD',
 const isBaseBranch = baseBranches.includes(currentBranchName);
 
 if (isBaseBranch) {
-  const listOfActiveBranches = (await spawnProcess('git branch', { silent: true })).stdout;
+  const listOfActiveBranches = (await spawnProcess('git branch -r', { silent: true })).stdout;
 
-  console.log(listOfActiveBranches);
+  // console.log(listOfActiveBranches);
 
   // eslint-disable-next-line quotes, no-restricted-syntax
   for (let item of listOfActiveBranches.split("\n")) {
-    item = item.trim();
+    item = item.split('/').slice(-1)[0].trim();
 
     if (!item.startsWith('*')) {
       if (!baseBranches.includes(item)) {
