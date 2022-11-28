@@ -9,6 +9,7 @@ export const helpers = {
 
   cssPath: {
     cookieInfo: './tests-css/removeCookieInfo.css',
+    changeCellTextColor: './tests-css/change-cell-text-color.css',
   },
 
   init(workerInfo) {
