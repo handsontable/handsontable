@@ -7,7 +7,7 @@ const { test, expect } = require('@playwright/test');
 const testTitle = 'Change order of rows';
 const testURL = 'https://handsontable.com/demo';
 const expectedPageTitle = 'Data grid demo - Handsontable data grid for JavaScript, React, Angular, and Vue.';
-const stylesToAdd = ['cookieInfo', 'changeCellsBackground'];
+const stylesToAdd = ['cookieInfo', 'changeCellsBackground', 'changeCellTextColor'];
 
 test(testTitle, async({ page }, workerInfo) => {
   helpers.init(workerInfo);
