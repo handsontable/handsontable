@@ -6,7 +6,7 @@ const currentBranchName = (await spawnProcess('git rev-parse --abbrev-ref HEAD',
 const isBaseBranch = baseBranches.includes(currentBranchName);
 
 if (isBaseBranch) {
-  const listOfActiveBranches = (await spawnProcess('git branch -r', { silent: true })).stdout;
+  const listOfActiveBranches = (await spawnProcess('git branch', { silent: true })).stdout;
 
   // eslint-disable-next-line quotes, no-restricted-syntax
   for (let item of listOfActiveBranches.split("\n")) {
