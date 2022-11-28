@@ -25,5 +25,5 @@ jobs:
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
           VISWIZ_API_KEY: ${{ secrets.VISWIZ_API_KEY }}
-          VISWIZ_PROJECT_ID: ${{ VISWIZ_PROJECT_ID }}
+          VISWIZ_PROJECT_ID: ${{ secrets.VISWIZ_PROJECT_ID }}
         run: npm run visual-test
