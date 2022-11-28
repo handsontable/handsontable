@@ -5,17 +5,18 @@ const baseBranches = ['develop'];
 const currentBranchName = (await spawnProcess('git rev-parse --abbrev-ref HEAD', { silent: true })).stdout;
 const isBaseBranch = baseBranches.includes(currentBranchName);
 
-console.log('isBaseBranch', isBaseBranch);
-
 if (isBaseBranch) {
   const listOfActiveBranches = (await spawnProcess('git branch', { silent: true })).stdout;
 
   // eslint-disable-next-line quotes
   listOfActiveBranches.split("\n").forEach((item) => {
     item = item.trim();
-    console.log(item);
 
     if (item.startsWith('*')) {
+      return;
+    }
+
+    if (baseBranches.includes('item')) {
       return;
     }
 
