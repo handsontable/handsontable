@@ -29,3 +29,5 @@ jobs:
           VISWIZ_API_KEY: ${{ secrets.VISWIZ_API_KEY }}
           VISWIZ_PROJECT_ID: ${{ secrets.VISWIZ_PROJECT_ID }}
         run: node scripts/visual-test-upload-screenshots.mjs
+      - name: Update images comparision on the other branches
+        run: node scripts/visual-test-update-comparision-on-other-branches.mjs
