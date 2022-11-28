@@ -17,7 +17,7 @@ if (isBaseBranch) {
     if (!item.startsWith('*')) {
       if (!baseBranches.includes(item)) {
         await spawnProcess(`git checkout ${item}`);
-        await spawnProcess('git commit -m "refresh visual test images"');
+        await spawnProcess('git commit --allow-empty -m "refresh visual test images"');
         await spawnProcess(`git push origin ${item}`);
       }
     }
