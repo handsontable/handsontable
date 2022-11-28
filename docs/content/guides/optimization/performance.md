@@ -45,7 +45,7 @@ const hot = new Handsontable(obj, {
 ```
 :::
 
-With this approach, make sure that the contents of your cells fit in your row and column sizes, or let the user change [column widths](@/guides/columns/column-width.md#adjust-the-column-width-manually) and [row heights](@/guides/rows/row-height.md#adjust-row-heights-manually) manually.
+When taking this approach, make sure that the contents of your cells fit in your row and column sizes, or let the user change [column widths](@/guides/columns/column-width.md#adjust-the-column-width-manually) and [row heights](@/guides/rows/row-height.md#adjust-row-heights-manually) manually.
 
 Read more:
 - [Grid size](@/guides/getting-started/grid-size.md)
