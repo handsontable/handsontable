@@ -8,22 +8,16 @@ const isBaseBranch = baseBranches.includes(currentBranchName);
 if (isBaseBranch) {
   const listOfActiveBranches = (await spawnProcess('git branch -r', { silent: true })).stdout;
 
-  // eslint-disable-next-line quotes
-  listOfActiveBranches.split("\n").forEach((item) => {
+  // eslint-disable-next-line quotes, no-restricted-syntax
+  for (let item of listOfActiveBranches.split("\n")) {
     item = item.trim();
 
-    console.log(item);
-
-    if (item.startsWith('*')) {
-      return;
+    if (!item.startsWith('*')) {
+      if (!baseBranches.includes(item)) {
+        await spawnProcess(`git checkout ${item}`);
+        await spawnProcess('git commit --amend --no-edit');
+        await spawnProcess(`git push origin ${item}`);
+      }
     }
-
-    if (baseBranches.includes(item)) {
-      return;
-    }
-
-    spawnProcess(`git checkout ${item}`);
-    spawnProcess('git commit --amend --no-edit');
-    spawnProcess(`git push origin ${item}`);
-  });
+  }
 }
