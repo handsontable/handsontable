@@ -3351,7 +3351,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const cellRenderer = typeof rowOrMeta === 'number' ?
       instance.getCellMeta(rowOrMeta, column).renderer : rowOrMeta.renderer;
 
-    return getRenderer(isUndefined(cellRenderer) ? 'text' : cellRenderer);
+    if (typeof cellRenderer === 'string') {
+      return getRenderer(cellRenderer);
+    }
+
+    return isUndefined(cellRenderer) ? getRenderer('text') : cellRenderer;
   };
 
   /**
@@ -3374,11 +3378,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const cellEditor = typeof rowOrMeta === 'number' ?
       instance.getCellMeta(rowOrMeta, column).editor : rowOrMeta.editor;
 
-    if (cellEditor === false) {
-      return cellEditor;
+    if (typeof cellEditor === 'string') {
+      return getEditor(cellEditor);
     }
 
-    return getEditor(isUndefined(cellEditor) ? 'text' : cellEditor);
+    return isUndefined(cellEditor) ? getEditor('text') : cellEditor;
   };
 
   /**
@@ -3398,14 +3402,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.getCellValidator = function(rowOrMeta, column) {
-    let validator = typeof rowOrMeta === 'number' ?
+    const cellValidator = typeof rowOrMeta === 'number' ?
       instance.getCellMeta(rowOrMeta, column).validator : rowOrMeta.validator;
 
-    if (typeof validator === 'string') {
-      validator = getValidator(validator);
+    if (typeof cellValidator === 'string') {
+      return getValidator(cellValidator);
     }
 
-    return validator;
+    return cellValidator;
   };
 
   /**
