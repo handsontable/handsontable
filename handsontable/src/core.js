@@ -1,4 +1,4 @@
-import { addClass, empty, removeClass } from './helpers/dom/element';
+import { addClass, empty, getStyle, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -1179,10 +1179,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.forceFullRender = true; // used when data was changed
     this.view.render();
 
+    correctFirstVisibleRender(!!firstRun, getStyle(instance.rootElement, 'display'));
+
     if (typeof firstRun === 'object') {
       instance.runHooks('afterChange', firstRun[0], firstRun[1]);
+
       firstRun = false;
     }
+
     instance.runHooks('afterInit');
   };
 
@@ -1392,6 +1396,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (activeEditor && isDefined(activeEditor.refreshValue)) {
       activeEditor.refreshValue();
+    }
+  }
+
+  /**
+   * Ensure that in case of the table being initialized with `display: none`, the table will get rerendered after
+   * switching the `display` property to anything visible.
+   *
+   * @param {boolean|Array} isInit Indicator of whether the table is being initialized..
+   * @param {string} initialDisplayValue The `display` property value at the time of initialization.
+   */
+  function correctFirstVisibleRender(isInit, initialDisplayValue) {
+    if (firstRun && initialDisplayValue === 'none') {
+      const rootElementMutationObserver = new MutationObserver((mutations, observer) => {
+
+        if (getStyle(instance.rootElement, 'display') !== 'none') {
+          instance.render();
+
+          observer.disconnect();
+        }
+      });
+
+      rootElementMutationObserver.observe(instance.rootElement, {
+        attributes: true,
+        attributeFilter: ['style']
+      });
     }
   }
 
