@@ -97,15 +97,24 @@ export default () => {
     /* eslint-disable jsdoc/require-description-complete-sentence */
 
     /**
+     * The static property indicates that the specific meta object instance is actually the meta object.
+     *
+     * @private
+     * @type {boolean}
+     * @default true
+     */
+    _metaObject: true,
+
+    /**
      * Information on which of the meta properties were added automatically.
      * For example: setting the `renderer` property directly won't extend the `_automaticallyAssignedMetaProps`
      * entry, but setting a `type` will modify it to `Set(3) {'renderer', 'editor', 'validator', ...}`.
      *
      * @private
      * @type {Set}
-     * @default {}
+     * @default undefined
      */
-    _automaticallyAssignedMetaProps: new Set(),
+    _automaticallyAssignedMetaProps: void 0,
 
     /**
      * The `activeHeaderClassName` option lets you add a CSS class name

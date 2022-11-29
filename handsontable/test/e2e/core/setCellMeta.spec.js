@@ -193,16 +193,16 @@ describe('Core.setCellMeta', () => {
     setCellMeta(0, 0, 'type', 'autocomplete');
     render();
 
-    expect(getCellMeta(0, 0).type).toEqual(getCellType('autocomplete').CELL_TYPE);
-    expect(getCellMeta(0, 0).renderer).toEqual(mockRenderer);
-    expect(getCellMeta(0, 0).editor).toEqual(getCellType('autocomplete').editor);
+    expect(getCellMeta(0, 0).type).toBe(getCellType('autocomplete').CELL_TYPE);
+    expect(getCellMeta(0, 0).renderer).toBe(mockRenderer);
+    expect(getCellMeta(0, 0).editor).toBe(getCellType('autocomplete').editor);
 
     setCellMeta(0, 0, 'editor', mockEditor);
     setCellMeta(0, 0, 'type', 'password');
     render();
 
-    expect(getCellMeta(0, 0).type).toEqual(getCellType('password').CELL_TYPE);
-    expect(getCellMeta(0, 0).renderer).toEqual(mockRenderer);
-    expect(getCellMeta(0, 0).editor).toEqual(mockEditor);
+    expect(getCellMeta(0, 0).type).toBe(getCellType('password').CELL_TYPE);
+    expect(getCellMeta(0, 0).renderer).toBe(mockRenderer);
+    expect(getCellMeta(0, 0).editor).toBe(mockEditor);
   });
 });

@@ -2,40 +2,43 @@ import { hasOwnProperty, isObject, objectEach, inherit } from '../../helpers/obj
 import { getCellType } from '../../cellTypes/registry';
 
 /**
- * Checks if the given property can be overwritten based on the `_automaticallyAssignedMetaProps` meta prop.
+ * Checks if the given property can be overwritten.
  *
  * @param {string} propertyName The property name to check.
- * @param {object} currentState The current object meta settings.
+ * @param {object} metaObject The current object meta settings.
  * @returns {boolean}
  */
-function canBeOverwritten(propertyName, currentState) {
+function canBeOverwritten(propertyName, metaObject) {
   if (propertyName === 'CELL_TYPE') {
     return false;
   }
 
-  return currentState._automaticallyAssignedMetaProps.has(propertyName) ||
-    !hasOwnProperty(currentState, propertyName);
+  return metaObject._automaticallyAssignedMetaProps?.has(propertyName) ||
+    !hasOwnProperty(metaObject, propertyName);
 }
 
 /**
  * Expands "type" property of the meta object to single values. For example `type: 'numeric'` sets
  * "renderer", "editor", "validator" properties to specific functions designed for numeric values.
  * If "type" is passed as an object that object will be returned, excluding properties that
- * already exist in the "metaObject" if passed.
+ * already exist in the "metaObject".
  *
  * @param {object|string} type Type to expand.
- * @param {object|undefined} metaObject Source meta object.
+ * @param {object} metaObject Source meta object.
  * @returns {object|undefined}
  */
 export function expandMetaType(type, metaObject) {
-  const isStringBasedType = typeof type === 'string';
-  const validType = isStringBasedType ? getCellType(type) : type;
+  const validType = typeof type === 'string' ? getCellType(type) : type;
 
   if (!isObject(validType)) {
     return;
   }
 
   const expandedType = {};
+
+  if (metaObject._metaObject && !metaObject._automaticallyAssignedMetaProps) {
+    metaObject._automaticallyAssignedMetaProps = new Set();
+  }
 
   objectEach(validType, (value, property) => {
     if (canBeOverwritten(property, metaObject)) {
