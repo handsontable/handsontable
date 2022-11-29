@@ -7,5 +7,9 @@ const commitSha = (await spawnProcess('git rev-parse HEAD', { silent: true }))
   .slice(0, 7);
 
 process.chdir('./visual-test');
+
+console.log('Upload to Argos');
 await spawnProcess('npx @argos-ci/cli upload tests/screenshots');
+
+console.log('Upload to Viswiz');
 await spawnProcess(`npx viswiz build --image-dir ./tests/screenshots --message last-commit-message --revision ${commitSha}`);
