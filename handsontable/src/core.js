@@ -20,6 +20,7 @@ import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray,
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin, getPluginsNames } from './plugins/registry';
 import { getRenderer } from './renderers/registry';
+import { getEditor } from './editors/registry';
 import { getValidator } from './validators/registry';
 import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse, isNumericLike } from './helpers/number';
@@ -3347,8 +3348,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.getCellRenderer = function(rowOrMeta, column) {
-    return getRenderer(typeof rowOrMeta === 'number' ?
-      instance.getCellMeta(rowOrMeta, column).renderer : rowOrMeta.renderer);
+    const cellRenderer = typeof rowOrMeta === 'number' ?
+      instance.getCellMeta(rowOrMeta, column).renderer : rowOrMeta.renderer;
+
+    return isUndefined(cellRenderer) ? getRenderer('text') : cellRenderer;
   };
 
   /**
@@ -3368,8 +3371,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.getCellEditor = function(rowOrMeta, column) {
-    return typeof rowOrMeta === 'number' ?
+    const cellEditor = typeof rowOrMeta === 'number' ?
       instance.getCellMeta(rowOrMeta, column).editor : rowOrMeta.editor;
+
+    return isUndefined(cellEditor) ? getEditor('text') : cellEditor;
   };
 
   /**
