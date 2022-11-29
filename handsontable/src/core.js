@@ -3351,7 +3351,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const cellRenderer = typeof rowOrMeta === 'number' ?
       instance.getCellMeta(rowOrMeta, column).renderer : rowOrMeta.renderer;
 
-    return isUndefined(cellRenderer) ? getRenderer('text') : cellRenderer;
+    return getRenderer(isUndefined(cellRenderer) ? 'text' : cellRenderer);
   };
 
   /**
@@ -3374,7 +3374,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const cellEditor = typeof rowOrMeta === 'number' ?
       instance.getCellMeta(rowOrMeta, column).editor : rowOrMeta.editor;
 
-    return isUndefined(cellEditor) ? getEditor('text') : cellEditor;
+    return getEditor(isUndefined(cellEditor) ? 'text' : cellEditor);
   };
 
   /**
