@@ -3338,7 +3338,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function getCellRenderer
    * @param {number|object} rowOrMeta Visual row index or cell meta object (see {@link Core#getCellMeta}).
    * @param {number} column Visual column index.
-   * @returns {Function} The renderer function.
+   * @returns {Function} Returns the renderer function.
    * @example
    * ```js
    * // Get cell renderer using `row` and `column` coordinates.
@@ -3361,7 +3361,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function getCellEditor
    * @param {number} rowOrMeta Visual row index or cell meta object (see {@link Core#getCellMeta}).
    * @param {number} column Visual column index.
-   * @returns {Function} The editor class.
+   * @returns {Function|boolean} Returns the editor class or `false` is cell editor is disabled.
    * @example
    * ```js
    * // Get cell editor class using `row` and `column` coordinates.
@@ -3373,6 +3373,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getCellEditor = function(rowOrMeta, column) {
     const cellEditor = typeof rowOrMeta === 'number' ?
       instance.getCellMeta(rowOrMeta, column).editor : rowOrMeta.editor;
+
+    if (cellEditor === false) {
+      return cellEditor;
+    }
 
     return getEditor(isUndefined(cellEditor) ? 'text' : cellEditor);
   };

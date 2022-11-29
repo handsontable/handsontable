@@ -1,5 +1,4 @@
-import { getCellType } from './../cellTypes/registry';
-import { deepObjectSize, hasOwnProperty, isObject } from './object';
+import { deepObjectSize, isObject } from './object';
 
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
@@ -112,55 +111,6 @@ export function createEmptySpreadsheetData(rows, columns) {
   }
 
   return data;
-}
-
-/**
- * Factory that produces a function for searching methods (or any properties) which could be defined directly in
- * table configuration or implicitly, within cell type definition.
- *
- * For example: renderer can be defined explicitly using "renderer" property in column configuration or it can be
- * defined implicitly using "type" property.
- *
- * Methods/properties defined explicitly always takes precedence over those defined through "type".
- *
- * If the method/property is not found in an object, searching is continued recursively through prototype chain, until
- * it reaches the Object.prototype.
- *
- * @param {string} methodName Name of the method/property to search (i.e. 'renderer', 'validator', 'copyable').
- * @param {boolean} [allowUndefined] If `false`, the search is continued if methodName has not been found in cell
- *   "type".
- * @returns {Function}
- */
-export function cellMethodLookupFactory(methodName, allowUndefined) {
-  const isUndefinedAllowed = typeof allowUndefined === 'undefined' ? true : allowUndefined;
-
-  return function cellMethodLookup(row, col) {
-    return (function getMethodFromProperties(properties) {
-      if (!properties) {
-        return; // method or property not found
-      }
-
-      if (hasOwnProperty(properties, methodName) && properties[methodName] !== void 0) { // check if it is own and is not empty
-        return properties[methodName]; // method defined directly
-
-      } else if (hasOwnProperty(properties, 'type') && properties.type) { // check if it is own and is not empty
-        if (typeof properties.type !== 'string') {
-          throw new Error('Cell "type" must be a string');
-        }
-
-        const type = getCellType(properties.type);
-
-        if (hasOwnProperty(type, methodName)) {
-          return type[methodName]; // method defined in type.
-        } else if (isUndefinedAllowed) {
-          return; // method does not defined in type (eg. validator), returns undefined
-        }
-      }
-
-      return getMethodFromProperties(Object.getPrototypeOf(properties));
-
-    }(typeof row === 'number' ? this.getCellMeta(row, col) : row));
-  };
 }
 
 /**

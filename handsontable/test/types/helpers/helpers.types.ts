@@ -13,7 +13,6 @@ Handsontable.helper.arrayReduce([1, 'foo', true], (value, index, array) => {}, '
 Handsontable.helper.arraySum([1, 'foo', true]);
 Handsontable.helper.arrayUnique([1, 'foo', true]);
 Handsontable.helper.cancelAnimationFrame(1);
-Handsontable.helper.cellMethodLookupFactory('foo', true);
 Handsontable.helper.clone({key: 'foo'});
 Handsontable.helper.stringToArray('class-1 class-2 class-3');
 Handsontable.helper.countFirstRowKeys([[1, 2, 3]]);
