@@ -327,6 +327,10 @@ For more information on this release, see:
 - Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behaviour of the AutoColumnSize sampling. [#3339](https://github.com/handsontable/handsontable/issues/3339)
 - Added support for hiding columns for the _NestedHeaders_ plugin. [#6879](https://github.com/handsontable/handsontable/issues/6879)
 - Added ability to skip stacking actions by the `UndoRedo` plugin and introduced new hooks. [#6948](https://github.com/handsontable/handsontable/issues/6948)
+-   Added 2 new hooks, `beforeHighlightingColumnHeader` and `beforeHighlightingRowHeader`. Use them to retrieve a header element (`<th>`) before it gets highlighted. ([#7528](https://github.com/handsontable/handsontable/pull/7528))
+-   Added a new method, `indexMapper.unregisterAll()`. Use it to unregister all collected index maps from all map collections types. ([#7528](https://github.com/handsontable/handsontable/pull/7528))
+-   Added a new method, `indexMapper.createChangesObserver()`. Use it to listen to any changes made to indexes while Handsontable is running. ([#7528](https://github.com/handsontable/handsontable/pull/7528))
+-   Added a new method, `indexMapper.createAndRegisterIndexMap()`. Use it to create and register a new index map. ([#7528](https://github.com/handsontable/handsontable/pull/7528))
 
 ### Fixed
 - Fixed a problem with sorting the `checkbox`-typed cells and an issue with empty cells not being displayed properly. [#4047](https://github.com/handsontable/handsontable/issues/4047)
