@@ -25,6 +25,10 @@ Play around with a demo of Handsontable, in your favorite framework.
 <div id="example"></div>
 ```
 ```css
+#example {
+  height: 450px;
+}
+
 /*
   A stylesheet customizing app (custom renderers)
 */
@@ -1528,6 +1532,10 @@ console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`
 <div id="example2"></div>
 ```
 ```css
+#example2 {
+  height: 450px;
+}
+
 /*
   A stylesheet customizing app (custom renderers)
 */
