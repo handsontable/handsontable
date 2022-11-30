@@ -44,7 +44,6 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  * - backlight - highlight of selected columns.
  * - guideline - line which shows where columns has been moved.
  *
- *
  * @class ManualColumnMove
  * @plugin ManualColumnMove
  */
