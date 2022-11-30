@@ -26,4 +26,5 @@ jobs:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
           VISWIZ_API_KEY: ${{ secrets.VISWIZ_API_KEY }}
           VISWIZ_PROJECT_ID: ${{ secrets.VISWIZ_PROJECT_ID }}
+          PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
         run: node scripts/visual-test-upload-screenshots.mjs
