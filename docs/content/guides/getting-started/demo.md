@@ -1571,13 +1571,7 @@ import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from "@handsontable/react";
 
 // utils.ts
-export type RendererProps = {
-  TD: HTMLTableCellElement;
-  value: any;
-  cellProperties: Handsontable.CellProperties;
-};
-
-export const addClassWhenNeeded = (props: RendererProps) => {
+export const addClassWhenNeeded = (props) => {
   const className = props.cellProperties.className;
 
   if (className !== void 0) {
@@ -1586,7 +1580,7 @@ export const addClassWhenNeeded = (props: RendererProps) => {
 };
 
 // ProgressBar.tsx
-export function ProgressBarRenderer(props: RendererProps) {
+export function ProgressBarRenderer(props) {
   addClassWhenNeeded(props);
 
   return (
@@ -1595,7 +1589,7 @@ export function ProgressBarRenderer(props: RendererProps) {
 }
 
 // Stars.tsx
-export function StarsRenderer(props: RendererProps) {
+export function StarsRenderer(props) {
   addClassWhenNeeded(props);
 
   return <div className="star htCenter">{"★".repeat(props.value)}</div>;
@@ -2815,16 +2809,7 @@ const headerAlignments = new Map([
   ["12", "htCenter"]
 ]);
 
-type AddClassesToRows = (
-  TD: HTMLTableCellElement,
-  row: number,
-  column: number,
-  prop: number | string,
-  value: any,
-  cellProperties: Handsontable.CellProperties
-) => void;
-
-export const addClassesToRows: AddClassesToRows = (
+export const addClassesToRows = (
   TD,
   row,
   column,
@@ -2858,13 +2843,7 @@ export const addClassesToRows: AddClassesToRows = (
   }
 };
 
-type DrawCheckboxInRowHeaders = (
-  this: Handsontable,
-  row: number,
-  TH: HTMLTableCellElement
-) => void;
-
-export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawCheckboxInRowHeaders(
+export const drawCheckboxInRowHeaders = function drawCheckboxInRowHeaders(
   row,
   TH
 ) {
@@ -2881,7 +2860,7 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawC
   TH.appendChild(input);
 };
 
-export function alignHeaders(this: Handsontable, column: number, TH: HTMLTableCellElement) {
+export function alignHeaders(column, TH) {
   if (column < 0) {
     return;
   }
@@ -2890,25 +2869,19 @@ export function alignHeaders(this: Handsontable, column: number, TH: HTMLTableCe
 
   if (TH.firstChild) {
     if (headerAlignments.has(column.toString())) {
-      Handsontable.dom.removeClass(TH.firstChild as HTMLElement, alignmentClass);
-      Handsontable.dom.addClass(TH.firstChild as HTMLElement, headerAlignments.get(column.toString()) as string);
+      Handsontable.dom.removeClass(TH.firstChild, alignmentClass);
+      Handsontable.dom.addClass(TH.firstChild, headerAlignments.get(column.toString()));
     } else {
-      Handsontable.dom.addClass(TH.firstChild as HTMLElement, alignmentClass);
+      Handsontable.dom.addClass(TH.firstChild, alignmentClass);
     }
   }
 }
 
-type ChangeCheckboxCell = (
-  this: Handsontable,
-  event: MouseEvent,
-  coords: { row: number; col: number }
-) => void;
-
-export const changeCheckboxCell: ChangeCheckboxCell = function changeCheckboxCell(
+export const changeCheckboxCell = function changeCheckboxCell(
   event,
   coords
 ) {
-  const target = event.target as HTMLInputElement;
+  const target = event.target;
 
   if (coords.col === -1 && event.target && target.nodeName === "INPUT") {
     event.preventDefault(); // Handsontable will render checked/unchecked checkbox by it own.
