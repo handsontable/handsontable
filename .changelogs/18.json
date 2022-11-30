@@ -1,5 +1,5 @@
 {
-  "title": "Fixed a regression where custom-defined settings can be overwritten by \"type\" setting.",
+  "title": "Fixed a regression bug where custom-defined settings can be overwritten by \"type\" setting.",
   "type": "fixed",
   "issue": 18,
   "breaking": false,

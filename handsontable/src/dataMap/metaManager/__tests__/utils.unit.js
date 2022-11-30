@@ -1,5 +1,5 @@
 import {
-  expandMetaType,
+  extendByMetaType,
   columnFactory,
   isUnsignedNumber,
   assert,
@@ -10,111 +10,175 @@ import { registerAllCellTypes, getCellType } from '../../../cellTypes';
 registerAllCellTypes();
 
 describe('MetaManager utils', () => {
-  describe('expandMetaType', () => {
+  describe('extendByMetaType', () => {
     it('should return "undefined" when an object doesn\'t have defined "type" property or is not supported', () => {
-      expect(expandMetaType()).toBeUndefined();
-      expect(expandMetaType(null)).toBeUndefined();
-      expect(expandMetaType(1)).toBeUndefined();
-      expect(expandMetaType(true)).toBeUndefined();
-      expect(expandMetaType(NaN)).toBeUndefined();
-      expect(expandMetaType([])).toBeUndefined();
+      expect(extendByMetaType({}, {})).toBeUndefined();
     });
 
-    it('should return only properties that are not defined on the child object', () => {
-      class Child {
-        constructor() {
-          this.copyPaste = false;
-        }
-      }
-      const type = { copyPaste: true, test: 'foo' };
-      const extendedType = expandMetaType(type, new Child());
-
-      expect(extendedType).toEqual({
-        test: 'foo'
-      });
-      expect(expandMetaType('autocomplete', { editor: () => {} })).toEqual({
-        renderer: getCellType('autocomplete').renderer,
-        validator: getCellType('autocomplete').validator,
-      });
-    });
-
-    it('should return a copy of the object that is holding by "type" property', () => {
-      const type = { copyPaste: true, test: 'foo' };
-
-      expect(expandMetaType(type, {})).not.toBe(type);
-      expect(expandMetaType(type, {})).toEqual({
+    it('should extend only the properties that are not defined in the meta object (`type` as an object)', () => {
+      const metaObject = {
         copyPaste: true,
         test: 'foo',
+        renderer: 'type-renderer'
+      };
+
+      extendByMetaType(metaObject, {
+        type: {
+          copyPaste: false,
+          renderer: 'my-renderer',
+          test2: 'bar',
+        }
+      });
+
+      expect(metaObject).toEqual({
+        _automaticallyAssignedMetaProps: new Set(['test2']),
+        copyPaste: true,
+        test: 'foo',
+        renderer: 'type-renderer',
+        test2: 'bar',
+      });
+
+      extendByMetaType(metaObject, {
+        type: {
+          copyPaste: false,
+          renderer: 'my-renderer',
+          test2: 'bar2',
+        }
+      });
+
+      expect(metaObject).toEqual({
+        _automaticallyAssignedMetaProps: new Set(['test2']),
+        copyPaste: true,
+        test: 'foo',
+        renderer: 'type-renderer',
+        test2: 'bar2',
       });
     });
 
-    it('should return the object with defined properties defined by "autocomplete" cell type', () => {
-      expect(expandMetaType('autocomplete', {})).toEqual({
+    it('should not extend properties originally set by the type but later modified by the user (`type` as an object)', () => {
+      const metaObject = {};
+
+      extendByMetaType(metaObject, {
+        type: {
+          renderer: 'type-renderer',
+        }
+      });
+
+      expect(metaObject).toEqual({
+        _automaticallyAssignedMetaProps: new Set(['renderer']),
+        renderer: 'type-renderer',
+      });
+
+      metaObject.renderer = 'my-renderer';
+      extendByMetaType(metaObject, {
+        renderer: 'my-renderer',
+        type: {
+          renderer: 'type-renderer',
+        }
+      });
+
+      expect(metaObject).toEqual({
+        _automaticallyAssignedMetaProps: new Set([]),
+        renderer: 'my-renderer',
+      });
+    });
+
+    it('should extend only the properties that are not defined in the meta object (`type` as string)', () => {
+      const metaObject = {
+        copyPaste: true,
+        test: 'foo',
+        renderer: 'type-renderer'
+      };
+
+      extendByMetaType(metaObject, {
+        type: 'autocomplete'
+      });
+
+      expect(metaObject).toEqual({
+        _automaticallyAssignedMetaProps: new Set(['editor', 'validator']),
+        copyPaste: true,
+        test: 'foo',
+        renderer: 'type-renderer',
         editor: getCellType('autocomplete').editor,
-        renderer: getCellType('autocomplete').renderer,
         validator: getCellType('autocomplete').validator,
       });
-    });
 
-    it('should return the object with defined properties defined by "checkbox" cell type', () => {
-      expect(expandMetaType('checkbox', {})).toEqual({
-        editor: getCellType('checkbox').editor,
-        renderer: getCellType('checkbox').renderer,
+      extendByMetaType(metaObject, {
+        type: 'numeric'
       });
-    });
 
-    it('should return the object with defined properties defined by "date" cell type', () => {
-      expect(expandMetaType('date', {})).toEqual({
-        editor: getCellType('date').editor,
-        renderer: getCellType('date').renderer,
-        validator: getCellType('date').validator,
-      });
-    });
-
-    it('should return the object with defined properties defined by "dropdown" cell type', () => {
-      expect(expandMetaType('dropdown', {})).toEqual({
-        editor: getCellType('dropdown').editor,
-        renderer: getCellType('dropdown').renderer,
-        validator: getCellType('dropdown').validator,
-      });
-    });
-
-    it('should return the object with defined properties defined by "handsontable" cell type', () => {
-      expect(expandMetaType('handsontable', {})).toEqual({
-        editor: getCellType('handsontable').editor,
-        renderer: getCellType('handsontable').renderer,
-      });
-    });
-
-    it('should return the object with defined properties defined by "numeric" cell type', () => {
-      expect(expandMetaType('numeric', {})).toEqual({
+      expect(metaObject).toEqual({
+        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'dataType']),
+        copyPaste: true,
+        test: 'foo',
+        renderer: 'type-renderer',
         dataType: 'number',
         editor: getCellType('numeric').editor,
-        renderer: getCellType('numeric').renderer,
+        validator: getCellType('numeric').validator,
+      });
+
+      extendByMetaType(metaObject, {
+        type: 'text'
+      });
+
+      expect(metaObject).toEqual({
+        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'dataType']),
+        copyPaste: true,
+        test: 'foo',
+        renderer: 'type-renderer',
+        dataType: 'number',
+        editor: getCellType('text').editor,
         validator: getCellType('numeric').validator,
       });
     });
 
-    it('should return the object with defined properties defined by "password" cell type', () => {
-      expect(expandMetaType('password', {})).toEqual({
-        editor: getCellType('password').editor,
-        renderer: getCellType('password').renderer,
-        copyable: false,
+    it('should not extend properties originally set by the type but later modified by the user (`type` as string)', () => {
+      const metaObject = {};
+
+      extendByMetaType(metaObject, {
+        type: 'autocomplete'
+      });
+
+      expect(metaObject).toEqual({
+        _automaticallyAssignedMetaProps: new Set(['editor', 'renderer', 'validator']),
+        renderer: getCellType('autocomplete').renderer,
+        editor: getCellType('autocomplete').editor,
+        validator: getCellType('autocomplete').validator,
+      });
+
+      metaObject.renderer = 'my-renderer';
+      extendByMetaType(metaObject, {
+        renderer: 'my-renderer',
+        type: 'autocomplete'
+      });
+
+      expect(metaObject).toEqual({
+        _automaticallyAssignedMetaProps: new Set(['editor', 'validator']),
+        renderer: 'my-renderer',
+        editor: getCellType('autocomplete').editor,
+        validator: getCellType('autocomplete').validator,
       });
     });
 
-    it('should return the object with defined properties defined by "text" cell type', () => {
-      expect(expandMetaType('text', {})).toEqual({
+    it('should extend only the properties that are not defined in the compared object', () => {
+      const metaObject = {
+        copyPaste: true,
+        test: 'foo',
+        renderer: 'my-renderer'
+      };
+      const userSettings = {
+        renderer: 'my-renderer'
+      };
+
+      extendByMetaType(metaObject, {
+        type: 'text'
+      }, userSettings);
+
+      expect(metaObject).toEqual({
+        copyPaste: true,
+        test: 'foo',
+        renderer: 'my-renderer',
         editor: getCellType('text').editor,
-        renderer: getCellType('text').renderer,
-      });
-    });
-
-    it('should return the object with defined properties defined by "time" cell type', () => {
-      expect(expandMetaType('time', {})).toEqual({
-        editor: getCellType('time').editor,
-        renderer: getCellType('time').renderer,
-        validator: getCellType('time').validator,
       });
     });
   });
