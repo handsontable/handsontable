@@ -1403,7 +1403,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Ensure that in case of the table being initialized with `display: none`, the table will get rerendered after
    * switching the `display` property to anything visible.
    *
-   * @param {boolean|Array} isInit Indicator of whether the table is being initialized..
+   * @param {boolean|Array} isInit Indicator of whether the table is being initialized.
    * @param {string} initialDisplayValue The `display` property value at the time of initialization.
    */
   function correctFirstVisibleRender(isInit, initialDisplayValue) {
