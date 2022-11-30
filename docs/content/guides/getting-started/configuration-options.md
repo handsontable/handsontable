@@ -7,6 +7,7 @@ canonicalUrl: /configuration-options
 tags:
   - properties
   - config
+  - options
 react:
   metaTitle: Configuration options - React Data Grid | Handsontable
 searchCategory: Guides
@@ -188,10 +189,7 @@ The top-level grid options cascade down:
 As a result, each cell in the grid is read-only:
 
 ::: only-for javascript
-::: example #example1 --html 1 --js 2
-```html
-<div id="example1"></div>
-```
+::: example #example1
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -317,10 +315,7 @@ The modified mid-level column options:
 As a result, each cell in the third and ninth columns is read-only:
 
 ::: only-for javascript
-::: example #example2 --html 1 --js 2
-```html
-<div id="example2"></div>
-```
+::: example #example2
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -474,10 +469,7 @@ In the example below, the [`cells`](@/api/options.md#cells) option sets each cel
 Options modified through [`cells`](@/api/options.md#cells) overwrite all other options.
 
 ::: only-for javascript
-::: example #example3 --html 1 --js 2
-```html
-<div id="example3"></div>
-```
+::: example #example3
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -619,10 +611,7 @@ The modified [`cell`](@/api/options.md#cell) options:
 - Overwrite mid-level column options
 
 ::: only-for javascript
-::: example #example4 --html 1 --js 2
-```html
-<div id="example4"></div>
-```
+::: example #example4
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -913,10 +902,7 @@ The function can take three arguments:<br>
 In the example below, the modified [`cells`](@/api/options.md#cells) options overwrite the top-level grid options.
 
 ::: only-for javascript
-::: example #example5 --html 1 --js 2
-```html
-<div id="example5"></div>
-```
+::: example #example5
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -980,10 +966,7 @@ In the example below, some cells are read-only, and some cells are editable:
   As a result, cell `C3` (`3, 3`) is editable, despite not being part of the editable first column.
 
 ::: only-for javascript
-::: example #example6 --html 1 --js 2
-```html
-<div id="example6"></div>
-```
+::: example #example6
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
