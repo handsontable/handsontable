@@ -2944,7 +2944,7 @@ const App = () => {
   );
 };
 
-const rootElement = document.getElementById("root");
+const rootElement = document.getElementById("example2");
 ReactDOM.render(<App />, rootElement);
 
 console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`);
