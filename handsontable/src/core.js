@@ -1,4 +1,4 @@
-import { addClass, empty, getStyle, removeClass } from './helpers/dom/element';
+import { addClass, empty, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -1179,7 +1179,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.forceFullRender = true; // used when data was changed
     this.view.render();
 
-    correctFirstVisibleRender(!!firstRun, getStyle(instance.rootElement, 'display'));
+    correctFirstVisibleRender(!!firstRun);
 
     if (typeof firstRun === 'object') {
       instance.runHooks('afterChange', firstRun[0], firstRun[1]);
@@ -1400,27 +1400,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   /**
-   * Ensure that in case of the table being initialized with `display: none`, the table will get rerendered after
+   * Ensure that in case of the table being initialized with `display: none`, the table will get re-rendered after
    * switching the `display` property to anything visible.
    *
    * @param {boolean|Array} isInit Indicator of whether the table is being initialized.
-   * @param {string} initialDisplayValue The `display` property value at the time of initialization.
    */
-  function correctFirstVisibleRender(isInit, initialDisplayValue) {
-    if (firstRun && initialDisplayValue === 'none') {
-      const rootElementMutationObserver = new MutationObserver((mutations, observer) => {
+  function correctFirstVisibleRender(isInit) {
+    // Run the logic only if it's the table's initialization and the root element is not visible.
+    if (isInit && instance.rootElement.offsetParent === null) {
+      const bodyRootElementIntersectionObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (
+            entry.isIntersecting &&
+            instance.rootElement.offsetParent !== null
+          ) {
+            instance.render();
 
-        if (getStyle(instance.rootElement, 'display') !== 'none') {
-          instance.render();
-
-          observer.disconnect();
-        }
+            observer.unobserve(instance.rootElement);
+          }
+        });
+      }, {
+        root: instance.rootDocument.body
       });
 
-      rootElementMutationObserver.observe(instance.rootElement, {
-        attributes: true,
-        attributeFilter: ['style']
-      });
+      bodyRootElementIntersectionObserver.observe(instance.rootElement);
     }
   }
 
