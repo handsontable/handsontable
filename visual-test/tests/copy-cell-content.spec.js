@@ -22,7 +22,7 @@ test(testTitle, async({ page }, workerInfo) => {
 
   const tbody = table.locator(helpers.selectors.mainTableBody);
 
-  let cell = tbody.locator(helpers.findCell({ row: 2, cell: 3, cellType: 'td' }));
+  let cell = tbody.locator(helpers.findCell({ row: 3, cell: 3, cellType: 'td' }));
 
   await cell.click();
   await page.screenshot({ path: helpers.screenshotPath() });
