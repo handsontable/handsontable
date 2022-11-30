@@ -7,13 +7,16 @@ const { test, expect } = require('@playwright/test');
 const testTitle = 'Select cells by mouse';
 const testURL = 'https://handsontable.com/demo';
 const expectedPageTitle = 'Data grid demo - Handsontable data grid for JavaScript, React, Angular, and Vue.';
-const stylesToAdd = ['cookieInfo'];
+const stylesToAdd = [
+  helpers.cssFiles.cookieInfo,
+  helpers.cssFiles.dynamicDataFreeze
+];
 
 test(testTitle, async({ page }, workerInfo) => {
   helpers.init(workerInfo);
 
   await page.goto(testURL);
-  stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath[item] }));
+  stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath(item) }));
   await expect(page).toHaveTitle(expectedPageTitle);
 
   const table = page.locator(helpers.selectors.mainTable);

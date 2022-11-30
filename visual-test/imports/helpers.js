@@ -7,10 +7,15 @@ export const helpers = {
     dropdownMenu: '.htMenu.htDropdownMenu.handsontable',
   },
 
-  cssPath: {
-    cookieInfo: './tests-css/remove-cookie-info.css',
-    changeCellsBackground: './tests-css/change-cells-background.css',
-    changeCellTextColor: './tests-css/change-cell-text-color.css',
+  cssFiles: {
+    cookieInfo: 'remove-cookie-info.css',
+    changeCellsBackground: 'change-cells-background.css',
+    changeCellTextColor: 'change-cell-text-color.css',
+    dynamicDataFreeze: 'dynamic-data-freeze.css'
+  },
+
+  cssPath(file) {
+    return `./tests-css/${file}`;
   },
 
   init(workerInfo) {
