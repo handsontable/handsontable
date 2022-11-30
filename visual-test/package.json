@@ -9,6 +9,7 @@
   "license": "ISC",
   "devDependencies": {
     "@argos-ci/cli": "^0.3.1",
+    "@percy/cli": "^1.16.0",
     "@playwright/test": "^1.27.1",
     "viswiz": "^2.2.2"
   }

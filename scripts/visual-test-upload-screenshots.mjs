@@ -13,3 +13,6 @@ await spawnProcess('npx @argos-ci/cli upload tests/screenshots');
 
 console.log('Upload to Viswiz');
 await spawnProcess(`npx viswiz build --image-dir ./tests/screenshots --message last-commit-message --revision ${commitSha}`);
+
+console.log('Upload to Percy');
+await spawnProcess('npx percy upload ./tests/screenshots');
