@@ -1179,7 +1179,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.forceFullRender = true; // used when data was changed
     this.view.render();
 
-    correctFirstVisibleRender(!!firstRun);
+    // Run the logic only if it's the table's initialization and the root element is not visible.
+    if (!!firstRun && instance.rootElement.offsetParent === null) {
+      observeVisibilityChangeOnce(instance.rootElement, () => instance.render());
+    }
 
     if (typeof firstRun === 'object') {
       instance.runHooks('afterChange', firstRun[0], firstRun[1]);
@@ -1396,19 +1399,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (activeEditor && isDefined(activeEditor.refreshValue)) {
       activeEditor.refreshValue();
-    }
-  }
-
-  /**
-   * Ensure that in case of the table being initialized with `display: none`, the table will get re-rendered after
-   * switching the `display` property to anything visible.
-   *
-   * @param {boolean|Array} isInit Indicator of whether the table is being initialized.
-   */
-  function correctFirstVisibleRender(isInit) {
-    // Run the logic only if it's the table's initialization and the root element is not visible.
-    if (isInit && instance.rootElement.offsetParent === null) {
-      observeVisibilityChangeOnce(instance.rootElement, () => instance.render());
     }
   }
 
