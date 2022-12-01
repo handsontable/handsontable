@@ -10,10 +10,7 @@ env:
 jobs:
   build:
     name: Build and upload visual test
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./visual-test
+    runs-on: ubuntu-latest        
     # if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
@@ -22,10 +19,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install test tools
+        working-directory: ./visual-test
         run: npm install
       - name: Run visual tests
+        working-directory: ./visual-test
         run: npm run run
       - name: Upload screenshots
+        working-directory: ./visual-test
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
           VISWIZ_API_KEY: ${{ secrets.VISWIZ_API_KEY }}
