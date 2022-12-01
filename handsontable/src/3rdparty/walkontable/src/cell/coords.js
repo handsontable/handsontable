@@ -1,17 +1,30 @@
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
- * CellCoords holds cell coordinates (row, column) and few method to validate them and retrieve as an array or an object.
+ * @description
  *
- * @util
+ * The `CellCoords` class holds the coordinates (`row`, `col`) of a single cell.
+ *
+ * It also contains methods for validating the coordinates
+ * and retrieving them as an object.
+ *
+ * To import the `CellCoords` class:
+ *
+ * ```js
+ * import Handsontable, { CellCoords } from '/handsontable';
+ *
+ * // or, using modules
+ * import Handsontable, { CellCoords } from '/handsontable/base';
+ * ```
  */
 class CellCoords {
   /**
-   * Row index.
+   * A visual row index.
    *
    * @type {number}
    */
   row = null;
   /**
-   * Column index.
+   * A visual column index.
    *
    * @type {number}
    */
@@ -31,17 +44,26 @@ class CellCoords {
   }
 
   /**
-   * Checks if given set of coordinates is valid in context of a given Walkontable instance.
+   * Checks if the coordinates in your `CellCoords` instance are valid
+   * in the context of a given Walkontable instance.
+   *
+   * The `row` index:
+   * - Can't be negative.
+   * - Can't be higher than the total number of rows in the Walkontable instance.
+   *
+   * The `col` index:
+   * - Can't be negative.
+   * - Can't be higher than the total number of columns in the Walkontable instance.
    *
    * @param {Walkontable} wot A Walkontable instance.
-   * @returns {boolean}
+   * @returns {boolean} `true`: The coordinates are valid.
    */
   isValid(wot) {
-    // is it a valid cell index (0 or higher)
+    // check if the row and column indexes are valid (0 or higher)
     if (this.row < 0 || this.col < 0) {
       return false;
     }
-    // is selection within total rows and columns
+    // check if the selection fits in the total of rows and columns
     if (this.row >= wot.getSetting('totalRows') || this.col >= wot.getSetting('totalColumns')) {
       return false;
     }
@@ -50,9 +72,10 @@ class CellCoords {
   }
 
   /**
-   * Checks if this cell coordinates are the same as cell coordinates given as an argument.
+   * Checks if another set of coordinates (`cellCoords`)
+   * is equal to the coordinates in your `CellCoords` instance.
    *
-   * @param {CellCoords} cellCoords Cell coordinates to equal.
+   * @param {CellCoords} cellCoords Coordinates to check.
    * @returns {boolean}
    */
   isEqual(cellCoords) {
@@ -64,9 +87,10 @@ class CellCoords {
   }
 
   /**
-   * Checks if tested coordinates are positioned in south-east from this cell coordinates.
+   * Checks if another set of coordinates (`testedCoords`)
+   * is south-east of the coordinates in your `CellCoords` instance.
    *
-   * @param {object} testedCoords Cell coordinates to check.
+   * @param {CellCoords} testedCoords Coordinates to check.
    * @returns {boolean}
    */
   isSouthEastOf(testedCoords) {
@@ -75,9 +99,10 @@ class CellCoords {
   }
 
   /**
-   * Checks if tested coordinates are positioned in north-east from this cell coordinates.
+   * Checks if another set of coordinates (`testedCoords`)
+   * is north-west of the coordinates in your `CellCoords` instance.
    *
-   * @param {object} testedCoords Cell coordinates to check.
+   * @param {CellCoords} testedCoords Coordinates to check.
    * @returns {boolean}
    */
   isNorthWestOf(testedCoords) {
@@ -86,9 +111,10 @@ class CellCoords {
   }
 
   /**
-   * Checks if tested coordinates are positioned in south-west from this cell coordinates.
+   * Checks if another set of coordinates (`testedCoords`)
+   * is south-west of the coordinates in your `CellCoords` instance.
    *
-   * @param {object} testedCoords Cell coordinates to check.
+   * @param {CellCoords} testedCoords Coordinates to check.
    * @returns {boolean}
    */
   isSouthWestOf(testedCoords) {
@@ -97,9 +123,10 @@ class CellCoords {
   }
 
   /**
-   * Checks if tested coordinates are positioned in north-east from this cell coordinates.
+   * Checks if another set of coordinates (`testedCoords`)
+   * is north-east of the coordinates in your `CellCoords` instance.
    *
-   * @param {object} testedCoords Cell coordinates to check.
+   * @param {CellCoords} testedCoords Coordinates to check.
    * @returns {boolean}
    */
   isNorthEastOf(testedCoords) {
@@ -108,8 +135,9 @@ class CellCoords {
   }
 
   /**
-   * Normalizes the coordinates to the nearest valid position. The coordinates that point
-   * to the headers (negative values) are normalized to 0.
+   * Normalizes the coordinates in your `CellCoords` instance to the nearest valid position.
+   *
+   * Coordinates that point to headers (negative values) are normalized to `0`.
    *
    * @returns {CellCoords}
    */
@@ -121,7 +149,7 @@ class CellCoords {
   }
 
   /**
-   * Clones the coordinates.
+   * Clones your `CellCoords` instance.
    *
    * @returns {CellCoords}
    */
@@ -130,9 +158,9 @@ class CellCoords {
   }
 
   /**
-   * Converts CellCoords to literal object with `row` and `col` properties.
+   * Converts your `CellCoords` instance into an object literal with `row` and `col` properties.
    *
-   * @returns {object} Returns a literal object with `row` and `col` properties.
+   * @returns {{row: number, col: number}} An object literal with `row` and `col` properties.
    */
   toObject() {
     return {

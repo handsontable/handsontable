@@ -90,6 +90,121 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 :::
 
+#### Move column headers
+
+When you move columns, the default column headers (A, B, C) stay in place.
+
+::: only-for javascript
+::: example #example2
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#example2');
+const hot = new Handsontable(container, {
+  data: [
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+    ['A3', 'B3', 'C3'],
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  manualColumnMove: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      manualColumnMove={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
+But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option with your own column labels (e.g., One, Two, Three), your headers move along with the columns.
+
+::: only-for javascript
+::: example #example3
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#example3');
+const hot = new Handsontable(container, {
+  data: [
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+    ['A3', 'B3', 'C3'],
+  ],
+  colHeaders: ['One', 'Two', 'Three'],
+  rowHeaders: true,
+  manualColumnMove: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+:::
+
+::: only-for react
+::: example #example3 :react
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+      ]}
+      colHeaders={['One', 'Two', 'Three']}
+      rowHeaders={true}
+      manualColumnMove={true}
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
+```
+:::
+:::
 
 ## Drag and move actions of the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin
 
@@ -102,7 +217,6 @@ Both of these methods trigger the [beforeColumnMove](@/api/hooks.md#beforecolumn
 The [dragColumns](@/api/manualColumnMove.md#dragcolumns) method has a [`dropIndex`](@/api/manualColumnMove.md#dragcolumns) parameter, which points to where the elements are being dropped.
 
 ![dragColumns method]({{$basePath}}/img/drag_action.svg)
-
 
 The [moveColumns](@/api/manualColumnMove.md#movecolumns) method has a `finalIndex` parameter, which points to where the elements will be placed after the _moving_ action - `finalIndex` being the index of the first moved element.
 
