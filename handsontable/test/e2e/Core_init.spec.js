@@ -78,7 +78,7 @@ describe('Core_init', () => {
     // Make sure the table is not visible.
     expect(hot.rootElement.offsetParent).toEqual(null);
 
-    spec().$container.css('display', intialDisplayValue);
+    spec().$container.css('display', initialDisplayValue);
 
     await sleep(100);
 
