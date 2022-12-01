@@ -65,7 +65,7 @@ describe('Core_init', () => {
 
   it('should rerender the table after changing the `display` property to anything other than `none` on the root' +
     ' element if it was initialized with `display: none` with inline styles', async() => {
-    const intialDisplayValue = spec().$container.css('display');
+    const initialDisplayValue = spec().$container.css('display');
 
     spec().$container.css('display', 'none');
 
@@ -82,7 +82,7 @@ describe('Core_init', () => {
 
     await sleep(100);
 
-    const $topHolderElement = $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder);
+    const $topHolderElement = getTopClone().find('.wtHolder');
     const $testTopHeader = $(hot.getCell(-1, 0, true));
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
@@ -113,7 +113,7 @@ describe('Core_init', () => {
 
     await sleep(100);
 
-    const $topHolderElement = $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder);
+    const $topHolderElement = getTopClone().find('.wtHolder');
     const $testTopHeader = $(hot.getCell(-1, 0, true));
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
@@ -142,7 +142,7 @@ describe('Core_init', () => {
 
     await sleep(100);
 
-    const $topHolderElement = $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder);
+    const $topHolderElement = getTopClone().find('.wtHolder');
     const $testTopHeader = $(hot.getCell(-1, 0, true));
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
@@ -176,7 +176,7 @@ describe('Core_init', () => {
 
     await sleep(100);
 
-    const $topHolderElement = $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder);
+    const $topHolderElement = getTopClone().find('.wtHolder');
     const $testTopHeader = $(hot.getCell(-1, 0, true));
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
