@@ -6,7 +6,7 @@ Test files must be stored in `tests` folder  (it can contain subfolders).
 
 Launch by command `npm run test` to run all of tests with all of wrappers in all of browsers.
 Launch by command `npm run upload` to upload all of screenshots (it doesn't work on local yet - only CI currently).
-Launch by command `npx playwright test {{ name of file }}` in `./visual-test` folder to run specific test, e.g. `npx playwright test mouse-wheel`
+Launch by command `npx playwright test {{ name of file }}` to run specific test, e.g. `npx playwright test mouse-wheel`
 
 After test screenshots will appear in `tests/screenshots`.
 
