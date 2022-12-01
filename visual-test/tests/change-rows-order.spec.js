@@ -4,8 +4,8 @@ const { test, expect } = require('@playwright/test');
 
 /* ======= */
 
-const version = process.env.VERSION;
-const wrapper = process.env.WRAPPER;
+const version = process.env.VERSION || helpers.defaultHOTVersion;
+const wrapper = process.env.WRAPPER || helpers.defaultHOTWrapper;
 
 const testURL = `https://examples.handsontable.com/examples/${version}/docs/${wrapper}/demo/index.html`;
 const expectedPageTitle = /Handsontable for .* example/;
