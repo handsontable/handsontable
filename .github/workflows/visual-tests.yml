@@ -27,7 +27,7 @@ jobs:
       - name: Run visual tests
         run: | 
           cd visual-test
-          npm run run
+          npm run test
       - name: Upload screenshots
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
