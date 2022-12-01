@@ -52,6 +52,12 @@ describe('validators', () => {
     expect(getValidator('time')).toBeFunction();
   });
 
+  it('should return the original validator function when it was passed directly to the getter', () => {
+    const myValidator = () => {};
+
+    expect(getValidator(myValidator)).toBe(myValidator);
+  });
+
   it('should retrieve custom validator by its names', () => {
     registerValidator('myValidator', (value, cb) => {
       cb(value === 10);

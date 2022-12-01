@@ -1,7 +1,7 @@
 import GlobalMeta from '../globalMeta';
-import { registerCellType, TextCellType } from '../../../../cellTypes';
+import { registerAllCellTypes, getCellType } from '../../../../cellTypes';
 
-registerCellType(TextCellType);
+registerAllCellTypes();
 
 describe('GlobalMeta', () => {
   it('should construct class with prepared meta object', () => {
@@ -58,7 +58,7 @@ describe('GlobalMeta', () => {
       expect(meta.getMeta()).toHaveProperty('outsideClickDeselects', true);
     });
 
-    it('should expand "type" property as object to "editor", "renderer" and "validator" keys', () => {
+    it('should merge "type" property as an object to meta settings', () => {
       const meta = new GlobalMeta();
       const settings = {
         type: {
@@ -80,7 +80,7 @@ describe('GlobalMeta', () => {
       expect(meta.getMeta()).toHaveProperty('validator', 'baz');
     });
 
-    it('should expand "type" property as string to "editor", "renderer" and "validator" keys', () => {
+    it('should expand "type" property as string to meta settings', () => {
       const meta = new GlobalMeta();
       const settings = {
         type: 'text',
@@ -89,11 +89,11 @@ describe('GlobalMeta', () => {
       meta.updateMeta(settings);
 
       expect(meta.getMeta()).toHaveProperty('type', 'text');
-      expect(meta.getMeta().editor).toBeFunction();
-      expect(meta.getMeta().renderer).toBeFunction();
+      expect(meta.getMeta().editor).toBe(getCellType('text').editor);
+      expect(meta.getMeta().renderer).toBe(getCellType('text').renderer);
     });
 
-    it('should expand "type" property even when the property was already set', () => {
+    it('should expand "type" property as object but without overwriting already defined properties', () => {
       const meta = new GlobalMeta();
       const settings = {
         type: {
@@ -116,6 +116,126 @@ describe('GlobalMeta', () => {
 
       expect(meta.getMeta()).toHaveProperty('copyPaste', false);
       expect(meta.getMeta()).toHaveProperty('_test', 'foo');
+    });
+
+    it('should expand "type" property as string but without overwriting already defined properties ' +
+       '(updates from simple cell type to more complex)', () => {
+      const meta = new GlobalMeta();
+      const myRenderer = (hot, TD) => { TD.innerText = '*'; };
+      const myRenderer2 = (hot, TD) => { TD.innerText = '*'; };
+      const myValidator = (value, callback) => callback(true);
+      const settings = {
+        type: 'text',
+        renderer: myRenderer,
+        validator: myValidator,
+      };
+
+      meta.getMeta().copyable = true;
+      meta.getMeta()._test = 'bar';
+
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta().editor).toBe(getCellType('text').editor);
+      expect(meta.getMeta().renderer).toBe(myRenderer);
+      expect(meta.getMeta().validator).toBe(myValidator);
+      expect(meta.getMeta()).toHaveProperty('copyPaste', true);
+      expect(meta.getMeta()).toHaveProperty('_test', 'bar');
+
+      settings.renderer = myRenderer2;
+      settings.copyPaste = false;
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta().editor).toBe(getCellType('text').editor);
+      expect(meta.getMeta().renderer).toBe(myRenderer2);
+      expect(meta.getMeta().validator).toBe(myValidator);
+      expect(meta.getMeta()).toHaveProperty('copyPaste', false);
+      expect(meta.getMeta()).toHaveProperty('_test', 'bar');
+
+      settings.type = 'numeric';
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta().editor).toBe(getCellType('numeric').editor);
+      expect(meta.getMeta().renderer).toBe(myRenderer2);
+      expect(meta.getMeta().validator).toBe(myValidator);
+      expect(meta.getMeta()).toHaveProperty('copyPaste', false);
+      expect(meta.getMeta()).toHaveProperty('_test', 'bar');
+    });
+
+    it('should expand "type" property as string but without overwriting already defined properties ' +
+       '(updates from complex cell type to more simple)', () => {
+      const meta = new GlobalMeta();
+      const myRenderer = (hot, TD) => { TD.innerText = '*'; };
+      const myRenderer2 = (hot, TD) => { TD.innerText = '*'; };
+      const myValidator = (value, callback) => callback(true);
+      const settings = {
+        type: 'numeric',
+        renderer: myRenderer,
+        validator: myValidator,
+      };
+
+      meta.getMeta().copyable = true;
+      meta.getMeta()._test = 'bar';
+
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta().editor).toBe(getCellType('numeric').editor);
+      expect(meta.getMeta().renderer).toBe(myRenderer);
+      expect(meta.getMeta().validator).toBe(myValidator);
+      expect(meta.getMeta()).toHaveProperty('copyPaste', true);
+      expect(meta.getMeta()).toHaveProperty('_test', 'bar');
+
+      settings.renderer = myRenderer2;
+      settings.copyPaste = false;
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta().editor).toBe(getCellType('numeric').editor);
+      expect(meta.getMeta().renderer).toBe(myRenderer2);
+      expect(meta.getMeta().validator).toBe(myValidator);
+      expect(meta.getMeta()).toHaveProperty('copyPaste', false);
+      expect(meta.getMeta()).toHaveProperty('_test', 'bar');
+
+      settings.type = 'text';
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta().editor).toBe(getCellType('text').editor);
+      expect(meta.getMeta().renderer).toBe(myRenderer2);
+      expect(meta.getMeta().validator).toBe(myValidator);
+      expect(meta.getMeta()).toHaveProperty('copyPaste', false);
+      expect(meta.getMeta()).toHaveProperty('_test', 'bar');
+    });
+
+    it('should be possible to update "type" multiple times', () => {
+      const meta = new GlobalMeta();
+      const settings = {
+        type: 'text',
+      };
+
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta().editor).toBe(getCellType('text').editor);
+      expect(meta.getMeta().renderer).toBe(getCellType('text').renderer);
+      expect(meta.getMeta().validator).toBeUndefined();
+
+      settings.type = 'autocomplete';
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta().editor).toBe(getCellType('autocomplete').editor);
+      expect(meta.getMeta().renderer).toBe(getCellType('autocomplete').renderer);
+      expect(meta.getMeta().validator).toBe(getCellType('autocomplete').validator);
+
+      settings.type = 'text';
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta().editor).toBe(getCellType('text').editor);
+      expect(meta.getMeta().renderer).toBe(getCellType('text').renderer);
+      expect(meta.getMeta().validator).toBe(getCellType('autocomplete').validator);
+
+      settings.type = 'numeric';
+      meta.updateMeta(settings);
+
+      expect(meta.getMeta().editor).toBe(getCellType('numeric').editor);
+      expect(meta.getMeta().renderer).toBe(getCellType('numeric').renderer);
+      expect(meta.getMeta().validator).toBe(getCellType('numeric').validator);
     });
   });
 });

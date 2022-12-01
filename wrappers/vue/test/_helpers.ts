@@ -1,3 +1,11 @@
+beforeAll(() => {
+  (window as any).IntersectionObserver = IntersectionObserverMock;
+});
+
+afterAll(() => {
+  delete window.IntersectionObserver;
+});
+
 export function wait(amount, body, resolveFunc) {
   if (!resolveFunc) {
     resolveFunc = body;
@@ -45,4 +53,9 @@ export function createDomContainer() {
   }
 
   return container;
+}
+
+export class IntersectionObserverMock {
+  observe() {}
+  unobserve() {}
 }

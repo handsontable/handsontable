@@ -1,6 +1,5 @@
 import { stringify } from '../3rdparty/SheetClip';
 import {
-  cellMethodLookupFactory,
   countFirstRowKeys
 } from '../helpers/data';
 import {
@@ -16,8 +15,6 @@ import {
 import { extendArray, to2dArray } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
-
-const copyableLookup = cellMethodLookupFactory('copyable', false);
 
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -775,7 +772,7 @@ class DataMap {
    * @returns {string}
    */
   getCopyable(row, prop) {
-    if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
+    if (this.instance.getCellMeta(row, this.propToCol(prop)).copyable) {
       return this.get(row, prop);
     }
 

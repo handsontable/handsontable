@@ -43,6 +43,12 @@ describe('renderers', () => {
     expect(getRenderer('text')).toBeFunction();
   });
 
+  it('should return the original renderer function when it was passed directly to the getter', () => {
+    const myRenderer = () => {};
+
+    expect(getRenderer(myRenderer)).toBe(myRenderer);
+  });
+
   it('should retrieve custom renderer by its names', () => {
     const spy = jasmine.createSpy();
 
