@@ -68,9 +68,9 @@ class DataMap {
   /**
    * @param {object} instance Instance of Handsontable.
    * @param {Array} data Array of arrays or array of objects containing data.
-   * @param {TableMeta} tableMeta The table meta instance.
+   * @param {MetaManager} metaManager The meta manager instance.
    */
-  constructor(instance, data, tableMeta) {
+  constructor(instance, data, metaManager) {
     /**
      * Instance of {@link Handsontable}.
      *
@@ -79,12 +79,12 @@ class DataMap {
      */
     this.instance = instance;
     /**
-     * Instance of {@link TableMeta}.
+     * Instance of {@link MetaManager}.
      *
      * @private
-     * @type {TableMeta}
+     * @type {MetaManager}
      */
-    this.tableMeta = tableMeta;
+    this.metaManager = metaManager;
     /**
      * Reference to the original dataset.
      *
@@ -123,7 +123,7 @@ class DataMap {
       throw new Error('trying to create `columns` definition but you didn\'t provide `schema` nor `data`');
     }
 
-    const columns = this.tableMeta.columns;
+    const columns = this.instance.getSettings().columns;
     let i;
 
     this.colToPropCache = [];
@@ -141,7 +141,7 @@ class DataMap {
         columnsAsFunc = true;
 
       } else {
-        const maxCols = this.tableMeta.maxCols;
+        const maxCols = this.instance.getSettings().maxCols;
 
         columnsLen = Math.min(maxCols, columns.length);
       }
@@ -266,7 +266,7 @@ class DataMap {
    * @returns {object}
    */
   getSchema() {
-    const schema = this.tableMeta.dataSchema;
+    const schema = this.instance.getSettings().dataSchema;
 
     if (schema) {
       if (typeof schema === 'function') {
@@ -323,10 +323,12 @@ class DataMap {
     const continueProcess = this.instance.runHooks('beforeCreateRow', rowIndex, amount, source);
 
     if (continueProcess === false || physicalRowIndex === null) {
-      return 0;
+      return {
+        delta: 0,
+      };
     }
 
-    const maxRows = this.tableMeta.maxRows;
+    const maxRows = this.instance.getSettings().maxRows;
     const columnCount = this.getSchema().length;
     const rowsToAdd = [];
 
@@ -334,7 +336,7 @@ class DataMap {
       let row = null;
 
       if (this.instance.dataType === 'array') {
-        if (this.tableMeta.dataSchema) {
+        if (this.instance.getSettings().dataSchema) {
           // Clone template array
           row = deepClone(this.getSchema());
 
@@ -345,7 +347,7 @@ class DataMap {
         }
 
       } else if (this.instance.dataType === 'function') {
-        row = this.tableMeta.dataSchema(rowIndex + numberOfCreatedRows);
+        row = this.instance.getSettings().dataSchema(rowIndex + numberOfCreatedRows);
 
       } else {
         row = {};
@@ -371,6 +373,10 @@ class DataMap {
     // the number of columns created in the row or the schema.
     if (this.instance.countSourceRows() === rowsToAdd.length) {
       this.instance.columnIndexMapper.initToLength(this.instance.getInitialColumnCount());
+    }
+
+    if (source !== 'auto' && numberOfCreatedRows > 0) {
+      this.metaManager.createRow(physicalRowIndex, amount);
     }
 
     this.instance.runHooks('afterCreateRow', newVisualRowIndex, numberOfCreatedRows, source);
@@ -402,7 +408,7 @@ class DataMap {
     }
 
     const dataSource = this.dataSource;
-    const maxCols = this.tableMeta.maxCols;
+    const maxCols = this.instance.getSettings().maxCols;
     const countSourceCols = this.instance.countSourceCols();
     let columnIndex = index;
 
@@ -413,7 +419,9 @@ class DataMap {
     const continueProcess = this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
 
     if (continueProcess === false) {
-      return 0;
+      return {
+        delta: 0,
+      };
     }
 
     let physicalColumnIndex = countSourceCols;
@@ -462,6 +470,10 @@ class DataMap {
 
     const newVisualColumnIndex = this.instance.toVisualColumn(startPhysicalIndex);
 
+    if (source !== 'auto' && numberOfCreatedCols > 0) {
+      this.metaManager.createColumn(startPhysicalIndex, amount);
+    }
+
     this.instance.runHooks('afterCreateCol', newVisualColumnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
 
@@ -508,7 +520,8 @@ class DataMap {
     if (rowIndex < this.instance.countRows()) {
       this.instance.rowIndexMapper.removeIndexes(removedPhysicalIndexes);
 
-      const customDefinedColumns = isDefined(this.tableMeta.columns) || isDefined(this.tableMeta.dataSchema);
+      const customDefinedColumns = isDefined(this.instance.getSettings().columns) ||
+        isDefined(this.instance.getSettings().dataSchema);
 
       // All rows have been removed. There shouldn't be any columns.
       if (this.instance.rowIndexMapper.getNotTrimmedIndexesLength() === 0 && customDefinedColumns === false) {
@@ -516,8 +529,13 @@ class DataMap {
       }
     }
 
-    this.instance.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
+    const descendingPhysicalRows = removedPhysicalIndexes.slice(0).sort((a, b) => b - a);
 
+    descendingPhysicalRows.forEach((rowPhysicalIndex) => {
+      this.metaManager.removeRow(rowPhysicalIndex, 1);
+    });
+
+    this.instance.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
     this.instance.forceFullRender = true; // used when data was changed
 
     return true;
@@ -534,47 +552,56 @@ class DataMap {
    * @returns {boolean} Returns `false` when action was cancelled, otherwise `true`.
    */
   removeCol(index, amount = 1, source) {
-    if (this.instance.dataType === 'object' || this.tableMeta.columns) {
+    if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
       throw new Error('cannot remove column with object data source or columns option specified');
     }
     let columnIndex = typeof index !== 'number' ? -amount : index;
 
     columnIndex = (this.instance.countCols() + columnIndex) % this.instance.countCols();
 
-    const logicColumns = this.visualColumnsToPhysical(columnIndex, amount);
-    const descendingLogicColumns = logicColumns.slice(0).sort((a, b) => b - a);
-    const actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', columnIndex, amount, logicColumns, source);
+    const removedPhysicalIndexes = this.visualColumnsToPhysical(columnIndex, amount);
+    const descendingPhysicalColumns = removedPhysicalIndexes.slice(0).sort((a, b) => b - a);
+    const actionWasNotCancelled = this.instance
+      .runHooks('beforeRemoveCol', columnIndex, amount, removedPhysicalIndexes, source);
 
     if (actionWasNotCancelled === false) {
       return false;
     }
 
     let isTableUniform = true;
-    const removedColumnsCount = descendingLogicColumns.length;
+    const removedColumnsCount = descendingPhysicalColumns.length;
     const data = this.dataSource;
 
     for (let c = 0; c < removedColumnsCount; c++) {
-      if (isTableUniform && logicColumns[0] !== logicColumns[c] - c) {
+      if (isTableUniform && removedPhysicalIndexes[0] !== removedPhysicalIndexes[c] - c) {
         isTableUniform = false;
       }
     }
 
     if (isTableUniform) {
       for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
-        data[r].splice(logicColumns[0], amount);
+        data[r].splice(removedPhysicalIndexes[0], amount);
+
+        if (r === 0) {
+          this.metaManager.removeColumn(removedPhysicalIndexes[0], amount);
+        }
       }
 
     } else {
       for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
         for (let c = 0; c < removedColumnsCount; c++) {
-          data[r].splice(descendingLogicColumns[c], 1);
+          data[r].splice(descendingPhysicalColumns[c], 1);
+
+          if (r === 0) {
+            this.metaManager.removeColumn(descendingPhysicalColumns[c], 1);
+          }
         }
       }
     }
 
     // TODO: Function `removeCol` should validate fully, probably above.
     if (columnIndex < this.instance.countCols()) {
-      this.instance.columnIndexMapper.removeIndexes(logicColumns);
+      this.instance.columnIndexMapper.removeIndexes(removedPhysicalIndexes);
 
       // All columns have been removed. There shouldn't be any rows.
       if (this.instance.columnIndexMapper.getNotTrimmedIndexesLength() === 0) {
@@ -582,10 +609,8 @@ class DataMap {
       }
     }
 
-    this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
-
+    this.instance.runHooks('afterRemoveCol', columnIndex, amount, removedPhysicalIndexes, source);
     this.instance.forceFullRender = true; // used when data was changed
-
     this.refreshDuckSchema();
 
     return true;
@@ -878,7 +903,7 @@ class DataMap {
    * @returns {number}
    */
   getLength() {
-    const maxRowsFromSettings = this.tableMeta.maxRows;
+    const maxRowsFromSettings = this.instance.getSettings().maxRows;
     let maxRows;
 
     if (maxRowsFromSettings < 0 || maxRowsFromSettings === 0) {
@@ -939,8 +964,8 @@ class DataMap {
     let c;
     let row;
 
-    const maxRows = this.tableMeta.maxRows;
-    const maxCols = this.tableMeta.maxCols;
+    const maxRows = this.instance.getSettings().maxRows;
+    const maxCols = this.instance.getSettings().maxCols;
 
     if (maxRows === 0 || maxCols === 0) {
       return [];
@@ -998,7 +1023,7 @@ class DataMap {
    */
   destroy() {
     this.instance = null;
-    this.tableMeta = null;
+    this.metaManager = null;
     this.dataSource = null;
     this.duckSchema = null;
     this.colToPropCache.length = 0;
