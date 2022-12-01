@@ -29,7 +29,7 @@ function canBeOverwritten(propertyName, metaObject) {
  *
  * @param {object} metaObject The meta object.
  * @param {object} settings The settings object with the "type" setting.
- * @param {object} settingsToCompareWith The object to compare which properties needs to be updated.
+ * @param {object} settingsToCompareWith The object to compare which properties need to be updated.
  */
 export function extendByMetaType(metaObject, settings, settingsToCompareWith = metaObject) {
   const validType = typeof settings.type === 'string' ? getCellType(settings.type) : settings.type;
