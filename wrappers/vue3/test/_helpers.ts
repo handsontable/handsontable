@@ -1,3 +1,11 @@
+beforeAll(() => {
+  (window as any).IntersectionObserver = IntersectionObserverMock;
+});
+
+afterAll(() => {
+  delete window.IntersectionObserver;
+});
+
 /**
  * Creates an 2D array.
  *
@@ -34,4 +42,11 @@ export function mockClientDimensions(element: HTMLElement, width: number, height
   Object.defineProperty(element, 'clientHeight', {
     value: height,
   });
+}
+
+export class IntersectionObserverMock {
+  /* eslint-disable @typescript-eslint/no-empty-function */
+  observe() {}
+  unobserve() {}
+  /* eslint-enable @typescript-eslint/no-empty-function */
 }
