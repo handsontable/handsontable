@@ -9,7 +9,7 @@ await execa.command('npx playwright install --with-deps');
 const commands = [];
 
 for (let i = 0; i < wrappers.length; ++i) {
-  commands.push(execa('npx playwright test', { env: { WRAPPER: wrappers[i], VERSION: version } }));
+  commands.push(execa.command('npx playwright test', { env: { WRAPPER: wrappers[i], VERSION: version } }));
 }
 
 await Promise.all(commands);
