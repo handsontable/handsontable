@@ -19,16 +19,19 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install test tools
-        working-directory: ./visual-test
-        run: npm install
+        run: | 
+          cd visual-test
+          npm install
       - name: Run visual tests
-        working-directory: ./visual-test
-        run: npm run run
+        run: | 
+          cd visual-test
+          npm run run
       - name: Upload screenshots
-        working-directory: ./visual-test
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
           VISWIZ_API_KEY: ${{ secrets.VISWIZ_API_KEY }}
           VISWIZ_PROJECT_ID: ${{ secrets.VISWIZ_PROJECT_ID }}
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
-        run: npm run upload
+        run: | 
+          cd visual-test
+          npm run upload
