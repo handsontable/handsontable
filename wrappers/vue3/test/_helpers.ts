@@ -45,11 +45,6 @@ export function mockClientDimensions(element: HTMLElement, width: number, height
 }
 
 export class IntersectionObserverMock {
-  observe() {
-    return null;
-  }
-
-  unobserve() {
-    return null;
-  }
+  observe() {}
+  unobserve() {}
 }

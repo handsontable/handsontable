@@ -2,7 +2,7 @@ describe('DOM helpers', () => {
   describe('observeVisibilityChangeOnce', () => {
     it('should recognize when an element becomes visible (once) and trigger the provided callback when that happens', async() => {
       const observeVisibilityChangeOnce = Handsontable.dom.observeVisibilityChangeOnce;
-      const element = document.createElement('DIV');
+      const element = document.createElement('div');
       const callbackSpy = jasmine.createSpy('callbackSpy');
 
       element.style.display = 'none';
