@@ -1,4 +1,4 @@
-import { addClass, empty, removeClass } from './helpers/dom/element';
+import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -1180,10 +1180,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.forceFullRender = true; // used when data was changed
     this.view.render();
 
+    // Run the logic only if it's the table's initialization and the root element is not visible.
+    if (!!firstRun && instance.rootElement.offsetParent === null) {
+      observeVisibilityChangeOnce(instance.rootElement, () => instance.render());
+    }
+
     if (typeof firstRun === 'object') {
       instance.runHooks('afterChange', firstRun[0], firstRun[1]);
+
       firstRun = false;
     }
+
     instance.runHooks('afterInit');
   };
 

@@ -3,6 +3,7 @@ import { mount, config } from '@vue/test-utils';
 import { registerPlugin } from 'handsontable/plugins/registry';
 import { NestedRows } from 'handsontable/plugins/nestedRows';
 import HotTable from '../src/HotTable.vue';
+import './_helpers';
 
 config.renderStubDefaultSlot = true;
 
