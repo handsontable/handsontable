@@ -1,12 +1,15 @@
 /* eslint-disable max-len */
 import { spawnProcess } from './utils/processes.mjs';
 
+const testsFolder = 'visual-test';
 const commitSha = (await spawnProcess('git rev-parse HEAD', { silent: true }))
   .stdout
   .toString()
   .slice(0, 7);
 
-process.chdir('./visual-test');
+if (!process.cwd().endsWith(testsFolder)) {
+  process.chdir(testsFolder);
+}
 
 console.log('Upload to Argos');
 await spawnProcess('npx @argos-ci/cli upload tests/screenshots');

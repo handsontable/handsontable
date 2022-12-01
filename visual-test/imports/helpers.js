@@ -1,6 +1,9 @@
 export const helpers = {
+  defaultHOTVersion: '12.2.0',
+  defaultHOTWrapper: 'js',
+
   selectors: {
-    mainTable: '#hot',
+    mainTable: 'div.handsontable.htRowHeaders.htColumnHeaders',
     mainTableBody: '> .ht_master.handsontable table tbody',
     mainTableHead: '> .ht_clone_top.handsontable table thead',
     mainTableFirstColumn: '> .ht_clone_inline_start.ht_clone_left.handsontable table tbody',
@@ -18,11 +21,12 @@ export const helpers = {
     return `./tests-css/${file}`;
   },
 
-  init(workerInfo) {
+  init(workerInfo, wrapper) {
     this.workerInfo = workerInfo;
     this.isMac = this.workerInfo.project.name === 'webkit';
     this.modifier = this.isMac ? 'Meta' : 'Control';
     this.screenshotsCount = 0;
+    this.wrapper = wrapper;
   },
 
   findCell(options = { row: 1, cell: 1, cellType: 'td' }) {
@@ -32,8 +36,9 @@ export const helpers = {
   screenshotPath() {
     this.screenshotsCount += 1;
     const titlePath = this.workerInfo.titlePath[0].split('.spec.js')[0];
+    const browser = this.workerInfo.project.name === 'webkit' ? 'safari' : this.workerInfo.project.name;
 
-    return `./tests/screenshots/${titlePath}/${this.workerInfo.project.name}/${this.screenshotsCount}.png`;
+    return `./tests/screenshots/${this.wrapper}/${browser}/${titlePath}/${this.screenshotsCount}.png`;
   },
 
   findDropdownMenuExpander(options = { col: 1 }) {

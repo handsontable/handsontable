@@ -22,7 +22,6 @@
     "build:codesandbox": "node --experimental-json-modules scripts/codesandbox-ci.mjs",
     "freeze": "node --experimental-json-modules scripts/freeze.mjs",
     "release": "node --experimental-json-modules scripts/release.mjs",
-    "visual-test": "node scripts/visual-test.mjs && node scripts/visual-test-upload-screenshots.mjs && node scripts/visual-test-update-comparision-on-other-branches.mjs",
     "changelog": "bin/changelog",
     "publish-all": "npm run all publish-package -- -e=examples",
     "prein": "npm run swap-package-links",

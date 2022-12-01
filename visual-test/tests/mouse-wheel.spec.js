@@ -4,20 +4,24 @@ const { test, expect } = require('@playwright/test');
 
 /* ======= */
 
-const testTitle = 'Test mouse wheel';
-const testURL = 'https://handsontable.com/demo';
-const expectedPageTitle = 'Data grid demo - Handsontable data grid for JavaScript, React, Angular, and Vue.';
+const version = process.env.VERSION || helpers.defaultHOTVersion;
+const wrapper = process.env.WRAPPER || helpers.defaultHOTWrapper;
+
+const testURL = `https://examples.handsontable.com/examples/${version}/docs/${wrapper}/demo/index.html`;
+const expectedPageTitle = /Handsontable for .* example/;
+
+const testTitle = 'Mouse wheel in page and in table';
 const stylesToAdd = [
   helpers.cssFiles.cookieInfo,
   helpers.cssFiles.dynamicDataFreeze
 ];
 
 test(testTitle, async({ page }, workerInfo) => {
-  helpers.init(workerInfo);
+  helpers.init(workerInfo, wrapper);
 
   await page.goto(testURL);
-  stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath(item) }));
   await expect(page).toHaveTitle(expectedPageTitle);
+  stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath(item) }));
 
   const table = page.locator(helpers.selectors.mainTable);
 
@@ -26,7 +30,6 @@ test(testTitle, async({ page }, workerInfo) => {
   const tbody = table.locator(helpers.selectors.mainTableBody);
   const tbodyCoordinates = await tbody.boundingBox(); // || { x: 0, y: 0, width: 0, height: 0 };
 
-  await table.waitFor();
   await page.mouse.wheel(0, 200);
   await page.waitForTimeout(1000);
   await page.screenshot({ path: helpers.screenshotPath() });

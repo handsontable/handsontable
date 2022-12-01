@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "run": "node ../scripts/visual-tests-build.mjs",
+    "upload": "node ../scripts/visual-tests-upload.mjs"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
