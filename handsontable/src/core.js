@@ -1,4 +1,4 @@
-import { addClass, empty, removeClass } from './helpers/dom/element';
+import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -1408,22 +1408,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   function correctFirstVisibleRender(isInit) {
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (isInit && instance.rootElement.offsetParent === null) {
-      const bodyRootElementIntersectionObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach((entry) => {
-          if (
-            entry.isIntersecting &&
-            instance.rootElement.offsetParent !== null
-          ) {
-            instance.render();
-
-            observer.unobserve(instance.rootElement);
-          }
-        });
-      }, {
-        root: instance.rootDocument.body
-      });
-
-      bodyRootElementIntersectionObserver.observe(instance.rootElement);
+      observeVisibilityChangeOnce(instance.rootElement, () => instance.render());
     }
   }
 
