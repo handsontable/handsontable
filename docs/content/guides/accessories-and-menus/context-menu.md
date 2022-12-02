@@ -469,7 +469,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 
 ### Related guides
 
-- [Adding comments via the context menu](@/guides/cell-features/comments.md#adding-comments-via-the-context-menu)
+- [Adding comments via the context menu](@/guides/cell-features/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
 ::: only-for javascript
