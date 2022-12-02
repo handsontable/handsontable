@@ -3,6 +3,7 @@ import { registerPlugin } from 'handsontable/plugins/registry';
 import HotTable from '../src/HotTable.vue';
 import { mount } from '@vue/test-utils';
 import Vue from 'vue';
+import './_helpers';
 
 registerPlugin(NestedRows);
 

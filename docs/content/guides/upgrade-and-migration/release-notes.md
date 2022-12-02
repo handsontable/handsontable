@@ -291,7 +291,7 @@ For more information on this release, see:
 - Collapsed parents won't be expanded after inserting rows [#8181](https://github.com/handsontable/handsontable/issues/8181)
 - Fixed the cooperation of the dropdown menu and column sorting (menu closing on click) [#8232](https://github.com/handsontable/handsontable/issues/8232)
 - Data won't be corrupted anymore when some alterations are performed [#8614](https://github.com/handsontable/handsontable/issues/8614)
-- Adjusted directories and files related to [`dataMap`](https://github.com/handsontable/handsontable/tree/master/src/dataMap), to prevent potential circular references. [#8704](https://github.com/handsontable/handsontable/issues/8704)
+- Adjusted directories and files related to [`dataMap`](https://github.com/handsontable/handsontable/tree/master/handsontable/src/dataMap), to prevent potential circular references. [#8704](https://github.com/handsontable/handsontable/issues/8704)
 - Improved the performance of the regular expression used to detect numeric values, and fixed major code smells. [#8752](https://github.com/handsontable/handsontable/issues/8752)
 
 ## 9.0.2

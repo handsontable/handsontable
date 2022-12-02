@@ -1,7 +1,7 @@
 ---
 title: Context menu
 metaTitle: Context menu - JavaScript Data Grid | Handsontable
-description: Open a right-click context menu to access contextual actions such as removing rows, inserting columns, or copying data to the clipboard.
+description: Quickly access contextual actions such as removing rows, inserting columns or copying data, by opening the context menu.
 permalink: /context-menu
 canonicalUrl: /context-menu
 tags:
@@ -16,13 +16,19 @@ searchCategory: Guides
 
 # Context menu
 
-Open a right-click context menu to access contextual actions such as removing rows, inserting columns, or copying data to the clipboard.
+Quickly access contextual actions such as removing rows, inserting columns or copying data, by opening the context menu.
 
 [[toc]]
 
 ## Context menu with default options
 
-To run the basic configuration of the Context Menu, just set the [`contextMenu`](@/api/options.md#contextmenu) option to `true`.
+Enable the context menu with the default configuration:
+
+```js
+contextMenu: true,
+```
+
+To see the context menu, right-click on a cell:
 
 ::: only-for javascript
 ::: example #example1
@@ -129,6 +135,8 @@ You can define items in the menu by passing the [`contextMenu`](@/api/options.md
 | [`filter_by_value`](@/api/contextMenu.md)                | Add a filter value ([`Filters`](@/api/filters.md))                                                                                                          |
 | [`filter_action_bar`](@/api/contextMenu.md)              | Apply the configured filter ([`Filters`](@/api/filters.md))                                                                                                 |
 
+To see the context menu, right-click on a cell:
+
 ::: only-for javascript
 ::: example #example2
 ```js
@@ -197,6 +205,8 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 
 In addition to built-in options, you can equip your context menu with custom options.
 
+To see the context menu, right-click on a cell:
+
 ::: example #example4 :react
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -249,7 +259,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 :::
 :::
 
-## Context menu with fully custom configuration
+## Context menu with a fully custom configuration
 
 This example shows how to:
 
@@ -258,6 +268,8 @@ This example shows how to:
 * set custom text for predefined option
 * add own custom option
 * add callback for specific option
+
+To see the context menu, right-click on a cell:
 
 ::: only-for javascript
 ::: example #example3
@@ -469,7 +481,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 
 ### Related guides
 
-- [Adding comments via the context menu](@/guides/cell-features/comments.md#adding-comments-via-the-context-menu)
+- [Adding comments via the context menu](@/guides/cell-features/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
 ::: only-for javascript

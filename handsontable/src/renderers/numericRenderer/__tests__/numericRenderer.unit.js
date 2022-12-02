@@ -10,11 +10,17 @@ import {
   getRenderer,
   registerRenderer,
 } from '../../registry';
+import {
+  registerCellType,
+  TextCellType,
+} from '../../../cellTypes';
+
+registerCellType(TextCellType);
 
 describe('numericRenderer', () => {
   describe('registering', () => {
     it('should throw an error if renderer is not registered', () => {
-      expect(getRegisteredRendererNames()).toEqual([]);
+      expect(getRegisteredRendererNames()).toEqual(['text']);
       expect(() => {
         getRenderer(RENDERER_TYPE);
       }).toThrowError();
@@ -23,7 +29,7 @@ describe('numericRenderer', () => {
     it('should register renderer', () => {
       registerRenderer(RENDERER_TYPE, numericRenderer);
 
-      expect(getRegisteredRendererNames()).toEqual([RENDERER_TYPE]);
+      expect(getRegisteredRendererNames()).toEqual(['text', RENDERER_TYPE]);
       expect(getRenderer(RENDERER_TYPE)).toBeInstanceOf(Function);
     });
   });

@@ -86,7 +86,7 @@ export default {
     },
     'ContextMenu.md': {
       metaTitle: 'ContextMenu - JavaScript Data Grid | Handsontable',
-      description: 'Use the ContextMenu plugin with its API options, members, and methods to enable and customize the right-click context menu.',
+      description: 'Use the ContextMenu plugin with its API options, members, and methods to enable and customize the context menu.',
       react: {
         metaTitle: 'ContextMenu - React Data Grid | Handsontable',
       },
@@ -184,7 +184,7 @@ export default {
     },
     'MergeCells.md': {
       metaTitle: 'MergeCells - JavaScript Data Grid | Handsontable',
-      description: 'Use the MergeCells plugin with its API options and methods to merge adjacent cells, using the "Ctrl + M" shortcut or the right-click context menu.',
+      description: 'Use the MergeCells plugin with its API options and methods to merge adjacent cells, using the "Ctrl + M" shortcut or the context menu.',
       react: {
         metaTitle: 'MergeCells - React Data Grid | Handsontable',
       },
