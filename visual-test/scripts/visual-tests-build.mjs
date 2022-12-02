@@ -10,7 +10,7 @@ const commands = [];
 
 for (let i = 0; i < wrappers.length; ++i) {
   commands.push(execa.command('npx playwright test', {
-    env: { WRAPPER: wrappers[i], VERSION: version }, stdout: 'inherit'
+    env: { HOT_WRAPPER: wrappers[i], HOT_VERSION: version }, stdout: 'inherit'
   }));
 }
 
