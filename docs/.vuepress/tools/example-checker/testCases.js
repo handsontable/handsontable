@@ -25,9 +25,12 @@ const testCases = [
       // The column-summary example on the page of the each framework shows an error being thrown - the Handsontable instance is never rendered.
       '/react-data-grid/column-summary': -1,
       '/javascript-data-grid/column-summary': -1,
-      // The events-and-hooks page contains a rendered Handsontable instance which is not a part of any example.
+      // The events-and-hooks page contains a rendered Handsontable instance which is not a part of any tabbed example.
       '/javascript-data-grid/events-and-hooks': 1,
       '/react-data-grid/events-and-hooks': 1,
+      // The demo page contains a rendered Handsontable instance which is not a part of any tabbed example.
+      '/javascript-data-grid/demo': 1,
+      '/react-data-grid/demo': 1,
     };
 
     /**
@@ -86,8 +89,8 @@ const testCases = [
     // Actual logic starts here:
     // ----------------------------------------
 
-    const codeTabs = document.querySelectorAll('.tabs-component [id^=code-tab]');
-    const htMasterElements = document.querySelectorAll('.tabs-component .handsontable.ht_master');
+    const codeTabs = document.querySelectorAll('[id^=code-tab]');
+    const htMasterElements = document.querySelectorAll('.handsontable.ht_master');
     const hotInitPrefixes = {
       javascript: ' Handsontable\\(',
       react: '<HotTable',
