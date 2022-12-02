@@ -372,8 +372,14 @@ class DataMap {
       this.instance.columnIndexMapper.initToLength(this.instance.getInitialColumnCount());
     }
 
-    if (source !== 'auto' && numberOfCreatedRows > 0) {
-      this.metaManager.createRow(physicalRowIndex, amount);
+    if (numberOfCreatedRows > 0) {
+      if ((index === void 0 || index === null)) {
+        // Creates the meta rows at the end of the rows collection.
+        this.metaManager.createRow(null, numberOfCreatedRows);
+
+      } else if (source !== 'auto') {
+        this.metaManager.createRow(physicalRowIndex, amount);
+      }
     }
 
     this.instance.runHooks('afterCreateRow', newVisualRowIndex, numberOfCreatedRows, source);
@@ -465,11 +471,17 @@ class DataMap {
 
     this.instance.columnIndexMapper.insertIndexes(columnIndex, numberOfCreatedCols);
 
-    const newVisualColumnIndex = this.instance.toVisualColumn(startPhysicalIndex);
+    if (numberOfCreatedCols > 0) {
+      if ((index === void 0 || index === null)) {
+        // Creates the meta columns at the end of the columns collection.
+        this.metaManager.createColumn(null, numberOfCreatedCols);
 
-    if (source !== 'auto' && numberOfCreatedCols > 0) {
-      this.metaManager.createColumn(startPhysicalIndex, amount);
+      } else if (source !== 'auto') {
+        this.metaManager.createColumn(startPhysicalIndex, amount);
+      }
     }
+
+    const newVisualColumnIndex = this.instance.toVisualColumn(startPhysicalIndex);
 
     this.instance.runHooks('afterCreateCol', newVisualColumnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
