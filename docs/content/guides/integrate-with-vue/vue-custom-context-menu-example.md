@@ -1,7 +1,7 @@
 ---
 title: Custom context menu in Vue 2
 metaTitle: Custom context menu - Vue 2 Data Grid | Handsontable
-description: Customize the right-click context menu of your Vue 2 data grid, by creating a custom function for each menu item.
+description: Customize the context menu of your Vue 2 data grid, by creating a custom function for each menu item.
 permalink: /vue-custom-context-menu-example
 canonicalUrl: /vue-custom-context-menu-example
 searchCategory: Guides
@@ -9,7 +9,7 @@ searchCategory: Guides
 
 # Custom context menu in Vue 2
 
-Customize the right-click context menu of your Vue 2 data grid, by creating a custom function for each menu item.
+Customize the context menu of your Vue 2 data grid, by creating a custom function for each menu item.
 
 [[toc]]
 
@@ -85,7 +85,7 @@ new Vue({
 ### Related guides
 
 - [Context menu](@/guides/accessories-and-menus/context-menu.md)
-- [Adding comments via the context menu](@/guides/cell-features/comments.md#adding-comments-via-the-context-menu)
+- [Adding comments via the context menu](@/guides/cell-features/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
 
