@@ -16,10 +16,12 @@ import {
 import {
   registerCellType,
   CheckboxCellType,
+  TextCellType,
 } from 'handsontable/cellTypes';
 import { IntersectionObserverMock } from '../__mocks__/intersectionObserverMock';
 
 registerCellType(CheckboxCellType);
+registerCellType(TextCellType);
 
 registerPlugin(AutoColumnSize);
 registerPlugin(AutoRowSize);

@@ -99,20 +99,13 @@ export default () => {
     /**
      * Information on which of the meta properties were added automatically.
      * For example: setting the `renderer` property directly won't extend the `_automaticallyAssignedMetaProps`
-     * entry, but setting a `type` will modify it to:
-     * ```
-     * _automaticallyAssignedMetaProps: {
-     *   renderer: true,
-     *   editor: true,
-     *   validator: true
-     * }
-     * ```
+     * entry, but setting a `type` will modify it to `Set(3) {'renderer', 'editor', 'validator', ...}`.
      *
      * @private
-     * @type {object}
-     * @default {}
+     * @type {Set}
+     * @default undefined
      */
-    _automaticallyAssignedMetaProps: {},
+    _automaticallyAssignedMetaProps: void 0,
 
     /**
      * The `activeHeaderClassName` option lets you add a CSS class name
