@@ -75,6 +75,9 @@ export function _getEditorInstance(name, hotInstance) {
  * @returns {Function} Returns editor class.
  */
 function _getItem(name) {
+  if (typeof name === 'function') {
+    return name;
+  }
   if (!hasItem(name)) {
     throw Error(`No registered editor found under "${name}" name`);
   }

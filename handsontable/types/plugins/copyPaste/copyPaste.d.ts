@@ -6,10 +6,14 @@ export interface DetailedSettings {
   pasteMode?: PasteModeType;
   rowsLimit?: number;
   columnsLimit?: number;
+  copyColumnHeaders?: boolean;
+  copyColumnGroupHeaders?: boolean;
+  copyColumnHeadersOnly?: boolean;
 }
 
 export type Settings = boolean | DetailedSettings;
 export type PasteModeType = 'overwrite' | 'shift_down' | 'shift_right';
+export type CopyModeType = 'cells-only' | 'column-headers-only' | 'with-all-column-headers' | 'with-column-headers';
 
 export interface RangeType {
   startRow: number;
@@ -22,11 +26,15 @@ export class CopyPaste extends BasePlugin {
   constructor(hotInstance: Core);
 
   columnsLimit: number;
-  pasteMode: string;
   rowsLimit: number;
+  pasteMode: string;
 
   isEnabled(): boolean;
-  copy(): void;
+  copy(copyMode?: CopyModeType): void;
+  copyCellsOnly(): void;
+  copyColumnHeadersOnly(): void;
+  copyWithAllColumnHeaders(): void;
+  copyWithColumnHeaders(): void;
   cut(): void;
   getRangedCopyableData(ranges: RangeType[]): string;
   getRangedData(ranges: RangeType[]): CellValue[][];

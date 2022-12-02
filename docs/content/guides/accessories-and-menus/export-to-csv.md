@@ -420,9 +420,9 @@ Read more on the [Instance methods](@/guides/getting-started/react-methods.md) p
 
 The plugin exposes the following methods to export data.
 
-* [**downloadFile(format, options)**](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
-* [**exportAsBlob(format, options)**](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
-* [**exportAsString(format, options)**](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
+* [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
+* [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
+* [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
 
 All of them accept the same arguments:
 

@@ -83,7 +83,7 @@ Changes called in [`updateSettings()`](@/api/core.md#updatesettings) will re-ren
 
 If you don't define any dimensions, Handsontable generates as many rows and columns as needed to fill the available space.
 
-If the grid's content doesn't fit inside the viewport, the browser's native scrollbars are used for scrolling. For this to work properly, Handsontable's [layout direction](@/guides/internationalization/layout-direction.md) (e.g., [`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)) must be the same as your HTML document's layout direction (`<html dir='rtl'>`). Otherwise, horizontal scrolling doesn't work.
+If your grid's contents don't fit in the viewport, the browser's native scrollbars are used for scrolling. For this to work properly, Handsontable's [layout direction](@/guides/internationalization/layout-direction.md) (e.g., [`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)) must be the same as your HTML document's layout direction (`<html dir='rtl'>`). Otherwise, horizontal scrolling doesn't work.
 
 ## Autoresizing
 
@@ -264,7 +264,12 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
 :::
 
 
-## Related API reference
+## Related articles
+
+- [Column widths](@/guides/columns/column-width.md)
+- [Row heights](@/guides/rows/row-height.md)
+
+**Related API reference**
 
 - Configuration options:
   - [`height`](@/api/options.md#height)

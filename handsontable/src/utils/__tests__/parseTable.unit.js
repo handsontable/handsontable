@@ -1,10 +1,19 @@
 import { instanceToHTML, _dataToHTML, htmlToGridSettings } from '../parseTable';
 import Handsontable from '../../index';
 import { registerCellType, TextCellType } from '../../cellTypes';
+import { IntersectionObserverMock } from '../../../test/__mocks__/intersectionObserverMock';
 
 registerCellType(TextCellType);
 
 describe('instanceToHTML', () => {
+  beforeAll(() => {
+    window.IntersectionObserver = IntersectionObserverMock;
+  });
+
+  afterAll(() => {
+    delete window.IntersectionObserver;
+  });
+
   it('should convert clear instance into HTML table', () => {
     const hot = new Handsontable(document.createElement('div'), {});
 

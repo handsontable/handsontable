@@ -1,3 +1,5 @@
+.eslintcache
+.stylelintcache
 test/E2ERunner.html
 test/UnitRunner.html
 test/MobileRunner.html
@@ -7,6 +9,7 @@ src/3rdparty/walkontable/test/dist/
 src/3rdparty/walkontable/dist/
 dev*.html
 dev*.js
+dev*.ts
 npm-debug.log
 
 !dist/README.md

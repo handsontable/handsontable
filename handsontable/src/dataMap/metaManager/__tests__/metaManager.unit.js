@@ -3,6 +3,9 @@ import GlobalMeta from '../metaLayers/globalMeta';
 import TableMeta from '../metaLayers/tableMeta';
 import ColumnMeta from '../metaLayers/columnMeta';
 import CellMeta from '../metaLayers/cellMeta';
+import { registerAllCellTypes } from '../../../cellTypes';
+
+registerAllCellTypes();
 
 describe('MetaManager', () => {
   it('should instantiate the mod class with proper list of arguments', () => {

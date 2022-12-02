@@ -2,6 +2,7 @@ const path = require('path');
 const stylusNodes = require('stylus/lib/nodes');
 const highlight = require('./highlight');
 const examples = require('./containers/examples');
+const exampleWithoutTabs = require('./containers/example-without-tabs');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
@@ -135,6 +136,7 @@ module.exports = {
       exclude: ['/404.html']
     }],
     ['container', examples(getThisDocsVersion(), getDocsBaseFullUrl())],
+    ['container', exampleWithoutTabs(getThisDocsVersion(), getDocsBaseFullUrl())],
     ['container', sourceCodeLink],
     {
       extendMarkdown(md) {

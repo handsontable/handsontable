@@ -749,7 +749,6 @@ describe('HandsontableEditor', () => {
 
   it('should open editors properly and handle keydown event properly (does not close editor)', async() => {
     handsontable({
-      licenseKey: 'non-commercial-and-evaluation',
       data: [
         ['Tesla', 2017, 'black', 'black'],
         ['Nissan', 2018, 'blue', 'blue'],

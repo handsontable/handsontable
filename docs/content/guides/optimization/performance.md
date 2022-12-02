@@ -21,17 +21,17 @@ Boost your grid's performance by setting a constant column size, suspending rend
 
 Handsontable performs multiple calculations to display the grid properly. The most demanding actions are performed on load, change, and scroll events. Every single operation decreases the performance, but most of them are unavoidable.
 
-We use Performance Lab to measure the execution times in various configurations. Some tests have shown that there are methods that may potentially boost the performance of your application. These only work in certain cases, but we hope they can be successfully applied to your app as well.
+To measure Handsontable's execution times in various configurations, we use our own library called [Performance Lab](https://github.com/handsontable/performance-lab). Some tests have shown that there are methods that may potentially boost the performance of your application. These only work in certain cases, but we hope they can be successfully applied to your app as well.
 
-## Set constant size
+## Set constant row and column sizes
 
-You can set a constant size for your table's columns. This way, Handsontable won't have to calculate the optimal width for each column. To do this, define the column widths by setting the [`colWidths`](@/api/options.md#colwidths) configuration option:
+Configure your [column widths](@/guides/columns/column-width.md) and [row heights](@/guides/rows/row-height.md) in advance. This way, Handsontable doesn't have to calculate them.
 
 ::: only-for javascript
 ```js
 const hot = new Handsontable(obj, {
-  // other options
-  colWidths: [50, 150, 45]
+  colWidths: [50, 150, 45],
+  rowHeights: [40, 40, 40, 40],
 });
 ```
 :::
@@ -40,15 +40,19 @@ const hot = new Handsontable(obj, {
 ```js
 <HotTable
   colWidths={[50, 150, 45]}
+  rowHeights={[40, 40, 40, 40]}
 />
 ```
 :::
 
-For more information, see [our documentation](@/api/options.md#colwidths).
+When taking this approach, make sure that the contents of your cells fit in your row and column sizes, or let the user change [column widths](@/guides/columns/column-width.md#adjust-the-column-width-manually) and [row heights](@/guides/rows/row-height.md#adjust-row-heights-manually) manually.
 
-::: tip
-When using this setting, Handsontable won't perform the column width calculations, so you will need to ensure that your table contents fit inside the columns with the provided widths.
-:::
+Read more:
+- [Grid size](@/guides/getting-started/grid-size.md)
+- [Column widths](@/guides/columns/column-width.md)
+- [Row heights](@/guides/rows/row-height.md)
+- [`colWidths`](@/api/options.md#colwidths)
+- [`rowHeights`](@/api/options.md#rowheights)
 
 ## Turn off autoRowSize and/or autoColumnSize
 

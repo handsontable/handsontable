@@ -1,5 +1,5 @@
 import { extend } from '../../../helpers/object';
-import { expandMetaType } from '../utils';
+import { extendByMetaType } from '../utils';
 import metaSchemaFactory from '../metaSchema';
 
 /**
@@ -81,6 +81,9 @@ export default class GlobalMeta {
    */
   updateMeta(settings) {
     extend(this.meta, settings);
-    extend(this.meta, expandMetaType(settings.type, settings));
+    extendByMetaType(this.meta, {
+      ...settings,
+      type: settings.type ?? this.meta.type,
+    }, settings);
   }
 }
