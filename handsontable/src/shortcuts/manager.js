@@ -16,7 +16,7 @@ import { useRecorder } from './recorder';
  * @param {object} options The manager's options
  * @param {EventTarget} options.ownerWindow A starting `window` element
  * @param {Function} options.handleEvent A condition on which `event` is handled.
- * @param {Function} options.beforeKeyDown A hook fired before the `keydown` event is handled. You can use it to [block a keyboard shortcut's actions](@/guides/accessories-and-menus/keyboard-shortcuts.md#blocking-a-keyboard-shortcut-s-actions).
+ * @param {Function} options.beforeKeyDown A hook fired before the `keydown` event is handled. You can use it to [block a keyboard shortcut's actions](@/guides/accessories-and-menus/keyboard-shortcuts.md#block-a-keyboard-shortcut-s-actions).
  * @param {Function} options.afterKeyDown A hook fired after the `keydown` event is handled
  */
 export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown, afterKeyDown }) => {

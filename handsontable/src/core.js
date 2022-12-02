@@ -54,7 +54,7 @@ const deprecationWarns = new Set();
  *
  * ::: only-for react
  * To use these methods, associate a Handsontable instance with your instance
- * of the [`HotTable` component](@/guides/getting-started/installation.md#hottable-component),
+ * of the [`HotTable` component](@/guides/getting-started/installation.md#use-the-hottable-component),
  * by using React's `ref` feature (read more on the [Instance methods](@/guides/getting-started/react-methods.md) page).
  * :::
  *
