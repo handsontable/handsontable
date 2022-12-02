@@ -10,10 +10,10 @@ const commitSha = (await execa.command('git rev-parse HEAD', { silent: true }))
   .slice(0, 7);
 
 console.log('Upload to Argos');
-await execa.command('npx @argos-ci/cli upload tests/screenshots');
+await execa.command('npx @argos-ci/cli upload tests/screenshots', { stdout: 'inherit' });
 
 console.log('Upload to Viswiz');
-await execa.command(`npx viswiz build --image-dir ./tests/screenshots --message last-commit-message --revision ${commitSha}`);
+await execa.command(`npx viswiz build --image-dir ./tests/screenshots --message last-commit-message --revision ${commitSha}`, { stdout: 'inherit' });
 
 console.log('Upload to Percy');
-await execa.command('npx percy upload ./tests/screenshots');
+await execa.command('npx percy upload ./tests/screenshots', { stdout: 'inherit' });
