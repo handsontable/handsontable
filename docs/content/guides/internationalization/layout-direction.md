@@ -33,15 +33,15 @@ To properly display Handsontable's UI and data in LTR languages (such as English
 By default, Handsontable's layout direction is set automatically, based on on the value of your HTML document's `dir` attribute.
 
 You can:
-- [Set the layout direction automatically](#setting-the-layout-direction-automatically)
-- [Set the layout direction to RTL](#setting-the-layout-direction-to-rtl)
-- [Set the layout direction to LTR](#setting-the-layout-direction-to-ltr)
+- [Set the layout direction automatically](#set-the-layout-direction-automatically)
+- [Set the layout direction to RTL](#set-the-layout-direction-to-rtl)
+- [Set the layout direction to LTR](#set-the-layout-direction-to-ltr)
 
 ### RTL support
 
-If your app uses an RTL language, we recommend [setting Handsontable's layout direction to RTL](#setting-the-layout-direction-to-rtl).
+If your app uses an RTL language, we recommend [setting Handsontable's layout direction to RTL](#set-the-layout-direction-to-rtl).
 
-For Arabic, use Handsontable's built-in [Arabic translation](@/guides/internationalization/language.md#list-of-available-languages). For any other RTL language, [add your own translation](@/guides/internationalization/language.md#creating-custom-languages).
+For Arabic, use Handsontable's built-in [Arabic translation](@/guides/internationalization/language.md#list-of-available-languages). For any other RTL language, [add your own translation](@/guides/internationalization/language.md#create-custom-languages).
 
 #### RTL demo
 
@@ -501,11 +501,11 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
 
 
 You can apply the horizontal text alignment settings to:
-- [The entire grid](@/guides/getting-started/configuration-options.md#setting-grid-options), by setting [`className`](@/api/options.md#classname) on the global level
-- [Individual columns](@/guides/getting-started/configuration-options.md#setting-column-options), by setting [`className`](@/api/options.md#classname) on the column level
-- [Individual rows](@/guides/getting-started/configuration-options.md#setting-row-options), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
-- [Individual cells](@/guides/getting-started/configuration-options.md#setting-cell-options), by setting [`className`](@/api/options.md#classname) on the cell level
-- [Individual grid elements, based on any logic you implement](@/guides/getting-started/configuration-options.md#implementing-custom-logic), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
+- [The entire grid](@/guides/getting-started/configuration-options.md#set-grid-options), by setting [`className`](@/api/options.md#classname) on the global level
+- [Individual columns](@/guides/getting-started/configuration-options.md#set-column-options), by setting [`className`](@/api/options.md#classname) on the column level
+- [Individual rows](@/guides/getting-started/configuration-options.md#set-row-options), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
+- [Individual cells](@/guides/getting-started/configuration-options.md#set-cell-options), by setting [`className`](@/api/options.md#classname) on the cell level
+- [Individual grid elements, based on any logic you implement](@/guides/getting-started/configuration-options.md#implement-custom-logic), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
 
 ## Related articles
 

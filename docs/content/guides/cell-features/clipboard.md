@@ -271,7 +271,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 
 ### Hooks
 
-The [CopyPaste](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during copy or cut operations:
+The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during copy or cut operations:
 
 - [`beforeCopy`](@/api/hooks.md#beforecopy)
 - [`afterCopy`](@/api/hooks.md#aftercopy)
@@ -304,7 +304,7 @@ Due to security reasons, modern browsers disallow reading from the system clipbo
 
 ### Hooks
 
-The [CopyPaste](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during the pasting operation:
+The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during the pasting operation:
 
 - [`beforePaste`](@/api/hooks.md#beforepaste)
 - [`afterPaste`](@/api/hooks.md#afterpaste)

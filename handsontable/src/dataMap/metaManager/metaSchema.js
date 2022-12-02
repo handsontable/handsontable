@@ -52,7 +52,7 @@ import { isObjectEqual } from '../../helpers/object';
  * ::: only-for react
  *
  * To apply configuration options, pass them as individual props
- * of the [`HotTable`](@/guides/getting-started/installation.md##hottable-component)
+ * of the [`HotTable`](@/guides/getting-started/installation.md#use-the-hottable-component)
  * or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
  *
  * Read more on the [Configuration options](@/guides/getting-started/configuration-options.md) page.
@@ -82,10 +82,10 @@ import { isObjectEqual } from '../../helpers/object';
  * :::
  *
  * Depending on your needs, you can apply [configuration options](@/api/options.md) to different elements of your grid:
- * - [The entire grid](@/guides/getting-started/configuration-options.md#setting-grid-options)
- * - [Individual columns](@/guides/getting-started/configuration-options.md#setting-column-options)
- * - [Individual rows](@/guides/getting-started/configuration-options.md#setting-row-options)
- * - [Individual cells](@/guides/getting-started/configuration-options.md#setting-cell-options)
+ * - [The entire grid](@/guides/getting-started/configuration-options.md#set-grid-options)
+ * - [Individual columns](@/guides/getting-started/configuration-options.md#set-column-options)
+ * - [Individual rows](@/guides/getting-started/configuration-options.md#set-row-options)
+ * - [Individual cells](@/guides/getting-started/configuration-options.md#set-cell-options)
  * - [Individual grid elements, based on any logic you implement](@/guides/getting-started/configuration-options.md#implementing-custom-logic)
  *
  * Read more:
@@ -500,11 +500,11 @@ export default () => {
     /**
      * The `cell` option lets you apply [configuration options](@/guides/getting-started/configuration-options.md) to individual cells.
      *
-     * The `cell` option overwrites the [top-level grid options](@/guides/getting-started/configuration-options.md#setting-grid-options),
+     * The `cell` option overwrites the [top-level grid options](@/guides/getting-started/configuration-options.md#set-grid-options),
      * and the [`columns`](#columns) options.
      *
      * Read more:
-     * - [Configuration options: Setting cell options](@/guides/getting-started/configuration-options.md#setting-cell-options)
+     * - [Configuration options: Setting cell options](@/guides/getting-started/configuration-options.md#set-cell-options)
      * - [`columns`](#columns)
      *
      * @memberof Options#
@@ -542,8 +542,8 @@ export default () => {
      * | `prop`    | No       | String \| Number | If [`data`](#data) is set to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same number as `column`.<br><br>If [`data`](#data) is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for the column's data object. |
      *
      * Read more:
-     * - [Configuration options: Implementing custom logic](@/guides/getting-started/configuration-options.md#implementing-custom-logic)
-     * - [Configuration options: Setting row options](@/guides/getting-started/configuration-options.md#setting-row-options)
+     * - [Configuration options: Implementing custom logic](@/guides/getting-started/configuration-options.md#implement-custom-logic)
+     * - [Configuration options: Setting row options](@/guides/getting-started/configuration-options.md#set-row-options)
      * - [`columns`](#columns)
      * - [`cell`](#cell)
      *
@@ -766,12 +766,12 @@ export default () => {
      * - An array of objects (each object represents one column)
      * - A function that returns an array of objects
      *
-     * The `columns` option overwrites the [top-level grid options](@/guides/getting-started/configuration-options.md#setting-grid-options).
+     * The `columns` option overwrites the [top-level grid options](@/guides/getting-started/configuration-options.md#set-grid-options).
      *
      * When you use `columns`, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) options are ignored.
      *
      * Read more:
-     * - [Configuration options: Setting column options](@/guides/getting-started/configuration-options.md#setting-column-options)
+     * - [Configuration options: Setting column options](@/guides/getting-started/configuration-options.md#set-column-options)
      * - [`startCols`](#startCols)
      * - [`minCols`](#minCols)
      * - [`maxCols`](#maxCols)
@@ -906,12 +906,12 @@ export default () => {
      * | `type`                   | `'sum'` \| `'min'` \| `'max'` \| `'count'` \| `'average'` \| `'custom'` | [Summary function](@/guides/columns/column-summary.md#step-3-calculate-your-summary)                                         |
      * | `destinationRow`         | A number                                                                | [Destination cell's row coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates)    |
      * | `destinationColumn`      | A number                                                                | [Destination cell's column coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
-     * | `forceNumeric`           | `true`  \| `false`                                                      | [Treat non-numerics as numerics](@/guides/columns/column-summary.md#forcing-numeric-values)                                  |
+     * | `forceNumeric`           | `true`  \| `false`                                                      | [Treat non-numerics as numerics](@/guides/columns/column-summary.md#force-numeric-values)                                  |
      * | `reversedRowCoords`      | `true`  \| `false`                                                      | [Reverse row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell)                      |
-     * | `suppressDataTypeErrors` | `true`  \| `false`                                                      | [Suppress data type errors](@/guides/columns/column-summary.md#throwing-data-type-errors)                                    |
+     * | `suppressDataTypeErrors` | `true`  \| `false`                                                      | [Suppress data type errors](@/guides/columns/column-summary.md#throw-data-type-errors)                                    |
      * | `readOnly`               | `true`  \| `false`                                                      | Make summary cell read-only                                                                                                  |
-     * | `roundFloat`             | `true`  \| `false`                                                      | [Round summary result](@/guides/columns/column-summary.md#rounding-a-column-summary-result)                                  |
-     * | `customFunction`         | A function                                                              | [Custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function)                         |
+     * | `roundFloat`             | `true`  \| `false`                                                      | [Round summary result](@/guides/columns/column-summary.md#round-a-column-summary-result)                                  |
+     * | `customFunction`         | A function                                                              | [Custom summary function](@/guides/columns/column-summary.md#implement-a-custom-summary-function)                         |
      *
      * Read more:
      * - [Column summary](@/guides/columns/column-summary.md)
@@ -2618,7 +2618,7 @@ export default () => {
      *
      * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-handsontable). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
      *
-     * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/configuration-options.md#setting-grid-options).
+     * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/configuration-options.md#set-grid-options).
      * You can't set it for individual columns, rows, or cells.
      *
      * You can set the `layoutDirection` option to one of the following strings:
@@ -2692,8 +2692,8 @@ export default () => {
      * The `locale` option configures Handsontable's [locale](@/guides/internationalization/locale.md) settings.
      *
      * You can set the `locale` option to any valid and canonicalized Unicode BCP 47 locale tag,
-     * both for the [entire grid](@/guides/internationalization/locale.md#setting-the-grid-s-locale),
-     * and for [individual columns](@/guides/internationalization/locale.md#setting-a-column-s-locale).
+     * both for the [entire grid](@/guides/internationalization/locale.md#set-the-grid-s-locale),
+     * and for [individual columns](@/guides/internationalization/locale.md#set-a-column-s-locale).
      *
      * Read more:
      * - [Locale](@/guides/internationalization/locale.md)
@@ -3366,7 +3366,7 @@ export default () => {
      * | `true`            | Enable the [`PersistentState`](@/api/persistentState.md) plugin  |
      *
      * Read more:
-     * - [Saving data: Saving data locally](@/guides/getting-started/saving-data.md#saving-data-locally)
+     * - [Saving data: Saving data locally](@/guides/getting-started/saving-data.md#save-data-locally)
      * - [Plugins: `PersistentState`](@/api/persistentState.md)
      *
      * @memberof Options#
@@ -3822,7 +3822,7 @@ export default () => {
      * | `'multiple'` | Allow the user to select multiple ranges of cells at a time. |
      *
      * Read more:
-     * - [Selection: Selecting ranges](@/guides/cell-features/selection.md#selecting-ranges)
+     * - [Selection: Selecting ranges](@/guides/cell-features/selection.md#select-ranges)
      *
      * @memberof Options#
      * @type {string}
@@ -3915,7 +3915,7 @@ export default () => {
      * | `true`            | - Disable pasting data into this column<br>- On pasting, paste data into the next column to the right |
      *
      * Read more:
-     * - [Configuration options: Setting column options](@/guides/getting-started/configuration-options.md#setting-column-options)
+     * - [Configuration options: Setting column options](@/guides/getting-started/configuration-options.md#set-column-options)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3949,7 +3949,7 @@ export default () => {
      * | `true`            | - Disable pasting data into this row<br>- On pasting, paste data into the row below |
      *
      * Read more:
-     * - [Configuration options: Setting row options](@/guides/getting-started/configuration-options.md#setting-row-options)
+     * - [Configuration options: Setting row options](@/guides/getting-started/configuration-options.md#set-row-options)
      *
      * @memberof Options#
      * @type {boolean}
