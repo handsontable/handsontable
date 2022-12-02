@@ -86,8 +86,8 @@ const testCases = [
     // Actual logic starts here:
     // ----------------------------------------
 
-    const codeTabs = document.querySelectorAll('[id^=code-tab]');
-    const htMasterElements = document.querySelectorAll('.handsontable.ht_master');
+    const codeTabs = document.querySelectorAll('.tabs-component [id^=code-tab]');
+    const htMasterElements = document.querySelectorAll('.tabs-component .handsontable.ht_master');
     const hotInitPrefixes = {
       javascript: ' Handsontable\\(',
       react: '<HotTable',
