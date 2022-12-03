@@ -7,4 +7,5 @@ dev*.html
 dev*.js
 npm-debug.log
 
+.parcel-cache/
 node_modules/

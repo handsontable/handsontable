@@ -175,7 +175,7 @@ describe('ContextMenu', () => {
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getColHeader()).toEqual(['A', 1, 2, 3, 4, 5]);
       expect(`
-        |   ║ - : - : - : - : - : - |
+        |   ║ * : * : * : * : * : * |
         |===:===:===:===:===:===:===|
         `).toBeMatchToSelectionPattern();
     });
@@ -202,11 +202,11 @@ describe('ContextMenu', () => {
       expect(`
         |   |
         |===|
-        | - |
-        | - |
-        | - |
-        | - |
-        | - |
+        | * |
+        | * |
+        | * |
+        | * |
+        | * |
         `).toBeMatchToSelectionPattern();
     });
 

@@ -1,7 +1,7 @@
 ---
 title: Comments
 metaTitle: Comments - JavaScript Data Grid | Handsontable
-description: Add a comment (a note) to a cell, using the right-click context menu, just like in Excel. Edit and delete comments. Make comments read-only.
+description: Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
 permalink: /comments
 canonicalUrl: /comments
 tags:
@@ -13,7 +13,7 @@ searchCategory: Guides
 
 # Comments
 
-Add a comment (a note) to a cell, using the right-click context menu, just like in Excel. Edit and delete comments. Make comments read-only.
+Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
 
 [[toc]]
 

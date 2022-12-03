@@ -1,0 +1,7 @@
+{
+  "title": "Added a new feature that enables the user to copy the contents of column headers by using 3 new context menu options (\"Copy with headers\", \"Copy with group headers\", and \"Copy headers only\"), along with new API methods for using the feature programmatically.",
+  "type": "added",
+  "issue": 2288,
+  "breaking": false,
+  "framework": "none"
+}

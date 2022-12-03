@@ -1,4 +1,4 @@
-describe('Core_getCellMeta', () => {
+describe('Core.getCellMeta', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -23,10 +23,10 @@ describe('Core_getCellMeta', () => {
 
     const cellMeta = getCellMeta(0, 1);
 
-    expect(cellMeta.row).toEqual(4);
-    expect(cellMeta.col).toEqual(3);
-    expect(cellMeta.visualRow).toEqual(0);
-    expect(cellMeta.visualCol).toEqual(1);
+    expect(cellMeta.row).toBe(4);
+    expect(cellMeta.col).toBe(3);
+    expect(cellMeta.visualRow).toBe(0);
+    expect(cellMeta.visualCol).toBe(1);
   });
 
   it('should not allow manual editing of a read only cell', () => {
@@ -44,7 +44,7 @@ describe('Core_getCellMeta', () => {
 
     keyDownUp('enter');
 
-    expect(isEditorVisible()).toEqual(false);
+    expect(isEditorVisible()).toBe(false);
   });
 
   it('should allow manual editing of cell that is no longer read only', () => {
@@ -62,7 +62,7 @@ describe('Core_getCellMeta', () => {
 
     keyDownUp('enter');
 
-    expect(isEditorVisible()).toEqual(true);
+    expect(isEditorVisible()).toBe(true);
   });
 
   it('should move the selection to the cell below, when hitting the ENTER key on a read-only cell', () => {
@@ -102,33 +102,106 @@ describe('Core_getCellMeta', () => {
     document.activeElement.value = 'new value';
     destroyEditor();
 
-    expect(getDataAtCell(2, 2)).toEqual('new value');
+    expect(getDataAtCell(2, 2)).toBe('new value');
   });
 
-  it('should allow to use type and renderer in `flat` notation', () => {
-    handsontable({
-      data: [
-        [1, 2, 3, 4],
-        [5, 6, 7, 8],
-        [0, 9, 8, 7]
-      ],
-      cells(row, col) {
-        if (row === 2 && col === 2) {
-          return {
-            type: 'checkbox',
-            renderer(instance, td, ...args) {
-              // taken from demo/renderers.html
-              Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
+  it('should allow to use `type` and other type-related options in the same configuration level (using `beforeGetCellMeta` hook)', () => {
+    const { getCellType } = Handsontable.cellTypes;
+    const myRenderer = function(instance, td, row, col, prop, value) {
+      td.innerHTML = `${value}-*`;
+    };
 
-              td.style.backgroundColor = 'yellow';
-            }
-          };
+    handsontable({
+      beforeGetCellMeta(row, col, cellProperties) {
+        if (row === 1 && col === 0) {
+          cellProperties.type = 'numeric';
         }
-      }
+        if (row === 2 && col === 0) {
+          cellProperties.type = 'autocomplete';
+          cellProperties.renderer = myRenderer;
+          cellProperties.copyable = false;
+        }
+      },
     });
 
-    expect(getCell(2, 2).style.backgroundColor).toEqual('yellow');
-    expect(getCell(1, 1).style.backgroundColor).toEqual('');
+    expect(getCellMeta(0, 0).editor).toBe(getCellType('text').editor);
+    expect(getCellMeta(1, 0).editor).toBe(getCellType('numeric').editor);
+    expect(getCellMeta(1, 0).renderer).toBe(getCellType('numeric').renderer);
+    expect(getCellMeta(1, 0).validator).toBe(getCellType('numeric').validator);
+    expect(getCellMeta(2, 0).editor).toBe(getCellType('autocomplete').editor);
+    expect(getCellMeta(2, 0).renderer).toBe(myRenderer);
+    expect(getCellMeta(2, 0).copyable).toBe(false);
+    expect(getCellMeta(2, 0).validator).toBe(getCellType('autocomplete').validator);
+    expect(getCellMeta(3, 0).editor).toBe(getCellType('text').editor);
+  });
+
+  it('should allow to use `type` and other type-related options in the same configuration level (using `cells` option)', () => {
+    const { getCellType } = Handsontable.cellTypes;
+    const myRenderer = function(instance, td, row, col, prop, value) {
+      td.innerHTML = `${value}-*`;
+    };
+
+    handsontable({
+      cells(row, col) {
+        const cellProperties = {};
+
+        if (row === 1 && col === 0) {
+          cellProperties.type = 'numeric';
+        }
+        if (row === 2 && col === 0) {
+          cellProperties.type = 'autocomplete';
+          cellProperties.renderer = myRenderer;
+          cellProperties.copyable = false;
+        }
+
+        return cellProperties;
+      },
+    });
+
+    expect(getCellMeta(0, 0).editor).toBe(getCellType('text').editor);
+    expect(getCellMeta(1, 0).editor).toBe(getCellType('numeric').editor);
+    expect(getCellMeta(1, 0).renderer).toBe(getCellType('numeric').renderer);
+    expect(getCellMeta(1, 0).validator).toBe(getCellType('numeric').validator);
+    expect(getCellMeta(2, 0).editor).toBe(getCellType('autocomplete').editor);
+    expect(getCellMeta(2, 0).renderer).toBe(myRenderer);
+    expect(getCellMeta(2, 0).copyable).toBe(false);
+    expect(getCellMeta(2, 0).validator).toBe(getCellType('autocomplete').validator);
+    expect(getCellMeta(3, 0).editor).toBe(getCellType('text').editor);
+  });
+
+  it('should allow to use `type` and other type-related options in the same configuration level (using `columns` option)', () => {
+    const { getCellType } = Handsontable.cellTypes;
+    const myRenderer = function(instance, td, row, col, prop, value) {
+      td.innerHTML = `${value}-*`;
+    };
+
+    class MyEditor {}
+
+    handsontable({
+      columns: [
+        { type: 'text' },
+        {
+          type: 'text',
+          renderer: myRenderer,
+        },
+        {
+          type: 'password',
+          editor: MyEditor,
+          copyable: true,
+        },
+      ]
+    });
+
+    expect(getCellMeta(0, 0).type).toBe('text');
+    expect(getCellMeta(0, 0).renderer).toBe(getCellType('text').renderer);
+    expect(getCellMeta(0, 0).editor).toBe(getCellType('text').editor);
+    expect(getCellMeta(0, 1).type).toBe('text');
+    expect(getCellMeta(0, 1).renderer).toBe(myRenderer);
+    expect(getCellMeta(0, 1).editor).toBe(getCellType('text').editor);
+    expect(getCellMeta(0, 2).type).toBe('password');
+    expect(getCellMeta(0, 2).renderer).toBe(getCellType('password').renderer);
+    expect(getCellMeta(0, 2).editor).toBe(MyEditor);
+    expect(getCellMeta(0, 2).copyable).toBe(true);
   });
 
   it('"this" in cells should point to cellProperties', () => {
@@ -170,13 +243,13 @@ describe('Core_getCellMeta', () => {
       }
     });
 
-    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C');
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toBe('C');
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
-    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A');
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toBe('A');
     expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(true);
 
-    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('B');
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toBe('B');
     expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
     // Column sorting changes the order of displayed rows while keeping table data unchanged
@@ -189,13 +262,13 @@ describe('Core_getCellMeta', () => {
       }
     });
 
-    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A');
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toBe('A');
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(true);
 
-    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('B');
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toBe('B');
     expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
-    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('C');
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toBe('C');
     expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
   });
 
@@ -221,46 +294,6 @@ describe('Core_getCellMeta', () => {
     // The last beforeGetCellMeta call should be called with visual index 4, 4
     expect(rowInsideHook).toBe(4);
     expect(colInsideHook).toBe(4);
-  });
-
-  it('should expand "type" property to cell meta when property is added in the `beforeGetCellMeta` hook', () => {
-    handsontable({
-      beforeGetCellMeta(row, col, cellProperties) {
-        if (row === 1 && col === 0) {
-          cellProperties.type = 'numeric';
-        }
-        if (row === 2 && col === 0) {
-          cellProperties.type = 'autocomplete';
-        }
-      },
-    });
-
-    expect(getCellMeta(0, 0).editor).toBeUndefined();
-    expect(getCellMeta(1, 0).editor).toBe(Handsontable.editors.NumericEditor);
-    expect(getCellMeta(2, 0).editor).toBe(Handsontable.editors.AutocompleteEditor);
-    expect(getCellMeta(3, 0).editor).toBeUndefined();
-  });
-
-  it('should expand "type" property to cell meta when property is added in the "cells" function', () => {
-    handsontable({
-      cells(row, col) {
-        const cellProperties = {};
-
-        if (row === 1 && col === 0) {
-          cellProperties.type = 'numeric';
-        }
-        if (row === 2 && col === 0) {
-          cellProperties.type = 'autocomplete';
-        }
-
-        return cellProperties;
-      },
-    });
-
-    expect(getCellMeta(0, 0).editor).toBeUndefined();
-    expect(getCellMeta(1, 0).editor).toBe(Handsontable.editors.NumericEditor);
-    expect(getCellMeta(2, 0).editor).toBe(Handsontable.editors.AutocompleteEditor);
-    expect(getCellMeta(3, 0).editor).toBeUndefined();
   });
 
   it('should call `afterGetCellMeta` plugin hook with visual indexes as parameters', () => {

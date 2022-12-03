@@ -1,5 +1,5 @@
 import { extend } from '../../../helpers/object';
-import { columnFactory, expandMetaType } from '../utils';
+import { columnFactory, extendByMetaType } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
 
 /**
@@ -64,7 +64,7 @@ export default class ColumnMeta {
     const meta = this.getMeta(physicalColumn);
 
     extend(meta, settings);
-    extend(meta, expandMetaType(settings.type, meta));
+    extendByMetaType(meta, settings);
   }
 
   /**

@@ -415,7 +415,7 @@ describe('Core_selection', () => {
 
     expect(getSelected()).toEqual([[-1, 1, -1, 1]]);
     expect(`
-      |   ║   : - :   :   :   |
+      |   ║   : * :   :   :   |
       |===:===:===:===:===:===|
     `).toBeMatchToSelectionPattern();
   });
@@ -432,7 +432,7 @@ describe('Core_selection', () => {
 
     expect(getSelected()).toEqual([[-1, -1, -1, 4]]);
     expect(`
-      |   ║ - : - : - : - : - |
+      |   ║ * : * : * : * : * |
       |===:===:===:===:===:===|
     `).toBeMatchToSelectionPattern();
   });
@@ -452,7 +452,7 @@ describe('Core_selection', () => {
       |   |
       |===|
       |   |
-      | - |
+      | * |
       |   |
       |   |
       |   |

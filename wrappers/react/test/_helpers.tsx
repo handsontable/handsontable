@@ -9,6 +9,10 @@ const SPEC = {
   container: null
 };
 
+beforeAll(() => {
+  (window as any).IntersectionObserver = IntersectionObserverMock;
+});
+
 beforeEach(() => {
   const container = document.createElement('DIV');
 
@@ -22,6 +26,10 @@ afterEach(() => {
 
   container.parentNode.removeChild(container);
   SPEC.container = null;
+});
+
+afterAll(() => {
+  delete window.IntersectionObserver;
 });
 
 export function mountComponent(Component, container = SPEC.container) {
@@ -295,4 +303,9 @@ export class EditorComponent extends BaseEditorComponent<{}, {value?: any}> {
       </div>
     );
   }
+}
+
+export class IntersectionObserverMock {
+  observe() {}
+  unobserve() {}
 }
