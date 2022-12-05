@@ -418,14 +418,16 @@ export default () => {
     autoRowSize: void 0,
 
     /**
-     * The `autoWrapCol` option determines what happens to current cell selection when you navigate to the grid's top or bottom edge.
+     * With [`autoWrapCol`](#autowrapcol) enabled:
+     * - When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.
+     * - When you select a top-most cell, pressing <kbd>**↑**</kbd> takes you to the bottom-most cell of the previous column.
      *
-     * You can set the `autoWrapCol` option to one of the following:
+     * You can set the [`autoWrapCol`](#autowrapcol) option to one of the following:
      *
-     * | Setting           | Description                                                                                                             |
-     * | ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
-     * | `true`            | On reaching the grid's top or bottom edge<br>- Jump to the opposite edge<br>- Select a cell in the previous/next column |
-     * | `false` (default) | On reaching the grid's top or bottom edge, stop                                                                         |
+     * | Setting           | Description                                                                                                                                                                                                                                  |
+     * | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true`            | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> takes you to the bottom-most cell of the previous column. |
+     * | `false` (default) | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> doesn't do anything.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> doesn't do anything.                                                                    |
      *
      * @memberof Options#
      * @type {boolean}
@@ -434,21 +436,30 @@ export default () => {
      *
      * @example
      * ```js
-     * // on reaching the grid's top or bottom edge, jump to the opposite edge
+     * // when you select a bottom-most cell, pressing ⬇ doesn't do anything
+     * // when you select a top-most cell, pressing ⬆ doesn't do anything
+     * autoWrapCol: false, // default setting
+     *
+     * // when you select a bottom-most cell, pressing ⬇ takes you to the top-most cell of the next column
+     * // when you select a top-most cell, pressing ⬆ takes you to the bottom-most cell of the previous column
      * autoWrapCol: true,
      * ```
      */
     autoWrapCol: false,
 
     /**
-     * The `autoWrapRow` option determines what happens to current cell selection when you navigate to the grid's left or right edge.
+     * With [`autoWrapRow`](#autoWrapRow) enabled:
+     * - When you select the first cell of a row, pressing <kbd>**←**</kbd>* takes you to the last cell of the row above.
+     * - When you select the last cell of a row, pressing <kbd>**→**</kbd>* takes you to the first cell of the row below.
      *
-     * You can set the `autoWrapRow` option to one of the following:
+     * You can set the [`autoWrapRow`](#autoWrapRow) option to one of the following:
      *
-     * | Setting           | Description                                                                                                                  |
-     * | ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-     * | `true`            | On reaching the grid's left or right edge:<br>- Jump to the grid's opposite edge<br>- Select a cell in the previous/next row |
-     * | `false` (default) | On reaching the grid's left or right edge, stop                                                                              |
+     * | Setting           | Description                                                                                                                                                                                                                              |
+     * | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true`            | When you select the first cell of a row, pressing <kbd>**←**</kbd>* takes you to the last cell of the row above.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* takes you to the first cell of the row below. |
+     * | `false` (default) | When you select the first cell of a row, pressing <kbd>**←**</kbd>* doesn't do anything.<br><br>When you select the last cell of a row, pressing <kbd>**→**</kbd>* doesn't do anything.                                                  |
+     *
+     * \* The exact key depends on your [`layoutDirection`](#layoutdirection) configuration.
      *
      * @memberof Options#
      * @type {boolean}
@@ -457,7 +468,12 @@ export default () => {
      *
      * @example
      * ```js
-     * // on reaching the grid's left or right edge, jump to the opposite edge
+     * // when you select the first cell of a row, pressing ⬅ doesn't do anything
+     * // when you select the last cell of a row, pressing ➡️ doesn't do anything
+     * autoWrapRow: false, // default setting
+     *
+     * // when you select the first cell of a row, pressing ⬅ takes you to the last cell of the row above
+     * // when you select the last cell of a row, pressing ➡️ takes you to the first cell of the row below
      * autoWrapRow: true,
      * ```
      */
