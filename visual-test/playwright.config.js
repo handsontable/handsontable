@@ -57,7 +57,7 @@ const config = {
       },
     },
 
-    {
+    /* {
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
@@ -65,9 +65,9 @@ const config = {
           // chromium-specific permissions
         },
       },
-    },
+    }, */
 
-    {
+    /* {
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
@@ -76,7 +76,7 @@ const config = {
           // permissions: ['clipboard-write'],
         },
       },
-    },
+    }, */
 
     /* Test against mobile viewports. */
     // {

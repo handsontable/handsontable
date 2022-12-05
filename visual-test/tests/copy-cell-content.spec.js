@@ -18,25 +18,28 @@ test(helpers.testTitle(__filename), async({ page }, workerInfo) => {
   const table = page.locator(helpers.selectors.mainTable);
 
   await table.waitFor();
+  helpers.mainTableFirstColumn = table.locator(helpers.selectors.mainTableFirstColumn);
+  helpers.tbody = table.locator(helpers.selectors.mainTableBody);
+  helpers.thead = table.locator(helpers.selectors.mainTableHead);
 
-  const tbody = table.locator(helpers.selectors.mainTableBody);
+  /* ==== */
 
-  let cell = tbody.locator(helpers.findCell({ row: 3, cell: 3, cellType: 'td' }));
+  let cell = helpers.tbody.locator(helpers.findCell({ row: 3, cell: 3, cellType: 'td' }));
 
   await cell.click();
   await page.screenshot({ path: helpers.screenshotPath() });
   await page.keyboard.press(`${helpers.modifier}+c`);
   await cell.press('Delete');
 
-  cell = tbody.locator(helpers.findCell({ row: 3, cell: 3, cellType: 'td' }));
+  cell = helpers.tbody.locator(helpers.findCell({ row: 3, cell: 3, cellType: 'td' }));
   await cell.dblclick();
   await cell.type('-test');
 
-  cell = tbody.locator(helpers.findCell({ row: 4, cell: 3, cellType: 'td' }));
+  cell = helpers.tbody.locator(helpers.findCell({ row: 4, cell: 3, cellType: 'td' }));
   await cell.click();
   await page.keyboard.press('Delete');
 
-  cell = tbody.locator(helpers.findCell({ row: 3, cell: 3, cellType: 'td' }));
+  cell = helpers.tbody.locator(helpers.findCell({ row: 3, cell: 3, cellType: 'td' }));
   await cell.click();
 
   await page.screenshot({ path: helpers.screenshotPath() });

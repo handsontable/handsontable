@@ -18,6 +18,11 @@ test(helpers.testTitle(__filename), async({ page }, workerInfo) => {
   const table = page.locator(helpers.selectors.mainTable);
 
   await table.waitFor();
+  helpers.mainTableFirstColumn = table.locator(helpers.selectors.mainTableFirstColumn);
+  helpers.tbody = table.locator(helpers.selectors.mainTableBody);
+  helpers.thead = table.locator(helpers.selectors.mainTableHead);
+
+  /* ==== */
 
   const changeTypeButton = table.locator(helpers.findDropdownMenuExpander({ col: 2 }));
 
@@ -25,7 +30,8 @@ test(helpers.testTitle(__filename), async({ page }, workerInfo) => {
   const dropdownMenu = page.locator(helpers.selectors.dropdownMenu);
 
   await page.screenshot({ path: helpers.screenshotPath() });
-  await dropdownMenu.screenshot({ path: helpers.screenshotPath() });
+  // You can take a screenshot of any element, not only entire page, e.g:
+  // await dropdownMenu.screenshot({ path: helpers.screenshotPath() });
   await dropdownMenu.locator('"Clear column"').click();
   await page.screenshot({ path: helpers.screenshotPath() });
 });

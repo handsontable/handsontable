@@ -18,13 +18,13 @@ test(helpers.testTitle(__filename), async({ page }, workerInfo) => {
   const table = page.locator(helpers.selectors.mainTable);
 
   await table.waitFor();
+  helpers.mainTableFirstColumn = table.locator(helpers.selectors.mainTableFirstColumn);
+  helpers.tbody = table.locator(helpers.selectors.mainTableBody);
+  helpers.thead = table.locator(helpers.selectors.mainTableHead);
 
-  const tbody = table.locator(helpers.selectors.mainTableBody);
-  const tbodyCoordinates = await tbody.boundingBox(); // || { x: 0, y: 0, width: 0, height: 0 };
+  /* ==== */
 
-  await page.mouse.wheel(0, 200);
-  await page.waitForTimeout(1000);
-  await page.screenshot({ path: helpers.screenshotPath() });
+  const tbodyCoordinates = await helpers.tbody.boundingBox(); // || { x: 0, y: 0, width: 0, height: 0 };
 
   await page.mouse.move(
     tbodyCoordinates.x + (tbodyCoordinates.width / 2), tbodyCoordinates.y + (tbodyCoordinates.height / 2)

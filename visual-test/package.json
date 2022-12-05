@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "node ./scripts/visual-tests-build.mjs",
-    "upload": "node ./scripts/visual-tests-upload.mjs"
+    "upload": "node ./scripts/visual-tests-upload.mjs",
+    "all": "node ./scripts/visual-tests-build.mjs && node ./scripts/visual-tests-upload.mjs"
   },
   "keywords": [],
   "author": "",

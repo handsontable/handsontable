@@ -18,9 +18,13 @@ test(helpers.testTitle(__filename), async({ page }, workerInfo) => {
   const table = page.locator(helpers.selectors.mainTable);
 
   await table.waitFor();
+  helpers.mainTableFirstColumn = table.locator(helpers.selectors.mainTableFirstColumn);
+  helpers.tbody = table.locator(helpers.selectors.mainTableBody);
+  helpers.thead = table.locator(helpers.selectors.mainTableHead);
 
-  const mainTableFirstColumn = table.locator(helpers.selectors.mainTableFirstColumn);
-  const cell = mainTableFirstColumn.locator(helpers.findCell({ row: 4, cell: 1, cellType: 'th' }));
+  /* ==== */
+
+  const cell = helpers.mainTableFirstColumn.locator(helpers.findCell({ row: 4, cell: 1, cellType: 'th' }));
 
   // Without coordinates `click` works on the middle of element,
   // what means that in this case it will deselect checkbox.

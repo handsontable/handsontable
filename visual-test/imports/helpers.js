@@ -2,6 +2,9 @@ export const helpers = {
   defaultHOTVersion: '12.2.0',
   defaultHOTWrapper: 'js',
 
+  screenshotsDirectory: './tests/screenshots',
+  screenshotsExtension: 'png',
+
   selectors: {
     mainTable: 'div.handsontable.htRowHeaders.htColumnHeaders',
     mainTableBody: '> .ht_master.handsontable table tbody',
@@ -48,6 +51,10 @@ export const helpers = {
     return `> tr:nth-child(${options.row}) > ${options.cellType}:nth-child(${options.cell})`;
   },
 
+  findDropdownMenuExpander(options = { col: 1 }) {
+    return `${this.selectors.mainTableHead} > tr > th:nth-child(${options.col + 1}) button.changeType`;
+  },
+
   testTitle(filename) {
     const title = filename.split('\\').slice(-1)[0].split('.spec.js')[0].split('-').join(' ');
 
@@ -58,10 +65,6 @@ export const helpers = {
     this.screenshotsCount += 1;
 
     // eslint-disable-next-line max-len
-    return `./tests/screenshots/${this.hotWrapper}/${this.browser}/${this.screenshotDirName}/${this.screenshotsCount}.png`;
-  },
-
-  findDropdownMenuExpander(options = { col: 1 }) {
-    return `${this.selectors.mainTableHead} > tr > th:nth-child(${options.col + 1}) button.changeType`;
+    return `${this.screenshotsDirectory}/${this.hotWrapper}/${this.browser}/${this.screenshotDirName}/${this.screenshotsCount}.${this.screenshotsExtension}`;
   }
 };
