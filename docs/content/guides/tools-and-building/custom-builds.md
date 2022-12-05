@@ -34,7 +34,7 @@ The Handsontable repository is a monorepo that contains the following projects:
 | `@handsontable/vue3`    | `/wrappers/vue3`    | [Vue 3 wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation.md)         |
 
 All the projects are released together, under the same version number.
-But each project has its own [building](#building-processes) and [testing](@/guides/tools-and-building/testing.md) processes.
+But each project has its own [building](#build-processes) and [testing](@/guides/tools-and-building/testing.md) processes.
 
 ### Build processes
 
@@ -49,9 +49,9 @@ The building processes transform the source files located in the `/handsontable/
 * `/handsontable/dist/languages/*`
 
 ::: tip
-Don't modify the output files mentioned above. Instead, make changes in the `/handsontable/src/` directory and then run a selected [build](#building-the-packages). This is especially important if you want to contribute your changes back to Handsontable through a pull request.
+Don't modify the output files mentioned above. Instead, make changes in the `/handsontable/src/` directory and then run a selected [build](#build-the-packages). This is especially important if you want to contribute your changes back to Handsontable through a pull request.
 
-For more information on the distribution packages, see [this file](https://github.com/handsontable/handsontable/blob/master/dist/README.md).
+For more information on the distribution packages, see [this file](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/README.md).
 :::
 
 ### Build requirements
@@ -63,7 +63,7 @@ Handsontable building processes require:
 
 ### `package.json` files
 
-Each Handsontable [project](#about-building) has its own building processes defined in its own `package.json` file. Apart from that, the root directory has its own `package.json` file as well:
+Each Handsontable [project](#monorepo) has its own building processes defined in its own `package.json` file. Apart from that, the root directory has its own `package.json` file as well:
 
 | File                             | Holds tasks for building:                           |
 | -------------------------------- | --------------------------------------------------- |
@@ -90,7 +90,7 @@ You can either build all the packages at once, or build each package individuall
 ### Build all the packages
 
 To build all the packages at once:
-1. Make sure you meet the [building requirements](#building-requirements).
+1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to the root directory.
 3. Run `npm run build`.<br>The script builds the following packages:
      - The JavaScript package
@@ -103,12 +103,12 @@ To build all the packages at once:
 ### Build the JavaScript package
 
 To build the JavaScript package:
-1. Make sure you meet the [building requirements](#building-requirements).
+1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to `/handsontable`.
 3. Run `npm run build`.<br>Only the JavaScript package builds.
 
 To build the JavaScript package from the root directory:
-1. Make sure you meet the [building requirements](#building-requirements).
+1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to the root directory.
 3. Run `npm run in handsontable build`.<br>Only the JavaScript package builds.
 
@@ -158,12 +158,12 @@ From the `/handsontable` directory, you can also run individual JavaScript `buil
 ### Build the React package
 
 To build the React package:
-1. Make sure you meet the [building requirements](#building-requirements).
+1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to `/wrappers/react`.
 3. Run `npm run build`.<br>Only the React package builds.
 
 To build the React package from the root directory:
-1. Make sure you meet the [building requirements](#building-requirements).
+1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to the root directory.
 3. Run `npm run in react build`.<br>Only the React package builds.
 
@@ -195,12 +195,12 @@ From the `/wrappers/react` directory, you can also run individual React `build` 
 ### Build the Angular package
 
 To build the Angular package:
-1. Make sure you meet the [building requirements](#building-requirements).
+1. Make sure you meet the [build requirements](#build-requirements).
 3. Go to `/wrappers/angular`.
 4. Run `npm run build`.<br>Only the Angular package builds.
 
 To build the Angular package from the root directory:
-1. Make sure you meet the [building requirements](#building-requirements).
+1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to the root directory.
 3. Run `npm run in angular build`.<br>Only the Angular package builds.
 
@@ -219,12 +219,12 @@ From the `/wrappers/angular` directory, You can also run individual Angular `bui
 ### Build the Vue 2 package
 
 To build the Vue 2 package:
-1. Make sure you meet the [building requirements](#building-requirements).
+1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to `/wrappers/vue`.
 3. Run `npm run build`.<br>Only the Vue 2 package builds.
 
 To build the Vue 2 package from the root directory:
-1. Make sure you meet the [building requirements](#building-requirements).
+1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to the root directory.
 3. Run `npm run in vue build`.<br>Only the Vue 2 package builds.
 
@@ -257,12 +257,12 @@ From the `/wrappers/vue` directory, you can also run individual Vue 2 `build` ta
 ### Build the Vue 3 package
 
 To build the Vue 3 package:
-1. Make sure you meet the [building requirements](#building-requirements).
+1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to `/wrappers/vue3 `.
 3. Run `npm run build`.<br>Only the Vue 3 package builds.
 
 To build the Vue 3 package from the root directory:
-1. Make sure you meet the [building requirements](#building-requirements).
+1. Make sure you meet the [build requirements](#build-requirements).
 2. Go to the root directory.
 3. Run `npm run in vue3 build`.<br>Only the Vue 3 package builds.
 

@@ -23,7 +23,7 @@ The [`Filters`](@/api/filters.md) plugin allows filtering the data in the table'
 
 ## Basic configuration
 
-To enable the plugin, set the [`filters`](@/api/options.md#filters) configuration option to `true` and enable the filters dependency, which is the [dropdownMenu](@/guides/columns/column-menu.md) plugin.
+To enable the plugin, set the [`filters`](@/api/options.md#filters) configuration option to `true` and enable the filters dependency, which is the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
 
 ::: only-for javascript
 ::: example #example1
