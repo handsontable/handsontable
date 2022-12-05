@@ -29,7 +29,7 @@ For more information, see the [`Instance Methods`](@/guides/getting-started/reac
 :::
 :::
 
-The [Search](@/api/search.md) plugin provides an easy API to search data across Handsontable.
+The [`Search`](@/api/search.md) plugin provides an easy API to search data across Handsontable.
 
 You should first enable the plugin by setting the [`search`](@/api/options.md#search) option to `true`. When enabled, the [`Search`](@/api/search.md) plugin exposes a new method [`query(queryStr)`](@/api/search.md#query), where [`queryStr`](@/api/search.md#query) is a string to find within the table. By default, the search is case insensitive.
 
