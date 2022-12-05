@@ -15,24 +15,20 @@ await execa.command('npx playwright install --with-deps');
 
 const tests = [];
 
-for (let i = 0; i < wrappers.length; ++i) {
+// If we are on a base branch, we do not want to run all of tests
+// and make screenshots for all of wrappers.
+// On base branch we need to create golden screenshots from main wrapper only,
+// which is declared as a first position in wrappers array.
+
+for (let i = 0; i < (currentBranchName === baseBranch ? 1 : wrappers.length); ++i) {
   tests.push(execa.command('npx playwright test', {
     env: { HOT_WRAPPER: wrappers[i], HOT_VERSION: version }, stdout: 'inherit'
   }));
-
-  // If we are on a base branch, we do not want to run all of tests
-  // and make screenshots for all of wrappers.
-  // On base branch we need to create golden screenshots from main wrapper only,
-  // rest of wrappers will be compared to them, so we can stop tests here.
-  if (currentBranchName === baseBranch) {
-    break;
-  }
 }
 
 await Promise.all(tests);
 
 if (currentBranchName === baseBranch) {
-  // We are starting iteration from 1 to skip main wrapper.
   // Golden screenshots are already done,
   // now we need to copy them into rest of wrappers -
   // external services compares files with the same name and path,
@@ -40,10 +36,16 @@ if (currentBranchName === baseBranch) {
   // On other branches we will generate screenshots for wrappers in a "normal" way
   // and then we will be able to see differences
 
+  const copies = [];
+
   for (let i = 1; i < wrappers.length; ++i) {
-    fse.copySync(
+    copies.push(fse.copySync(
       path.resolve(`./tests/screenshots/${wrappers[0]}`),
       path.resolve(`./tests/screenshots/${wrappers[i]}`),
-      { overwrite: true });
+      { overwrite: true })
+    );
   }
+
+  await Promise.all(copies);
 }
+

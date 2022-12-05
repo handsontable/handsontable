@@ -15,7 +15,6 @@
     "@percy/cli": "^1.16.0",
     "@playwright/test": "^1.27.1",
     "execa": "^5.0.0",
-    "fs-extra": "^4.0.2",
-    "playwright": "^1.28.1"
+    "fs-extra": "^4.0.2"
   }
 }
