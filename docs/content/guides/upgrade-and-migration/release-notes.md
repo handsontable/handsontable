@@ -290,7 +290,7 @@ For more information on this release, see:
 - Collapsed parents won't be expanded after inserting rows [#8181](https://github.com/handsontable/handsontable/issues/8181)
 - Fixed the cooperation of the dropdown menu and column sorting (menu closing on click) [#8232](https://github.com/handsontable/handsontable/issues/8232)
 - Data won't be corrupted anymore when some alterations are performed [#8614](https://github.com/handsontable/handsontable/issues/8614)
-- Adjusted directories and files related to [`dataMap`](https://github.com/handsontable/handsontable/tree/master/src/dataMap), to prevent potential circular references. [#8704](https://github.com/handsontable/handsontable/issues/8704)
+- Adjusted directories and files related to [`dataMap`](https://github.com/handsontable/handsontable/tree/master/handsontable/src/dataMap), to prevent potential circular references. [#8704](https://github.com/handsontable/handsontable/issues/8704)
 - Improved the performance of the regular expression used to detect numeric values, and fixed major code smells. [#8752](https://github.com/handsontable/handsontable/issues/8752)
 
 ## 9.0.2
@@ -378,6 +378,10 @@ For more information on this release, see:
 *   Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behaviour of the AutoColumnSize sampling. ([#3339](https://github.com/handsontable/handsontable/issues/3339))
 *   Added support for hiding columns for the `NestedHeaders` plugin. ([#6879](https://github.com/handsontable/handsontable/issues/6879))
 *   Added ability to skip stacking actions by the `UndoRedo` plugin and introduced new hooks. ([#6948](https://github.com/handsontable/handsontable/issues/6948))
+*   Added 2 new hooks, [`beforeHighlightingColumnHeader`](@/api/hooks.md#beforehighlightingcolumnheader) and [`beforeHighlightingRowHeader`](@/api/hooks.md#beforehighlightingrowheader). Use them to retrieve a header element (`<th>`) before it gets highlighted. ([#7528](https://github.com/handsontable/handsontable/pull/7528))
+*   Added a new method, [`indexMapper.unregisterAll()`](@/api/indexMapper.md#unregisterall). Use it to unregister all collected index maps from all map collections types. ([#7528](https://github.com/handsontable/handsontable/pull/7528))
+*   Added a new method, [`indexMapper.createChangesObserver()`](@/api/indexMapper.md#createchangesobserver). Use it to listen to any changes made to indexes while Handsontable is running. ([#7528](https://github.com/handsontable/handsontable/pull/7528))
+*   Added a new method, [`indexMapper.createAndRegisterIndexMap()`](@/api/indexMapper.md#createandregisterindexmap). Use it to create and register a new index map. ([#7528](https://github.com/handsontable/handsontable/pull/7528))
 
 **Fixed**
 

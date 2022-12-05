@@ -366,13 +366,13 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after retrieving information about a column header and appending it to the table header.
    *
-   * Since the 12.2 the hook is triggered with the 3rd `headerLevel` argument.
-   *
    * @event Hooks#afterGetColHeader
    * @param {number} column Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
-   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
-   *                                 values counting from 0 to N).
+   * @param {number} [headerLevel=0] (Since 12.2.0) Header level index. Accepts positive (0 to n)
+   *                                 and negative (-1 to -n) values. For positive values, 0 points to the
+   *                                 topmost header. For negative values, -1 points to the bottom-most
+   *                                 header (the header closest to the cells).
    */
   'afterGetColHeader',
 
@@ -1405,7 +1405,7 @@ const REGISTERED_HOOKS = [
   'modifyCopyableRange',
 
   /**
-   * Fired by {@link CopyPaste} plugin before copying the values into clipboard and before clearing values of
+   * Fired by {@link CopyPaste} plugin before copying the values to the clipboard and before clearing values of
    * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforeCut
@@ -1461,19 +1461,20 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterCut
-   * @param {Array[]} data An array of arrays which contains the cutted out data.
+   * @param {Array[]} data An array of arrays with the cut data.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                       which was cut out.
    */
   'afterCut',
 
   /**
-   * Fired before values are copied into clipboard.
+   * Fired before values are copied to the clipboard.
    *
    * @event Hooks#beforeCopy
    * @param {Array[]} data An array of arrays which contains data to copied.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                         which will copied.
+   * @param {{ columnHeadersCount: number }} copiedHeadersCount (Since 12.3.0) The number of copied column headers.
    * @returns {*} If returns `false` then copying is canceled.
    *
    * @example
@@ -1537,6 +1538,7 @@ const REGISTERED_HOOKS = [
    * @param {Array[]} data An array of arrays which contains the copied data.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                         which was copied.
+   * @param {{ columnHeadersCount: number }} copiedHeadersCount (Since 12.3.0) The number of copied column headers.
    */
   'afterCopy',
 
@@ -1597,7 +1599,7 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterPaste
-   * @param {Array[]} data An array of arrays which contains the pasted data.
+   * @param {Array[]} data An array of arrays with the pasted data.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                       that correspond to the previously selected area.
    */
@@ -1928,6 +1930,21 @@ const REGISTERED_HOOKS = [
    * @event Hooks#modifyColumnHeaderHeight
    */
   'modifyColumnHeaderHeight',
+
+  /**
+   * Fired while retrieving a column header's value.
+   *
+   * @since 12.3.0
+   * @event Hooks#modifyColumnHeaderValue
+   * @param {string} value A column header value.
+   * @param {number} visualColumnIndex A visual column index.
+   * @param {number} [headerLevel=0] Header level index. Accepts positive (0 to n)
+   *                                 and negative (-1 to -n) values. For positive values, 0 points to the
+   *                                 topmost header. For negative values, -1 points to the bottom-most
+   *                                 header (the header closest to the cells).
+   * @returns {string} The column header value to be updated.
+   */
+  'modifyColumnHeaderValue',
 
   /**
    * Fired by {@link UndoRedo} plugin before the undo action. Contains information about the action that is being undone.

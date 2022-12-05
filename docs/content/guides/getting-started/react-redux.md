@@ -171,7 +171,7 @@ ReactDOM.render(
 
 This example shows:
 - A [custom editor](@/guides/cell-functions/cell-editor.md#component-based-editors) component (built with an external dependency, `HexColorPicker`). This component acts both as an editor and as a renderer.
-- A [custom renderer](@/guides/cell-functions/cell-renderer.md#declaring-a-custom-renderer-as-a-component) component, built with an external dependency (`StarRatingComponent`).
+- A [custom renderer](@/guides/cell-functions/cell-renderer.md#declare-a-custom-renderer-as-a-component) component, built with an external dependency (`StarRatingComponent`).
 
 The editor component changes the behavior of the renderer component, by passing information through Redux (and the `connect()` method of `react-redux`).
 

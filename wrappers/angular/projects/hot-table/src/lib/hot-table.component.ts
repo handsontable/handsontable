@@ -161,9 +161,11 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() afterChangesObserved: Handsontable.GridSettings['afterChangesObserved'];
   @Input() afterColumnCollapse: Handsontable.GridSettings['afterColumnCollapse'];
   @Input() afterColumnExpand: Handsontable.GridSettings['afterColumnExpand'];
+  @Input() afterColumnFreeze: Handsontable.GridSettings['afterColumnFreeze'];
   @Input() afterColumnMove: Handsontable.GridSettings['afterColumnMove'];
   @Input() afterColumnResize: Handsontable.GridSettings['afterColumnResize'];
   @Input() afterColumnSort: Handsontable.GridSettings['afterColumnSort'];
+  @Input() afterColumnUnfreeze: Handsontable.GridSettings['afterColumnUnfreeze'];
   @Input() afterContextMenuDefaultOptions: Handsontable.GridSettings['afterContextMenuDefaultOptions'];
   @Input() afterContextMenuHide: Handsontable.GridSettings['afterContextMenuHide'];
   @Input() afterContextMenuShow: Handsontable.GridSettings['afterContextMenuShow'];
@@ -246,9 +248,11 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() beforeChangeRender: Handsontable.GridSettings['beforeChangeRender'];
   @Input() beforeColumnCollapse: Handsontable.GridSettings['beforeColumnCollapse'];
   @Input() beforeColumnExpand: Handsontable.GridSettings['beforeColumnExpand'];
+  @Input() beforeColumnFreeze: Handsontable.GridSettings['beforeColumnFreeze'];
   @Input() beforeColumnMove: Handsontable.GridSettings['beforeColumnMove'];
   @Input() beforeColumnResize: Handsontable.GridSettings['beforeColumnResize'];
   @Input() beforeColumnSort: Handsontable.GridSettings['beforeColumnSort'];
+  @Input() beforeColumnUnfreeze: Handsontable.GridSettings['beforeColumnUnfreeze'];
   @Input() beforeContextMenuSetItems: Handsontable.GridSettings['beforeContextMenuSetItems'];
   @Input() beforeContextMenuShow: Handsontable.GridSettings['beforeContextMenuShow'];
   @Input() beforeCopy: Handsontable.GridSettings['beforeCopy'];
