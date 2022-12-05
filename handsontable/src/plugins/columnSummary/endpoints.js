@@ -499,18 +499,6 @@ class Endpoints {
   resetEndpointValue(endpoint, useOffset = true) {
     const alterRowOffset = endpoint.alterRowOffset || 0;
     const alterColOffset = endpoint.alterColumnOffset || 0;
-    const [visualRowIndex, visualColumnIndex] = [
-      this.hot.toVisualRow(endpoint.destinationRow),
-      this.hot.toVisualColumn(endpoint.destinationColumn)
-    ];
-
-    if (visualColumnIndex !== null && visualRowIndex !== null) {
-      // Clear the meta on the "old" indexes
-      const cellMeta = this.hot.getCellMeta(visualRowIndex, visualColumnIndex);
-
-      cellMeta.readOnly = false;
-      cellMeta.className = '';
-    }
 
     this.cellsToSetCache.push([
       this.hot.toVisualRow(endpoint.destinationRow + (useOffset ? alterRowOffset : 0)),
@@ -527,9 +515,6 @@ class Endpoints {
    * @param {boolean} [render=false] `true` if it needs to render the table afterwards.
    */
   setEndpointValue(endpoint, source, render = false) {
-    // We'll need the reversed offset values, because cellMeta will be shifted AGAIN afterwards.
-    const reverseRowOffset = (-1) * endpoint.alterRowOffset || 0;
-    const reverseColOffset = (-1) * endpoint.alterColumnOffset || 0;
     const visualEndpointRowIndex = this.hot.toVisualRow(endpoint.destinationRow);
 
     if (endpoint.destinationRow >= this.hot.countRows() || endpoint.destinationColumn >= this.hot.countCols()) {
@@ -538,12 +523,12 @@ class Endpoints {
       return;
     }
 
-    const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow + reverseRowOffset);
+    const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow);
 
     if (destinationVisualRow !== null) {
       const cellMeta = this.hot.getCellMeta(
         destinationVisualRow,
-        endpoint.destinationColumn + reverseColOffset
+        endpoint.destinationColumn
       );
 
       if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
