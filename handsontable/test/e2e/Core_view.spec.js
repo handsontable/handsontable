@@ -342,32 +342,6 @@ describe('Core_view', () => {
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(-1);
   });
 
-  it('should not throw error while scrolling viewport to 0, 0 (empty data)', () => {
-    spec().$container[0].style.width = '400px';
-
-    const hot1 = handsontable({
-      data: [],
-      height: 100
-    });
-
-    expect(() => {
-      hot1.view.scrollViewport({ row: 0, col: 0 });
-    }).not.toThrow();
-  });
-
-  it('should throw error while scrolling viewport below 0 (empty data)', () => {
-    spec().$container[0].style.width = '400px';
-
-    const hot1 = handsontable({
-      data: [],
-      height: 100
-    });
-
-    expect(hot1.view.scrollViewport({ row: -1, col: 0 })).toBe(false);
-    expect(hot1.view.scrollViewport({ row: 0, col: -1 })).toBe(false);
-    expect(hot1.view.scrollViewport({ row: -1, col: -1 })).toBe(false);
-  });
-
   it('should scroll viewport, respecting fixed rows', () => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
@@ -703,55 +677,6 @@ describe('Core_view', () => {
       expect(masterHolder.scrollTop).toBe(400);
       expect(window.scrollX).toBe(0);
       expect(window.scrollY).toBe(0);
-    });
-  });
-
-  // TODO fix these tests - https://github.com/handsontable/handsontable/issues/1559
-  describe('maximumVisibleElementWidth', () => {
-    it('should return maximum width until right edge of the viewport', () => {
-      const hot = handsontable({
-        startRows: 2,
-        startCols: 10,
-        width: 100,
-        height: 100,
-      });
-
-      expect(hot.view.maximumVisibleElementWidth(0)).toEqual(100);
-    });
-
-    it('should return maximum width until right edge of the viewport (excluding the scrollbar)', () => {
-      const hot = handsontable({
-        startRows: 10,
-        startCols: 10,
-        width: 100,
-        height: 100,
-      });
-
-      expect(hot.view.maximumVisibleElementWidth(200)).toBeLessThan(100);
-    });
-  });
-
-  describe('maximumVisibleElementHeight', () => {
-    it('should return maximum height until bottom edge of the viewport', () => {
-      const hot = handsontable({
-        startRows: 10,
-        startCols: 2,
-        width: 120,
-        height: 100,
-      });
-
-      expect(hot.view.maximumVisibleElementHeight(0)).toEqual(100);
-    });
-
-    it('should return maximum height until bottom edge of the viewport (excluding the scrollbar)', () => {
-      const hot = handsontable({
-        startRows: 10,
-        startCols: 10,
-        width: 120,
-        height: 100,
-      });
-
-      expect(hot.view.maximumVisibleElementHeight()).toBeLessThan(100);
     });
   });
 

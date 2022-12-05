@@ -1,7 +1,9 @@
 import CellCoords from './coords';
 
+type DirectionType = 'NW-SE' | 'NE-SW' | 'SE-NW' | 'SW-NE';
+
 export default class CellRange {
-  constructor(highlight: CellCoords, from?: CellCoords, to?: CellCoords);
+  constructor(highlight: CellCoords, from?: CellCoords, to?: CellCoords, isRtl?: boolean);
 
   highlight: CellCoords;
   from: CellCoords;
@@ -16,6 +18,7 @@ export default class CellRange {
   getOuterWidth(): number;
   getHeight(): number;
   getWidth(): number;
+  getCellsCount(): number;
   includes(cellCoords: CellCoords): boolean;
   includesRange(cellRange: CellRange): boolean;
   isEqual(cellRange: CellRange): boolean;
@@ -26,34 +29,34 @@ export default class CellRange {
   isOverlappingVertically(cellRange: CellRange): boolean;
   expand(cellCoords: CellCoords): boolean;
   expandByRange(expandingRange: CellRange): boolean;
-  getDirection(): string;
-  setDirection(direction: string): void;
-  getVerticalDirection(): string;
-  getHorizontalDirection(): string;
+  getDirection(): DirectionType;
+  setDirection(direction: DirectionType): void;
+  getVerticalDirection(): 'N-S' | 'S-N';
+  getHorizontalDirection(): 'W-E' | 'E-W';
   flipDirectionVertically(): void;
   flipDirectionHorizontally(): void;
   getTopStartCorner(): CellCoords;
-  getTopEndCorner(): CellCoords;
-  getBottomStartCorner(): CellCoords;
-  getBottomEndCorner(): CellCoords;
   getTopLeftCorner(): CellCoords;
-  getTopRightCorner(): CellCoords;
-  getBottomLeftCorner(): CellCoords;
+  getBottomEndCorner(): CellCoords;
   getBottomRightCorner(): CellCoords;
+  getTopEndCorner(): CellCoords;
+  getTopRightCorner(): CellCoords;
+  getBottomStartCorner(): CellCoords;
+  getBottomLeftCorner(): CellCoords;
   getOuterTopStartCorner(): CellCoords;
-  getOuterTopEndCorner(): CellCoords;
   getOuterTopLeftCorner(): CellCoords;
+  getOuterBottomEndCorner(): CellCoords;
+  getOuterBottomRightCorner(): CellCoords;
+  getOuterTopEndCorner(): CellCoords;
   getOuterTopRightCorner(): CellCoords;
   getOuterBottomStartCorner(): CellCoords;
-  getOuterBottomEndCorner(): CellCoords;
   getOuterBottomLeftCorner(): CellCoords;
-  getOuterBottomRightCorner(): CellCoords;
   isCorner(coords: CellCoords, expandedRange?: CellRange): boolean;
   getOppositeCorner(coords: CellCoords, expandedRange?: CellRange): CellCoords;
-  getBordersSharedWith(range: CellRange): any[];
-  getInner(): any[];
-  getAll(): any[];
+  getBordersSharedWith(range: CellRange): Array<'top' | 'right' | 'bottom' | 'left'>;
+  getInner(): CellCoords[];
+  getAll(): CellCoords[];
   forAll(callback: (row: number, column: number) => boolean): void;
   clone(): CellRange;
-  toObject(): any;
+  toObject(): { from: { row: number, col: number}, to: { row: number, col: number} };
 }

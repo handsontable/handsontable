@@ -118,6 +118,7 @@ export default class HeadersTree {
       if (headerLevel === nodeHeaderLevel) {
         if (normColumnIndex >= columnCursor && normColumnIndex <= columnCursor + origColspan - 1) {
           treeNode = node;
+          treeNode.data.isRoot = columnIndex === treeNode.data.columnIndex;
 
           return false; // Cancel tree traversing.
         }
