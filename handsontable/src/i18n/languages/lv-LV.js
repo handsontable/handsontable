@@ -1,7 +1,7 @@
 /**
  * @preserve
- * Authors: Edgars Voroboks
- * Last updated: Nov 18, 2022
+ * Authors: Edgars Voroboks, NullIsNot0
+ * Last updated: Dec 5, 2022
  *
  * Description: Definition file for Latvian - Latvia language-country.
  */
