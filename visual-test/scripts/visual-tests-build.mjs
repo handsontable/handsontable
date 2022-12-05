@@ -21,7 +21,7 @@ const tests = [];
 // which is declared as a first position in wrappers array.
 
 for (let i = 0; i < (currentBranchName === baseBranch ? 1 : wrappers.length); ++i) {
-  tests.push(execa('npx playwright test', {
+  tests.push(execa.command('npx playwright test', {
     env: { HOT_WRAPPER: wrappers[i], HOT_VERSION: version }, stdout: 'inherit'
   }));
 }
