@@ -11,6 +11,8 @@ const currentBranchName = (await execa.command('git rev-parse --abbrev-ref HEAD'
 const wrappers = ['js', 'angular', 'react', 'vue'];
 const version = '12.2.0';
 
+await execa.command('npx playwright install --with-deps');
+
 const tests = [];
 
 for (let i = 0; i < wrappers.length; ++i) {
