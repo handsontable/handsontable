@@ -83,6 +83,13 @@ class DataMap {
      */
     this.metaManager = metaManager;
     /**
+     * Instance of {@link TableMeta}.
+     *
+     * @private
+     * @type {TableMeta}
+     */
+    this.tableMeta = metaManager.getTableMeta();
+    /**
      * Reference to the original dataset.
      *
      * @type {*}
@@ -120,7 +127,7 @@ class DataMap {
       throw new Error('trying to create `columns` definition but you didn\'t provide `schema` nor `data`');
     }
 
-    const columns = this.instance.getSettings().columns;
+    const columns = this.tableMeta.columns;
     let i;
 
     this.colToPropCache = [];
@@ -138,7 +145,7 @@ class DataMap {
         columnsAsFunc = true;
 
       } else {
-        const maxCols = this.instance.getSettings().maxCols;
+        const maxCols = this.tableMeta.maxCols;
 
         columnsLen = Math.min(maxCols, columns.length);
       }
@@ -263,7 +270,7 @@ class DataMap {
    * @returns {object}
    */
   getSchema() {
-    const schema = this.instance.getSettings().dataSchema;
+    const schema = this.tableMeta.dataSchema;
 
     if (schema) {
       if (typeof schema === 'function') {
@@ -325,7 +332,7 @@ class DataMap {
       };
     }
 
-    const maxRows = this.instance.getSettings().maxRows;
+    const maxRows = this.tableMeta.maxRows;
     const columnCount = this.getSchema().length;
     const rowsToAdd = [];
 
@@ -333,7 +340,7 @@ class DataMap {
       let row = null;
 
       if (this.instance.dataType === 'array') {
-        if (this.instance.getSettings().dataSchema) {
+        if (this.tableMeta.dataSchema) {
           // Clone template array
           row = deepClone(this.getSchema());
 
@@ -344,7 +351,7 @@ class DataMap {
         }
 
       } else if (this.instance.dataType === 'function') {
-        row = this.instance.getSettings().dataSchema(rowIndex + numberOfCreatedRows);
+        row = this.tableMeta.dataSchema(rowIndex + numberOfCreatedRows);
 
       } else {
         row = {};
@@ -374,7 +381,8 @@ class DataMap {
 
     if (numberOfCreatedRows > 0) {
       if ((index === void 0 || index === null)) {
-        // Creates the meta rows at the end of the rows collection.
+        // Creates the meta rows at the end of the rows collection without shifting the cells
+        // that were defined out of the range of the dataset.
         this.metaManager.createRow(null, numberOfCreatedRows);
 
       } else if (source !== 'auto') {
@@ -411,7 +419,7 @@ class DataMap {
     }
 
     const dataSource = this.dataSource;
-    const maxCols = this.instance.getSettings().maxCols;
+    const maxCols = this.tableMeta.maxCols;
     const countSourceCols = this.instance.countSourceCols();
     let columnIndex = index;
 
@@ -473,7 +481,8 @@ class DataMap {
 
     if (numberOfCreatedCols > 0) {
       if ((index === void 0 || index === null)) {
-        // Creates the meta columns at the end of the columns collection.
+        // Creates the meta columns at the end of the columns collection without shifting the cells
+        // that were defined out of the range of the dataset.
         this.metaManager.createColumn(null, numberOfCreatedCols);
 
       } else if (source !== 'auto') {
@@ -529,8 +538,7 @@ class DataMap {
     if (rowIndex < this.instance.countRows()) {
       this.instance.rowIndexMapper.removeIndexes(removedPhysicalIndexes);
 
-      const customDefinedColumns = isDefined(this.instance.getSettings().columns) ||
-        isDefined(this.instance.getSettings().dataSchema);
+      const customDefinedColumns = isDefined(this.tableMeta.columns) || isDefined(this.tableMeta.dataSchema);
 
       // All rows have been removed. There shouldn't be any columns.
       if (this.instance.rowIndexMapper.getNotTrimmedIndexesLength() === 0 && customDefinedColumns === false) {
@@ -561,7 +569,7 @@ class DataMap {
    * @returns {boolean} Returns `false` when action was cancelled, otherwise `true`.
    */
   removeCol(index, amount = 1, source) {
-    if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
+    if (this.instance.dataType === 'object' || this.tableMeta.columns) {
       throw new Error('cannot remove column with object data source or columns option specified');
     }
     let columnIndex = typeof index !== 'number' ? -amount : index;
@@ -912,7 +920,7 @@ class DataMap {
    * @returns {number}
    */
   getLength() {
-    const maxRowsFromSettings = this.instance.getSettings().maxRows;
+    const maxRowsFromSettings = this.tableMeta.maxRows;
     let maxRows;
 
     if (maxRowsFromSettings < 0 || maxRowsFromSettings === 0) {
@@ -973,8 +981,8 @@ class DataMap {
     let c;
     let row;
 
-    const maxRows = this.instance.getSettings().maxRows;
-    const maxCols = this.instance.getSettings().maxCols;
+    const maxRows = this.tableMeta.maxRows;
+    const maxCols = this.tableMeta.maxCols;
 
     if (maxRows === 0 || maxCols === 0) {
       return [];
