@@ -88,7 +88,15 @@ class Overlays {
    * @private
    * @type {ResizeObserver}
    */
-  resizeObserver = new ResizeObserver(() => this.wtSettings.getSetting('onContainerElementResize'));
+  resizeObserver = new ResizeObserver((entries) => {
+    window.requestAnimationFrame(() => {
+      if (!Array.isArray(entries) || !entries.length) {
+        return;
+      }
+
+      this.wtSettings.getSetting('onContainerElementResize');
+    });
+  });
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.

@@ -66,6 +66,24 @@ describe('Hook', () => {
       );
     });
 
+    it('should be synced with `requestAnimationFrame` call', async() => {
+      const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
+
+      spyOn(window, 'requestAnimationFrame');
+
+      const hot = handsontable({
+        width: 120,
+        height: 100,
+        afterRefreshDimensions,
+      });
+
+      await sleep(20);
+      hot.rootElement.style.width = '200px';
+
+      expect(window.requestAnimationFrame).toHaveBeenCalledTimes(1);
+      expect(afterRefreshDimensions.calls.count()).toBe(0);
+    });
+
     describe('running in iframe', () => {
       beforeEach(function() {
         this.$iframe = $('<iframe width="500px" height="60px"/>').appendTo(this.$container);
