@@ -25,25 +25,45 @@ describe('BaseEditor', () => {
     expect(Handsontable.editors.TextEditor).toBeDefined();
   });
 
-  it('should blur activeElement while preparing the editor to open', () => {
+  it('should blur `activeElement` while preparing the editor to open', () => {
     const externalInputElement = document.createElement('input');
 
     document.body.appendChild(externalInputElement);
+    spyOn(externalInputElement, 'blur').and.callThrough();
 
     handsontable();
 
     externalInputElement.select();
     selectCell(2, 2);
 
+    expect(externalInputElement.blur).toHaveBeenCalled();
     expect(document.activeElement).not.toBe(externalInputElement);
 
     document.body.removeChild(externalInputElement);
   });
 
-  it('should blur activeElement while preparing the editor to open even when readOnly is enabled', () => {
+  it('should not blur `activeElement` when previously active element is HoT component', () => {
+    const hotInputElement = document.createElement('input');
+
+    hotInputElement.setAttribute('data-hot-input', true);
+    document.body.appendChild(hotInputElement);
+    spyOn(hotInputElement, 'blur').and.callThrough();
+
+    handsontable();
+
+    hotInputElement.select();
+    selectCell(2, 2);
+
+    expect(hotInputElement.blur).not.toHaveBeenCalled();
+
+    document.body.removeChild(hotInputElement);
+  });
+
+  it('should blur `activeElement` while preparing the editor to open even when readOnly is enabled', () => {
     const externalInputElement = document.createElement('input');
 
     document.body.appendChild(externalInputElement);
+    spyOn(externalInputElement, 'blur').and.callThrough();
 
     handsontable({
       readOnly: true,
@@ -52,6 +72,7 @@ describe('BaseEditor', () => {
     externalInputElement.select();
     selectCell(2, 2);
 
+    expect(externalInputElement.blur).toHaveBeenCalled();
     expect(document.activeElement).not.toBe(externalInputElement);
 
     document.body.removeChild(externalInputElement);
