@@ -1,11 +1,3 @@
-beforeAll(() => {
-  (window as any).IntersectionObserver = IntersectionObserverMock;
-});
-
-afterAll(() => {
-  delete window.IntersectionObserver;
-});
-
 /**
  * Creates an 2D array.
  *
