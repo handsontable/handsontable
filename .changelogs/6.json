@@ -1,7 +1,0 @@
-{
-  "title": "Fixed cell meta objects desynchronization issue when they are declared within the `{before,after}CreateRow` or `{before,after}CreateColumn` hooks.",
-  "type": "fixed",
-  "issue": 6,
-  "breaking": false,
-  "framework": "none"
-}

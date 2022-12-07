@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [12.3.0] - 2022-12-14
+
+### Fixed
+- Fix a problem with Undo/Redo not working correctly on column-preconfigured instances by modifying the way data schema is generated for AoA-typed data. [#1](https://github.com/handsontable/handsontable/issues/1)
+- Fixed an issue with the formulas not being updated after `updateData` calls. [#10011](https://github.com/handsontable/handsontable/issues/10011)
+- Fixed a regression bug where custom-defined settings can be overwritten by "type" setting. [#18](https://github.com/handsontable/handsontable/issues/18)
+- Fixed a problem where the table was not rendered properly if it had been initialized in a hidden container. [#5322](https://github.com/handsontable/handsontable/issues/5322)
+- Fixed cell meta objects desynchronization issue when they are declared within the `{before,after}CreateRow` or `{before,after}CreateColumn` hooks. [#6](https://github.com/handsontable/handsontable/issues/6)
+- Comment editor will be shown properly, when comment had been added on fixed column and some scrolling was performed [#9645](https://github.com/handsontable/handsontable/issues/9645)
+- Fixed `dropdown`-type editor that prevents typing values using IME. [#9672](https://github.com/handsontable/handsontable/issues/9672)
+- Internal: Fixed the broken "verify-bundles" script, used in the version freezing process. [#9891](https://github.com/handsontable/handsontable/issues/9891)
+- *React:* Fixed a problem with the dropdown-typed cells validation when using `HotColumn`. [#10065](https://github.com/handsontable/handsontable/issues/10065)
+
+### Added
+- Added a new feature that enables the user to copy the contents of column headers by using 3 new context menu options ("Copy with headers", "Copy with group headers", and "Copy headers only"), along with new API methods for using the feature programmatically. [#2288](https://github.com/handsontable/handsontable/issues/2288)
+- Exported the `CellCoords` and `CellRange` classes, to make them part of the public API. [#9755](https://github.com/handsontable/handsontable/issues/9755)
+- Add missing TypeScript definitions for the manual column freeze hooks. [#9859](https://github.com/handsontable/handsontable/issues/9859)
+
 ## [12.2.0] - 2022-10-25
 
 For more information on this release, see:
