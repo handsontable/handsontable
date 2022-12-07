@@ -22,7 +22,7 @@ describe('Hook', () => {
         afterRefreshDimensions,
       });
 
-      await sleep(20);
+      await sleep(50);
       hot.rootElement.style.width = '200px';
 
       expect(afterRefreshDimensions.calls.count()).toBe(1);
@@ -38,7 +38,7 @@ describe('Hook', () => {
       });
 
       hot.rootElement.style.width = '200px';
-      await sleep(20);
+      await sleep(50);
 
       expect(afterRefreshDimensions).toHaveBeenCalledWith(
         { width: 120, height: 100 },
@@ -57,7 +57,7 @@ describe('Hook', () => {
       });
 
       hot.rootElement.style.width = '120px';
-      await sleep(20);
+      await sleep(50);
 
       expect(afterRefreshDimensions).toHaveBeenCalledWith(
         { width: 120, height: 100 },
@@ -77,7 +77,7 @@ describe('Hook', () => {
         afterRefreshDimensions,
       });
 
-      await sleep(20);
+      await sleep(50);
       hot.rootElement.style.width = '200px';
 
       expect(window.requestAnimationFrame).toHaveBeenCalledTimes(1);
