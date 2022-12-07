@@ -88,15 +88,11 @@ describe('Core_init', () => {
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
     expect(
-      [...Array(15).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
+      [...Array(15).keys()].map(index => $(hot.getCell(-1, index, true)).outerWidth())
     ).toEqual(
-      [...Array(15).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
+      [...Array(15).keys()].map(index => $(hot.getCell(0, index, true)).outerWidth())
     );
-    expect(
-      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder).outerWidth()
-    ).toEqual(
-      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE).outerWidth()
-    );
+    expect($topHolderElement.outerWidth()).toBe(getTopClone().find('.htCore').outerWidth());
   });
 
   it('should rerender the table after changing the `display` property to anything other than `none` on the root' +
@@ -130,15 +126,11 @@ describe('Core_init', () => {
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
     expect(
-      [...Array(15).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
+      [...Array(15).keys()].map(index => $(hot.getCell(-1, index, true)).outerWidth())
     ).toEqual(
-      [...Array(15).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
+      [...Array(15).keys()].map(index => $(hot.getCell(0, index, true)).outerWidth())
     );
-    expect(
-      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder).outerWidth()
-    ).toEqual(
-      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE).outerWidth()
-    );
+    expect($topHolderElement.outerWidth()).toBe(getTopClone().find('.htCore').outerWidth());
 
     spec().$container.detach();
     $('body').append(spec().$container);
@@ -170,15 +162,11 @@ describe('Core_init', () => {
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
     expect(
-      [...Array(15).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
+      [...Array(15).keys()].map(index => $(hot.getCell(-1, index, true)).outerWidth())
     ).toEqual(
-      [...Array(15).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
+      [...Array(15).keys()].map(index => $(hot.getCell(0, index, true)).outerWidth())
     );
-    expect(
-      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder).outerWidth()
-    ).toEqual(
-      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE).outerWidth()
-    );
+    expect($topHolderElement.outerWidth()).toBe(getTopClone().find('.htCore').outerWidth());
 
     $style.remove();
   });
@@ -213,15 +201,11 @@ describe('Core_init', () => {
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
     expect(
-      [...Array(15).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
+      [...Array(15).keys()].map(index => $(hot.getCell(-1, index, true)).outerWidth())
     ).toEqual(
-      [...Array(15).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
+      [...Array(15).keys()].map(index => $(hot.getCell(0, index, true)).outerWidth())
     );
-    expect(
-      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder).outerWidth()
-    ).toEqual(
-      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE).outerWidth()
-    );
+    expect($topHolderElement.outerWidth()).toBe(getTopClone().find('.htCore').outerWidth());
 
     spec().$container.detach();
     $('body').append(spec().$container);
