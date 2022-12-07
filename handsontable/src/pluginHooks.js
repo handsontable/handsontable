@@ -1834,6 +1834,17 @@ const REGISTERED_HOOKS = [
    * ]
    * ```
    *
+   * To perform server-side filtering (i.e., to not apply filtering to Handsontable's UI),
+   * set [`beforeFilter`](#beforefilter) to return `false`:
+   *
+   * ```js
+   * new Handsontable(document.getElementById('example'), {
+   *   beforeFilter: (conditionsStack) => {
+   *     return false;
+   *   }
+   * });
+   *```
+   *
    * Read more:
    * - [Guides: Column filter](@/guides/columns/column-filter.md)
    * - [Hooks: `afterFilter`](#afterfilter)
