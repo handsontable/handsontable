@@ -88,9 +88,9 @@ describe('Core_init', () => {
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
     expect(
-      [...Array(5).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
+      [...Array(15).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
     ).toEqual(
-      [...Array(5).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
+      [...Array(15).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
     );
     expect(
       $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder).outerWidth()
@@ -130,9 +130,9 @@ describe('Core_init', () => {
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
     expect(
-      [...Array(5).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
+      [...Array(15).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
     ).toEqual(
-      [...Array(5).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
+      [...Array(15).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
     );
     expect(
       $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder).outerWidth()
@@ -170,9 +170,9 @@ describe('Core_init', () => {
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
     expect(
-      [...Array(5).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
+      [...Array(15).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
     ).toEqual(
-      [...Array(5).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
+      [...Array(15).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
     );
     expect(
       $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder).outerWidth()
@@ -213,9 +213,9 @@ describe('Core_init', () => {
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
     expect(
-      [...Array(5).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
+      [...Array(15).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
     ).toEqual(
-      [...Array(5).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
+      [...Array(15).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
     );
     expect(
       $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder).outerWidth()
