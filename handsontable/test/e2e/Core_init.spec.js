@@ -70,9 +70,10 @@ describe('Core_init', () => {
     spec().$container.css('display', 'none');
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: Handsontable.helper.createSpreadsheetData(15, 15),
       rowHeaders: true,
       colHeaders: true,
+      stretchH: 'all'
     });
 
     // Make sure the table is not visible.
@@ -86,6 +87,16 @@ describe('Core_init', () => {
     const $testTopHeader = $(hot.getCell(-1, 0, true));
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
+    expect(
+      [...Array(5).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
+    ).toEqual(
+      [...Array(5).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
+    );
+    expect(
+      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder).outerWidth()
+    ).toEqual(
+      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE).outerWidth()
+    );
   });
 
   it('should rerender the table after changing the `display` property to anything other than `none` on the root' +
@@ -101,9 +112,10 @@ describe('Core_init', () => {
     $testParentContainer.css('display', 'none');
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: Handsontable.helper.createSpreadsheetData(15, 15),
       rowHeaders: true,
       colHeaders: true,
+      stretchH: 'all'
     });
 
     // Make sure the table is not visible.
@@ -117,6 +129,16 @@ describe('Core_init', () => {
     const $testTopHeader = $(hot.getCell(-1, 0, true));
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
+    expect(
+      [...Array(5).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
+    ).toEqual(
+      [...Array(5).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
+    );
+    expect(
+      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder).outerWidth()
+    ).toEqual(
+      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE).outerWidth()
+    );
 
     spec().$container.detach();
     $('body').append(spec().$container);
@@ -130,9 +152,10 @@ describe('Core_init', () => {
     spec().$container.attr('id', 'test-hot');
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: Handsontable.helper.createSpreadsheetData(15, 15),
       rowHeaders: true,
       colHeaders: true,
+      stretchH: 'all'
     });
 
     // Make sure the table is not visible.
@@ -146,6 +169,16 @@ describe('Core_init', () => {
     const $testTopHeader = $(hot.getCell(-1, 0, true));
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
+    expect(
+      [...Array(5).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
+    ).toEqual(
+      [...Array(5).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
+    );
+    expect(
+      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder).outerWidth()
+    ).toEqual(
+      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE).outerWidth()
+    );
 
     $style.remove();
   });
@@ -161,12 +194,11 @@ describe('Core_init', () => {
 
     $testParentContainer.append(spec().$container);
 
-    $testParentContainer.css('display', 'none');
-
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: Handsontable.helper.createSpreadsheetData(15, 15),
       rowHeaders: true,
       colHeaders: true,
+      stretchH: 'all'
     });
 
     // Make sure the table is not visible.
@@ -180,6 +212,16 @@ describe('Core_init', () => {
     const $testTopHeader = $(hot.getCell(-1, 0, true));
 
     expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
+    expect(
+      [...Array(5).keys()].map(el => $(hot.getCell(-1, el, true)).outerWidth())
+    ).toEqual(
+      [...Array(5).keys()].map(el => $(hot.getCell(0, el, true)).outerWidth())
+    );
+    expect(
+      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.holder).outerWidth()
+    ).toEqual(
+      $(hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE).outerWidth()
+    );
 
     spec().$container.detach();
     $('body').append(spec().$container);

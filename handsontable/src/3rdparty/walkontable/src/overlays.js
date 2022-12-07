@@ -551,13 +551,9 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    const spreader = this.wtTable.spreader;
-    const width = spreader.clientWidth;
-    const height = spreader.clientHeight;
+    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
 
-    if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
-      this.spreaderLastSize.width = width;
-      this.spreaderLastSize.height = height;
+    if (wasSpreaderSizeUpdated) {
       this.adjustElementsSize();
     }
 
@@ -575,6 +571,25 @@ class Overlays {
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
       this.bottomInlineStartCornerOverlay.refresh(fastDraw);
     }
+  }
+
+  /**
+   * Update the last cached spreader size with the current size.
+   *
+   * @returns {boolean} `true` if the lastSpreaderSize cache was updated, `false` otherwise.
+   */
+  updateLastSpreaderSize() {
+    const spreader = this.wtTable.spreader;
+    const width = spreader.clientWidth;
+    const height = spreader.clientHeight;
+    const needsUpdating = width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height;
+
+    if (needsUpdating) {
+      this.spreaderLastSize.width = width;
+      this.spreaderLastSize.height = height;
+    }
+
+    return needsUpdating;
   }
 
   /**

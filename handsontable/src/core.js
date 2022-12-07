@@ -1182,7 +1182,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (!!firstRun && instance.rootElement.offsetParent === null) {
-      observeVisibilityChangeOnce(instance.rootElement, () => instance.render());
+      observeVisibilityChangeOnce(instance.rootElement, () => {
+        // Update the spreader size cache before rendering.
+        instance.view._wt.wtOverlays.updateLastSpreaderSize();
+        instance.render();
+        instance.view.adjustElementsSize();
+      });
     }
 
     if (typeof firstRun === 'object') {
