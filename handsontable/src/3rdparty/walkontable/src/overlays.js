@@ -2,6 +2,7 @@ import {
   getScrollableElement,
   getScrollbarWidth,
 } from '../../../helpers/dom/element';
+import { requestAnimationFrame } from '../../../helpers/feature';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { isChrome } from '../../../helpers/browser';
@@ -89,7 +90,7 @@ class Overlays {
    * @type {ResizeObserver}
    */
   resizeObserver = new ResizeObserver((entries) => {
-    window.requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
       if (!Array.isArray(entries) || !entries.length) {
         return;
       }
