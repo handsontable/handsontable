@@ -282,6 +282,56 @@ describe('Core.alter', () => {
       expect(afterCreateRow).toHaveBeenCalledWith(4, 2, 'customSource');
     });
 
+    it('should correctly shift cell meta object when they are defined in the `beforeCreateRow` hook', () => {
+      handsontable({
+        data: createSpreadsheetData(8, 8),
+        beforeCreateRow(index, amount) {
+          for (let i = index; i < index + amount; i++) {
+            this.setCellMeta(i, 0, 'className', 'red-background');
+          }
+        },
+      });
+
+      setCellMeta(0, 0, 'className', 'green-background');
+      setCellMeta(1, 0, 'className', 'green-background');
+      alter('insert_row_below', 1, 3);
+
+      expect(getCellMeta(0, 0).className).toBe('green-background');
+      expect(getCellMeta(1, 0).className).toBe('red-background');
+      expect(getCellMeta(2, 0).className).toBeUndefined();
+      expect(getCellMeta(3, 0).className).toBeUndefined();
+      expect(getCellMeta(4, 0).className).toBeUndefined();
+      expect(getCellMeta(5, 0).className).toBe('red-background');
+      expect(getCellMeta(6, 0).className).toBe('red-background');
+      expect(getCellMeta(7, 0).className).toBeUndefined();
+      expect(getCellMeta(8, 0).className).toBeUndefined();
+    });
+
+    it('should correctly shift cell meta object when they are defined in the `afterCreateRow` hook', () => {
+      handsontable({
+        data: createSpreadsheetData(8, 8),
+        afterCreateRow(index, amount) {
+          for (let i = index; i < index + amount; i++) {
+            this.setCellMeta(i, 0, 'className', 'red-background');
+          }
+        },
+      });
+
+      setCellMeta(0, 0, 'className', 'green-background');
+      setCellMeta(1, 0, 'className', 'green-background');
+      alter('insert_row_below', 1, 3);
+
+      expect(getCellMeta(0, 0).className).toBe('green-background');
+      expect(getCellMeta(1, 0).className).toBe('green-background');
+      expect(getCellMeta(2, 0).className).toBe('red-background');
+      expect(getCellMeta(3, 0).className).toBe('red-background');
+      expect(getCellMeta(4, 0).className).toBe('red-background');
+      expect(getCellMeta(5, 0).className).toBeUndefined();
+      expect(getCellMeta(6, 0).className).toBeUndefined();
+      expect(getCellMeta(7, 0).className).toBeUndefined();
+      expect(getCellMeta(8, 0).className).toBeUndefined();
+    });
+
     it('should shift down only the last selection layer when the row is inserted above that selection', () => {
       handsontable({
         data: createSpreadsheetData(8, 8),
