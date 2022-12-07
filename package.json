@@ -71,6 +71,9 @@
     "semver": "^5.7.1",
     "yargs": "^16.2.0"
   },
+  "overrides": {
+    "@types/babel__traverse": "7.18.2"
+  },
   "license": "SEE LICENSE IN LICENSE.txt",
   "resolutions": {
     "babel-core": "7.0.0-bridge.0"
