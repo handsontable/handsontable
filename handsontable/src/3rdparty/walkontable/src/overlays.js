@@ -2,6 +2,7 @@ import {
   getScrollableElement,
   getScrollbarWidth,
 } from '../../../helpers/dom/element';
+import { requestAnimationFrame } from '../../../helpers/feature';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { isChrome } from '../../../helpers/browser';
@@ -88,7 +89,15 @@ class Overlays {
    * @private
    * @type {ResizeObserver}
    */
-  resizeObserver = new ResizeObserver(() => this.wtSettings.getSetting('onContainerElementResize'));
+  resizeObserver = new ResizeObserver((entries) => {
+    requestAnimationFrame(() => {
+      if (!Array.isArray(entries) || !entries.length) {
+        return;
+      }
+
+      this.wtSettings.getSetting('onContainerElementResize');
+    });
+  });
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.

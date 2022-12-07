@@ -1,11 +1,3 @@
-beforeAll(() => {
-  (window as any).IntersectionObserver = IntersectionObserverMock;
-});
-
-afterAll(() => {
-  delete window.IntersectionObserver;
-});
-
 export function wait(amount, body, resolveFunc) {
   if (!resolveFunc) {
     resolveFunc = body;

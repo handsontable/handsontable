@@ -4,7 +4,6 @@ const allowedE2EModules = [
   'jasmine-co',
   'jest-matcher-utils',
   'html-parse-stringify',
-  'resize-observer-polyfill',
   'core-js/*',
   'regenerator-runtime/runtime*',
   '@babel/runtime/*',
