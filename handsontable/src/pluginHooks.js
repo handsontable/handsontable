@@ -1813,60 +1813,25 @@ const REGISTERED_HOOKS = [
    * | `conditions` | Array of objects                                                        | Each object represents one condition. For details, see [`addCondition()`](@/api/filters.md#addcondition).                |
    * | `operation`  | `'conjunction'` \| `'disjunction'` \| `'disjunctionWithExtraCondition'` | An operation to perform on your set of `conditions`. For details, see [`addCondition()`](@/api/filters.md#addcondition). |
    *
-   * ```js
-   * new Handsontable(document.getElementById('example'), {
-   *
-   *   // enable the `Filters` plugin
-   *   filters: true,
-   *
-   *   // make the `beforeFilter` hook react to your selected column filters
-   *   // (you'll set the filters further below, by using Handsontable's API)
-   *   beforeFilter: (
-   *     [
-   *       {
-   *         column: 1,
-   *         conditions: [
-   *           {name: 'begins_with', args: [['de']]}
-   *         ],
-   *         operation: 'conjunction'
-   *       },
-   *       {
-   *         column: 1,
-   *         conditions: [
-   *           {name: 'not_contains', args: [['ing']]}
-   *         ],
-   *         operation: 'conjunction'
-   *       },
-   *     ]
-   *   ) => {
-   *     console.log(`Column 1 is going to get filtered.`);
-   *   }
-   * });
-   *
-   * // configure your column filters by using Handsontable's API:
-   *
-   * // access the instance of the `Filters` plugin
-   * const filtersPlugin = hot.getPlugin('filters');
-   *
-   * // in column 1, add two mutually compatible conditions:
-   * // "Begins with" with value "de", and
-   * // "Not contains" with value "ing"
-   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'conjunction');
-   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'conjunction');
-   *
-   * // apply the filters (the `beforeFilter` hook gets fired just before the `filter()` method runs)
-   * filtersPlugin.filter();
-   * ```
-   *
-   * To perform server-side filtering (i.e., to not apply filtering to Handsontable's UI),
-   * set [`beforeFilter`](#beforefilter) to return `false`:
+   * An example of the format of the `conditionsStack` argument:
    *
    * ```js
-   * new Handsontable(document.getElementById('example'), {
-   *   beforeFilter: (conditionsStack) => {
-   *     return false;
-   *   }
-   * });
+   * [
+   *   {
+   *     column: 2,
+   *     conditions: [
+   *       {name: 'begins_with', args: [['S']]}
+   *     ],
+   *     operation: 'conjunction'
+   *   },
+   *   {
+   *     column: 4,
+   *     conditions: [
+   *       {name: 'not_empty', args: []}
+   *     ],
+   *     operation: 'conjunction'
+   *   },
+   * ]
    * ```
    *
    * Read more:
@@ -1896,49 +1861,25 @@ const REGISTERED_HOOKS = [
    * | `conditions` | Array of objects                                                        | Each object represents one condition. For details, see [`addCondition()`](@/api/filters.md#addcondition).                |
    * | `operation`  | `'conjunction'` \| `'disjunction'` \| `'disjunctionWithExtraCondition'` | An operation to perform on your set of `conditions`. For details, see [`addCondition()`](@/api/filters.md#addcondition). |
    *
+   * An example of the format of the `conditionsStack` argument:
+   *
    * ```js
-   * new Handsontable(document.getElementById('example'), {
-   *
-   *   // enable the `Filters` plugin
-   *   filters: true,
-   *
-   *   // make the `afterFilter` hook react to your selected column filters
-   *   // (you'll set the filters further below, by using Handsontable's API)
-   *   afterFilter: (
-   *     [
-   *       {
-   *         column: 1,
-   *         conditions: [
-   *           {name: 'begins_with', args: [['de']]}
-   *         ],
-   *         operation: 'conjunction'
-   *       },
-   *       {
-   *         column: 1,
-   *         conditions: [
-   *           {name: 'not_contains', args: [['ing']]}
-   *         ],
-   *         operation: 'conjunction'
-   *       },
-   *     ]
-   *   ) => {
-   *     console.log(`Column 1 has just got filtered.`);
-   *   }
-   * });
-   *
-   * // configure your column filters by using Handsontable's API:
-   *
-   * // access the instance of the `Filters` plugin
-   * const filtersPlugin = hot.getPlugin('filters');
-   *
-   * // in column 1, add two mutually compatible conditions:
-   * // "Begins with" with value "de", and
-   * // "Not contains" with value "ing"
-   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'conjunction');
-   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'conjunction');
-   *
-   * // apply the filters (the `afterFilter` hook gets fired just after the `filter()` method runs)
-   * filtersPlugin.filter();
+   * [
+   *   {
+   *     column: 2,
+   *     conditions: [
+   *       {name: 'begins_with', args: [['S']]}
+   *     ],
+   *     operation: 'conjunction'
+   *   },
+   *   {
+   *     column: 4,
+   *     conditions: [
+   *       {name: 'not_empty', args: []}
+   *     ],
+   *     operation: 'conjunction'
+   *   },
+   * ]
    * ```
    *
    * Read more:
