@@ -156,10 +156,11 @@ describe('noEditor', () => {
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should blur activeElement while preparing the editor to open', () => {
+  it('should blur `activeElement` while preparing the editor to open', () => {
     const externalInputElement = document.createElement('input');
 
     document.body.appendChild(externalInputElement);
+    spyOn(externalInputElement, 'blur').and.callThrough();
 
     handsontable({
       editor: false,
@@ -168,6 +169,7 @@ describe('noEditor', () => {
     externalInputElement.select();
     selectCell(2, 2);
 
+    expect(externalInputElement.blur).toHaveBeenCalled();
     expect(document.activeElement).not.toBe(externalInputElement);
 
     document.body.removeChild(externalInputElement);
