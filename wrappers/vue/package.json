@@ -6,7 +6,7 @@
   "homepage": "https://handsontable.com",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./commonjs/vue-handsontable.js",
-  "module": "./es/vue-handsontable.js",
+  "module": "./es/vue-handsontable.mjs",
   "jsdelivr": "./dist/vue-handsontable.min.js",
   "unpkg": "./dist/vue-handsontable.min.js",
   "types": "./index.d.ts",

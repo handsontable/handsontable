@@ -6,7 +6,7 @@
   "homepage": "https://handsontable.com",
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./commonjs/react-handsontable.js",
-  "module": "./es/react-handsontable.js",
+  "module": "./es/react-handsontable.mjs",
   "jsdelivr": "./dist/react-handsontable.min.js",
   "unpkg": "./dist/react-handsontable.min.js",
   "types": "./index.d.ts",
