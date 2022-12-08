@@ -21,6 +21,32 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 12.3.0
+
+Released on December 14, 2022
+
+For more information on this release, see:
+- [Blog post](https://handsontable.com/blog/articles/handsontable-12.3.0)
+- [Documentation](https://handsontable.com/docs/12.3/)
+
+#### Added
+
+- Added a new feature that lets you copy the contents of column headers by using 3 new context menu options: "Copy with headers", "Copy with group headers", and "Copy headers only". [#2288](https://github.com/handsontable/handsontable/issues/2288)
+- Added 4 new API methods for copying column headers programmatically: [`copyCellsOnly()`](@/api/copyPaste.md#copycellsonly), [`copyWithColumnHeaders()`](@/api/copyPaste.md#copywithcolumnheaders), [`copyWithAllColumnHeaders()`](@/api/copyPaste.md#copywithallcolumnheaders), and [`copyColumnHeadersOnly()`](@/api/copyPaste.md#copycolumnheadersonly). [#2288](https://github.com/handsontable/handsontable/issues/2288)
+- Exported the [`CellCoords`](@/api/cellCoords.md) and [`CellRange`](@/api/cellRange.md) classes to make them part of the public API. [#9755](https://github.com/handsontable/handsontable/issues/9755)
+- Added missing TypeScript definitions for the following Handsontable hooks: [`beforeColumnFreeze`](@/api/hooks.md#beforecolumnfreeze), [`afterColumnFreeze`](@/api/hooks.md#aftercolumnfreeze), [`beforeColumnUnfreeze`](@/api/hooks.md#beforecolumnunfreeze), and [`afterColumnUnfreeze`](@/api/hooks.md#aftercolumnunfreeze). [#9859](https://github.com/handsontable/handsontable/issues/9859)
+
+#### Fixed
+
+- Fixed an issue where the [`UndoRedo`](@/api/undoRedo.md) plugin didn't work properly with preconfigured columns. [#1](https://github.com/handsontable/dev-handsontable/issues/1)
+- Fixed an issue where formulas were not updated after [`updateData()`](@/api/core.md#updatedata) calls. [#10011](https://github.com/handsontable/handsontable/issues/10011)
+- Fixed a regression where setting a column's [`type`](@/api/options.md#type) could overwrite other custom-defined settings. [#18](https://github.com/handsontable/dev-handsontable/issues/18)
+- Fixed an issue where Handsontable didn't render properly when initialized inside of a hidden container. [#5322](https://github.com/handsontable/handsontable/issues/5322)
+- Fixed an issue of desynchronization between configuration options (cell meta) and Handsontable's data. The issue occurred when Handsontable's options were modified through the following hooks: [`beforeCreateRow`](@/api/hooks.md#beforecreaterow), [`afterCreateRow`](@/api/hooks.md#aftercreaterow), [`beforeCreateCol`](@/api/hooks.md#beforecreatecol), and [`afterCreateCol`](@/api/hooks.md#aftercreatecol). [#6](https://github.com/handsontable/dev-handsontable/issues/6)
+- Fixed an issue where comments added to fixed columns didn't display properly after scrolling. [#9645](https://github.com/handsontable/handsontable/issues/9645) 
+- Fixed an issue where typing in a [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) editor caused the IME to disappear, resulting in wrong characters being typed. [#9672](https://github.com/handsontable/handsontable/issues/9672)
+- React: Fixed an issue where [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) cells weren't validated properly when using the [`HotColumn`](@/guides/columns/react-hot-column.md) component. [#10065](https://github.com/handsontable/handsontable/issues/10065)
+
 ## 12.2.0
 
 Released on October 25, 2022
