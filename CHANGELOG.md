@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [12.3.0] - 2022-12-14
 
+### Added
+
+- Added a new feature that enables the user to copy the contents of column headers by using 3 new context menu options ("Copy with headers", "Copy with group headers", and "Copy headers only"), along with new API methods for using the feature programmatically. [#2288](https://github.com/handsontable/handsontable/issues/2288)
+- Exported the `CellCoords` and `CellRange` classes, to make them part of the public API. [#9755](https://github.com/handsontable/handsontable/issues/9755)
+- Add missing TypeScript definitions for the manual column freeze hooks. [#9859](https://github.com/handsontable/handsontable/issues/9859)
+
 ### Fixed 
 
 - Fix a problem with Undo/Redo not working correctly on column-preconfigured instances by modifying the way data schema is generated for AoA-typed data. [#1](https://github.com/handsontable/dev-handsontable/issues/1)
@@ -23,12 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Internal: Fixed the broken "verify-bundles" script, used in the version freezing process. [#9891](https://github.com/handsontable/handsontable/issues/9891)
 - React: Fixed a problem with the dropdown-typed cells validation when using `HotColumn`. [#10065](https://github.com/handsontable/handsontable/issues/10065)
 
-### Added
-
-- Added a new feature that enables the user to copy the contents of column headers by using 3 new context menu options ("Copy with headers", "Copy with group headers", and "Copy headers only"), along with new API methods for using the feature programmatically. [#2288](https://github.com/handsontable/handsontable/issues/2288)
-- Exported the `CellCoords` and `CellRange` classes, to make them part of the public API. [#9755](https://github.com/handsontable/handsontable/issues/9755)
-- Add missing TypeScript definitions for the manual column freeze hooks. [#9859](https://github.com/handsontable/handsontable/issues/9859)
-
 ## [12.2.0] - 2022-10-25
 
 For more information on this release, see:
@@ -37,7 +37,12 @@ For more information on this release, see:
 
 ### Added
 
-- Added a new feature that lets you add rows and columns at a specified position. Now, the `alter()` method takes 4 new parameter values: `insert_row_above`, `insert_row_below`, `insert_col_start`, and `insert_col_end`. The `insert_row` and `insert_col` parameters are marked as deprecated. [#9471](https://github.com/handsontable/handsontable/issues/9471)
+- Added a new feature that lets you add rows and columns at a specified position. Now, the `alter()` method takes 4 new parameter values: `insert_row_above`, `insert_row_below`, `insert_col_start`, and `insert_col_end`. [#9471](https://github.com/handsontable/handsontable/issues/9471)
+
+### Deprecated
+
+- Deprecated the `insert_row` parameter of the `alter()` method. Instead, use `insert_row_above` or `insert_row_below`. [#9471](https://github.com/handsontable/handsontable/issues/9471)
+- Deprecated the `insert_col` parameter of the `alter()` method. Instead, use `insert_col_start` or `insert_col_end`. [#9471](https://github.com/handsontable/handsontable/issues/9471)
 
 ### Removed
 
@@ -114,6 +119,10 @@ For more information on this release, see:
 - Updated the Pikaday optional dependency to 1.8.2, to let Handsontable work with Parcel 2 without errors. [#9410](https://github.com/handsontable/handsontable/issues/9410)
 - React: Changed the wrapper's lifecycle methods, to let Handsontable work with React 17+ without warnings. [#8748](https://github.com/handsontable/handsontable/issues/8748)
 - Angular: Moved the `@angular/core` dependency to peer dependencies. [#9574](https://github.com/handsontable/handsontable/issues/9574)
+
+### Deprecated
+
+- Deprecated the `getFirstNotHiddenIndex()` method. Use `getNearestNotHiddenIndex()` instead. [#9064](https://github.com/handsontable/handsontable/issues/9064)
 
 ### Fixed
 
@@ -556,7 +565,7 @@ For more information on this release, see:
 - Added a possibility to allow cancelling of `autofill` in the `beforeAutofill` hook. [#4441](https://github.com/handsontable/handsontable/issues/4441)
 - Added support for newer versions of moment, numbro and pikaday. [#5159](https://github.com/handsontable/handsontable/issues/5159)
 - Added `afterAutoFill` hook. [#6135](https://github.com/handsontable/handsontable/issues/6135)
-- Added deprecated warning messages mechanism for plugin hooks. [#6613](https://github.com/handsontable/handsontable/pull/6613)
+- Added "deprecated" warning messages mechanism for plugin hooks. [#6613](https://github.com/handsontable/handsontable/pull/6613)
 - Added missing types for `instance.undoRedo`. [#6346](https://github.com/handsontable/handsontable/issues/6346)
 - Added `countRenderableColumns` method to the `TableView`. [#6177](https://github.com/handsontable/handsontable/issues/6177)
 - Added missing "hide" property in `CustomBorders` typings. [#6788](https://github.com/handsontable/handsontable/issues/6788)
@@ -598,6 +607,7 @@ For more information on this release, see:
 
 ### Deprecated
 
+- The `ObserveChanges` plugin is no longer enabled by `columnSorting` and became deprecated. [#5945](https://github.com/handsontable/handsontable/pull/5945)
 - `HeaderTooltips` plugin becomes deprecated and will be removed in the next major version. [#7023](https://github.com/handsontable/handsontable/issues/7023)
 - IE support is depreacated and will removed by the end of the year. [#7026](https://github.com/handsontable/handsontable/issues/7026)
 
