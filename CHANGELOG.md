@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comment editor will be shown properly, when comment had been added on fixed column and some scrolling was performed [#9645](https://github.com/handsontable/handsontable/issues/9645)
 - Fixed `dropdown`-type editor that prevents typing values using IME. [#9672](https://github.com/handsontable/handsontable/issues/9672)
 - Internal: Fixed the broken "verify-bundles" script, used in the version freezing process. [#9891](https://github.com/handsontable/handsontable/issues/9891)
-- *React:* Fixed a problem with the dropdown-typed cells validation when using `HotColumn`. [#10065](https://github.com/handsontable/handsontable/issues/10065)
+- React: Fixed a problem with the dropdown-typed cells validation when using `HotColumn`. [#10065](https://github.com/handsontable/handsontable/issues/10065)
 
 ### Added
 - Added a new feature that enables the user to copy the contents of column headers by using 3 new context menu options ("Copy with headers", "Copy with group headers", and "Copy headers only"), along with new API methods for using the feature programmatically. [#2288](https://github.com/handsontable/handsontable/issues/2288)
@@ -74,7 +74,7 @@ For more information on this release, see:
 
 ### Changed
 - Changed the version of the Moment.js dependency from 2.29.3 to 2.29.4, in reaction to a recently-found Moment.js security vulnerability. The vulnerability did not affect a correct configuration of Handsontable. [#9638](https://github.com/handsontable/handsontable/issues/9638)
-- *Vue:* Freezed the version of the Vue framework that is used in our build chain to ~2.6. This shouldn't affect apps that use Vue 2.7+. [#9624](https://github.com/handsontable/handsontable/issues/9624)
+- Vue: Freezed the version of the Vue framework that is used in our build chain to ~2.6. This shouldn't affect apps that use Vue 2.7+. [#9624](https://github.com/handsontable/handsontable/issues/9624)
 
 ## [12.1.1] - 2022-07-05
 
@@ -82,7 +82,7 @@ For more information on this release, see:
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-1-1)
 
 ### Fixed
-- *Angular:* Fixed an issue where the installation of `@handsontable/angular` package failed for versions of Angular other than 9 [#9622](https://github.com/handsontable/handsontable/issues/9622)
+- Angular: Fixed an issue where the installation of `@handsontable/angular` package failed for versions of Angular other than 9 [#9622](https://github.com/handsontable/handsontable/issues/9622)
 
 ## [12.1.0] - 2022-06-28
 
@@ -100,8 +100,8 @@ For more information on this release, see:
 ### Changed
 - Replaced HTML entities appearing in Handsontable's license texts with canonical counterparts. [#9487](https://github.com/handsontable/handsontable/issues/9487)
 - Updated the Pikaday optional dependency to 1.8.2, to let Handsontable work with Parcel 2 without errors. [#9410](https://github.com/handsontable/handsontable/issues/9410)
-- *React:* Changed the wrapper's lifecycle methods, to let Handsontable work with React 17+ without warnings. [#8748](https://github.com/handsontable/handsontable/issues/8748)
-- *Angular:* Moved the `@angular/core` dependency to peer dependencies. [#9574](https://github.com/handsontable/handsontable/issues/9574)
+- React: Changed the wrapper's lifecycle methods, to let Handsontable work with React 17+ without warnings. [#8748](https://github.com/handsontable/handsontable/issues/8748)
+- Angular: Moved the `@angular/core` dependency to peer dependencies. [#9574](https://github.com/handsontable/handsontable/issues/9574)
 
 ### Fixed
 - Fixed an issue where dropdown and autocomplete cell editors rendered incorrectly if the `preventOverflow` option was set to `'horizontal'`. [#3828](https://github.com/handsontable/handsontable/issues/3828)
@@ -157,25 +157,25 @@ For more information on this release, see:
 - Changed an internal property name, from `hot.view.wt` to `hot.view._wt`, where `hot` is the name of your Handsontable instance. The intention of this change is to make it clear that Walkontable (Handsontable's rendering engine) is not a part of Handsontable's public API. [#8760](https://github.com/handsontable/handsontable/issues/8760)
 
 ### Fixed
-- *React, Angular, Vue 2, Vue 3:* Fixed an issue where using `updateSettings()` caused problems for state managers. [#8372](https://github.com/handsontable/handsontable/issues/8372)
+- React, Angular, Vue 2, Vue 3: Fixed an issue where using `updateSettings()` caused problems for state managers. [#8372](https://github.com/handsontable/handsontable/issues/8372)
 - Fixed an issue where using `updateSettings()` caused hidden columns to reappear. [#7165](https://github.com/handsontable/handsontable/issues/7165)
 - Fixed an issue where using `updateSettings()` caused merged cells to unmerge. [#3315](https://github.com/handsontable/handsontable/issues/3315)
 - Fixed an issue where using `updateSettings()` caused the state of nested rows to reset. [#8838](https://github.com/handsontable/handsontable/issues/8838)
 - Fixed an issue where using `updateSettings()` caused problems with column sorting. [#7688](https://github.com/handsontable/handsontable/issues/7688)
-- *React:* Fixed an issue where using React's `setState()` within the `afterFilter` hook broke filtering. [#7567](https://github.com/handsontable/handsontable/issues/7567)
-- *Vue 2:* Fixed an issue where repeatedly changing Handsontable's height through `updateSettings()` caused Handsontable to crash. [#7546](https://github.com/handsontable/handsontable/issues/7546)
-- *Vue 2:* Fixed an issue where the `failed` validation status got erased when editing a new row. [#7541](https://github.com/handsontable/handsontable/issues/7541)
+- React: Fixed an issue where using React's `setState()` within the `afterFilter` hook broke filtering. [#7567](https://github.com/handsontable/handsontable/issues/7567)
+- Vue 2: Fixed an issue where repeatedly changing Handsontable's height through `updateSettings()` caused Handsontable to crash. [#7546](https://github.com/handsontable/handsontable/issues/7546)
+- Vue 2: Fixed an issue where the `failed` validation status got erased when editing a new row. [#7541](https://github.com/handsontable/handsontable/issues/7541)
 - Fixed an issue where cell filtering did not use formula results. [#5455](https://github.com/handsontable/handsontable/issues/5455)
 - Fixed a wrong TypeScript definition in the `BasePlugin` class. [#9175](https://github.com/handsontable/handsontable/issues/9175)
 - Fixed an issue where the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Z</kbd> and <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> keyboard shortcuts didn't behave properly inside cell editors. [#9367](https://github.com/handsontable/handsontable/issues/9367)
 - Fixed an issue where the dropdown menu contained unwanted rectangle elements. [#9240](https://github.com/handsontable/handsontable/issues/9240)
-- *React, Vue 2, Vue 3:* Fixed an issue with registering modules for the React, Vue 2, and Vue 3 wrappers, by adding an `"exports"` field to their `package.json` files. [#9140](https://github.com/handsontable/handsontable/issues/9140)
+- React, Vue 2, Vue 3: Fixed an issue with registering modules for the React, Vue 2, and Vue 3 wrappers, by adding an `"exports"` field to their `package.json` files. [#9140](https://github.com/handsontable/handsontable/issues/9140)
 
 ### Removed
 - **Breaking change**: Removed the <kbd>Cmd</kbd> + <kbd>M</kbd> keyboard shortcut (used for cell merging), as it conflicted with window minimizing on macOS. The <kbd>Ctrl</kbd> + <kbd>M</kbd> keyboard shortcut works the same as before. [#9368](https://github.com/handsontable/handsontable/issues/9368)
 - **Breaking change**: Removed the <kbd>Shift</kbd> + <kbd>Page Up</kbd>/<kbd>Page Down</kbd> keyboard shortcuts from the cell editing context. [#9401](https://github.com/handsontable/handsontable/issues/9401)
 - Dropped support for Internet Explorer 11 and Edge Legacy (the non-Chromium version of Edge). Handsontable 11.x becomes the long-term support (LTS) version for Internet Explorer 11 and Edge Legacy, until the end of 2023. [#7026](https://github.com/handsontable/handsontable/issues/7026)
-- *React:* Removed the `enzyme` dependency from the React wrapper. [#9151](https://github.com/handsontable/handsontable/issues/9151)
+- React: Removed the `enzyme` dependency from the React wrapper. [#9151](https://github.com/handsontable/handsontable/issues/9151)
 
 ## [11.1.0] - 2022-01-13
 
@@ -186,7 +186,7 @@ For more information on this release, see:
 ### Added
 - Added `updateData()`, a new method that allows for replacing Handsontable's `data` without 
 resetting the states of cells, rows and columns. [#7263](https://github.com/handsontable/handsontable/issues/7263)
-- *Vue:* Added Vue 3 support, by introducing a new wrapper. [#7545](https://github.com/handsontable/handsontable/issues/7545)
+- Vue: Added Vue 3 support, by introducing a new wrapper. [#7545](https://github.com/handsontable/handsontable/issues/7545)
 
 ### Changed
 - Updated the TypeScript definition of the `setDataAtCell()` method. [#8601](https://github.com/handsontable/handsontable/issues/8601)
@@ -205,7 +205,7 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 - Fixed an issue where performance was affected by removing events. [#9044](https://github.com/handsontable/handsontable/issues/9044)
 - Fixed a wrong TypeScript definition of the `MultiColumnSorting` plugin's `sort()` method. [#9067](https://github.com/handsontable/handsontable/issues/9067)
 - Fixed an issue where the `Comments` plugin's editor disappeared after adding a comment. [#9075](https://github.com/handsontable/handsontable/issues/9075) [#6661](https://github.com/handsontable/handsontable/issues/6661)
-- *React:* Fixed a wrong return type. [#9000](https://github.com/handsontable/handsontable/issues/9000)
+- React: Fixed a wrong return type. [#9000](https://github.com/handsontable/handsontable/issues/9000)
 
 ## [11.0.1] - 2021-11-17
 
@@ -223,7 +223,7 @@ For more information on this release, see:
 - [Migration guide](https://handsontable.com/docs/migration-from-10.0-to-11.0/)
 
 ### Added
--  **Breaking change**: Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489)
+- **Breaking change**: Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489)
 - **Breaking change (Vue)**: Added support for modularization to the Vue wrapper. [#8820](https://github.com/handsontable/handsontable/issues/8820)
 - **Breaking change (React)**: Added support for modularization to the React wrapper. [#8819](https://github.com/handsontable/handsontable/issues/8819)
 - **Breaking change (Angular)**: Added support for modularization to the Angular wrapper. [#8818](https://github.com/handsontable/handsontable/issues/8818)
@@ -244,7 +244,7 @@ For more information on this release, see:
 - Fixed a `TypeError` thrown when calling the `updateSettings()` method in Handsontable's modularized version. [#8830](https://github.com/handsontable/handsontable/issues/8830) 
 - Fixed two issues with the documentation's `canonicalUrl` entries. [#8886](https://github.com/handsontable/handsontable/issues/8886)
 - Fixed an error thrown when autofill's source is a `date` cell. [#8894](https://github.com/handsontable/handsontable/issues/8894)
-- *React:* Fixed a React wrapper issue where it's impossible to use different sets of props in editor components reused across multiple columns. [#8527](https://github.com/handsontable/handsontable/issues/8527)
+- React: Fixed a React wrapper issue where it's impossible to use different sets of props in editor components reused across multiple columns. [#8527](https://github.com/handsontable/handsontable/issues/8527)
 
 ## [10.0.0] - 2021-09-29
 
@@ -292,10 +292,10 @@ For more information on this release, see:
 - Fixed missing collapsible indicator on IE. [#8028](https://github.com/handsontable/handsontable/issues/8028)
 - Fixed support for row and column headers in the `parseTable` utility. [#8041](https://github.com/handsontable/handsontable/issues/8041)
 - Fixed a bug where not providing a data object with the `nestedRows` plugin enabled crashed the table. [#8171](https://github.com/handsontable/handsontable/issues/8171)
-- *Vue:* Fixed an issue where adding rows to a Handsontable instance wrapped for Vue resulted in additional rows being inserted at the end of the table. [#8148](https://github.com/handsontable/handsontable/issues/8148)
-- *Vue:* Fixed a problem in the Vue wrapper, where destroying the underlying Handsontable instance caused it to throw errors and crash. [#8311](https://github.com/handsontable/handsontable/issues/8311)
-- *React:* Fixed a problem in the React wrapper, where destroying the underlying Handsontable instance caused it to throw errors and crash. [#8311](https://github.com/handsontable/handsontable/issues/8311)
-- *Angular:* Fixed a problem in the Angular wrapper, where destroying the underlying Handsontable instance caused it to throw errors and crash. [#8311](https://github.com/handsontable/handsontable/issues/8311)
+- Vue: Fixed an issue where adding rows to a Handsontable instance wrapped for Vue resulted in additional rows being inserted at the end of the table. [#8148](https://github.com/handsontable/handsontable/issues/8148)
+- Vue: Fixed a problem in the Vue wrapper, where destroying the underlying Handsontable instance caused it to throw errors and crash. [#8311](https://github.com/handsontable/handsontable/issues/8311)
+- React: Fixed a problem in the React wrapper, where destroying the underlying Handsontable instance caused it to throw errors and crash. [#8311](https://github.com/handsontable/handsontable/issues/8311)
+- Angular: Fixed a problem in the Angular wrapper, where destroying the underlying Handsontable instance caused it to throw errors and crash. [#8311](https://github.com/handsontable/handsontable/issues/8311)
 
 ### Added
 - Added new documentation engine [#7624](https://github.com/handsontable/handsontable/issues/7624)
@@ -368,8 +368,8 @@ For more information on this release, see:
 - Fixed the `postbuild` and `examples:install` scripts on Windows. [#7680](https://github.com/handsontable/handsontable/issues/7680)
 - Fixed the contents of the production `package.json`. [#7723](https://github.com/handsontable/handsontable/issues/7723)
 - Fixed an issue, where the callbacks for the UndoRedo plugin were called twice. [#7825](https://github.com/handsontable/handsontable/issues/7825)
-- *Vue:* Fixed a problem with displaying and removing rows in the Nested Rows plugin. [#7548](https://github.com/handsontable/handsontable/issues/7548)
-- *React:* Fixed an incompatibility in the property type definitions for the HotColumn component. [#7612](https://github.com/handsontable/handsontable/issues/7612)
+- Vue: Fixed a problem with displaying and removing rows in the Nested Rows plugin. [#7548](https://github.com/handsontable/handsontable/issues/7548)
+- React: Fixed an incompatibility in the property type definitions for the HotColumn component. [#7612](https://github.com/handsontable/handsontable/issues/7612)
 
 ### Changed
 - Enhanced the ESLint config file by adding a rule that checks if there are new lines missing before some keywords or statements. [#7691](https://github.com/handsontable/handsontable/issues/7691)
@@ -396,7 +396,7 @@ For more information on this release, see:
 - Fixed a bug with the `trimWhitespace` option not working properly. [#7458](https://github.com/handsontable/handsontable/issues/7458)
 - Fixed an issue with inconsistent documentation and TypeScript definitions for `colWidths` and `rowHeights` options. [#7507](https://github.com/handsontable/handsontable/issues/7507)
 - Fixed the incorrect `cellTypes` module paths in the `exports` entry of the `package.json` file. [#7597](https://github.com/handsontable/handsontable/issues/7597)
-- *Vue:* Fixed Remote Code Execution vulnerability in the dev dependencies. [#7620](https://github.com/handsontable/handsontable/issues/7620)
+- Vue: Fixed Remote Code Execution vulnerability in the dev dependencies. [#7620](https://github.com/handsontable/handsontable/issues/7620)
 
 ### Added
 - Introduced the monorepo to this repository. From now on, `handsontable`, `@handsontable/angular`, `@handsontable/react`, and `@handsontable/vue` will all be developed in the same repo - `handsontable`. [#7380](https://github.com/handsontable/handsontable/issues/7380)
