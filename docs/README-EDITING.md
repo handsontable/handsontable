@@ -213,7 +213,7 @@ The above code prints the following text in the React variant of the docs:
 The full list of available variables is available at:
 
 - https://vuepress.vuejs.org/guide/frontmatter.html (official)
-- https://github.com/handsontable/handsontable/blob/develop/docs/.vuepress/plugins/extend-page-data/index.js#L53-L60 (our modifications)
+- https://github.com/handsontable/handsontable/blob/develop/docs/.vuepress/plugins/extend-page-data/index.js#L76-L82 (our modifications)
 
 ## Markdown containers
 
