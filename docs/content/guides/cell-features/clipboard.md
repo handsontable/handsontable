@@ -279,7 +279,7 @@ Examples of how to use them are provided in their descriptions.
 
 ### Copy with headers
 
-Copy the contents of column headers, by using additional [context menu](@/guides/accessories-and-menus/context-menu.md) items:
+Let the end user copy the contents of column headers, by enabling additional [context menu](@/guides/accessories-and-menus/context-menu.md) items:
 
 | Context menu item         | Copied area                                                               |
 | ------------------------- | ------------------------------------------------------------------------- |
