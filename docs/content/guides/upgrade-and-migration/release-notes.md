@@ -46,7 +46,7 @@ For more information on this release, see:
 - Fixed an issue of desynchronization between configuration options (cell meta) and Handsontable's data. The issue occurred when Handsontable's options were modified through the following hooks: [`beforeCreateRow`](@/api/hooks.md#beforecreaterow), [`afterCreateRow`](@/api/hooks.md#aftercreaterow), [`beforeCreateCol`](@/api/hooks.md#beforecreatecol), and [`afterCreateCol`](@/api/hooks.md#aftercreatecol). [#10136](https://github.com/handsontable/handsontable/pull/10136)
 - Fixed an issue where comments added to fixed columns didn't display properly after scrolling. [#9645](https://github.com/handsontable/handsontable/issues/9645) 
 - Fixed an issue where typing in a [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) editor caused the IME to disappear, resulting in wrong characters being typed. [#9672](https://github.com/handsontable/handsontable/issues/9672)
-- React: Fixed an issue where [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) cells weren't validated properly when using the [`HotColumn`](@/guides/columns/react-hot-column.md) component. [#10065](https://github.com/handsontable/handsontable/issues/10065)
+- React: Fixed an issue where [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) cells weren't validated properly when using the `HotColumn` component. [#10065](https://github.com/handsontable/handsontable/issues/10065)
 
 ## 12.2.0
 
