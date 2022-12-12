@@ -12,8 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [12.3.0] - 2022-12-14
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/release-notes/#_12-3-0)
 - [Blog post](https://handsontable.com/blog/articles/handsontable-12.3.0)
+- [Documentation (12.3.0)](https://handsontable.com/docs/12.3.0/)
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-3-0)
 
 ### Added
 
@@ -36,8 +37,9 @@ For more information on this release, see:
 ## [12.2.0] - 2022-10-25
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/release-notes/#_12-2-0)
 - [Blog post](https://handsontable.com/blog/articles/handsontable-12.2.0)
+- [Documentation (12.2.0)](https://handsontable.com/docs/12.2.0/)
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-2-0)
 
 ### Added
 
@@ -63,8 +65,9 @@ For more information on this release, see:
 ## [12.1.3] - 2022-09-22
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/release-notes/#_12-1-3)
 - [Blog post](https://handsontable.com/blog/)
+- [Documentation (12.1)](https://handsontable.com/docs/12.1/)
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-1-3)
 
 ### Removed
 
@@ -87,6 +90,7 @@ For more information on this release, see:
 ## [12.1.2] - 2022-07-08
 
 For more information on this release, see:
+- [Documentation (12.1)](https://handsontable.com/docs/12.1/)
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-1-2)
 
 ### Changed
@@ -97,6 +101,7 @@ For more information on this release, see:
 ## [12.1.1] - 2022-07-05
 
 For more information on this release, see:
+- [Documentation (12.1)](https://handsontable.com/docs/12.1/)
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-1-1)
 
 ### Fixed
@@ -106,8 +111,9 @@ For more information on this release, see:
 ## [12.1.0] - 2022-06-28
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/release-notes/#_12-1-0)
 - [Blog post](https://handsontable.com/blog/handsontable-12.1.0-data-grid-new-hooks-new-translations-and-rendering-improvements)
+- [Documentation (12.1)](https://handsontable.com/docs/12.1/)
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-1-0)
 
 ### Added
 
@@ -144,6 +150,7 @@ For more information on this release, see:
 ## [12.0.1] - 2022-05-16
 
 For more information on this release, see:
+- [Documentation (12.0)](https://handsontable.com/docs/12.0/)
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-0-1)
 
 ### Fixed
@@ -157,9 +164,10 @@ For more information on this release, see:
 ## [12.0.0] - 2022-04-28
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/release-notes/#_12-0-0)
 - [Blog post](https://handsontable.com/blog/articles/2022/4/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
-- [Migration guide](https://handsontable.com/docs/migration-from-11.1-to-12.0/)
+- [Documentation (12.0)](https://handsontable.com/docs/12.0/)
+- [Migration guide (11.1 → 12.0)](https://handsontable.com/docs/migration-from-11.1-to-12.0/)
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-0-0)
 
 ### Added
 
@@ -211,8 +219,9 @@ For more information on this release, see:
 ## [11.1.0] - 2022-01-13
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_11-1)
 - [Blog post](https://handsontable.com/blog/handsontable-11.1.0-vue-3-support-and-updatedata)
+- [Documentation (11.1)](https://handsontable.com/docs/11.1/)
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_11-1)
 
 ### Added
 
@@ -244,6 +253,7 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 ## [11.0.1] - 2021-11-17
 
 For more information on this release, see:
+- [Documentation (11.0)](https://handsontable.com/docs/11.0/)
 - [Release notes](https://handsontable.com/docs/release-notes/#_11-0-1)
 
 ### Fixed
@@ -253,9 +263,10 @@ For more information on this release, see:
 ## [11.0.0] - 2021-11-17
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_11-0)
 - [Blog post](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue)
-- [Migration guide](https://handsontable.com/docs/migration-from-10.0-to-11.0/)
+- [Documentation (11.0)](https://handsontable.com/docs/11.0/)
+- [Migration guide (10.0 → 11.0)](https://handsontable.com/docs/migration-from-10.0-to-11.0/)
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_11-0)
 
 ### Added
 
@@ -287,9 +298,10 @@ For more information on this release, see:
 ## [10.0.0] - 2021-09-29
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_10-0)
 - [Blog post](https://handsontable.com/blog/handsontable-10.0.0-improved-performance-and-consistency)
-- [Migration guide](https://handsontable.com/docs/migration-from-9.0-to-10.0/)
+- [Documentation (10.0)](https://handsontable.com/docs/10.0/)
+- [Migration guide (9.0 → 10.0)](https://handsontable.com/docs/migration-from-9.0-to-10.0/)
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_10-0)
 
 ### Changed
 
@@ -322,8 +334,9 @@ For more information on this release, see:
 ## [9.0.2] - 2021-07-28
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_9-0-2)
 - [Blog post](https://handsontable.com/blog/whats-new-in-handsontable-9.0.2)
+- [Documentation (9.0)](https://handsontable.com/docs/9.0/)
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_9-0-2)
 
 ### Fixed
 
@@ -345,6 +358,7 @@ For more information on this release, see:
 ## [9.0.1] - 2021-06-17
 
 For more information on this release, see:
+- [Documentation (9.0)](https://handsontable.com/docs/9.0/)
 - [Release notes](https://handsontable.com/docs/release-notes/#_9-0-1)
 
 ### Removed
@@ -359,9 +373,10 @@ For more information on this release, see:
 ## [9.0.0] - 2021-06-01
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_9-0)
 - [Blog post](https://handsontable.com/blog/handsontable-9.0.0-new-formula-plugin)
-- [Migration guide](https://handsontable.com/docs/migration-from-8.4-to-9.0/)
+- [Documentation (9.0)](https://handsontable.com/docs/9.0/)
+- [Migration guide (8.4 → 9.0)](https://handsontable.com/docs/migration-from-8.4-to-9.0/)
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_9-0)
 
 ### Changed
 
@@ -386,8 +401,9 @@ For more information on this release, see:
 ## [8.4.0] - 2021-05-11
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-4)
 - [Blog post](https://handsontable.com/blog/whats-new-in-handsontable-8-4-0)
+- [Documentation (8.4.0)](https://handsontable.com/docs/8.4.0/)
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-4)
 
 ### Added
 
@@ -428,8 +444,8 @@ For more information on this release, see:
 ## [8.3.2] - 2021-03-16
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-3-2)
 - [Blog post](https://handsontable.com/blog/handsontable-8-3-2-introducing-monorepo)
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-3-2)
 
 ### Fixed
 
@@ -458,6 +474,7 @@ For more information on this release, see:
 ## [8.3.1] - 2021-02-10
 
 For more information on this release, see:
+- [Documentation (8.3.1)](https://handsontable.com/docs/8.3.1/)
 - [Release notes](https://handsontable.com/docs/release-notes/#_8-3-1)
 
 ### Fixed
@@ -467,8 +484,9 @@ For more information on this release, see:
 ## [8.3.0] - 2021-01-28
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-3)
 - [Blog post](https://handsontable.com/blog/handsontable-8.3.0-has-been-released)
+- [Documentation (8.3.0)](https://handsontable.com/docs/8.3.0/)
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-3)
 
 ### Added
 
@@ -501,8 +519,9 @@ For more information on this release, see:
 ## [8.2.0] - 2020-11-12
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-2)
 - [Blog post](https://handsontable.com/blog/handsontable-8.2.0-has-been-released)
+- [Documentation (8.2.0)](https://handsontable.com/docs/8.2.0/)
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-2)
 
 ### Added
 
@@ -525,8 +544,9 @@ For more information on this release, see:
 ## [8.1.0] - 2020-10-01
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-1)
 - [Blog post](https://handsontable.com/blog/handsontable-8.1.0-has-been-released)
+- [Documentation (8.1.0)](https://handsontable.com/docs/8.1.0/)
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-1)
 
 ### Added
 
@@ -557,9 +577,10 @@ For more information on this release, see:
 ## [8.0.0] - 2020-08-05
 
 For more information on this release, see:
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-0)
 - [Blog post](https://handsontable.com/blog/the-new-handsontable-8-is-now-available)
-- [Migration guide](https://handsontable.com/docs/migration-from-7.4-to-8.0/)
+- [Documentation (8.0.0)](https://handsontable.com/docs/8.0.0/)
+- [Migration guide (7.4 → 8.0)](https://handsontable.com/docs/migration-from-7.4-to-8.0/)
+- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-0)
 
 ### Added
 
