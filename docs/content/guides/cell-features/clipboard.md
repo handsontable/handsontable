@@ -279,13 +279,13 @@ Examples of how to use them are provided in their descriptions.
 
 ### Copy with headers
 
-Copy the contents of column headers, by using additional [context menu](@/guides/accessories-and-menus/context-menu.md) items:
+Let the end user copy the contents of column headers, by enabling additional [context menu](@/guides/accessories-and-menus/context-menu.md) items:
 
 | Context menu item         | Copied area                                                               |
 | ------------------------- | ------------------------------------------------------------------------- |
-| Copy with header(s)       | ![copy_with_headers]({{$basePath}}/img/copy_with_headers.png)             |
-| Copy with group header(s) | ![copy_with_group_headers]({{$basePath}}/img/copy_with_group_headers.png) |
-| Copy header(s) only       | ![copy_headers_only]({{$basePath}}/img/copy_headers_only.png)             |
+| Copy with header       | ![copy_with_headers]({{$basePath}}/img/copy_with_headers.png)             |
+| Copy with group header | ![copy_with_group_headers]({{$basePath}}/img/copy_with_group_headers.png) |
+| Copy header only       | ![copy_headers_only]({{$basePath}}/img/copy_headers_only.png)             |
 
 Right-click on a cell to try it out:
 
