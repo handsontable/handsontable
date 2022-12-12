@@ -382,10 +382,18 @@ copyPaste: {
 }
 ```
 
-To copy column headers programmatically, call [`copyPaste.copy()`](@/api/copyPaste.md#copy) with these parameters:
+To copy column headers programmatically, call the [`copyPaste.copy()`](@/api/copyPaste.md#copy) method with these arguments:
 - [`'with-column-headers'`](@/api/copyPaste.md#copy)
 - [`'with-all-column-headers'`](@/api/copyPaste.md#copy)
 - [`'column-headers-only'`](@/api/copyPaste.md#copy)
+
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+:::
 
 ```js
 // access the `CopyPaste` plugin instance
