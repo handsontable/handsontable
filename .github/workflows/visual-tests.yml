@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
+      - name: workaround permission issue
+        run: git config --global --add safe.directory /__w/handsontable-visual-testing/handsontable-visual-testing
       - name: Build
         run: npm install
       - name: Install test tools
