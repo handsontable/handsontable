@@ -33,7 +33,7 @@ For more information on this release, see:
 
 - Added a new feature that lets you copy the contents of column headers by using 3 new context menu options: "Copy with headers", "Copy with group headers", and "Copy headers only". [#2288](https://github.com/handsontable/handsontable/issues/2288)
 - Added 4 new API methods for copying column headers programmatically: [`copyCellsOnly()`](@/api/copyPaste.md#copycellsonly), [`copyWithColumnHeaders()`](@/api/copyPaste.md#copywithcolumnheaders), [`copyWithAllColumnHeaders()`](@/api/copyPaste.md#copywithallcolumnheaders), and [`copyColumnHeadersOnly()`](@/api/copyPaste.md#copycolumnheadersonly). [#2288](https://github.com/handsontable/handsontable/issues/2288)
-- Exported the [`CellCoords`](@/api/cellCoords.md) and [`CellRange`](@/api/cellRange.md) classes to make them part of the public API. [#9755](https://github.com/handsontable/handsontable/issues/9755)
+- Added missing TypeScript definitions of the `CellCoords` and `CellRange` classes, which are used in the arguments of some of the APIs. [#9755](https://github.com/handsontable/handsontable/issues/9755)
 - Added missing TypeScript definitions for the following Handsontable hooks: [`beforeColumnFreeze`](@/api/hooks.md#beforecolumnfreeze), [`afterColumnFreeze`](@/api/hooks.md#aftercolumnfreeze), [`beforeColumnUnfreeze`](@/api/hooks.md#beforecolumnunfreeze), and [`afterColumnUnfreeze`](@/api/hooks.md#aftercolumnunfreeze). [#9859](https://github.com/handsontable/handsontable/issues/9859)
 
 #### Fixed
