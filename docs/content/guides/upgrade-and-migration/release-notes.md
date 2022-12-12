@@ -27,7 +27,7 @@ Released on December 14, 2022.
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/articles/handsontable-12.3.0)
-- [Documentation (12.3)](https://handsontable.com/docs/12.3/)
+- [Documentation (12.3.0)](https://handsontable.com/docs/12.3.0/)
 
 #### Added
 
@@ -53,7 +53,7 @@ Released on October 25, 2022.
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/articles/handsontable-12.2.0)
-- [Documentation (12.2)](https://handsontable.com/docs/12.2/)
+- [Documentation (12.2.0)](https://handsontable.com/docs/12.2.0/)
 
 #### Added
 
