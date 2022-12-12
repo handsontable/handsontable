@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [12.3.0] - 2022-12-14
 
+For more information on this release, see:
+- [Release notes](https://handsontable.com/docs/release-notes/#_12-3-0)
+- [Blog post](https://handsontable.com/blog/articles/handsontable-12.3.0)
+
 ### Added
 
 - Added a new feature that lets you copy the contents of column headers by using 3 new context menu options: "Copy with headers", "Copy with group headers", and "Copy headers only". [#2288](https://github.com/handsontable/handsontable/issues/2288)
@@ -20,11 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed 
 
-- Fixed an issue where the `UndoRedo` plugin didn't work properly with preconfigured columns. [#1](https://github.com/handsontable/dev-handsontable/issues/1)
+- Fixed an issue where the `UndoRedo` plugin didn't work properly with preconfigured columns. [#10108](https://github.com/handsontable/handsontable/pull/10108)
 - Fixed an issue where formulas were not updated after `updateData()` calls. [#10011](https://github.com/handsontable/handsontable/issues/10011)
-- Fixed a regression where setting a column's `type` could overwrite other custom-defined settings. [#18](https://github.com/handsontable/dev-handsontable/issues/18)
+- Fixed a regression where setting a column's `type` could overwrite other custom-defined settings. [#10128](https://github.com/handsontable/handsontable/pull/10128)
 - Fixed an issue where Handsontable didn't render properly when initialized inside of a hidden container. [#5322](https://github.com/handsontable/handsontable/issues/5322)
-- Fixed an issue of desynchronization between configuration options (cell meta) and Handsontable's data. The issue occurred when Handsontable's options were modified through the following hooks: `beforeCreateRow`, `afterCreateRow`, `beforeCreateCol`, and `afterCreateCol`. [#6](https://github.com/handsontable/dev-handsontable/issues/6)
+- Fixed an issue of desynchronization between configuration options (cell meta) and Handsontable's data. The issue occurred when Handsontable's options were modified through the following hooks: `beforeCreateRow`, `afterCreateRow`, `beforeCreateCol`, and `afterCreateCol`. [#10136](https://github.com/handsontable/handsontable/pull/10136)
 - Fixed an issue where comments added to fixed columns didn't display properly after scrolling. [#9645](https://github.com/handsontable/handsontable/issues/9645)
 - Fixed an issue where typing in a `dropdown` editor caused the IME to disappear, resulting in wrong characters being typed. [#9672](https://github.com/handsontable/handsontable/issues/9672)
 - React: Fixed an issue where `dropdown` cells weren't validated properly when using the `HotColumn` component. [#10065](https://github.com/handsontable/handsontable/issues/10065)
