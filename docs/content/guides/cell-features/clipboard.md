@@ -283,9 +283,9 @@ Copy the contents of column headers, by using additional [context menu](@/guides
 
 | Context menu item         | Copied area                                                               |
 | ------------------------- | ------------------------------------------------------------------------- |
-| Copy with header(s)       | ![copy_with_headers]({{$basePath}}/img/copy_with_headers.png)             |
-| Copy with group header(s) | ![copy_with_group_headers]({{$basePath}}/img/copy_with_group_headers.png) |
-| Copy header(s) only       | ![copy_headers_only]({{$basePath}}/img/copy_headers_only.png)             |
+| Copy with header       | ![copy_with_headers]({{$basePath}}/img/copy_with_headers.png)             |
+| Copy with group header | ![copy_with_group_headers]({{$basePath}}/img/copy_with_group_headers.png) |
+| Copy header only       | ![copy_headers_only]({{$basePath}}/img/copy_headers_only.png)             |
 
 Right-click on a cell to try it out:
 
