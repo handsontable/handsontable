@@ -465,8 +465,8 @@ For more information on this release, see:
 - Fixed the `postbuild` and `examples:install` scripts on Windows. ([#7680](https://github.com/handsontable/handsontable/issues/7680))
 - Fixed the contents of the production `package.json`. ([#7723](https://github.com/handsontable/handsontable/issues/7723))
 - Fixed an issue, where the callbacks for the `UndoRedo` plugin were called twice. ([#7825](https://github.com/handsontable/handsontable/issues/7825))
-- _Vue:_ Fixed a problem with displaying and removing rows in the `NestedRows` plugin. ([#7548](https://github.com/handsontable/handsontable/issues/7548))
-- _React:_ Fixed an incompatibility in the property type definitions for the HotColumn component. ([#7612](https://github.com/handsontable/handsontable/issues/7612))
+- Vue: Fixed a problem with displaying and removing rows in the `NestedRows` plugin. ([#7548](https://github.com/handsontable/handsontable/issues/7548))
+- React: Fixed an incompatibility in the property type definitions for the HotColumn component. ([#7612](https://github.com/handsontable/handsontable/issues/7612))
 
 #### Changed
 

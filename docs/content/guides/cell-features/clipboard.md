@@ -374,7 +374,7 @@ To add the context menu items, configure the [`CopyPaste`](@/api/copyPaste.md) p
 - [`copyColumnGroupHeaders`](@/api/options.md#copypaste-additional-options)
 - [`copyColumnHeadersOnly`](@/api/options.md#copypaste-additional-options)
 
-```js{2-4}
+```js
 copyPaste: {
   copyColumnHeaders: true,
   copyColumnGroupHeaders: true,
