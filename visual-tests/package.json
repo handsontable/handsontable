@@ -1,0 +1,20 @@
+{
+  "name": "playwright",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./scripts/visual-tests-build.mjs",
+    "upload": "node ./scripts/visual-tests-upload.mjs",
+    "all": "node ./scripts/visual-tests-build.mjs && node ./scripts/visual-tests-upload.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@argos-ci/cli": "^0.3.1",
+    "@playwright/test": "^1.27.1",
+    "execa": "^5.0.0",
+    "fs-extra": "^4.0.2"
+  }
+}
