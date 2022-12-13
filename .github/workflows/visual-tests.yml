@@ -9,10 +9,10 @@ env:
 
 jobs:
   build:
-    name: Build and upload visual test
+    name: Build and upload visual tests
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.28.0-focal
+      image: mcr.microsoft.com/playwright:v1.27.1-focal
     # if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
@@ -34,9 +34,6 @@ jobs:
       - name: Upload screenshots
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
-          VISWIZ_API_KEY: ${{ secrets.VISWIZ_API_KEY }}
-          VISWIZ_PROJECT_ID: ${{ secrets.VISWIZ_PROJECT_ID }}
-          PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
         run: | 
           cd visual-test
           npm run upload
