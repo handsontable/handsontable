@@ -1800,13 +1800,22 @@ const REGISTERED_HOOKS = [
   'beforeStretchingColumnWidth',
 
   /**
-   * Fired by {@link Filters} plugin before applying [filtering](@/guides/columns/column-filter.md).
-   * This hook is fired when {@link Options#filters} option is enabled.
+   * Fired by the [`Filters`](@/api/filters.md) plugin,
+   * before a [column filter](@/guides/columns/column-filter.md) gets applied.
    *
-   * @event Hooks#beforeFilter
-   * @param {object[]} conditionsStack An array of objects with added formulas.
+   * [`beforeFilter`](#beforefilter) takes one argument (`conditionsStack`), which is an array of objects.
+   * Each object represents one of your [column filters](@/api/filters.md#addcondition),
+   * and consists of the following properties:
+   *
+   * | Property     | Possible values                                                         | Description                                                                                                              |
+   * | ------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+   * | `column`     | Number                                                                  | A visual index of the column to which the filter will be applied.                                                        |
+   * | `conditions` | Array of objects                                                        | Each object represents one condition. For details, see [`addCondition()`](@/api/filters.md#addcondition).                |
+   * | `operation`  | `'conjunction'` \| `'disjunction'` \| `'disjunctionWithExtraCondition'` | An operation to perform on your set of `conditions`. For details, see [`addCondition()`](@/api/filters.md#addcondition). |
+   *
+   * An example of the format of the `conditionsStack` argument:
+   *
    * ```js
-   * // Example format of the conditionsStack argument:
    * [
    *   {
    *     column: 2,
@@ -1824,18 +1833,48 @@ const REGISTERED_HOOKS = [
    *   },
    * ]
    * ```
-   * @returns {boolean} If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).
+   *
+   * To perform server-side filtering (i.e., to not apply filtering to Handsontable's UI),
+   * set [`beforeFilter`](#beforefilter) to return `false`:
+   *
+   * ```js
+   * new Handsontable(document.getElementById('example'), {
+   *   beforeFilter: (conditionsStack) => {
+   *     return false;
+   *   }
+   * });
+   *```
+   *
+   * Read more:
+   * - [Guides: Column filter](@/guides/columns/column-filter.md)
+   * - [Hooks: `afterFilter`](#afterfilter)
+   * - [Options: `filters`](@/api/options.md#filters)
+   * - [Plugins: `Filters`](@/api/filters.md)
+   * – [Plugin methods: `addCondition()`](@/api/filters.md#addcondition)
+   *
+   * @event Hooks#beforeFilter
+   * @param {object[]} conditionsStack An array of objects with your [column filters](@/api/filters.md#addcondition).
+   * @returns {boolean} To perform server-side filtering (i.e., to not apply filtering to Handsontable's UI), return `false`.
    */
   'beforeFilter',
 
   /**
-   * Fired by {@link Filters} plugin after applying [filtering](@/guides/columns/column-filter.md).
-   * This hook is fired when {@link Options#filters} option is enabled.
+   * Fired by the [`Filters`](@/api/filters.md) plugin,
+   * after a [column filter](@/guides/columns/column-filter.md) gets applied.
    *
-   * @event Hooks#afterFilter
-   * @param {object[]} conditionsStack An array of objects with added conditions.
+   * [`afterFilter`](#afterfilter) takes one argument (`conditionsStack`), which is an array of objects.
+   * Each object represents one of your [column filters](@/api/filters.md#addcondition),
+   * and consists of the following properties:
+   *
+   * | Property     | Possible values                                                         | Description                                                                                                              |
+   * | ------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+   * | `column`     | Number                                                                  | A visual index of the column to which the filter was applied.                                                            |
+   * | `conditions` | Array of objects                                                        | Each object represents one condition. For details, see [`addCondition()`](@/api/filters.md#addcondition).                |
+   * | `operation`  | `'conjunction'` \| `'disjunction'` \| `'disjunctionWithExtraCondition'` | An operation to perform on your set of `conditions`. For details, see [`addCondition()`](@/api/filters.md#addcondition). |
+   *
+   * An example of the format of the `conditionsStack` argument:
+   *
    * ```js
-   * // Example format of the conditionsStack argument:
    * [
    *   {
    *     column: 2,
@@ -1853,6 +1892,16 @@ const REGISTERED_HOOKS = [
    *   },
    * ]
    * ```
+   *
+   * Read more:
+   * - [Guides: Column filter](@/guides/columns/column-filter.md)
+   * - [Hooks: `beforeFilter`](#beforefilter)
+   * - [Options: `filters`](@/api/options.md#filters)
+   * - [Plugins: `Filters`](@/api/filters.md)
+   * – [Plugin methods: `addCondition()`](@/api/filters.md#addcondition)
+   *
+   * @event Hooks#afterFilter
+   * @param {object[]} conditionsStack An array of objects with your [column filters](@/api/filters.md#addcondition).
    */
   'afterFilter',
 

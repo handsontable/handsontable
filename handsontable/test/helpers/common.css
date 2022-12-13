@@ -1,6 +1,9 @@
 .red-background {
   background-color: #ff0000 !important;
 }
+.green-background {
+  background-color: #68d628 !important;
+}
 
 .jasmine_html-reporter {
   margin: 0;

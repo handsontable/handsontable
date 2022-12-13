@@ -184,7 +184,7 @@ From the `/wrappers/react` directory, you can also run individual React `build` 
 
 `npm run build:es`
   - Transpiles the files into the ESM format.
-  - Places the output in `/wrappers/react/es/react-handsontable.js`
+  - Places the output in `/wrappers/react/es/react-handsontable.mjs`
 
 `npm run build:min`
   - Creates the minified bundles:
@@ -245,7 +245,7 @@ From the `/wrappers/vue` directory, you can also run individual Vue 2 `build` ta
 
 `npm run build:es`
   - Transpiles the files into the ESM format.
-  - Places the output in `/wrappers/vue/es/vue-handsontable.js`
+  - Places the output in `/wrappers/vue/es/vue-handsontable.mjs`
 
 `npm run build:min`
   - Creates the minified bundles:
@@ -283,7 +283,7 @@ From the `/wrappers/vue3` directory, you can also run individual Vue 3 `build` t
 
 `npm run build:es`
   - Transpiles the files into the ESM format.
-  - Places the output in `/wrappers/vue3/es/vue-handsontable.js`
+  - Places the output in `/wrappers/vue3/es/vue-handsontable.mjs`
 
 `npm run build:min`
   - Creates the minified bundles:
