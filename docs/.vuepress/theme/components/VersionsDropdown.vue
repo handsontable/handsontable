@@ -20,13 +20,13 @@ export default {
         text: this.addLatest(this.$page.currentVersion),
         items:
           [
-            ...Array.from(this.$page.versionsWithPatches.keys()).map(v => ({
+            ...(this.$page.versionsWithPatches ? Array.from(this.$page.versionsWithPatches.keys()).map(v => ({
               text: v,
               subTexts: this.$page.versionsWithPatches.get(v),
               link: this.getLink(v),
               target: '_self',
               isHtmlLink: true,
-            })),
+            })) : []),
           ]
       };
     }
