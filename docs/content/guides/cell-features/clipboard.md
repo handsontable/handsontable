@@ -397,7 +397,7 @@ For more information, see the [`Instance Methods`](@/guides/getting-started/reac
 
 ```js
 // access the `CopyPaste` plugin instance
-const copyPastePlugin = hot.getPlugin('copypaste');
+const copyPastePlugin = hot.getPlugin('copyPaste');
 
 // select some cells
 hot.selectCell(1, 1);
