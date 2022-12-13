@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [12.3.0] - 2022-12-14
 
 For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/articles/handsontable-12.3.0)
+- [Blog post](https://handsontable.com/blog/handsontable-12.3.0-copying-column-headers)
 - [Documentation (12.3)](https://handsontable.com/docs/12.3/)
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-3-0)
 
@@ -37,7 +37,7 @@ For more information on this release, see:
 ## [12.2.0] - 2022-10-25
 
 For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/articles/handsontable-12.2.0)
+- [Blog post](https://handsontable.com/blog/handsontable-12.2.0)
 - [Documentation (12.2)](https://handsontable.com/docs/12.2/)
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-2-0)
 
@@ -65,7 +65,6 @@ For more information on this release, see:
 ## [12.1.3] - 2022-09-22
 
 For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/)
 - [Documentation (12.1)](https://handsontable.com/docs/12.1/)
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-1-3)
 
@@ -164,7 +163,7 @@ For more information on this release, see:
 ## [12.0.0] - 2022-04-28
 
 For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/articles/2022/4/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
+- [Blog post](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
 - [Documentation (12.0)](https://handsontable.com/docs/12.0/)
 - [Migration guide (11.1 → 12.0)](https://handsontable.com/docs/migration-from-11.1-to-12.0/)
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-0-0)

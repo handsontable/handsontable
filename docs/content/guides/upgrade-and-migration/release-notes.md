@@ -26,7 +26,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on December 14, 2022.
 
 For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/articles/handsontable-12.3.0)
+- [Blog post](https://handsontable.com/blog/handsontable-12.3.0-copying-column-headers)
 - [Documentation (12.3)](https://handsontable.com/docs/12.3/)
 
 #### Added
@@ -52,7 +52,7 @@ For more information on this release, see:
 Released on October 25, 2022.
 
 For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/articles/handsontable-12.2.0)
+- [Blog post](https://handsontable.com/blog/handsontable-12.2.0)
 - [Documentation (12.2)](https://handsontable.com/docs/12.2/)
 
 #### Added
