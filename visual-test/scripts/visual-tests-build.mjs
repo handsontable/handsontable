@@ -4,14 +4,20 @@ import execa from 'execa';
 import fse from 'fs-extra';
 
 const baseBranch = 'develop';
+//const dockerImage = 'mcr.microsoft.com/playwright:v1.28.1-focal';
 const currentBranchName = (await execa.command('git rev-parse --abbrev-ref HEAD', { silent: true })).stdout;
 // Main wrapper should be defined as a first one -
 // it will be used to generate golden screenshots,
 // rest of wrappers will be compared to it.
-const wrappers = ['js', 'angular', 'react', 'vue'];
+const wrappers = ['js', 'angular-13', 'react', 'vue'];
 const version = '12.2.0';
 
-await execa.command('npx playwright install --with-deps');
+if (process.env.docker) {
+  // await execa.command(`docker pull ${dockerImage}`, { stdout: 'inherit' });
+  // await execa.command(`docker run -v ${process.cwd()}:/tests -w /tests --rm -i ${dockerImage} /bin/bash`);
+}
+
+// await execa.command('npx playwright install --with-deps');
 
 const tests = [];
 
@@ -20,10 +26,21 @@ const tests = [];
 // On base branch we need to create golden screenshots from main wrapper only,
 // which is declared as a first position in wrappers array.
 
-for (let i = 0; i < (currentBranchName === baseBranch ? 1 : wrappers.length); ++i) {
-  tests.push(execa.command('npx playwright test', {
-    env: { HOT_WRAPPER: wrappers[i], HOT_VERSION: version }, stdout: 'inherit'
-  }));
+process.chdir('../examples/next/visual-tests');
+execa.command('npm install');
+
+for (let i = 0, maxi = (currentBranchName === baseBranch ? 1 : wrappers.length); i < maxi; ++i) {
+  tests.push(process.chdir(`${wrappers[i]}/demo`));
+  tests.push('npm install');
+  tests.push('npm run build');
+  tests.push('npm run start');
+  tests.push(process.chdir('../../../../../visual-test'));
+
+  tests.push(execa.command('npx playwright test', { env: { HOT_WRAPPER: wrappers[i] }, stdout: 'inherit' }));
+
+  if (i !== maxi - 1) {
+    process.chdir('../examples/next/visual-tests');
+  }
 }
 
 await Promise.all(tests);

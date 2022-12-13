@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node ./scripts/visual-tests-build.mjs",
+    "test-ci": "node ./scripts/visual-tests-build.mjs",
+    "test": "set docker=1 && node ./scripts/visual-tests-build.mjs",
     "upload": "node ./scripts/visual-tests-upload.mjs",
     "all": "node ./scripts/visual-tests-build.mjs && node ./scripts/visual-tests-upload.mjs"
   },
@@ -13,8 +14,11 @@
   "license": "ISC",
   "devDependencies": {
     "@argos-ci/cli": "^0.3.1",
-    "@playwright/test": "^1.27.1",
+    "@playwright/test": "^1.28.1",
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2"
+  },
+  "dependencies": {
+    "playwright": "^1.28.1"
   }
 }

@@ -30,13 +30,10 @@ jobs:
       - name: Run visual tests
         run: | 
           cd visual-test
-          npm run test
+          npm run test-ci
       - name: Upload screenshots
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
-          VISWIZ_API_KEY: ${{ secrets.VISWIZ_API_KEY }}
-          VISWIZ_PROJECT_ID: ${{ secrets.VISWIZ_PROJECT_ID }}
-          PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
         run: | 
           cd visual-test
           npm run upload
