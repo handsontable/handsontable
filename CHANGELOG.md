@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/articles/handsontable-12.3.0)
-- [Documentation (12.3.0)](https://handsontable.com/docs/12.3.0/)
+- [Documentation (12.3)](https://handsontable.com/docs/12.3/)
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-3-0)
 
 ### Added
@@ -38,7 +38,7 @@ For more information on this release, see:
 
 For more information on this release, see:
 - [Blog post](https://handsontable.com/blog/articles/handsontable-12.2.0)
-- [Documentation (12.2.0)](https://handsontable.com/docs/12.2.0/)
+- [Documentation (12.2)](https://handsontable.com/docs/12.2/)
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-2-0)
 
 ### Added
