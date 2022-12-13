@@ -1,4 +1,5 @@
 ---
+id: w6bvsin5
 title: Performance
 metaTitle: Performance - JavaScript Data Grid | Handsontable
 description: Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.

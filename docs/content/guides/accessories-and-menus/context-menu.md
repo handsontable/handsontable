@@ -1,4 +1,5 @@
 ---
+id: 3hrrxxln
 title: Context menu
 metaTitle: Context menu - JavaScript Data Grid | Handsontable
 description: Quickly access contextual actions such as removing rows, inserting columns or copying data, by opening the context menu.

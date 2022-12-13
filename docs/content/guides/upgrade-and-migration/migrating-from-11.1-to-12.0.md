@@ -1,4 +1,5 @@
 ---
+id: tpa768pc
 title: Migrating from 11.1 to 12.0
 metaTitle: Migrate from 11.1 to 12.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 11.1 to Handsontable 12.0, released on April 28, 2022.

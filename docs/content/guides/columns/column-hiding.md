@@ -1,4 +1,5 @@
 ---
+id: 6elqkmhr
 title: Column hiding
 metaTitle: Column hiding - JavaScript Data Grid | Handsontable
 description: Hide individual columns to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.

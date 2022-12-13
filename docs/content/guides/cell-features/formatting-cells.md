@@ -1,4 +1,5 @@
 ---
+id: epmvqw9m
 title: Formatting cells
 metaTitle: Formatting cells - JavaScript Data Grid | Handsontable
 description: Change the appearance of cells, using custom CSS classes, inline styles, or custom cell borders.

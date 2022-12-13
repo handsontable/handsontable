@@ -1,4 +1,5 @@
 ---
+id: j1zswn3i
 title: Row headers
 metaTitle: Row headers - JavaScript Data Grid | Handsontable
 description: Use default row headers (1, 2, 3), or set them to custom values provided by an array or a function.

@@ -1,4 +1,5 @@
 ---
+id: vasj6t6t
 title: Row virtualization
 metaTitle: Row virtualization - JavaScript Data Grid | Handsontable
 description: Render thousands of rows without freezing the browser, using row virtualization.

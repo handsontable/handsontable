@@ -1,4 +1,5 @@
 ---
+id: 9xuz0x0c
 title: Folder structure
 metaTitle: Folder structure - JavaScript Data Grid | Handsontable
 description: The folder structure of Handsontable's code repository.

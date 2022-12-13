@@ -5,6 +5,7 @@ export default {
   urlPrefix: '/api/',
   seo: {
     'Core.md': {
+      id: 'o9civnqe',
       title: 'Core',
       metaTitle: 'Core API reference - JavaScript Data Grid | Handsontable',
       description: 'A complete list of the public API methods of Handsontable\'s core that let you control your data grid programmatically.',
@@ -13,6 +14,7 @@ export default {
       },
     },
     'Hooks.md': {
+      id: 'js126u0h',
       title: 'Hooks',
       metaTitle: 'Hooks API reference - JavaScript Data Grid | Handsontable',
       description: 'A complete list of Handsontable\'s API hooks (callbacks) that let you run your code before or after specific data grid actions.',
@@ -21,6 +23,7 @@ export default {
       },
     },
     'Options.md': {
+      id: 'oabbxeng',
       title: 'Configuration options',
       metaTitle: 'Options API reference - JavaScript Data Grid | Handsontable',
       description: 'A complete list of Handsontable\'s configuration options that let you customize your data grid instance.',
@@ -29,6 +32,7 @@ export default {
       },
     },
     'AutoColumnSize.md': {
+      id: 'hjr7zdxy',
       metaTitle: 'AutoColumnSize - JavaScript Data Grid | Handsontable',
       description: 'Use the AutoColumnSize plugin with its API options, members, and methods to set column widths based on the widest cell in a given column.',
       react: {
@@ -36,6 +40,7 @@ export default {
       },
     },
     'AutoRowSize.md': {
+      id: 'fm3dhdw8',
       metaTitle: 'AutoRowSize - JavaScript Data Grid | Handsontable',
       description: 'Use the AutoRowSize plugin with its API options, members, and methods to set row heights based on the highest cell in a given row.',
       react: {
@@ -43,6 +48,7 @@ export default {
       },
     },
     'Autofill.md': {
+      id: 'gybdfu49',
       metaTitle: 'Autofill - JavaScript Data Grid | Handsontable',
       description: 'Use the Autofill plugin with its API members and methods to enable the drag-down and copy-down features.',
       react: {
@@ -50,6 +56,7 @@ export default {
       },
     },
     'BindRowsWithHeaders.md': {
+      id: 'dxv2vk3l',
       metaTitle: 'BindRowsWithHeaders - JavaScript Data Grid | Handsontable',
       description: 'Use the BindRowsWithHeaders plugin with its API options and methods to allow binding table rows to their headers.',
       react: {
@@ -57,6 +64,7 @@ export default {
       },
     },
     'CollapsibleColumns.md': {
+      id: 'edkch5e6',
       metaTitle: 'CollapsibleColumns - JavaScript Data Grid | Handsontable',
       description: 'Use the CollapsibleColumns plugin with its API options and methods to allow collapsing columns that have colspan defined in their header.',
       react: {
@@ -64,6 +72,7 @@ export default {
       },
     },
     'ColumnSorting.md': {
+      id: 'zbhmqzsv',
       metaTitle: 'ColumnSorting - JavaScript Data Grid | Handsontable',
       description: 'Use the ColumnSorting plugin with its API options and methods to sort the view (not the source data) by column.',
       react: {
@@ -71,6 +80,7 @@ export default {
       },
     },
     'ColumnSummary.md': {
+      id: 'wrwu7s6c',
       metaTitle: 'ColumnSummary - JavaScript Data Grid | Handsontable',
       description: 'Use the ColumnSummary plugin with its API options and methods to summarize your columns, using built-in functions or implementing custom summary functions.',
       react: {
@@ -78,6 +88,7 @@ export default {
       },
     },
     'Comments.md': {
+      id: '4sp9dfou',
       metaTitle: 'Comments - JavaScript Data Grid | Handsontable',
       description: 'Use the Comments plugin with its API options, members, and methods to set and manage cell comments through the context menu or the API.',
       react: {
@@ -85,6 +96,7 @@ export default {
       },
     },
     'ContextMenu.md': {
+      id: 'pczrlicw',
       metaTitle: 'ContextMenu - JavaScript Data Grid | Handsontable',
       description: 'Use the ContextMenu plugin with its API options, members, and methods to enable and customize the context menu.',
       react: {
@@ -92,6 +104,7 @@ export default {
       },
     },
     'CopyPaste.md': {
+      id: 'jtoc0ta4',
       metaTitle: 'CopyPaste - JavaScript Data Grid | Handsontable',
       description: 'Use the CopyPaste plugin with its API options, members, and methods to enable the copy/paste functionality, through the API, the context menu, and keyboard shortcuts.',
       react: {
@@ -99,6 +112,7 @@ export default {
       },
     },
     'CustomBorders.md': {
+      id: 'gxm1a98b',
       metaTitle: 'CustomBorders - JavaScript Data Grid | Handsontable',
       description: 'Use the CustomBorders plugin with its API options, members, and methods to set up custom borders for your cells, programmatically or using the context menu.',
       react: {
@@ -106,6 +120,7 @@ export default {
       },
     },
     'DragToScroll.md': {
+      id: 'c3f14467',
       metaTitle: 'DragToScroll - JavaScript Data Grid | Handsontable',
       description: 'Use the DragToScroll plugin with its API options, members, and methods to scroll the data grid by selecting a cell and dragging it outside the viewport.',
       react: {
@@ -113,6 +128,7 @@ export default {
       },
     },
     'DropdownMenu.md': {
+      id: 'snqjcwml',
       metaTitle: 'DropdownMenu - JavaScript Data Grid | Handsontable',
       description: 'Use the DropdownMenu plugin with its API options, members, and methods to enable and customize an interactive column menu.',
       react: {
@@ -120,6 +136,7 @@ export default {
       },
     },
     'ExportFile.md': {
+      id: '4j5eqkhw',
       metaTitle: 'DropdownMenu - JavaScript Data Grid | Handsontable',
       description: 'Export your grid\'s data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable\'s configuration options.',
       react: {
@@ -127,6 +144,7 @@ export default {
       },
     },
     'Filters.md': {
+      id: '3alr8j85',
       metaTitle: 'Filters - JavaScript Data Grid | Handsontable',
       description: 'Use the Filters plugin with its API members and methods to filter the view (not the source data) by a value or by a combination of conditions.',
       react: {
@@ -134,6 +152,7 @@ export default {
       },
     },
     'Formulas.md': {
+      id: 'y47bww7n',
       metaTitle: 'Formulas - JavaScript Data Grid | Handsontable',
       description: 'Use the Formulas plugin with its API options, members, and methods to perform Excel-like calculations in your business application.',
       react: {
@@ -141,13 +160,23 @@ export default {
       },
     },
     'HiddenRows.md': {
+      id: 'linbgjey',
       metaTitle: 'HiddenRows - JavaScript Data Grid | Handsontable',
       description: 'Use the HiddenRows plugin with its API options and methods to hide specified rows, without modifying your source data.',
       react: {
         metaTitle: 'HiddenRows - React Data Grid | Handsontable',
       },
     },
+    'HiddenColumns.md': {
+      id: 'v8xg8kot',
+      metaTitle: 'HiddenColumns - JavaScript Data Grid | Handsontable',
+      description: 'Use the HiddenColumns plugin with its API options and methods to hide specified columns, without modifying your source data.',
+      react: {
+        metaTitle: 'HiddenColumns - React Data Grid | Handsontable',
+      },
+    },
     'ManualColumnFreeze.md': {
+      id: 'xn65u35f',
       metaTitle: 'ManualColumnFreeze - JavaScript Data Grid | Handsontable',
       description: 'Use the ManualColumnFreeze plugin with its API options and methods to lock (freeze) the position of specified columns.',
       react: {
@@ -155,6 +184,7 @@ export default {
       },
     },
     'ManualColumnMove.md': {
+      id: 'bck95e73',
       metaTitle: 'ManualColumnMove - JavaScript Data Grid | Handsontable',
       description: 'Use the ManualColumnMove plugin with its API options and methods (e.g., moveColumn(), moveColumns(), dragColumn()), to change the order of columns.',
       react: {
@@ -162,6 +192,7 @@ export default {
       },
     },
     'ManualColumnResize.md': {
+      id: '4zjgoamn',
       metaTitle: 'ManualColumnResize - JavaScript Data Grid | Handsontable',
       description: 'Use the ManualColumnResize plugin with its API options and methods to let your users manually change column widths using Handsontable\'s interface.',
       react: {
@@ -169,6 +200,7 @@ export default {
       },
     },
     'ManualRowMove.md': {
+      id: '4b7ubpab',
       metaTitle: 'ManualRowMove - JavaScript Data Grid | Handsontable',
       description: 'Use the ManualRowMove plugin with its API options and methods (e.g., moveRow(), moveRows(), dragRow()), to change the order of rows.',
       react: {
@@ -176,6 +208,7 @@ export default {
       },
     },
     'ManualRowResize.md': {
+      id: 'la7wo1xh',
       metaTitle: 'ManualRowResize - JavaScript Data Grid | Handsontable',
       description: 'Use the ManualColumnResize plugin with its API options and methods to let your users manually change row heights using Handsontable\'s interface.',
       react: {
@@ -183,6 +216,7 @@ export default {
       },
     },
     'MergeCells.md': {
+      id: 'cs07c3ly',
       metaTitle: 'MergeCells - JavaScript Data Grid | Handsontable',
       description: 'Use the MergeCells plugin with its API options and methods to merge adjacent cells, using the "Ctrl + M" shortcut or the context menu.',
       react: {
@@ -190,6 +224,7 @@ export default {
       },
     },
     'MultiColumnSorting.md': {
+      id: 'ypo7x8k9',
       metaTitle: 'MultiColumnSorting - JavaScript Data Grid | Handsontable',
       description: 'Use the MultiColumnSorting plugin with its API methods to sort the view (not the data source) across multiple columns.',
       react: {
@@ -197,6 +232,7 @@ export default {
       },
     },
     'NestedHeaders.md': {
+      id: 'inirtbkb',
       metaTitle: 'NestedHeaders - JavaScript Data Grid | Handsontable',
       description: 'Use the NestedHeaders plugin with its API options and methods to group your columns, using multiple levels of nested column headers.',
       react: {
@@ -204,6 +240,7 @@ export default {
       },
     },
     'NestedRows.md': {
+      id: 'iadurw6z',
       metaTitle: 'NestedRows - JavaScript Data Grid | Handsontable',
       description: 'Use the NestedRows plugin with its API options, members and methods to display data in nested structures (where data spans multiple columns).',
       react: {
@@ -211,6 +248,7 @@ export default {
       },
     },
     'PersistentState.md': {
+      id: 'eh8nz1kw',
       metaTitle: 'PersistentState - JavaScript Data Grid | Handsontable',
       description: 'Use the PersistentState plugin with its API options and methods to keep the state of column sorting, column positions, and column sizes between page reloads.',
       react: {
@@ -218,6 +256,7 @@ export default {
       },
     },
     'Search.md': {
+      id: '4r6t4j1z',
       metaTitle: 'Search - JavaScript Data Grid | Handsontable',
       description: 'Use the Search plugin with its API options and methods such as query(), to configure and customize Handsontable\'s search.',
       react: {
@@ -225,6 +264,7 @@ export default {
       },
     },
     'TrimRows.md': {
+      id: 'ks06q7cq',
       metaTitle: 'TrimRows - JavaScript Data Grid | Handsontable',
       description: 'Use the TrimRows plugin with its API options and methods to remove rows from the table view and the DataMap.',
       react: {
@@ -232,6 +272,7 @@ export default {
       },
     },
     'UndoRedo.md': {
+      id: 'coyq5h6m',
       metaTitle: 'UndoRedo - JavaScript Data Grid | Handsontable',
       description: 'Use the UndoRedo plugin with its API options and methods to revert and restore your changes.',
       react: {
@@ -239,6 +280,7 @@ export default {
       },
     },
     'BaseEditor.md': {
+      id: 'l025jsly',
       metaTitle: 'BaseEditor - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s BaseEditor API.',
       react: {
@@ -246,6 +288,7 @@ export default {
       },
     },
     'BasePlugin.md': {
+      id: 'wdr58c2w',
       metaTitle: 'BasePlugin - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s BasePlugin API.',
       react: {
@@ -253,6 +296,7 @@ export default {
       },
     },
     'CellCoords.md': {
+      id: 'qthfdrss',
       metaTitle: 'CellCoords - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s CellCoord API.',
       react: {
@@ -260,6 +304,7 @@ export default {
       },
     },
     'CellRange.md': {
+      id: '9za1u3q7',
       metaTitle: 'CellRange - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s CellRange API.',
       react: {
@@ -267,6 +312,7 @@ export default {
       },
     },
     'ChangesObserver.md': {
+      id: 'n1d2orqc',
       metaTitle: 'ChangesObserver - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s ChangesObserver API.',
       react: {
@@ -274,13 +320,23 @@ export default {
       },
     },
     'CreateShortcutManager.md': {
+      id: 'wt56lf3y',
       metaTitle: 'CreateShortcutManager - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s CreateShortcutManager API.',
       react: {
         metaTitle: 'CreateShortcutManager - React Data Grid | Handsontable',
       },
     },
+    'ShortcutManager.md': {
+      id: 'qos98msl',
+      metaTitle: 'ShortcutManager - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s ShortcutManager API.',
+      react: {
+        metaTitle: 'ShortcutManager - React Data Grid | Handsontable',
+      },
+    },
     'DataMap.md': {
+      id: 'pt2wrekc',
       metaTitle: 'DataMap - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s DataMap API.',
       react: {
@@ -288,6 +344,7 @@ export default {
       },
     },
     'GhostTable.md': {
+      id: '1i74gjp4',
       metaTitle: 'GhostTable - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s GhostTable API.',
       react: {
@@ -295,6 +352,7 @@ export default {
       },
     },
     'HidingMap.md': {
+      id: 'g0whnkji',
       metaTitle: 'HidingMap - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s HidingMap API.',
       react: {
@@ -302,6 +360,7 @@ export default {
       },
     },
     'IndexMap.md': {
+      id: '8b008itj',
       metaTitle: 'IndexMap - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s IndexMap API.',
       react: {
@@ -309,6 +368,7 @@ export default {
       },
     },
     'IndexMapper.md': {
+      id: 'uolxl0ol',
       metaTitle: 'IndexMapper - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s IndexMapper API.',
       react: {
@@ -316,6 +376,7 @@ export default {
       },
     },
     'IndexesSequence.md': {
+      id: 'huuybcbn',
       metaTitle: 'IndexesSequence - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s IndexesSequence API.',
       react: {
@@ -323,6 +384,7 @@ export default {
       },
     },
     'LinkedPhysicalIndexToValueMap.md': {
+      id: 'pjeolp38',
       metaTitle: 'LinkedPhysicalIndexToValueMap - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s LinkedPhysicalIndexToValueMap API.',
       react: {
@@ -330,6 +392,7 @@ export default {
       },
     },
     'Menu.md': {
+      id: '6a7q8pb9',
       metaTitle: 'Menu - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s Menu API.',
       react: {
@@ -337,6 +400,7 @@ export default {
       },
     },
     'PhysicalIndexToValueMap.md': {
+      id: 'x5bgvsa4',
       metaTitle: 'PhysicalIndexToValueMap - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s PhysicalIndexToValueMap API.',
       react: {
@@ -344,6 +408,7 @@ export default {
       },
     },
     'SamplesGenerator.md': {
+      id: 'n9lf8vn4',
       metaTitle: 'SamplesGenerator - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s SamplesGenerator API.',
       react: {
@@ -351,6 +416,7 @@ export default {
       },
     },
     'ShortcutContext.md': {
+      id: 'aksi47xv',
       metaTitle: 'ShortcutContext - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s ShortcutContext API.',
       react: {
@@ -358,6 +424,7 @@ export default {
       },
     },
     'TrimmingMap.md': {
+      id: '8wnfx6b9',
       metaTitle: 'TrimmingMap - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s TrimmingMap API.',
       react: {

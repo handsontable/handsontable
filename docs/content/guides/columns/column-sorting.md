@@ -1,4 +1,5 @@
 ---
+id: jirjthah
 title: Column sorting
 metaTitle: Column sorting - JavaScript Data Grid | Handsontable
 description: Sort the view (not the source data) in ascending, descending, or a custom order, across one or multiple columns of the data grid.

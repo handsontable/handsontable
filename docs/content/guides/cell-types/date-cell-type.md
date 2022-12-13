@@ -1,4 +1,5 @@
 ---
+id: p25m5sco
 title: Date cell type
 metaTitle: Date cell type - JavaScript Data Grid | Handsontable
 description: Use the date cell type to display, format, and validate date values. Pick a date using an interactive pop-up editor.
