@@ -39,7 +39,7 @@ For more information on this release, see:
 #### Fixed
 
 - Fixed an issue where the [`UndoRedo`](@/api/undoRedo.md) plugin didn't work properly with preconfigured columns. [#10108](https://github.com/handsontable/handsontable/pull/10108)
-- Fixed an issue where formulas were not updated after [`updateData()`](@/api/core.md#updatedata) calls. [#10011](https://github.com/handsontable/handsontable/issues/10011)
+- Fixed an issue where formulas inserted programmatically by using [`updateData()`](@/api/core.md#updatedata) were not evaluated. [#10011](https://github.com/handsontable/handsontable/issues/10011)
 - Fixed a regression where setting a column's [`type`](@/api/options.md#type) could overwrite other custom-defined settings. [#10128](https://github.com/handsontable/handsontable/pull/10128)
 - Fixed an issue where Handsontable didn't render properly when initialized inside of a hidden container. [#5322](https://github.com/handsontable/handsontable/issues/5322)
 - Fixed an issue of desynchronization between configuration options (cell meta) and Handsontable's data. The issue occurred when Handsontable's options were modified through the following hooks: [`beforeCreateRow`](@/api/hooks.md#beforecreaterow), [`afterCreateRow`](@/api/hooks.md#aftercreaterow), [`beforeCreateCol`](@/api/hooks.md#beforecreatecol), and [`afterCreateCol`](@/api/hooks.md#aftercreatecol). [#10136](https://github.com/handsontable/handsontable/pull/10136)
