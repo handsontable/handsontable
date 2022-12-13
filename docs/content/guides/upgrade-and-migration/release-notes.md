@@ -26,7 +26,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on December 14, 2022.
 
 For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/handsontable-12.3.0-copying-column-headers)
+- [Blog post](https://handsontable.com/blog/handsontable-12.3.0-copying-cells-with-headers)
 - [Documentation (12.3)](https://handsontable.com/docs/12.3/)
 
 #### Added

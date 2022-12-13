@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [12.3.0] - 2022-12-14
 
 For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/handsontable-12.3.0-copying-column-headers)
+- [Blog post](https://handsontable.com/blog/handsontable-12.3.0-copying-cells-with-headers)
 - [Documentation (12.3)](https://handsontable.com/docs/12.3/)
 - [Release notes](https://handsontable.com/docs/release-notes/#_12-3-0)
 
