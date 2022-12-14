@@ -7,7 +7,7 @@ async function redirectToPageId(r) {
   const docsVersion = r.variables.docs_version;
 
   if (typeof pageId !== 'string') {
-    r.return(HTTP_REDIRECT_CODE, '/docs/');
+    r.return(HTTP_REDIRECT_CODE, `/docs/${docsVersion}/`);
 
     return;
   }
@@ -21,7 +21,7 @@ async function redirectToPageId(r) {
   } catch (ex) {}
 
   if (typeof data[pageId] !== 'string') {
-    r.return(HTTP_REDIRECT_CODE, '/docs/');
+    r.return(HTTP_REDIRECT_CODE, `/docs/${docsVersion}/`);
 
     return;
   }
