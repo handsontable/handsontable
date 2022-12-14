@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's IndexMap API.
 react:
+  id: nwnemipo
   metaTitle: IndexMap - React Data Grid | Handsontable
 ---
 

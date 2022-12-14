@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the Search plugin with its API options and methods such as query(), to configure and customize Handsontable's search.
 react:
+  id: acamkuxd
   metaTitle: Search - React Data Grid | Handsontable
 ---
 

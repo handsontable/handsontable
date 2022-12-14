@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's IndexesSequence API.
 react:
+  id: 5nrvua89
   metaTitle: IndexesSequence - React Data Grid | Handsontable
 ---
 

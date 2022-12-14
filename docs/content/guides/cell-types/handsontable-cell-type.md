@@ -6,6 +6,7 @@ description: Use the Handsontable cell type to collect user input with an intera
 permalink: /handsontable-cell-type
 canonicalUrl: /handsontable-cell-type
 react:
+  id: fcxtj167
   metaTitle: Handsontable cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---

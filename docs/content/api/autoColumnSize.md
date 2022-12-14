@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the AutoColumnSize plugin with its API options, members, and methods to set column widths based on the widest cell in a given column.
 react:
+  id: 11f3lp0s
   metaTitle: AutoColumnSize - React Data Grid | Handsontable
 ---
 

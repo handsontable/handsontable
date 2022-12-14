@@ -6,6 +6,7 @@ description: Learn about the security measures we take to make sure you can safe
 permalink: /security
 canonicalUrl: /security
 react:
+  id: h8zg4ign
   metaTitle: Security - React Data Grid | Handsontable
 searchCategory: Guides
 ---

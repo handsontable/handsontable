@@ -13,6 +13,7 @@ tags:
   - grouping rows
   - master detail
 react:
+  id: vo8uukt2
   metaTitle: Row parent-child - React Data Grid | Handsontable
 searchCategory: Guides
 ---

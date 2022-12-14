@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the PersistentState plugin with its API options and methods to keep the state of column sorting, column positions, and column sizes between page reloads.
 react:
+  id: 8he28jcj
   metaTitle: PersistentState - React Data Grid | Handsontable
 ---
 

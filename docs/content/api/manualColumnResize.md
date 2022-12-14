@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the ManualColumnResize plugin with its API options and methods to let your users manually change column widths using Handsontable's interface.
 react:
+  id: lszzwc0i
   metaTitle: ManualColumnResize - React Data Grid | Handsontable
 ---
 

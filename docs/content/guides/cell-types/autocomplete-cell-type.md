@@ -6,6 +6,7 @@ description: Use the autocomplete cell type to collect user input with a menu th
 permalink: /autocomplete-cell-type
 canonicalUrl: /autocomplete-cell-type
 react:
+  id: vnnvp396
   metaTitle: Autocomplete cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---

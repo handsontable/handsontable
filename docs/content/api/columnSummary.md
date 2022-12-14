@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the ColumnSummary plugin with its API options and methods to summarize your columns, using built-in functions or implementing custom summary functions.
 react:
+  id: 0iw5v2b5
   metaTitle: ColumnSummary - React Data Grid | Handsontable
 ---
 

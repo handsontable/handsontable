@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the CollapsibleColumns plugin with its API options and methods to allow collapsing columns that have colspan defined in their header.
 react:
+  id: 6f5n1j47
   metaTitle: CollapsibleColumns - React Data Grid | Handsontable
 ---
 

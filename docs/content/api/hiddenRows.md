@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the HiddenRows plugin with its API options and methods to hide specified rows, without modifying your source data.
 react:
+  id: ztxn1ekz
   metaTitle: HiddenRows - React Data Grid | Handsontable
 ---
 

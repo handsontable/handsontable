@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's TrimmingMap API.
 react:
+  id: l3n89gff
   metaTitle: TrimmingMap - React Data Grid | Handsontable
 ---
 

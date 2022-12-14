@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's HidingMap API.
 react:
+  id: 9k5ucjxx
   metaTitle: HidingMap - React Data Grid | Handsontable
 ---
 

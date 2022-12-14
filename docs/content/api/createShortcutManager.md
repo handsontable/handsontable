@@ -7,6 +7,8 @@ canonicalUrl: /api/create-shortcut-manager
 searchCategory: API Reference
 hotPlugin: false
 editLink: false
+react:
+  id: smdsdtby
 ---
 
 # CreateShortcutManager

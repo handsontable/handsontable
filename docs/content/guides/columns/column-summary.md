@@ -11,6 +11,7 @@ tags:
   - formulas
   - functions
 react:
+  id: r3x4l0gp
   metaTitle: Column summary - React Data Grid | Handsontable
 searchCategory: Guides
 ---

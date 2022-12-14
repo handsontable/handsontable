@@ -13,6 +13,7 @@ tags:
   - folders
   - files
 react:
+  id: 29dbr0lt
   metaTitle: Folder structure - React Data Grid | Handsontable
 searchCategory: Guides
 ---

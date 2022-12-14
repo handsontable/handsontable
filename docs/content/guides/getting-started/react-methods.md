@@ -12,6 +12,7 @@ tags:
   - instance
   - methods
 react:
+  id: f8ov442q
   metaTitle: Instance methods - React Data Grid | Handsontable
 searchCategory: Guides
 ---

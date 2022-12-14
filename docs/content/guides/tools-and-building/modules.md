@@ -8,6 +8,7 @@ canonicalUrl: /modules
 tags:
   - tree shaking
 react:
+  id: weudz1vh
   metaTitle: Modules - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the ManualColumnMove plugin with its API options and methods (e.g., moveColumn(), moveColumns(), dragColumn()), to change the order of columns.
 react:
+  id: 41x190ra
   metaTitle: ManualColumnMove - React Data Grid | Handsontable
 ---
 

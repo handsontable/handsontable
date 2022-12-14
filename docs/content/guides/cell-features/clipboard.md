@@ -10,6 +10,7 @@ tags:
   - cut
   - paste
 react:
+  id: mlctr1ri
   metaTitle: Clipboard - React Data Grid | Handsontable
 searchCategory: Guides
 ---

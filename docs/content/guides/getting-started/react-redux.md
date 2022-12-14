@@ -6,6 +6,7 @@ description: Use the Redux state container to maintain the data and configuratio
 permalink: /redux
 canonicalUrl: /redux
 react:
+  id: 6c54q5pw
   metaTitle: Integration with Redux - React Data Grid | Handsontable
 searchCategory: Guides
 ---

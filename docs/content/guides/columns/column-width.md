@@ -15,6 +15,7 @@ tags:
   - column dimmensions
   - manual resize
 react:
+  id: gr6w8qsy
   metaTitle: Column width - React Data Grid | Handsontable
 searchCategory: Guides
 ---

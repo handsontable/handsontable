@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the DropdownMenu plugin with its API options, members, and methods to enable and customize an interactive column menu.
 react:
+  id: zj3aru0b
   metaTitle: DropdownMenu - React Data Grid | Handsontable
 ---
 

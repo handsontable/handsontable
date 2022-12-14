@@ -6,6 +6,7 @@ description: An overview of Handsontable's developer documentation. Handsontable
 permalink: /
 canonicalUrl: /
 react:
+  id: fexwrrj2
   metaTitle: Introduction - React Data Grid | Handsontable
 searchCategory: Guides
 ---

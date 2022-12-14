@@ -6,6 +6,7 @@ description: Change the order of columns, either manually (dragging them to anot
 permalink: /column-moving
 canonicalUrl: /column-moving
 react:
+  id: zhlikwwh
   metaTitle: Column moving - React Data Grid | Handsontable
 searchCategory: Guides
 ---

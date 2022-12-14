@@ -14,6 +14,7 @@ tags:
   - erase last change
   - roll back changes
 react:
+  id: me8uxp3w
   metaTitle: Undo and redo - React Data Grid | Handsontable
 searchCategory: Guides
 ---

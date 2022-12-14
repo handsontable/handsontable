@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's ShortcutContext API.
 react:
+  id: qhf0cz5d
   metaTitle: ShortcutContext - React Data Grid | Handsontable
 ---
 

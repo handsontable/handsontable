@@ -6,6 +6,7 @@ description: Use Handsontable's built-in cell types such as autocomplete, date, 
 permalink: /cell-type
 canonicalUrl: /cell-type
 react:
+  id: m60w87tn
   metaTitle: Cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -6,6 +6,7 @@ description: Learn about the licensing terms of Handsontable's software dependen
 permalink: /third-party-licenses
 canonicalUrl: /third-party-licenses
 react:
+  id: 5rt8dyg9
   metaTitle: Third-party licenses - React Data Grid | Handsontable
 searchCategory: Guides
 ---

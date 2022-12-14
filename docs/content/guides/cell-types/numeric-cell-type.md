@@ -6,6 +6,7 @@ description: Use the numeric cell type to correctly display, format, sort, and f
 permalink: /numeric-cell-type
 canonicalUrl: /numeric-cell-type
 react:
+  id: e6zmmawj
   metaTitle: Numeric cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---

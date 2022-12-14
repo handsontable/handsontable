@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: A complete list of Handsontable's configuration options that let you customize your data grid instance.
 react:
+  id: oga06iva
   metaTitle: Options API reference - React Data Grid | Handsontable
 ---
 

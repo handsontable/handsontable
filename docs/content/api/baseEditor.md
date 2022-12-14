@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's BaseEditor API.
 react:
+  id: snc3axwd
   metaTitle: BaseEditor - React Data Grid | Handsontable
 ---
 

@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's SamplesGenerator API.
 react:
+  id: gh3nicnu
   metaTitle: SamplesGenerator - React Data Grid | Handsontable
 ---
 

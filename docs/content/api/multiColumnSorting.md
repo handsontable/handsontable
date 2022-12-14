@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the MultiColumnSorting plugin with its API methods to sort the view (not the data source) across multiple columns.
 react:
+  id: 8gqtvsrl
   metaTitle: MultiColumnSorting - React Data Grid | Handsontable
 ---
 

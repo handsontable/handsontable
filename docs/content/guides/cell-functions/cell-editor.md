@@ -6,6 +6,7 @@ description: Create a custom cell editor function, to have full control over how
 permalink: /cell-editor
 canonicalUrl: /cell-editor
 react:
+  id: 6i8ttta0
   metaTitle: Cell editor - React Data Grid | Handsontable
 searchCategory: Guides
 ---

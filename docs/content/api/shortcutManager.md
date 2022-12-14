@@ -7,6 +7,8 @@ canonicalUrl: /api/shortcut-manager
 searchCategory: API Reference
 hotPlugin: false
 editLink: false
+react:
+  id: doot085y
 ---
 
 # ShortcutManager

@@ -12,6 +12,7 @@ tags:
   - L10n
   - i18n
 react:
+  id: qz0qgi9f
   metaTitle: Language - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -8,6 +8,7 @@ canonicalUrl: /comments
 tags:
   - notes
 react:
+  id: lxw2632u
   metaTitle: Comments - React Data Grid | Handsontable
 searchCategory: Guides
 ---

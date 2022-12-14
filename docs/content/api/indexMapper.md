@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's IndexMapper API.
 react:
+  id: sbs3825t
   metaTitle: IndexMapper - React Data Grid | Handsontable
 ---
 

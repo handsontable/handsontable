@@ -17,6 +17,7 @@ tags:
   - row dimensions
   - manual resize
 react:
+  id: 87ulwfs2
   metaTitle: Row height - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -6,6 +6,7 @@ description: Align values within cells, horizontally (to the right, left, center
 permalink: /text-alignment
 canonicalUrl: /text-alignment
 react:
+  id: 959g5cbf
   metaTitle: Text alignment - React Data Grid | Handsontable
 searchCategory: Guides
 ---

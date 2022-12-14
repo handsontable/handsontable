@@ -17,6 +17,7 @@ tags:
   - L10n
   - i18n
 react:
+  id: g4mu790t
   metaTitle: Layout direction - React Data Grid | Handsontable
 searchCategory: Guides
 ---

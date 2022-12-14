@@ -6,6 +6,7 @@ description: Validate data added or changed by the user, with predefined or cust
 permalink: /cell-validator
 canonicalUrl: /cell-validator
 react:
+  id: fvou30a5
   metaTitle: Cell validator - React Data Grid | Handsontable
 searchCategory: Guides
 ---

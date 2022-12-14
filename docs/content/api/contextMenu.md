@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the ContextMenu plugin with its API options, members, and methods to enable and customize the right-click context menu.
 react:
+  id: kx1mawmf
   metaTitle: ContextMenu - React Data Grid | Handsontable
 ---
 

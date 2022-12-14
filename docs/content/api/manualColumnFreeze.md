@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the ManualColumnFreeze plugin with its API options and methods to lock (freeze) the position of specified columns.
 react:
+  id: 5y6obv03
   metaTitle: ManualColumnFreeze - React Data Grid | Handsontable
 ---
 

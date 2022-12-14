@@ -6,6 +6,7 @@ description: Hide individual rows to avoid rendering them as DOM elements. It he
 permalink: /row-hiding
 canonicalUrl: /row-hiding
 react:
+  id: al1djb6l
   metaTitle: Row hiding - React Data Grid | Handsontable
 searchCategory: Guides
 ---

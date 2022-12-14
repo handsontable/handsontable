@@ -6,6 +6,7 @@ description: Change the appearance of cells, using custom CSS classes, inline st
 permalink: /formatting-cells
 canonicalUrl: /formatting-cells
 react:
+  id: qywqgovy
   metaTitle: Formatting cells - React Data Grid | Handsontable
 searchCategory: Guides
 ---

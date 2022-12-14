@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's CellRange API.
 react:
+  id: mpqwzjpm
   metaTitle: CellRange - React Data Grid | Handsontable
 ---
 

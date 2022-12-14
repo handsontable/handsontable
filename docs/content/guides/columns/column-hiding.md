@@ -6,6 +6,7 @@ description: Hide individual columns to avoid rendering them as DOM elements. It
 permalink: /column-hiding
 canonicalUrl: /column-hiding
 react:
+  id: u1aw329h
   metaTitle: Column hiding - React Data Grid | Handsontable
 searchCategory: Guides
 ---

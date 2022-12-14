@@ -15,6 +15,7 @@ tags:
   - sheet
   - function
 react:
+  id: 05z3cjez
   metaTitle: Formula calculation - React Data Grid | Handsontable
 searchCategory: Guides
 ---

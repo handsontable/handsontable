@@ -6,6 +6,7 @@ description: Sort your data in ascending, descending, or a custom order, across 
 permalink: /row-sorting
 canonicalUrl: /row-sorting
 react:
+  id: h4jfevxj
   metaTitle: Row sorting - React Data Grid | Handsontable
 searchCategory: Guides
 ---

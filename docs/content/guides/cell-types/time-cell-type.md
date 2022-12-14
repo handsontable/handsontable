@@ -6,6 +6,7 @@ description: Use the time cell type to display, format, and validate values as t
 permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
+  id: 34n5nwja
   metaTitle: Time cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---

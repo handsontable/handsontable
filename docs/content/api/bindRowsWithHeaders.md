@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the BindRowsWithHeaders plugin with its API options and methods to allow binding table rows to their headers.
 react:
+  id: 2mdpwy50
   metaTitle: BindRowsWithHeaders - React Data Grid | Handsontable
 ---
 

@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the ManualRowMove plugin with its API options and methods (e.g., moveRow(), moveRows(), dragRow()), to change the order of rows.
 react:
+  id: 87xdqwwb
   metaTitle: ManualRowMove - React Data Grid | Handsontable
 ---
 

@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the Autofill plugin with its API members and methods to enable the drag-down and copy-down features.
 react:
+  id: het268ia
   metaTitle: Autofill - React Data Grid | Handsontable
 ---
 

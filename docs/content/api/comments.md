@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the Comments plugin with its API options, members, and methods to set and manage cell comments through the context menu or the API.
 react:
+  id: 3g0bkzza
   metaTitle: Comments - React Data Grid | Handsontable
 ---
 

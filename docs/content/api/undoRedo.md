@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the UndoRedo plugin with its API options and methods to revert and restore your changes.
 react:
+  id: t5lpzjly
   metaTitle: UndoRedo - React Data Grid | Handsontable
 ---
 

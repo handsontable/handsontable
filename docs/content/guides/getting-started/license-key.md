@@ -6,6 +6,7 @@ description: Activate Handsontable, passing your license key in the configuratio
 permalink: /license-key
 canonicalUrl: /license-key
 react:
+  id: vyfski60
   metaTitle: License key - React Data Grid | Handsontable
 searchCategory: Guides
 ---

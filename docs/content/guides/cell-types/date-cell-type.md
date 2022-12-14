@@ -6,6 +6,7 @@ description: Use the date cell type to display, format, and validate date values
 permalink: /date-cell-type
 canonicalUrl: /date-cell-type
 react:
+  id: u7t2rn0n
   metaTitle: Date cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---

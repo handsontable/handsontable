@@ -16,6 +16,7 @@ tags:
 - function key
 - commands
 react:
+  id: ddjw4zt8
   metaTitle: Keyboard shortcuts - React Data Grid | Handsontable
 searchCategory: Guides
 ---

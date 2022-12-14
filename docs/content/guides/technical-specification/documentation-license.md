@@ -6,6 +6,7 @@ description: Learn about the licensing terms of Handsontable's documentation.
 permalink: /documentation-license
 canonicalUrl: /documentation-license
 react:
+  id: u3lvnmzh
   metaTitle: Documentation license - React Data Grid | Handsontable
 searchCategory: Guides
 ---
