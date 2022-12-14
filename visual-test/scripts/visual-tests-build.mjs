@@ -37,7 +37,7 @@ for (let i = 0, maxi = (currentBranchName === baseBranch ? 1 : wrappers.length);
   // eslint-disable-next-line no-await-in-loop
   tests.push(await execa.command('npm install', { stdout: 'inherit' }));
   tests.push(await execa.command('npm run build', { stdout: 'inherit' }));
-  tests.push(await execa.command('npm run start', { stdout: 'inherit' }));
+  // tests.push(await execa.command('npm run start', { stdout: 'inherit' }));
   tests.push(await process.chdir('../../../../../visual-test'));
 
   tests.push(await execa.command('npx playwright test', { env: { HOT_WRAPPER: wrappers[i] }, stdout: 'inherit' }));
