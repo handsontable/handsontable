@@ -1,4 +1,5 @@
 ---
+id: pjeolp38
 title: LinkedPhysicalIndexToValueMap
 metaTitle: LinkedPhysicalIndexToValueMap - JavaScript Data Grid | Handsontable
 permalink: /api/linked-physical-index-to-value-map
@@ -26,7 +27,7 @@ such changes.
 ## Methods
 
 ### clearValue
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L78
 
 :::
@@ -43,7 +44,7 @@ Clear value for particular index.
 
 
 ### getEntries
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L150
 
 :::
@@ -55,7 +56,7 @@ Get every entry containing index and value, respecting order of indexes.
 
 
 ### getLength
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L94
 
 :::
@@ -67,7 +68,7 @@ Get length of the index map.
 
 
 ### getValues
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L29
 
 :::
@@ -79,7 +80,7 @@ Get full list of ordered values for particular indexes.
 
 
 ### setValueAtIndex
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L57
 
 :::
@@ -100,7 +101,7 @@ Note: Value will be added at the end of the queue.
 
 
 ### setValues
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L40
 
 :::
@@ -115,5 +116,3 @@ Note: Please keep in mind that `change` hook triggered by the method may not upd
 | Param | Type | Description |
 | --- | --- | --- |
 | values | `Array` | List of set values. |
-
-

@@ -1,4 +1,5 @@
 ---
+id: d4l2e6vr
 title: Custom context menu in Angular
 metaTitle: Custom context menu - Angular Data Grid | Handsontable
 description: Customize the right-click context menu of your Angular data grid, by a creating a custom function for each menu item.

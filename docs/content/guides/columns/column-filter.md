@@ -1,4 +1,5 @@
 ---
+id: 3xxlonuv
 title: Column filter
 metaTitle: Column filter - JavaScript Data Grid | Handsontable
 description: Filter your data by a value or by a combination of conditions. Customize the filter menu, using the available API methods.

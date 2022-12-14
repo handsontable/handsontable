@@ -1,4 +1,5 @@
 ---
+id: zbx8ayzw
 title: License key
 metaTitle: License key - JavaScript Data Grid | Handsontable
 description: Activate Handsontable, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.

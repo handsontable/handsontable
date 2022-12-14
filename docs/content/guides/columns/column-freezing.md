@@ -1,4 +1,5 @@
 ---
+id: 2anhuqf7
 title: Column freezing
 metaTitle: Column freezing - JavaScript Data Grid | Handsontable
 description: Lock (freeze) the position of specified columns, keeping them visible while scrolling to another area of the grid.

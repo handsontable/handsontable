@@ -1,4 +1,5 @@
 ---
+id: bptpnpet
 title: Installation in Angular
 metaTitle: Installation - Angular Data Grid | Handsontable
 description: Install Handsontable's Angular wrapper via npm, import the stylesheets, and get your application up and running.

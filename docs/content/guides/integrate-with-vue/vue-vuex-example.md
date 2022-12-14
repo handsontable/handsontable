@@ -1,4 +1,5 @@
 ---
+id: r6ip0seq
 title: Vuex example in Vue 2
 metaTitle: Integration with Vuex - Vue 2 Data Grid - Handsontable
 description: Use the Vuex state management pattern to maintain the data and configuration options of your Vue 2 data grid.

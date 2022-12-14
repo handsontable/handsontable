@@ -1,4 +1,5 @@
 ---
+id: cjib1mhw
 title: Autocomplete cell type
 metaTitle: Autocomplete cell type - JavaScript Data Grid | Handsontable
 description: Use the autocomplete cell type to collect user input with a menu that lets the user choose a suggested option while typing.

@@ -1,4 +1,5 @@
 ---
+id: de2hxgso
 title: Cell type
 metaTitle: Cell type - JavaScript Data Grid | Handsontable
 description: Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.

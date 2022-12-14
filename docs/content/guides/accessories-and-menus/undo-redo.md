@@ -1,4 +1,5 @@
 ---
+id: glh01i6q
 title: Undo and redo
 metaTitle: Undo and redo - JavaScript Data Grid | Handsontable
 description: Revert and restore your changes, using the undo and redo features.

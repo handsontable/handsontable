@@ -1,4 +1,5 @@
 ---
+id: ivtc0o9b
 title: Row parent-child
 metaTitle: Row parent-child - JavaScript Data Grid | Handsontable
 description: Reflect the parent-child relationship of your data, using Handsontable's interactive UI elements such as expand and collapse buttons or extended context menu.

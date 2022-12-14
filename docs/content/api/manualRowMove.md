@@ -1,4 +1,5 @@
 ---
+id: 4b7ubpab
 title: ManualRowMove
 metaTitle: ManualRowMove - JavaScript Data Grid | Handsontable
 permalink: /api/manual-row-move
@@ -37,7 +38,7 @@ The plugin creates additional components to make moving possibly using user inte
 ## Options
 
 ### manualRowMove
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/dataMap/metaManager/metaSchema.js#L2808
 
 :::
@@ -57,8 +58,8 @@ You can set the `manualRowMove` option to one of the following:
 Read more:
 - [Row moving](@/guides/rows/row-moving.md)
 
-**Default**: <code>undefined</code>  
-**Example**  
+**Default**: <code>undefined</code>
+**Example**
 ```js
 // enable the `ManualRowMove` plugin
 manualRowMove: true,
@@ -73,7 +74,7 @@ manualColumnMove: [1, 4, 6],
 ## Methods
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualRowMove/manualRowMove.js#L702
 
 :::
@@ -85,7 +86,7 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualRowMove/manualRowMove.js#L149
 
 :::
@@ -97,7 +98,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### dragRow
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualRowMove/manualRowMove.js#L216
 
 :::
@@ -106,7 +107,7 @@ _manualRowMove.dragRow(row, dropIndex) ⇒ boolean_
 
 Drag a single row to drop index position.
 
-**Emits**: [`Hooks#event:beforeRowMove`](@/api/hooks.md#beforerowmove), [`Hooks#event:afterRowMove`](@/api/hooks.md#afterrowmove)  
+**Emits**: [`Hooks#event:beforeRowMove`](@/api/hooks.md#beforerowmove), [`Hooks#event:afterRowMove`](@/api/hooks.md#afterrowmove)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -116,7 +117,7 @@ Drag a single row to drop index position.
 
 
 ### dragRows
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualRowMove/manualRowMove.js#L230
 
 :::
@@ -125,7 +126,7 @@ _manualRowMove.dragRows(rows, dropIndex) ⇒ boolean_
 
 Drag multiple rows to drop index position.
 
-**Emits**: [`Hooks#event:beforeRowMove`](@/api/hooks.md#beforerowmove), [`Hooks#event:afterRowMove`](@/api/hooks.md#afterrowmove)  
+**Emits**: [`Hooks#event:beforeRowMove`](@/api/hooks.md#beforerowmove), [`Hooks#event:afterRowMove`](@/api/hooks.md#afterrowmove)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -135,7 +136,7 @@ Drag multiple rows to drop index position.
 
 
 ### enablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualRowMove/manualRowMove.js#L112
 
 :::
@@ -147,7 +148,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### isEnabled
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualRowMove/manualRowMove.js#L105
 
 :::
@@ -160,7 +161,7 @@ hook and if it returns `true` then the [ManualRowMove#enablePlugin](@/api/manual
 
 
 ### isMovePossible
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualRowMove/manualRowMove.js#L247
 
 :::
@@ -178,7 +179,7 @@ Indicates if it's possible to move rows to the desired position. Some of the act
 
 
 ### moveRow
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualRowMove/manualRowMove.js#L169
 
 :::
@@ -187,7 +188,7 @@ _manualRowMove.moveRow(row, finalIndex) ⇒ boolean_
 
 Moves a single row.
 
-**Emits**: [`Hooks#event:beforeRowMove`](@/api/hooks.md#beforerowmove), [`Hooks#event:afterRowMove`](@/api/hooks.md#afterrowmove)  
+**Emits**: [`Hooks#event:beforeRowMove`](@/api/hooks.md#beforerowmove), [`Hooks#event:afterRowMove`](@/api/hooks.md#afterrowmove)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -197,7 +198,7 @@ Moves a single row.
 
 
 ### moveRows
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualRowMove/manualRowMove.js#L183
 
 :::
@@ -206,7 +207,7 @@ _manualRowMove.moveRows(rows, finalIndex) ⇒ boolean_
 
 Moves a multiple rows.
 
-**Emits**: [`Hooks#event:beforeRowMove`](@/api/hooks.md#beforerowmove), [`Hooks#event:afterRowMove`](@/api/hooks.md#afterrowmove)  
+**Emits**: [`Hooks#event:beforeRowMove`](@/api/hooks.md#beforerowmove), [`Hooks#event:afterRowMove`](@/api/hooks.md#afterrowmove)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -216,7 +217,7 @@ Moves a multiple rows.
 
 
 ### updatePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualRowMove/manualRowMove.js#L137
 
 :::
@@ -227,5 +228,3 @@ Updates the plugin's state.
 
 This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
  - [`manualRowMove`](@/api/options.md#manualrowmove)
-
-

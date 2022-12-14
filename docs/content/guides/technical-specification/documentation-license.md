@@ -1,4 +1,5 @@
 ---
+id: hpr42b2a
 title: Documentation license
 metaTitle: Documentation license - JavaScript Data Grid | Handsontable
 description: Learn about the licensing terms of Handsontable's documentation.

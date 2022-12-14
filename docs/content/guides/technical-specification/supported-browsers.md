@@ -1,4 +1,5 @@
 ---
+id: zzjh2u93
 title: Supported browsers
 metaTitle: Supported browsers - JavaScript Data Grid | Handsontable
 description: Handsontable supports the most popular desktop and mobile browsers, such as Chrome, Safari, Firefox, Edge, Opera, Samsung Internet, and others.

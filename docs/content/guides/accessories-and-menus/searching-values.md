@@ -1,4 +1,5 @@
 ---
+id: ct5f32ig
 title: Searching values
 metaTitle: Searching values - JavaScript Data Grid | Handsontable
 description: Type the text you are looking for in the search bar to highlight the desired values. Use API methods to implement the search bar outside of the data grid.

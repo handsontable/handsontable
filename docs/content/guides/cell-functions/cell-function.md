@@ -1,4 +1,5 @@
 ---
+id: neoo8dhv
 title: Cell functions
 metaTitle: Cell functions - JavaScript Data Grid | Handsontable
 description: Render, edit, and validate the contents of your cells, using Handsontable's cell functions. Quickly set up your cell, using cell types.

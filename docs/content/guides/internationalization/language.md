@@ -1,4 +1,5 @@
 ---
+id: 1g89qnhe
 title: Language
 metaTitle: Language - JavaScript Data Grid | Handsontable
 description: Set Handsontable's UI language to one of the built-in translations, or create your own language set using our templates.

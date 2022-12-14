@@ -1,4 +1,5 @@
 ---
+id: 8wnfx6b9
 title: TrimmingMap
 metaTitle: TrimmingMap - JavaScript Data Grid | Handsontable
 permalink: /api/trimming-map
@@ -24,7 +25,7 @@ NOT included in a dataset and skipped in the process of rendering.
 ## Methods
 
 ### getTrimmedIndexes
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/trimmingMap.js#L22
 
 :::
@@ -34,5 +35,3 @@ _trimmingMap.getTrimmedIndexes() ⇒ Array_
 Get physical indexes which are trimmed.
 
 Note: Indexes marked as trimmed aren't included in a [DataMap](@/api/dataMap.md) and aren't rendered.
-
-

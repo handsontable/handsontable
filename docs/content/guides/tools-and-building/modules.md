@@ -1,4 +1,5 @@
 ---
+id: ffimaicc
 title: Modules
 metaTitle: Modules - JavaScript Data Grid | Handsontable
 description: Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.

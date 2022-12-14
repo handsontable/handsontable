@@ -1,4 +1,5 @@
 ---
+id: m1qrgnlo
 title: Installation in Vue 2
 metaTitle: Installation - Vue 2 Data Grid | Handsontable
 description: Install Handsontable's Vue 2 wrapper via npm, import the stylesheets, and get your application up and running.

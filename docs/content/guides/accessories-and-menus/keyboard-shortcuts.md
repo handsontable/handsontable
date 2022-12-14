@@ -1,4 +1,5 @@
 ---
+id: 5w6juytv
 title: Keyboard shortcuts
 metaTitle: Keyboard shortcuts - JavaScript Data Grid | Handsontable
 description: Navigate the grid similarly to Google Sheets or Microsoft Excel, using the built-in keyboard shortcuts. Create your own shortcuts.

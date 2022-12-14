@@ -1,4 +1,5 @@
 ---
+id: kdie9yhz
 title: Handsontable cell type
 metaTitle: Handsontable cell type - JavaScript Data Grid | Handsontable
 description: Use the Handsontable cell type to collect user input with an interactive spreadsheet editor in a popup.

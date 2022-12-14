@@ -1,4 +1,5 @@
 ---
+id: jnwpo47i
 title: Demo
 metaTitle: Demo - JavaScript Data Grid | Handsontable
 description: Play around with a demo of Handsontable, in your favorite framework.

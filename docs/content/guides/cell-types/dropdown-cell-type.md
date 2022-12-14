@@ -1,4 +1,5 @@
 ---
+id: oi78d8nv
 title: Dropdown cell type
 metaTitle: Dropdown cell type - JavaScript Data Grid | Handsontable
 description: Use the dropdown cell type to collect user input with a searchable menu that lets the user choose a suggested option while typing.

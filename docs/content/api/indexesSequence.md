@@ -1,4 +1,5 @@
 ---
+id: huuybcbn
 title: IndexesSequence
 metaTitle: IndexesSequence - JavaScript Data Grid | Handsontable
 permalink: /api/indexes-sequence
@@ -20,6 +21,3 @@ react:
 Map for storing mappings from an index to a physical index.
 
 It also updates the physical indexes (remaining in the map) on remove/add row or column action.
-
-
-

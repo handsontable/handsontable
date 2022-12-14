@@ -1,4 +1,5 @@
 ---
+id: 42px61id
 title: Row pre-populating
 metaTitle: Row pre-populating - JavaScript Data Grid | Handsontable
 description: Populate newly-added rows with predefined template values, using cell renderers.

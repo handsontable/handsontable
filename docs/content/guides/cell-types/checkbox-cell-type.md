@@ -1,4 +1,5 @@
 ---
+id: p8sggqin
 title: Checkbox cell type
 metaTitle: Checkbox cell type - JavaScript Data Grid | Handsontable
 description: Use the checkbox cell type to create interactive elements that can be checked or unchecked, having either "true" or "false" values.

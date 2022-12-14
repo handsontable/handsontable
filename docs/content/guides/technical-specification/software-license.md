@@ -1,4 +1,5 @@
 ---
+id: jgk5hkn4
 title: Software license
 metaTitle: Software license - JavaScript Data Grid | Handsontable
 description: Learn about the licensing terms of the Handsontable data grid.
