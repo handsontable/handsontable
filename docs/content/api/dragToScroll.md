@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the DragToScroll plugin with its API options, members, and methods to scroll the data grid by selecting a cell and dragging it outside the viewport.
 react:
+  id: uawwix9r
   metaTitle: DragToScroll - React Data Grid | Handsontable
 ---
 

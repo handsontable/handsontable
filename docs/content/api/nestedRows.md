@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the NestedRows plugin with its API options, members and methods to display data in nested structures (where data spans multiple columns).
 react:
+  id: fvo6cybt
   metaTitle: NestedRows - React Data Grid | Handsontable
 ---
 

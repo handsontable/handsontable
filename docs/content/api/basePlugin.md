@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's BasePlugin API.
 react:
+  id: wi27fiwz
   metaTitle: BasePlugin - React Data Grid | Handsontable
 ---
 

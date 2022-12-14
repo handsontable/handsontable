@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's CellCoord API.
 react:
+  id: ufhe1gsm
   metaTitle: CellCoords - React Data Grid | Handsontable
 ---
 

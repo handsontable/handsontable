@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the MergeCells plugin with its API options and methods to merge adjacent cells, using the "Ctrl + M" shortcut or the right-click context menu.
 react:
+  id: 62cv5ecx
   metaTitle: MergeCells - React Data Grid | Handsontable
 ---
 

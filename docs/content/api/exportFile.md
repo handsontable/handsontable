@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Export your grid's data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
 react:
+  id: qsmpym52
   metaTitle: ExportFile - React Data Grid | Handsontable
 ---
 

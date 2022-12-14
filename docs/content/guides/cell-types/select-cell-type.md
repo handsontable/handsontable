@@ -6,6 +6,7 @@ description: Use the select cell type to collect user input with an HTML <select
 permalink: /select-cell-type
 canonicalUrl: /select-cell-type
 react:
+  id: xmdreeu3
   metaTitle: Select cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---

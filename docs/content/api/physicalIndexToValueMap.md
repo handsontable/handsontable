@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's PhysicalIndexToValueMap API.
 react:
+  id: 8f31lcaa
   metaTitle: PhysicalIndexToValueMap - React Data Grid | Handsontable
 ---
 

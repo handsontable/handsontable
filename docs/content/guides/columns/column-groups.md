@@ -10,6 +10,7 @@ tags:
   - nestedHeaders
   - collapsing columns
 react:
+  id: 2ei1omu0
   metaTitle: Column groups - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the CustomBorders plugin with its API options, members, and methods to set up custom borders for your cells, programmatically or using the context menu.
 react:
+  id: 93acldzf
   metaTitle: CustomBorders - React Data Grid | Handsontable
 ---
 

@@ -7,6 +7,8 @@ canonicalUrl: /api/hidden-columns
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+react:
+  id: crwccrpj
 ---
 
 # HiddenColumns

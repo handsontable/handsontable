@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's GhostTable API.
 react:
+  id: bbq83v9b
   metaTitle: GhostTable - React Data Grid | Handsontable
 ---
 

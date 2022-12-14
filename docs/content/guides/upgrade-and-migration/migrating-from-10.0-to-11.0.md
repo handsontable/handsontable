@@ -7,6 +7,7 @@ permalink: /migration-from-10.0-to-11.0
 canonicalUrl: /migration-from-10.0-to-11.0
 pageClass: migration-guide
 react:
+  id: sney23fh
   metaTitle: Migrate from 10.0 to 11.0 - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the CopyPaste plugin with its API options, members, and methods to enable the copy/paste functionality, through the API, the context menu, and keyboard shortcuts.
 react:
+  id: g6fi2a6i
   metaTitle: CopyPaste - React Data Grid | Handsontable
 ---
 

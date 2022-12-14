@@ -8,6 +8,7 @@ canonicalUrl: /column-menu
 tags:
   - dropdown menu
 react:
+  id: uc7w8gu1
   metaTitle: Column menu - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -7,6 +7,7 @@ permalink: /api/
 canonicalUrl: /api/
 searchCategory: API Reference
 react:
+  id: 45svfigt
   metaTitle: API reference - React Data Grid | Handsontable
 ---
 

@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's DataMap API.
 react:
+  id: a2342zyo
   metaTitle: DataMap - React Data Grid | Handsontable
 ---
 

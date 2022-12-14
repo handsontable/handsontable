@@ -6,6 +6,7 @@ description: Use the password cell type to mask confidential values by rendering
 permalink: /password-cell-type
 canonicalUrl: /password-cell-type
 react:
+  id: gydne13d
   metaTitle: Password cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---

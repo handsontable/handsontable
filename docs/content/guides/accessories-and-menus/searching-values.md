@@ -10,6 +10,7 @@ tags:
   - highlight values
   - search values
 react:
+  id: 48lhnrbd
   metaTitle: Searching values - React Data Grid | Handsontable
 searchCategory: Guides
 ---

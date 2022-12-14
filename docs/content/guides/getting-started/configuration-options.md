@@ -9,6 +9,7 @@ tags:
   - properties
   - config
 react:
+  id: gmpbmisy
   metaTitle: Configuration options - React Data Grid | Handsontable
 searchCategory: Guides
 ---

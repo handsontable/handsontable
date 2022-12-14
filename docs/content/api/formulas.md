@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the Formulas plugin with its API options, members, and methods to perform Excel-like calculations in your business application.
 react:
+  id: of6l92wv
   metaTitle: Formulas - React Data Grid | Handsontable
 ---
 

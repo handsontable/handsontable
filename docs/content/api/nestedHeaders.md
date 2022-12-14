@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the NestedHeaders plugin with its API options and methods to group your columns, using multiple levels of nested column headers.
 react:
+  id: 8qwzxi9i
   metaTitle: NestedHeaders - React Data Grid | Handsontable
 ---
 

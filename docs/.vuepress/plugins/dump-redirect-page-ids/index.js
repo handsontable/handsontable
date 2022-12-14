@@ -17,7 +17,11 @@ module.exports = (options, context) => {
      * @param {object} $page The $page value of the page you’re currently reading.
      */
     async extendPageData($page) {
-      const pageId = `${$page.currentFramework}-${$page.frontmatter.id}`;
+      const pageId = $page.frontmatter.id;
+
+      if ($page.regularPath !== '/404.html' && !pageId) {
+        throw new Error(`The pageId for the page ${$page.regularPath} is missing`);
+      }
 
       if (pageIdsMap.has(pageId)) {
         throw new Error(`The pageId (${pageId}) is already taken!`);

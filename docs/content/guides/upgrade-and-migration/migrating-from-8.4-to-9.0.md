@@ -7,6 +7,7 @@ permalink: /migration-from-8.4-to-9.0
 canonicalUrl: /migration-from-8.4-to-9.0
 pageClass: migration-guide
 react:
+  id: yns5r79k
   metaTitle: Migrate from 8.4 to 9.0 - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -6,6 +6,7 @@ description: Change the order of rows, either manually (dragging them to another
 permalink: /row-moving
 canonicalUrl: /row-moving
 react:
+  id: g5mksyu1
   metaTitle: Row moving - React Data Grid | Handsontable
 searchCategory: Guides
 ---

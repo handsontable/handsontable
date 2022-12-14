@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the TrimRows plugin with its API options and methods to remove rows from the table view and the DataMap.
 react:
+  id: ysqsy1ec
   metaTitle: TrimRows - React Data Grid | Handsontable
 ---
 

@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the AutoRowSize plugin with its API options, members, and methods to set row heights based on the highest cell in a given row.
 react:
+  id: 8bcocfq1
   metaTitle: AutoRowSize - React Data Grid | Handsontable
 ---
 

@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: A complete list of Handsontable's API hooks (callbacks) that let you run your code before or after specific data grid actions.
 react:
+  id: u5rih2o2
   metaTitle: Hooks API reference - React Data Grid | Handsontable
 ---
 

@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's Menu API.
 react:
+  id: 2eifxhv3
   metaTitle: Menu - React Data Grid | Handsontable
 ---
 

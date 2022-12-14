@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the Filters plugin with its API members and methods to filter the view (not the source data) by a value or by a combination of conditions.
 react:
+  id: vxwvhi0e
   metaTitle: Filters - React Data Grid | Handsontable
 ---
 

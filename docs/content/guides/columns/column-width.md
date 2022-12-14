@@ -12,9 +12,10 @@ tags:
   - width
   - max-width
   - min-width
-  - column dimmensions
+  - column dimensions
   - manual resize
 react:
+  id: gr6w8qsy
   metaTitle: Column widths - React Data Grid | Handsontable
 searchCategory: Guides
 ---

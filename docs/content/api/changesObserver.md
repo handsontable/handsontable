@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's ChangesObserver API.
 react:
+  id: v5k5tou4
   metaTitle: ChangesObserver - React Data Grid | Handsontable
 ---
 

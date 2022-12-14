@@ -10,6 +10,7 @@ tags:
   - batching
   - performance
 react:
+  id: 3xqdvk3u
   metaTitle: Batch operations - React Data Grid | Handsontable
 searchCategory: Guides
 ---

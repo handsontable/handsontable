@@ -11,6 +11,7 @@ tags:
   - L10n
   - i18n
 react:
+  id: 1ueuuazs
   metaTitle: Locale - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -9,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: A complete list of the public API methods of Handsontable's core that let you control your data grid programmatically.
 react:
+  id: 6kcorabp
   metaTitle: Core methods API reference - React Data Grid | Handsontable
 ---
 

@@ -9,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the ColumnSorting plugin with its API options and methods to sort the view (not the source data) by column.
 react:
+  id: lpx62nle
   metaTitle: ColumnSorting - React Data Grid | Handsontable
 ---
 

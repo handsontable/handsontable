@@ -11,6 +11,7 @@ tags:
   - height
   - dimensions
 react:
+  id: cifepxzs
   metaTitle: Grid size - React Data Grid | Handsontable
 searchCategory: Guides
 ---

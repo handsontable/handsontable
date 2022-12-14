@@ -6,6 +6,7 @@ description: Merge adjacent cells, using the "Ctrl + M" shortcut or the right-cl
 permalink: /merge-cells
 canonicalUrl: /merge-cells
 react:
+  id: ulndkavi
   metaTitle: Merge cells - React Data Grid | Handsontable
 searchCategory: Guides
 ---
