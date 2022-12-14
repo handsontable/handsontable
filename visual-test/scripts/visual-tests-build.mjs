@@ -3,25 +3,20 @@ import path from 'path';
 import execa from 'execa';
 import fse from 'fs-extra';
 
+import { exec, spawn } from 'child_process';
+
 const baseBranch = 'develop';
-// const dockerImage = 'mcr.microsoft.com/playwright:v1.28.1-focal';
 const currentBranchName = (await execa.command('git rev-parse --abbrev-ref HEAD', { silent: true })).stdout;
+
 // Main wrapper should be defined as a first one -
 // it will be used to generate golden screenshots,
 // rest of wrappers will be compared to it.
 const wrappers = ['js', 'angular-13', 'react', 'vue'];
 // const version = '12.2.0';
 
-// execa.command('git config --global --add safe.directory /__w/handsontable-visual-testing/handsontable-visual-testing');
-
-if (process.env.docker) {
-  // await execa.command(`docker pull ${dockerImage}`, { stdout: 'inherit' });
-  // await execa.command(`docker run -v ${process.cwd()}/../:tests -w /tests --rm -i ${dockerImage} /bin/bash`);
-}
-
 // await execa.command('npx playwright install --with-deps');
 
-const tests = [];
+// const tests = [];
 
 // If we are on a base branch, we do not want to run all of tests
 // and make screenshots for all of wrappers.
@@ -32,22 +27,27 @@ process.chdir('../examples/next/visual-tests');
 execa.command('npm install');
 
 for (let i = 0, maxi = (currentBranchName === baseBranch ? 1 : wrappers.length); i < maxi; ++i) {
-  tests.push(await process.chdir(`${wrappers[i]}/demo`));
+  process.chdir(`${wrappers[i]}/demo`);
 
   // eslint-disable-next-line no-await-in-loop
-  tests.push(await execa.command('npm install', { stdout: 'inherit' }));
-  tests.push(await execa.command('npm run build', { stdout: 'inherit' }));
-  // tests.push(await execa.command('npm run start', { stdout: 'inherit' }));
-  tests.push(await process.chdir('../../../../../visual-test'));
+  await execa.command('npm install', { stdout: 'inherit' });
+  // eslint-disable-next-line no-await-in-loop
+  await execa.command('npm run build', { stdout: 'inherit' });
+  // eslint-disable-next-line no-await-in-loop
+  // spawn('npm.cmd', ['run start']);
+  execa.command('npm run start', { stdout: 'inherit' });
 
-  tests.push(await execa.command('npx playwright test', { env: { HOT_WRAPPER: wrappers[i] }, stdout: 'inherit' }));
+  process.chdir('../../../../../visual-test');
+
+  // eslint-disable-next-line no-await-in-loop
+  await execa.command('npx playwright test', { env: { HOT_WRAPPER: wrappers[i] }, stdout: 'inherit' });
 
   if (i !== maxi - 1) {
-    tests.push(await process.chdir('../examples/next/visual-tests'));
+    process.chdir('../examples/next/visual-tests');
   }
 }
 
-await Promise.all(tests);
+// await Promise.all(tests);
 
 if (currentBranchName === baseBranch) {
   // Golden screenshots are already done,
