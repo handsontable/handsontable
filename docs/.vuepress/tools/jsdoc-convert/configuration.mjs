@@ -357,7 +357,7 @@ export default {
         metaTitle: 'ChangesObserver - React Data Grid | Handsontable',
       },
     },
-    'CreateShortcutManager.md': {
+    'createShortcutManager.md': {
       id: 'wt56lf3y',
       metaTitle: 'CreateShortcutManager - JavaScript Data Grid | Handsontable',
       description: 'Options, members, and methods of Handsontable\'s CreateShortcutManager API.',
