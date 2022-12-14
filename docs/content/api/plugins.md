@@ -7,6 +7,7 @@ permalink: /api/plugins
 canonicalUrl: /api/plugins
 searchCategory: API Reference
 react:
+  id: pebna1cf
   metaTitle: 'API reference: Plugins - React Data Grid | Handsontable'
 ---
 

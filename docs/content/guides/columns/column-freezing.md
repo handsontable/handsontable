@@ -11,6 +11,7 @@ tags:
   - pinning columns
   - fixedColumns
 react:
+  id: otumcpty
   metaTitle: Column freezing - React Data Grid | Handsontable
 searchCategory: Guides
 ---

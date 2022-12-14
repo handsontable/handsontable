@@ -8,6 +8,7 @@ canonicalUrl: /bundle-size
 tags:
   - size
 react:
+  id: c8onyes4
   metaTitle: Bundle size - React Data Grid | Handsontable
 searchCategory: Guides
 ---

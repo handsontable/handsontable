@@ -10,6 +10,7 @@ tags:
   - bind rows with headers
   - row id
 react:
+  id: prlcpqk8
   metaTitle: Row headers - React Data Grid | Handsontable
 searchCategory: Guides
 ---

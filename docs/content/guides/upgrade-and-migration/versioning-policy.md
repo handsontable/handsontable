@@ -6,6 +6,7 @@ description: Handsontable follows the principles of Semantic Versioning (SemVer)
 permalink: /versioning-policy
 canonicalUrl: /versioning-policy
 react:
+  id: avrihx7w
   metaTitle: Versioning policy - React Data Grid | Handsontable
 searchCategory: Guides
 ---

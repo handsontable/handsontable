@@ -8,6 +8,7 @@ canonicalUrl: /performance
 tags:
   - speed
 react:
+  id: gbdbrlc8
   metaTitle: Performance - React Data Grid | Handsontable
 searchCategory: Guides
 ---

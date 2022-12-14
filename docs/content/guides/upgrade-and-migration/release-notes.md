@@ -12,6 +12,7 @@ tags:
   - upgrade
   - breaking change
 react:
+  id: 7y9fco03
   metaTitle: Release notes - React Data Grid | Handsontable
 searchCategory: Guides
 ---

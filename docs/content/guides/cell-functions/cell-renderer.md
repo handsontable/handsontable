@@ -6,6 +6,7 @@ description: Create a custom cell renderer function, to have full control over h
 permalink: /cell-renderer
 canonicalUrl: /cell-renderer
 react:
+  id: 2ej30mcg
   metaTitle: Cell renderer - React Data Grid | Handsontable
 searchCategory: Guides
 ---

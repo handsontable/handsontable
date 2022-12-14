@@ -6,6 +6,7 @@ description: Use default column headers (A, B, C), or set them to custom values 
 permalink: /column-header
 canonicalUrl: /column-header
 react:
+  id: 5e0tnexi
   metaTitle: Column headers - React Data Grid | Handsontable
 searchCategory: Guides
 ---

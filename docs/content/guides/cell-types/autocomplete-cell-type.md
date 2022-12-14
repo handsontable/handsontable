@@ -6,6 +6,7 @@ description: Collect user input with a list of choices, by using the autocomplet
 permalink: /autocomplete-cell-type
 canonicalUrl: /autocomplete-cell-type
 react:
+  id: vnnvp396
   metaTitle: Autocomplete cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---

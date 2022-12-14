@@ -9,6 +9,7 @@ tags:
   - selecting ranges
   - cell selection
 react:
+  id: k88lznt8
   metaTitle: Selection - React Data Grid | Handsontable
 searchCategory: Guides
 ---

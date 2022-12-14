@@ -10,6 +10,7 @@ tags:
   - data connect
   - data sources
 react:
+  id: umdq9b9j
   metaTitle: Binding to data - React Data Grid | Handsontable
 searchCategory: Guides
 ---

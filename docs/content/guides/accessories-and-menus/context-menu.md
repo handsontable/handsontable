@@ -11,6 +11,7 @@ tags:
   - pop-up menu
   - right-click menu
 react:
+  id: r2x6mh6h
   metaTitle: Context menu - React Data Grid | Handsontable
 searchCategory: Guides
 ---

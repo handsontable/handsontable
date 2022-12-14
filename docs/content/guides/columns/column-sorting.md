@@ -6,6 +6,7 @@ description: Sort the view (not the source data) in ascending, descending, or a 
 permalink: /column-sorting
 canonicalUrl: /column-sorting
 react:
+  id: sf7d7hjc
   metaTitle: Column sorting - React Data Grid | Handsontable
 searchCategory: Guides
 ---

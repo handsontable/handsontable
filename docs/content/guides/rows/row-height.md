@@ -14,9 +14,10 @@ tags:
   - height
   - max-height
   - min-height
-  - row dimmensions
+  - row dimensions
   - manual resize
 react:
+  id: 87ulwfs2
   metaTitle: Row heights - React Data Grid | Handsontable
 searchCategory: Guides
 ---
