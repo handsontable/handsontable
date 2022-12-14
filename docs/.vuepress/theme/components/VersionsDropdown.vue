@@ -21,8 +21,14 @@ export default {
   },
   methods: {
     addLatest(version) {
-      if (version === this.$page.latestVersion) {
-        return `${version} (Current)`;
+      const latestMinor = this.$page.latestVersion;
+
+      if (version === latestMinor) {
+        if (version !== 'next') {
+          version = this.$page.versionsWithPatches.get(latestMinor)[0]; // Latest version in a format major.minor.patch
+        }
+
+        return `${version} (Latest)`;
       }
 
       return version;
@@ -34,43 +40,19 @@ export default {
 
       return `/docs/${version}/`;
     },
-    getLegacyVersions() {
-      return [
-        '8.4.0',
-        '8.3.2',
-        '8.2.0',
-        '8.1.0',
-        '8.0.0',
-        '7.4.2',
-        '7.3.0',
-        '7.2.2',
-        '7.1.1',
-        '7.0.3',
-        '6.2.2',
-        '6.1.1',
-        '6.0.1',
-        '5.0.2',
-        '4.0.0',
-      ].map(version => ({
-        text: version.replace(/\.\d+$/, ''),
-        link: `/docs/${version}/`,
-        target: '_blank',
-        isHtmlLink: true,
-      }));
-    }
   },
   mounted() {
     this.item = {
       text: this.addLatest(this.$page.currentVersion),
       items:
         [
-          ...this.$page.versions.map(v => ({
-            text: `${this.addLatest(v)}`,
+          ...Array.from(this.$page.versionsWithPatches.keys()).map(v => ({
+            text: v,
+            subTexts: this.$page.versionsWithPatches.get(v),
             link: this.getLink(v),
             target: '_self',
-            isHtmlLink: true
+            isHtmlLink: true,
           })),
-          ...this.getLegacyVersions()
         ]
     };
   }

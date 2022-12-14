@@ -72,46 +72,46 @@ const buildDependencyGetter = (version) => {
       'angular-platform-browser': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser@8/bundles/platform-browser.umd.min.js', [/* todo */]],
       'angular-platform-browser-dynamic': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser-dynamic@8/bundles/platform-browser-dynamic.umd.min.js', [/* todo */]],
       'hot-angular': [`https://cdn.jsdelivr.net/npm/@handsontable/angular@${mappedVersion}/bundles/handsontable-angular.umd.min.js`, [/* todo */]],
-      'hot-vue': [`https://cdn.jsdelivr.net/npm/@handsontable/vue@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */]],
-      'hot-vue3': [`https://cdn.jsdelivr.net/npm/@handsontable/vue3@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */]],
-      vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */]],
-      vuex: ['https://cdn.jsdelivr.net/npm/vuex@3/dist/vuex.min.js', [/* todo */]],
+      'hot-vue': [`https://cdn.jsdelivr.net/npm/@handsontable/vue@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */], null, 'hot-vue3'],
+      'hot-vue3': [`https://cdn.jsdelivr.net/npm/@handsontable/vue3@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */], null, 'hot-vue'],
+      vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */], null, 'vue3'],
+      vuex: ['https://cdn.jsdelivr.net/npm/vuex@3/dist/vuex.min.js', [/* todo */], null, 'vuex4'],
       'vue-color': ['https://cdn.jsdelivr.net/npm/vue-color@2/dist/vue-color.min.js', [/* todo */]],
       'vue-class-component': ['https://cdn.jsdelivr.net/npm/vue-class-component@7.1.0/dist/vue-class-component.min.js', [/* todo */]],
       'vue-star-rating': ['https://cdn.jsdelivr.net/npm/vue-star-rating@1/dist/VueStarRating.umd.min.js', [/* todo */]],
-      vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */]],
-      vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */]],
+      vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */], null, 'vue'],
+      vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex'],
       languages: [languagesJs, [/* todo */]],
     };
     /* eslint-enable max-len */
 
-    // [jsUrl, dependentVars[]?, cssUrl?]
+    // [jsUrl, dependentVars[]?, cssUrl?, globalVarSharedDependency?]
     return dependencies[dependency];
   };
 };
 
 const presetMap = {
   /* eslint-disable max-len */
-  hot: ['hot'],
-  'hot-lang': ['hot', 'languages'],
-  'hot-numbro': ['hot', 'numbro'],
-  react: ['hot', 'react', 'react-dom', 'hot-react', 'fixer', 'helpers'],
-  'react-languages': ['hot', 'languages', 'react', 'react-dom', 'hot-react', 'fixer', 'helpers'],
-  'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer', 'helpers'],
-  'react-redux': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer', 'helpers'],
-  'react-advanced': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer', 'helpers', 'react-colorful', 'react-star-rating-component'],
-  angular: ['hot', 'fixer', 'helpers', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
-  'angular-languages': ['hot', 'languages', 'fixer', 'helpers', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
-  'angular-numbro': ['hot', 'numbro', 'fixer', 'helpers', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
-  vue: ['hot', 'vue', 'hot-vue', 'fixer', 'helpers'],
-  'vue-numbro': ['hot', 'numbro', 'vue', 'hot-vue', 'fixer', 'helpers'],
-  'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer', 'helpers'],
-  'vue-vuex': ['hot', 'vue', 'vuex', 'hot-vue', 'fixer', 'helpers'],
-  'vue-advanced': ['hot', 'vue', 'vuex', 'hot-vue', 'vue-color', 'vue-class-component', 'vue-star-rating', 'fixer', 'helpers'],
-  vue3: ['hot', 'vue3', 'hot-vue3', 'fixer', 'helpers'],
-  'vue3-numbro': ['hot', 'numbro', 'vue3', 'hot-vue3', 'fixer', 'helpers'],
-  'vue3-languages': ['hot', 'languages', 'vue3', 'hot-vue3', 'fixer', 'helpers'],
-  'vue3-vuex': ['hot', 'vue3', 'vuex4', 'hot-vue3', 'fixer', 'helpers'],
+  hot: ['hot', 'fixer'],
+  'hot-lang': ['hot', 'languages', 'fixer'],
+  'hot-numbro': ['hot', 'numbro', 'fixer'],
+  react: ['hot', 'react', 'react-dom', 'hot-react', 'fixer'],
+  'react-languages': ['hot', 'languages', 'react', 'react-dom', 'hot-react', 'fixer'],
+  'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
+  'react-redux': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer'],
+  'react-advanced': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer', 'react-colorful', 'react-star-rating-component'],
+  angular: ['hot', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
+  'angular-languages': ['hot', 'languages', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
+  'angular-numbro': ['hot', 'numbro', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
+  vue: ['hot', 'vue', 'hot-vue', 'fixer'],
+  'vue-numbro': ['hot', 'numbro', 'vue', 'hot-vue', 'fixer'],
+  'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer'],
+  'vue-vuex': ['hot', 'vue', 'vuex', 'hot-vue', 'fixer'],
+  'vue-advanced': ['hot', 'vue', 'vuex', 'hot-vue', 'vue-color', 'vue-class-component', 'vue-star-rating', 'fixer'],
+  vue3: ['hot', 'vue3', 'hot-vue3', 'fixer'],
+  'vue3-numbro': ['hot', 'numbro', 'vue3', 'hot-vue3', 'fixer'],
+  'vue3-languages': ['hot', 'languages', 'vue3', 'hot-vue3', 'fixer'],
+  'vue3-vuex': ['hot', 'vue3', 'vuex4', 'hot-vue3', 'fixer'],
   /* eslint-enable max-len */
 };
 

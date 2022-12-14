@@ -1,6 +1,7 @@
 /**
  * @preserve
- * Last updated: Mar 05, 2018
+ * Authors: Handsoncode, Enrique Enciso
+ * Last updated: Nov 18, 2022
  *
  * Description: Definition file for Spanish - Mexico language-country.
  */
@@ -47,6 +48,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Separar celdas',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Copiar',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Copiar con encabezado', 'Copiar con encabezados'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Copiar con encabezado de grupo',
+    'Copiar con encabezados de grupos'
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Copiar solo el encabezado', 'Copiar solo los encabezados'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Cortar',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Insertar fila hija',

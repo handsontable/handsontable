@@ -30,20 +30,29 @@ To declare column-specific settings, pass the settings as `hot-column` propertie
 ```
 
 ```js
-import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
 import { registerAllModules } from 'handsontable/registry';
-import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-new Vue({
-  el: '#example1',
+const ExampleComponent = {
   data: function() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: [
+          ['A1', 'B1'],
+          ['A2', 'B2'],
+          ['A3', 'B3'],
+          ['A4', 'B4'],
+          ['A5', 'B5'],
+          ['A6', 'B6'],
+          ['A7', 'B7'],
+          ['A8', 'B8'],
+          ['A9', 'B9'],
+          ['A10', 'B10'],
+        ],
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation',
       },
@@ -56,7 +65,16 @@ new Vue({
     HotTable,
     HotColumn
   }
+}
+
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+new Vue({
+  ...ExampleComponent,
+  el: '#example1',
 });
+/* end:skip-in-preview */
 ```
 :::
 
@@ -165,7 +183,17 @@ const App = new Vue({
   data() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: [
+          ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+          ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+          ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6', 'I6', 'J6'],
+          ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7', 'I7', 'J7'],
+          ['A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', 'I8', 'J8'],
+          ['A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'I9', 'J9'],
+        ],
         autoRowSize: false,
         autoColumnSize: false,
         height: 'auto',
@@ -192,7 +220,7 @@ To prevent this problem, it is possible to pass the `wrapperRendererCacheSize` o
 
 You can also utilize the Vue 2 components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/vue`.
 
-This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the [`getValue`](@/api/baseEditor.md#getvalue), [`setValue`](@/api/baseEditor.md#setvalue), [`open`](@/api/baseEditor.md#open), [`close`](@/api/baseEditor.md#close), and [`focus`](@/api/baseEditor.md#focus) methods. These are abstract in the `BaseEditor`. For more info, check the documentation on [creating custom editors from scratch](@/guides/cell-functions/cell-editor.md#selecteditor-creating-editor-from-scratch).
+This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the [`getValue`](@/api/baseEditor.md#getvalue), [`setValue`](@/api/baseEditor.md#setvalue), [`open`](@/api/baseEditor.md#open), [`close`](@/api/baseEditor.md#close), and [`focus`](@/api/baseEditor.md#focus) methods. These are abstract in the `BaseEditor`. For more info, check the documentation on [creating custom editors from scratch](@/guides/cell-functions/cell-editor.md#how-to-create-a-custom-editor).
 
 ::: example #custom-editor-example :vue --html 1 --js 2
 ```html
@@ -374,7 +402,17 @@ const App = new Vue({
   data() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(10, 1)  ,
+        data: [
+          ['A1'],
+          ['A2'],
+          ['A3'],
+          ['A4'],
+          ['A5'],
+          ['A6'],
+          ['A7'],
+          ['A8'],
+          ['A9'],
+        ],
         licenseKey: 'non-commercial-and-evaluation',
         autoRowSize: false,
         autoColumnSize: false,

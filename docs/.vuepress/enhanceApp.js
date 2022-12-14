@@ -1,6 +1,5 @@
 /* global GA_ID, ga */
 const { applyToWindow, instanceRegister } = require('./handsontable-manager');
-const { themeLoader } = require('./themeLoader');
 
 applyToWindow();
 
@@ -80,10 +79,11 @@ export default async({ router, siteData, isServer }) => {
     const docsVersion = canonicalURLs.get(canonicalShortUrl);
     const docsVersionPath = docsVersion === '' ? '' : `/${docsVersion}`;
 
-    frontmatter.canonicalUrl = `/docs${docsVersionPath}/${canonicalShortUrl}/`;
+    frontmatter.canonicalUrl = `${page.hostname}/docs${docsVersionPath}/${canonicalShortUrl}/`;
 
     page.versions = docsData.versions;
     page.latestVersion = docsData.latestVersion;
+    page.versionsWithPatches = new Map(docsData.versionsWithPatches);
   });
 
   router.options.scrollBehavior = function(to, from, savedPosition) {
@@ -126,8 +126,6 @@ export default async({ router, siteData, isServer }) => {
 
     return scrollPromise;
   };
-
-  themeLoader();
 
   if (typeof window.ga === 'function') {
     router.afterEach((to) => {

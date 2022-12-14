@@ -16,6 +16,7 @@ const docsDataCommon = {
   versions: [],
   latestVersion: '',
   urls: [],
+  versionsWithPatches: [],
 };
 
 module.exports = (options, context) => {
@@ -53,6 +54,7 @@ module.exports = (options, context) => {
       docsDataCommon.urls = Array.from(canonicalURLs);
       docsDataCommon.versions = docsVersions.versions;
       docsDataCommon.latestVersion = docsVersions.latestVersion;
+      docsDataCommon.versionsWithPatches = docsVersions.versionsWithPatches;
 
       try {
         await fsp.writeFile(`${outputDir}/common.json`, JSON.stringify(docsDataCommon));

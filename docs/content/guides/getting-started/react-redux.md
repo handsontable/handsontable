@@ -27,7 +27,6 @@ The following example implements the `@handsontable/react` component with a [`re
 
 ::: example #example1 :react-redux
 ```jsx
-import Handsontable from 'handsontable';
 import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { createStore } from 'redux';
@@ -39,10 +38,10 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotSettings = useSelector(state => state);
   const dispatch = useDispatch();
-  const hotTableComponent = useRef(null);
+  const hotTableComponentRef = useRef(null);
 
   const hotData = hotSettings.data;
   const isHotData = Array.isArray(hotData);
@@ -76,7 +75,7 @@ const ExampleComponent = () => {
           </div>
 
           <HotTable
-            ref={hotTableComponent}
+            ref={hotTableComponentRef}
             beforeChange={onBeforeHotChange}
             {...hotSettings}
           />
@@ -118,7 +117,13 @@ const ExampleComponent = () => {
 };
 
 const initialReduxStoreState = {
-  data: Handsontable.helper.createSpreadsheetData(5, 3),
+  data: [
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+    ['A3', 'B3', 'C3'],
+    ['A4', 'B4', 'C4'],
+    ['A5', 'B5', 'C5'],
+  ],
   colHeaders: true,
   rowHeaders: true,
   readOnly: false,
@@ -166,20 +171,23 @@ ReactDOM.render(
 
 This example shows:
 - A [custom editor](@/guides/cell-functions/cell-editor.md#component-based-editors) component (built with an external dependency, `HexColorPicker`). This component acts both as an editor and as a renderer.
-- A [custom renderer](@/guides/cell-functions/cell-renderer.md#declaring-a-custom-renderer-as-a-component) component, built with an external dependency (`StarRatingComponent`).
+- A [custom renderer](@/guides/cell-functions/cell-renderer.md#declare-a-custom-renderer-as-a-component) component, built with an external dependency (`StarRatingComponent`).
 
 The editor component changes the behavior of the renderer component, by passing information through Redux (and the `connect()` method of `react-redux`).
 
 ::: example #example6 :react-advanced --tab preview
 ```jsx
 import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
 import { HexColorPicker } from 'react-colorful';
 import StarRatingComponent from 'react-star-rating-component';
 import { Provider, connect } from 'react-redux';
 import { createStore, combineReducers } from 'redux';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
 
 // a custom editor component
 class UnconnectedColorPicker extends BaseEditorComponent {
@@ -398,7 +406,7 @@ const data = [
     [5, '#eb144c', '#abb8c3']
 ];
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   useEffect(() => {
     reduxStore.dispatch({
       type: 'initRatingColors',
@@ -413,6 +421,7 @@ const ExampleComponent = () => {
         rowHeaders={true}
         rowHeights={30}
         colHeaders={['Rating', 'Active star color', 'Inactive star color']}
+        height="auto"
         licenseKey="non-commercial-and-evaluation"
       >
         <HotColumn width={100} type={'numeric'}>

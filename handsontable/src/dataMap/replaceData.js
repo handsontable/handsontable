@@ -31,6 +31,7 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
     dataSource,
     internalSource,
     source,
+    metaManager,
     firstRun
   } = config;
   const capitalizedInternalSource = toUpperCaseFirst(internalSource);
@@ -50,7 +51,7 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
 
   data = hotInstance.runHooks(`before${capitalizedInternalSource}`, data, firstRun, source);
 
-  const newDataMap = new DataMap(hotInstance, data, tableMeta);
+  const newDataMap = new DataMap(hotInstance, data, metaManager);
 
   // We need to apply the new dataMap immediately, because of some asynchronous logic in the
   // `autoRowSize`/`autoColumnSize` plugins.

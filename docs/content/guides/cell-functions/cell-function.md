@@ -37,7 +37,7 @@ Cell editors are the most complex cell functions. We have prepared a separate pa
 
 ## Validator
 
-Cell validator can be either a function or a regular expression. A cell is considered valid, when the validator function calls a `callback` (passed as one of the `validator` arguments) with `true` or the validation regex [test()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test) method returns `true`. Because the validity of a value is determined only by the argument that is passed to `callback`, `validator` function can be synchronous or asynchronous.
+Cell validator can be either a function or a regular expression. A cell is considered valid, when the validator function calls a `callback` (passed as one of the `validator` arguments) with `true` or the validation regex [`test()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test) method returns `true`. Because the validity of a value is determined only by the argument that is passed to `callback`, `validator` function can be synchronous or asynchronous.
 
 Contrary to `renderer` and `editor` functions, the `validator` function doesn't have to be defined for each cell. If the `validator` function is not defined, then a cell value is always valid.
 
@@ -70,8 +70,10 @@ However, you have to remember that [`getCellMeta()`](@/api/core.md#getcellmeta) 
 
 ::: only-for javascript
 ```js
-const container = document.querySelector('#container');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
   columns: [{
     type: 'numeric'
@@ -90,7 +92,7 @@ cellProperties.type; // "numeric"
 
 ::: only-for react
 ```jsx
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   useEffect(() => {

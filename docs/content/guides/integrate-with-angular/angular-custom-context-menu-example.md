@@ -1,7 +1,7 @@
 ---
 title: Custom context menu in Angular
 metaTitle: Custom context menu - Angular Data Grid | Handsontable
-description: Customize the right-click context menu of your Angular data grid, by creating a custom function for each menu item.
+description: Customize the context menu of your Angular data grid, by creating a custom function for each menu item.
 permalink: /angular-custom-context-menu-example
 canonicalUrl: /angular-custom-context-menu-example
 searchCategory: Guides
@@ -9,7 +9,7 @@ searchCategory: Guides
 
 # Custom context menu in Angular
 
-Customize the right-click context menu of your Angular data grid, by creating a custom function for each menu item.
+Customize the context menu of your Angular data grid, by creating a custom function for each menu item.
 
 [[toc]]
 
@@ -22,7 +22,7 @@ The following is an implementation of the `@handsontable/angular` component with
 <app-root></app-root>
 ```
 ```js
-// app.component.ts
+/* file: app.component.ts */
 import { Component } from '@angular/core';
 import Handsontable from 'handsontable/base';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
@@ -30,14 +30,20 @@ import { ContextMenu } from 'handsontable/plugins/contextMenu';
 @Component({
   selector: 'app-root',
   template: `
-  <div>
-    <hot-table [settings]="hotSettings"></hot-table>
-  </div>
+    <div>
+      <hot-table [settings]="hotSettings"></hot-table>
+    </div>
   `,
 })
-class AppComponent {
+export class AppComponent {
   hotSettings: Handsontable.GridSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 5),
+    data: [
+      ['A1', 'B1', 'C1', 'D1', 'E1'],
+      ['A2', 'B2', 'C2', 'D2', 'E2'],
+      ['A3', 'B3', 'C3', 'D3', 'E3'],
+      ['A4', 'B4', 'C4', 'D4', 'E4'],
+      ['A5', 'B5', 'C5', 'D5', 'E5'],
+    ],
     colHeaders: true,
     contextMenu: {
       items: {
@@ -59,26 +65,32 @@ class AppComponent {
   };
 }
 
-// app.module.ts
+/* file: app.module.ts */
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
 import { registerAllModules } from 'handsontable/registry';
+/* start:skip-in-compilation */
+import { AppComponent } from './app.component';
+/* end:skip-in-compilation */
 
 // register Handsontable's modules
 registerAllModules();
 
 @NgModule({
-  imports:      [ BrowserModule, HotTableModule ],
+  imports: [ BrowserModule, HotTableModule ],
   declarations: [ AppComponent ],
-  bootstrap:    [ AppComponent ]
+  bootstrap: [ AppComponent ]
 })
-class AppModule { }
+export class AppModule { }
 
-// bootstrap
+/* start:skip-in-preview */
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
-platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch(err => { console.error(err) });
+/* end:skip-in-preview */
 ```
 :::
 
@@ -87,7 +99,7 @@ platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error
 ### Related guides
 
 - [Context menu](@/guides/accessories-and-menus/context-menu.md)
-- [Adding comments via the context menu](@/guides/cell-features/comments.md#adding-comments-via-the-context-menu)
+- [Adding comments via the context menu](@/guides/cell-features/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard.md#context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack.md)
 

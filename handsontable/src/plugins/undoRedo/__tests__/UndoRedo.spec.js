@@ -297,6 +297,39 @@ describe('UndoRedo', () => {
           expect(getDataAtCell(2, 1)).toEqual('B1');
         });
 
+        it('should undo the removal of rows when the instance is configured with the `columns` option', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(3, 3),
+            columns: [
+              { data: 1 }
+            ]
+          });
+
+          alter('remove_row', 0, 3);
+
+          expect(countRows()).toEqual(0);
+          expect(countSourceRows()).toEqual(0);
+          expect(countCols()).toEqual(1);
+          expect(countSourceCols()).toEqual(0);
+
+          undo();
+
+          expect(countRows()).toEqual(3);
+          expect(countSourceRows()).toEqual(3);
+          expect(countCols()).toEqual(1);
+          expect(countSourceCols()).toEqual(3);
+
+          expect(getData(0, 0, 2, 0)).toEqual([
+            ['B1'], ['B2'], ['B3']
+          ]);
+
+          expect(getSourceData(0, 0, 2, 2)).toEqual([
+            ['A1', 'B1', 'C1'],
+            ['A2', 'B2', 'C2'],
+            ['A3', 'B3', 'C3'],
+          ]);
+        });
+
         it('should undo creation of a single column (colHeaders: undefined)', () => {
           const HOT = handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 3)

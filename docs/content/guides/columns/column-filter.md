@@ -23,13 +23,15 @@ The [`Filters`](@/api/filters.md) plugin allows filtering the data in the table'
 
 ## Basic configuration
 
-To enable the plugin, set the [`filters`](@/api/options.md#filters) configuration option to `true` and enable the filters dependency, which is the [dropdownMenu](@/guides/columns/column-menu.md) plugin.
+To enable the plugin, set the [`filters`](@/api/options.md#filters) configuration option to `true` and enable the filters dependency, which is the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
 
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
@@ -60,7 +62,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -68,7 +69,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -96,7 +97,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -109,8 +112,10 @@ To display filters while hiding the other elements in the dropdown menu, pass th
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   data: [
     ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
@@ -141,7 +146,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -149,7 +153,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -177,7 +181,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -189,15 +195,36 @@ The examples below show how to adjust the Filter plugin to your needs. They incl
 
 ### Filter as you type
 
-In this example, a basic `input` element has been placed inside a column’s header (A, B, C…). It is placed right below the column's label and is separated with a horizontal line for better visibility. The data is being filtered as you type - with a 100 ms delay. The filter element has been excluded from the selection event, so the column doesn’t get selected when clicked on.
+This example places a basic `input` element inside each column header (A, B, C), separated by a horizontal line. The data is being filtered as you type, with a 100 ms delay. The filter element is excluded from the selection event, so the column doesn’t get selected when clicked on.
 
-Please note that this demo uses a Handsontable API to a great extent.
+The demo below is just a demonstration (e.g., you can't add more columns). We don't recommend using it in your production code.
 
 ::: only-for javascript
 ::: example #example3
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+function debounce(func, wait = 200) {
+  let lastTimer = null;
+  let result;
+
+  function _debounce(...args) {
+    if (lastTimer) {
+      clearTimeout(lastTimer);
+    }
+    lastTimer = setTimeout(() => {
+      result = func.apply(this, args);
+    }, wait);
+
+    return result;
+  }
+
+  return _debounce;
+}
+
 // Event for `keydown` event. Add condition after delay of 200 ms which is counted from the time of last pressed key.
-const debounceFn = Handsontable.helper.debounce((colIndex, event) => {
+const debounceFn = debounce((colIndex, event) => {
   const filtersPlugin = hot.getPlugin('filters');
 
   filtersPlugin.removeConditions(colIndex);
@@ -271,8 +298,6 @@ const hot = new Handsontable(container, {
 ::: example #example3 :react
 ```jsx
 import { useEffect, useRef } from 'react';
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -280,7 +305,25 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+function debounce(func, wait = 200) {
+  let lastTimer = null;
+  let result;
+
+  function _debounce(...args) {
+    if (lastTimer) {
+      clearTimeout(lastTimer);
+    }
+    lastTimer = setTimeout(() => {
+      result = func.apply(this, args);
+    }, wait);
+
+    return result;
+  }
+
+  return _debounce;
+}
+
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
   let debounceFn = null;
 
@@ -320,7 +363,7 @@ const ExampleComponent = () => {
     const hot = hotRef.current.hotInstance;
 
     //  Event for `keydown` event. Add condition after delay of 200 ms which is counted from the time of last pressed key.
-    debounceFn = Handsontable.helper.debounce((colIndex, event) => {
+    debounceFn = debounce((colIndex, event) => {
       const filtersPlugin = hot.getPlugin('filters');
 
       filtersPlugin.removeConditions(colIndex);
@@ -358,7 +401,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -424,8 +469,29 @@ Note that selecting a column in the Filter component resets the state of the tab
 }
 ```
 ```js
-const arrayEach = Handsontable.helper.arrayEach;
-const curry = Handsontable.helper.curry;
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+function curry(func) {
+  const argsLength = func.length;
+
+  function given(argsSoFar) {
+    return function _curry(...params) {
+      const passedArgsSoFar = argsSoFar.concat(params);
+      let result;
+
+      if (passedArgsSoFar.length >= argsLength) {
+        result = func.apply(this, passedArgsSoFar);
+      } else {
+        result = given(passedArgsSoFar);
+      }
+
+      return result;
+    };
+  }
+
+  return given([]);
+}
 
 class DOMHelper {
   constructor(state, actions) {
@@ -459,7 +525,7 @@ class DOMHelper {
   fillSelectByColHeaders() {
     const colHeaders = this.state.getHeaders();
 
-    arrayEach(colHeaders, (colHeader, columnIndex) => {
+    colHeaders.forEach((colHeader, columnIndex) => {
       const option = document.createElement('option');
 
       option.text = colHeader;
@@ -473,7 +539,7 @@ class DOMHelper {
   }
 
   fillValueBoxByData() {
-    arrayEach(this.state.getData(), (cellData, rowIndex) => {
+    this.state.getData().forEach((cellData, rowIndex) => {
       const item = document.createElement('div');
 
       item.className = 'item';
@@ -554,14 +620,14 @@ class DOMHelper {
     if (this.state.allValuesChecked()) {
       this.state.addValuesToFilter();
 
-      arrayEach(this.inputs, function (inputDomElement) {
+      this.inputs.forEach(function (inputDomElement) {
         inputDomElement.checked = false;
       });
 
     } else {
       this.state.removeValuesForFilter();
 
-      arrayEach(this.inputs, function (inputDomElement) {
+      this.inputs.forEach(function (inputDomElement) {
         inputDomElement.checked = true;
       });
     }
@@ -657,7 +723,6 @@ class Controller {
 }
 
 const container = document.querySelector('#example4');
-
 const hot = new Handsontable(container, {
   data: [
     ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
@@ -680,7 +745,7 @@ const hot = new Handsontable(container, {
     new Controller(this, {
       selectedColumn: 0,
       addConditionsByValue: curry((values, column) => {
-        arrayEach(values, value => filtersPlugin.addCondition(column, 'not_contains', [value]));
+        values.forEach(value => filtersPlugin.addCondition(column, 'not_contains', [value]));
       }),
       filter: () => filtersPlugin.filter(),
       removeConditions: column => filtersPlugin.removeConditions(column)
@@ -695,8 +760,6 @@ const hot = new Handsontable(container, {
 ::: example #example4 :react
 ```jsx
 import React, { useEffect, useRef } from 'react';
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -704,7 +767,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [colHeaders, setColHeaders] = React.useState([]);
   const [selectedColumnIndex, setSelectedColumnIndex] = React.useState(0);
@@ -834,7 +897,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+/* end:skip-in-preview */
 ```
 :::
 :::

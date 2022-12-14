@@ -31,20 +31,22 @@ Don't enable the [`ColumnSorting`](@/api/columnSorting.md) and [`MultiColumnSort
 
 ## Basic plugin configuration
 
-The simplest way to enable the plugin is to set the [`columnSorting`](@/api/options.md#columnSorting) option to `true`. You will then be able to **use [the API methods](#api)** and **click on the header to sort**, as shown in the example below:
+The simplest way to enable the plugin is to set the [`columnSorting`](@/api/options.md#columnSorting) option to `true`. You will then be able to use [the API methods](@/api/columnSorting.md#methods) and click on the header to sort, as shown in the example below:
 
 By default:
 
 * No column will be sorted initially
 * A sorting indicator will be enabled
 * Empty cells won't be sorted
-* The sort method will use default compare functions - read more about them [here](#default-compare-functions)
+* The sort method will use default compare functions - read more about them [here](#default-compare-functions-sorting-different-kinds-of-data)
 
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
@@ -72,7 +74,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -80,7 +81,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -105,7 +106,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -130,8 +133,10 @@ See the example plugin configuration below:
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   data: [
     ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
@@ -165,7 +170,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -173,7 +177,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -204,7 +208,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -223,8 +229,10 @@ As a result, you can see that different types of data are sorted properly. `Hand
 ::: only-for javascript
 ::: example #example3
 ```js
-const container = document.querySelector('#example3');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   data: [
     { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
@@ -280,7 +288,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -288,7 +295,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -341,7 +348,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -365,13 +374,15 @@ The next section details how the plugin may be used just for certain columns.
 
 ## Plugin options for certain columns only
 
-The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator`, can be set just for a particular column. This can be done by using [columns](@/api/options.md#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**:
+The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator`, can be set just for a particular column. This can be done by using the [`columns`](@/api/options.md#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**:
 
 ::: only-for javascript
 ::: example #example4
 ```js
-const container = document.querySelector('#example4');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   data: [
     { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
@@ -433,7 +444,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example4 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -441,7 +451,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -500,7 +510,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -559,10 +571,10 @@ beforeColumnSort(currentSortConfig, destinationSortConfigs) {
 
 The plugin provides two hooks:
 
-* [beforeColumnSort](@/api/hooks.md#beforecolumnsort) runs before the sort
+* [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) runs before the sort
   * The sort configuration obtained by the [`getSortConfig`](@/api/columnSorting.md#getsortconfig) method within the callback will match the sort configuration preserved before the hook call
   * The callback for [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) will return `false` and stop the table from being sorted, which results in the [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) hook not being called
-* [afterColumnSort](@/api/hooks.md#aftercolumnsort) always runs after sorting unless the callback for [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) hook returns `false`
+* [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) always runs after sorting unless the callback for [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) hook returns `false`
 
 ::: tip
 Hooks are also run when you use the [`clearSort`](@/api/columnSorting.md#clearsort) method or provide a configuration that won't be processed, causing validation to fail.

@@ -76,7 +76,7 @@ The security audits were carried out in accordance with industry-standard method
 - OWASP Top 10
 - OWASP Application Security Verification Standard (ASVS)
 
-For detailed security reports, contact our [Support Team](https://handsontable.com/contact).
+For detailed security reports, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
 
 ## Code auditing
 

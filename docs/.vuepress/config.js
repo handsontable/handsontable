@@ -2,6 +2,7 @@ const path = require('path');
 const stylusNodes = require('stylus/lib/nodes');
 const highlight = require('./highlight');
 const examples = require('./containers/examples');
+const exampleWithoutTabs = require('./containers/example-without-tabs');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
@@ -17,8 +18,10 @@ const {
   getThisDocsVersion,
   MULTI_FRAMEWORKED_CONTENT_DIR,
 } = require('./helpers');
+const { getPermalinkHrefMethod } = require('./plugins/markdown-it-conditional-container/onlyForContainerHelpers');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
 
+const uniqueSlugs = new Set();
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
 const environmentHead = isProduction ?
@@ -66,9 +69,20 @@ module.exports = {
       src: 'https://consent.cookiebot.com/uc.js',
       'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646'
     }],
-    ['script', {}, `\
-var DOCS_VERSION = '${getThisDocsVersion()}';
-`],
+    ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
+    ['script', {}, `
+      (function(w, d) {
+        const osColorScheme = () => w.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
+        const preferredScheme = colorScheme ? colorScheme : osColorScheme();
+
+        if (preferredScheme === 'dark') {
+          d.documentElement.classList.add('theme-dark');
+        }
+
+        w.SELECTED_COLOR_SCHEME = preferredScheme;
+      }(window, document));
+    `],
     ...environmentHead
   ],
   markdown: {
@@ -78,24 +92,16 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
     },
     anchor: {
       permalinkSymbol: '',
-      permalinkHref(slug) {
-        // Remove the `-[number]` suffix from the permalink href attribute.
-        const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(slug);
-
-        if (duplicatedSlugsMatch) {
-          slug = duplicatedSlugsMatch[1];
-        }
-
-        return `#${slug}`;
-      },
+      permalinkHref: getPermalinkHrefMethod(uniqueSlugs),
       callback(token, slugInfo) {
+        // The map is filled in before by a legacy `permalinkHref` method.
         if (['h1', 'h2', 'h3'].includes(token.tag)) {
-          // Remove the `-[number]` suffix from the slugs and header IDs.
-          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrs[0][1]);
+          const duplicatedSlugsMatch = /(.*)-(\d)+$/.exec(token.attrGet('id'));
+          const slugWithoutNumber = duplicatedSlugsMatch?.[1];
 
-          if (duplicatedSlugsMatch) {
-            token.attrs[0][1] = duplicatedSlugsMatch[1];
-            slugInfo.slug = duplicatedSlugsMatch[1];
+          if (slugWithoutNumber && uniqueSlugs.has(slugWithoutNumber)) {
+            token.attrSet('id', slugWithoutNumber);
+            slugInfo.slug = slugWithoutNumber;
           }
         }
       }
@@ -130,6 +136,7 @@ var DOCS_VERSION = '${getThisDocsVersion()}';
       exclude: ['/404.html']
     }],
     ['container', examples(getThisDocsVersion(), getDocsBaseFullUrl())],
+    ['container', exampleWithoutTabs(getThisDocsVersion(), getDocsBaseFullUrl())],
     ['container', sourceCodeLink],
     {
       extendMarkdown(md) {

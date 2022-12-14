@@ -719,30 +719,35 @@ describe('HeadersTree', () => {
         colspan: 1,
         headerLevel: 0,
         columnIndex: 0,
+        isRoot: true,
       }));
       expect(tree.getNode(2, 0).data).toEqual(expect.objectContaining({
         label: 'C1',
         colspan: 1,
         headerLevel: 2,
         columnIndex: 0,
+        isRoot: true,
       }));
       expect(tree.getNode(2, 2).data).toEqual(expect.objectContaining({
         label: 'C3',
         colspan: 3,
         headerLevel: 2,
         columnIndex: 2,
+        isRoot: true,
       }));
       expect(tree.getNode(3, 4).data).toEqual(expect.objectContaining({
         label: 'D5',
         colspan: 1,
         headerLevel: 3,
         columnIndex: 4,
+        isRoot: true,
       }));
       expect(tree.getNode(0, 6).data).toEqual(expect.objectContaining({
         label: 'A3',
         colspan: 2,
         headerLevel: 0,
         columnIndex: 5,
+        isRoot: false,
       }));
       expect(tree.getNode(10, 6)).toBeUndefined();
       expect(tree.getNode(0, 10)).toBeUndefined();
