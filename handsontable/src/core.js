@@ -505,8 +505,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           } = datamap.createRow(index, amount, { source, mode: insertRowMode });
 
           if (rowDelta) {
-            metaManager.createRow(startRowPhysicalIndex, amount);
-
             const currentSelectedRange = selection.selectedRange.current();
             const currentFromRange = currentSelectedRange?.from;
             const currentFromRow = currentFromRange?.row;
@@ -564,8 +562,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           } = datamap.createCol(index, amount, { source, mode: insertColumnMode });
 
           if (colDelta) {
-            metaManager.createColumn(startColumnPhysicalIndex, amount);
-
             if (Array.isArray(tableMeta.colHeaders)) {
               const spliceArray = [instance.toVisualColumn(startColumnPhysicalIndex), 0];
 
@@ -631,8 +627,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 return;
               }
 
-              metaManager.removeRow(instance.toPhysicalRow(calcIndex), groupAmount);
-
               const totalRows = instance.countRows();
               const fixedRowsTop = tableMeta.fixedRowsTop;
 
@@ -684,8 +678,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               if (!wasRemoved) {
                 return;
               }
-
-              metaManager.removeColumn(physicalColumnIndex, groupAmount);
 
               const fixedColumnsStart = tableMeta.fixedColumnsStart;
 
@@ -1182,7 +1174,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (!!firstRun && instance.rootElement.offsetParent === null) {
-      observeVisibilityChangeOnce(instance.rootElement, () => instance.render());
+      observeVisibilityChangeOnce(instance.rootElement, () => {
+        // Update the spreader size cache before rendering.
+        instance.view._wt.wtOverlays.updateLastSpreaderSize();
+        instance.render();
+        instance.view.adjustElementsSize();
+      });
     }
 
     if (typeof firstRun === 'object') {
@@ -1354,9 +1351,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             delta: numberOfCreatedRows
           } = datamap.createRow(void 0, void 0, { source });
 
-          if (numberOfCreatedRows >= 1) {
-            metaManager.createRow(null, numberOfCreatedRows);
-          } else {
+          if (numberOfCreatedRows === 0) {
             skipThisChange = true;
             break;
           }
@@ -1370,9 +1365,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             delta: numberOfCreatedColumns
           } = datamap.createCol(void 0, void 0, { source });
 
-          if (numberOfCreatedColumns >= 1) {
-            metaManager.createColumn(null, numberOfCreatedColumns);
-          } else {
+          if (numberOfCreatedColumns === 0) {
             skipThisChange = true;
             break;
           }
@@ -2236,6 +2229,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         dataSource,
         internalSource: 'updateData',
         source,
+        metaManager,
         firstRun
       });
   };
@@ -2282,6 +2276,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         dataSource,
         internalSource: 'loadData',
         source,
+        metaManager,
         firstRun
       });
   };

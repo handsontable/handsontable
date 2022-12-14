@@ -2,6 +2,7 @@ import {
   getScrollableElement,
   getScrollbarWidth,
 } from '../../../helpers/dom/element';
+import { requestAnimationFrame } from '../../../helpers/feature';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { isChrome } from '../../../helpers/browser';
@@ -88,7 +89,15 @@ class Overlays {
    * @private
    * @type {ResizeObserver}
    */
-  resizeObserver = new ResizeObserver(() => this.wtSettings.getSetting('onContainerElementResize'));
+  resizeObserver = new ResizeObserver((entries) => {
+    requestAnimationFrame(() => {
+      if (!Array.isArray(entries) || !entries.length) {
+        return;
+      }
+
+      this.wtSettings.getSetting('onContainerElementResize');
+    });
+  });
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.
@@ -551,13 +560,9 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    const spreader = this.wtTable.spreader;
-    const width = spreader.clientWidth;
-    const height = spreader.clientHeight;
+    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
 
-    if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
-      this.spreaderLastSize.width = width;
-      this.spreaderLastSize.height = height;
+    if (wasSpreaderSizeUpdated) {
       this.adjustElementsSize();
     }
 
@@ -575,6 +580,25 @@ class Overlays {
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
       this.bottomInlineStartCornerOverlay.refresh(fastDraw);
     }
+  }
+
+  /**
+   * Update the last cached spreader size with the current size.
+   *
+   * @returns {boolean} `true` if the lastSpreaderSize cache was updated, `false` otherwise.
+   */
+  updateLastSpreaderSize() {
+    const spreader = this.wtTable.spreader;
+    const width = spreader.clientWidth;
+    const height = spreader.clientHeight;
+    const needsUpdating = width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height;
+
+    if (needsUpdating) {
+      this.spreaderLastSize.width = width;
+      this.spreaderLastSize.height = height;
+    }
+
+    return needsUpdating;
   }
 
   /**
