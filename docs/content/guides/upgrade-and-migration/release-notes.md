@@ -1,4 +1,5 @@
 ---
+id: nbp8i3mk
 title: Release notes
 metaTitle: Release notes - JavaScript Data Grid | Handsontable
 description: See the full history of changes made to Handsontable in each major, minor, and patch release.

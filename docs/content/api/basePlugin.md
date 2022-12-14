@@ -1,4 +1,5 @@
 ---
+id: wdr58c2w
 title: BasePlugin
 metaTitle: BasePlugin - JavaScript Data Grid | Handsontable
 permalink: /api/base-plugin
@@ -18,7 +19,7 @@ react:
 ## Members
 
 ### SETTING_KEYS
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/base/base.js#L40
 
 :::
@@ -35,7 +36,7 @@ config object.
 ## Methods
 
 ### addHook
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/base/base.js#L167
 
 :::
@@ -53,7 +54,7 @@ Add listener to plugin hooks system.
 
 
 ### callOnPluginsReady
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/base/base.js#L203
 
 :::
@@ -70,7 +71,7 @@ Register function which will be immediately called after all plugins initialized
 
 
 ### clearHooks
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/base/base.js#L191
 
 :::
@@ -82,7 +83,7 @@ Clear all hooks.
 
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/base/base.js#L295
 
 :::
@@ -94,7 +95,7 @@ Destroy plugin.
 
 
 ### disablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/base/base.js#L153
 
 :::
@@ -106,7 +107,7 @@ Disable plugin for this Handsontable instance.
 
 
 ### enablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/base/base.js#L146
 
 :::
@@ -118,7 +119,7 @@ Enable plugin for this Handsontable instance.
 
 
 ### removeHooks
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/base/base.js#L182
 
 :::
@@ -131,5 +132,3 @@ Remove all hooks listeners by hook name.
 | Param | Type | Description |
 | --- | --- | --- |
 | name | `string` | The hook name. |
-
-

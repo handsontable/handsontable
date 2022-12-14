@@ -1,4 +1,5 @@
 ---
+id: aq1vywt4
 title: Column moving
 metaTitle: Column moving - JavaScript Data Grid | Handsontable
 description: Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).

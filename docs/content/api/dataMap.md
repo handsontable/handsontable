@@ -1,4 +1,5 @@
 ---
+id: pt2wrekc
 title: DataMap
 metaTitle: DataMap - JavaScript Data Grid | Handsontable
 permalink: /api/data-map
@@ -24,7 +25,7 @@ Utility class that gets and saves data from/to the data source using mapping of 
 ## Members
 
 ### colToPropCache
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L105
 
 :::
@@ -36,7 +37,7 @@ Cached array of properties to columns.
 
 
 ### dataSource
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L93
 
 :::
@@ -48,7 +49,7 @@ Reference to the original dataset.
 
 
 ### DESTINATION_CLIPBOARD_GENERATOR
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L64
 
 :::
@@ -58,7 +59,7 @@ _DataMap.DESTINATION\_CLIPBOARD\_GENERATOR : number_
 
 
 ### DESTINATION_RENDERER
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L57
 
 :::
@@ -68,7 +69,7 @@ _DataMap.DESTINATION\_RENDERER : number_
 
 
 ### duckSchema
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L99
 
 :::
@@ -80,7 +81,7 @@ Generated schema based on the first row from the source data.
 
 
 ### propToColCache
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L111
 
 :::
@@ -93,7 +94,7 @@ Cached map of properties to columns.
 ## Methods
 
 ### clear
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L841
 
 :::
@@ -105,7 +106,7 @@ Clears the data array.
 
 
 ### colToProp
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L218
 
 :::
@@ -120,10 +121,10 @@ Returns property name that corresponds with the given column index.
 | column | `string` <br/> `number` | Visual column index or another passed argument. |
 
 
-**Returns**: `string` | `number` - Column property, physical column index or passed argument.  
+**Returns**: `string` | `number` - Column property, physical column index or passed argument.
 
 ### countCachedColumns
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L898
 
 :::
@@ -133,10 +134,10 @@ _dataMap.countCachedColumns() ⇒ number_
 Count the number of columns cached in the `colToProp` cache.
 
 
-**Returns**: `number` - Amount of cached columns.  
+**Returns**: `number` - Amount of cached columns.
 
 ### countFirstRowKeys
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L174
 
 :::
@@ -146,10 +147,10 @@ _dataMap.countFirstRowKeys() ⇒ number_
 Get the amount of physical columns in the first data row.
 
 
-**Returns**: `number` - Amount of physical columns in the first data row.  
+**Returns**: `number` - Amount of physical columns in the first data row.
 
 ### createCol
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L375
 
 :::
@@ -158,7 +159,7 @@ _dataMap.createCol([index], [amount], [options]) ⇒ number_
 
 Creates column at the right of the data array.
 
-**Emits**: [`Hooks#event:afterCreateCol`](@/api/hooks.md#aftercreatecol)  
+**Emits**: [`Hooks#event:afterCreateCol`](@/api/hooks.md#aftercreatecol)
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -169,10 +170,10 @@ Creates column at the right of the data array.
 | [options.mode] | `&#x27;start&#x27;` <br/> `&#x27;end&#x27;` |  | `optional` Sets where the column is inserted: at the start (left in [LTR](@/api/options.md#layoutdirection), right in [RTL](@/api/options.md#layoutdirection)) or at the end (right in LTR, left in LTR) the passed index. |
 
 
-**Returns**: `number` - Returns number of created columns.  
+**Returns**: `number` - Returns number of created columns.
 
 ### createMap
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L119
 
 :::
@@ -184,7 +185,7 @@ Generates cache for property to and from column addressation.
 
 
 ### createRow
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L293
 
 :::
@@ -193,7 +194,7 @@ _dataMap.createRow([index], [amount], [options]) ⇒ number_
 
 Creates row at the bottom of the data array.
 
-**Emits**: [`Hooks#event:afterCreateRow`](@/api/hooks.md#aftercreaterow)  
+**Emits**: [`Hooks#event:afterCreateRow`](@/api/hooks.md#aftercreaterow)
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -204,10 +205,10 @@ Creates row at the bottom of the data array.
 | [options.mode] | `&#x27;above&#x27;` <br/> `&#x27;below&#x27;` |  | `optional` Sets where the row is inserted: above or below the passed index. |
 
 
-**Returns**: `number` - Returns number of created rows.  
+**Returns**: `number` - Returns number of created rows.
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L973
 
 :::
@@ -219,7 +220,7 @@ Destroy instance.
 
 
 ### filterData
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L650
 
 :::
@@ -238,7 +239,7 @@ Filter unwanted data elements from the data source.
 
 
 ### get
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L670
 
 :::
@@ -256,7 +257,7 @@ Returns single value from the data array.
 
 
 ### getAll
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L875
 
 :::
@@ -268,7 +269,7 @@ Returns the data array.
 
 
 ### getCopyable
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L726
 
 :::
@@ -286,7 +287,7 @@ Returns single value from the data array (intended for clipboard copy to an exte
 
 
 ### getCopyableText
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L966
 
 :::
@@ -304,7 +305,7 @@ Return data as copyable text (tab separated columns intended for clipboard copy 
 
 
 ### getLength
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L854
 
 :::
@@ -316,7 +317,7 @@ Get data length.
 
 
 ### getRange
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L910
 
 :::
@@ -335,7 +336,7 @@ Returns data range as array.
 
 
 ### getSchema
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L268
 
 :::
@@ -347,7 +348,7 @@ Returns data's schema.
 
 
 ### getText
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L955
 
 :::
@@ -365,7 +366,7 @@ Return data as text (tab separated columns).
 
 
 ### propToCol
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L246
 
 :::
@@ -380,10 +381,10 @@ Translates property into visual column index.
 | prop | `string` <br/> `number` | Column property which may be also a physical column index. |
 
 
-**Returns**: `string` | `number` - Visual column index or passed argument.  
+**Returns**: `string` | `number` - Visual column index or passed argument.
 
 ### recursiveDuckColumns
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L186
 
 :::
@@ -402,7 +403,7 @@ Generates columns' translation cache.
 
 
 ### removeCol
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L512
 
 :::
@@ -411,7 +412,7 @@ _dataMap.removeCol([index], [amount], [source]) ⇒ boolean_
 
 Removes column from the data array.
 
-**Emits**: [`Hooks#event:beforeRemoveCol`](@/api/hooks.md#beforeremovecol), [`Hooks#event:afterRemoveCol`](@/api/hooks.md#afterremovecol)  
+**Emits**: [`Hooks#event:beforeRemoveCol`](@/api/hooks.md#beforeremovecol), [`Hooks#event:afterRemoveCol`](@/api/hooks.md#afterremovecol)
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -420,10 +421,10 @@ Removes column from the data array.
 | [source] | `string` |  | `optional` Source of method call. |
 
 
-**Returns**: `boolean` - Returns `false` when action was cancelled, otherwise `true`.  
+**Returns**: `boolean` - Returns `false` when action was cancelled, otherwise `true`.
 
 ### removeRow
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L462
 
 :::
@@ -432,7 +433,7 @@ _dataMap.removeRow([index], [amount], [source]) ⇒ boolean_
 
 Removes row from the data array.
 
-**Emits**: [`Hooks#event:beforeRemoveRow`](@/api/hooks.md#beforeremoverow), [`Hooks#event:afterRemoveRow`](@/api/hooks.md#afterremoverow)  
+**Emits**: [`Hooks#event:beforeRemoveRow`](@/api/hooks.md#beforeremoverow), [`Hooks#event:afterRemoveRow`](@/api/hooks.md#afterremoverow)
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -441,10 +442,10 @@ Removes row from the data array.
 | [source] | `string` |  | `optional` Source of method call. |
 
 
-**Returns**: `boolean` - Returns `false` when action was cancelled, otherwise `true`.  
+**Returns**: `boolean` - Returns `false` when action was cancelled, otherwise `true`.
 
 ### set
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L741
 
 :::
@@ -463,7 +464,7 @@ Saves single value to the data array.
 
 
 ### spliceCol
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L577
 
 :::
@@ -481,10 +482,10 @@ Add/Removes data from the column.
 | [...elements] | `Array` | `optional` The new columns to add. |
 
 
-**Returns**: `Array` - Returns removed portion of columns.  
+**Returns**: `Array` - Returns removed portion of columns.
 
 ### spliceData
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L628
 
 :::
@@ -503,7 +504,7 @@ Add/remove row(s) to/from the data source.
 
 
 ### spliceRow
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L604
 
 :::
@@ -521,10 +522,10 @@ Add/Removes data from the row.
 | [...elements] | `Array` | `optional` The new rows to add. |
 
 
-**Returns**: `Array` - Returns removed portion of rows.  
+**Returns**: `Array` - Returns removed portion of rows.
 
 ### visualColumnsToPhysical
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L820
 
 :::
@@ -540,7 +541,7 @@ _dataMap.visualColumnsToPhysical(index, amount) ⇒ Array_
 
 
 ### visualRowsToPhysical
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/dataMap.js#L796
 
 :::
@@ -556,5 +557,3 @@ as the visual (displayed) row id (e.g. When sorting is applied).
 | --- | --- | --- |
 | index | `number` | Visual row index. |
 | amount | `number` | An amount of rows to translate. |
-
-

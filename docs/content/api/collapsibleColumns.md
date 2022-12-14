@@ -1,4 +1,5 @@
 ---
+id: edkch5e6
 title: CollapsibleColumns
 metaTitle: CollapsibleColumns - JavaScript Data Grid | Handsontable
 permalink: /api/collapsible-columns
@@ -27,7 +28,7 @@ with a defined `colspan` property.
 To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property as an array
 of objects, as in the example below.
 
-**Example**  
+**Example**
 ::: only-for javascript
 ```js
 const container = document.getElementById('example');
@@ -84,7 +85,7 @@ const hot = new Handsontable(container, {
 ## Options
 
 ### collapsibleColumns
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/metaManager/metaSchema.js#L720
 
 :::
@@ -104,8 +105,8 @@ You can set the `collapsibleColumns` option to one of the following:
 Read more:
 - [Plugins: `CollapsibleColumns`](@/api/collapsibleColumns.md)
 
-**Default**: <code>undefined</code>  
-**Example**  
+**Default**: <code>undefined</code>
+**Example**
 ```js
 // enable column collapsing for all headers
 collapsibleColumns: true,
@@ -120,7 +121,7 @@ collapsibleColumns: [
 ## Methods
 
 ### collapseAll
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/collapsibleColumns/collapsibleColumns.js#L334
 
 :::
@@ -132,7 +133,7 @@ Collapses all collapsible sections.
 
 
 ### collapseSection
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/collapsibleColumns/collapsibleColumns.js#L300
 
 :::
@@ -149,7 +150,7 @@ Collapses section at the provided coords.
 
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/collapsibleColumns/collapsibleColumns.js#L545
 
 :::
@@ -161,7 +162,7 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/collapsibleColumns/collapsibleColumns.js#L230
 
 :::
@@ -173,7 +174,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### enablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/collapsibleColumns/collapsibleColumns.js#L167
 
 :::
@@ -185,7 +186,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### expandAll
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/collapsibleColumns/collapsibleColumns.js#L341
 
 :::
@@ -197,7 +198,7 @@ Expands all collapsible sections.
 
 
 ### expandSection
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/collapsibleColumns/collapsibleColumns.js#L291
 
 :::
@@ -214,7 +215,7 @@ Expands section at the provided coords.
 
 
 ### isEnabled
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/collapsibleColumns/collapsibleColumns.js#L160
 
 :::
@@ -227,7 +228,7 @@ hook and if it returns `true` then the [CollapsibleColumns#enablePlugin](@/api/c
 
 
 ### toggleAllCollapsibleSections
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/collapsibleColumns/collapsibleColumns.js#L309
 
 :::
@@ -244,7 +245,7 @@ Collapses or expand all collapsible sections, depending on the action parameter.
 
 
 ### toggleCollapsibleSection
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/collapsibleColumns/collapsibleColumns.js#L355
 
 :::
@@ -253,7 +254,7 @@ _collapsibleColumns.toggleCollapsibleSection(coords, [action])_
 
 Collapses/Expands a section.
 
-**Emits**: [`Hooks#event:beforeColumnCollapse`](@/api/hooks.md#beforecolumncollapse), [`Hooks#event:beforeColumnExpand`](@/api/hooks.md#beforecolumnexpand), [`Hooks#event:afterColumnCollapse`](@/api/hooks.md#aftercolumncollapse), [`Hooks#event:afterColumnExpand`](@/api/hooks.md#aftercolumnexpand)  
+**Emits**: [`Hooks#event:beforeColumnCollapse`](@/api/hooks.md#beforecolumncollapse), [`Hooks#event:beforeColumnExpand`](@/api/hooks.md#beforecolumnexpand), [`Hooks#event:afterColumnCollapse`](@/api/hooks.md#aftercolumncollapse), [`Hooks#event:afterColumnExpand`](@/api/hooks.md#aftercolumnexpand)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -263,7 +264,7 @@ Collapses/Expands a section.
 
 
 ### updatePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/collapsibleColumns/collapsibleColumns.js#L199
 
 :::
@@ -275,5 +276,3 @@ Updates the plugin's state.
 This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
   - [`collapsibleColumns`](@/api/options.md#collapsiblecolumns)
   - [`nestedHeaders`](@/api/options.md#nestedheaders)
-
-

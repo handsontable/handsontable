@@ -1,4 +1,5 @@
 ---
+id: a7a5mkrw
 title: Password cell type
 metaTitle: Password cell type - JavaScript Data Grid | Handsontable
 description: Use the password cell type to mask confidential values by rendering entered characters as symbols.

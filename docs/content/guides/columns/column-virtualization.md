@@ -1,4 +1,5 @@
 ---
+id: xv8sf6at
 title: Column virtualization
 metaTitle: Column virtualization - JavaScript Data Grid | Handsontable
 description: Render hundreds of columns without freezing the browser, using column virtualization.

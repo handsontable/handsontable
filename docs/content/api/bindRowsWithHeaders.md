@@ -1,4 +1,5 @@
 ---
+id: dxv2vk3l
 title: BindRowsWithHeaders
 metaTitle: BindRowsWithHeaders - JavaScript Data Grid | Handsontable
 permalink: /api/bind-rows-with-headers
@@ -22,7 +23,7 @@ Plugin allows binding the table rows with their headers.
 If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically, if
 at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
 
-**Example**  
+**Example**
 ::: only-for javascript
 ```js
 const container = document.getElementById('example');
@@ -47,7 +48,7 @@ const hot = new Handsontable(container, {
 ## Options
 
 ### bindRowsWithHeaders
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/metaManager/metaSchema.js#L486
 
 :::
@@ -66,8 +67,8 @@ You can set the `bindRowsWithHeaders` option to one of the following:
 Read more:
 - [Plugins: `BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
 
-**Default**: <code>undefined</code>  
-**Example**  
+**Default**: <code>undefined</code>
+**Example**
 ```js
 // enable the `BindRowsWithHeaders` plugin
 bindRowsWithHeaders: true
@@ -76,7 +77,7 @@ bindRowsWithHeaders: true
 ## Methods
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L123
 
 :::
@@ -88,7 +89,7 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L103
 
 :::
@@ -100,7 +101,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### enablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L80
 
 :::
@@ -112,7 +113,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### isEnabled
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L73
 
 :::
@@ -121,5 +122,3 @@ _bindRowsWithHeaders.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
 hook and if it returns `true` then the [BindRowsWithHeaders#enablePlugin](@/api/bindRowsWithHeaders.md#enableplugin) method is called.
-
-

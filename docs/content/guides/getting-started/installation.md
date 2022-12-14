@@ -1,4 +1,5 @@
 ---
+id: rqtn1ajf
 title: Installation
 metaTitle: Installation - JavaScript Data Grid | Handsontable
 description: Install Handsontable through your preferred package manager, or import Handsontable's assets directly from a CDN.

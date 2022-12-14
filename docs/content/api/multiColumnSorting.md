@@ -1,4 +1,5 @@
 ---
+id: ypo7x8k9
 title: MultiColumnSorting
 metaTitle: MultiColumnSorting - JavaScript Data Grid | Handsontable
 permalink: /api/multi-column-sorting
@@ -20,7 +21,7 @@ react:
 This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the
 [Options#multiColumnSorting](@/api/options.md#multicolumnsorting) property to the correct value (see the examples below).
 
-**Example**  
+**Example**
 ```js
 // as boolean
 multiColumnSorting: true
@@ -67,7 +68,7 @@ columns: [{
 ## Options
 
 ### multiColumnSorting
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/metaManager/metaSchema.js#L3145
 
 :::
@@ -108,8 +109,8 @@ Read more:
 - [Row sorting](@/guides/rows/row-sorting.md)
 - [`columnSorting`](#columnsorting)
 
-**Default**: <code>undefined</code>  
-**Example**  
+**Default**: <code>undefined</code>
+**Example**
 ```js
 // enable the `MultiColumnSorting` plugin
 multiColumnSorting: true
@@ -148,7 +149,7 @@ multiColumnSorting: {
 ## Methods
 
 ### clearSort
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L150
 
 :::
@@ -160,7 +161,7 @@ Clear the sort performed on the table.
 
 
 ### disablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L114
 
 :::
@@ -172,7 +173,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### enablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L103
 
 :::
@@ -184,7 +185,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### getSortConfig
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L171
 
 :::
@@ -203,7 +204,7 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 
 
 ### isEnabled
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L96
 
 :::
@@ -216,7 +217,7 @@ hook and if it returns `true` then the [MultiColumnSorting#enablePlugin](@/api/m
 
 
 ### isSorted
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L159
 
 :::
@@ -228,7 +229,7 @@ Checks if the table is sorted (any column have to be sorted).
 
 
 ### setSortConfig
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L199
 
 :::
@@ -238,7 +239,7 @@ _multiColumnSorting.setSortConfig(sortConfig)_
 Warn: Useful mainly for providing server side sort implementation (see in the example below). It doesn't sort the data set. It just sets sort configuration for all sorted columns.
 Note: Please keep in mind that this method doesn't re-render the table.
 
-**Example**  
+**Example**
 ```js
 beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
   const columnSortPlugin = this.getPlugin('multiColumnSorting');
@@ -260,7 +261,7 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
 
 
 ### sort
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L143
 
 :::
@@ -269,8 +270,8 @@ _multiColumnSorting.sort(sortConfig)_
 
 Sorts the table by chosen columns and orders.
 
-**Emits**: [`Hooks#event:beforeColumnSort`](@/api/hooks.md#beforecolumnsort), [`Hooks#event:afterColumnSort`](@/api/hooks.md#aftercolumnsort)  
-**Example**  
+**Emits**: [`Hooks#event:beforeColumnSort`](@/api/hooks.md#beforecolumnsort), [`Hooks#event:afterColumnSort`](@/api/hooks.md#aftercolumnsort)
+**Example**
 ```js
 // sort ascending first visual column
 hot.getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
@@ -286,5 +287,3 @@ hot.getPlugin('multiColumnSorting').sort([{
 | Param | Type | Description |
 | --- | --- | --- |
 | sortConfig | `undefined` <br/> `object` <br/> `Array` | Single column sort configuration or full sort configuration (for all sorted columns). The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains sort order (`asc` for ascending, `desc` for descending). **Note**: Please keep in mind that every call of `sort` function set an entirely new sort order. Previous sort configs aren't preserved. |
-
-

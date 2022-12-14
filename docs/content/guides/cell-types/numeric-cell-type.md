@@ -1,4 +1,5 @@
 ---
+id: l5a447bl
 title: Numeric cell type
 metaTitle: Numeric cell type - JavaScript Data Grid | Handsontable
 description: Use the numeric cell type to correctly display, format, sort, and filter numbers.

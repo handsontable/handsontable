@@ -1,4 +1,5 @@
 ---
+id: nb36sme6
 title: Security
 metaTitle: Security - JavaScript Data Grid | Handsontable
 description: Learn about the security measures we take to make sure you can safely implement Handsontable in your client-side application.

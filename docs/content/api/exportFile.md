@@ -1,4 +1,5 @@
 ---
+id: 4j5eqkhw
 title: ExportFile
 metaTitle: DropdownMenu - JavaScript Data Grid | Handsontable
 permalink: /api/export-file
@@ -21,7 +22,7 @@ The `ExportFile` plugin lets you export table data as a string, blob, or downloa
 
 See [the export file demo](@/guides/accessories-and-menus/export-to-csv.md) for examples.
 
-**Example**  
+**Example**
 ::: only-for javascript
 ```js
 const container = document.getElementById('example');
@@ -92,7 +93,7 @@ exportPlugin.exportAsString('csv', {
 ## Members
 
 ### ExportOptions
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/exportFile/exportFile.js#L104
 
 :::
@@ -114,7 +115,7 @@ _ExportFile.ExportOptions : object_
 ## Methods
 
 ### downloadFile
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/exportFile/exportFile.js#L144
 
 :::
@@ -132,7 +133,7 @@ Exports table data as a downloadable file.
 
 
 ### exportAsBlob
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/exportFile/exportFile.js#L134
 
 :::
@@ -150,7 +151,7 @@ Exports table data as a blob object.
 
 
 ### exportAsString
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/exportFile/exportFile.js#L123
 
 :::
@@ -168,7 +169,7 @@ Exports table data as a string.
 
 
 ### isEnabled
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/exportFile/exportFile.js#L100
 
 :::
@@ -177,5 +178,3 @@ _exportFile.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
 hook and if it returns `true` then the [ExportFile#enablePlugin](@/api/exportFile.md#enableplugin) method is called.
-
-
