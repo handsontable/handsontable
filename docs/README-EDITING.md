@@ -18,6 +18,7 @@ Each Markdown file can start with the following frontmatter tags:
 
 | Tag              | Meaning                                              | Default value                                              |
 | ---------------- | ---------------------------------------------------- | ---------------------------------------------------------- |
+| `id`             | The page's uniq id.                                  | The value is required and is used for the Docs page redirection between different Docs versions (https://github.com/handsontable/handsontable/pull/10163). Every time a new MD file is created, there is needing to generate a unique page id value. Once the page id is added and released should not be changed. The id should be random alphanumeric values of 8 characters (generator page https://www.random.org/strings/?num=20&len=8&digits=on&loweralpha=on&unique=on&format=html&rnd=new).  |
 | `title`          | The page's header.                                   | If not set, gets generated from the page's parent's title. |
 | `permalink`      | The page's **unique** URL.                           | If not set, gets generated from the Markdown file name.    |
 | `canonicalUrl`   | A canonical URL of the page's latest version.        | None (not required)                                        |
@@ -45,12 +46,14 @@ Frontmatter example:
 
 ```yaml
 ---
+id: 1ezrscdc
 title: Introduction
 metaTitle: Installation - Guide - Handsontable Documentation for Javascript
 description: Easily install the data grid using your preferred package manager or import Handsontable assets directly from the CDN.
 permalink: /api/
 canonicalUrl: /api/
 react:
+  id: xyr8fg2e # The page id should be different for different for other framework variations
   metaTitle: Installation - Guide - Handsontable Documentation for React
   description: Install the wrapper for React via npm, import stylesheets, and use it to get up and running your application.
   customValue: Custom # Custom value that can be used within template and will be available only for React framework
