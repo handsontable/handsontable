@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test-ci": "node ./scripts/visual-tests-build.mjs",
-    "test": "set docker=1 && node ./scripts/visual-tests-build.mjs",
-    "docker:run": "docker run -v %INIT_CWD%/..:/tests/ -w /tests/visual-test --rm -it mcr.microsoft.com/playwright:v1.28.1-focal /bin/bash",
+    "test": "node ./scripts/visual-tests-build.mjs",
+    "docker:run": "docker pull mcr.microsoft.com/playwright:v1.28.1-focal && docker run -v $(INIT_CWD)/..:/tests/ -w /tests/visual-test --rm -it mcr.microsoft.com/playwright:v1.28.1-focal /bin/bash",
+    "docker:run:win": "docker pull mcr.microsoft.com/playwright:v1.28.1-focal && docker run -v %INIT_CWD%/..:/tests/ -w /tests/visual-test --rm -it mcr.microsoft.com/playwright:v1.28.1-focal /bin/bash",
     "upload": "node ./scripts/visual-tests-upload.mjs",
     "all": "node ./scripts/visual-tests-build.mjs && node ./scripts/visual-tests-upload.mjs"
   },
@@ -21,7 +21,6 @@
   },
   "dependencies": {
     "axios": "^1.2.1",
-    "playwright": "^1.28.1",
-    "xhr2": "^0.2.1"
+    "playwright": "^1.28.1"
   }
 }

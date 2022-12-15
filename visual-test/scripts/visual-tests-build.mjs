@@ -9,13 +9,12 @@ import fse from 'fs-extra';
 const wrappers = ['js', 'angular-13', 'react', 'vue'];
 const baseBranch = 'develop';
 const currentBranchName = (await execa.command('git rev-parse --abbrev-ref HEAD', { silent: true })).stdout;
-const examplesDir = '../examples/next/visual-tests';
-const goBackDir = '../../../../../visual-test';
-const demoDir = 'demo';
+const dirInit = process.cwd();
+const dirExamples = '../examples/next/visual-tests';
+const dirDemo = 'demo';
 // const HOTversion = '12.2.0';
-// await execa.command('npx playwright install --with-deps');
 
-process.chdir(examplesDir);
+process.chdir(dirExamples);
 execa.command('npm install');
 
 // If we are on a base branch, we do not want to run all of tests
@@ -24,7 +23,7 @@ execa.command('npm install');
 // which is declared as a first position in wrappers array.
 
 for (let i = 0, maxi = (currentBranchName === baseBranch ? 1 : wrappers.length); i < maxi; ++i) {
-  process.chdir(`${wrappers[i]}/${demoDir}`);
+  process.chdir(`${wrappers[i]}/${dirDemo}`);
 
   // eslint-disable-next-line no-await-in-loop
   await execa.command('npm install', { stdout: 'inherit' });
@@ -36,7 +35,7 @@ for (let i = 0, maxi = (currentBranchName === baseBranch ? 1 : wrappers.length);
     stdio: 'ignore',
     windowsHide: true });
 
-  process.chdir(goBackDir);
+  process.chdir(dirInit);
 
   // eslint-disable-next-line no-await-in-loop
   await execa.command('npx playwright test', { env: { HOT_WRAPPER: wrappers[i] }, stdout: 'inherit' });
@@ -44,7 +43,7 @@ for (let i = 0, maxi = (currentBranchName === baseBranch ? 1 : wrappers.length);
   localhostProcess.kill();
 
   if (i !== maxi - 1) {
-    process.chdir(examplesDir);
+    process.chdir(dirExamples);
   }
 }
 
