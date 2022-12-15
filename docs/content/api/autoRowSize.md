@@ -1,4 +1,5 @@
 ---
+id: fm3dhdw8
 title: AutoRowSize
 metaTitle: AutoRowSize - Plugin - Handsontable Documentation
 permalink: /api/auto-row-size

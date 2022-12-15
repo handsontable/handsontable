@@ -1,4 +1,5 @@
 ---
+id: n1d2orqc
 title: ChangesObserver
 metaTitle: ChangesObserver - API Reference - Handsontable Documentation
 permalink: /api/changes-observer

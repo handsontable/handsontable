@@ -6,6 +6,7 @@ const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxVariablesPlugin = require('./plugins/generate-nginx-variables');
 const extendPageDataPlugin = require('./plugins/extend-page-data');
 const dumpDocsDataPlugin = require('./plugins/dump-docs-data');
+const dumpRedirectPageIdsPlugin = require('./plugins/dump-redirect-page-ids');
 const { getThisDocsVersion, getDocsBaseUrl } = require('./helpers');
 
 const docsBase = process.env.DOCS_BASE ? process.env.DOCS_BASE : getThisDocsVersion();
@@ -166,6 +167,9 @@ module.exports = {
     },
     [dumpDocsDataPlugin, {
       outputDir: path.resolve(__dirname, './public/data/')
+    }],
+    [dumpRedirectPageIdsPlugin, {
+      outputFile: path.resolve(__dirname, '../docker/redirect-page-ids.json')
     }],
     [nginxVariablesPlugin, {
       outputFile: path.resolve(__dirname, '../docker/variables.conf')

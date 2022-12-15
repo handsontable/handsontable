@@ -1,4 +1,5 @@
 ---
+id: 4j5eqkhw
 title: ExportFile
 metaTitle: ExportFile - Plugin - Handsontable Documentation
 permalink: /api/export-file

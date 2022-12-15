@@ -1,4 +1,5 @@
 ---
+id: jgk5hkn4
 title: Software license
 metaTitle: Software license - Guide - Handsontable Documentation
 permalink: /software-license

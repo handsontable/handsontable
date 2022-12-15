@@ -1,4 +1,5 @@
 ---
+id: k41dcpud
 title: Disabled cells
 metaTitle: Disabled cells - Guide - Handsontable Documentation
 permalink: /disabled-cells

@@ -1,4 +1,5 @@
 ---
+id: js126u0h
 title: Hooks
 metaTitle: Hooks - API Reference - Handsontable Documentation
 permalink: /api/hooks

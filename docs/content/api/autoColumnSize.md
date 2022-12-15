@@ -1,4 +1,5 @@
 ---
+id: hjr7zdxy
 title: AutoColumnSize
 metaTitle: AutoColumnSize - Plugin - Handsontable Documentation
 permalink: /api/auto-column-size

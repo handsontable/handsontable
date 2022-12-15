@@ -1,4 +1,5 @@
 ---
+id: u00oul7m
 title: Cell editor
 metaTitle: Cell editor - Guide - Handsontable Documentation
 permalink: /cell-editor

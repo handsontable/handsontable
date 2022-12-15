@@ -1,4 +1,5 @@
 ---
+id: dxv2vk3l
 title: BindRowsWithHeaders
 metaTitle: BindRowsWithHeaders - Plugin - Handsontable Documentation
 permalink: /api/bind-rows-with-headers

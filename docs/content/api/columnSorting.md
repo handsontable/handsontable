@@ -1,4 +1,5 @@
 ---
+id: zbhmqzsv
 title: ColumnSorting
 metaTitle: ColumnSorting - Plugin - Handsontable Documentation
 permalink: /api/column-sorting

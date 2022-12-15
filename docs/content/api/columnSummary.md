@@ -1,4 +1,5 @@
 ---
+id: wrwu7s6c
 title: ColumnSummary
 metaTitle: ColumnSummary - Plugin - Handsontable Documentation
 permalink: /api/column-summary

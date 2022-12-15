@@ -1,4 +1,5 @@
 ---
+id: pczrlicw
 title: ContextMenu
 metaTitle: ContextMenu - Plugin - Handsontable Documentation
 permalink: /api/context-menu

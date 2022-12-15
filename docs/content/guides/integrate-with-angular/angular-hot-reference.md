@@ -1,4 +1,5 @@
 ---
+id: n3uueczx
 title: 'Referencing the Handsontable instance in Angular'
 metaTitle: 'Referencing the Handsontable instance in Angular - Guide - Handsontable Documentation'
 permalink: /angular-hot-reference

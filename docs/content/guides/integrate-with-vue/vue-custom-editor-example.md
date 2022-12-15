@@ -1,4 +1,5 @@
 ---
+id: faa5ylt6
 title: 'Custom editor in Vue 2'
 metaTitle: 'Custom editor in Vue 2 - Guide - Handsontable Documentation'
 permalink: /vue-custom-editor-example

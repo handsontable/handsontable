@@ -1,4 +1,5 @@
 ---
+id: jgrtvjxx
 title: Row freezing
 metaTitle: Row freezing - Guide - Handsontable Documentation
 permalink: /row-freezing
