@@ -1,4 +1,5 @@
 ---
+id: nb36sme6
 title: Security
 metaTitle: Security - Guide - Handsontable Documentation
 permalink: /security

@@ -1,4 +1,5 @@
 ---
+id: 39o3uw0q
 title: Plugins
 metaTitle: Plugins - Guide - Handsontable Documentation
 permalink: /plugins

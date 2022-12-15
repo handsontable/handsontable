@@ -1,4 +1,5 @@
 ---
+id: neoo8dhv
 title: Cell function
 metaTitle: Cell function - Guide - Handsontable Documentation
 permalink: /cell-function

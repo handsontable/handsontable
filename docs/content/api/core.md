@@ -1,4 +1,5 @@
 ---
+id: o9civnqe
 title: Core
 metaTitle: Core - API Reference - Handsontable Documentation
 permalink: /api/core

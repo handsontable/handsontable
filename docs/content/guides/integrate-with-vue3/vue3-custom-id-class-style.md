@@ -1,4 +1,5 @@
 ---
+id: 2kg0f1og
 title: 'Custom ID, Class, Style and other attributes in Vue 3'
 metaTitle: 'Custom ID, Class, Style and other attributes in Vue 3 - Guide - Handsontable Documentation'
 permalink: /vue3-custom-id-class-style

@@ -1,4 +1,5 @@
 ---
+id: kgegbmgz
 title: Batch operations
 metaTitle: Batch operations - Guide - Handsontable Documentation
 permalink: /batch-operations

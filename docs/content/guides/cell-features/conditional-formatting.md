@@ -1,4 +1,5 @@
 ---
+id: 4ca0c70r
 title: Conditional formatting
 metaTitle: Conditional formatting - Guide - Handsontable Documentation
 permalink: /conditional-formatting

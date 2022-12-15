@@ -1,4 +1,5 @@
 ---
+id: pxr5suzy
 title: 'Vuex in Vue 3'
 metaTitle: 'Vuex in Vue 3 - Guide - Handsontable Documentation'
 permalink: /vue3-vuex-example

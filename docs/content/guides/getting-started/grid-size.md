@@ -1,4 +1,5 @@
 ---
+id: svu0391b
 title: Grid size
 metaTitle: Grid size - Guide - Handsontable Documentation
 permalink: /grid-size

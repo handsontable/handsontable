@@ -1,4 +1,5 @@
 ---
+id: ks06q7cq
 title: TrimRows
 metaTitle: TrimRows - Plugin - Handsontable Documentation
 permalink: /api/trim-rows

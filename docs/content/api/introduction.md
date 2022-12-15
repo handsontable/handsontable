@@ -1,4 +1,5 @@
 ---
+id: 6o0dghoa
 title: Introduction
 metaTitle: API Reference - Handsontable Documentation
 permalink: /api/

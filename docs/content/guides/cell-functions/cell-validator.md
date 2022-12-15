@@ -1,4 +1,5 @@
 ---
+id: h840od8r
 title: Cell validator
 metaTitle: Cell validator - Guide - Handsontable Documentation
 permalink: /cell-validator
