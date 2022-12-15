@@ -1,7 +1,0 @@
-{
-  "title": "Fixed a problem where the table was not rendered properly if it had been initialized in a hidden container.",
-  "type": "fixed",
-  "issue": 5322,
-  "breaking": false,
-  "framework": "none"
-}
