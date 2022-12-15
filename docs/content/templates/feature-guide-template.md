@@ -369,7 +369,7 @@ React demo.
 
 Explain how to use the feature's API methods. Add code samples. Add links to related API reference sections.
 
-## More examples
+## Examples
     
 List links to CodeSandbox examples, taken from:
 - https://handsontable.com/docs/12.0/examples
