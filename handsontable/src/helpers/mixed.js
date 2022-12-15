@@ -136,10 +136,8 @@ export function _injectProductInfo(key, element) {
       keyValidityDate = moment((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
 
       if (releaseDays > keyValidityDays) {
-        const daysAfterRelease = moment().diff(releaseDate, 'days');
-
-        consoleMessageState = daysAfterRelease <= 1 ? 'valid' : 'expired';
-        domMessageState = daysAfterRelease <= 15 ? 'valid' : 'expired';
+        consoleMessageState = 'expired';
+        domMessageState = 'expired';
       } else {
         consoleMessageState = 'valid';
         domMessageState = 'valid';
