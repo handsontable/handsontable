@@ -1,6 +1,6 @@
 const fs = require('fs').promises;
 
-const HTTP_REDIRECT_CODE = 307;
+const HTTP_REDIRECT_CODE = 301;
 
 async function redirectToPageId(r) {
   const pageId = r.args.pageId;
