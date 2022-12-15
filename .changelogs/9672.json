@@ -1,7 +1,0 @@
-{
-  "title": "Fixed `dropdown`-type editor that prevents typing values using IME.",
-  "type": "fixed",
-  "issue": 9672,
-  "breaking": false,
-  "framework": "none"
-}
