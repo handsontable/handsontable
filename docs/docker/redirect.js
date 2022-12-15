@@ -1,7 +1,7 @@
 /**
  * The script is used by the Nginx and is processed by the NJS module. It's
- * responsible for redirecting the pages between different Docs versions
- * (https://github.com/handsontable/handsontable/pull/10163).
+ * responsible for redirecting the pages between different Docs versions based on
+ * the passed page id (https://github.com/handsontable/handsontable/pull/10163).
  *
  * The syntax and build-in modules you can viewed here https://nginx.org/en/docs/njs/.
  */
