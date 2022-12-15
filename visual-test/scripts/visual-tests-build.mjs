@@ -34,8 +34,8 @@ for (let i = 0, maxi = (currentBranchName === baseBranch ? 1 : wrappers.length);
   // eslint-disable-next-line no-await-in-loop
   await execa.command('npm run build', { stdout: 'inherit' });
   // eslint-disable-next-line no-await-in-loop
-  // spawn('npm.cmd', ['run start']);
-  execa.command('npm run start', { stdout: 'inherit' });
+  spawn('npm', ['run start']);
+  // execa.command('npm run start', { stdout: 'inherit' });
 
   process.chdir('../../../../../visual-test');
 
