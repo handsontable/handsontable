@@ -12,7 +12,7 @@ jobs:
     name: Build and upload visual tests
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.27.1-focal
+      image: mcr.microsoft.com/playwright:v1.28.1-focal
     # if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: workaround permission issue
-        run: git config --global --add safe.directory /__w/handsontable/handsontable
+        run: git config --global --add safe.directory /__w/handsontable-visual-testing/handsontable-visual-testing
       - name: Build
         run: npm install
       - name: Install test tools

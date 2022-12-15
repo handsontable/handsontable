@@ -3,30 +3,49 @@ import path from 'path';
 import execa from 'execa';
 import fse from 'fs-extra';
 
-const baseBranch = 'develop';
-const currentBranchName = (await execa.command('git rev-parse --abbrev-ref HEAD', { silent: true })).stdout;
 // Main wrapper should be defined as a first one -
 // it will be used to generate golden screenshots,
 // rest of wrappers will be compared to it.
-const wrappers = ['js', 'angular', 'react', 'vue'];
-const version = '12.2.0';
+const wrappers = ['js', 'angular-13', 'react', 'vue'];
+const baseBranch = 'develop';
+const currentBranchName = (await execa.command('git rev-parse --abbrev-ref HEAD', { silent: true })).stdout;
+const dirInit = process.cwd();
+const dirExamples = '../examples/next/visual-tests';
+const dirDemo = 'demo';
+// const HOTversion = '12.2.0';
 
-await execa.command('npx playwright install --with-deps');
-
-const tests = [];
+process.chdir(dirExamples);
+execa.command('npm install');
 
 // If we are on a base branch, we do not want to run all of tests
 // and make screenshots for all of wrappers.
 // On base branch we need to create golden screenshots from main wrapper only,
 // which is declared as a first position in wrappers array.
 
-for (let i = 0; i < (currentBranchName === baseBranch ? 1 : wrappers.length); ++i) {
-  tests.push(execa.command('npx playwright test', {
-    env: { HOT_WRAPPER: wrappers[i], HOT_VERSION: version }, stdout: 'inherit'
-  }));
-}
+for (let i = 0, maxi = (currentBranchName === baseBranch ? 1 : wrappers.length); i < maxi; ++i) {
+  process.chdir(`${wrappers[i]}/${dirDemo}`);
 
-await Promise.all(tests);
+  // eslint-disable-next-line no-await-in-loop
+  await execa.command('npm install', { stdout: 'inherit' });
+  // eslint-disable-next-line no-await-in-loop
+  await execa.command('npm run build', { stdout: 'inherit' });
+  // eslint-disable-next-line no-await-in-loop
+  const localhostProcess = execa.command('npm run start', {
+    detached: true,
+    stdio: 'ignore',
+    windowsHide: true });
+
+  process.chdir(dirInit);
+
+  // eslint-disable-next-line no-await-in-loop
+  await execa.command('npx playwright test', { env: { HOT_WRAPPER: wrappers[i] }, stdout: 'inherit' });
+
+  localhostProcess.kill();
+
+  if (i !== maxi - 1) {
+    process.chdir(dirExamples);
+  }
+}
 
 if (currentBranchName === baseBranch) {
   // Golden screenshots are already done,
@@ -48,4 +67,3 @@ if (currentBranchName === baseBranch) {
 
   await Promise.all(copies);
 }
-

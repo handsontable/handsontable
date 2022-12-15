@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "node ./scripts/visual-tests-build.mjs",
+    "docker:run": "docker pull mcr.microsoft.com/playwright:v1.28.1-focal && docker run -v $(INIT_CWD)/..:/tests/ -w /tests/visual-test --rm -it mcr.microsoft.com/playwright:v1.28.1-focal /bin/bash",
+    "docker:run:win": "docker pull mcr.microsoft.com/playwright:v1.28.1-focal && docker run -v %INIT_CWD%/..:/tests/ -w /tests/visual-test --rm -it mcr.microsoft.com/playwright:v1.28.1-focal /bin/bash",
     "upload": "node ./scripts/visual-tests-upload.mjs",
     "all": "node ./scripts/visual-tests-build.mjs && node ./scripts/visual-tests-upload.mjs"
   },
@@ -13,8 +15,12 @@
   "license": "ISC",
   "devDependencies": {
     "@argos-ci/cli": "^0.3.1",
-    "@playwright/test": "^1.27.1",
+    "@playwright/test": "^1.28.1",
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2"
+  },
+  "dependencies": {
+    "axios": "^1.2.1",
+    "playwright": "^1.28.1"
   }
 }
