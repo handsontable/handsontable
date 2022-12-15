@@ -41,6 +41,8 @@ Available options in the browser's toolbar:
 - `Edit > Copy` - copies the content of the last cell in the selected range
 - `Edit > Cut` - cuts the content of the last cell in the selected range
 
+To let the end user copy the contents of column headers, see the [Copy with headers](#copy-with-headers) section.
+
 ### Context menu
 
 When the context menu is enabled, it includes default items, including copy & cut options.
@@ -106,108 +108,6 @@ export const ExampleComponent = () => {
 
 /* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
-/* end:skip-in-preview */
-```
-:::
-:::
-
-### Copy with headers
-
-Let the user copy the contents of column headers, by enabling the [additional options](@/api/options.md#copypaste-additional-options) of the [`CopyPaste`](@/api/copyPaste.md) plugin:
-
-| Context menu item       | Option                                                                    | Copied area                                                               |
-| ----------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Copy with headers       | [`copyColumnHeaders`](@/api/options.md#copypaste-additional-options)      | ![copy_with_headers]({{$basePath}}/img/copy_with_headers.png)             |
-| Copy with group headers | [`copyColumnGroupHeaders`](@/api/options.md#copypaste-additional-options) | ![copy_with_group_headers]({{$basePath}}/img/copy_with_group_headers.png) |
-| Copy headers only       | [`copyColumnHeadersOnly`](@/api/options.md#copypaste-additional-options)  | ![copy_headers_only]({{$basePath}}/img/copy_headers_only.png)             |
-
-To enable these features, configure the [`CopyPaste`](@/api/copyPaste.md) plugin like this:
-
-```js{2-4}
-copyPaste: {
-  copyColumnHeaders: true,
-  copyColumnGroupHeaders: true,
-  copyColumnHeadersOnly: true,
-}
-```
-
-Right-click on a cell to try it out:
-
-::: only-for javascript
-::: example #example2
-```js
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
-
-const container = document.querySelector('#example2');
-const hot = new Handsontable(container, {
-  data: [
-    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
-    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
-    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
-    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
-    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
-  ],
-  contextMenu: true,
-  copyPaste: {
-    copyColumnHeaders: true,
-    copyColumnGroupHeaders: true,
-    copyColumnHeadersOnly: true,
-  },
-  colHeaders: true,
-  rowHeaders: true,
-  height: 'auto',
-  nestedHeaders: [
-    ['A', { label: 'B', colspan: 2 }, { label: 'C', colspan: 2 }, { label: 'D', colspan: 2 }, { label: 'E', colspan: 2 }, 'F'],
-    ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
-  ],
-  licenseKey: 'non-commercial-and-evaluation'
-});
-```
-:::
-:::
-
-::: only-for react
-::: example #example2 :react
-```jsx
-import { HotTable } from '@handsontable/react';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/dist/handsontable.full.min.css';
-
-// register Handsontable's modules
-registerAllModules();
-
-export const ExampleComponent = () => {
-  return (
-  <HotTable
-    data={[
-      ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
-      ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
-      ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
-      ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
-      ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
-    ]}
-    contextMenu={true}
-    copyPaste={{
-      copyColumnHeaders: true,
-      copyColumnGroupHeaders: true,
-      copyColumnHeadersOnly: true,
-    }}
-    colHeaders={true}
-    rowHeaders={true}
-    height="auto"
-    nestedHeaders={[
-      ['A', { label: 'B', colspan: 2 }, { label: 'C', colspan: 2 }, { label: 'D', colspan: 2 }, { label: 'E', colspan: 2 }, 'F'],
-      ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
-    ]}
-    licenseKey="non-commercial-and-evaluation"
-      >
-  </HotTable>
-  );
-};
-
-/* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
 :::
@@ -368,7 +268,6 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 
 **Note:** Not all selection-related Handsontable methods result in it gaining focus. Make sure your table instance is focused by calling [isListening()](@/api/core.md#islistening) before copying or pasting data.
 
-
 ### Hooks
 
 The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during copy or cut operations:
@@ -379,6 +278,142 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to mani
 - [`afterCut`](@/api/hooks.md#aftercut)
 
 Examples of how to use them are provided in their descriptions.
+
+### Copy with headers
+
+Let the end user copy the contents of column headers, by enabling additional [context menu](@/guides/accessories-and-menus/context-menu.md) items:
+
+| Context menu item         | Copied area                                                               |
+| ------------------------- | ------------------------------------------------------------------------- |
+| Copy with header       | ![copy_with_headers]({{$basePath}}/img/copy_with_headers.png)             |
+| Copy with group header | ![copy_with_group_headers]({{$basePath}}/img/copy_with_group_headers.png) |
+| Copy header only       | ![copy_headers_only]({{$basePath}}/img/copy_headers_only.png)             |
+
+Right-click on a cell to try it out:
+
+::: only-for javascript
+::: example #example2
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#example2');
+const hot = new Handsontable(container, {
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+  ],
+  contextMenu: true,
+  copyPaste: {
+    copyColumnHeaders: true,
+    copyColumnGroupHeaders: true,
+    copyColumnHeadersOnly: true,
+  },
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  nestedHeaders: [
+    ['A', { label: 'B', colspan: 2 }, { label: 'C', colspan: 2 }, { label: 'D', colspan: 2 }, { label: 'E', colspan: 2 }, 'F'],
+    ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  return (
+  <HotTable
+    data={[
+      ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
+      ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+      ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+      ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+      ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+    ]}
+    contextMenu={true}
+    copyPaste={{
+      copyColumnHeaders: true,
+      copyColumnGroupHeaders: true,
+      copyColumnHeadersOnly: true,
+    }}
+    colHeaders={true}
+    rowHeaders={true}
+    height="auto"
+    nestedHeaders={[
+      ['A', { label: 'B', colspan: 2 }, { label: 'C', colspan: 2 }, { label: 'D', colspan: 2 }, { label: 'E', colspan: 2 }, 'F'],
+      ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
+    ]}
+    licenseKey="non-commercial-and-evaluation"
+      >
+  </HotTable>
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
+To add the context menu items, configure the [`CopyPaste`](@/api/copyPaste.md) plugin with these options:
+- [`copyColumnHeaders`](@/api/options.md#copypaste-additional-options)
+- [`copyColumnGroupHeaders`](@/api/options.md#copypaste-additional-options)
+- [`copyColumnHeadersOnly`](@/api/options.md#copypaste-additional-options)
+
+```js
+copyPaste: {
+  copyColumnHeaders: true,
+  copyColumnGroupHeaders: true,
+  copyColumnHeadersOnly: true,
+}
+```
+
+To copy column headers programmatically, call the [`copyPaste.copy()`](@/api/copyPaste.md#copy) method with these arguments:
+- [`'with-column-headers'`](@/api/copyPaste.md#copy)
+- [`'with-all-column-headers'`](@/api/copyPaste.md#copy)
+- [`'column-headers-only'`](@/api/copyPaste.md#copy)
+
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+:::
+
+```js
+// access the `CopyPaste` plugin instance
+const copyPastePlugin = hot.getPlugin('copyPaste');
+
+// select some cells
+hot.selectCell(1, 1);
+
+// copy the selected cells along with their nearest column headers
+copyPastePlugin.copy('with-column-headers');
+
+// copy the selected cells along with all their related columns headers
+copyPastePlugin.copy('with-all-column-headers');
+
+// copy the column headers nearest to the selected cells
+// (without copying the cells themselves)
+copyPastePlugin.copy('column-headers-only');
+```
 
 ## Paste
 
