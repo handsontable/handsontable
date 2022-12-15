@@ -1,4 +1,5 @@
 ---
+id: chduupye
 title: Text alignment
 metaTitle: Text alignment - Guide - Handsontable Documentation
 permalink: /text-alignment

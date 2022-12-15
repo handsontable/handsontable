@@ -1,4 +1,5 @@
 ---
+id: 38qivuj4
 title: 'Custom context menu in Vue 3'
 metaTitle: 'Custom context menu in Vue 3 - Guide - Handsontable Documentation'
 permalink: /vue3-custom-context-menu-example

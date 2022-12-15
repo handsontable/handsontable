@@ -1,4 +1,5 @@
 ---
+id: m1qrgnlo
 title: 'Installation in Vue 2'
 metaTitle: 'Installation in Vue 2 - Guide - Handsontable Documentation'
 permalink: /vue-installation

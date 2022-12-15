@@ -1,4 +1,5 @@
 ---
+id: xt5zuczu
 title: Packages
 metaTitle: Packages - Guide - Handsontable Documentation
 permalink: /packages

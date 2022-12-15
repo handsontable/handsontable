@@ -1,4 +1,5 @@
 ---
+id: weudz1vh
 title: 'Modules in React'
 metaTitle: 'Modules in React - Guide - Handsontable Documentation'
 permalink: /react-modules

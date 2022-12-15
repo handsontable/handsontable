@@ -1,4 +1,5 @@
 ---
+id: vjcvrdeh
 title: Bundle size
 metaTitle: Bundle size - Guide - Handsontable Documentation
 permalink: /bundle-size

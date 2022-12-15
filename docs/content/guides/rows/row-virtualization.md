@@ -1,4 +1,5 @@
 ---
+id: vasj6t6t
 title: Row virtualization
 metaTitle: Row virtualization - Guide - Handsontable Documentation
 permalink: /row-virtualization

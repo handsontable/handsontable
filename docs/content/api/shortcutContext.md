@@ -1,4 +1,5 @@
 ---
+id: aksi47xv
 title: ShortcutContext
 metaTitle: ShortcutContext - API Reference - Handsontable Documentation
 permalink: /api/shortcut-context

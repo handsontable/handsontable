@@ -1,4 +1,5 @@
 ---
+id: 3hrrxxln
 title: Context menu
 metaTitle: Context menu - Guide - Handsontable Documentation
 permalink: /context-menu

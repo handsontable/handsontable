@@ -1,4 +1,5 @@
 ---
+id: zbx8ayzw
 title: License key
 metaTitle: License key - Guide - Handsontable Documentation
 permalink: /license-key

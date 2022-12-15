@@ -1,4 +1,5 @@
 ---
+id: 6i8ttta0
 title: 'Custom editor in React'
 metaTitle: 'Custom editor in React - Guide - Handsontable Documentation'
 permalink: /react-custom-editor-example

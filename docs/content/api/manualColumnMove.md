@@ -1,4 +1,5 @@
 ---
+id: bck95e73
 title: ManualColumnMove
 metaTitle: ManualColumnMove - Plugin - Handsontable Documentation
 permalink: /api/manual-column-move

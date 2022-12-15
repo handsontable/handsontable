@@ -1,4 +1,5 @@
 ---
+id: qpna498b
 title: 'Basic example in Angular'
 metaTitle: 'Basic example in Angular - Guide - Handsontable Documentation'
 permalink: /angular-simple-example

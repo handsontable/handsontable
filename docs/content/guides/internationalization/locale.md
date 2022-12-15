@@ -1,4 +1,5 @@
 ---
+id: 97k6p9p7
 title: Locale
 metaTitle: Locale - Guide - Handsontable Documentation
 permalink: /locale

@@ -1,4 +1,5 @@
 ---
+id: 4q2wi29j
 title: Row trimming
 metaTitle: Row trimming - Guide - Handsontable Documentation
 permalink: /row-trimming

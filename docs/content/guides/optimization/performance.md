@@ -1,4 +1,5 @@
 ---
+id: w6bvsin5
 title: Performance
 metaTitle: Performance - Guide - Handsontable Documentation
 permalink: /performance

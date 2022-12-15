@@ -1,4 +1,5 @@
 ---
+id: m946ghwr
 title: Migrating from 10.0 to 11.0
 metaTitle: Migrating from 10.0 to 11.0 - Guide - Handsontable Documentation
 permalink: /migration-from-10.0-to-11.0

@@ -1,4 +1,5 @@
 ---
+id: q63yhvq5
 title: Time cell type
 metaTitle: Time cell type - Guide - Handsontable Documentation
 permalink: /time-cell-type

@@ -1,4 +1,5 @@
 ---
+id: jtoc0ta4
 title: CopyPaste
 metaTitle: CopyPaste - Plugin - Handsontable Documentation
 permalink: /api/copy-paste

@@ -1,4 +1,5 @@
 ---
+id: 1g89qnhe
 title: Language
 metaTitle: Language - Guide - Handsontable Documentation
 permalink: /language

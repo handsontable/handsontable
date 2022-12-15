@@ -1,4 +1,5 @@
 ---
+id: pt2wrekc
 title: DataMap
 metaTitle: DataMap - API Reference - Handsontable Documentation
 permalink: /api/data-map

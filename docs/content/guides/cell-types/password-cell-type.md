@@ -1,4 +1,5 @@
 ---
+id: a7a5mkrw
 title: Password cell type
 metaTitle: Password cell type - Guide - Handsontable Documentation
 permalink: /password-cell-type

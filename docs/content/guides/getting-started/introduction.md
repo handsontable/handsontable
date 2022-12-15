@@ -1,4 +1,5 @@
 ---
+id: rgajvjfa
 title: Introduction
 metaTitle: Guides - Handsontable Documentation
 permalink: /

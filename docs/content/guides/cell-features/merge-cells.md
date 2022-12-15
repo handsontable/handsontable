@@ -1,4 +1,5 @@
 ---
+id: k5920uow
 title: Merge cells
 metaTitle: Merge cells - Guide - Handsontable Documentation
 permalink: /merge-cells

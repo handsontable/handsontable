@@ -1,4 +1,5 @@
 ---
+id: 6sl4ak1f
 title: 'Installation in Vue 3'
 metaTitle: 'Installation in Vue 3 - Guide - Handsontable Documentation'
 permalink: /vue3-installation

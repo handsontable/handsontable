@@ -1,4 +1,5 @@
 ---
+id: deqvum60
 title: Comments
 metaTitle: Comments - Guide - Handsontable Documentation
 permalink: /comments

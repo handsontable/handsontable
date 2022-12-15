@@ -1,4 +1,5 @@
 ---
+id: d2in9k81
 title: Row moving
 metaTitle: Row moving - Guide - Handsontable Documentation
 permalink: /row-moving

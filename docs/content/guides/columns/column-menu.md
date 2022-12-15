@@ -1,4 +1,5 @@
 ---
+id: 25b7vhfs
 title: Column menu
 metaTitle: Column menu - Guide - Handsontable Documentation
 permalink: /column-menu

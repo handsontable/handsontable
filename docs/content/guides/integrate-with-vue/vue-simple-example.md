@@ -1,4 +1,5 @@
 ---
+id: wwkiqxi9
 title: 'Basic example in Vue 2'
 metaTitle: 'Basic example in Vue 2 - Guide - Handsontable Documentation'
 permalink: /vue-simple-example

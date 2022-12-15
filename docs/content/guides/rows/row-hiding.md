@@ -1,4 +1,5 @@
 ---
+id: z1in9k81
 title: Row hiding
 metaTitle: Row hiding - Guide - Handsontable Documentation
 permalink: /row-hiding

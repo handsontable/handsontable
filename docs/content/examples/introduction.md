@@ -1,4 +1,5 @@
 ---
+id: tybai59u
 title: Examples
 metaTitle: Examples - Handsontable Documentation
 permalink: /examples/

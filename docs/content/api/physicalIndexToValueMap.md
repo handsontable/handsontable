@@ -1,4 +1,5 @@
 ---
+id: x5bgvsa4
 title: PhysicalIndexToValueMap
 metaTitle: PhysicalIndexToValueMap - API Reference - Handsontable Documentation
 permalink: /api/physical-index-to-value-map

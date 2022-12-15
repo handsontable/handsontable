@@ -1,4 +1,5 @@
 ---
+id: ohjf69hj
 title: Cell renderer
 metaTitle: Cell renderer - Guide - Handsontable Documentation
 permalink: /cell-renderer
