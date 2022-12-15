@@ -1,9 +1,10 @@
 /**
- * The script is used by the Nginx and is processed by the NJS module. It's
- * responsible for redirecting the pages between different Docs versions based on
- * the passed page id (https://github.com/handsontable/handsontable/pull/10163).
+ * This njs script enables Nginx to redirect between different versions (e.g., 12.1 to 11.0)
+ * of the same documentation page, based on each page's unique ID.
  *
- * The syntax and build-in modules you can viewed here https://nginx.org/en/docs/njs/.
+ * For more info, see: https://github.com/handsontable/handsontable/pull/10163.
+ *
+ * For more info on njs, see: https://nginx.org/en/docs/njs.
  */
 const fs = require('fs').promises;
 
