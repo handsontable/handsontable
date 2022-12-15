@@ -20,6 +20,8 @@
     "fs-extra": "^4.0.2"
   },
   "dependencies": {
-    "playwright": "^1.28.1"
+    "axios": "^1.2.1",
+    "playwright": "^1.28.1",
+    "xhr2": "^0.2.1"
   }
 }
