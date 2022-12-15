@@ -1,4 +1,5 @@
 ---
+id: 4sp9dfou
 title: Comments
 metaTitle: Comments - Plugin - Handsontable Documentation
 permalink: /api/comments

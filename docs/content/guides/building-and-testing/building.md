@@ -1,4 +1,5 @@
 ---
+id: 7a5vawwl
 title: Building process
 metaTitle: Building process - Guide - Handsontable Documentation
 permalink: /building

@@ -1,4 +1,5 @@
 ---
+id: bptpnpet
 title: 'Installation in Angular'
 metaTitle: 'Installation in Angular - Guide - Handsontable Documentation'
 permalink: /angular-installation

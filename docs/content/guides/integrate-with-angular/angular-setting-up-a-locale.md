@@ -1,4 +1,5 @@
 ---
+id: pzccidkj
 title: 'Setting up a translation in Angular'
 metaTitle: 'Setting up a translation in Angular - Guide - Handsontable Documentation'
 permalink: /angular-setting-up-a-locale

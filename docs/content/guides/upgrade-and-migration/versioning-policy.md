@@ -1,4 +1,5 @@
 ---
+id: fwrhn9ys
 title: Versioning policy
 metaTitle: Versioning policy - Guide - Handsontable Documentation
 permalink: /versioning-policy

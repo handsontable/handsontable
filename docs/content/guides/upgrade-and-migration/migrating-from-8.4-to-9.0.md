@@ -1,4 +1,5 @@
 ---
+id: 3cqz2dy9
 title: Migrating from 8.4 to 9.0
 metaTitle: Migrating from 8.4 to 9.0 - Guide - Handsontable Documentation
 permalink: /migration-from-8.4-to-9.0

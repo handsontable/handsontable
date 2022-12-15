@@ -1,4 +1,5 @@
 ---
+id: rck7asx7
 title: Third-party licenses
 metaTitle: Third-party licenses - Guide - Handsontable Documentation
 permalink: /third-party-licenses

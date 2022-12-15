@@ -1,4 +1,5 @@
 ---
+id: xndxqkoc
 title: Column summary
 metaTitle: Column summary - Guide - Handsontable Documentation
 permalink: /column-summary

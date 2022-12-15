@@ -1,4 +1,5 @@
 ---
+id: 34csx83i
 title: 'Custom context menu in Vue 2'
 metaTitle: 'Custom context menu in Vue 2 - Guide - Handsontable Documentation'
 permalink: /vue-custom-context-menu-example

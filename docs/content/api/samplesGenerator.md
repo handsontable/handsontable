@@ -1,4 +1,5 @@
 ---
+id: n9lf8vn4
 title: SamplesGenerator
 metaTitle: SamplesGenerator - API Reference - Handsontable Documentation
 permalink: /api/samples-generator

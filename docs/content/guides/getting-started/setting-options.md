@@ -1,4 +1,5 @@
 ---
+id: p7oq0ph7
 title: Configuration options
 metaTitle: Configuration options - Guide - Handsontable documentation
 permalink: /setting-options

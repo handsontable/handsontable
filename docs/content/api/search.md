@@ -1,4 +1,5 @@
 ---
+id: 4r6t4j1z
 title: Search
 metaTitle: Search - Plugin - Handsontable Documentation
 permalink: /api/search

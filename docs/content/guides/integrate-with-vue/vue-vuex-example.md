@@ -1,4 +1,5 @@
 ---
+id: r6ip0seq
 title: 'Vuex example'
 metaTitle: 'Vuex example - Guide - Handsontable Documentation'
 permalink: /vue-vuex-example

@@ -1,4 +1,5 @@
 ---
+id: a52om5wr
 title: Selection
 metaTitle: Selection - Guide - Handsontable Documentation
 permalink: /selection

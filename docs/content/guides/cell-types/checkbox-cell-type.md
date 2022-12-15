@@ -1,4 +1,5 @@
 ---
+id: p8sggqin
 title: Checkbox cell type
 metaTitle: Checkbox cell type - Guide - Handsontable Documentation
 permalink: /checkbox-cell-type
