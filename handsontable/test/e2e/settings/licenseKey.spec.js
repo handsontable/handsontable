@@ -15,11 +15,6 @@ describe('settings', () => {
     });
 
     it('should print information about key invalidation right after the Handsontable root element', () => {
-      spyOn(console, 'warn');
-      spyOn(console, 'info');
-      spyOn(console, 'log');
-      spyOn(console, 'error');
-
       handsontable({}, true);
 
       const info = spec().$container[0].nextSibling;
@@ -30,15 +25,6 @@ describe('settings', () => {
         'Alternatively, you can activate Handsontable to use for non-commercial purposes ',
         'by passing the key: \'non-commercial-and-evaluation\'. ',
         'Read more about it in the documentation or contact us at support@handsontable.com.',
-      ].join(''));
-      expect(console.error).not.toHaveBeenCalled();
-      expect(console.info).not.toHaveBeenCalled();
-      expect(console.log).not.toHaveBeenCalled();
-      expect(console.warn).toHaveBeenCalledWith([
-        'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
-        'Alternatively, you can activate Handsontable to use for non-commercial purposes ',
-        'by passing the key: \'non-commercial-and-evaluation\'. ',
-        'If you need any help, contact us at support@handsontable.com.',
       ].join(''));
     });
 
