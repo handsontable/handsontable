@@ -1,4 +1,5 @@
 ---
+id: 5w6juytv
 title: Keyboard shortcuts
 metaTitle: Keyboard shortcuts - Guide - Handsontable Documentation
 permalink: /keyboard-shortcuts

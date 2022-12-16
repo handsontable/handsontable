@@ -1,4 +1,5 @@
 ---
+id: jnwpo47i
 title: Demo
 metaTitle: Demo - Guide - Handsontable Documentation
 permalink: /demo

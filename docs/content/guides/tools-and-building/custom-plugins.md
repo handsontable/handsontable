@@ -1,4 +1,5 @@
 ---
+id: 39o3uw0q
 title: Custom plugins
 metaTitle: Custom plugins - Guide - Handsontable Documentation
 permalink: /custom-plugins

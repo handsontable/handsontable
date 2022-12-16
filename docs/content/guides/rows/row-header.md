@@ -1,4 +1,5 @@
 ---
+id: j1zswn3i
 title: Row header
 metaTitle: Row header - Guide - Handsontable Documentation
 permalink: /row-header

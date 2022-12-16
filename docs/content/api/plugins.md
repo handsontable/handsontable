@@ -1,4 +1,5 @@
 ---
+id: nh39k1d2
 title: Plugins
 permalink: /api/plugins
 canonicalUrl: /api/plugins

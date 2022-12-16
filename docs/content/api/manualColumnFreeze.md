@@ -1,4 +1,5 @@
 ---
+id: xn65u35f
 title: ManualColumnFreeze
 metaTitle: ManualColumnFreeze - Plugin - Handsontable Documentation
 permalink: /api/manual-column-freeze

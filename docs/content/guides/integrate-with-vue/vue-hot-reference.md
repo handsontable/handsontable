@@ -1,4 +1,5 @@
 ---
+id: fgl0jsk5
 title: 'Referencing the Handsontable instance in Vue 2'
 metaTitle: 'Referencing the Handsontable instance in Vue 2 - Guide - Handsontable Documentation'
 permalink: /vue-hot-reference

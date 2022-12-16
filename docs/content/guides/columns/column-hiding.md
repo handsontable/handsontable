@@ -1,4 +1,5 @@
 ---
+id: 6elqkmhr
 title: Column hiding
 metaTitle: Column hiding - Guide - Handsontable Documentation
 permalink: /column-hiding

@@ -1,4 +1,5 @@
 ---
+id: 2cdkooki
 title: 'Language change in Vue 2'
 metaTitle: 'Language change in Vue 2 - Guide - Handsontable Documentation'
 permalink: /vue-language-change-example

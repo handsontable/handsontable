@@ -1,4 +1,5 @@
 ---
+id: wdr58c2w
 title: BasePlugin
 metaTitle: BasePlugin - API Reference - Handsontable Documentation
 permalink: /api/base-plugin

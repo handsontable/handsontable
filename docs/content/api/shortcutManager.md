@@ -1,4 +1,5 @@
 ---
+id: qos98msl
 title: ShortcutManager
 metaTitle: ShortcutManager - API Reference - Handsontable Documentation
 permalink: /api/shortcut-manager

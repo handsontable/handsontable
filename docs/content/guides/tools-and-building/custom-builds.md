@@ -1,4 +1,5 @@
 ---
+id: 7a5vawwl
 title: Custom builds
 metaTitle: Custom builds - Guide - Handsontable Documentation
 permalink: /custom-builds

@@ -1,4 +1,5 @@
 ---
+id: gcdt3pns
 title: Layout direction
 metaTitle: Layout direction - Guide - Handsontable Documentation
 permalink: /layout-direction

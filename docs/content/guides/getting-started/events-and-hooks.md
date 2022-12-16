@@ -1,4 +1,5 @@
 ---
+id: own6evdy
 title: Events and hooks
 metaTitle: Events and hooks - Guide - Handsontable Documentation
 permalink: /events-and-hooks

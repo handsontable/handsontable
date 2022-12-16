@@ -1,4 +1,5 @@
 ---
+id: uu0rzeo6
 title: 'Custom renderer in Vue 3'
 metaTitle: 'Custom renderer in Vue 3 - Guide - Handsontable Documentation'
 permalink: /vue3-custom-renderer-example

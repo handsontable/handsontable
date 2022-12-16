@@ -1,4 +1,5 @@
 ---
+id: 161z7hq7
 title: 'Custom editor in Angular'
 metaTitle: 'Custom editor in Angular - Guide - Handsontable Documentation'
 permalink: /angular-custom-editor-example

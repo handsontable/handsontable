@@ -1,4 +1,5 @@
 ---
+id: kdie9yhz
 title: Handsontable cell type
 metaTitle: Handsontable cell type - Guide - Handsontable Documentation
 permalink: /handsontable-cell-type

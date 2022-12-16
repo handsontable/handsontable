@@ -1,4 +1,5 @@
 ---
+id: 9xuz0x0c
 title: Folder structure
 metaTitle: Folder structure - Guide - Handsontable Documentation
 permalink: /folder-structure

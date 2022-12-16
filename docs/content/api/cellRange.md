@@ -1,4 +1,5 @@
 ---
+id: 9za1u3q7
 title: CellRange
 metaTitle: CellRange - API Reference - Handsontable Documentation
 permalink: /api/cell-range

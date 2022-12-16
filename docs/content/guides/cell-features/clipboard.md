@@ -1,4 +1,5 @@
 ---
+id: 2vbt7ev0
 title: Clipboard
 metaTitle: Clipboard - Guide - Handsontable Documentation
 permalink: /basic-clipboard

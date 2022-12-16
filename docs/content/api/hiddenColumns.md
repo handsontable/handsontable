@@ -1,4 +1,5 @@
 ---
+id: v8xg8kot
 title: HiddenColumns
 metaTitle: HiddenColumns - Plugin - Handsontable Documentation
 permalink: /api/hidden-columns

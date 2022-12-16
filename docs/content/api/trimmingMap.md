@@ -1,4 +1,5 @@
 ---
+id: 8wnfx6b9
 title: TrimmingMap
 metaTitle: TrimmingMap - API Reference - Handsontable Documentation
 permalink: /api/trimming-map

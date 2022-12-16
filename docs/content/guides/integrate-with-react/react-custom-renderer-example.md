@@ -1,4 +1,5 @@
 ---
+id: 2ej30mcg
 title: 'Custom renderer in React'
 metaTitle: 'Custom renderer in React - Guide - Handsontable Documentation'
 permalink: /react-custom-renderer-example

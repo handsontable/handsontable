@@ -1,4 +1,5 @@
 ---
+id: cjib1mhw
 title: Autocomplete cell type
 metaTitle: Autocomplete cell type - Guide - Handsontable Documentation
 permalink: /autocomplete-cell-type

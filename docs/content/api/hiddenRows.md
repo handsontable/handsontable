@@ -1,4 +1,5 @@
 ---
+id: linbgjey
 title: HiddenRows
 metaTitle: HiddenRows - Plugin - Handsontable Documentation
 permalink: /api/hidden-rows

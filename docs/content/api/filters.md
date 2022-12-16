@@ -1,4 +1,5 @@
 ---
+id: 3alr8j85
 title: Filters
 metaTitle: Filters - Plugin - Handsontable Documentation
 permalink: /api/filters

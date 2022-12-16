@@ -1,4 +1,5 @@
 ---
+id: tpa768pc
 title: Migrating from 11.1 to 12.0
 metaTitle: Migrating from 11.1 to 12.0 - Guide - Handsontable Documentation
 permalink: /migration-from-11.1-to-12.0

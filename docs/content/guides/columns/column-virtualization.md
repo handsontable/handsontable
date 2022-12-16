@@ -1,4 +1,5 @@
 ---
+id: xv8sf6at
 title: Column virtualization
 metaTitle: Column virtualization - Guide - Handsontable Documentation
 permalink: /column-virtualization

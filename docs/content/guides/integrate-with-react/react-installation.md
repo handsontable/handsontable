@@ -1,4 +1,5 @@
 ---
+id: zqk2jjw3
 title: 'Installation in React'
 metaTitle: 'Installation in React - Guide - Handsontable Documentation'
 permalink: /react-installation

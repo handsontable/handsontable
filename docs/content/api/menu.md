@@ -1,4 +1,5 @@
 ---
+id: 6a7q8pb9
 title: Menu
 metaTitle: Menu - API Reference - Handsontable Documentation
 permalink: /api/menu

@@ -1,4 +1,5 @@
 ---
+id: ffimaicc
 title: Modules
 metaTitle: Modules - Guide - Handsontable Documentation
 permalink: /modules

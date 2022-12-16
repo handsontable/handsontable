@@ -1,4 +1,5 @@
 ---
+id: wt56lf3y
 title: CreateShortcutManager
 metaTitle: CreateShortcutManager - API Reference - Handsontable Documentation
 permalink: /api/create-shortcut-manager

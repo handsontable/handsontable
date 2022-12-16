@@ -1,4 +1,5 @@
 ---
+id: bpcuomaq
 title: Column width
 metaTitle: Column width - Guide - Handsontable Documentation
 permalink: /column-width

@@ -1,4 +1,5 @@
 ---
+id: zzjh2u93
 title: Supported browsers
 metaTitle: Supported browsers - Guide - Handsontable Documentation
 permalink: /supported-browsers

@@ -1,4 +1,5 @@
 ---
+id: m117dytd
 title: 'Modules in Vue 2'
 metaTitle: 'Modules in Vue 2 - Guide - Handsontable Documentation'
 permalink: /vue-modules

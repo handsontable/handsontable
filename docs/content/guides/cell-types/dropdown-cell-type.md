@@ -1,4 +1,5 @@
 ---
+id: oi78d8nv
 title: Dropdown cell type
 metaTitle: Dropdown cell type - Guide - Handsontable Documentation
 permalink: /dropdown-cell-type

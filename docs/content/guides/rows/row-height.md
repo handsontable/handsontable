@@ -1,4 +1,5 @@
 ---
+id: fehmrn1j
 title: Row height
 metaTitle: Row height - Guide - Handsontable Documentation
 permalink: /row-height
@@ -12,7 +13,7 @@ tags:
   - height
   - max-height
   - min-height
-  - row dimmensions
+  - row dimensions
   - manual resize
 ---
 

@@ -1,4 +1,5 @@
 ---
+id: de2hxgso
 title: Cell type
 metaTitle: Cell type - Guide - Handsontable Documentation
 permalink: /cell-type

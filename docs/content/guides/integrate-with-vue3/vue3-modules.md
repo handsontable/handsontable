@@ -1,4 +1,5 @@
 ---
+id: 0xtliaah
 title: 'Modules in Vue 3'
 metaTitle: 'Modules in Vue 3 - Guide - Handsontable Documentation'
 permalink: /vue3-modules

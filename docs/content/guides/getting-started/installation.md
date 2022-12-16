@@ -1,4 +1,5 @@
 ---
+id: rqtn1ajf
 title: Installation
 metaTitle: Installation - Guide - Handsontable Documentation
 permalink: /installation

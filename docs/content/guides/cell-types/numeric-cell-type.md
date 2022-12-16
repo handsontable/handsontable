@@ -1,4 +1,5 @@
 ---
+id: l5a447bl
 title: Numeric cell type
 metaTitle: Numeric cell type - Guide - Handsontable Documentation
 permalink: /numeric-cell-type

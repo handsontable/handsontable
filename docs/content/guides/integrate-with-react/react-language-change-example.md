@@ -1,4 +1,5 @@
 ---
+id: qz0qgi9f
 title: 'Language change in React'
 metaTitle: 'Language change in React - Guide - Handsontable Documentation'
 permalink: /react-language-change-example
