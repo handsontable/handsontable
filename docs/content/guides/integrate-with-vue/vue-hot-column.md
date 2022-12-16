@@ -1,4 +1,5 @@
 ---
+id: 5scw3fdd
 title: 'Using the `HotColumn` component in Vue 2'
 metaTitle: 'Using the HotColumn component in Vue 2 - Guide - Handsontable Documentation'
 permalink: /vue-hot-column

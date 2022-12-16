@@ -1,4 +1,5 @@
 ---
+id: edkch5e6
 title: CollapsibleColumns
 metaTitle: CollapsibleColumns - Plugin - Handsontable Documentation
 permalink: /api/collapsible-columns

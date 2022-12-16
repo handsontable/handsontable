@@ -1,4 +1,5 @@
 ---
+id: k4mb003v
 title: Column groups
 metaTitle: Column groups - Guide - Handsontable Documentation
 permalink: /column-groups

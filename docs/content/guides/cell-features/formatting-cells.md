@@ -1,4 +1,5 @@
 ---
+id: epmvqw9m
 title: Formatting cells
 metaTitle: Formatting cells - Guide - Handsontable Documentation
 permalink: /formatting-cells

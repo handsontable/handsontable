@@ -1,4 +1,5 @@
 ---
+id: 7azgsrdq
 title: 'Custom ID in Angular'
 metaTitle: 'Custom ID in Angular - Guide - Handsontable Documentation'
 permalink: /angular-custom-id

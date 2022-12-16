@@ -1,4 +1,5 @@
 ---
+id: 3xxlonuv
 title: Column filter
 metaTitle: Column filter - Guide - Handsontable Documentation
 permalink: /column-filter

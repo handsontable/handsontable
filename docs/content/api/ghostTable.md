@@ -1,4 +1,5 @@
 ---
+id: 1i74gjp4
 title: GhostTable
 metaTitle: GhostTable - API Reference - Handsontable Documentation
 permalink: /api/ghost-table

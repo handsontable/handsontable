@@ -1,4 +1,5 @@
 ---
+id: g7ligsfi
 title: Migrating from 7.4 to 8.0
 metaTitle: Migrating from 7.4 to 8.0 - Guide - Handsontable Documentation
 permalink: /migration-from-7.4-to-8.0

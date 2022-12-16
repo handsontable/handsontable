@@ -1,4 +1,5 @@
 ---
+id: m9wjas8j
 title: 'Custom renderer in Angular'
 metaTitle: 'Custom renderer in Angular - Guide - Handsontable Documentation'
 permalink: /angular-custom-renderer-example

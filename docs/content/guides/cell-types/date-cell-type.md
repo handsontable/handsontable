@@ -1,4 +1,5 @@
 ---
+id: p25m5sco
 title: Date cell type
 metaTitle: Date cell type - Guide - Handsontable Documentation
 permalink: /date-cell-type

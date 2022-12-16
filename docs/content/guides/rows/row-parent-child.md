@@ -1,4 +1,5 @@
 ---
+id: ivtc0o9b
 title: Row parent-child
 metaTitle: Row parent-child - Guide - Handsontable Documentation
 permalink: /row-parent-child

@@ -1,4 +1,5 @@
 ---
+id: 5864kf8v
 title: 'Custom editor in Vue 3'
 metaTitle: 'Custom editor in Vue 3 - Guide - Handsontable Documentation'
 permalink: /vue3-custom-editor-example

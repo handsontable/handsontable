@@ -1,4 +1,5 @@
 ---
+id: huuybcbn
 title: IndexesSequence
 metaTitle: IndexesSequence - API Reference - Handsontable Documentation
 permalink: /api/indexes-sequence

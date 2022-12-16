@@ -1,4 +1,5 @@
 ---
+id: eh8nz1kw
 title: PersistentState
 metaTitle: PersistentState - Plugin - Handsontable Documentation
 permalink: /api/persistent-state

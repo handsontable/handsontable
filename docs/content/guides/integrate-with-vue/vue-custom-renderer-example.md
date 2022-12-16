@@ -1,4 +1,5 @@
 ---
+id: 1ng09buy
 title: 'Custom renderer in Vue 2'
 metaTitle: 'Custom renderer in Vue 2 - Guide - Handsontable Documentation'
 permalink: /vue-custom-renderer-example

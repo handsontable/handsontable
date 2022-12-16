@@ -1,4 +1,5 @@
 ---
+id: tcabky5c
 title: 'Language change in Vue 3'
 metaTitle: 'Language change in Vue 3 - Guide - Handsontable Documentation'
 permalink: /vue3-language-change-example

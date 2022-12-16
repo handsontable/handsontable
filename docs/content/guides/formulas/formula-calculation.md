@@ -1,4 +1,5 @@
 ---
+id: g7i1xok4
 title: Formula calculation
 metaTitle: Formula calculation - Guide - Handsontable Documentation
 permalink: /formula-calculation

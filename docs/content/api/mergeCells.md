@@ -1,4 +1,5 @@
 ---
+id: cs07c3ly
 title: MergeCells
 metaTitle: MergeCells - Plugin - Handsontable Documentation
 permalink: /api/merge-cells

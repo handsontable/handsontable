@@ -1,4 +1,5 @@
 ---
+id: qthfdrss
 title: CellCoords
 metaTitle: CellCoords - API Reference - Handsontable Documentation
 permalink: /api/cell-coords

@@ -1,4 +1,5 @@
 ---
+id: aae39zi5
 title: 'Referencing the Handsontable instance in Vue 3'
 metaTitle: 'Referencing the Handsontable instance in Vue 3 - Guide - Handsontable Documentation'
 permalink: /vue3-hot-reference
