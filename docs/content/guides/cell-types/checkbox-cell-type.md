@@ -1,10 +1,12 @@
 ---
+id: p8sggqin
 title: Checkbox cell type
 metaTitle: Checkbox cell type - JavaScript Data Grid | Handsontable
 description: Create interactive elements that can be checked or unchecked, by using the checkbox cell type.
 permalink: /checkbox-cell-type
 canonicalUrl: /checkbox-cell-type
 react:
+  id: tfr1gisf
   metaTitle: Checkbox cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---

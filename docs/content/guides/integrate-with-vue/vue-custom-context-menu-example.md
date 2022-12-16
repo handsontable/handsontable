@@ -1,4 +1,5 @@
 ---
+id: 34csx83i
 title: Custom context menu in Vue 2
 metaTitle: Custom context menu - Vue 2 Data Grid | Handsontable
 description: Customize the context menu of your Vue 2 data grid, by creating a custom function for each menu item.
