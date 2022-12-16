@@ -1,4 +1,5 @@
 ---
+id: fehmrn1j
 title: Row heights
 metaTitle: Row heights - JavaScript Data Grid | Handsontable
 description: Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
@@ -13,9 +14,10 @@ tags:
   - height
   - max-height
   - min-height
-  - row dimmensions
+  - row dimensions
   - manual resize
 react:
+  id: 87ulwfs2
   metaTitle: Row heights - React Data Grid | Handsontable
 searchCategory: Guides
 ---

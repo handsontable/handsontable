@@ -1,4 +1,5 @@
 ---
+id: a52om5wr
 title: Selection
 metaTitle: Selection - JavaScript Data Grid | Handsontable
 description: Select a single cell, a range of adjacent cells, or multiple non-adjacent ranges of cells.
@@ -8,6 +9,7 @@ tags:
   - selecting ranges
   - cell selection
 react:
+  id: k88lznt8
   metaTitle: Selection - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -1,4 +1,5 @@
 ---
+id: zbhmqzsv
 title: ColumnSorting
 metaTitle: ColumnSorting - JavaScript Data Grid | Handsontable
 permalink: /api/column-sorting
@@ -8,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the ColumnSorting plugin with its API options and methods to sort the view (not the source data) by column.
 react:
+  id: lpx62nle
   metaTitle: ColumnSorting - React Data Grid | Handsontable
 ---
 
@@ -20,7 +22,7 @@ react:
 This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the
 [Options#columnSorting](@/api/options.md#columnsorting) property to the correct value (see the examples below).
 
-**Example**  
+**Example**
 ```js
 // as boolean
 columnSorting: true
@@ -64,7 +66,7 @@ columns: [{
 ## Options
 
 ### columnSorting
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/metaManager/metaSchema.js#L881
 
 :::
@@ -106,8 +108,8 @@ Read more:
 - [Row sorting: Custom compare functions](@/guides/rows/row-sorting.md#custom-compare-functions)
 - [`multiColumnSorting`](#multicolumnsorting)
 
-**Default**: <code>undefined</code>  
-**Example**  
+**Default**: <code>undefined</code>
+**Example**
 ```js
 // enable the `ColumnSorting` plugin
 columnSorting: true
@@ -146,7 +148,7 @@ columnSorting: {
 ## Methods
 
 ### clearSort
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/columnSorting/columnSorting.js#L262
 
 :::
@@ -158,7 +160,7 @@ Clear the sort performed on the table.
 
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/columnSorting/columnSorting.js#L796
 
 :::
@@ -170,7 +172,7 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/columnSorting/columnSorting.js#L173
 
 :::
@@ -182,7 +184,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### enablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/columnSorting/columnSorting.js#L138
 
 :::
@@ -194,7 +196,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### getSortConfig
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/columnSorting/columnSorting.js#L283
 
 :::
@@ -213,7 +215,7 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 
 
 ### isEnabled
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/columnSorting/columnSorting.js#L131
 
 :::
@@ -226,7 +228,7 @@ hook and if it returns `true` then the [ColumnSorting#enablePlugin](@/api/column
 
 
 ### isSorted
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/columnSorting/columnSorting.js#L271
 
 :::
@@ -238,7 +240,7 @@ Checks if the table is sorted (any column have to be sorted).
 
 
 ### setSortConfig
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/columnSorting/columnSorting.js#L315
 
 :::
@@ -248,7 +250,7 @@ _columnSorting.setSortConfig(sortConfig)_
 Warn: Useful mainly for providing server side sort implementation (see in the example below). It doesn't sort the data set. It just sets sort configuration for all sorted columns.
 Note: Please keep in mind that this method doesn't re-render the table.
 
-**Example**  
+**Example**
 ```js
 beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
   const columnSortPlugin = this.getPlugin('columnSorting');
@@ -270,7 +272,7 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
 
 
 ### sort
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/columnSorting/columnSorting.js#L223
 
 :::
@@ -279,8 +281,8 @@ _columnSorting.sort(sortConfig)_
 
 Sorts the table by chosen columns and orders.
 
-**Emits**: [`Hooks#event:beforeColumnSort`](@/api/hooks.md#beforecolumnsort), [`Hooks#event:afterColumnSort`](@/api/hooks.md#aftercolumnsort)  
-**Example**  
+**Emits**: [`Hooks#event:beforeColumnSort`](@/api/hooks.md#beforecolumnsort), [`Hooks#event:afterColumnSort`](@/api/hooks.md#aftercolumnsort)
+**Example**
 ```js
 // sort ascending first visual column
 hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
@@ -289,5 +291,3 @@ hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 | Param | Type | Description |
 | --- | --- | --- |
 | sortConfig | `undefined` <br/> `object` | Single column sort configuration. The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains sort order (`asc` for ascending, `desc` for descending). **Note**: Please keep in mind that every call of `sort` function set an entirely new sort order. Previous sort configs aren't preserved. |
-
-

@@ -1,4 +1,5 @@
 ---
+id: hjr7zdxy
 title: AutoColumnSize
 metaTitle: AutoColumnSize - JavaScript Data Grid | Handsontable
 permalink: /api/auto-column-size
@@ -8,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the AutoColumnSize plugin with its API options, members, and methods to set column widths based on the widest cell in a given column.
 react:
+  id: 11f3lp0s
   metaTitle: AutoColumnSize - React Data Grid | Handsontable
 ---
 
@@ -61,7 +63,7 @@ Sampling accepts additional options:
 
 To configure this plugin see [Options#autoColumnSize](@/api/options.md#autocolumnsize).
 
-**Example**  
+**Example**
 ::: only-for javascript
 ```js
 const hot = new Handsontable(document.getElementById('example'), {
@@ -109,7 +111,7 @@ if (plugin.isEnabled()) {
 ## Options
 
 ### autoColumnSize
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/metaManager/metaSchema.js#L373
 
 :::
@@ -145,8 +147,8 @@ Using the [`colWidths`](#colwidths) option forcibly disables the [`AutoColumnSiz
 Read more:
 - [Plugins: `AutoColumnSize`](@/api/autoColumnSize.md)
 
-**Default**: <code>undefined</code>  
-**Example**  
+**Default**: <code>undefined</code>
+**Example**
 ```js
 autoColumnSize: {
   // keep 40% of columns in sync (the rest of columns: async)
@@ -163,7 +165,7 @@ autoColumnSize: {
 ## Members
 
 ### inProgress
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L193
 
 :::
@@ -175,7 +177,7 @@ _autoColumnSize.inProgress : boolean_
 
 
 ### measuredColumns
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L199
 
 :::
@@ -188,7 +190,7 @@ Number of already measured columns (we already know their sizes).
 ## Methods
 
 ### calculateAllColumnsWidth
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L345
 
 :::
@@ -206,7 +208,7 @@ To retrieve width for specified column use [AutoColumnSize#getColumnWidth](@/api
 
 
 ### calculateColumnsWidth
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L305
 
 :::
@@ -225,7 +227,7 @@ Calculates a columns width.
 
 
 ### calculateVisibleColumnsWidth
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L279
 
 :::
@@ -237,7 +239,7 @@ Calculates visible columns width.
 
 
 ### clearCache
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L568
 
 :::
@@ -255,7 +257,7 @@ Otherwise whole cache will be cleared.
 
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L682
 
 :::
@@ -267,7 +269,7 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L267
 
 :::
@@ -279,7 +281,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### enablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L228
 
 :::
@@ -291,7 +293,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### getColumnWidth
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L461
 
 :::
@@ -310,7 +312,7 @@ Gets the calculated column width.
 
 
 ### getFirstVisibleColumn
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L480
 
 :::
@@ -320,10 +322,10 @@ _autoColumnSize.getFirstVisibleColumn() ⇒ number_
 Gets the first visible column.
 
 
-**Returns**: `number` - Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.  
+**Returns**: `number` - Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
 
 ### getLastVisibleColumn
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L509
 
 :::
@@ -333,10 +335,10 @@ _autoColumnSize.getLastVisibleColumn() ⇒ number_
 Gets the last visible column.
 
 
-**Returns**: `number` - Returns visual column index or -1 if table is not rendered.  
+**Returns**: `number` - Returns visual column index or -1 if table is not rendered.
 
 ### getSyncCalculationLimit
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L433
 
 :::
@@ -349,7 +351,7 @@ asynchronously). The limit is calculated based on `syncLimit` set to `autoColumn
 
 
 ### isEnabled
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L221
 
 :::
@@ -362,7 +364,7 @@ hook and if it returns `true` then the [#enablePlugin](#enableplugin) method is 
 
 
 ### isNeedRecalculate
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L586
 
 :::
@@ -374,7 +376,7 @@ Checks if all widths were calculated. If not then return `true` (need recalculat
 
 
 ### recalculateAllColumnsWidth
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L420
 
 :::
@@ -386,7 +388,7 @@ Recalculates all columns width (overwrite cache values).
 
 
 ### updatePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/autoColumnSize/autoColumnSize.js#L253
 
 :::
@@ -394,5 +396,3 @@ Recalculates all columns width (overwrite cache values).
 _autoColumnSize.updatePlugin()_
 
 Updates the plugin's state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
-
-

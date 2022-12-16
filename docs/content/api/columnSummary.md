@@ -1,4 +1,5 @@
 ---
+id: wrwu7s6c
 title: ColumnSummary
 metaTitle: ColumnSummary - JavaScript Data Grid | Handsontable
 permalink: /api/column-summary
@@ -8,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the ColumnSummary plugin with its API options and methods to summarize your columns, using built-in functions or implementing custom summary functions.
 react:
+  id: 0iw5v2b5
   metaTitle: ColumnSummary - React Data Grid | Handsontable
 ---
 
@@ -38,7 +40,7 @@ For each column summary, you can set the following configuration options:
 | `roundFloat` | No | Number | - | [Rounds summary result](@/guides/columns/column-summary.md#rounding-a-column-summary-result) |
 | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function) |
 
-**Example**  
+**Example**
 ::: only-for javascript
 ```js
 const container = document.getElementById('example');
@@ -101,7 +103,7 @@ const hot = new Handsontable(container, {
 ## Options
 
 ### columnSummary
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/metaManager/metaSchema.js#L936
 
 :::
@@ -131,8 +133,8 @@ Read more:
 - [Column summary](@/guides/columns/column-summary.md)
 - [Plugins: `ColumnSummary`](@/api/columnSummary.md)
 
-**Default**: <code>undefined</code>  
-**Example**  
+**Default**: <code>undefined</code>
+**Example**
 ```js
 columnSummary: [
   {
@@ -158,7 +160,7 @@ columnSummary: [
 ## Methods
 
 ### disablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/columnSummary/columnSummary.js#L161
 
 :::
@@ -170,7 +172,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### enablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/columnSummary/columnSummary.js#L129
 
 :::
@@ -182,7 +184,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### isEnabled
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/columnSummary/columnSummary.js#L122
 
 :::
@@ -191,5 +193,3 @@ _columnSummary.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
 hook and if it returns `true` then the [ColumnSummary#enablePlugin](@/api/columnSummary.md#enableplugin) method is called.
-
-

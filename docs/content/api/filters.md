@@ -1,4 +1,5 @@
 ---
+id: 3alr8j85
 title: Filters
 metaTitle: Filters - JavaScript Data Grid | Handsontable
 permalink: /api/filters
@@ -8,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the Filters plugin with its API members and methods to filter the view (not the source data) by a value or by a combination of conditions.
 react:
+  id: vxwvhi0e
   metaTitle: Filters - React Data Grid | Handsontable
 ---
 
@@ -21,7 +23,7 @@ The plugin allows filtering the table data either by the built-in component or w
 
 See [the filtering demo](@/guides/columns/column-filter.md) for examples.
 
-**Example**  
+**Example**
 ::: only-for javascript
 ```js
 const container = document.getElementById('example');
@@ -50,7 +52,7 @@ const hot = new Handsontable(container, {
 ## Options
 
 ### filters
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/dataMap/metaManager/metaSchema.js#L2077
 
 :::
@@ -71,8 +73,8 @@ Read more:
 - [Plugins: `Filters`](@/api/filters.md)
 - [`dropdownMenu`](#dropdownmenu)
 
-**Default**: <code>undefined</code>  
-**Example**  
+**Default**: <code>undefined</code>
+**Example**
 ```js
 // enable the `Filters` plugin
 filters: true,
@@ -81,7 +83,7 @@ filters: true,
 ## Methods
 
 ### addCondition
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/filters/filters.js#L282
 
 :::
@@ -117,7 +119,7 @@ Possible operations on collection of conditions:
 
 **Note**: Mind that you cannot mix different types of operations (for instance, if you use `conjunction`, use it consequently for a particular column).
 
-**Example**  
+**Example**
 ::: only-for javascript
 ```js
 const container = document.getElementById('example');
@@ -197,7 +199,7 @@ filtersPlugin.filter();
 
 
 ### clearConditions
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/filters/filters.js#L414
 
 :::
@@ -215,7 +217,7 @@ was not passed, clear the conditions for all columns.
 
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/filters/filters.js#L916
 
 :::
@@ -227,7 +229,7 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/filters/filters.js#L263
 
 :::
@@ -239,7 +241,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### enablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/filters/filters.js#L161
 
 :::
@@ -251,7 +253,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### filter
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/filters/filters.js#L431
 
 :::
@@ -260,11 +262,11 @@ _filters.filter()_
 
 Filters data based on added filter conditions.
 
-**Emits**: [`Hooks#event:beforeFilter`](@/api/hooks.md#beforefilter), [`Hooks#event:afterFilter`](@/api/hooks.md#afterfilter)  
+**Emits**: [`Hooks#event:beforeFilter`](@/api/hooks.md#beforefilter), [`Hooks#event:afterFilter`](@/api/hooks.md#afterfilter)
 
 
 ### getDataMapAtColumn
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/filters/filters.js#L515
 
 :::
@@ -279,10 +281,10 @@ Returns handsontable source data with cell meta based on current selection.
 | [column] | `number` | `optional` The physical column index. By default column index accept the value of the selected column. |
 
 
-**Returns**: `Array` - Returns array of objects where keys as row index.  
+**Returns**: `Array` - Returns array of objects where keys as row index.
 
 ### getSelectedColumn
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/filters/filters.js#L483
 
 :::
@@ -294,10 +296,10 @@ Gets last selected column index.
 
 **Returns**: `Object` | `null` - Returns `null` when a column is
 not selected. Otherwise, returns an object with `visualIndex` and `physicalIndex` properties containing
-the index of the column.  
+the index of the column.
 
 ### isEnabled
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/filters/filters.js#L153
 
 :::
@@ -310,7 +312,7 @@ hook and if it returns `true` then the [Filters#enablePlugin](@/api/filters.md#e
 
 
 ### removeConditions
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/plugins/filters/filters.js#L402
 
 :::
@@ -323,5 +325,3 @@ Removes conditions at specified column index.
 | Param | Type | Description |
 | --- | --- | --- |
 | column | `number` | Visual column index. |
-
-

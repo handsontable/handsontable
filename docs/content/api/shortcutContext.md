@@ -1,4 +1,5 @@
 ---
+id: aksi47xv
 title: ShortcutContext
 metaTitle: ShortcutContext - JavaScript Data Grid | Handsontable
 permalink: /api/shortcut-context
@@ -8,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's ShortcutContext API.
 react:
+  id: qhf0cz5d
   metaTitle: ShortcutContext - React Data Grid | Handsontable
 ---
 
@@ -25,7 +27,7 @@ Each `ShortcutContext` object stores and manages its own set of keyboard shortcu
 ## Methods
 
 ### addShortcut
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/shortcuts/context.js#L43
 
 :::
@@ -51,7 +53,7 @@ Add a keyboard shortcut to this context.
 
 
 ### addShortcuts
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/shortcuts/context.js#L126
 
 :::
@@ -76,7 +78,7 @@ Add multiple keyboard shortcuts to this context.
 
 
 ### getShortcuts
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/shortcuts/context.js#L184
 
 :::
@@ -93,7 +95,7 @@ Get a shortcut's details.
 
 
 ### hasShortcut
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/shortcuts/context.js#L200
 
 :::
@@ -110,7 +112,7 @@ Check if a shortcut exists in this context.
 
 
 ### removeShortcutsByGroup
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/shortcuts/context.js#L158
 
 :::
@@ -127,7 +129,7 @@ Remove a group of shortcuts from this context.
 
 
 ### removeShortcutsByKeys
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/56b93f7a7feebefc0e6571674c25fac3a0227aea/handsontable/src/shortcuts/context.js#L146
 
 :::
@@ -140,5 +142,3 @@ Remove a shortcut from this context.
 | Param | Type | Description |
 | --- | --- | --- |
 | keys | `Array<string>` | Names of the shortcut's keys, (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)), in lowercase or uppercase, unified across browsers |
-
-

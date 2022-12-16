@@ -1,4 +1,5 @@
 ---
+id: pzccidkj
 title: Setting up a translation in Angular
 metaTitle: Setting up a translation - Angular Data Grid | Handsontable
 description: Configure your Angular data grid with different number formats, depending on the specified language and culture.
