@@ -46,8 +46,10 @@ export default {
       return version;
     },
     getLink(version) {
-      if (version === this.$page.latestVersion) {
-        return `/docs${this.$route.path}`;
+      if (version === this.$page.currentVersion) {
+        const isLatest = version === this.$page.latestVersion;
+
+        return `/docs${isLatest ? '' : `/${version}`}${this.$route.path}`;
       }
 
       // Using `location.origin` disables injecting `.html` postfix at the end of the URL
