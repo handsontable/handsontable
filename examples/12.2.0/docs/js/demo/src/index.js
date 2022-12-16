@@ -53,7 +53,8 @@ registerLanguageDictionary(arAR);
 import {
   alignHeaders,
   addClassesToRows,
-  changeCheckboxCell
+  changeCheckboxCell,
+  drawCheckboxInRowHeaders
 } from "./hooksCallbacks";
 
 const example = document.getElementById("example");
@@ -118,6 +119,7 @@ new Handsontable(example, {
   rowHeaders: true,
   manualRowMove: true,
   afterGetColHeader: alignHeaders,
+  afterGetRowHeader: drawCheckboxInRowHeaders,
   afterOnCellMouseDown: changeCheckboxCell,
   beforeRenderer: addClassesToRows,
   licenseKey: "non-commercial-and-evaluation"
