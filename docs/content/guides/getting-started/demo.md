@@ -1,4 +1,5 @@
 ---
+id: jnwpo47i
 title: Demo
 metaTitle: Demo - JavaScript Data Grid | Handsontable
 description: Play around with a demo of Handsontable, in your favorite framework.
@@ -8,6 +9,7 @@ tags:
   - demo
   - hello world
 react:
+  id: ccqbm8hn
   metaTitle: Demo - React Data Grid | Handsontable
   description: Play around with a demo of Handsontable in React.
 searchCategory: Guides

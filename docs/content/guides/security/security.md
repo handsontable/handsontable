@@ -1,10 +1,12 @@
 ---
+id: nb36sme6
 title: Security
 metaTitle: Security - JavaScript Data Grid | Handsontable
 description: Learn about the security measures we take to make sure you can safely implement Handsontable in your client-side application.
 permalink: /security
 canonicalUrl: /security
 react:
+  id: h8zg4ign
   metaTitle: Security - React Data Grid | Handsontable
 searchCategory: Guides
 ---

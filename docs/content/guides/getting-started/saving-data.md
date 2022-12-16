@@ -1,4 +1,5 @@
 ---
+id: 7js3d370
 title: Saving data
 metaTitle: Saving data - JavaScript Data Grid | Handsontable
 description: Save data after each change to the data set, using Handsontable's API hooks. Preserve the table state by saving data to local storage.
@@ -9,6 +10,7 @@ tags:
   - server
   - ajax
 react:
+  id: rib1rhmf
   metaTitle: Saving data - React Data Grid | Handsontable
 searchCategory: Guides
 ---

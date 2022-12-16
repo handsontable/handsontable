@@ -1,10 +1,12 @@
 ---
+id: neoo8dhv
 title: Cell functions
 metaTitle: Cell functions - JavaScript Data Grid | Handsontable
 description: Render, edit, and validate the contents of your cells, using Handsontable's cell functions. Quickly set up your cell, using cell types.
 permalink: /cell-function
 canonicalUrl: /cell-function
 react:
+  id: i2sqtwh6
   metaTitle: Cell functions - React Data Grid | Handsontable
 searchCategory: Guides
 ---

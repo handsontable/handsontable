@@ -1,4 +1,5 @@
 ---
+id: 6sl4ak1f
 title: Installation in Vue 3
 metaTitle: Installation - Vue 3 Data Grid | Handsontable
 description: Install Handsontable's Vue 3 wrapper via npm, import the stylesheets, and get your application up and running.

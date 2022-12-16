@@ -1,4 +1,5 @@
 ---
+id: rqtn1ajf
 title: Installation
 metaTitle: Installation - JavaScript Data Grid | Handsontable
 description: Install Handsontable using your preferred package manager, or import Handsontable's assets directly from a CDN.
@@ -7,6 +8,7 @@ canonicalUrl: /installation
 tags:
   - quick start
 react:
+  id: zqk2jjw3
   metaTitle: Installation - React Data Grid | Handsontable
 searchCategory: Guides
 ---

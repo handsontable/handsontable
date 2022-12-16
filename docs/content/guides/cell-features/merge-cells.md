@@ -1,10 +1,12 @@
 ---
+id: k5920uow
 title: Merge cells
 metaTitle: Merge cells - JavaScript Data Grid | Handsontable
 description: Merge adjacent cells, using the "Ctrl + M" shortcut or the right-click context menu. Control merged cells, using Handsontable's API.
 permalink: /merge-cells
 canonicalUrl: /merge-cells
 react:
+  id: ulndkavi
   metaTitle: Merge cells - React Data Grid | Handsontable
 searchCategory: Guides
 ---

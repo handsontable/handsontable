@@ -1,10 +1,12 @@
 ---
+id: q63yhvq5
 title: Time cell type
 metaTitle: Time cell type - JavaScript Data Grid | Handsontable
 description: Use the time cell type to display, format, and validate values as times. The time cell type uses Moment.js as a time formatter.
 permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
+  id: 34n5nwja
   metaTitle: Time cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---

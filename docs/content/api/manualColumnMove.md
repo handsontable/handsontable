@@ -1,4 +1,5 @@
 ---
+id: bck95e73
 title: ManualColumnMove
 metaTitle: ManualColumnMove - JavaScript Data Grid | Handsontable
 permalink: /api/manual-column-move
@@ -8,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the ManualColumnMove plugin with its API options and methods (e.g., moveColumn(), moveColumns(), dragColumn()), to change the order of columns.
 react:
+  id: 41x190ra
   metaTitle: ManualColumnMove - React Data Grid | Handsontable
 ---
 
@@ -38,7 +40,7 @@ The plugin creates additional components to make moving possibly using user inte
 ## Options
 
 ### manualColumnMove
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/dataMap/metaManager/metaSchema.js#L2740
 
 :::
@@ -58,8 +60,8 @@ You can set the `manualColumnMove` option to one of the following:
 Read more:
 - [Column moving](@/guides/columns/column-moving.md)
 
-**Default**: <code>undefined</code>  
-**Example**  
+**Default**: <code>undefined</code>
+**Example**
 ```js
 // enable the `ManualColumnMove` plugin
 manualColumnMove: true,
@@ -74,7 +76,7 @@ manualColumnMove: [1, 4, 6],
 ## Methods
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L735
 
 :::
@@ -86,7 +88,7 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L152
 
 :::
@@ -98,7 +100,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### dragColumn
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L219
 
 :::
@@ -107,7 +109,7 @@ _manualColumnMove.dragColumn(column, dropIndex) ⇒ boolean_
 
 Drag a single column to drop index position.
 
-**Emits**: [`Hooks#event:beforeColumnMove`](@/api/hooks.md#beforecolumnmove), [`Hooks#event:afterColumnMove`](@/api/hooks.md#aftercolumnmove)  
+**Emits**: [`Hooks#event:beforeColumnMove`](@/api/hooks.md#beforecolumnmove), [`Hooks#event:afterColumnMove`](@/api/hooks.md#aftercolumnmove)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -117,7 +119,7 @@ Drag a single column to drop index position.
 
 
 ### dragColumns
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L233
 
 :::
@@ -126,7 +128,7 @@ _manualColumnMove.dragColumns(columns, dropIndex) ⇒ boolean_
 
 Drag multiple columns to drop index position.
 
-**Emits**: [`Hooks#event:beforeColumnMove`](@/api/hooks.md#beforecolumnmove), [`Hooks#event:afterColumnMove`](@/api/hooks.md#aftercolumnmove)  
+**Emits**: [`Hooks#event:beforeColumnMove`](@/api/hooks.md#beforecolumnmove), [`Hooks#event:afterColumnMove`](@/api/hooks.md#aftercolumnmove)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -136,7 +138,7 @@ Drag multiple columns to drop index position.
 
 
 ### enablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L115
 
 :::
@@ -148,7 +150,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### isEnabled
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L108
 
 :::
@@ -161,7 +163,7 @@ hook and if it returns `true` then the [ManualColumnMove#enablePlugin](@/api/man
 
 
 ### isMovePossible
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L251
 
 :::
@@ -180,7 +182,7 @@ possible, i.e. You can’t move more than one element to the last position.
 
 
 ### moveColumn
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L172
 
 :::
@@ -189,7 +191,7 @@ _manualColumnMove.moveColumn(column, finalIndex) ⇒ boolean_
 
 Moves a single column.
 
-**Emits**: [`Hooks#event:beforeColumnMove`](@/api/hooks.md#beforecolumnmove), [`Hooks#event:afterColumnMove`](@/api/hooks.md#aftercolumnmove)  
+**Emits**: [`Hooks#event:beforeColumnMove`](@/api/hooks.md#beforecolumnmove), [`Hooks#event:afterColumnMove`](@/api/hooks.md#aftercolumnmove)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -199,7 +201,7 @@ Moves a single column.
 
 
 ### moveColumns
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L186
 
 :::
@@ -208,7 +210,7 @@ _manualColumnMove.moveColumns(columns, finalIndex) ⇒ boolean_
 
 Moves a multiple columns.
 
-**Emits**: [`Hooks#event:beforeColumnMove`](@/api/hooks.md#beforecolumnmove), [`Hooks#event:afterColumnMove`](@/api/hooks.md#aftercolumnmove)  
+**Emits**: [`Hooks#event:beforeColumnMove`](@/api/hooks.md#beforecolumnmove), [`Hooks#event:afterColumnMove`](@/api/hooks.md#aftercolumnmove)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -218,7 +220,7 @@ Moves a multiple columns.
 
 
 ### updatePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L140
 
 :::
@@ -229,5 +231,3 @@ Updates the plugin's state.
 
 This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
  - [`manualColumnMove`](@/api/options.md#manualcolumnmove)
-
-

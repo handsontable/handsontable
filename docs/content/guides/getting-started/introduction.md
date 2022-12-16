@@ -1,10 +1,12 @@
 ---
+id: rgajvjfa
 title: Introduction
 metaTitle: Introduction - JavaScript Data Grid | Handsontable
 description: An overview of Handsontable's developer documentation. Handsontable is a client-side, spreadsheet-like data grid for editing data in web applications.
 permalink: /
 canonicalUrl: /
 react:
+  id: fexwrrj2
   metaTitle: Introduction - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -1,4 +1,5 @@
 ---
+id: gybdfu49
 title: Autofill
 metaTitle: Autofill - JavaScript Data Grid | Handsontable
 permalink: /api/autofill
@@ -8,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the Autofill plugin with its API members and methods to enable the drag-down and copy-down features.
 react:
+  id: het268ia
   metaTitle: Autofill - React Data Grid | Handsontable
 ---
 
@@ -29,7 +31,7 @@ square in the corner.
 ## Members
 
 ### autoInsertRow
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/autofill/autofill.js#L98
 
 :::
@@ -42,7 +44,7 @@ Specifies if can insert new rows if needed.
 ## Methods
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/autofill/autofill.js#L668
 
 :::
@@ -54,7 +56,7 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/autofill/autofill.js#L144
 
 :::
@@ -66,7 +68,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### enablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/autofill/autofill.js#L113
 
 :::
@@ -78,7 +80,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### isEnabled
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/autofill/autofill.js#L106
 
 :::
@@ -90,7 +92,7 @@ Checks if the plugin is enabled in the Handsontable settings.
 
 
 ### updatePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/autofill/autofill.js#L135
 
 :::
@@ -102,5 +104,3 @@ Updates the plugin's state.
 This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
  - `autofill`
  - [`fillHandle`](@/api/options.md#fillhandle)
-
-

@@ -1,4 +1,5 @@
 ---
+id: x5bgvsa4
 title: PhysicalIndexToValueMap
 metaTitle: PhysicalIndexToValueMap - JavaScript Data Grid | Handsontable
 permalink: /api/physical-index-to-value-map
@@ -8,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's PhysicalIndexToValueMap API.
 react:
+  id: 8f31lcaa
   metaTitle: PhysicalIndexToValueMap - React Data Grid | Handsontable
 ---
 
@@ -20,6 +22,3 @@ react:
 Map for storing mappings from an physical index to a value.
 
 Does not update stored values on remove/add row or column action.
-
-
-

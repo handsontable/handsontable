@@ -1,4 +1,5 @@
 ---
+id: g7i1xok4
 title: Formula calculation
 metaTitle: Formula calculation - JavaScript Data Grid | Handsontable
 description: Perform calculations on cells' values, using a powerful calculation engine that handles 380+ functions, custom functions, named expressions, and more.
@@ -14,6 +15,7 @@ tags:
   - sheet
   - function
 react:
+  id: 05z3cjez
   metaTitle: Formula calculation - React Data Grid | Handsontable
 searchCategory: Guides
 ---

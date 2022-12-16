@@ -1,10 +1,12 @@
 ---
+id: l5a447bl
 title: Numeric cell type
 metaTitle: Numeric cell type - JavaScript Data Grid | Handsontable
 description: Use the numeric cell type to correctly display, format, sort, and filter numbers.
 permalink: /numeric-cell-type
 canonicalUrl: /numeric-cell-type
 react:
+  id: e6zmmawj
   metaTitle: Numeric cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---

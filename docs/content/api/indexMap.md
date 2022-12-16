@@ -1,4 +1,5 @@
 ---
+id: 8b008itj
 title: IndexMap
 metaTitle: IndexMap - JavaScript Data Grid | Handsontable
 permalink: /api/index-map
@@ -8,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's IndexMap API.
 react:
+  id: nwnemipo
   metaTitle: IndexMap - React Data Grid | Handsontable
 ---
 
@@ -23,7 +25,7 @@ Map for storing mappings from an index to a value.
 ## Methods
 
 ### clear
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/indexMap.js#L92
 
 :::
@@ -35,7 +37,7 @@ Clear all values to the defaults.
 
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/indexMap.js#L166
 
 :::
@@ -47,7 +49,7 @@ Destroys the Map instance.
 
 
 ### getLength
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/indexMap.js#L101
 
 :::
@@ -59,7 +61,7 @@ Get length of the index map.
 
 
 ### getValueAtIndex
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/indexMap.js#L44
 
 :::
@@ -76,7 +78,7 @@ Get value for the particular index.
 
 
 ### getValues
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/indexMap.js#L34
 
 :::
@@ -88,7 +90,7 @@ Get full list of values for particular indexes.
 
 
 ### setValueAtIndex
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/indexMap.js#L77
 
 :::
@@ -106,7 +108,7 @@ Set new value for the particular index.
 
 
 ### setValues
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/maps/indexMap.js#L59
 
 :::
@@ -121,5 +123,3 @@ Note: Please keep in mind that `change` hook triggered by the method may not upd
 | Param | Type | Description |
 | --- | --- | --- |
 | values | `Array` | List of set values. |
-
-

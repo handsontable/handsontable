@@ -1,4 +1,5 @@
 ---
+id: qos98msl
 title: ShortcutManager
 metaTitle: ShortcutManager API reference – JavaScript Data Grid | Handsontable
 permalink: /api/shortcut-manager
@@ -6,6 +7,8 @@ canonicalUrl: /api/shortcut-manager
 searchCategory: API Reference
 hotPlugin: false
 editLink: false
+react:
+  id: doot085y
 ---
 
 # ShortcutManager
@@ -24,7 +27,7 @@ Each `ShortcutManager` object:
 ## Methods
 
 ### addContext
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/shortcuts/manager.js#L45
 
 :::
@@ -41,7 +44,7 @@ Create a new [`ShortcutContext`](@/api/shortcutContext.md) object.
 
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/shortcuts/manager.js#L155
 
 :::
@@ -53,7 +56,7 @@ Destroy a context manager instance.
 
 
 ### getActiveContextName
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/shortcuts/manager.js#L59
 
 :::
@@ -65,7 +68,7 @@ Get the ID of the active [`ShortcutContext`](@/api/shortcutContext.md).
 
 
 ### getContext
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/shortcuts/manager.js#L70
 
 :::
@@ -80,10 +83,10 @@ Get a keyboard shortcut context by its name.
 | contextName | `string` | The name of the shortcut context |
 
 
-**Returns**: `object` | `undefined` - A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts  
+**Returns**: `object` | `undefined` - A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts
 
 ### isCtrlPressed
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/shortcuts/manager.js#L148
 
 :::
@@ -95,7 +98,7 @@ Returns whether `control` or `meta` keys are pressed.
 
 
 ### setActiveContextName
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/shortcuts/manager.js#L80
 
 :::
@@ -108,5 +111,3 @@ Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/s
 | Param | Type | Description |
 | --- | --- | --- |
 | contextName | `string` | The name of the shortcut context |
-
-

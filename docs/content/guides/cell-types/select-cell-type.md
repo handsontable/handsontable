@@ -1,10 +1,12 @@
 ---
+id: pqe1xozj
 title: Select cell type
 metaTitle: Select cell type - JavaScript Data Grid | Handsontable
 description: Use the select cell type to collect user input with a HTML <select> element that creates a multi-item dropdown menu.
 permalink: /select-cell-type
 canonicalUrl: /select-cell-type
 react:
+  id: xmdreeu3
   metaTitle: Select cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -1,4 +1,5 @@
 ---
+id: 6fv7kuj6
 title: Testing
 metaTitle: Testing - JavaScript Data Grid | Handsontable
 description: Run one or multiple tests, using Handsontable's ready-made commands for Jasmine and Puppeteer.
@@ -12,6 +13,7 @@ tags:
   - puppeteer
   - spec
 react:
+  id: y3wp74jh
   metaTitle: Testing - React Data Grid | Handsontable
 searchCategory: Guides
 ---

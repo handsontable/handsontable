@@ -1,4 +1,5 @@
 ---
+id: 0xtliaah
 title: Modules in Vue 3
 metaTitle: Modules - Vue 3 Data Grid | Handsontable
 description: Reduce the size of your Vue 3 app by importing only the modules that you need and use.

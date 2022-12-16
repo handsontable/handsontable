@@ -1,4 +1,5 @@
 ---
+id: n1d2orqc
 title: ChangesObserver
 metaTitle: ChangesObserver - JavaScript Data Grid | Handsontable
 permalink: /api/changes-observer
@@ -8,6 +9,7 @@ hotPlugin: false
 editLink: false
 description: Options, members, and methods of Handsontable's ChangesObserver API.
 react:
+  id: v5k5tou4
   metaTitle: ChangesObserver - React Data Grid | Handsontable
 ---
 
@@ -24,7 +26,7 @@ provided by the ChangesObservable module.
 ## Methods
 
 ### subscribe
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/changesObservable/observer.js#L26
 
 :::
@@ -41,7 +43,7 @@ Subscribes to the observer.
 
 
 ### unsubscribe
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/translations/changesObservable/observer.js#L39
 
 :::
@@ -50,5 +52,3 @@ _changesObserver.unsubscribe() ⇒ [ChangesObserver](@/api/changesObserver.md)_
 
 Unsubscribes all subscriptions. After the method call, the observer would not produce
 any new events.
-
-

@@ -1,4 +1,5 @@
 ---
+id: 4r6t4j1z
 title: Search
 metaTitle: Search - JavaScript Data Grid | Handsontable
 permalink: /api/search
@@ -8,6 +9,7 @@ hotPlugin: true
 editLink: false
 description: Use the Search plugin with its API options and methods such as query(), to configure and customize Handsontable's search.
 react:
+  id: acamkuxd
   metaTitle: Search - React Data Grid | Handsontable
 ---
 
@@ -21,7 +23,7 @@ The search plugin provides an easy interface to search data across Handsontable.
 
 In order to enable search mechanism, [Options#search](@/api/options.md#search) option must be set to `true`.
 
-**Example**  
+**Example**
 ```js
 // as boolean
 search: true
@@ -46,7 +48,7 @@ searchPlugin.setSearchResultClass(customClass);
 ## Options
 
 ### search
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/dataMap/metaManager/metaSchema.js#L3765
 
 :::
@@ -76,8 +78,8 @@ Read more:
 - [Searching values: Custom query method](@/guides/accessories-and-menus/searching-values.md#custom-query-method)
 - [Searching values: Custom callback](@/guides/accessories-and-menus/searching-values.md#custom-callback)
 
-**Default**: <code>false</code>  
-**Example**  
+**Default**: <code>false</code>
+**Example**
 ```js
 // enable the `Search` plugin with the default configuration
 search: true,
@@ -100,7 +102,7 @@ search: {
 ## Methods
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/search/search.js#L302
 
 :::
@@ -112,7 +114,7 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/search/search.js#L123
 
 :::
@@ -124,7 +126,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### enablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/search/search.js#L106
 
 :::
@@ -136,7 +138,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### getCallback
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/search/search.js#L193
 
 :::
@@ -146,10 +148,10 @@ _search.getCallback() ⇒ function_
 Gets the callback function.
 
 
-**Returns**: `function` - Return the callback function.  
+**Returns**: `function` - Return the callback function.
 
 ### getQueryMethod
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/search/search.js#L211
 
 :::
@@ -159,10 +161,10 @@ _search.getQueryMethod() ⇒ function_
 Gets the query method function.
 
 
-**Returns**: `function` - Return the query method.  
+**Returns**: `function` - Return the query method.
 
 ### getSearchResultClass
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/search/search.js#L229
 
 :::
@@ -172,10 +174,10 @@ _search.getSearchResultClass() ⇒ string_
 Gets search result cells class name.
 
 
-**Returns**: `string` - Return the cell class name.  
+**Returns**: `string` - Return the cell class name.
 
 ### isEnabled
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/search/search.js#L99
 
 :::
@@ -188,7 +190,7 @@ hook and if it returns `true` then the [AutoRowSize#enablePlugin](@/api/autoRowS
 
 
 ### query
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/search/search.js#L155
 
 :::
@@ -205,10 +207,10 @@ Makes the query.
 | [queryMethod] | `function` | `optional` Query function responsible for determining whether a query matches the value stored in a cell. |
 
 
-**Returns**: `Array<object>` - Return an array of objects with `row`, `col`, `data` properties or empty array.  
+**Returns**: `Array<object>` - Return an array of objects with `row`, `col`, `data` properties or empty array.
 
 ### setCallback
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/search/search.js#L202
 
 :::
@@ -225,7 +227,7 @@ Sets the callback function. This function will be called during querying for eac
 
 
 ### setQueryMethod
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/search/search.js#L220
 
 :::
@@ -242,7 +244,7 @@ Sets the query method function. The function is responsible for determining whet
 
 
 ### setSearchResultClass
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/search/search.js#L238
 
 :::
@@ -259,7 +261,7 @@ Sets search result cells class name. This class name will be added to each cell 
 
 
 ### updatePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/3397ce5ca20a640877710e3f1e935b4106754ee7/handsontable/src/plugins/search/search.js#L140
 
 :::
@@ -270,5 +272,3 @@ Updates the plugin's state.
 
 This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
  - [`search`](@/api/options.md#search)
-
-
