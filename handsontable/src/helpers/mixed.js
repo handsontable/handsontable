@@ -136,10 +136,8 @@ export function _injectProductInfo(key, element) {
       keyValidityDate = moment((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
 
       if (releaseDays > keyValidityDays) {
-        const daysAfterRelease = moment().diff(releaseDate, 'days');
-
-        consoleMessageState = daysAfterRelease <= 1 ? 'valid' : 'expired';
-        domMessageState = daysAfterRelease <= 15 ? 'valid' : 'expired';
+        consoleMessageState = 'expired';
+        domMessageState = 'expired';
       } else {
         consoleMessageState = 'valid';
         domMessageState = 'valid';
@@ -188,7 +186,7 @@ export function _injectProductInfo(key, element) {
     if (message) {
       const messageNode = document.createElement('div');
 
-      messageNode.id = 'hot-display-license-info';
+      messageNode.className = 'hot-display-license-info';
       messageNode.innerHTML = domMessages[domMessageState]({
         keyValidityDate,
         hotVersion,
