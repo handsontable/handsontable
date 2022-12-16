@@ -1,4 +1,5 @@
 ---
+id: bhst4cl4
 title: IME support
 metaTitle: IME support - Guide - Handsontable Documentation
 permalink: /ime-support

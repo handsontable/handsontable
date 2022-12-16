@@ -1,4 +1,5 @@
 ---
+id: hpr42b2a
 title: Documentation license
 metaTitle: Documentation license - Guide - Handsontable Documentation
 permalink: /documentation-license

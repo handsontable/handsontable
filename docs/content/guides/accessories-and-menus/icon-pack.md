@@ -1,4 +1,5 @@
 ---
+id: zu0ja2qo
 title: Icon pack
 metaTitle: Icon pack - Guide - Handsontable Documentation
 permalink: /icon-pack

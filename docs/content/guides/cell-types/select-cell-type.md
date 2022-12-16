@@ -1,4 +1,5 @@
 ---
+id: pqe1xozj
 title: Select cell type
 metaTitle: Select cell type - Guide - Handsontable Documentation
 permalink: /select-cell-type

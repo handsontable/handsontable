@@ -1,4 +1,5 @@
 ---
+id: 7a5vawwl
 title: Building
 metaTitle: Building - Guide - Handsontable Documentation
 permalink: /building

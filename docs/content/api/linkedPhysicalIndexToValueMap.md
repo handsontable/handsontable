@@ -1,4 +1,5 @@
 ---
+id: pjeolp38
 title: LinkedPhysicalIndexToValueMap
 metaTitle: LinkedPhysicalIndexToValueMap - API Reference - Handsontable Documentation
 permalink: /api/linked-physical-index-to-value-map

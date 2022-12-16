@@ -1,4 +1,5 @@
 ---
+id: 8b008itj
 title: IndexMap
 metaTitle: IndexMap - API Reference - Handsontable Documentation
 permalink: /api/index-map

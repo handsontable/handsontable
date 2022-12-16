@@ -1,4 +1,5 @@
 ---
+id: oabbxeng
 title: Options
 metaTitle: Options - API Reference - Handsontable Documentation
 permalink: /api/options

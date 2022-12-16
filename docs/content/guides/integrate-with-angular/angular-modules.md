@@ -1,4 +1,5 @@
 ---
+id: pbwa8bej
 title: 'Modules in Angular'
 metaTitle: 'Modules in Angular - Guide - Handsontable Documentation'
 permalink: /angular-modules

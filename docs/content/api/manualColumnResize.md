@@ -1,4 +1,5 @@
 ---
+id: 4zjgoamn
 title: ManualColumnResize
 metaTitle: ManualColumnResize - Plugin - Handsontable Documentation
 permalink: /api/manual-column-resize

@@ -1,4 +1,5 @@
 ---
+id: 2anhuqf7
 title: Column freezing
 metaTitle: Column freezing - Guide - Handsontable Documentation
 permalink: /column-freezing

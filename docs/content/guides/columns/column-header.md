@@ -1,4 +1,5 @@
 ---
+id: qiasr3y1
 title: Column header
 metaTitle: Column header - Guide - Handsontable Documentation
 permalink: /column-header

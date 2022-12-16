@@ -1,4 +1,5 @@
 ---
+id: coyq5h6m
 title: UndoRedo
 metaTitle: UndoRedo - Plugin - Handsontable Documentation
 permalink: /api/undo-redo

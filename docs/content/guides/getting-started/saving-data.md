@@ -1,4 +1,5 @@
 ---
+id: 7js3d370
 title: Saving data
 metaTitle: Saving data - Guide - Handsontable Documentation
 permalink: /saving-data

@@ -1,4 +1,5 @@
 ---
+id: nbp8i3mk
 title: Release notes
 metaTitle: Release notes - Guide - Handsontable Documentation
 permalink: /release-notes

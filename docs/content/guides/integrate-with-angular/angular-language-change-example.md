@@ -1,4 +1,5 @@
 ---
+id: 0gszzt14
 title: 'Language change in Angular'
 metaTitle: 'Language change in Angular - Guide - Handsontable Documentation'
 permalink: /angular-language-change-example
