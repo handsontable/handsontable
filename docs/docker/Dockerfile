@@ -4,8 +4,10 @@ FROM nginx:alpine
 # set up static content
 WORKDIR /usr/share/nginx
 
+COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 COPY ./docker/default.conf /etc/nginx/conf.d/default.conf
 COPY ./docker/variables.conf /etc/nginx/variables.conf
+COPY ./docker/redirect.js /etc/nginx/njs/redirect.js
 COPY ./docker/redirects.conf /etc/nginx/redirects.conf
 COPY ./.vuepress/dist ./html
 
