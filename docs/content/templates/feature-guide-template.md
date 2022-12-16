@@ -1,4 +1,5 @@
 ---
+id: A unique, 8-character ID (e.g., 45dody2p) for the JS version of this page (use https://www.random.org/strings/?num=20&len=8&digits=on&loweralpha=on&unique=on&format=html&rnd=new)
 title: Feature name
 metaTitle: Feature name - JavaScript Data Grid | Handsontable
 description: SEO description. Max 160 characters. Start with an action verb.
@@ -9,6 +10,7 @@ tags:
   - search
   - tags
 react:
+  id: A unique, 8-character ID (e.g., f8xulniq) for the React version of this page
   metaTitle: Feature name - React Data Grid | Handsontable
 searchCategory: Guides
 ---
