@@ -6,8 +6,10 @@ canonicalUrl: /api/base-plugin
 searchCategory: API Reference
 hotPlugin: false
 editLink: false
+id: wdr58c2w
 description: Options, members, and methods of Handsontable's BasePlugin API.
 react:
+  id: wi27fiwz
   metaTitle: BasePlugin - React Data Grid | Handsontable
 ---
 
@@ -19,7 +21,7 @@ react:
 
 ### SETTING_KEYS
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/base/base.js#L40
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/base/base.js#L40
 
 :::
 
@@ -36,7 +38,7 @@ config object.
 
 ### addHook
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/base/base.js#L167
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/base/base.js#L167
 
 :::
 
@@ -54,7 +56,7 @@ Add listener to plugin hooks system.
 
 ### callOnPluginsReady
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/base/base.js#L203
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/base/base.js#L203
 
 :::
 
@@ -71,7 +73,7 @@ Register function which will be immediately called after all plugins initialized
 
 ### clearHooks
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/base/base.js#L191
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/base/base.js#L191
 
 :::
 
@@ -83,7 +85,7 @@ Clear all hooks.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/base/base.js#L295
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/base/base.js#L295
 
 :::
 
@@ -95,7 +97,7 @@ Destroy plugin.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/base/base.js#L153
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/base/base.js#L153
 
 :::
 
@@ -107,7 +109,7 @@ Disable plugin for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/base/base.js#L146
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/base/base.js#L146
 
 :::
 
@@ -119,7 +121,7 @@ Enable plugin for this Handsontable instance.
 
 ### removeHooks
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/base/base.js#L182
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/base/base.js#L182
 
 :::
 

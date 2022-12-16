@@ -6,8 +6,10 @@ canonicalUrl: /api/drag-to-scroll
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+id: c3f14467
 description: Use the DragToScroll plugin with its API options, members, and methods to scroll the data grid by selecting a cell and dragging it outside the viewport.
 react:
+  id: uawwix9r
   metaTitle: DragToScroll - React Data Grid | Handsontable
 ---
 
@@ -24,7 +26,7 @@ Plugin used to scroll Handsontable by selecting a cell and dragging outside of t
 
 ### dragToScroll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/dataMap/metaManager/metaSchema.js#L1769
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/dataMap/metaManager/metaSchema.js#L1769
 
 :::
 
@@ -53,7 +55,7 @@ dragToScroll: true,
 
 ### boundaries
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/dragToScroll/dragToScroll.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/dragToScroll/dragToScroll.js#L43
 
 :::
 
@@ -67,7 +69,7 @@ e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y
 
 ### check
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/dragToScroll/dragToScroll.js#L133
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/dragToScroll/dragToScroll.js#L133
 
 :::
 
@@ -86,7 +88,7 @@ between passed boundaries.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/dragToScroll/dragToScroll.js#L269
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/dragToScroll/dragToScroll.js#L269
 
 :::
 
@@ -98,7 +100,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/dragToScroll/dragToScroll.js#L102
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/dragToScroll/dragToScroll.js#L102
 
 :::
 
@@ -110,7 +112,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/dragToScroll/dragToScroll.js#L73
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/dragToScroll/dragToScroll.js#L73
 
 :::
 
@@ -122,7 +124,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/dragToScroll/dragToScroll.js#L66
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/dragToScroll/dragToScroll.js#L66
 
 :::
 
@@ -135,7 +137,7 @@ hook and if it returns `true` then the [DragToScroll#enablePlugin](@/api/dragToS
 
 ### setBoundaries
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/dragToScroll/dragToScroll.js#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/dragToScroll/dragToScroll.js#L113
 
 :::
 
@@ -152,7 +154,7 @@ Sets the value of the visible element.
 
 ### setCallback
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/dragToScroll/dragToScroll.js#L122
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/dragToScroll/dragToScroll.js#L122
 
 :::
 
@@ -169,7 +171,7 @@ Changes callback function.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/dragToScroll/dragToScroll.js#L92
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/dragToScroll/dragToScroll.js#L92
 
 :::
 

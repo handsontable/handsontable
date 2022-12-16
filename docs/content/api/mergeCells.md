@@ -6,8 +6,10 @@ canonicalUrl: /api/merge-cells
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+id: cs07c3ly
 description: Use the MergeCells plugin with its API options and methods to merge adjacent cells, using the "Ctrl + M" shortcut or the context menu.
 react:
+  id: 62cv5ecx
   metaTitle: MergeCells - React Data Grid | Handsontable
 ---
 
@@ -50,7 +52,7 @@ const hot = new Handsontable(document.getElementById('example'), {
 
 ### mergeCells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/dataMap/metaManager/metaSchema.js#L3007
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/dataMap/metaManager/metaSchema.js#L3007
 
 :::
 
@@ -101,7 +103,7 @@ mergeCells: [
 
 ### clearCollections
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/mergeCells/mergeCells.js#L269
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/mergeCells/mergeCells.js#L269
 
 :::
 
@@ -113,7 +115,7 @@ Clears the merged cells from the merged cell container.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/mergeCells/mergeCells.js#L162
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/mergeCells/mergeCells.js#L162
 
 :::
 
@@ -125,7 +127,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/mergeCells/mergeCells.js#L114
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/mergeCells/mergeCells.js#L114
 
 :::
 
@@ -137,7 +139,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/mergeCells/mergeCells.js#L107
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/mergeCells/mergeCells.js#L107
 
 :::
 
@@ -150,7 +152,7 @@ hook and if it returns `true` then the [MergeCells#enablePlugin](@/api/mergeCell
 
 ### merge
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/mergeCells/mergeCells.js#L475
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/mergeCells/mergeCells.js#L475
 
 :::
 
@@ -171,7 +173,7 @@ Merges the specified range.
 
 ### mergeSelection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/mergeCells/mergeCells.js#L310
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/mergeCells/mergeCells.js#L310
 
 :::
 
@@ -188,7 +190,7 @@ Merges the selection provided as a cell range.
 
 ### unmerge
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/mergeCells/mergeCells.js#L492
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/mergeCells/mergeCells.js#L492
 
 :::
 
@@ -209,7 +211,7 @@ Unmerges the merged cell in the provided range.
 
 ### unmergeSelection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/mergeCells/mergeCells.js#L329
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/mergeCells/mergeCells.js#L329
 
 :::
 
@@ -226,7 +228,7 @@ Unmerges the selection provided as a cell range.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/mergeCells/mergeCells.js#L175
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/mergeCells/mergeCells.js#L175
 
 :::
 

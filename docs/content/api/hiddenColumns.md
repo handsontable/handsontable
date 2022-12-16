@@ -1,11 +1,16 @@
 ---
 title: HiddenColumns
-metaTitle: HiddenColumns plugin – JavaScript Data Grid | Handsontable
+metaTitle: HiddenColumns - JavaScript Data Grid | Handsontable
 permalink: /api/hidden-columns
 canonicalUrl: /api/hidden-columns
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+id: v8xg8kot
+description: Use the HiddenColumns plugin with its API options and methods to hide specified columns, without modifying your source data.
+react:
+  id: crwccrpj
+  metaTitle: HiddenColumns - React Data Grid | Handsontable
 ---
 
 # HiddenColumns
@@ -116,7 +121,7 @@ hot.render();
 
 ### hiddenColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/dataMap/metaManager/metaSchema.js#L2409
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/dataMap/metaManager/metaSchema.js#L2409
 
 :::
 
@@ -165,7 +170,7 @@ hiddenColumns: {
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L530
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L530
 
 :::
 
@@ -177,7 +182,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L210
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L210
 
 :::
 
@@ -189,7 +194,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L166
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L166
 
 :::
 
@@ -201,7 +206,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getHiddenColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L322
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L322
 
 :::
 
@@ -213,7 +218,7 @@ Returns an array of visual indexes of hidden columns.
 
 ### hideColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L313
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L313
 
 :::
 
@@ -230,7 +235,7 @@ Hides a single column.
 
 ### hideColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L280
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L280
 
 :::
 
@@ -247,7 +252,7 @@ Hides the columns provided in the array.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L159
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L159
 
 :::
 
@@ -260,7 +265,7 @@ hook and if it returns `true` then the [HiddenColumns#enablePlugin](@/api/hidden
 
 ### isHidden
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L334
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L334
 
 :::
 
@@ -277,7 +282,7 @@ Checks if the provided column is hidden.
 
 ### isValidConfig
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L344
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L344
 
 :::
 
@@ -294,7 +299,7 @@ Get if trim config is valid. Check whether all of the provided column indexes ar
 
 ### showColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L271
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L271
 
 :::
 
@@ -311,7 +316,7 @@ Shows a single column.
 
 ### showColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L223
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L223
 
 :::
 
@@ -328,7 +333,7 @@ Shows the provided columns.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L200
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/hiddenColumns/hiddenColumns.js#L200
 
 :::
 

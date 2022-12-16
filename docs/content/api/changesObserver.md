@@ -6,8 +6,10 @@ canonicalUrl: /api/changes-observer
 searchCategory: API Reference
 hotPlugin: false
 editLink: false
+id: n1d2orqc
 description: Options, members, and methods of Handsontable's ChangesObserver API.
 react:
+  id: v5k5tou4
   metaTitle: ChangesObserver - React Data Grid | Handsontable
 ---
 
@@ -25,7 +27,7 @@ provided by the ChangesObservable module.
 
 ### subscribe
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/translations/changesObservable/observer.js#L26
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/translations/changesObservable/observer.js#L26
 
 :::
 
@@ -42,7 +44,7 @@ Subscribes to the observer.
 
 ### unsubscribe
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/translations/changesObservable/observer.js#L39
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/translations/changesObservable/observer.js#L39
 
 :::
 

@@ -6,8 +6,10 @@ canonicalUrl: /api/column-summary
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+id: wrwu7s6c
 description: Use the ColumnSummary plugin with its API options and methods to summarize your columns, using built-in functions or implementing custom summary functions.
 react:
+  id: 0iw5v2b5
   metaTitle: ColumnSummary - React Data Grid | Handsontable
 ---
 
@@ -102,7 +104,7 @@ const hot = new Handsontable(container, {
 
 ### columnSummary
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/dataMap/metaManager/metaSchema.js#L957
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/dataMap/metaManager/metaSchema.js#L957
 
 :::
 
@@ -159,7 +161,7 @@ columnSummary: [
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/columnSummary/columnSummary.js#L161
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/columnSummary/columnSummary.js#L161
 
 :::
 
@@ -171,7 +173,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/columnSummary/columnSummary.js#L129
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/columnSummary/columnSummary.js#L129
 
 :::
 
@@ -183,7 +185,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/columnSummary/columnSummary.js#L122
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/columnSummary/columnSummary.js#L122
 
 :::
 

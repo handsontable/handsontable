@@ -6,8 +6,10 @@ canonicalUrl: /api/trimming-map
 searchCategory: API Reference
 hotPlugin: false
 editLink: false
+id: 8wnfx6b9
 description: Options, members, and methods of Handsontable's TrimmingMap API.
 react:
+  id: l3n89gff
   metaTitle: TrimmingMap - React Data Grid | Handsontable
 ---
 
@@ -25,7 +27,7 @@ NOT included in a dataset and skipped in the process of rendering.
 
 ### getTrimmedIndexes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/translations/maps/trimmingMap.js#L22
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/translations/maps/trimmingMap.js#L22
 
 :::
 

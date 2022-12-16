@@ -6,8 +6,10 @@ canonicalUrl: /api/autofill
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+id: gybdfu49
 description: Use the Autofill plugin with its API members and methods to enable the drag-down and copy-down features.
 react:
+  id: het268ia
   metaTitle: Autofill - React Data Grid | Handsontable
 ---
 
@@ -30,7 +32,7 @@ square in the corner.
 
 ### autoInsertRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/autofill/autofill.js#L98
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/autofill/autofill.js#L98
 
 :::
 
@@ -43,7 +45,7 @@ Specifies if can insert new rows if needed.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/autofill/autofill.js#L668
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/autofill/autofill.js#L668
 
 :::
 
@@ -55,7 +57,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/autofill/autofill.js#L144
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/autofill/autofill.js#L144
 
 :::
 
@@ -67,7 +69,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/autofill/autofill.js#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/autofill/autofill.js#L113
 
 :::
 
@@ -79,7 +81,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/autofill/autofill.js#L106
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/autofill/autofill.js#L106
 
 :::
 
@@ -91,7 +93,7 @@ Checks if the plugin is enabled in the Handsontable settings.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/autofill/autofill.js#L135
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/autofill/autofill.js#L135
 
 :::
 

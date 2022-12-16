@@ -6,8 +6,10 @@ canonicalUrl: /api/copy-paste
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+id: jtoc0ta4
 description: Use the CopyPaste plugin with its API options, members, and methods to enable the copy/paste functionality, through the API, the context menu, and keyboard shortcuts.
 react:
+  id: g6fi2a6i
   metaTitle: CopyPaste - React Data Grid | Handsontable
 ---
 
@@ -51,7 +53,7 @@ copyPaste: {
 
 ### copyPaste
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/dataMap/metaManager/metaSchema.js#L1275
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/dataMap/metaManager/metaSchema.js#L1275
 
 :::
 
@@ -123,7 +125,7 @@ copyPaste: {
 
 ### columnsLimit
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L96
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L96
 
 :::
 
@@ -136,7 +138,7 @@ The maximum number of columns than can be copied to the clipboard.
 
 ### pasteMode
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L113
 
 :::
 
@@ -152,7 +154,7 @@ When pasting:
 
 ### rowsLimit
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L103
 
 :::
 
@@ -165,7 +167,7 @@ The maximum number of rows than can be copied to the clipboard.
 
 ### uiContainer
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L119
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L119
 
 :::
 
@@ -178,7 +180,7 @@ The UI container for the secondary focusable element.
 
 ### copy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L280
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L280
 
 :::
 
@@ -204,7 +206,7 @@ Takes an optional parameter (`copyMode`) that defines the scope of copying:
 
 ### copyCellsOnly
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L291
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L291
 
 :::
 
@@ -216,7 +218,7 @@ Copies the contents of the selected cells.
 
 ### copyColumnHeadersOnly
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L297
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L297
 
 :::
 
@@ -228,7 +230,7 @@ Copies the contents of column headers that are nearest to the selected cells.
 
 ### copyWithAllColumnHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L303
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L303
 
 :::
 
@@ -240,7 +242,7 @@ Copies the contents of the selected cells and all their related column headers.
 
 ### copyWithColumnHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L309
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L309
 
 :::
 
@@ -252,7 +254,7 @@ Copies the contents of the selected cells and their nearest column headers.
 
 ### cut
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L316
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L316
 
 :::
 
@@ -264,7 +266,7 @@ Cuts the contents of the selected cells to the system clipboard.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L782
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L782
 
 :::
 
@@ -276,7 +278,7 @@ Destroys the `CopyPaste` plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L258
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L258
 
 :::
 
@@ -288,7 +290,7 @@ Disables the [`CopyPaste`](#copypaste) plugin for your Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L209
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L209
 
 :::
 
@@ -300,7 +302,7 @@ Enables the [`CopyPaste`](#copypaste) plugin for your Handsontable instance.
 
 ### getRangedCopyableData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L329
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L329
 
 :::
 
@@ -318,7 +320,7 @@ Converts the contents of multiple ranges (`ranges`) into a single string.
 
 ### getRangedData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L339
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L339
 
 :::
 
@@ -336,7 +338,7 @@ Converts the contents of multiple ranges (`ranges`) into an array of arrays.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L202
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L202
 
 :::
 
@@ -351,7 +353,7 @@ If it returns `true`, the [`enablePlugin()`](#enableplugin) method gets called.
 
 ### paste
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L370
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L370
 
 :::
 
@@ -371,7 +373,7 @@ For security reasons, modern browsers don't allow reading from the system clipbo
 
 ### setCopyableText
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L391
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L391
 
 :::
 
@@ -383,7 +385,7 @@ Prepares copyable text from the cells selection in the invisible textarea.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/copyPaste/copyPaste.js#L247
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/copyPaste/copyPaste.js#L247
 
 :::
 

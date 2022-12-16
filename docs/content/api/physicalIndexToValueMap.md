@@ -6,8 +6,10 @@ canonicalUrl: /api/physical-index-to-value-map
 searchCategory: API Reference
 hotPlugin: false
 editLink: false
+id: x5bgvsa4
 description: Options, members, and methods of Handsontable's PhysicalIndexToValueMap API.
 react:
+  id: 8f31lcaa
   metaTitle: PhysicalIndexToValueMap - React Data Grid | Handsontable
 ---
 

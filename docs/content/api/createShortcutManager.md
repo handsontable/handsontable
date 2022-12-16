@@ -1,11 +1,16 @@
 ---
 title: CreateShortcutManager
-metaTitle: CreateShortcutManager API reference – JavaScript Data Grid | Handsontable
+metaTitle: CreateShortcutManager - JavaScript Data Grid | Handsontable
 permalink: /api/create-shortcut-manager
 canonicalUrl: /api/create-shortcut-manager
 searchCategory: API Reference
 hotPlugin: false
 editLink: false
+id: wt56lf3y
+description: Options, members, and methods of Handsontable's CreateShortcutManager API.
+react:
+  id: smdsdtby
+  metaTitle: CreateShortcutManager - React Data Grid | Handsontable
 ---
 
 # CreateShortcutManager
@@ -15,7 +20,7 @@ editLink: false
 
 ### activeContextName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/shortcuts/manager.js#L36
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/shortcuts/manager.js#L36
 
 :::
 
@@ -27,7 +32,7 @@ The name of the active [`ShortcutContext`](@/api/shortcutContext.md).
 
 ### CONTEXTS
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/shortcuts/manager.js#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/shortcuts/manager.js#L28
 
 :::
 
@@ -39,7 +44,7 @@ A unique map that stores keyboard shortcut contexts.
 
 ### isCtrlKeySilenced
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/shortcuts/manager.js#L91
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/shortcuts/manager.js#L91
 
 :::
 

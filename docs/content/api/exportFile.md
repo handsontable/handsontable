@@ -6,8 +6,10 @@ canonicalUrl: /api/export-file
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+id: 4j5eqkhw
 description: Export your grid's data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
 react:
+  id: qsmpym52
   metaTitle: ExportFile - React Data Grid | Handsontable
 ---
 
@@ -93,7 +95,7 @@ exportPlugin.exportAsString('csv', {
 
 ### ExportOptions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/exportFile/exportFile.js#L104
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/exportFile/exportFile.js#L104
 
 :::
 
@@ -115,7 +117,7 @@ _ExportFile.ExportOptions : object_
 
 ### downloadFile
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/exportFile/exportFile.js#L144
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/exportFile/exportFile.js#L144
 
 :::
 
@@ -133,7 +135,7 @@ Exports table data as a downloadable file.
 
 ### exportAsBlob
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/exportFile/exportFile.js#L134
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/exportFile/exportFile.js#L134
 
 :::
 
@@ -151,7 +153,7 @@ Exports table data as a blob object.
 
 ### exportAsString
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/exportFile/exportFile.js#L123
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/exportFile/exportFile.js#L123
 
 :::
 
@@ -169,7 +171,7 @@ Exports table data as a string.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/exportFile/exportFile.js#L100
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/exportFile/exportFile.js#L100
 
 :::
 

@@ -6,8 +6,10 @@ canonicalUrl: /api/manual-column-resize
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+id: 4zjgoamn
 description: Use the ManualColumnResize plugin with its API options and methods to let your users manually change column widths using Handsontable's interface.
 react:
+  id: lszzwc0i
   metaTitle: ManualColumnResize - React Data Grid | Handsontable
 ---
 
@@ -29,7 +31,7 @@ The plugin creates additional components to make resizing possibly using user in
 
 ### manualColumnResize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/dataMap/metaManager/metaSchema.js#L2848
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/dataMap/metaManager/metaSchema.js#L2848
 
 :::
 
@@ -65,7 +67,7 @@ manualColumnResize: [40, 50, 60],
 
 ### clearManualSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L185
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L185
 
 :::
 
@@ -82,7 +84,7 @@ Clears the cache for the specified column index.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L631
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L631
 
 :::
 
@@ -94,7 +96,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L133
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L133
 
 :::
 
@@ -106,7 +108,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L97
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L97
 
 :::
 
@@ -118,7 +120,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L90
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L90
 
 :::
 
@@ -131,7 +133,7 @@ hook and if it returns `true` then the [ManualColumnResize#enablePlugin](@/api/m
 
 ### loadManualColumnWidths
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L156
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L156
 
 :::
 
@@ -144,7 +146,7 @@ Loads the previously saved sizes using the persistentState plugin (the [Options#
 
 ### saveManualColumnWidths
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L146
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L146
 
 :::
 
@@ -157,7 +159,7 @@ Saves the current sizes using the persistentState plugin (the [Options#persisten
 
 ### setManualSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L171
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L171
 
 :::
 
@@ -176,7 +178,7 @@ Sets the new width for specified column index.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L123
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/manualColumnResize/manualColumnResize.js#L123
 
 :::
 

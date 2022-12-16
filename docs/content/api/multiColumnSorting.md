@@ -6,8 +6,10 @@ canonicalUrl: /api/multi-column-sorting
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+id: ypo7x8k9
 description: Use the MultiColumnSorting plugin with its API methods to sort the view (not the data source) across multiple columns.
 react:
+  id: 8gqtvsrl
   metaTitle: MultiColumnSorting - React Data Grid | Handsontable
 ---
 
@@ -68,7 +70,7 @@ columns: [{
 
 ### multiColumnSorting
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/dataMap/metaManager/metaSchema.js#L3186
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/dataMap/metaManager/metaSchema.js#L3186
 
 :::
 
@@ -149,7 +151,7 @@ multiColumnSorting: {
 
 ### clearSort
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L150
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L150
 
 :::
 
@@ -161,7 +163,7 @@ Clear the sort performed on the table.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L114
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L114
 
 :::
 
@@ -173,7 +175,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L103
 
 :::
 
@@ -185,7 +187,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getSortConfig
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L171
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L171
 
 :::
 
@@ -204,7 +206,7 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L96
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L96
 
 :::
 
@@ -217,7 +219,7 @@ hook and if it returns `true` then the [MultiColumnSorting#enablePlugin](@/api/m
 
 ### isSorted
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L159
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L159
 
 :::
 
@@ -229,7 +231,7 @@ Checks if the table is sorted (any column have to be sorted).
 
 ### setSortConfig
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L199
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L199
 
 :::
 
@@ -261,7 +263,7 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
 
 ### sort
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L143
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L143
 
 :::
 

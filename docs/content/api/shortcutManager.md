@@ -1,11 +1,16 @@
 ---
 title: ShortcutManager
-metaTitle: ShortcutManager API reference – JavaScript Data Grid | Handsontable
+metaTitle: ShortcutManager - JavaScript Data Grid | Handsontable
 permalink: /api/shortcut-manager
 canonicalUrl: /api/shortcut-manager
 searchCategory: API Reference
 hotPlugin: false
 editLink: false
+id: qos98msl
+description: Options, members, and methods of Handsontable's ShortcutManager API.
+react:
+  id: doot085y
+  metaTitle: ShortcutManager - React Data Grid | Handsontable
 ---
 
 # ShortcutManager
@@ -25,7 +30,7 @@ Each `ShortcutManager` object:
 
 ### addContext
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/shortcuts/manager.js#L45
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/shortcuts/manager.js#L45
 
 :::
 
@@ -42,7 +47,7 @@ Create a new [`ShortcutContext`](@/api/shortcutContext.md) object.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/shortcuts/manager.js#L155
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/shortcuts/manager.js#L155
 
 :::
 
@@ -54,7 +59,7 @@ Destroy a context manager instance.
 
 ### getActiveContextName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/shortcuts/manager.js#L59
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/shortcuts/manager.js#L59
 
 :::
 
@@ -66,7 +71,7 @@ Get the ID of the active [`ShortcutContext`](@/api/shortcutContext.md).
 
 ### getContext
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/shortcuts/manager.js#L70
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/shortcuts/manager.js#L70
 
 :::
 
@@ -84,7 +89,7 @@ Get a keyboard shortcut context by its name.
 
 ### isCtrlPressed
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/shortcuts/manager.js#L148
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/shortcuts/manager.js#L148
 
 :::
 
@@ -96,7 +101,7 @@ Returns whether `control` or `meta` keys are pressed.
 
 ### setActiveContextName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/shortcuts/manager.js#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/shortcuts/manager.js#L80
 
 :::
 

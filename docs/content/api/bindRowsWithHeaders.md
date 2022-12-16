@@ -6,8 +6,10 @@ canonicalUrl: /api/bind-rows-with-headers
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+id: dxv2vk3l
 description: Use the BindRowsWithHeaders plugin with its API options and methods to allow binding table rows to their headers.
 react:
+  id: 2mdpwy50
   metaTitle: BindRowsWithHeaders - React Data Grid | Handsontable
 ---
 
@@ -48,7 +50,7 @@ const hot = new Handsontable(container, {
 
 ### bindRowsWithHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/dataMap/metaManager/metaSchema.js#L507
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/dataMap/metaManager/metaSchema.js#L507
 
 :::
 
@@ -77,7 +79,7 @@ bindRowsWithHeaders: true
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L123
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L123
 
 :::
 
@@ -89,7 +91,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L103
 
 :::
 
@@ -101,7 +103,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L80
 
 :::
 
@@ -113,7 +115,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L73
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L73
 
 :::
 

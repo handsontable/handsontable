@@ -6,8 +6,10 @@ canonicalUrl: /api/hiding-map
 searchCategory: API Reference
 hotPlugin: false
 editLink: false
+id: g0whnkji
 description: Options, members, and methods of Handsontable's HidingMap API.
 react:
+  id: 9k5ucjxx
   metaTitle: HidingMap - React Data Grid | Handsontable
 ---
 
@@ -25,7 +27,7 @@ included in a dataset, but skipped in the process of rendering.
 
 ### getHiddenIndexes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/translations/maps/hidingMap.js#L22
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/translations/maps/hidingMap.js#L22
 
 :::
 

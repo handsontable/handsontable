@@ -6,8 +6,10 @@ canonicalUrl: /api/filters
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+id: 3alr8j85
 description: Use the Filters plugin with its API members and methods to filter the view (not the source data) by a value or by a combination of conditions.
 react:
+  id: vxwvhi0e
   metaTitle: Filters - React Data Grid | Handsontable
 ---
 
@@ -51,7 +53,7 @@ const hot = new Handsontable(container, {
 
 ### filters
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/dataMap/metaManager/metaSchema.js#L2118
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/dataMap/metaManager/metaSchema.js#L2118
 
 :::
 
@@ -82,7 +84,7 @@ filters: true,
 
 ### addCondition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/filters/filters.js#L282
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/filters/filters.js#L282
 
 :::
 
@@ -198,7 +200,7 @@ filtersPlugin.filter();
 
 ### clearConditions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/filters/filters.js#L414
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/filters/filters.js#L414
 
 :::
 
@@ -216,7 +218,7 @@ was not passed, clear the conditions for all columns.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/filters/filters.js#L916
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/filters/filters.js#L916
 
 :::
 
@@ -228,7 +230,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/filters/filters.js#L263
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/filters/filters.js#L263
 
 :::
 
@@ -240,7 +242,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/filters/filters.js#L161
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/filters/filters.js#L161
 
 :::
 
@@ -252,7 +254,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### filter
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/filters/filters.js#L431
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/filters/filters.js#L431
 
 :::
 
@@ -265,7 +267,7 @@ Filters data based on added filter conditions.
 
 ### getDataMapAtColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/filters/filters.js#L515
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/filters/filters.js#L515
 
 :::
 
@@ -283,7 +285,7 @@ Returns handsontable source data with cell meta based on current selection.
 
 ### getSelectedColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/filters/filters.js#L483
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/filters/filters.js#L483
 
 :::
 
@@ -298,7 +300,7 @@ the index of the column.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/filters/filters.js#L153
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/filters/filters.js#L153
 
 :::
 
@@ -311,7 +313,7 @@ hook and if it returns `true` then the [Filters#enablePlugin](@/api/filters.md#e
 
 ### removeConditions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/filters/filters.js#L402
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/filters/filters.js#L402
 
 :::
 

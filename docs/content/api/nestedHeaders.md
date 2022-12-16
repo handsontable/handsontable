@@ -6,8 +6,10 @@ canonicalUrl: /api/nested-headers
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+id: inirtbkb
 description: Use the NestedHeaders plugin with its API options and methods to group your columns, using multiple levels of nested column headers.
 react:
+  id: 8qwzxi9i
   metaTitle: NestedHeaders - React Data Grid | Handsontable
 ---
 
@@ -59,7 +61,7 @@ const hot = new Handsontable(container, {
 
 ### nestedHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/dataMap/metaManager/metaSchema.js#L3227
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/dataMap/metaManager/metaSchema.js#L3227
 
 :::
 
@@ -102,7 +104,7 @@ nestedHeaders: [
 
 ### detectedOverlappedHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L106
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L106
 
 :::
 
@@ -116,7 +118,7 @@ configuration.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L702
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L702
 
 :::
 
@@ -128,7 +130,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L215
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L215
 
 :::
 
@@ -140,7 +142,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L120
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L120
 
 :::
 
@@ -152,7 +154,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L113
 
 :::
 
@@ -164,7 +166,7 @@ Check if plugin is enabled.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L157
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L157
 
 :::
 

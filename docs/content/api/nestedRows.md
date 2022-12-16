@@ -6,8 +6,10 @@ canonicalUrl: /api/nested-rows
 searchCategory: API Reference
 hotPlugin: true
 editLink: false
+id: iadurw6z
 description: Use the NestedRows plugin with its API options, members and methods to display data in nested structures (where data spans multiple columns).
 react:
+  id: fvo6cybt
   metaTitle: NestedRows - React Data Grid | Handsontable
 ---
 
@@ -24,7 +26,7 @@ Plugin responsible for displaying and operating on data sources with nested stru
 
 ### nestedRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/dataMap/metaManager/metaSchema.js#L3254
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/dataMap/metaManager/metaSchema.js#L3254
 
 :::
 
@@ -53,7 +55,7 @@ nestedRows: true,
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/nestedRows/nestedRows.js#L453
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedRows/nestedRows.js#L453
 
 :::
 
@@ -65,7 +67,7 @@ Destroys the plugin instance.
 
 ### disableCoreAPIModifiers
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/nestedRows/nestedRows.js#L175
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedRows/nestedRows.js#L175
 
 :::
 
@@ -78,7 +80,7 @@ modifications.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/nestedRows/nestedRows.js#L126
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedRows/nestedRows.js#L126
 
 :::
 
@@ -90,7 +92,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enableCoreAPIModifiers
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/nestedRows/nestedRows.js#L184
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedRows/nestedRows.js#L184
 
 :::
 
@@ -102,7 +104,7 @@ Disable the modify hook skipping flag.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/nestedRows/nestedRows.js#L87
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedRows/nestedRows.js#L87
 
 :::
 
@@ -114,7 +116,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/nestedRows/nestedRows.js#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedRows/nestedRows.js#L80
 
 :::
 
@@ -127,7 +129,7 @@ hook and if it returns `true` then the [NestedRows#enablePlugin](@/api/nestedRow
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/155272763a14b785c449c1c1d175c594050fe92d/handsontable/src/plugins/nestedRows/nestedRows.js#L138
+::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedRows/nestedRows.js#L138
 
 :::
 
