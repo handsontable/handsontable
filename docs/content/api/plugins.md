@@ -1,4 +1,5 @@
 ---
+id: nh39k1d2
 title: Plugins
 metaTitle: 'API reference: Plugins - JavaScript Data Grid | Handsontable'
 description: A complete list of Handsontable's plugins that can extend your data grid's capabilities.
@@ -6,6 +7,7 @@ permalink: /api/plugins
 canonicalUrl: /api/plugins
 searchCategory: API Reference
 react:
+  id: iauj1mv1
   metaTitle: 'API reference: Plugins - React Data Grid | Handsontable'
 ---
 
