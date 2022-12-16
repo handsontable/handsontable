@@ -4316,7 +4316,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     metaManager.clearCache();
 
     if (isRootInstance(instance)) {
-      const licenseInfo = this.rootDocument.querySelector('#hot-display-license-info');
+      const licenseInfo = this.rootDocument.querySelector('.hot-display-license-info');
 
       if (licenseInfo) {
         licenseInfo.parentNode.removeChild(licenseInfo);
