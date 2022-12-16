@@ -1,4 +1,5 @@
 ---
+id: bpcuomaq
 title: Column width
 metaTitle: Column width - Guide - Handsontable Documentation
 permalink: /column-width
@@ -10,7 +11,7 @@ tags:
   - width
   - max-width
   - min-width
-  - column dimmensions
+  - column dimensions
   - manual resize
 ---
 

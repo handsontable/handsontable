@@ -1,4 +1,5 @@
 ---
+id: c3f14467
 title: DragToScroll
 metaTitle: DragToScroll - Plugin - Handsontable Documentation
 permalink: /api/drag-to-scroll

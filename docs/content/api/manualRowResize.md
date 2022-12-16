@@ -1,4 +1,5 @@
 ---
+id: la7wo1xh
 title: ManualRowResize
 metaTitle: ManualRowResize - Plugin - Handsontable Documentation
 permalink: /api/manual-row-resize

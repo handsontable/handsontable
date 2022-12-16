@@ -1,4 +1,5 @@
 ---
+id: h5waqmlx
 title: 'Using the `HotColumn` component in React'
 metaTitle: 'Using the HotColumn component in React - Guide - Handsontable Documentation'
 permalink: /react-hot-column

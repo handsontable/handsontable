@@ -1,4 +1,5 @@
 ---
+id: y47bww7n
 title: Formulas
 metaTitle: Formulas - Plugin - Handsontable Documentation
 permalink: /api/formulas

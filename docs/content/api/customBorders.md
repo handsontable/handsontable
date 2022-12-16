@@ -1,4 +1,5 @@
 ---
+id: gxm1a98b
 title: CustomBorders
 metaTitle: CustomBorders - Plugin - Handsontable Documentation
 permalink: /api/custom-borders

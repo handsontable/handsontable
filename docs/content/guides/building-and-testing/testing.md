@@ -1,4 +1,5 @@
 ---
+id: 6fv7kuj6
 title: Testing process
 metaTitle: Testing process - Guide - Handsontable Documentation
 permalink: /testing

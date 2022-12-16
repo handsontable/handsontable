@@ -1,4 +1,5 @@
 ---
+id: g0whnkji
 title: HidingMap
 metaTitle: HidingMap - API Reference - Handsontable Documentation
 permalink: /api/hiding-map

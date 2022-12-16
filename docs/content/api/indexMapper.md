@@ -1,4 +1,5 @@
 ---
+id: uolxl0ol
 title: IndexMapper
 metaTitle: IndexMapper - API Reference - Handsontable Documentation
 permalink: /api/index-mapper

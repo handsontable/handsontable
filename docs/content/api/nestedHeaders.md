@@ -1,4 +1,5 @@
 ---
+id: inirtbkb
 title: NestedHeaders
 metaTitle: NestedHeaders - Plugin - Handsontable Documentation
 permalink: /api/nested-headers

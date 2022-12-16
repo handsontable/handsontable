@@ -1,4 +1,5 @@
 ---
+id: aq1vywt4
 title: Column moving
 metaTitle: Column moving - Guide - Handsontable Documentation
 permalink: /column-moving

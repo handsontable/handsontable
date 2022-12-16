@@ -1,4 +1,5 @@
 ---
+id: ypo7x8k9
 title: MultiColumnSorting
 metaTitle: MultiColumnSorting - Plugin - Handsontable Documentation
 permalink: /api/multi-column-sorting

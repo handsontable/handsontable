@@ -1,4 +1,5 @@
 ---
+id: ct5f32ig
 title: Searching values
 metaTitle: Searching values - Guide - Handsontable Documentation
 permalink: /searching-values

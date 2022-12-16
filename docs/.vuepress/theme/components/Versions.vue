@@ -15,10 +15,22 @@ export default {
   components: {
     DropdownLink
   },
-  data() {
-    return {
-      item: [],
-    };
+  computed: {
+    item() {
+      return {
+        text: this.addLatest(this.$page.currentVersion),
+        items:
+          [
+            ...(this.$page.versions ? this.$page.versions.map(v => ({
+              text: `${this.addLatest(v)}`,
+              link: this.getLink(v),
+              target: '_self',
+              isHtmlLink: true
+            })) : []),
+            ...this.getLegacyVersions()
+          ]
+      };
+    }
   },
   methods: {
     addLatest(version) {
@@ -30,10 +42,11 @@ export default {
     },
     getLink(version) {
       if (version === this.$page.latestVersion) {
-        return '/docs/';
+        return `/docs${this.$route.path}`;
       }
 
-      return `/docs/${version}/`;
+      // Using `location.origin` disables injecting `.html` postfix at the end of the URL
+      return `${location.origin}/docs/${version}/redirect?pageId=${this.$page.frontmatter.id}`;
     },
     getLegacyVersions() {
       return [
@@ -57,21 +70,6 @@ export default {
         link: `${this.$page.baseUrl}/docs/${version}/`
       }));
     }
-  },
-  mounted() {
-    this.item = {
-      text: this.addLatest(this.$page.currentVersion),
-      items:
-        [
-          ...this.$page.versions.map(v => ({
-            text: `${this.addLatest(v)}`,
-            link: this.getLink(v),
-            target: '_self',
-            isHtmlLink: true
-          })),
-          ...this.getLegacyVersions()
-        ]
-    };
   }
 };
 </script>

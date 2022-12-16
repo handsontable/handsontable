@@ -1,4 +1,5 @@
 ---
+id: l025jsly
 title: BaseEditor
 metaTitle: BaseEditor - API Reference - Handsontable Documentation
 permalink: /api/base-editor

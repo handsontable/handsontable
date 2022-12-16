@@ -1,4 +1,5 @@
 ---
+id: 4b7ubpab
 title: ManualRowMove
 metaTitle: ManualRowMove - Plugin - Handsontable Documentation
 permalink: /api/manual-row-move

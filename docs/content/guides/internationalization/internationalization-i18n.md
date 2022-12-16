@@ -1,4 +1,5 @@
 ---
+id: 1g89qnhe
 title: Internationalization (i18n)
 metaTitle: Internationalization (i18n) - Guide - Handsontable Documentation
 permalink: /internationalization-i18n

@@ -1,4 +1,5 @@
 ---
+id: snqjcwml
 title: DropdownMenu
 metaTitle: DropdownMenu - Plugin - Handsontable Documentation
 permalink: /api/dropdown-menu

@@ -1,4 +1,5 @@
 ---
+id: 5l7bspro
 title: Migrating from 9.0 to 10.0
 metaTitle: Migrating from 9.0 to 10.0 - Guide - Handsontable Documentation
 permalink: /migration-from-9.0-to-10.0
