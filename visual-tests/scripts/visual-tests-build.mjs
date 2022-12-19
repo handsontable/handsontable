@@ -9,12 +9,15 @@ import fse from 'fs-extra';
 const wrappers = ['js', 'angular-13', 'react', 'vue'];
 const baseBranch = 'develop';
 const currentBranchName = (await execa.command('git rev-parse --abbrev-ref HEAD', { silent: true })).stdout;
-const dirInit = process.cwd();
-const dirExamples = '../examples/next/visual-tests';
-const dirDemo = 'demo';
+const dirs = {
+  init: process.cwd(),
+  examples: '../examples/next/visual-tests',
+  codeToRun: 'demo',
+};
+
 // const HOTversion = '12.2.0';
 
-process.chdir(dirExamples);
+process.chdir(dirs.examples);
 execa.command('npm install');
 
 // If we are on a base branch, we do not want to run all of tests
@@ -23,7 +26,7 @@ execa.command('npm install');
 // which is declared as a first position in wrappers array.
 
 for (let i = 0, maxi = (currentBranchName === baseBranch ? 1 : wrappers.length); i < maxi; ++i) {
-  process.chdir(`${wrappers[i]}/${dirDemo}`);
+  process.chdir(`${wrappers[i]}/${dirs.codeToRun}`);
 
   // eslint-disable-next-line no-await-in-loop
   await execa.command('npm install', { stdout: 'inherit' });
@@ -35,7 +38,7 @@ for (let i = 0, maxi = (currentBranchName === baseBranch ? 1 : wrappers.length);
     stdio: 'ignore',
     windowsHide: true });
 
-  process.chdir(dirInit);
+  process.chdir(dirs.init);
 
   // eslint-disable-next-line no-await-in-loop
   await execa.command('npx playwright test', { env: { HOT_WRAPPER: wrappers[i] }, stdout: 'inherit' });
@@ -43,7 +46,7 @@ for (let i = 0, maxi = (currentBranchName === baseBranch ? 1 : wrappers.length);
   localhostProcess.kill();
 
   if (i !== maxi - 1) {
-    process.chdir(dirExamples);
+    process.chdir(dirs.examples);
   }
 }
 

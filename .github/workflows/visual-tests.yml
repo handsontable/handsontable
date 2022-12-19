@@ -25,15 +25,15 @@ jobs:
         run: npm install
       - name: Install test tools
         run: | 
-          cd visual-test
+          cd visual-tests
           npm install
       - name: Run visual tests
         run: | 
-          cd visual-test
+          cd visual-tests
           npm run test
       - name: Upload screenshots
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
         run: | 
-          cd visual-test
+          cd visual-tests
           npm run upload
