@@ -1,4 +1,5 @@
 ---
+id: nbp8i3mk
 title: Release notes
 metaTitle: Release notes - JavaScript Data Grid | Handsontable
 description: See the full history of changes made to Handsontable in each major, minor, and patch release.
@@ -11,6 +12,7 @@ tags:
   - upgrade
   - breaking change
 react:
+  id: 7y9fco03
   metaTitle: Release notes - React Data Grid | Handsontable
 searchCategory: Guides
 ---
