@@ -168,6 +168,7 @@ const data = [
 ];
 
 const container = document.querySelector('#example');
+
 const hot = new Handsontable(container, {
   data: data,
   rowHeaders: true,

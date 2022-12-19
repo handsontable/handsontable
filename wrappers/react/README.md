@@ -2,7 +2,7 @@
 
 <a href="https://handsontable.com" rel="nofollow"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-blue.svg" alt="Handsontable - data grid for React" width="300"></a>
 
-# Data Grid for React <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="22" height="22">
+# React Data Grid <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="22" height="22">
 
 Handsontable's wrapper for React combines data grid features with spreadsheet-like UX. <br>
 It provides data binding, data validation, filtering, sorting, and CRUD operations.
@@ -46,10 +46,12 @@ The most popular features of Handsontable for React:
 
 <div id="installation"></div>
 
-## Get Started
+## Get started
+
 ### Install with npm
 
 Run the following command in your terminal
+
 ```
 npm install handsontable @handsontable/react
 ```

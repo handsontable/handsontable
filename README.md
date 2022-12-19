@@ -12,7 +12,7 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
 
 ---
-#### Get Started with Handsontable
+#### Get started with Handsontable
 
 <table border="0">
   <tr>
@@ -72,15 +72,11 @@ The most popular features of Handsontable:
 
 <div id="installation"></div>
 
-## Get Started
+## Get started
 
-### Install Handsontable
-
-Get Handsontable's files in your preferred way.
+### 1. Install Handsontable
 
 #### Using a package manager
-
-To install Handsontable locally using a package manager, run one of these commands:
 
 <code-group>
   <code-block title="npm">
@@ -108,28 +104,45 @@ To install Handsontable locally using a package manager, run one of these comman
 
 #### Using a CDN
 
-To get Handsontable's files from a CDN, use the following locations:
-
 - [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js)
 - [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css)
 
-### Create a placeholder
+### 2. Import Handsontable's JavaScript
 
-Create an HTML placeholder
+#### Using CommonJS or a package manager
+
+```js
+import Handsontable from 'handsontable';
+```
+
+#### Using the `script` tag
+
+```html
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+```
+
+### 3. Import Handsontable's CSS
+
+#### Using `import`
+
+```js
+import 'handsontable/dist/handsontable.full.min.css';
+```
+
+#### Using the `link` tag
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
+```
+
+### 4. Create a container
 
 ```html
 <div id="example"></div>
 ```
 
-Import Handsontable and its stylesheet
-```js
-import Handsontable from "handsontable";
-import 'handsontable/dist/handsontable.full.css';
-```
+### 5. Initialize the grid
 
-### Initialize the grid
-
-Now turn your placeholder into a data grid with sample data.
 ```js
 const data = [
   ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
@@ -138,11 +151,13 @@ const data = [
   ['2021', 30, 15, 12, 13]
 ];
 
-const container = document.getElementById('example');
+const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
   data: data,
   rowHeaders: true,
-  colHeaders: true
+  colHeaders: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
 });
 ```
 
