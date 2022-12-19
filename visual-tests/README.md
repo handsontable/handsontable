@@ -10,7 +10,7 @@ Launch by command `npm run upload` to upload all of screenshots.
 Launch by command `npm run all` to run tests and upload files.
 NOTE: uploading doesn't work on local yet - only CI currently.
 Launch by command `npx playwright test {{ name of file }}` to run specific test, e.g. `npx playwright test mouse-wheel`
-Type `exit` to exit from Docker.
+Type `exit` to exit Docker.
 
 After test screenshots will appear in `tests/screenshots`.
 
