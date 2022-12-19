@@ -6,7 +6,8 @@ import fse from 'fs-extra';
 // Main wrapper should be defined as a first one -
 // it will be used to generate golden screenshots,
 // rest of wrappers will be compared to it.
-const wrappers = ['js', 'angular-13', 'react', 'vue'];
+const wrappers = ['js', 'angular-13', 'react'];
+// const wrappers = ['js', 'angular-13', 'react', 'vue'];
 const baseBranch = 'develop';
 const currentBranchName = (await execa.command('git rev-parse --abbrev-ref HEAD', { silent: true })).stdout;
 const dirs = {
