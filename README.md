@@ -73,14 +73,45 @@ The most popular features of Handsontable:
 <div id="installation"></div>
 
 ## Get Started
-### Install with npm
 
-Run the following command in your terminal
-```
-npm install handsontable
-```
+### Install Handsontable
 
-You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https://www.nuget.org/packages/Handsontable) or load the bundle directly from [jsDelivr](https://jsdelivr.com/package/npm/handsontable).
+Get Handsontable's files in your preferred way.
+
+#### Using a package manager
+
+To install Handsontable locally using a package manager, run one of these commands:
+
+<code-group>
+  <code-block title="npm">
+
+  ```bash
+  npm install handsontable
+  ```
+
+  </code-block>
+  <code-block title="Yarn">
+
+  ```bash
+  yarn add handsontable
+  ```
+
+  </code-block>
+  <code-block title="NuGet">
+
+  ```bash
+  PM> Install-Package Handsontable
+  ```
+
+  </code-block>
+</code-group>
+
+#### Using a CDN
+
+To get Handsontable's files from a CDN, use the following locations:
+
+- [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js)
+- [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css)
 
 ### Create a placeholder
 
