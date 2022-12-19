@@ -24,7 +24,7 @@ test(helpers.testTitle(__filename), async({ page }, workerInfo) => {
 
   /* ==== */
 
-  let cell = helpers.tbody.locator(helpers.findCell({ row: 3, cell: 3, cellType: 'td' }));
+  let cell = helpers.tbody.locator(helpers.findCell({ row: 4, cell: 3, cellType: 'td' }));
 
   await cell.click();
   await page.screenshot({ path: helpers.screenshotPath() });
