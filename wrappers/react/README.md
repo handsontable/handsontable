@@ -69,7 +69,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 ```
 
-## 4. Use the `HotTable` component
+### 4. Use the `HotTable` component
 
 The main Handsontable component is called `HotTable`.
 
@@ -77,7 +77,7 @@ The main Handsontable component is called `HotTable`.
 import { HotTable } from '@handsontable/react';
 ```
 
-To set Handsontable's [configuration options](@/guides/getting-started/configuration-options.md), use `HotTable`'s props. For example:
+To set Handsontable's [configuration options](https://handsontable.com/docs/react-data-grid/configuration-options), use `HotTable`'s props. For example:
 
 ```jsx
 <HotTable
