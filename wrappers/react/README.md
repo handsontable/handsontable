@@ -48,57 +48,48 @@ The most popular features of Handsontable for React:
 
 ## Get started
 
-### Install with npm
+### 1. Install Handsontable
 
-Run the following command in your terminal
-
-```
+```bash
 npm install handsontable @handsontable/react
 ```
 
-You can load it directly from [jsDelivr](https://jsdelivr.com/package/npm/@handsontable/react) as well.
-```html
-<script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.min.js"></script>
+### 2. Import Handsontable's CSS
 
-<link href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" rel="stylesheet">
+```jsx
+import 'handsontable/dist/handsontable.full.min.css';
 ```
 
-The component will be available as `Handsontable.react.HotTable`.
+### 3. Register Handsontable's modules
 
-### Usage
+```jsx
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 
-Use this data grid as you would any other component in your application. [Options](https://handsontable.com/docs/api/options/) can be set as `HotTable` props.
-
-**Styles**
-```css
-@import '~handsontable/dist/handsontable.full.css';
+registerAllModules();
 ```
 
-**React Component**
-```js
-import React from 'react';
-import ReactDOM from 'react-dom';
+## 4. Use the `HotTable` component
+
+The main Handsontable component is called `HotTable`.
+
+```jsx
 import { HotTable } from '@handsontable/react';
-
-class HotApp extends React.Component {
-  constructor(props) {
-    super(props);
-    this.data = [
-      ['', 'Tesla', 'Mercedes', 'Toyota', 'Volvo'],
-      ['2019', 10, 11, 12, 13],
-      ['2020', 20, 11, 14, 13],
-      ['2021', 30, 15, 12, 13]
-    ];
-  }
-
-  render() {
-    return (<HotTable data={this.data} colHeaders={true} rowHeaders={true} width="600" height="300" />);
-  }
-}
 ```
 
-### [View live demo](https://handsontable.com/docs/react-simple-example/)
+To set Handsontable's [configuration options](@/guides/getting-started/configuration-options.md), use `HotTable`'s props. For example:
+
+```jsx
+<HotTable
+  data={data}
+  rowHeaders={true}
+  colHeaders={true}
+  height="auto"
+  licenseKey="non-commercial-and-evaluation" // for non-commercial use only
+/>
+```
+
+### [View live demo](https://handsontable.com/docs/react-data-grid/demo/)
 
 ## Support
 

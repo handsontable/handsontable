@@ -121,7 +121,7 @@ Or, using the `link` tag:
 <div id="example"></div>
 ```
 
-### 5. Initialize the grid
+### 5. Initialize your grid
 
 ```js
 const data = [

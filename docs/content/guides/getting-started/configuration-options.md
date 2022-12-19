@@ -54,7 +54,7 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
-To apply configuration options, pass them as individual props of the [`HotTable`](@/guides/getting-started/installation.md#use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
+To apply configuration options, pass them as individual props of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
 
 ```jsx
 <HotTable
