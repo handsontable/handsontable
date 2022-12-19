@@ -76,46 +76,26 @@ The most popular features of Handsontable:
 
 ### 1. Install Handsontable
 
-#### Using a package manager
+Using a package manager:
 
-<code-group>
-  <code-block title="npm">
+```bash
+npm install handsontable
+```
 
-  ```bash
-  npm install handsontable
-  ```
-
-  </code-block>
-  <code-block title="Yarn">
-
-  ```bash
-  yarn add handsontable
-  ```
-
-  </code-block>
-  <code-block title="NuGet">
-
-  ```bash
-  PM> Install-Package Handsontable
-  ```
-
-  </code-block>
-</code-group>
-
-#### Using a CDN
+Or, using a CDN:
 
 - [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js)
 - [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css)
 
 ### 2. Import Handsontable's JavaScript
 
-#### Using CommonJS or a package manager
+Using CommonJS or a package manager:
 
 ```js
 import Handsontable from 'handsontable';
 ```
 
-#### Using the `script` tag
+Or, using the `script` tag:
 
 ```html
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
@@ -123,13 +103,13 @@ import Handsontable from 'handsontable';
 
 ### 3. Import Handsontable's CSS
 
-#### Using `import`
+Using `import`:
 
 ```js
 import 'handsontable/dist/handsontable.full.min.css';
 ```
 
-#### Using the `link` tag
+Or, using the `link` tag:
 
 ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
