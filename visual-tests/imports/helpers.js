@@ -32,7 +32,6 @@ export const helpers = {
     // eslint-disable-next-line max-len
     // this.testURL = `https://examples.handsontable.com/examples/${this.hotVersion}/docs/${this.hotWrapper}/demo/index.html`;
     this.testURL = 'http://localhost:8080/';
-    // this.testURL = 'http://host.docker.internal:8080';
     this.workerInfo = workerInfo;
     this.isMac = workerInfo.project.name === 'webkit';
     this.modifier = this.isMac ? 'Meta' : 'Control';
