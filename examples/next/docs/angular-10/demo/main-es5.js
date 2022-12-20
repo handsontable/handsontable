@@ -490,8 +490,8 @@
         type: DataGridComponent,
         selectors: [["data-grid"]],
         decls: 11,
-        vars: 20,
-        consts: [["height", "450", "licenseKey", "non-commercial-and-evaluation", 1, "hot", 3, "data", "colWidths", "afterGetColHeader", "colHeaders", "rowHeaders", "dropdownMenu", "hiddenColumns", "contextMenu", "multiColumnSorting", "filters", "afterOnCellMouseDown", "afterGetRowHeader", "beforeRenderer"], ["data", "1"], ["data", "3"], ["data", "4", "type", "date", 3, "allowInvalid"], ["data", "6", "type", "checkbox", "className", "htCenter"], ["data", "7", "type", "numeric"], ["data", "8", "className", "htMiddle", 3, "renderer", "readOnly"], ["data", "9", "className", "star htCenter", 3, "renderer", "readOnly"], ["data", "5"], ["data", "2"]],
+        vars: 21,
+        consts: [["height", "450", "licenseKey", "non-commercial-and-evaluation", 1, "hot", 3, "data", "colWidths", "afterGetColHeader", "colHeaders", "rowHeaders", "dropdownMenu", "hiddenColumns", "contextMenu", "multiColumnSorting", "filters", "afterOnCellMouseDown", "afterGetRowHeader", "beforeRenderer", "manualRowMove"], ["data", "1"], ["data", "3"], ["data", "4", "type", "date", 3, "allowInvalid"], ["data", "6", "type", "checkbox", "className", "htCenter"], ["data", "7", "type", "numeric"], ["data", "8", "className", "htMiddle", 3, "renderer", "readOnly"], ["data", "9", "className", "star htCenter", 3, "renderer", "readOnly"], ["data", "5"], ["data", "2"]],
         template: function DataGridComponent_Template(rf, ctx) {
           if (rf & 1) {
             _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](0, "div");
@@ -524,7 +524,7 @@
           if (rf & 2) {
             _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵadvance"](1);
 
-            _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵproperty"]("data", ctx.dataset)("colWidths", _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵpureFunction0"](19, _c0))("afterGetColHeader", ctx.alignHeaders)("colHeaders", ctx.colHeaders)("rowHeaders", true)("dropdownMenu", true)("hiddenColumns", ctx.hiddenColumns)("contextMenu", true)("multiColumnSorting", true)("filters", true)("afterOnCellMouseDown", ctx.changeCheckboxCell)("afterGetColHeader", ctx.alignHeaders)("afterGetRowHeader", ctx.drawCheckboxInRowHeaders)("beforeRenderer", ctx.addClassesToRows);
+            _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵproperty"]("data", ctx.dataset)("colWidths", _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵpureFunction0"](20, _c0))("afterGetColHeader", ctx.alignHeaders)("colHeaders", ctx.colHeaders)("rowHeaders", true)("dropdownMenu", true)("hiddenColumns", ctx.hiddenColumns)("contextMenu", true)("multiColumnSorting", true)("filters", true)("afterOnCellMouseDown", ctx.changeCheckboxCell)("afterGetColHeader", ctx.alignHeaders)("afterGetRowHeader", ctx.drawCheckboxInRowHeaders)("beforeRenderer", ctx.addClassesToRows)("manualRowMove", true);
 
             _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵadvance"](3);
 

@@ -1,42 +1,12 @@
 (window["webpackJsonp"] = window["webpackJsonp"] || []).push([["styles"],{
 
-/***/ "+EN/":
-/*!*************************!*\
-  !*** ./src/styles.scss ***!
-  \*************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var api = __webpack_require__(/*! ../../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "eMCs");
-            var content = __webpack_require__(/*! !../../node_modules/css-loader/dist/cjs.js??ref--13-1!../../node_modules/postcss-loader/src??embedded!../../node_modules/resolve-url-loader??ref--13-3!../../node_modules/sass-loader/dist/cjs.js??ref--13-4!./styles.scss */ "GMdS");
-
-            content = content.__esModule ? content.default : content;
-
-            if (typeof content === 'string') {
-              content = [[module.i, content, '']];
-            }
-
-var options = {};
-
-options.insert = "head";
-options.singleton = false;
-
-var update = api(content, options);
-
-
-
-module.exports = content.locals || {};
-
-/***/ }),
-
 /***/ 3:
-/*!***************************************************************************************!*\
-  !*** multi ./src/styles.scss ../node_modules/handsontable/dist/handsontable.full.css ***!
-  \***************************************************************************************/
+/*!*********************************************************************!*\
+  !*** multi ../node_modules/handsontable/dist/handsontable.full.css ***!
+  \*********************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! /home/runner/work/handsontable/handsontable/examples/12.2.0/docs/angular-10/demo/src/styles.scss */"+EN/");
 module.exports = __webpack_require__(/*! /home/runner/work/handsontable/handsontable/examples/12.2.0/docs/angular-10/node_modules/handsontable/dist/handsontable.full.css */"cj8E");
 
 
@@ -144,28 +114,6 @@ function toComment(sourceMap) {
   var data = "sourceMappingURL=data:application/json;charset=utf-8;base64,".concat(base64);
   return "/*# ".concat(data, " */");
 }
-
-/***/ }),
-
-/***/ "GMdS":
-/*!*************************************************************************************************************************************************************************************************************************!*\
-  !*** ../node_modules/css-loader/dist/cjs.js??ref--13-1!../node_modules/postcss-loader/src??embedded!../node_modules/resolve-url-loader??ref--13-3!../node_modules/sass-loader/dist/cjs.js??ref--13-4!./src/styles.scss ***!
-  \*************************************************************************************************************************************************************************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../node_modules/css-loader/dist/runtime/api.js */ "Ai0b");
-/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__);
-// Imports
-
-var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
-// Module
-___CSS_LOADER_EXPORT___.push([module.i, "html, body {\n  box-sizing: border-box;\n  height: 100%;\n  width: 100%;\n  margin: 0;\n}\n\nhtml {\n  position: absolute;\n  top: 0;\n  left: 0;\n  padding: 0;\n  overflow: auto;\n}\n\nbody {\n  padding: 1rem;\n  overflow: auto;\n}", "",{"version":3,"sources":["webpack://src/styles.scss"],"names":[],"mappings":"AAAA;EACE,sBAAA;EACA,YAAA;EACA,WAAA;EACA,SAAA;AACF;;AAEA;EACE,kBAAA;EACA,MAAA;EACA,OAAA;EACA,UAAA;EACA,cAAA;AACF;;AAEA;EACE,aAAA;EACA,cAAA;AACF","sourcesContent":["html, body {\n  box-sizing: border-box;\n  height: 100%;\n  width: 100%;\n  margin: 0;\n}\n\nhtml {\n  position: absolute;\n  top: 0;\n  left: 0;\n  padding: 0;\n  overflow: auto;\n}\n\nbody {\n  padding: 1rem;\n  overflow: auto;\n}\n"],"sourceRoot":""}]);
-// Exports
-/* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
-
 
 /***/ }),
 

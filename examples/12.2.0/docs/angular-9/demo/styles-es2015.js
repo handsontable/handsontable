@@ -18,24 +18,6 @@ module.exports = exports;
 
 /***/ }),
 
-/***/ "../node_modules/css-loader/dist/cjs.js?!../node_modules/postcss-loader/src/index.js?!../node_modules/sass-loader/dist/cjs.js?!./src/styles.scss":
-/*!***************************************************************************************************************************************************************************!*\
-  !*** ../node_modules/css-loader/dist/cjs.js??ref--13-1!../node_modules/postcss-loader/src??embedded!../node_modules/sass-loader/dist/cjs.js??ref--13-3!./src/styles.scss ***!
-  \***************************************************************************************************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-// Imports
-var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(/*! ../../node_modules/css-loader/dist/runtime/api.js */ "../node_modules/css-loader/dist/runtime/api.js");
-exports = ___CSS_LOADER_API_IMPORT___(true);
-// Module
-exports.push([module.i, "html, body {\n  box-sizing: border-box;\n  height: 100%;\n  width: 100%;\n  margin: 0;\n}\n\nhtml {\n  position: absolute;\n  top: 0;\n  left: 0;\n  padding: 0;\n  overflow: auto;\n}\n\nbody {\n  padding: 1rem;\n  overflow: auto;\n}", "",{"version":3,"sources":["/home/runner/work/handsontable/handsontable/examples/12.2.0/docs/angular-9/demo/src/styles.scss","styles.scss"],"names":[],"mappings":"AAAA;EACE,sBAAA;EACA,YAAA;EACA,WAAA;EACA,SAAA;ACCF;;ADEA;EACE,kBAAA;EACA,MAAA;EACA,OAAA;EACA,UAAA;EACA,cAAA;ACCF;;ADEA;EACE,aAAA;EACA,cAAA;ACCF","file":"styles.scss","sourcesContent":["html, body {\n  box-sizing: border-box;\n  height: 100%;\n  width: 100%;\n  margin: 0;\n}\n\nhtml {\n  position: absolute;\n  top: 0;\n  left: 0;\n  padding: 0;\n  overflow: auto;\n}\n\nbody {\n  padding: 1rem;\n  overflow: auto;\n}\n","html, body {\n  box-sizing: border-box;\n  height: 100%;\n  width: 100%;\n  margin: 0;\n}\n\nhtml {\n  position: absolute;\n  top: 0;\n  left: 0;\n  padding: 0;\n  overflow: auto;\n}\n\nbody {\n  padding: 1rem;\n  overflow: auto;\n}"]}]);
-// Exports
-module.exports = exports;
-
-
-/***/ }),
-
 /***/ "../node_modules/css-loader/dist/runtime/api.js":
 /*!******************************************************!*\
   !*** ../node_modules/css-loader/dist/runtime/api.js ***!
@@ -452,45 +434,13 @@ module.exports = function (list, options) {
 
 /***/ }),
 
-/***/ "./src/styles.scss":
-/*!*************************!*\
-  !*** ./src/styles.scss ***!
-  \*************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var api = __webpack_require__(/*! ../../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
-            var content = __webpack_require__(/*! !../../node_modules/css-loader/dist/cjs.js??ref--13-1!../../node_modules/postcss-loader/src??embedded!../../node_modules/sass-loader/dist/cjs.js??ref--13-3!./styles.scss */ "../node_modules/css-loader/dist/cjs.js?!../node_modules/postcss-loader/src/index.js?!../node_modules/sass-loader/dist/cjs.js?!./src/styles.scss");
-
-            content = content.__esModule ? content.default : content;
-
-            if (typeof content === 'string') {
-              content = [[module.i, content, '']];
-            }
-
-var options = {};
-
-options.insert = "head";
-options.singleton = false;
-
-var update = api(content, options);
-
-var exported = content.locals ? content.locals : {};
-
-
-
-module.exports = exported;
-
-/***/ }),
-
 /***/ 3:
-/*!***************************************************************************************!*\
-  !*** multi ./src/styles.scss ../node_modules/handsontable/dist/handsontable.full.css ***!
-  \***************************************************************************************/
+/*!*********************************************************************!*\
+  !*** multi ../node_modules/handsontable/dist/handsontable.full.css ***!
+  \*********************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! /home/runner/work/handsontable/handsontable/examples/12.2.0/docs/angular-9/demo/src/styles.scss */"./src/styles.scss");
 module.exports = __webpack_require__(/*! /home/runner/work/handsontable/handsontable/examples/12.2.0/docs/angular-9/node_modules/handsontable/dist/handsontable.full.css */"../node_modules/handsontable/dist/handsontable.full.css");
 
 

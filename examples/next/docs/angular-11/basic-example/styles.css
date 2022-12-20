@@ -45,7 +45,7 @@ body {
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 12.3.0
- * Release date: 14/12/2022 (built at 15/12/2022 22:20:19)
+ * Release date: 14/12/2022 (built at 20/12/2022 01:38:46)
  */
 /**
  * Fix for bootstrap styles
@@ -354,7 +354,7 @@ innerBorderBottom - Property controlled by bottom overlay
 .handsontable td.htNoWrap {
   white-space: nowrap;
 }
-#hot-display-license-info {
+.hot-display-license-info {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
   font-size: 10px;
   font-weight: normal;
@@ -362,7 +362,7 @@ innerBorderBottom - Property controlled by bottom overlay
   padding: 5px 0 3px 0;
   text-align: left;
 }
-#hot-display-license-info a {
+.hot-display-license-info a {
   color: #104acc;
   font-size: 10px;
 }
@@ -1260,8 +1260,10 @@ textarea.HandsontableCopyPaste {
   z-index: 1070;
 }
 .htFiltersConditionsMenu .ht_clone_top,
+.htFiltersConditionsMenu .ht_clone_bottom,
 .htFiltersConditionsMenu .ht_clone_inline_start,
-.htFiltersConditionsMenu .ht_clone_corner {
+.htFiltersConditionsMenu .ht_clone_top_inline_start_corner,
+.htFiltersConditionsMenu .ht_clone_bottom_inline_start_corner {
   display: none;
 }
 .htFiltersConditionsMenu table.htCore {
