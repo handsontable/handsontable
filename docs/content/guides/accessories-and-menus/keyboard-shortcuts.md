@@ -1,4 +1,5 @@
 ---
+id: 5w6juytv
 title: Keyboard shortcuts
 metaTitle: Keyboard shortcuts - JavaScript Data Grid | Handsontable
 description: Navigate the grid similarly to Google Sheets or Microsoft Excel, using built-in keyboard shortcuts. Create shortcuts of your own.
@@ -15,6 +16,7 @@ tags:
 - function key
 - commands
 react:
+  id: ddjw4zt8
   metaTitle: Keyboard shortcuts - React Data Grid | Handsontable
 searchCategory: Guides
 ---

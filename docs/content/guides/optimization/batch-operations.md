@@ -1,4 +1,5 @@
 ---
+id: kgegbmgz
 title: Batch operations
 metaTitle: Batch operations - JavaScript Data Grid | Handsontable
 description: Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid's performance.
@@ -9,6 +10,7 @@ tags:
   - batching
   - performance
 react:
+  id: 3xqdvk3u
   metaTitle: Batch operations - React Data Grid | Handsontable
 searchCategory: Guides
 ---

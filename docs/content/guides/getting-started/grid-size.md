@@ -1,4 +1,5 @@
 ---
+id: svu0391b
 title: Grid size
 metaTitle: Grid size - JavaScript Data Grid | Handsontable
 description: Set the width and height of the grid, using either absolute values or values relative to the parent container.
@@ -10,6 +11,7 @@ tags:
   - height
   - dimensions
 react:
+  id: cifepxzs
   metaTitle: Grid size - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -1,4 +1,5 @@
 ---
+id: 6o0dghoa
 title: Introduction
 metaTitle: API reference - JavaScript Data Grid | Handsontable
 description: Control the data grid programmatically, using Handsontable's API options and methods.
@@ -6,6 +7,7 @@ permalink: /api/
 canonicalUrl: /api/
 searchCategory: API Reference
 react:
+  id: 45svfigt
   metaTitle: API reference - React Data Grid | Handsontable
 ---
 

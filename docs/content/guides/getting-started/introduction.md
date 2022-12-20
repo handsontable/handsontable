@@ -1,10 +1,12 @@
 ---
+id: rgajvjfa
 title: Introduction
 metaTitle: JavaScript Data Grid - Documentation | Handsontable
 description: An overview of Handsontable's developer documentation. Handsontable is a client-side, spreadsheet-like data grid for editing data in web applications.
 permalink: /
 canonicalUrl: /
 react:
+  id: fexwrrj2
   metaTitle: React Data Grid - Documentation | Handsontable
 searchCategory: Guides
 ---
@@ -30,24 +32,24 @@ Thousands of business apps depend on Handsontable for entering, editing, validat
 <div class="handsontable-drawing">
 
   ![A drawing of Handsontable data grid on the light background]({{$basePath}}/img/pages/introduction/introduction-drawing-light-min.png)
-  
+
   ![A drawing of Handsontable data grid on the dark background]({{$basePath}}/img/pages/introduction/introduction-drawing-dark-min.png)
-    
+
 </div>
 
 ## Get started with Handsontable
 ::: only-for javascript
-To jump straight into the sample code, open the demo app at CodeSandbox: 
+To jump straight into the sample code, open the demo app at CodeSandbox:
 
-- [JavaScript demo](https://codesandbox.io/s/handsontable-javascript-data-grid-hello-world-app-forked-kfcm0r)
-- [React demo](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-forked-u2168i)
-- [Angular demo](https://codesandbox.io/s/handsontable-angular-data-grid-hello-world-app-forked-cju8bf)
-- [Vue 2 demo](https://codesandbox.io/s/handsontable-vue-data-grid-hello-world-app-forked-6sunw5)
-- [TypeScript demo](https://codesandbox.io/s/handsontable-typescript-data-grid-hello-world-app-forked-7t4jdz)
+- [JavaScript demo](https://codesandbox.io/s/handsontable-javascript-data-grid-hello-world-app-forked-8tct2l)
+- [React demo](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-forked-56qvdt)
+- [Angular demo](https://codesandbox.io/s/handsontable-angular-data-grid-hello-world-app-forked-910xle)
+- [Vue 2 demo](https://codesandbox.io/s/handsontable-vue-data-grid-hello-world-app-forked-k6h5v9)
+- [TypeScript demo](https://codesandbox.io/s/handsontable-typescript-data-grid-hello-world-app-forked-z8dz1r)
 :::
 
 ::: only-for react
-To jump straight into the sample code, [open the demo app at CodeSandbox](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-forked-u2168i).
+To jump straight into the sample code, [open the demo app at CodeSandbox](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-forked-56qvdt).
 :::
 
 Then, move on to [connecting](@/guides/getting-started/binding-to-data.md) your data and [configuring](@/guides/getting-started/configuration-options.md) Handsontable's built-in features. For more advanced implementations, use Handsontable's [API](@/api/introduction.md).
