@@ -26,14 +26,14 @@ Description of the demo's UI. Explain how the end-user uses the feature.
 ::: only-for javascript
 ::: example #example1
 ```js
-Javascript demo.
+Javascript demo. Data as an array of objects.
 ```
 :::
 
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-React demo.
+React demo. Data as an array of objects.
 ```
 :::
 
@@ -140,7 +140,66 @@ const configurationOptions = {
 ```
 :::
 
-## Disable [feature name]
+## Configuration options
+
+In a single code sample, list all of the feature's configuration options, with their default settings.
+
+::: only-for javascript
+```js
+mainOption: {
+  option1: defaultSetting,
+  option2: defaultSetting,
+  ...
+}
+```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  mainOption={{
+    option1: defaultSetting,
+    option2: defaultSetting,
+    ...
+  }}
+/>
+```
+:::
+
+## [Configuration]
+
+Add multiple [Configuration] sections. In each, explain how to use the feature's built-in options and APIs.
+
+For example, for "Rows sorting", we'd have the following [Configuration] sections:
+- Sort different types of data
+- Sort by multiple columns
+- Set the initial sorting order
+- Add a custom comparator
+- Add a custom sorting icon
+
+Start each section title with an action verb.
+
+For each section, add a demo (with data as an array of objects).
+
+::: only-for javascript
+::: example #example2
+```js
+Javascript demo. Data as an array of objects.
+```
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+React demo. Data as an array of objects.
+```
+:::
+
+## Control [feature name] programmatically
+
+Explain how to use the feature's API methods. Add code samples. Add links to related API reference sections.
+
+### Disable [feature name]
 
 Explain how to disable and re-enable the feature at runtime (by using `updateSettings()`) - for the entire grid.
 
@@ -338,70 +397,11 @@ hotTableComponentRef.current.handsontableInstance.updateSettings({
 ```
 :::
 
-## [Configuration]
-
-Add multiple [Configuration] sections. In each, explain how to use the feature's built-in options and APIs.
-
-For example, for "Rows sorting", we'd have the following [Configuration] sections:
-- Sort different types of data
-- Sort by multiple columns
-- Set the initial sorting order
-- Add a custom comparator
-- Add a custom sorting icon
-
-Start each section title with an action verb.
-
-For each section, add a demo.
-
-::: only-for javascript
-::: example #example2
-```js
-Javascript demo.
-```
-:::
-
-::: only-for react
-::: example #example2 :react
-```jsx
-React demo.
-```
-:::
-
-## Control [feature name] programmatically
-
-Explain how to use the feature's API methods. Add code samples. Add links to related API reference sections.
-
 ## Examples
     
 List links to CodeSandbox examples, taken from:
 - https://handsontable.com/docs/12.0/examples
 - https://examples.handsontable.com
-
-## Configuration options
-
-In a single code sample, list all of the feature's configuration options, with their default settings.
-
-::: only-for javascript
-```js
-mainOption: {
-  option1: defaultSetting,
-  option2: defaultSetting,
-  ...
-}
-```
-:::
-
-::: only-for react
-```jsx
-<HotTable
-  mainOption={{
-    option1: defaultSetting,
-    option2: defaultSetting,
-    ...
-  }}
-/>
-```
-:::
 
 ## Keyboard shortcuts
 
