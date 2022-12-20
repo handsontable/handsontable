@@ -1,4 +1,5 @@
 ---
+id: faa5ylt6
 title: Custom editor in Vue 2
 metaTitle: Custom cell editor - Vue 2 Data Grid | Handsontable
 description: Create a custom cell editor, and use it in your Vue 2 data grid by declaring it as a class.
