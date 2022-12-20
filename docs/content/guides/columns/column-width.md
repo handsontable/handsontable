@@ -1,4 +1,5 @@
 ---
+id: bpcuomaq
 title: Column widths
 metaTitle: Column widths - JavaScript Data Grid | Handsontable
 description: Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable's interface.
@@ -11,9 +12,10 @@ tags:
   - width
   - max-width
   - min-width
-  - column dimmensions
+  - column dimensions
   - manual resize
 react:
+  id: gr6w8qsy
   metaTitle: Column widths - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -1,4 +1,5 @@
 ---
+id: 42px61id
 title: Row pre-populating
 metaTitle: Row pre-populating - JavaScript Data Grid | Handsontable
 description: Populate newly-added rows with predefined template values, using cell renderers.
@@ -10,6 +11,7 @@ tags:
   - bottom rows
   - placeholder
 react:
+  id: kmqhr00y
   metaTitle: Row pre-populating - React Data Grid | Handsontable
 searchCategory: Guides
 ---

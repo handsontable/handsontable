@@ -1,10 +1,12 @@
 ---
+id: 37786931
 title: Row hiding
 metaTitle: Row hiding - JavaScript Data Grid | Handsontable
 description: Hide individual rows to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.
 permalink: /row-hiding
 canonicalUrl: /row-hiding
 react:
+  id: al1djb6l
   metaTitle: Row hiding - React Data Grid | Handsontable
 searchCategory: Guides
 ---
