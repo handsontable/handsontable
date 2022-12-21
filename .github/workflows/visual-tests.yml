@@ -19,8 +19,6 @@ jobs:
       - uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - name: workaround permission issue
-        run: git config --global --add safe.directory /__w/handsontable-visual-testing/handsontable-visual-testing
       - name: Build
         run: npm install
       - name: Install test tools
