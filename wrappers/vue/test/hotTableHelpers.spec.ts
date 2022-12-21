@@ -72,16 +72,16 @@ describe('prepareSettings', () => {
   });
 
   it('should handle settings with circular structure', () => {
+    const circularStructure = { foo: 'bar', myself: {} };
 
-    const circularStructure = {foo: 'bar'};
     circularStructure.myself = circularStructure;
 
-    const propsMock_circular = {
+    const propsMockCircular = {
       readOnly: true,
       whatever: circularStructure
     };
 
-    const preparedSettings = prepareSettings(propsMock_circular, {});
+    const preparedSettings = prepareSettings(propsMockCircular, {});
 
     expect(preparedSettings.readOnly).toBe(true);
     expect(preparedSettings.whatever.foo).toBe('bar');

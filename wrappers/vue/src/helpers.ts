@@ -255,13 +255,16 @@ export function createVueComponent(vNode: VNode, parent: Vue, props: object, dat
 function simpleEqual(objectA, objectB) {
   const circularReplacer = (function() {
     const seen = new WeakSet();
+
     return function(key, value) {
-      if (typeof value === "object" && value !== null) {
+      if (typeof value === 'object' && value !== null) {
         if (seen.has(value)) return;
         seen.add(value);
       }
+
       return value;
     };
-  })();
+  }());
+
   return JSON.stringify(objectA, circularReplacer) === JSON.stringify(objectB, circularReplacer);
 }
