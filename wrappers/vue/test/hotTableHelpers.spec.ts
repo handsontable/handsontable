@@ -70,4 +70,21 @@ describe('prepareSettings', () => {
     expect(preparedSettings.settings).toBe(void 0);
     expect(preparedSettings.wrapperRendererCacheSize).toBe(void 0);
   });
+
+  it('should handle settings with circular structure', () => {
+
+    const circularStructure = {foo: 'bar'};
+    circularStructure.myself = circularStructure;
+
+    const propsMock_circular = {
+      readOnly: true,
+      whatever: circularStructure
+    };
+
+    const preparedSettings = prepareSettings(propsMock_circular, {});
+
+    expect(preparedSettings.readOnly).toBe(true);
+    expect(preparedSettings.whatever.foo).toBe('bar');
+    expect(preparedSettings.whatever.myself.foo).toBe('bar');
+  });
 });
