@@ -17,11 +17,9 @@ searchCategory: Guides
 
 # Feature name
 
-Introduction paragraph. Can be the same as the SEO description. Max 160 characters. Start with an action verb.
+**Introduction paragraph. Can be the same as the SEO description. Max 160 characters. Start with an action verb.**
 
 [[toc]]
-
-## [Feature name] demo
 
 Description of the demo's UI. Explain how the end-user uses the feature.
 
@@ -43,105 +41,102 @@ React demo. Data as an array of objects.
 
 ## Enable [feature name]
 
-Explain how to enable the feature for the entire grid. Max 1 sentence.
+Explain how to enable the feature.
 
 ::: only-for javascript
-```js
-const configurationOptions = {
-  ...
-}
-```
-:::
-
-::: only-for react
-```jsx
-<HotTable
-  ...
-/>
-```
-:::
-
-Explain how to enable the feature for selected columns. Max 1 sentence.
-
-::: only-for javascript
-```js
-const configurationOptions = {
-  columns: [
-    {
+<code-group>
+  <code-block title="Entire grid">
+    ```js
+    const configurationOptions = {
       ...
-    },
-    {
-      ...
-    },
-  ],
-}
-```
-:::
-
-::: only-for react
-```jsx
-<HotTable>
-  <HotColumn ... />
-  <HotColumn ... />
-  <HotColumn ... />
-</HotTable>
-```
-:::
-
-Explain how to enable the feature for selected rows. Max 1 sentence.
-
-::: only-for javascript
-```js
-const configurationOptions = {
-  cells(row, col, prop) {
-    if (row === 1 || row === 4) {
-      return {
-        ...
-      };
     }
-  }
-}
-```
-:::
-
-::: only-for react
-```jsx
-<HotTable
-  cells={(row, col, prop) => {
-    if (row === 1 || row === 4) {
-      return {
-        ...
-      };
+    ```
+  </code-block>
+  <code-block title="Single columns">
+    ```js
+    const configurationOptions = {
+      columns: [
+        {
+          ...
+        },
+        {
+          ...
+        },
+      ],
     }
-  }}
-/>
-```
-:::
-
-Explain how to enable the feature for selected cells. Max 1 sentence.
-
-::: only-for javascript
-```js
-const configurationOptions = {
-  cell: [
-    {
-      ...
-    },
-  ],
-}
-```
+    ```
+  </code-block>
+  <code-block title="Single rows">
+    ```js
+    const configurationOptions = {
+      cells(row, col, prop) {
+        if (row === 1 || row === 4) {
+          return {
+            ...
+          };
+        }
+      }
+    }
+    ```
+  </code-block>
+  <code-block title="Single cells">
+    ```js
+    const configurationOptions = {
+      cell: [
+        {
+          ...
+        },
+      ],
+    }
+    ```
+  </code-block>
+</code-group>
 :::
 
 ::: only-for react
-```jsx
-<HotTable
-  cell={[
-    { 
+<code-group>
+  <code-block title="Entire grid">
+    ```jsx
+    <HotTable
       ...
-    },
-  ]}
-/>
-```
+    />
+    ```
+  </code-block>
+  <code-block title="Single columns">
+    ```jsx
+    <HotTable>
+      <HotColumn ... />
+      <HotColumn ... />
+      <HotColumn ... />
+    </HotTable>
+    ```
+  </code-block>
+
+  <code-block title="Single rows">
+    ```jsx
+    <HotTable
+      cells={(row, col, prop) => {
+        if (row === 1 || row === 4) {
+          return {
+            ...
+          };
+        }
+      }}
+    />
+    ```
+  </code-block>
+  <code-block title="Single cells">
+    ```jsx
+    <HotTable
+      cell={[
+        { 
+          ...
+        },
+      ]}
+    />
+    ```
+  </code-block>
+</code-group>
 :::
 
 ## Configuration options
@@ -207,200 +202,197 @@ Explain how to use the feature's API methods. Add code samples. Add links to rel
 
 ### Disable [feature name]
 
-Explain how to disable and re-enable the feature at runtime (by using `updateSettings()`) - for the entire grid.
+Explain how to disable and re-enable the feature at runtime (by using `updateSettings()`).
 
 ::: only-for javascript
-```js
-// disable the feature
-handsontableInstance.updateSettings({
-   ...
-});
+<code-group>
+  <code-block title="Entire grid">
+    ```js
+    // disable the feature
+    handsontableInstance.updateSettings({
+      ...
+    });
 
-// re-enable the feature
-handsontableInstance.updateSettings({
-   ...
-});
-```
+    // re-enable the feature
+    handsontableInstance.updateSettings({
+      ...
+    });
+    ```
+  </code-block>
+  <code-block title="Single columns">
+    ```js
+    // disable the feature
+    handsontableInstance.updateSettings({
+      columns: [
+        {
+          ...
+        },
+        {
+          ...
+        },
+      ],
+    });
+
+    // re-enable the feature
+    handsontableInstance.updateSettings({
+      columns: [
+        {
+          ...
+        },
+        {
+          ...
+        },
+      ],
+    });
+    ```
+  </code-block>
+  <code-block title="Single rows">
+    ```js
+    // disable the feature
+    handsontableInstance.updateSettings({
+      cells(row, col, prop) {
+        if (row === 1 || row === 4) {
+          return {
+            ...
+          };
+        }
+      }
+    });
+
+    // re-enable the feature
+    handsontableInstance.updateSettings({
+      cells(row, col, prop) {
+        if (row === 1 || row === 4) {
+          return {
+            ...
+          };
+        }
+      }
+    });
+    ```
+  </code-block>
+  <code-block title="Single cells">
+    ```js
+    // disable the feature
+    handsontableInstance.updateSettings({
+      cell: [
+        {
+          ...
+        },
+      ],
+    });
+
+    // re-enable the feature
+    handsontableInstance.updateSettings({
+      cell: [
+        {
+          ...
+        },
+      ],
+    });
+    ```
+  </code-block>
+</code-group>
 :::
 
 ::: only-for react
-```jsx
-const hotTableComponentRef = useRef(null);
+<code-group>
+  <code-block title="Entire grid">
+    ```jsx
+    const hotTableComponentRef = useRef(null);
 
-// disable the feature
-hotTableComponentRef.current.handsontableInstance.updateSettings({
-   ...
-});
-
-// re-enable the feature
-hotTableComponentRef.current.handsontableInstance.updateSettings({
-   ...
-});
-```
-:::
-
-Explain how to disable and re-enable the feature at runtime (by using `updateSettings()`) - for selected columns.
-
-::: only-for javascript
-```js
-// disable the feature
-handsontableInstance.updateSettings({
-  columns: [
-    {
+    // disable the feature
+    hotTableComponentRef.current.handsontableInstance.updateSettings({
       ...
-    },
-    {
+    });
+
+    // re-enable the feature
+    hotTableComponentRef.current.handsontableInstance.updateSettings({
       ...
-    },
-  ],
-});
+    });
+    ```
+  </code-block>
+  <code-block title="Single columns">
+    ```jsx
+    const hotTableComponentRef = useRef(null);
 
-// re-enable the feature
-handsontableInstance.updateSettings({
-  columns: [
-    {
-      ...
-    },
-    {
-      ...
-    },
-  ],
-});
-```
-:::
+    // disable the feature
+    hotTableComponentRef.current.handsontableInstance.updateSettings({
+      columns: [
+        {
+          ...
+        },
+        {
+          ...
+        },
+      ],
+    });
 
-::: only-for react
-```jsx
-const hotTableComponentRef = useRef(null);
+    // re-enable the feature
+    hotTableComponentRef.current.handsontableInstance.updateSettings({
+      columns: [
+        {
+          ...
+        },
+        {
+          ...
+        },
+      ],
+    });
+    ```
+  </code-block>
 
-// disable the feature
-hotTableComponentRef.current.handsontableInstance.updateSettings({
-  columns: [
-    {
-      ...
-    },
-    {
-      ...
-    },
-  ],
-});
+  <code-block title="Single rows">
+    ```jsx
+    const hotTableComponentRef = useRef(null);
 
-// re-enable the feature
-hotTableComponentRef.current.handsontableInstance.updateSettings({
-  columns: [
-    {
-      ...
-    },
-    {
-      ...
-    },
-  ],
-});
-```
-:::
+    // disable the feature
+    hotTableComponentRef.current.handsontableInstance.updateSettings({
+      cells(row, col, prop) {
+        if (row === 1 || row === 4) {
+          return {
+            ...
+          };
+        }
+      }
+    });
 
-Explain how to disable and re-enable the feature at runtime (by using `updateSettings()`) - for selected rows.
+    // re-enable the feature
+    hotTableComponentRef.current.handsontableInstance.updateSettings({
+      cells(row, col, prop) {
+        if (row === 1 || row === 4) {
+          return {
+            ...
+          };
+        }
+      }
+    });
+    ```
+  </code-block>
+  <code-block title="Single cells">
+    ```jsx
+    const hotTableComponentRef = useRef(null);
 
-::: only-for javascript
-```js
-// disable the feature
-handsontableInstance.updateSettings({
-  cells(row, col, prop) {
-    if (row === 1 || row === 4) {
-      return {
-        ...
-      };
-    }
-  }
-});
+    // disable the feature
+    hotTableComponentRef.current.handsontableInstance.updateSettings({
+      cell: [
+        {
+          ...
+        },
+      ],
+    });
 
-// re-enable the feature
-handsontableInstance.updateSettings({
-  cells(row, col, prop) {
-    if (row === 1 || row === 4) {
-      return {
-        ...
-      };
-    }
-  }
-});
-```
-:::
-
-::: only-for react
-```jsx
-const hotTableComponentRef = useRef(null);
-
-// disable the feature
-hotTableComponentRef.current.handsontableInstance.updateSettings({
-  cells(row, col, prop) {
-    if (row === 1 || row === 4) {
-      return {
-        ...
-      };
-    }
-  }
-});
-
-// re-enable the feature
-hotTableComponentRef.current.handsontableInstance.updateSettings({
-  cells(row, col, prop) {
-    if (row === 1 || row === 4) {
-      return {
-        ...
-      };
-    }
-  }
-});
-```
-:::
-
-Explain how to disable and re-enable the feature at runtime (by using `updateSettings()`) - for selected cells.
-
-::: only-for javascript
-```js
-// disable the feature
-handsontableInstance.updateSettings({
-  cell: [
-    {
-      ...
-    },
-  ],
-});
-
-// re-enable the feature
-handsontableInstance.updateSettings({
-  cell: [
-    {
-      ...
-    },
-  ],
-});
-```
-:::
-
-::: only-for react
-```jsx
-const hotTableComponentRef = useRef(null);
-
-// disable the feature
-hotTableComponentRef.current.handsontableInstance.updateSettings({
-  cell: [
-    {
-      ...
-    },
-  ],
-});
-
-// re-enable the feature
-hotTableComponentRef.current.handsontableInstance.updateSettings({
-  cell: [
-    {
-      ...
-    },
-  ],
-});
-```
+    // re-enable the feature
+    hotTableComponentRef.current.handsontableInstance.updateSettings({
+      cell: [
+        {
+          ...
+        },
+      ],
+    });
+    ```
+  </code-block>
+</code-group>
 :::
 
 ## Examples
