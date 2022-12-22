@@ -24,19 +24,23 @@ searchCategory: Guides
 Description of the demo's UI. Explain how the end-user uses the feature.
 
 ::: only-for javascript
+
 ::: example #example1
 ```js
 Javascript demo. Data as an array of objects.
 ```
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
 ```jsx
 React demo. Data as an array of objects.
 ```
 :::
+
 :::
 
 ## Enable [feature name]
@@ -44,15 +48,19 @@ React demo. Data as an array of objects.
 Explain how to enable the feature.
 
 ::: only-for javascript
+
 <code-group>
   <code-block title="Entire grid">
+  
   ```js
   const configurationOptions = {
     ...
   }
   ```
+  
   </code-block>
   <code-block title="Single columns">
+  
   ```js
   const configurationOptions = {
     columns: [
@@ -65,8 +73,10 @@ Explain how to enable the feature.
     ],
   }
   ```
+  
   </code-block>
   <code-block title="Single rows">
+  
   ```js
   const configurationOptions = {
     cells(row, col, prop) {
@@ -78,8 +88,10 @@ Explain how to enable the feature.
     }
   }
   ```
+  
   </code-block>
   <code-block title="Single cells">
+  
   ```js
   const configurationOptions = {
     cell: [
@@ -89,6 +101,7 @@ Explain how to enable the feature.
     ],
   }
   ```
+  
   </code-block>
 </code-group>
 :::
@@ -96,13 +109,16 @@ Explain how to enable the feature.
 ::: only-for react
 <code-group>
   <code-block title="Entire grid">
+  
   ```jsx
   <HotTable
     ...
   />
   ```
+  
   </code-block>
   <code-block title="Single columns">
+  
   ```jsx
   <HotTable>
     <HotColumn ... />
@@ -110,9 +126,11 @@ Explain how to enable the feature.
     <HotColumn ... />
   </HotTable>
   ```
+  
   </code-block>
 
   <code-block title="Single rows">
+  
   ```jsx
   <HotTable
     cells={(row, col, prop) => {
@@ -124,8 +142,10 @@ Explain how to enable the feature.
     }}
   />
   ```
+  
   </code-block>
   <code-block title="Single cells">
+  
   ```jsx
   <HotTable
     cell={[
@@ -135,6 +155,7 @@ Explain how to enable the feature.
     ]}
   />
   ```
+  
   </code-block>
 </code-group>
 :::
@@ -144,6 +165,7 @@ Explain how to enable the feature.
 In a single code sample, list all of the feature's configuration options, with their default settings.
 
 ::: only-for javascript
+
 ```js
 mainOption: {
   option1: defaultSetting,
@@ -151,9 +173,11 @@ mainOption: {
   ...
 }
 ```
+
 :::
 
 ::: only-for react
+
 ```jsx
 <HotTable
   mainOption={{
@@ -163,6 +187,7 @@ mainOption: {
   }}
 />
 ```
+
 :::
 
 ## [Configuration]
@@ -181,19 +206,23 @@ Start each section title with an action verb.
 For each section, add a demo (with data as an array of objects).
 
 ::: only-for javascript
+
 ::: example #example2
 ```js
 Javascript demo. Data as an array of objects.
 ```
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example2 :react
 ```jsx
 React demo. Data as an array of objects.
 ```
 :::
+
 :::
 
 ## Control [feature name] programmatically
@@ -207,6 +236,7 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
 ::: only-for javascript
 <code-group>
   <code-block title="Entire grid">
+  
   ```js
   // disable the feature
   handsontableInstance.updateSettings({
@@ -218,8 +248,10 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
     ...
   });
   ```
+  
   </code-block>
   <code-block title="Single columns">
+  
   ```js
   // disable the feature
   handsontableInstance.updateSettings({
@@ -245,8 +277,10 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
     ],
   });
   ```
+  
   </code-block>
   <code-block title="Single rows">
+  
   ```js
   // disable the feature
   handsontableInstance.updateSettings({
@@ -270,8 +304,10 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
     }
   });
   ```
+  
   </code-block>
   <code-block title="Single cells">
+  
   ```js
   // disable the feature
   handsontableInstance.updateSettings({
@@ -291,6 +327,7 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
     ],
   });
   ```
+  
   </code-block>
 </code-group>
 :::
@@ -298,6 +335,7 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
 ::: only-for react
 <code-group>
   <code-block title="Entire grid">
+  
   ```jsx
   const hotTableComponentRef = useRef(null);
 
@@ -311,8 +349,10 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
     ...
   });
   ```
+  
   </code-block>
   <code-block title="Single columns">
+  
   ```jsx
   const hotTableComponentRef = useRef(null);
 
@@ -340,9 +380,11 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
     ],
   });
   ```
+  
   </code-block>
 
   <code-block title="Single rows">
+  
   ```jsx
   const hotTableComponentRef = useRef(null);
 
@@ -368,8 +410,10 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
     }
   });
   ```
+  
   </code-block>
   <code-block title="Single cells">
+  
   ```jsx
   const hotTableComponentRef = useRef(null);
 
@@ -391,6 +435,7 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
     ],
   });
   ```
+  
   </code-block>
 </code-group>
 :::
