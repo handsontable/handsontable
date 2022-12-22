@@ -46,49 +46,49 @@ Explain how to enable the feature.
 ::: only-for javascript
 <code-group>
   <code-block title="Entire grid">
-    ```js
-    const configurationOptions = {
-      ...
-    }
-    ```
+  ```js
+  const configurationOptions = {
+    ...
+  }
+  ```
   </code-block>
   <code-block title="Single columns">
-    ```js
-    const configurationOptions = {
-      columns: [
-        {
-          ...
-        },
-        {
-          ...
-        },
-      ],
-    }
-    ```
+  ```js
+  const configurationOptions = {
+    columns: [
+      {
+        ...
+      },
+      {
+        ...
+      },
+    ],
+  }
+  ```
   </code-block>
   <code-block title="Single rows">
-    ```js
-    const configurationOptions = {
-      cells(row, col, prop) {
-        if (row === 1 || row === 4) {
-          return {
-            ...
-          };
-        }
+  ```js
+  const configurationOptions = {
+    cells(row, col, prop) {
+      if (row === 1 || row === 4) {
+        return {
+          ...
+        };
       }
     }
-    ```
+  }
+  ```
   </code-block>
   <code-block title="Single cells">
-    ```js
-    const configurationOptions = {
-      cell: [
-        {
-          ...
-        },
-      ],
-    }
-    ```
+  ```js
+  const configurationOptions = {
+    cell: [
+      {
+        ...
+      },
+    ],
+  }
+  ```
   </code-block>
 </code-group>
 :::
@@ -96,45 +96,45 @@ Explain how to enable the feature.
 ::: only-for react
 <code-group>
   <code-block title="Entire grid">
-    ```jsx
-    <HotTable
-      ...
-    />
-    ```
+  ```jsx
+  <HotTable
+    ...
+  />
+  ```
   </code-block>
   <code-block title="Single columns">
-    ```jsx
-    <HotTable>
-      <HotColumn ... />
-      <HotColumn ... />
-      <HotColumn ... />
-    </HotTable>
-    ```
+  ```jsx
+  <HotTable>
+    <HotColumn ... />
+    <HotColumn ... />
+    <HotColumn ... />
+  </HotTable>
+  ```
   </code-block>
 
   <code-block title="Single rows">
-    ```jsx
-    <HotTable
-      cells={(row, col, prop) => {
-        if (row === 1 || row === 4) {
-          return {
-            ...
-          };
-        }
-      }}
-    />
-    ```
+  ```jsx
+  <HotTable
+    cells={(row, col, prop) => {
+      if (row === 1 || row === 4) {
+        return {
+          ...
+        };
+      }
+    }}
+  />
+  ```
   </code-block>
   <code-block title="Single cells">
-    ```jsx
-    <HotTable
-      cell={[
-        { 
-          ...
-        },
-      ]}
-    />
-    ```
+  ```jsx
+  <HotTable
+    cell={[
+      { 
+        ...
+      },
+    ]}
+  />
+  ```
   </code-block>
 </code-group>
 :::
@@ -207,90 +207,90 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
 ::: only-for javascript
 <code-group>
   <code-block title="Entire grid">
-    ```js
-    // disable the feature
-    handsontableInstance.updateSettings({
-      ...
-    });
+  ```js
+  // disable the feature
+  handsontableInstance.updateSettings({
+    ...
+  });
 
-    // re-enable the feature
-    handsontableInstance.updateSettings({
-      ...
-    });
-    ```
+  // re-enable the feature
+  handsontableInstance.updateSettings({
+    ...
+  });
+  ```
   </code-block>
   <code-block title="Single columns">
-    ```js
-    // disable the feature
-    handsontableInstance.updateSettings({
-      columns: [
-        {
-          ...
-        },
-        {
-          ...
-        },
-      ],
-    });
+  ```js
+  // disable the feature
+  handsontableInstance.updateSettings({
+    columns: [
+      {
+        ...
+      },
+      {
+        ...
+      },
+    ],
+  });
 
-    // re-enable the feature
-    handsontableInstance.updateSettings({
-      columns: [
-        {
-          ...
-        },
-        {
-          ...
-        },
-      ],
-    });
-    ```
+  // re-enable the feature
+  handsontableInstance.updateSettings({
+    columns: [
+      {
+        ...
+      },
+      {
+        ...
+      },
+    ],
+  });
+  ```
   </code-block>
   <code-block title="Single rows">
-    ```js
-    // disable the feature
-    handsontableInstance.updateSettings({
-      cells(row, col, prop) {
-        if (row === 1 || row === 4) {
-          return {
-            ...
-          };
-        }
+  ```js
+  // disable the feature
+  handsontableInstance.updateSettings({
+    cells(row, col, prop) {
+      if (row === 1 || row === 4) {
+        return {
+          ...
+        };
       }
-    });
+    }
+  });
 
-    // re-enable the feature
-    handsontableInstance.updateSettings({
-      cells(row, col, prop) {
-        if (row === 1 || row === 4) {
-          return {
-            ...
-          };
-        }
+  // re-enable the feature
+  handsontableInstance.updateSettings({
+    cells(row, col, prop) {
+      if (row === 1 || row === 4) {
+        return {
+          ...
+        };
       }
-    });
-    ```
+    }
+  });
+  ```
   </code-block>
   <code-block title="Single cells">
-    ```js
-    // disable the feature
-    handsontableInstance.updateSettings({
-      cell: [
-        {
-          ...
-        },
-      ],
-    });
+  ```js
+  // disable the feature
+  handsontableInstance.updateSettings({
+    cell: [
+      {
+        ...
+      },
+    ],
+  });
 
-    // re-enable the feature
-    handsontableInstance.updateSettings({
-      cell: [
-        {
-          ...
-        },
-      ],
-    });
-    ```
+  // re-enable the feature
+  handsontableInstance.updateSettings({
+    cell: [
+      {
+        ...
+      },
+    ],
+  });
+  ```
   </code-block>
 </code-group>
 :::
@@ -298,99 +298,99 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
 ::: only-for react
 <code-group>
   <code-block title="Entire grid">
-    ```jsx
-    const hotTableComponentRef = useRef(null);
+  ```jsx
+  const hotTableComponentRef = useRef(null);
 
-    // disable the feature
-    hotTableComponentRef.current.handsontableInstance.updateSettings({
-      ...
-    });
+  // disable the feature
+  hotTableComponentRef.current.handsontableInstance.updateSettings({
+    ...
+  });
 
-    // re-enable the feature
-    hotTableComponentRef.current.handsontableInstance.updateSettings({
-      ...
-    });
-    ```
+  // re-enable the feature
+  hotTableComponentRef.current.handsontableInstance.updateSettings({
+    ...
+  });
+  ```
   </code-block>
   <code-block title="Single columns">
-    ```jsx
-    const hotTableComponentRef = useRef(null);
+  ```jsx
+  const hotTableComponentRef = useRef(null);
 
-    // disable the feature
-    hotTableComponentRef.current.handsontableInstance.updateSettings({
-      columns: [
-        {
-          ...
-        },
-        {
-          ...
-        },
-      ],
-    });
+  // disable the feature
+  hotTableComponentRef.current.handsontableInstance.updateSettings({
+    columns: [
+      {
+        ...
+      },
+      {
+        ...
+      },
+    ],
+  });
 
-    // re-enable the feature
-    hotTableComponentRef.current.handsontableInstance.updateSettings({
-      columns: [
-        {
-          ...
-        },
-        {
-          ...
-        },
-      ],
-    });
-    ```
+  // re-enable the feature
+  hotTableComponentRef.current.handsontableInstance.updateSettings({
+    columns: [
+      {
+        ...
+      },
+      {
+        ...
+      },
+    ],
+  });
+  ```
   </code-block>
 
   <code-block title="Single rows">
-    ```jsx
-    const hotTableComponentRef = useRef(null);
+  ```jsx
+  const hotTableComponentRef = useRef(null);
 
-    // disable the feature
-    hotTableComponentRef.current.handsontableInstance.updateSettings({
-      cells(row, col, prop) {
-        if (row === 1 || row === 4) {
-          return {
-            ...
-          };
-        }
+  // disable the feature
+  hotTableComponentRef.current.handsontableInstance.updateSettings({
+    cells(row, col, prop) {
+      if (row === 1 || row === 4) {
+        return {
+          ...
+        };
       }
-    });
+    }
+  });
 
-    // re-enable the feature
-    hotTableComponentRef.current.handsontableInstance.updateSettings({
-      cells(row, col, prop) {
-        if (row === 1 || row === 4) {
-          return {
-            ...
-          };
-        }
+  // re-enable the feature
+  hotTableComponentRef.current.handsontableInstance.updateSettings({
+    cells(row, col, prop) {
+      if (row === 1 || row === 4) {
+        return {
+          ...
+        };
       }
-    });
-    ```
+    }
+  });
+  ```
   </code-block>
   <code-block title="Single cells">
-    ```jsx
-    const hotTableComponentRef = useRef(null);
+  ```jsx
+  const hotTableComponentRef = useRef(null);
 
-    // disable the feature
-    hotTableComponentRef.current.handsontableInstance.updateSettings({
-      cell: [
-        {
-          ...
-        },
-      ],
-    });
+  // disable the feature
+  hotTableComponentRef.current.handsontableInstance.updateSettings({
+    cell: [
+      {
+        ...
+      },
+    ],
+  });
 
-    // re-enable the feature
-    hotTableComponentRef.current.handsontableInstance.updateSettings({
-      cell: [
-        {
-          ...
-        },
-      ],
-    });
-    ```
+  // re-enable the feature
+  hotTableComponentRef.current.handsontableInstance.updateSettings({
+    cell: [
+      {
+        ...
+      },
+    ],
+  });
+  ```
   </code-block>
 </code-group>
 :::
