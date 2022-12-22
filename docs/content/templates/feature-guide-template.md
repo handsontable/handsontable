@@ -29,12 +29,14 @@ Description of the demo's UI. Explain how the end-user uses the feature.
 Javascript demo. Data as an array of objects.
 ```
 :::
+:::
 
 ::: only-for react
 ::: example #example1 :react
 ```jsx
 React demo. Data as an array of objects.
 ```
+:::
 :::
 
 ## Enable [feature name]
@@ -187,12 +189,14 @@ For each section, add a demo (with data as an array of objects).
 Javascript demo. Data as an array of objects.
 ```
 :::
+:::
 
 ::: only-for react
 ::: example #example2 :react
 ```jsx
 React demo. Data as an array of objects.
 ```
+:::
 :::
 
 ## Control [feature name] programmatically
