@@ -21,6 +21,8 @@ Introduction paragraph. Can be the same as the SEO description. Max 160 characte
 
 [[toc]]
 
+## [Feature name] demo
+
 Description of the demo's UI. Explain how the end-user uses the feature.
 
 ::: only-for javascript
