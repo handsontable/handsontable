@@ -107,6 +107,7 @@ Explain how to enable the feature.
 :::
 
 ::: only-for react
+
 <code-group>
   <code-block title="Entire grid">
   
@@ -158,6 +159,7 @@ Explain how to enable the feature.
   
   </code-block>
 </code-group>
+
 :::
 
 ## Configuration options
@@ -234,6 +236,7 @@ Explain how to use the feature's API methods. Add code samples. Add links to rel
 Explain how to disable and re-enable the feature at runtime (by using `updateSettings()`).
 
 ::: only-for javascript
+
 <code-group>
   <code-block title="Entire grid">
   
@@ -330,9 +333,11 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
   
   </code-block>
 </code-group>
+
 :::
 
 ::: only-for react
+
 <code-group>
   <code-block title="Entire grid">
   
@@ -438,6 +443,7 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
   
   </code-block>
 </code-group>
+
 :::
 
 ## Examples
