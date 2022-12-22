@@ -88,3 +88,138 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 
 ## Enable rows sorting
+
+::: only-for javascript
+
+<code-group>
+  <code-block title="Entire grid">
+  
+  ```js
+  const configurationOptions = {
+    ...
+  }
+  ```
+  
+  </code-block>
+  <code-block title="Single columns">
+  
+  ```js
+  const configurationOptions = {
+    columns: [
+      {
+        ...
+      },
+      {
+        ...
+      },
+    ],
+  }
+  ```
+  
+  </code-block>
+  <code-block title="Single rows">
+  
+  ```js
+  const configurationOptions = {
+    cells(row, col, prop) {
+      if (row === 1 || row === 4) {
+        return {
+          ...
+        };
+      }
+    }
+  }
+  ```
+  
+  </code-block>
+  <code-block title="Single cells">
+  
+  ```js
+  // you can't enable rows sorting for single cells
+  ```
+  
+  </code-block>
+</code-group>
+
+:::
+
+::: only-for react
+
+<code-group>
+  <code-block title="Entire grid">
+  
+  ```jsx
+  <HotTable
+    ...
+  />
+  ```
+  
+  </code-block>
+  <code-block title="Single columns">
+  
+  ```jsx
+  <HotTable>
+    <HotColumn ... />
+    <HotColumn ... />
+    <HotColumn ... />
+  </HotTable>
+  ```
+  
+  </code-block>
+  <code-block title="Single rows">
+  
+  ```jsx
+  <HotTable
+    cells={(row, col, prop) => {
+      if (row === 1 || row === 4) {
+        return {
+          ...
+        };
+      }
+    }}
+  />
+  ```
+  
+  </code-block>
+  <code-block title="Single cells">
+  
+  ```jsx
+  <HotTable
+    cell={[
+      { 
+        ...
+      },
+    ]}
+  />
+  ```
+  
+  </code-block>
+</code-group>
+
+:::
+
+## Configuration options
+
+In a single code sample, list all of the feature's configuration options, with their default settings.
+
+::: only-for javascript
+```js
+mainOption: {
+  option1: defaultSetting,
+  option2: defaultSetting,
+  ...
+}
+```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  mainOption={{
+    option1: defaultSetting,
+    option2: defaultSetting,
+    ...
+  }}
+/>
+```
+:::
