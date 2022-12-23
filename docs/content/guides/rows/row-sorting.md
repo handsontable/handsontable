@@ -43,6 +43,7 @@ const myHandsontableInstance = new Handsontable(container, {
   rowHeaders: true,
   height: 'auto',
   width: 'auto',
+  // enable rows sorting (for the entire grid)
   columnSorting: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
@@ -60,7 +61,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const ExampleComponent = () => {
+export const MyHandsontableComponent = () => {
   return (
     <HotTable
       data={[
@@ -74,6 +75,7 @@ export const ExampleComponent = () => {
       rowHeaders={true}
       height="auto"
       width="auto"
+      // enable rows sorting (for the entire grid)
       columnSorting={true}
       licenseKey="non-commercial-and-evaluation"
     />
@@ -81,13 +83,15 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+ReactDOM.render(<MyHandsontableComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
 :::
 :::
 
 ## Enable rows sorting
+
+Enable rows sorting for the entire grid, individual columns, or individual rows.
 
 ::: only-for javascript
 
@@ -96,46 +100,53 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
   
   ```js
   const configurationOptions = {
-    ...
-  }
+    // enable rows sorting for the entire grid
+    columnSorting: true,
+  };
   ```
   
   </code-block>
-  <code-block title="Single columns">
+  <code-block title="Columns">
   
   ```js
   const configurationOptions = {
     columns: [
       {
-        ...
+        // enable rows sorting for column 1
+        columnSorting: true,
       },
       {
-        ...
+        // disable rows sorting for column 2
+        columnSorting: false,
       },
     ],
-  }
+  };
   ```
   
   </code-block>
-  <code-block title="Single rows">
+  <code-block title="Rows">
   
   ```js
   const configurationOptions = {
-    cells(row, col, prop) {
-      if (row === 1 || row === 4) {
-        return {
-          ...
-        };
-      }
-    }
-  }
+    // enable rows sorting for the entire grid
+    columnSorting: true,
+
+    // exclude rows 1 and 2 from sorting
+    afterColumnSort() {
+      myHandsontableInstance.rowIndexMapper.moveIndexes(
+        [
+          myHandsontableInstance.toVisualRow(0),
+          myHandsontableInstance.toVisualRow(1)
+        ], 0);
+    },
+  };
   ```
   
   </code-block>
-  <code-block title="Single cells">
+  <code-block title="Cells">
   
   ```js
-  // you can't enable rows sorting for single cells
+  // you can't enable rows sorting for individual cells
   ```
   
   </code-block>
@@ -150,7 +161,8 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
   
   ```jsx
   <HotTable
-    ...
+    // enable rows sorting for the entire grid
+    columnSorting={true}
   />
   ```
   
@@ -159,9 +171,14 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
   
   ```jsx
   <HotTable>
-    <HotColumn ... />
-    <HotColumn ... />
-    <HotColumn ... />
+    <HotColumn
+      // enable rows sorting for column 1
+      columnSorting={true}
+    />
+    <HotColumn
+      // disable rows sorting for column 2
+      columnSorting={false}
+    />
   </HotTable>
   ```
   
@@ -169,14 +186,24 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
   <code-block title="Single rows">
   
   ```jsx
+  // you need `useRef` to call Handsontable's instance methods
+  import { useRef } from 'react';
+  const hotTableComponentRef = useRef(null);
+
   <HotTable
-    cells={(row, col, prop) => {
-      if (row === 1 || row === 4) {
-        return {
-          ...
-        };
-      }
-    }}
+    ref={hotTableComponentRef}
+
+    // enable rows sorting for the entire grid
+    columnSorting={true}
+
+    // exclude rows 1 and 2 from sorting
+    afterColumnSort={{
+      hotTableComponentRef.current.hotInstance.rowIndexMapper.moveIndexes(
+        [
+          hotTableComponentRef.current.hotInstance.toVisualRow(0),
+          hotTableComponentRef.current.hotInstance.toVisualRow(1),
+        ], 0);
+    }},
   />
   ```
   
@@ -184,13 +211,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
   <code-block title="Single cells">
   
   ```jsx
-  <HotTable
-    cell={[
-      { 
-        ...
-      },
-    ]}
-  />
+  // you can't enable rows sorting for individual cells
   ```
   
   </code-block>
@@ -198,28 +219,126 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 :::
 
-## Configuration options
+## Configure rows sorting
 
-In a single code sample, list all of the feature's configuration options, with their default settings.
+Configure the UI, set the initial sorting order, and implement your own comparison function.
 
 ::: only-for javascript
-```js
-mainOption: {
-  option1: defaultSetting,
-  option2: defaultSetting,
-  ...
-}
-```
+
+<code-group>
+  <code-block title="Configuration options">
+
+  ```js
+  const configurationOptions = {
+    columnSorting: {
+      // display the arrow icon in the column header
+      indicator: true,
+
+      // enable clicking on the column header to sort the column
+      headerAction: true,
+
+      // sort empty cells as well
+      sortEmptyCells: true,
+
+      // at initialization, sort rows by column 1, in ascending order
+      initialConfig: {
+        column: 1,
+        sortOrder: 'asc'
+      },
+
+      // at initialization, sort rows by column 2, in descending order
+      initialConfig: {
+        column: 2,
+        sortOrder: 'desc'
+      },
+
+      // implement your own comparison function
+      compareFunctionFactory(sortOrder, columnMeta) {
+        return function(value, nextValue) {
+          // a function that compares values
+          // and returns `-1`, or `0`, or `1`
+        }
+      },
+    },
+  };
+  ```
+
+  </code-block>
+
+  <code-block title="Default configuration">
+  
+  ```js
+  const configurationOptions = {
+    columnSorting: {
+      indicator: true,
+      headerAction: true,
+      sortEmptyCells: false,
+    },
+  };
+  ```
+  
+  </code-block>
+</code-group>
+
 :::
 
+
 ::: only-for react
-```jsx
-<HotTable
-  mainOption={{
-    option1: defaultSetting,
-    option2: defaultSetting,
-    ...
-  }}
-/>
-```
+
+<code-group>
+  <code-block title="Configuration options">
+
+  ```jsx
+  <HotTable
+    columnSorting={{
+      columnSorting: {
+        // display the arrow icon in the column header
+        indicator: true,
+
+        // enable clicking on the column header to sort the column
+        headerAction: true,
+
+        // sort empty cells as well
+        sortEmptyCells: true,
+
+        // at initialization, sort rows by column 1, in ascending order
+        initialConfig: {
+          column: 1,
+          sortOrder: 'asc'
+        },
+
+        // at initialization, sort rows by column 2, in descending order
+        initialConfig: {
+          column: 2,
+          sortOrder: 'desc'
+        },
+
+        // implement your own comparison function
+        compareFunctionFactory(sortOrder, columnMeta) {
+          return function(value, nextValue) {
+            // a function that compares values
+            // and returns `-1`, or `0`, or `1`
+          }
+        },
+    }}
+  />
+  ```
+
+  </code-block>
+
+  <code-block title="Default configuration">
+  
+  ```js
+  <HotTable
+    columnSorting={{
+      indicator: true,
+      headerAction: true,
+      sortEmptyCells: false,
+    }}
+  />
+  ```
+  
+  </code-block>
+</code-group>
+
 :::

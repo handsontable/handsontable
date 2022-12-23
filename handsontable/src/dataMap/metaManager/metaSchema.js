@@ -838,7 +838,7 @@ export default () => {
      *
      * | Option                   | Possible settings                                                                                                                                |
      * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-     * | `indicator`              | `true`: Display an arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
+     * | `indicator`              | `true`: Display the arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
      * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
      * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
      * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-functions)                                                                |
@@ -872,7 +872,7 @@ export default () => {
      * columnSorting: {
      *   // sort empty cells as well
      *   sortEmptyCells: true,
-     *   // display an arrow icon in the column header
+     *   // display the arrow icon in the column header
      *   indicator: true,
      *   // disable clicking on the column header to sort the column
      *   headerAction: false,
@@ -3123,7 +3123,7 @@ export default () => {
      *
      * | Option                   | Possible settings                                                                                                                                |
      * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-     * | `indicator`              | `true`: Display an arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
+     * | `indicator`              | `true`: Display the arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
      * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
      * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
      * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-functions)                                                                |
@@ -3156,7 +3156,7 @@ export default () => {
      * multiColumnSorting: {
      *   // sort empty cells as well
      *   sortEmptyCells: true,
-     *   // display an arrow icon in the column header
+     *   // display the arrow icon in the column header
      *   indicator: true,
      *   // disable clicking on the column header to sort the column
      *   headerAction: false,
