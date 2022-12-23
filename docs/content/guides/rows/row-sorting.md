@@ -24,6 +24,7 @@ searchCategory: Guides
 In the demo below, click on a column name to sort the data in ascending or descending order. The third click on the same header restores the original order.
 
 ::: only-for javascript
+
 ::: example #example1
 ```js
 import Handsontable from 'handsontable';
@@ -45,13 +46,15 @@ const myHandsontableInstance = new Handsontable(container, {
   width: 'auto',
   // enable rows sorting (for the entire grid)
   columnSorting: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 ```
 :::
+
 :::
 
 ::: only-for react
+
 ::: example #example1 :react
 ```jsx
 import { HotTable } from '@handsontable/react';
@@ -87,6 +90,7 @@ ReactDOM.render(<MyHandsontableComponent />, document.getElementById('example1')
 /* end:skip-in-preview */
 ```
 :::
+
 :::
 
 ## Enable rows sorting
@@ -226,17 +230,32 @@ Configure the UI, set the initial sorting order, and implement your own comparis
 ::: only-for javascript
 
 <code-group>
-  <code-block title="Configuration options">
+  <code-block title="Default configuration">
+  
+  ```js
+  const configurationOptions = {
+    columnSorting: {
+      // display the arrow icon in the column header
+      indicator: true,
+      // sort by clicking on the column name
+      headerAction: true,
+      // sort empty cells as well
+      sortEmptyCells: false,
+    },
+  };
+  ```
+
+  </code-block>
+
+  <code-block title="All configuration options">
 
   ```js
   const configurationOptions = {
     columnSorting: {
       // display the arrow icon in the column header
       indicator: true,
-
-      // enable clicking on the column header to sort the column
+      // sort by clicking on the column name
       headerAction: true,
-
       // sort empty cells as well
       sortEmptyCells: true,
 
@@ -245,7 +264,6 @@ Configure the UI, set the initial sorting order, and implement your own comparis
         column: 1,
         sortOrder: 'asc'
       },
-
       // at initialization, sort rows by column 2, in descending order
       initialConfig: {
         column: 2,
@@ -264,40 +282,39 @@ Configure the UI, set the initial sorting order, and implement your own comparis
   ```
 
   </code-block>
-
-  <code-block title="Default configuration">
-  
-  ```js
-  const configurationOptions = {
-    columnSorting: {
-      indicator: true,
-      headerAction: true,
-      sortEmptyCells: false,
-    },
-  };
-  ```
-  
-  </code-block>
 </code-group>
 
 :::
 
-
 ::: only-for react
 
 <code-group>
-  <code-block title="Configuration options">
+  <code-block title="Default configuration">
+  
+  ```jsx
+  <HotTable
+    columnSorting={{
+      // display the arrow icon in the column header
+      indicator: true,
+      // sort by clicking on the column name
+      headerAction: true,
+      // sort empty cells as well
+      sortEmptyCells: false,
+    }}
+  />
+  ```
+
+  </code-block>
+
+  <code-block title="All configuration options">
 
   ```jsx
   <HotTable
     columnSorting={{
-      columnSorting: {
         // display the arrow icon in the column header
         indicator: true,
-
-        // enable clicking on the column header to sort the column
+        // sort by clicking on the column name
         headerAction: true,
-
         // sort empty cells as well
         sortEmptyCells: true,
 
@@ -306,7 +323,6 @@ Configure the UI, set the initial sorting order, and implement your own comparis
           column: 1,
           sortOrder: 'asc'
         },
-
         // at initialization, sort rows by column 2, in descending order
         initialConfig: {
           column: 2,
@@ -320,25 +336,127 @@ Configure the UI, set the initial sorting order, and implement your own comparis
             // and returns `-1`, or `0`, or `1`
           }
         },
-    }}
+      }
+    }
   />
   ```
 
-  </code-block>
-
-  <code-block title="Default configuration">
-  
-  ```js
-  <HotTable
-    columnSorting={{
-      indicator: true,
-      headerAction: true,
-      sortEmptyCells: false,
-    }}
-  />
-  ```
-  
   </code-block>
 </code-group>
+
+:::
+
+## Sort different types of data
+
+Handsontable automatically sorts different types of data, such as text, numbers, dates, and more.
+You just need to set each column's data [`type`](@/api/options.md#type).
+
+::: only-for javascript
+::: example #example2 --tab code
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#example2');
+
+const myHandsontableInstance = new Handsontable(container, {
+  data: [
+    { car: 'Tesla', price: 32750, productionDate: '06/29/2022' },
+    { car: 'Honda', price: 71788, productionDate: '04/02/2021' },
+    { car: 'Mazda', price: 31426, productionDate: '09/11/2020' },
+  ],
+  columns: [
+    {
+      // set the data type of column 1
+      type: 'text', // 'text' is the default, so you don't have to set it
+      data: 'car',
+    },
+    {
+      // set the data type of column 2
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US'
+      },
+    },
+    {
+      // set the data type of column 3
+      type: 'date',
+      data: 'productionDate',
+      dateFormat: 'MM/DD/YYYY',
+      correctFormat: true,
+      defaultDate: '01/01/1900'
+    }
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  width: 'auto',
+  columnSorting: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+:::
+
+:::
+
+::: only-for react
+::: example #example2 :react --tab code
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const MyHandsontableComponent = () => {
+  return (
+    <HotTable
+      data={[
+        { car: 'Tesla', price: 32750, productionDate: '06/29/2022' },
+        { car: 'Honda', price: 71788, productionDate: '04/02/2021' },
+        { car: 'Mazda', price: 31426, productionDate: '09/11/2020' },
+      ]}
+      columns={[
+        {
+          // set the data type of column 1
+          type: 'text', // 'text' is the default, so you don't have to set it
+          data: 'car',
+        },
+        {
+          // set the data type of column 2
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US'
+          },
+        },
+        {
+          // set the data type of column 3
+          type: 'date',
+          data: 'productionDate',
+          dateFormat: 'MM/DD/YYYY',
+          correctFormat: true,
+          defaultDate: '01/01/1900'
+        }
+      ]}
+      columnSorting={true}
+      colHeaders={true}
+      rowHeaders={true}
+      height="auto"
+      width="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<MyHandsontableComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
+```
+:::
 
 :::
