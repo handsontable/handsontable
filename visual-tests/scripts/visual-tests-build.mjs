@@ -15,8 +15,6 @@ const dirs = {
   codeToRun: 'demo',
 };
 
-// const HOTversion = '12.2.0';
-
 process.chdir(dirs.examples);
 execa.command('npm install');
 
