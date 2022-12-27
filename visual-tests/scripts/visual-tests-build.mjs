@@ -58,15 +58,10 @@ if (currentBranchName === baseBranch) {
   // On other branches we will generate screenshots for wrappers in a "normal" way
   // and then we will be able to see differences
 
-  const copies = [];
-
   for (let i = 1; i < wrappers.length; ++i) {
-    copies.push(fse.copySync(
+    fse.copySync(
       path.resolve(`./tests/screenshots/${wrappers[0]}`),
       path.resolve(`./tests/screenshots/${wrappers[i]}`),
-      { overwrite: true })
-    );
+      { overwrite: true });
   }
-
-  await Promise.all(copies);
 }

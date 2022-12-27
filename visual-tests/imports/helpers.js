@@ -1,5 +1,4 @@
 export const helpers = {
-  defaultHOTVersion: '12.2.0',
   defaultHOTWrapper: 'js',
 
   screenshotsDirectory: './tests/screenshots',
@@ -27,10 +26,7 @@ export const helpers = {
   },
 
   init(workerInfo, process) {
-    this.hotVersion = process.env.HOT_VERSION || this.defaultHOTVersion;
     this.hotWrapper = process.env.HOT_WRAPPER || this.defaultHOTWrapper;
-    // eslint-disable-next-line max-len
-    // this.testURL = `https://examples.handsontable.com/examples/${this.hotVersion}/docs/${this.hotWrapper}/demo/index.html`;
     this.testURL = 'http://localhost:8080/';
     this.workerInfo = workerInfo;
     this.isMac = workerInfo.project.name === 'webkit';
