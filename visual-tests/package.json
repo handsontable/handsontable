@@ -1,6 +1,7 @@
 {
-  "name": "playwright",
-  "version": "1.0.0",
+  "name": "handsontable-visual-tests",
+  "private": true,
+  "version": "0.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,8 +11,7 @@
     "upload": "node ./scripts/visual-tests-upload.mjs",
     "all": "node ./scripts/visual-tests-build.mjs && node ./scripts/visual-tests-upload.mjs"
   },
-  "keywords": [],
-  "author": "",
+  "author": "Handsoncode <hello@handsontable.com>",
   "license": "ISC",
   "devDependencies": {
     "@argos-ci/cli": "^0.3.1",
