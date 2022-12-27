@@ -3,5 +3,3 @@ node_modules/
 /playwright-report/
 /playwright/.cache/
 /tests/screenshots/
-/tests/*/snapshots
-/tests/*/screenshots
