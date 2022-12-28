@@ -1,4 +1,5 @@
 ---
+id: g7i1xok4
 title: Formula calculation
 metaTitle: Formula calculation - JavaScript Data Grid | Handsontable
 description: Perform calculations on cells' values, using a powerful calculation engine that handles 380+ functions, custom functions, named expressions, and more.
@@ -15,6 +16,7 @@ tags:
   - function
   - hyperformula
 react:
+  id: 05z3cjez
   metaTitle: Formula calculation - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -54,9 +56,9 @@ To find out which HyperFormula version to use, see the table below:
 | [`12.x.x`](https://github.com/handsontable/handsontable/releases/tag/12.0.0) and higher | [`^2.0.0`](https://github.com/handsontable/hyperformula/releases/tag/2.0.0)                                    |
 
 ::: tip
-Your [Handsontable license key](@/guides/getting-started/license-key.md) lets you use HyperFormula for free in your Handsontable instance: just pass `'internal-use-in-handsontable'` as your HyperFormula license key .<br><br>
+You can use the `'internal-use-in-handsontable'` license key only in those HyperFormula instances that are connected to a Handsontable instance.
 
-To use HyperFormula outside of a Handsontable instance, though, (e.g., on a server), you need a dedicated [HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html). For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
+To use HyperFormula outside of a Handsontable instance (e.g., on a server), you need a dedicated [HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html). For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 :::
 
 ## Features

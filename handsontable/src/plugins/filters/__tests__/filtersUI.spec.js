@@ -68,6 +68,28 @@ describe('Filters UI', () => {
       expect(document.querySelector('.htFiltersConditionsMenu.handsontable table')).not.toBeNull();
     });
 
+    it('should have no rendered overlays visible', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: true,
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(1);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+
+      const conditionalMenu = $(conditionMenuRootElements().first);
+
+      expect(conditionalMenu.find('.ht_clone_top:visible').length).toBe(0);
+      expect(conditionalMenu.find('.ht_clone_bottom:visible').length).toBe(0);
+      expect(conditionalMenu.find('.ht_clone_inline_start:visible').length).toBe(0);
+      expect(conditionalMenu.find('.ht_clone_top_inline_start_corner:visible').length).toBe(0);
+      expect(conditionalMenu.find('.ht_clone_bottom_inline_start_corner:visible').length).toBe(0);
+    });
+
     it('should appear conditional options menu in the proper place after UISelect element click', () => {
       const hot = handsontable({
         data: getDataForFilters(),

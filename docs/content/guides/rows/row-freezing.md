@@ -1,4 +1,5 @@
 ---
+id: jgrtvjxx
 title: Row freezing
 metaTitle: Row freezing - JavaScript Data Grid | Handsontable
 description: Lock (freeze) the position of specified rows, keeping them visible while scrolling to another area of the grid. This feature is sometimes called "pinned rows".
@@ -9,6 +10,7 @@ tags:
   - pinning rows
   - fixedRows
 react:
+  id: y5wx1mrk
   metaTitle: Row freezing - React Data Grid | Handsontable
 searchCategory: Guides
 ---

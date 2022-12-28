@@ -1,4 +1,5 @@
 ---
+id: k4mb003v
 title: Column groups
 metaTitle: Column groups - JavaScript Data Grid | Handsontable
 description: Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
@@ -9,6 +10,7 @@ tags:
   - nestedHeaders
   - collapsing columns
 react:
+  id: 2ei1omu0
   metaTitle: Column groups - React Data Grid | Handsontable
 searchCategory: Guides
 ---

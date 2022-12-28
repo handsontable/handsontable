@@ -1,4 +1,5 @@
 ---
+id: dceorl8m
 title: Instance methods
 metaTitle: Instance methods - JavaScript Data Grid | Handsontable
 description: Reference a Handsontable instance from within a React component, to programmatically perform actions such as selecting cells.
