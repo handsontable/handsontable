@@ -167,3 +167,5 @@ export {
   CellRange,
 };
 export default Handsontable;
+
+/* test */
