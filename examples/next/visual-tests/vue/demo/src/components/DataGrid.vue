@@ -1,7 +1,5 @@
 <template>
-  <div id="example">
-    <hot-table ref="hotTableComponent" :data="data" :settings="hotSettings"></hot-table>
-  </div>
+  <hot-table ref="hotTableComponent" :data="data" :settings="hotSettings"></hot-table>
 </template>
 
 <script lang="ts">
