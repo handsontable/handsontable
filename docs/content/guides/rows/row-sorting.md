@@ -9,6 +9,10 @@ tags:
   - row sorting
   - column sorting
   - columns sorting
+  - multicolumn sorting
+  - multi-column sorting
+  - columnSorting
+  - multiColumnSorting
 react:
   id: h4jfevxj
   metaTitle: Rows sorting - React Data Grid | Handsontable
@@ -21,7 +25,7 @@ searchCategory: Guides
 
 [[toc]]
 
-Click on a column label to sort the rows in ascending, descending, or the original order.
+Click on a column label (A, B, C) to sort the rows in ascending, descending, or the original order.
 
 ::: only-for javascript
 
@@ -34,18 +38,41 @@ const container = document.querySelector('#example1');
 
 const myHandsontableInstance = new Handsontable(container, {
   data: [
-    { number: 3, letter: 'D' },
-    { number: 1, letter: 'A' },
-    { number: 2, letter: 'B' },
-    { number: 5, letter: 'E' },
-    { number: 4, letter: 'C' },
+    { car: 'Tesla', price: 32750, productionDate: '06/29/2022' },
+    { car: 'Honda', price: 71788, productionDate: '04/02/2021' },
+    { car: 'Mazda', price: 31426, productionDate: '09/11/2020' },
+  ],
+  columns: [
+    {
+      type: 'text',
+      data: 'car',
+    },
+    {
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US'
+      },
+    },
+    {
+      type: 'date',
+      data: 'productionDate',
+      dateFormat: 'MM/DD/YYYY',
+      correctFormat: true,
+      defaultDate: '01/01/1900'
+    }
   ],
   colHeaders: true,
   rowHeaders: true,
   height: 'auto',
   width: 'auto',
-  // enable rows sorting (for the entire grid)
-  columnSorting: true,
+  columnSorting: {
+    initialConfig: {
+      column: 1,
+      sortOrder: 'desc',
+    },
+  },
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -68,18 +95,42 @@ export const MyHandsontableComponent = () => {
   return (
     <HotTable
       data={[
-        { number: 1, letter: 'A' },
-        { number: 2, letter: 'B' },
-        { number: 3, letter: 'C' },
-        { number: 4, letter: 'D' },
-        { number: 5, letter: 'E' },
+        { car: 'Tesla', price: 32750, productionDate: '06/29/2022' },
+        { car: 'Honda', price: 71788, productionDate: '04/02/2021' },
+        { car: 'Mazda', price: 31426, productionDate: '09/11/2020' },
       ]}
+      columns={[
+        {
+          type: 'text',
+          data: 'car',
+        },
+        {
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US'
+          },
+        },
+        {
+          type: 'date',
+          data: 'productionDate',
+          dateFormat: 'MM/DD/YYYY',
+          correctFormat: true,
+          defaultDate: '01/01/1900'
+        }
+      ]}
+      columnSorting={{
+        // at initialization, sort rows by column 1, in descending order
+        initialConfig: {
+          column: 1,
+          sortOrder: 'desc',
+        },
+      }}
       colHeaders={true}
       rowHeaders={true}
       height="auto"
       width="auto"
-      // enable rows sorting (for the entire grid)
-      columnSorting={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -312,10 +363,9 @@ Configure the sorting UI elements, set the initial sorting order, and implement 
         return function(value, nextValue) {
           // a function that compares values
           // and returns `-1`, `0`, or `1`
-        }
+        },
       },
-      }
-    }
+    }}
   />
   ```
 
@@ -326,7 +376,37 @@ Configure the sorting UI elements, set the initial sorting order, and implement 
 
 ## Sort different types of data
 
-Handsontable automatically sorts different types of data, such as text, numbers, dates, and more.
+Handsontable automatically sorts different types of data, such as text, numbers, dates, and more. Just configure each column's [`type`](@/api/options.md#type).
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  columns: [
+    {
+      // set the data type of column 1
+      type: 'numeric',
+    },
+  ],
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable>
+  <HotColumn
+    // set the data type of column 1
+    type={'numeric'}
+  />
+</HotTable>
+```
+
+:::
+
+This demo sets a different [`type`](@/api/options.md#type) for each column, and sets additional options for formatting numbers and dates.
 
 ::: only-for javascript
 
@@ -440,41 +520,11 @@ ReactDOM.render(<MyHandsontableComponent />, document.getElementById('example2')
 
 :::
 
-To let Handsontable automatically sort different types of data, configure the [`type`](@/api/options.md#type) of each column.
-
-::: only-for javascript
-
-```js
-const configurationOptions = {
-  columns: [
-    {
-      // set the data type of column 1
-      type: 'numeric',
-    },
-  ],
-};
-```
-
-:::
-
-::: only-for react
-
-```jsx
-<HotTable>
-  <HotColumn
-    // set the data type of column 1
-    type={'numeric'}
-  />
-</HotTable>
-```
-
-:::
-
 ## Sort by multiple columns
 
-Apply multiple levels of sort criteria, by sorting data by multiple columns.
+Sort data by multiple columns, to apply additional levels of sort criteria.
 
-1. Click on a column label to sort the rows by a single column.
+1. Click on a column label (A, B, C) to sort the rows by a single column.
 2. Hold down <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd>.
 3. Click on other column labels to apply additional levels of sort criteria.
 
@@ -489,15 +539,36 @@ const container = document.querySelector('#example3');
 
 const myHandsontableInstance = new Handsontable(container, {
   data: [
-    { number: 3, letter: 'D', number2: 1, },
-    { number: 1, letter: 'A', number2: 2, },
-    { number: 2, letter: 'B', number2: 3, },
-    { number: 5, letter: 'E', number2: 4, },
-    { number: 4, letter: 'C', number2: 5, },
-    { number: 7, letter: 'D', number2: 6, },
-    { number: 6, letter: 'A', number2: 7, },
-    { number: 9, letter: 'B', number2: 8, },
-    { number: 8, letter: 'E', number2: 9, },
+    { car: 'Tesla', price: 33750, productionDate: '06/29/2022' },
+    { car: 'Honda', price: 72788, productionDate: '04/02/2021' },
+    { car: 'Mazda', price: 32426, productionDate: '09/11/2020' },
+    { car: 'Tesla', price: 32750, productionDate: '06/28/2022' },
+    { car: 'Honda', price: 71788, productionDate: '04/03/2021' },
+    { car: 'Mazda', price: 31426, productionDate: '09/10/2020' },
+  ],
+  columns: [
+    {
+      // set the data type of column 1
+      type: 'text', // 'text' is the default type, so you can omit it
+      data: 'car',
+    },
+    {
+      // set the data type of column 2
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US'
+      },
+    },
+    {
+      // set the data type of column 3
+      type: 'date',
+      data: 'productionDate',
+      dateFormat: 'MM/DD/YYYY',
+      correctFormat: true,
+      defaultDate: '01/01/1900'
+    }
   ],
   colHeaders: true,
   rowHeaders: true,
@@ -527,22 +598,39 @@ export const MyHandsontableComponent = () => {
   return (
     <HotTable
       data={[
-        { number: 3, letter: 'D' },
-        { number: 1, letter: 'A' },
-        { number: 2, letter: 'B' },
-        { number: 5, letter: 'E' },
-        { number: 4, letter: 'C' },
-        { number: 7, letter: 'D' },
-        { number: 6, letter: 'A' },
-        { number: 9, letter: 'B' },
-        { number: 8, letter: 'E' },
+        { car: 'Tesla', price: 33750, productionDate: '06/29/2022' },
+        { car: 'Honda', price: 72788, productionDate: '04/02/2021' },
+        { car: 'Mazda', price: 32426, productionDate: '09/11/2020' },
+        { car: 'Tesla', price: 32750, productionDate: '06/28/2022' },
+        { car: 'Honda', price: 71788, productionDate: '04/03/2021' },
+        { car: 'Mazda', price: 31426, productionDate: '09/10/2020' },
       ]}
+      columns={[
+        {
+          type: 'text',
+          data: 'car',
+        },
+        {
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US'
+          },
+        },
+        {
+          type: 'date',
+          data: 'productionDate',
+          dateFormat: 'MM/DD/YYYY',
+          correctFormat: true,
+          defaultDate: '01/01/1900'
+        }
+      ]}
+      multiColumnSorting={true}
       colHeaders={true}
       rowHeaders={true}
       height="auto"
       width="auto"
-      // enable sorting by multiple columns (for the entire grid)
-      multiColumnSorting={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -556,7 +644,7 @@ ReactDOM.render(<MyHandsontableComponent />, document.getElementById('example3')
 
 :::
 
-Enable sorting by multiple columns for the entire grid or for individual columns.
+Enable multicolumn sorting for the entire grid, or for individual columns.
 
 ::: only-for javascript
 
@@ -581,7 +669,7 @@ Enable sorting by multiple columns for the entire grid or for individual columns
         multiColumnSorting: true,
       },
       {
-        // disable rows sorting by multiple columns (for column 2)
+        // disable sorting by multiple columns (for column 2)
         multiColumnSorting: false,
       },
     ],
@@ -615,7 +703,7 @@ Enable sorting by multiple columns for the entire grid or for individual columns
       multiColumnSorting={true}
     />
     <HotColumn
-      // disable rows sorting by multiple columns (for column 2)
+      // disable sorting by multiple columns (for column 2)
       multiColumnSorting={false}
     />
   </HotTable>
@@ -627,6 +715,10 @@ Enable sorting by multiple columns for the entire grid or for individual columns
 :::
 
 ## Set the initial sorting order
+
+Sort your data at Handsontable's initialization, to start out with rows displayed in a particular order.
+
+In this demo, the rows are sorted by column A, in ascending order.
 
 ::: only-for javascript
 
@@ -645,12 +737,10 @@ const myHandsontableInstance = new Handsontable(container, {
   ],
   columns: [
     {
-      // set the data type of column 1
-      type: 'text', // 'text' is the default type, so you can omit it
+      type: 'text',
       data: 'car',
     },
     {
-      // set the data type of column 2
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -659,7 +749,6 @@ const myHandsontableInstance = new Handsontable(container, {
       },
     },
     {
-      // set the data type of column 3
       type: 'date',
       data: 'productionDate',
       dateFormat: 'MM/DD/YYYY',
@@ -672,10 +761,10 @@ const myHandsontableInstance = new Handsontable(container, {
   height: 'auto',
   width: 'auto',
   columnSorting: {
-    // at initialization, sort rows by column 1, in descending order
+    // at initialization, sort rows by column 0, in ascending order
     initialConfig: {
-      column: 1,
-      sortOrder: 'desc',
+      column: 0,
+      sortOrder: 'asc',
     },
   },
   licenseKey: 'non-commercial-and-evaluation',
@@ -706,12 +795,10 @@ export const MyHandsontableComponent = () => {
       ]}
       columns={[
         {
-          // set the data type of column 1
-          type: 'text', // 'text' is the default type, so you can omit it
+          type: 'text',
           data: 'car',
         },
         {
-          // set the data type of column 2
           type: 'numeric',
           data: 'price',
           numericFormat: {
@@ -720,7 +807,6 @@ export const MyHandsontableComponent = () => {
           },
         },
         {
-          // set the data type of column 3
           type: 'date',
           data: 'productionDate',
           dateFormat: 'MM/DD/YYYY',
@@ -728,7 +814,13 @@ export const MyHandsontableComponent = () => {
           defaultDate: '01/01/1900'
         }
       ]}
-      columnSorting={true}
+      columnSorting={{
+        // at initialization, sort rows by column 0, in ascending order
+        initialConfig: {
+          column: 0,
+          sortOrder: 'asc',
+        },
+      }}
       colHeaders={true}
       rowHeaders={true}
       height="auto"
@@ -743,5 +835,38 @@ ReactDOM.render(<MyHandsontableComponent />, document.getElementById('example4')
 /* end:skip-in-preview */
 ```
 :::
+
+:::
+
+To set this up, use the [`initialConfig`](@/api/options.md#columnsorting) option.
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  columnSorting: {
+    // at initialization, sort rows by column 0, in ascending order
+    initialConfig: {
+      column: 0,
+      sortOrder: 'asc', // for descending order, set `'desc'`
+    },
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  columnSorting={{
+    // at initialization, sort rows by column 0, in ascending order
+    initialConfig: {
+      column: 0,
+      sortOrder: 'asc',  // for descending order, set `'desc'`
+    },
+  }}
+/>
+```
 
 :::
