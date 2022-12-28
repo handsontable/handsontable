@@ -14,10 +14,22 @@ export default {
   components: {
     DropdownLink
   },
-  data() {
-    return {
-      item: [],
-    };
+  computed: {
+    item() {
+      return {
+        text: this.addLatest(this.$page.currentVersion),
+        items:
+          [
+            ...(this.$page.versionsWithPatches ? Array.from(this.$page.versionsWithPatches.keys()).map(v => ({
+              text: v,
+              subTexts: this.$page.versionsWithPatches.get(v),
+              link: this.getLink(v),
+              target: '_self',
+              isHtmlLink: true,
+            })) : []),
+          ]
+      };
+    }
   },
   methods: {
     addLatest(version) {
@@ -34,27 +46,15 @@ export default {
       return version;
     },
     getLink(version) {
-      if (version === this.$page.latestVersion) {
-        return '/docs/';
+      if (version === this.$page.currentVersion) {
+        const isLatest = version === this.$page.latestVersion;
+
+        return `/docs${isLatest ? '' : `/${version}`}${this.$route.path}`;
       }
 
-      return `/docs/${version}/`;
+      // Using `location.origin` disables injecting `.html` postfix at the end of the URL
+      return `${location.origin}/docs/${version}/redirect?pageId=${this.$page.frontmatter.id}`;
     },
-  },
-  mounted() {
-    this.item = {
-      text: this.addLatest(this.$page.currentVersion),
-      items:
-        [
-          ...Array.from(this.$page.versionsWithPatches.keys()).map(v => ({
-            text: v,
-            subTexts: this.$page.versionsWithPatches.get(v),
-            link: this.getLink(v),
-            target: '_self',
-            isHtmlLink: true,
-          })),
-        ]
-    };
   }
 };
 </script>
