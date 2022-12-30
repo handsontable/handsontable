@@ -59,7 +59,7 @@ Explain how to enable the feature.
   ```
   
   </code-block>
-  <code-block title="Single columns">
+  <code-block title="Columns">
   
   ```js
   const configurationOptions = {
@@ -75,7 +75,7 @@ Explain how to enable the feature.
   ```
   
   </code-block>
-  <code-block title="Single rows">
+  <code-block title="Rows">
   
   ```js
   const configurationOptions = {
@@ -90,7 +90,7 @@ Explain how to enable the feature.
   ```
   
   </code-block>
-  <code-block title="Single cells">
+  <code-block title="Cells">
   
   ```js
   const configurationOptions = {
@@ -118,7 +118,7 @@ Explain how to enable the feature.
   ```
   
   </code-block>
-  <code-block title="Single columns">
+  <code-block title="Columns">
   
   ```jsx
   <HotTable>
@@ -130,7 +130,7 @@ Explain how to enable the feature.
   
   </code-block>
 
-  <code-block title="Single rows">
+  <code-block title="Rows">
   
   ```jsx
   <HotTable
@@ -145,7 +145,7 @@ Explain how to enable the feature.
   ```
   
   </code-block>
-  <code-block title="Single cells">
+  <code-block title="Cells">
   
   ```jsx
   <HotTable
@@ -253,7 +253,7 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
   ```
   
   </code-block>
-  <code-block title="Single columns">
+  <code-block title="Columns">
   
   ```js
   // disable the feature
@@ -282,7 +282,7 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
   ```
   
   </code-block>
-  <code-block title="Single rows">
+  <code-block title="Rows">
   
   ```js
   // disable the feature
@@ -309,7 +309,7 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
   ```
   
   </code-block>
-  <code-block title="Single cells">
+  <code-block title="Cells">
   
   ```js
   // disable the feature
@@ -356,7 +356,7 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
   ```
   
   </code-block>
-  <code-block title="Single columns">
+  <code-block title="Columns">
   
   ```jsx
   const hotTableComponentRef = useRef(null);
@@ -388,7 +388,7 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
   
   </code-block>
 
-  <code-block title="Single rows">
+  <code-block title="Rows">
   
   ```jsx
   const hotTableComponentRef = useRef(null);
@@ -417,7 +417,7 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
   ```
   
   </code-block>
-  <code-block title="Single cells">
+  <code-block title="Cells">
   
   ```jsx
   const hotTableComponentRef = useRef(null);
