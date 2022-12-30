@@ -262,9 +262,37 @@ To enable rows sorting, use the [`columnSorting`](@/api/options.md#columnsorting
 
 :::
 
+### Import the sorting module
+
+If you're using Handsontable through [modules](@/guides/tools-and-building/modules.md),
+import the [`ColumnSorting`](@/api/columnSorting.md) module.
+
+```js
+// import the base module
+import Handsontable from 'handsontable/base';
+
+// import Handsontable's CSS
+import 'handsontable/dist/handsontable.full.min.css';
+
+// import the `ColumnSorting` module
+import {
+  registerPlugin,
+  ColumnSorting,
+} from 'handsontable/plugins';
+
+// register the `ColumnSorting` plugin
+registerPlugin(ColumnSorting);
+```
+
 ## Configure rows sorting
 
-Configure the sort UI, set the initial sort order, and implement your own compare function.
+Configure the sort UI, set an initial sort order, and implement your own compare function.
+
+By default:
+- Sorting is enabled for all columns.
+- The end user can sort rows by clicking on the column label.
+- The sort order indicator is visible.
+- No rows are sorted initially.
 
 ::: only-for javascript
 
@@ -274,11 +302,11 @@ Configure the sort UI, set the initial sort order, and implement your own compar
   ```js
   const configurationOptions = {
     columnSorting: {
-      // sort by clicking on a column label
+      // let the end user sort rows by clicking on the column label
       headerAction: true,
-      // when sorting, move rows with empty cells to the bottom
+      // don't sort empty cells (move rows with empty cells to the bottom)
       sortEmptyCells: false,
-      // after sorting, display the arrow icon in the column header
+      // show the sort order indicator in the column header
       indicator: true,
     },
   };
@@ -291,11 +319,11 @@ Configure the sort UI, set the initial sort order, and implement your own compar
   ```js
   const configurationOptions = {
     columnSorting: {
-      // disable clicking on a column label to sort
+      // don't let the end user sort rows by clicking on the column label
       headerAction: false,
       // sort empty cells, too
       sortEmptyCells: true,
-      // don't display the arrow icon in the column header
+      // hide the sort order indicator in the column header
       indicator: false,
 
       // at initialization, sort rows by column 1, in descending order
@@ -307,8 +335,8 @@ Configure the sort UI, set the initial sort order, and implement your own compar
       // implement your own comparator
       compareFunctionFactory(sortOrder, columnMeta) {
         return function(value, nextValue) {
-          // a compare function
-          // returns `-1`, or `0`, or `1`
+          // here, add a compare function
+          // that returns `-1`, or `0`, or `1`
         }
       },
     },
@@ -328,11 +356,11 @@ Configure the sort UI, set the initial sort order, and implement your own compar
   ```jsx
   <HotTable
     columnSorting={{
-      // sort by clicking on a column label
+      // let the end user sort rows by clicking on the column label
       headerAction: true,
-      // when sorting, move rows with empty cells to the bottom
+      // don't sort empty cells (move rows with empty cells to the bottom)
       sortEmptyCells: false,
-      // after sorting, display the arrow icon in the column header
+      // show the sort order indicator in the column header
       indicator: true,
     }}
   />
@@ -345,12 +373,12 @@ Configure the sort UI, set the initial sort order, and implement your own compar
   ```jsx
   <HotTable
     columnSorting={{
-      // sort by clicking on a column label
-      headerAction: true,
+      // don't let the end user sort rows by clicking on the column label
+      headerAction: false,
       // sort empty cells, too
       sortEmptyCells: true,
-      // after sorting, display the arrow icon in the column header
-      indicator: true,
+      // hide the sort order indicator in the column header
+      indicator: false,
 
       // at initialization, sort rows by column 1, in descending order
       initialConfig: {
@@ -361,8 +389,8 @@ Configure the sort UI, set the initial sort order, and implement your own compar
       // implement your own comparator
       compareFunctionFactory(sortOrder, columnMeta) {
         return function(value, nextValue) {
-          // a compare function
-          // returns `-1`, or `0`, or `1`
+          // here, add a compare function
+          // that returns `-1`, or `0`, or `1`
         },
       },
     }}
@@ -555,6 +583,25 @@ To let the end user apply multiple levels of sort criteria, use the [`multiColum
   ```
   
   </code-block>
+  <code-block title="Rows">
+  
+  ```js
+  const configurationOptions = {
+    // enable sorting by multiple columns (for the entire grid)
+    multiColumnSorting: true,
+
+    // exclude rows 1 and 2 from sorting
+    afterColumnSort() {
+      myHandsontableInstance.rowIndexMapper.moveIndexes(
+        [
+          myHandsontableInstance.toVisualRow(0),
+          myHandsontableInstance.toVisualRow(1)
+        ], 0);
+    },
+  };
+  ```
+  
+  </code-block>
 </code-group>
 
 :::
@@ -585,6 +632,31 @@ To let the end user apply multiple levels of sort criteria, use the [`multiColum
       multiColumnSorting={false}
     />
   </HotTable>
+  ```
+  
+  </code-block>
+  <code-block title="Rows">
+
+  ```jsx
+  // you need `useRef` to call Handsontable's instance methods
+  import { useRef } from 'react';
+  const hotTableComponentRef = useRef(null);
+
+  <HotTable
+    ref={hotTableComponentRef}
+
+    // enable sorting by multiple columns (for the entire grid)
+    columnSorting={true}
+
+    // exclude rows 1 and 2 from sorting
+    afterColumnSort={{
+      hotTableComponentRef.current.hotInstance.rowIndexMapper.moveIndexes(
+        [
+          hotTableComponentRef.current.hotInstance.toVisualRow(0),
+          hotTableComponentRef.current.hotInstance.toVisualRow(1),
+        ], 0);
+    }},
+  />
   ```
   
   </code-block>
@@ -716,7 +788,7 @@ ReactDOM.render(<MyHandsontableComponent />, document.getElementById('example3')
 
 :::
 
-## Set the initial sort order
+## Set an initial sort order
 
 To initialize Handsontable with a particular sort order, use the [`initialConfig`](@/api/options.md#columnsorting) option. 
 
@@ -922,8 +994,8 @@ const configurationOptions = {
     // implement your own comparator
     compareFunctionFactory(sortOrder, columnMeta) {
       return function(value, nextValue) {
-        // a compare function
-        // returns `-1`, or `0`, or `1`
+        // here, add a compare function
+        // that returns `-1`, or `0`, or `1`
       },
     },
   }}
@@ -932,13 +1004,13 @@ const configurationOptions = {
 
 :::
 
-## Control rows sorting programmatically
+## Control sorting programmatically
 
-To control rows sorting at Handsontable's runtime, use Handsontable's API methods.
+Control rows sorting at runtime by using Handsontable's API.
 
 ::: only-for react
 
-Read the [Instance methods](@/guides/getting-started/react-methods.md) guide first.
+To learn how to access the API methods, read the [Instance methods](@/guides/getting-started/react-methods.md) guide.
 
 :::
 
@@ -1059,12 +1131,14 @@ To disable and re-enable rows sorting at Handsontable's runtime, use the [`updat
 ### Sort rows programmatically
 
 To sort rows programmatically, use the [`columnSorting.sort()`](@/api/columnsorting.md#sort) method.
-Mind that previous sort orders are not preserved.
+Remember to [enable rows sorting](#enable-rows-sorting) first.
+
+Mind that [`columnSorting.sort()`](@/api/columnsorting.md#sort) erases any previous sort orders.
 
 ::: only-for javascript
 
 ```js
-// get the instance of the `ColumnSorting` plugin
+// get the `ColumnSorting` plugin instance
 const columnSortingPluginInstance = handsontableInstance.getPlugin('columnSorting');
 
 columnSortingPluginInstance.sort(
@@ -1088,7 +1162,7 @@ columnSortingPluginInstance.sort(
 ```jsx
 const hotTableComponentRef = useRef(null);
 
-// get the instance of the `ColumnSorting` plugin
+// get the `ColumnSorting` plugin instance
 const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
 
 columnSortingPluginInstance.sort(
