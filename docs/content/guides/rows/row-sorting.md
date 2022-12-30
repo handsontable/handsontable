@@ -1006,7 +1006,7 @@ const configurationOptions = {
 
 ## Control sorting programmatically
 
-Control rows sorting at runtime by using Handsontable's API.
+Control sorting at runtime by using Handsontable's API.
 
 ::: only-for react
 
@@ -1016,7 +1016,7 @@ To learn how to access the API methods, read the [Instance methods](@/guides/get
 
 ### Disable rows sorting
 
-To disable and re-enable rows sorting at Handsontable's runtime, use the [`updateSettings()`](@/api/core.md#updatesettings) method.
+To disable and re-enable sorting at Handsontable's runtime, use the [`updateSettings()`](@/api/core.md#updatesettings) method.
 
 ::: only-for javascript
 
