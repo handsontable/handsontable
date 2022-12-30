@@ -1130,10 +1130,10 @@ To disable and re-enable rows sorting at Handsontable's runtime, use the [`updat
 
 ### Sort rows programmatically
 
-To sort rows programmatically, use the [`columnSorting.sort()`](@/api/columnsorting.md#sort) method.
+To sort rows programmatically, use the [`columnSorting.sort()`](@/api/columnSorting.md#sort) method.
 Remember to [enable rows sorting](#enable-rows-sorting) first.
 
-Mind that [`columnSorting.sort()`](@/api/columnsorting.md#sort) erases any previous sort orders.
+Mind that [`columnSorting.sort()`](@/api/columnSorting.md#sort) erases any previous sort orders.
 
 ::: only-for javascript
 
