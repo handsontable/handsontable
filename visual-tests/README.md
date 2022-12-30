@@ -1,4 +1,4 @@
-Install by command `npm install`
+Install by command `npm install` in `visual-tests` folder.
 
 ### Usage
 
@@ -23,8 +23,20 @@ Test file must have `.spec.js` in the name of file.
 Test files must be stored in `tests` folder.
 Test filename should describe as much as possible what test is doing - it will be used as a title in logs and in screenshots names, you do not have to define them manually anymore. Example: `./tests/open-dropdown-menu.spec.js`.
 
-Is you want to make screenshot, just copy-paste this line anywhere:
+### Making screenshots
+
+If you want to make screenshot, just copy-paste this line anywhere:
 `await page.screenshot({ path: helpers.screenshotPath() });`
-From now it will take care about names, browsers, wrappers and path automatically.
-If you want to make screenshot of specific element, just put given locator instead of `page`, e.g.:
+From now it will take care about names, browsers, wrappers and paths automatically.
+
+You can make as much screenshots per test as needed, for example:
+
+```
+await cell.click();
+await page.screenshot({ path: helpers.screenshotPath() });
+await anotherCell.click();
+await page.screenshot({ path: helpers.screenshotPath() });
+```
+
+If you want to make screenshot of specific element, just use given locator instead of `page`, e.g.:
 `await dropdownMenu.screenshot({ path: helpers.screenshotPath() });`
