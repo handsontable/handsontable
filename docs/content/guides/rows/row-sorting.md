@@ -25,7 +25,7 @@ searchCategory: Guides
 
 [[toc]]
 
-Try it out: click on a column label (A, B, C) to sort the rows in ascending, descending, or the original order.
+Click on a column label (A, B, C) to sort the rows in ascending, descending, or the original order.
 
 ::: only-for javascript
 
@@ -592,6 +592,8 @@ To let the end user apply multiple levels of sort criteria, use the [`multiColum
 
 :::
 
+Don't use the [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options at the same time, though.
+
 Try it out:
 
 1. Click on a column label (A, B, C) to sort the rows by a single column.
@@ -711,12 +713,6 @@ ReactDOM.render(<MyHandsontableComponent />, document.getElementById('example3')
 /* end:skip-in-preview */
 ```
 :::
-
-:::
-
-::: tip
-
-Don't use the [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options at the same time.
 
 :::
 
