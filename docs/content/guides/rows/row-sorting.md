@@ -1296,8 +1296,15 @@ Read our [blog article](https://handsontable.com/blog/articles/2018/11/feature-s
 
 ### More examples
 
+- [Enable rows sorting](https://examples.handsontable.com/demo/sorting.html)
 - [Disable sorting for individual columns](https://jsfiddle.net/handsoncode/gsvy8m0f)
-- [Rows sorting example](https://examples.handsontable.com/demo/sorting.html)
+- [Sort remote data]()
+- [Make the sorted state persistent]()
+- [Sort different kinds of data in a single column (kg vs dkg)]()
+- [Sort the children rows of a parent row]()
+- [Ignore HTML while sorting]()
+- [Change the background color of the sorted column headers]()
+- [Get the current sort parameters]()
 
 ### API reference
 
