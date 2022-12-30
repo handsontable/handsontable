@@ -54,6 +54,7 @@ Explain how to enable the feature.
   
   ```js
   const configurationOptions = {
+    // enable [feature name] for the entire grid
     ...
   }
   ```
@@ -64,9 +65,11 @@ Explain how to enable the feature.
   ```js
   const configurationOptions = {
     columns: [
+      // enable [feature name] for column 1
       {
         ...
       },
+      // enable [feature name] for the column 2
       {
         ...
       },
@@ -113,6 +116,7 @@ Explain how to enable the feature.
   
   ```jsx
   <HotTable
+  // enable [feature name] for the entire grid
     ...
   />
   ```
@@ -241,12 +245,12 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
   <code-block title="Entire grid">
   
   ```js
-  // disable the feature
+  // disable [featur name] for the entire grid
   handsontableInstance.updateSettings({
     ...
   });
 
-  // re-enable the feature
+  // re-enable [feature name] for the entire grid
   handsontableInstance.updateSettings({
     ...
   });
