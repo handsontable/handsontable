@@ -450,7 +450,7 @@ Explain how to disable and re-enable the feature at runtime (by using `updateSet
 
 :::
 
-## Examples
+## More examples
     
 List links to CodeSandbox examples, taken from:
 - https://handsontable.com/docs/12.0/examples
