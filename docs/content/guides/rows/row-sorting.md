@@ -9,9 +9,9 @@ tags:
   - row sorting
   - column sorting
   - columns sorting
+  - columnSorting
   - multicolumn sorting
   - multi-column sorting
-  - columnSorting
   - multiColumnSorting
 react:
   id: h4jfevxj
@@ -144,7 +144,7 @@ ReactDOM.render(<MyHandsontableComponent />, document.getElementById('example1')
 
 :::
 
-Rows sorting happens on Handsontable's visual layer and doesn't affect your source data structure.
+Sorting happens on Handsontable's visual layer and doesn't affect your source data structure.
 
 ## Enable rows sorting
 
@@ -264,7 +264,7 @@ Enable rows sorting for the entire grid, individual columns, or individual rows.
 
 ## Configure rows sorting
 
-Configure the sorting UI elements, set the initial sorting order, and implement your own comparison function.
+Configure the sorting UI, set the initial sort order, and implement your own compare function.
 
 ::: only-for javascript
 
@@ -304,11 +304,11 @@ Configure the sorting UI elements, set the initial sorting order, and implement 
         sortOrder: 'desc',
       },
 
-      // implement your own comparison function
+      // implement your own comparator
       compareFunctionFactory(sortOrder, columnMeta) {
         return function(value, nextValue) {
-          // a function that compares values
-          // and returns `-1`, `0`, or `1`
+          // a compare function
+          // returns `-1`, or `0`, or `1`
         }
       },
     },
@@ -358,11 +358,11 @@ Configure the sorting UI elements, set the initial sorting order, and implement 
         sortOrder: 'desc',
       },
 
-      // implement your own comparison function
+      // implement your own comparator
       compareFunctionFactory(sortOrder, columnMeta) {
         return function(value, nextValue) {
-          // a function that compares values
-          // and returns `-1`, `0`, or `1`
+          // a compare function
+          // returns `-1`, or `0`, or `1`
         },
       },
     }}
@@ -714,11 +714,11 @@ Enable multicolumn sorting for the entire grid, or for individual columns.
 
 :::
 
-## Set the initial sorting order
+## Set the initial sort order
 
 Sort your data at Handsontable's initialization, to start out with rows displayed in a particular order.
 
-In this demo, the rows are sorted by column A, in ascending order.
+In this demo, the rows are initially sorted by column A, in ascending order.
 
 ::: only-for javascript
 
@@ -864,6 +864,66 @@ const configurationOptions = {
     initialConfig: {
       column: 0,
       sortOrder: 'asc',  // for descending order, set `'desc'`
+    },
+  }}
+/>
+```
+
+:::
+
+## Add custom sort icons
+
+<!--
+https://github.com/handsontable/handsontable/blob/develop/handsontable/src/css/handsontable.scss#L101-L148
+
+https://jsfiddle.net/kirszenbaum/bmy2v60t/39/
+-->
+
+To replace the default sort icons, overwrite the `.columnSorting` classes of Handsontable's CSS.
+
+```css
+.handsontable span.colHeader.columnSorting.ascending::before {
+ content: '✋';
+}
+
+.handsontable span.colHeader.columnSorting.descending::before {
+ content: '✋';
+}
+```
+
+## Add a custom comparator
+
+Add a custom [compare function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#description), to implement your own rows sorting logic.
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  columnSorting: {
+    // implement your own comparator
+    compareFunctionFactory(sortOrder, columnMeta) {
+      return function(value, nextValue) {
+        // a compare function
+        // returns `-1`, or `0`, or `1`
+      }
+    },
+  },
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  columnSorting={{
+    // implement your own comparator
+    compareFunctionFactory(sortOrder, columnMeta) {
+      return function(value, nextValue) {
+        // a compare function
+        // returns `-1`, or `0`, or `1`
+      },
     },
   }}
 />
