@@ -25,7 +25,7 @@ searchCategory: Guides
 
 [[toc]]
 
-In this demo, lick on a column label (A, B, C) to sort the rows in ascending, descending, or the original order.
+In this demo, click on a column label (A, B, C) to sort the rows in ascending, descending, or the original order.
 
 ::: only-for javascript
 
