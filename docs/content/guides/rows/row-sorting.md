@@ -21,7 +21,7 @@ searchCategory: Guides
 
 # Rows sorting
 
-**Sort rows alphabetically or numerically, in ascending, descending or a custom order, across one or multiple columns.**
+<p style="font-size:20px;">Sort rows alphabetically or numerically, in ascending, descending or a custom order, across one or multiple columns.</p>
 
 [[toc]]
 
