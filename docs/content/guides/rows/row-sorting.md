@@ -25,7 +25,7 @@ searchCategory: Guides
 
 [[toc]]
 
-Click on a column label (A, B, C) to sort the rows in ascending, descending, or the original order.
+In this demo, lick on a column label (A, B, C) to sort the rows in ascending, descending, or the original order.
 
 ::: only-for javascript
 
@@ -1301,7 +1301,7 @@ Read our [blog article](https://handsontable.com/blog/articles/2018/11/feature-s
 - [Sort remote data]()
 - [Make the sorted state persistent]()
 - [Sort different kinds of data in a single column (kg vs dkg)]()
-- [Sort the children rows of a parent row]()
+- [Sort the child rows of a parent row]()
 - [Ignore HTML while sorting]()
 - [Change the background color of the sorted column headers]()
 - [Get the current sort parameters]()
@@ -1316,8 +1316,8 @@ Read our [blog article](https://handsontable.com/blog/articles/2018/11/feature-s
 
 Didn't find what you need? Try this:
 
-- [View GitHub issues related to rows sorting](https://github.com/handsontable/handsontable/labels/Column%20sorting)
-- [Report a new GitHub issue](https://github.com/handsontable/handsontable/issues/new/choose)
-- [Ask a question on Stack Overflow](https://stackoverflow.com/questions/tagged/handsontable)
-- [Ask a question on Handsontable's forum](https://forum.handsontable.com/)
-- [Contact Handsontable's technical support](https://handsontable.com/contact?category=technical_support)
+- View [GitHub issues](https://github.com/handsontable/handsontable/labels/Column%20sorting) related to rows sorting
+- Report a [new GitHub issue](https://github.com/handsontable/handsontable/issues/new/choose)
+- Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/handsontable)
+- Ask a question on [Handsontable's forum](https://forum.handsontable.com/)
+- Contact Handsontable's [technical support](https://handsontable.com/contact?category=technical_support)
