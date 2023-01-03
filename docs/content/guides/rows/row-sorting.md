@@ -1330,7 +1330,10 @@ Try it out:
 <div id="example6"></div>
 
 <div class="controls">
-  <button id="sort">Sort rows by column 1, in ascending order</button>
+  <button id="sort_asc" class="button">Sort rows by column 1, in ascending order</button>
+  <br>
+  <br>
+  <button id="sort_desc" class="button">Sort rows by column 1, in descending order</button>
 </div>
 ```
 
@@ -1339,7 +1342,11 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example6');
-const button = document.querySelector('#sort');
+
+const button_ascending = document.querySelector('#sort_asc');
+const button_descending = document.querySelector('#sort_desc');
+
+
 const handsontableInstance = new Handsontable(container, {
   data: [
     { car: 'Tesla', price: 32750, productionDate: '06/29/2022' },
@@ -1355,14 +1362,20 @@ const handsontableInstance = new Handsontable(container, {
 
 const columnSortingPluginInstance = handsontableInstance.getPlugin('columnSorting');
 
-button.addEventListener('click', () => {
+button_ascending.addEventListener('click', () => {
   columnSortingPluginInstance.sort({
     column: 0,
     sortOrder: 'asc',
   });
 });
-```
 
+button_descending.addEventListener('click', () => {
+  columnSortingPluginInstance.sort({
+    column: 0,
+    sortOrder: 'desc',
+  });
+});
+```
 :::
 
 :::
@@ -1371,9 +1384,8 @@ button.addEventListener('click', () => {
 ::: only-for react
 
 ::: example #example6 :react
-
 ```jsx
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -1382,47 +1394,62 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 export const ExampleComponent = () => {
+  const data = [
+    ['A1', 'B1', 'C1', 'D1'],
+    ['A2', 'B2', 'C2', 'D2'],
+    ['A3', 'B3', 'C3', 'D3'],
+    ['A4', 'B4', 'C4', 'D4'],
+  ];
+  
   const hotTableComponentRef = useRef(null);
 
-  let buttonClickCallback;
-
-  useEffect(() => {
-    const handsontableInstance = hotTableComponentRef.current.hotInstance;
-
-    const columnSortingPluginInstance = handsontableInstance.getPlugin('columnSorting');
-    
-    buttonClickCallback = () => {
-      columnSortingPluginInstance.sort({
+  const sort_asc = () => {
+  
+   // get the `ColumnSorting` plugin instance
+  const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('ColumnSorting');
+  
+    columnSortingPluginInstance.sort(
+      {
         column: 0,
         sortOrder: 'asc',
-      });
-    };
-  });
+      },
+    );
+  };
+  
+    const sort_desc = () => {
+    
+    // get the `ColumnSorting` plugin instance
+  	const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('ColumnSorting');
+    
+    columnSortingPluginInstance.sort(
+      {
+        column: 0,
+        sortOrder: 'desc',
+      },
+    );
+  };
 
   return (
     <>
       <HotTable
         ref={hotTableComponentRef}
-        data={[
-          { car: 'Tesla', price: 32750, productionDate: '06/29/2022' },
-          { car: 'Honda', price: 71788, productionDate: '04/02/2021' },
-          { car: 'Mazda', price: 31426, productionDate: '09/11/2020' },
-        ]}
+        data={data}
         colHeaders={true}
-        rowHeaders={true}
         columnSorting={true}
         height="auto"
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button id="export-file" onClick={(...args) => buttonClickCallback(...args)}>Sort rows by column 1, in ascending order</button>
+        <br></br>
+        <button onClick={sort_asc}>Sort column 1, in ascending order</button>
+        <button onClick={sort_desc}>Sort column 1, in descending order</button>
       </div>
     </>
   );
-};
+}
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
+ReactDOM.render(<MyHandsontableComponent />, document.getElementById('example6'));
 /* end:skip-in-preview */
 ```
 
@@ -1436,15 +1463,31 @@ Read our [blog article](https://handsontable.com/blog/articles/2018/11/feature-s
 
 ### More examples
 
-- [Enable rows sorting](https://examples.handsontable.com/demo/sorting.html)
+::: only-for javascript
+
 - [Disable sorting for individual columns](https://jsfiddle.net/handsoncode/gsvy8m0f)
 - [Sort remote data]()
 - [Make the sorted state persistent]()
-- [Sort different kinds of data in a single column (kg vs dkg)]()
+- [Sort different units in the same column](https://jsfiddle.net/aszymanski/4pzrdtjw/)
 - [Sort the child rows of a parent row]()
 - [Ignore HTML while sorting]()
 - [Change the background color of the sorted column headers]()
-- [Get the current sort parameters]()
+- [Get the current sort configuration](https://jsfiddle.net/aszymanski/mbzh3sLk/)
+
+:::
+
+::: only-for react
+
+- [Disable sorting for individual columns](https://jsfiddle.net/kirszenbaum/r0pbLzgs/9)
+- [Sort remote data]()
+- [Make the sorted state persistent]()
+- [Sort different units in the same column](https://jsfiddle.net/aszymanski/nxewLkhz)
+- [Sort the child rows of a parent row]()
+- [Ignore HTML while sorting]()
+- [Change the background color of the sorted column headers]()
+- [Get the current sort configuration](https://jsfiddle.net/aszymanski/2g5ary7n/)
+
+:::
 
 ### API reference
 
