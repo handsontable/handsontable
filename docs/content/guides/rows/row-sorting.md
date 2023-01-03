@@ -25,7 +25,7 @@ searchCategory: Guides
 
 [[toc]]
 
-In this demo, click on a column label (A, B, C) to sort the rows in ascending, descending, or the original order.
+Try it out: click on a column label (A, B, C) to sort the rows in ascending, descending, or the original order.
 
 ::: only-for javascript
 
@@ -36,7 +36,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example1');
 
-const myHandsontableInstance = new Handsontable(container, {
+const yourHandsontableInstance = new Handsontable(container, {
   data: [
     { car: 'Tesla', price: 32750, productionDate: '06/29/2022' },
     { car: 'Honda', price: 71788, productionDate: '04/02/2021' },
@@ -190,10 +190,10 @@ To enable rows sorting, use the [`columnSorting`](@/api/options.md#columnsorting
 
     // exclude rows 1 and 2 from sorting
     afterColumnSort() {
-      myHandsontableInstance.rowIndexMapper.moveIndexes(
+      yourHandsontableInstance.rowIndexMapper.moveIndexes(
         [
-          myHandsontableInstance.toVisualRow(0),
-          myHandsontableInstance.toVisualRow(1)
+          yourHandsontableInstance.toVisualRow(0),
+          yourHandsontableInstance.toVisualRow(1)
         ], 0);
     },
   };
@@ -445,7 +445,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example2');
 
-const myHandsontableInstance = new Handsontable(container, {
+const yourHandsontableInstance = new Handsontable(container, {
   data: [
     { car: 'Tesla', price: 32750, productionDate: '06/29/2022' },
     { car: 'Honda', price: 71788, productionDate: '04/02/2021' },
@@ -592,10 +592,10 @@ To let the end user apply multiple levels of sort criteria, use the [`multiColum
 
     // exclude rows 1 and 2 from sorting
     afterColumnSort() {
-      myHandsontableInstance.rowIndexMapper.moveIndexes(
+      yourHandsontableInstance.rowIndexMapper.moveIndexes(
         [
-          myHandsontableInstance.toVisualRow(0),
-          myHandsontableInstance.toVisualRow(1)
+          yourHandsontableInstance.toVisualRow(0),
+          yourHandsontableInstance.toVisualRow(1)
         ], 0);
     },
   };
@@ -681,7 +681,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example3');
 
-const myHandsontableInstance = new Handsontable(container, {
+const yourHandsontableInstance = new Handsontable(container, {
   data: [
     { car: 'Tesla', price: 33750, productionDate: '06/29/2022' },
     { car: 'Honda', price: 72788, productionDate: '04/02/2021' },
@@ -834,7 +834,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example4');
 
-const myHandsontableInstance = new Handsontable(container, {
+const yourHandsontableInstance = new Handsontable(container, {
   data: [
     { car: 'Tesla', price: 32750, productionDate: '06/29/2022' },
     { car: 'Honda', price: 71788, productionDate: '04/02/2021' },
@@ -945,25 +945,165 @@ ReactDOM.render(<MyHandsontableComponent />, document.getElementById('example4')
 
 ## Add custom sort icons
 
-<!--
-https://github.com/handsontable/handsontable/blob/develop/handsontable/src/css/handsontable.scss#L101-L148
-
-https://jsfiddle.net/kirszenbaum/bmy2v60t/39/
--->
-
-To replace the default sort icons, overwrite the `.columnSorting` classes of Handsontable's CSS.
+To replace the default sort icons, overwrite the `.columnSorting.ascending::before`
+and `.columnSorting.descending::before` pseudo-elements of Handsontable's CSS.
 
 ```css
 /* the icon for ascending order */
-.handsontable span.colHeader.columnSorting.ascending::before {
- content: '✋';
+.handsontable span.colHeader.columnSorting.ascending::before
+
+/* the icon for descending order */
+.handsontable span.colHeader.columnSorting.descending::before
+```
+
+This demo replaces the default sort icons with the 👆 and 👇 emojis.
+
+::: only-for javascript
+
+::: example #example5 --css 1 --js 2
+
+```css
+/* the icon for ascending order */
+.your-handsontable-instance span.colHeader.columnSorting.ascending::before {
+  content: '👆';
+  background-image: none !important;
 }
 
 /* the icon for descending order */
-.handsontable span.colHeader.columnSorting.descending::before {
- content: '✋';
+.your-handsontable-instance span.colHeader.columnSorting.descending::before {
+  content: '👇';
+  background-image: none !important;
 }
 ```
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#example5');
+
+const yourHandsontableInstance = new Handsontable(container, {
+  data: [
+    { car: 'Tesla', price: 32750, productionDate: '06/29/2022' },
+    { car: 'Honda', price: 71788, productionDate: '04/02/2021' },
+    { car: 'Mazda', price: 31426, productionDate: '09/11/2020' },
+  ],
+  columns: [
+    {
+      type: 'text',
+      data: 'car',
+    },
+    {
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US'
+      },
+    },
+    {
+      type: 'date',
+      data: 'productionDate',
+      dateFormat: 'MM/DD/YYYY',
+      correctFormat: true,
+      defaultDate: '01/01/1900'
+    }
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  width: 'auto',
+  className: 'your-handsontable-instance',
+  columnSorting: {
+    initialConfig: {
+      column: 1,
+      sortOrder: 'desc',
+    },
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react --css 1 --js 2
+```css
+/* the icon for ascending order */
+.your-handsontable-instance span.colHeader.columnSorting.ascending::before {
+  content: '👆';
+  background-image: none !important;
+}
+
+/* the icon for descending order */
+.your-handsontable-instance span.colHeader.columnSorting.descending::before {
+  content: '👇';
+  background-image: none !important;
+}
+```
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const MyHandsontableComponent = () => {
+  return (
+    <HotTable
+      data={[
+        { car: 'Tesla', price: 32750, productionDate: '06/29/2022' },
+        { car: 'Honda', price: 71788, productionDate: '04/02/2021' },
+        { car: 'Mazda', price: 31426, productionDate: '09/11/2020' },
+      ]}
+      columns={[
+        {
+          type: 'text',
+          data: 'car',
+        },
+        {
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US'
+          },
+        },
+        {
+          type: 'date',
+          data: 'productionDate',
+          dateFormat: 'MM/DD/YYYY',
+          correctFormat: true,
+          defaultDate: '01/01/1900'
+        }
+      ]}
+      columnSorting={{
+        // at initialization, sort rows by column 1, in descending order
+        initialConfig: {
+          column: 1,
+          sortOrder: 'desc',
+        },
+      }}
+      className="your-handsontable-instance"
+      colHeaders={true}
+      rowHeaders={true}
+      height="auto"
+      width="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<MyHandsontableComponent />, document.getElementById('example5'));
+/* end:skip-in-preview */
+```
+:::
+
+:::
 
 ## Add a custom comparator
 
@@ -1185,9 +1325,9 @@ Try it out:
 
 ::: only-for javascript
 
-::: example #example5 --html 1 --js 2
+::: example #example6 --html 1 --js 2
 ```html
-<div id="example5"></div>
+<div id="example6"></div>
 
 <div class="controls">
   <button id="sort">Sort rows by column 1, in ascending order</button>
@@ -1198,7 +1338,7 @@ Try it out:
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example5');
+const container = document.querySelector('#example6');
 const button = document.querySelector('#sort');
 const handsontableInstance = new Handsontable(container, {
   data: [
@@ -1230,7 +1370,7 @@ button.addEventListener('click', () => {
 
 ::: only-for react
 
-::: example #example5 :react
+::: example #example6 :react
 
 ```jsx
 import { useRef, useEffect } from 'react';
@@ -1282,7 +1422,7 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
 /* end:skip-in-preview */
 ```
 
