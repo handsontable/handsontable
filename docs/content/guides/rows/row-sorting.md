@@ -1308,9 +1308,9 @@ Read our [blog article](https://handsontable.com/blog/articles/2018/11/feature-s
 
 ### API reference
 
-| Plugins                                                                                     | Options                                                                                                          | Handsontable's hooks                                                                                         |
-| ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| [`ColumnSorting`](@/api/columnSorting.md)<br>[`MultiColumnSorting`](@/api/columnSorting.md) | [`columnSorting`](@/api/options.md#columnsorting)<br>[`multiColumnSorting`](@/api/options.md#multicolumnsorting) | [`afterColumnSort`](@/api/hooks.md#aftercolumnsort)<br>[`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) |
+| Plugins                                                                                          | Options                                                                                                               | Handsontable's hooks                                                                                         |
+| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| [`ColumnSorting`](@/api/columnSorting.md)<br>[`MultiColumnSorting`](@/api/multiColumnSorting.md) | [`columnSorting`](@/api/options.md#columnsorting)<br>[`multiColumnSorting`](@/api/options.md#multicolumnsorting) | [`afterColumnSort`](@/api/hooks.md#aftercolumnsort)<br>[`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) |
 
 ## Troubleshooting
 
@@ -1319,5 +1319,5 @@ Didn't find what you need? Try this:
 - View [GitHub issues](https://github.com/handsontable/handsontable/labels/Column%20sorting) related to rows sorting
 - Report a [new GitHub issue](https://github.com/handsontable/handsontable/issues/new/choose)
 - Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/handsontable)
-- Ask a question on [Handsontable's forum](https://forum.handsontable.com/)
+- Ask a question on [Handsontable's forum](https://forum.handsontable.com/c/getting-help/questions)
 - Contact Handsontable's [technical support](https://handsontable.com/contact?category=technical_support)
