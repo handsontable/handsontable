@@ -39,50 +39,54 @@ const container = document.querySelector('#example1');
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
     {
-      company: 'Tagcat',
-      name: 'Classic Vest',
+      brand: 'Tagcat',
+      model: 'Classic Vest',
       price: 327,
       sellDate: '11/10/2020',
-      orderID: '01-2331',
+      sellTime: '01:23',
       inStock: true,
     },
     {
-      company: 'Zoomzone',
-      name: 'Cycling Cap',
+      brand: 'Zoomzone',
+      model: 'Cycling Cap',
       price: 717,
       sellDate: '03/05/2020',
-      orderID: '88-2768',
+      sellTime: '11:27',
       inStock: true,
     },
     {
-      company: 'Meeveo',
-      name: 'Full-Finger Gloves',
+      brand: 'Meeveo',
+      model: 'Full-Finger Gloves',
       price: 314,
       sellDate: '27/03/2020',
-      orderID: '51-6775',
+      sellTime: '03:17',
       inStock: true,
     },
     {
-      company: 'Buzzdog',
-      name: 'HL Mountain Frame',
+      brand: 'Buzzdog',
+      model: 'Mountain Frame',
       price: 268,
       sellDate: '29/08/2020',
-      orderID: '44-4028',
+      sellTime: '08:01',
       inStock: true,
     },
     {
-      company: 'Katz',
-      name: 'Half-Finger Gloves',
+      brand: 'Katz',
+      model: 'Half-Finger Gloves',
       price: 204,
       sellDate: '02/10/2020',
-      orderID: '08-2758',
+      sellTime: '12:23',
       inStock: true,
     },
   ],
   columns: [
     {
       type: 'text',
-      data: 'company',
+      data: 'brand',
+    },
+    {
+      type: 'text',
+      data: 'model',
     },
     {
       type: 'numeric',
@@ -93,16 +97,13 @@ const yourHandsontableInstance = new Handsontable(container, {
       },
     },
     {
-      type: 'text',
-      data: 'name',
-    },
-    {
       type: 'date',
       data: 'sellDate',
     },
     {
-      type: 'text',
-      data: 'orderID',
+      type: 'time',
+      data: 'sellTime',
+      correctFormat: true,
     },
     {
       type: 'checkbox',
@@ -110,12 +111,12 @@ const yourHandsontableInstance = new Handsontable(container, {
     },
   ],
   colHeaders: [
-    'Company',
+    'Brand',
+    'Model',
     'Price',
-    'Name',
-    'Sell date',
-    'Order ID',
-    'Stock',
+    'Date',
+    'Time',
+    'In stock',
   ],
   rowHeaders: true,
   height: 'auto',
@@ -149,50 +150,54 @@ export const YourHandsontableComponent = () => {
     <HotTable
       data={[
       {
-        company: 'Tagcat',
-        name: 'Classic Vest',
+        brand: 'Tagcat',
+        model: 'Classic Vest',
         price: 327,
         sellDate: '11/10/2020',
-        orderID: '01-2331',
+        sellTime: '01-2331',
         inStock: true,
       },
       {
-        company: 'Zoomzone',
-        name: 'Cycling Cap',
+        brand: 'Zoomzone',
+        model: 'Cycling Cap',
         price: 717,
         sellDate: '03/05/2020',
-        orderID: '88-2768',
+        sellTime: '88-2768',
         inStock: true,
       },
       {
-        company: 'Meeveo',
-        name: 'Full-Finger Gloves',
+        brand: 'Meeveo',
+        model: 'Full-Finger Gloves',
         price: 314,
         sellDate: '27/03/2020',
-        orderID: '51-6775',
+        sellTime: '51-6775',
         inStock: true,
       },
       {
-        company: 'Buzzdog',
-        name: 'HL Mountain Frame',
+        brand: 'Buzzdog',
+        model: 'Mountain Frame',
         price: 268,
         sellDate: '29/08/2020',
-        orderID: '44-4028',
+        sellTime: '44-4028',
         inStock: true,
       },
       {
-        company: 'Katz',
-        name: 'Half-Finger Gloves',
+        brand: 'Katz',
+        model: 'Half-Finger Gloves',
         price: 204,
         sellDate: '02/10/2020',
-        orderID: '08-2758',
+        sellTime: '08-2758',
         inStock: true,
       },
     ]}
       columns={[
         {
           type: 'text',
-          data: 'company',
+          data: 'brand',
+        },
+        {
+          type: 'text',
+          data: 'model',
         },
         {
           type: 'numeric',
@@ -203,16 +208,12 @@ export const YourHandsontableComponent = () => {
           },
         },
         {
-          type: 'text',
-          data: 'name',
-        },
-        {
           type: 'date',
           data: 'sellDate',
         },
         {
           type: 'text',
-          data: 'orderID',
+          data: 'sellTime',
         },
         {
           type: 'checkbox',
@@ -220,12 +221,12 @@ export const YourHandsontableComponent = () => {
         },
       ]}
       colHeaders={[
-        'Company',
+        'Brand',
+        'Model',
         'Price',
-        'Name',
-        'Sell date',
-        'Order ID',
-        'Stock',
+        'Date',
+        'Time',
+        'In stock',
       ]}
       columnSorting={{
         // at initialization, sort rows by column 1, in descending order
@@ -540,7 +541,7 @@ const configurationOptions = {
 
 :::
 
-This demo defines a different [`type`](@/api/options.md#type) for each column, and sets a few additional options for formatting numbers and dates.
+This demo sets a different [`type`](@/api/options.md#type) for each column, and configures a few additional options for formatting numbers and dates.
 
 ::: only-for javascript
 
@@ -554,43 +555,43 @@ const container = document.querySelector('#example2');
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
     {
-      company: 'Tagcat',
-      name: 'Classic Vest',
+      brand: 'Tagcat',
+      model: 'Classic Vest',
       price: 327,
       sellDate: '11/10/2020',
-      orderID: '01-2331',
+      sellTime: '01:23',
       inStock: true,
     },
     {
-      company: 'Zoomzone',
-      name: 'Cycling Cap',
+      brand: 'Zoomzone',
+      model: 'Cycling Cap',
       price: 717,
       sellDate: '03/05/2020',
-      orderID: '88-2768',
+      sellTime: '11:27',
       inStock: true,
     },
     {
-      company: 'Meeveo',
-      name: 'Full-Finger Gloves',
+      brand: 'Meeveo',
+      model: 'Full-Finger Gloves',
       price: 314,
       sellDate: '27/03/2020',
-      orderID: '51-6775',
+      sellTime: '03:17',
       inStock: true,
     },
     {
-      company: 'Buzzdog',
-      name: 'HL Mountain Frame',
+      brand: 'Buzzdog',
+      model: 'Mountain Frame',
       price: 268,
       sellDate: '29/08/2020',
-      orderID: '44-4028',
+      sellTime: '08:01',
       inStock: true,
     },
     {
-      company: 'Katz',
-      name: 'Half-Finger Gloves',
+      brand: 'Katz',
+      model: 'Half-Finger Gloves',
       price: 204,
       sellDate: '02/10/2020',
-      orderID: '08-2758',
+      sellTime: '12:23',
       inStock: true,
     },
   ],
@@ -598,10 +599,15 @@ const yourHandsontableInstance = new Handsontable(container, {
     {
       // set the data type of column 1
       type: 'text', // 'text' is the default type, so you can omit it
-      data: 'company',
+      data: 'brand',
     },
     {
       // set the data type of column 2
+      type: 'text',
+      data: 'model',
+    },
+    {
+      // set the data type of column 3
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -610,19 +616,14 @@ const yourHandsontableInstance = new Handsontable(container, {
       },
     },
     {
-      // set the data type of column 3
-      type: 'text',
-      data: 'name',
-    },
-    {
       // set the data type of column 4
       type: 'date',
       data: 'sellDate',
     },
     {
       // set the data type of column 5
-      type: 'text',
-      data: 'orderID',
+      type: 'time',
+      data: 'sellTime',
     },
     {
       // set the data type of column 6
@@ -631,12 +632,12 @@ const yourHandsontableInstance = new Handsontable(container, {
     },
   ],
   colHeaders: [
-    'Company',
+    'Brand',
+    'Model',
     'Price',
-    'Name',
-    'Sell date',
-    'Order ID',
-    'Stock',
+    'Date',
+    'Time',
+    'In stock',
   ],
   rowHeaders: true,
   height: 'auto',
@@ -665,43 +666,43 @@ export const YourHandsontableComponent = () => {
     <HotTable
       data={[
       {
-        company: 'Tagcat',
-        name: 'Classic Vest',
+        brand: 'Tagcat',
+        model: 'Classic Vest',
         price: 327,
         sellDate: '11/10/2020',
-        orderID: '01-2331',
+        sellTime: '01-2331',
         inStock: true,
       },
       {
-        company: 'Zoomzone',
-        name: 'Cycling Cap',
+        brand: 'Zoomzone',
+        model: 'Cycling Cap',
         price: 717,
         sellDate: '03/05/2020',
-        orderID: '88-2768',
+        sellTime: '88-2768',
         inStock: true,
       },
       {
-        company: 'Meeveo',
-        name: 'Full-Finger Gloves',
+        brand: 'Meeveo',
+        model: 'Full-Finger Gloves',
         price: 314,
         sellDate: '27/03/2020',
-        orderID: '51-6775',
+        sellTime: '51-6775',
         inStock: true,
       },
       {
-        company: 'Buzzdog',
-        name: 'HL Mountain Frame',
+        brand: 'Buzzdog',
+        model: 'Mountain Frame',
         price: 268,
         sellDate: '29/08/2020',
-        orderID: '44-4028',
+        sellTime: '44-4028',
         inStock: true,
       },
       {
-        company: 'Katz',
-        name: 'Half-Finger Gloves',
+        brand: 'Katz',
+        model: 'Half-Finger Gloves',
         price: 204,
         sellDate: '02/10/2020',
-        orderID: '08-2758',
+        sellTime: '08-2758',
         inStock: true,
       },
     ]}
@@ -709,21 +710,21 @@ export const YourHandsontableComponent = () => {
         {
           // set the data type of column 1
           type: 'text', // 'text' is the default type, so you can omit it
-          data: 'company',
+          data: 'brand',
         },
         {
           // set the data type of column 2
+          type: 'text',
+          data: 'model',
+        },
+        {
+          // set the data type of column 3
           type: 'numeric',
           data: 'price',
           numericFormat: {
             pattern: '$ 0,0.00',
             culture: 'en-US'
           },
-        },
-        {
-          // set the data type of column 3
-          type: 'text',
-          data: 'name',
         },
         {
           // set the data type of column 4
@@ -733,7 +734,7 @@ export const YourHandsontableComponent = () => {
         {
           // set the data type of column 5
           type: 'text',
-          data: 'orderID',
+          data: 'sellTime',
         },
         {
           // set the data type of column 6
@@ -742,12 +743,12 @@ export const YourHandsontableComponent = () => {
         },
       ]}
       colHeaders={[
-        'Company',
+        'Brand',
+        'Model',
         'Price',
-        'Name',
-        'Sell date',
-        'Order ID',
-        'Stock',
+        'Date',
+        'Time',
+        'In stock',
       ]}
       columnSorting={true}
       rowHeaders={true}
@@ -902,50 +903,54 @@ const container = document.querySelector('#example3');
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
     {
-      company: 'Tagcat',
-      name: 'Classic Vest',
+      brand: 'Tagcat',
+      model: 'Classic Vest',
       price: 327,
       sellDate: '11/10/2020',
-      orderID: '01-2331',
+      sellTime: '01:23',
       inStock: true,
     },
     {
-      company: 'Zoomzone',
-      name: 'Cycling Cap',
+      brand: 'Zoomzone',
+      model: 'Cycling Cap',
       price: 717,
       sellDate: '03/05/2020',
-      orderID: '88-2768',
+      sellTime: '11:27',
       inStock: true,
     },
     {
-      company: 'Meeveo',
-      name: 'Full-Finger Gloves',
+      brand: 'Meeveo',
+      model: 'Full-Finger Gloves',
       price: 314,
       sellDate: '27/03/2020',
-      orderID: '51-6775',
+      sellTime: '03:17',
       inStock: true,
     },
     {
-      company: 'Buzzdog',
-      name: 'HL Mountain Frame',
+      brand: 'Buzzdog',
+      model: 'Mountain Frame',
       price: 268,
       sellDate: '29/08/2020',
-      orderID: '44-4028',
+      sellTime: '08:01',
       inStock: true,
     },
     {
-      company: 'Katz',
-      name: 'Half-Finger Gloves',
+      brand: 'Katz',
+      model: 'Half-Finger Gloves',
       price: 204,
       sellDate: '02/10/2020',
-      orderID: '08-2758',
+      sellTime: '12:23',
       inStock: true,
     },
   ],
   columns: [
     {
       type: 'text',
-      data: 'company',
+      data: 'brand',
+    },
+    {
+      type: 'text',
+      data: 'model',
     },
     {
       type: 'numeric',
@@ -956,16 +961,12 @@ const yourHandsontableInstance = new Handsontable(container, {
       },
     },
     {
-      type: 'text',
-      data: 'name',
-    },
-    {
       type: 'date',
       data: 'sellDate',
     },
     {
-      type: 'text',
-      data: 'orderID',
+      type: 'time',
+      data: 'sellTime',
     },
     {
       type: 'checkbox',
@@ -973,12 +974,12 @@ const yourHandsontableInstance = new Handsontable(container, {
     },
   ],
   colHeaders: [
-    'Company',
+    'Brand',
+    'Model',
     'Price',
-    'Name',
-    'Sell date',
-    'Order ID',
-    'Stock',
+    'Date',
+    'Time',
+    'In stock',
   ],
   rowHeaders: true,
   height: 'auto',
@@ -1008,50 +1009,54 @@ export const YourHandsontableComponent = () => {
     <HotTable
       data={[
       {
-        company: 'Tagcat',
-        name: 'Classic Vest',
+        brand: 'Tagcat',
+        model: 'Classic Vest',
         price: 327,
         sellDate: '11/10/2020',
-        orderID: '01-2331',
+        sellTime: '01-2331',
         inStock: true,
       },
       {
-        company: 'Zoomzone',
-        name: 'Cycling Cap',
+        brand: 'Zoomzone',
+        model: 'Cycling Cap',
         price: 717,
         sellDate: '03/05/2020',
-        orderID: '88-2768',
+        sellTime: '88-2768',
         inStock: true,
       },
       {
-        company: 'Meeveo',
-        name: 'Full-Finger Gloves',
+        brand: 'Meeveo',
+        model: 'Full-Finger Gloves',
         price: 314,
         sellDate: '27/03/2020',
-        orderID: '51-6775',
+        sellTime: '51-6775',
         inStock: true,
       },
       {
-        company: 'Buzzdog',
-        name: 'HL Mountain Frame',
+        brand: 'Buzzdog',
+        model: 'Mountain Frame',
         price: 268,
         sellDate: '29/08/2020',
-        orderID: '44-4028',
+        sellTime: '44-4028',
         inStock: true,
       },
       {
-        company: 'Katz',
-        name: 'Half-Finger Gloves',
+        brand: 'Katz',
+        model: 'Half-Finger Gloves',
         price: 204,
         sellDate: '02/10/2020',
-        orderID: '08-2758',
+        sellTime: '08-2758',
         inStock: true,
       },
     ]}
       columns={[
         {
           type: 'text',
-          data: 'company',
+          data: 'brand',
+        },
+        {
+          type: 'text',
+          data: 'model',
         },
         {
           type: 'numeric',
@@ -1062,16 +1067,12 @@ export const YourHandsontableComponent = () => {
           },
         },
         {
-          type: 'text',
-          data: 'name',
-        },
-        {
           type: 'date',
           data: 'sellDate',
         },
         {
           type: 'text',
-          data: 'orderID',
+          data: 'sellTime',
         },
         {
           type: 'checkbox',
@@ -1079,12 +1080,12 @@ export const YourHandsontableComponent = () => {
         },
       ]}
       colHeaders={[
-        'Company',
+        'Brand',
+        'Model',
         'Price',
-        'Name',
-        'Sell date',
-        'Order ID',
-        'Stock',
+        'Date',
+        'Time',
+        'In stock',
       ]}
       // enable sorting by multiple columns (for the entire grid)
       multiColumnSorting={true}
@@ -1153,50 +1154,54 @@ const container = document.querySelector('#example4');
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
     {
-      company: 'Tagcat',
-      name: 'Classic Vest',
+      brand: 'Tagcat',
+      model: 'Classic Vest',
       price: 327,
       sellDate: '11/10/2020',
-      orderID: '01-2331',
+      sellTime: '01:23',
       inStock: true,
     },
     {
-      company: 'Zoomzone',
-      name: 'Cycling Cap',
+      brand: 'Zoomzone',
+      model: 'Cycling Cap',
       price: 717,
       sellDate: '03/05/2020',
-      orderID: '88-2768',
+      sellTime: '11:27',
       inStock: true,
     },
     {
-      company: 'Meeveo',
-      name: 'Full-Finger Gloves',
+      brand: 'Meeveo',
+      model: 'Full-Finger Gloves',
       price: 314,
       sellDate: '27/03/2020',
-      orderID: '51-6775',
+      sellTime: '03:17',
       inStock: true,
     },
     {
-      company: 'Buzzdog',
-      name: 'HL Mountain Frame',
+      brand: 'Buzzdog',
+      model: 'Mountain Frame',
       price: 268,
       sellDate: '29/08/2020',
-      orderID: '44-4028',
+      sellTime: '08:01',
       inStock: true,
     },
     {
-      company: 'Katz',
-      name: 'Half-Finger Gloves',
+      brand: 'Katz',
+      model: 'Half-Finger Gloves',
       price: 204,
       sellDate: '02/10/2020',
-      orderID: '08-2758',
+      sellTime: '12:23',
       inStock: true,
     },
   ],
   columns: [
     {
       type: 'text',
-      data: 'company',
+      data: 'brand',
+    },
+    {
+      type: 'text',
+      data: 'model',
     },
     {
       type: 'numeric',
@@ -1207,16 +1212,12 @@ const yourHandsontableInstance = new Handsontable(container, {
       },
     },
     {
-      type: 'text',
-      data: 'name',
-    },
-    {
       type: 'date',
       data: 'sellDate',
     },
     {
-      type: 'text',
-      data: 'orderID',
+      type: 'time',
+      data: 'sellTime',
     },
     {
       type: 'checkbox',
@@ -1224,12 +1225,12 @@ const yourHandsontableInstance = new Handsontable(container, {
     },
   ],
   colHeaders: [
-    'Company',
+    'Brand',
+    'Model',
     'Price',
-    'Name',
-    'Sell date',
-    'Order ID',
-    'Stock',
+    'Date',
+    'Time',
+    'In stock',
   ],
   rowHeaders: true,
   height: 'auto',
@@ -1264,50 +1265,54 @@ export const YourHandsontableComponent = () => {
     <HotTable
       data={[
       {
-        company: 'Tagcat',
-        name: 'Classic Vest',
+        brand: 'Tagcat',
+        model: 'Classic Vest',
         price: 327,
         sellDate: '11/10/2020',
-        orderID: '01-2331',
+        sellTime: '01-2331',
         inStock: true,
       },
       {
-        company: 'Zoomzone',
-        name: 'Cycling Cap',
+        brand: 'Zoomzone',
+        model: 'Cycling Cap',
         price: 717,
         sellDate: '03/05/2020',
-        orderID: '88-2768',
+        sellTime: '88-2768',
         inStock: true,
       },
       {
-        company: 'Meeveo',
-        name: 'Full-Finger Gloves',
+        brand: 'Meeveo',
+        model: 'Full-Finger Gloves',
         price: 314,
         sellDate: '27/03/2020',
-        orderID: '51-6775',
+        sellTime: '51-6775',
         inStock: true,
       },
       {
-        company: 'Buzzdog',
-        name: 'HL Mountain Frame',
+        brand: 'Buzzdog',
+        model: 'Mountain Frame',
         price: 268,
         sellDate: '29/08/2020',
-        orderID: '44-4028',
+        sellTime: '44-4028',
         inStock: true,
       },
       {
-        company: 'Katz',
-        name: 'Half-Finger Gloves',
+        brand: 'Katz',
+        model: 'Half-Finger Gloves',
         price: 204,
         sellDate: '02/10/2020',
-        orderID: '08-2758',
+        sellTime: '08-2758',
         inStock: true,
       },
     ]}
       columns={[
         {
           type: 'text',
-          data: 'company',
+          data: 'brand',
+        },
+        {
+          type: 'text',
+          data: 'model',
         },
         {
           type: 'numeric',
@@ -1318,16 +1323,12 @@ export const YourHandsontableComponent = () => {
           },
         },
         {
-          type: 'text',
-          data: 'name',
-        },
-        {
           type: 'date',
           data: 'sellDate',
         },
         {
           type: 'text',
-          data: 'orderID',
+          data: 'sellTime',
         },
         {
           type: 'checkbox',
@@ -1335,12 +1336,12 @@ export const YourHandsontableComponent = () => {
         },
       ]}
       colHeaders={[
-        'Company',
+        'Brand',
+        'Model',
         'Price',
-        'Name',
-        'Sell date',
-        'Order ID',
-        'Stock',
+        'Date',
+        'Time',
+        'In stock',
       ]}
       columnSorting={{
         // at initialization, sort rows by column 1, in ascending order
@@ -1406,50 +1407,54 @@ const container = document.querySelector('#example5');
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
     {
-      company: 'Tagcat',
-      name: 'Classic Vest',
+      brand: 'Tagcat',
+      model: 'Classic Vest',
       price: 327,
       sellDate: '11/10/2020',
-      orderID: '01-2331',
+      sellTime: '01:23',
       inStock: true,
     },
     {
-      company: 'Zoomzone',
-      name: 'Cycling Cap',
+      brand: 'Zoomzone',
+      model: 'Cycling Cap',
       price: 717,
       sellDate: '03/05/2020',
-      orderID: '88-2768',
+      sellTime: '11:27',
       inStock: true,
     },
     {
-      company: 'Meeveo',
-      name: 'Full-Finger Gloves',
+      brand: 'Meeveo',
+      model: 'Full-Finger Gloves',
       price: 314,
       sellDate: '27/03/2020',
-      orderID: '51-6775',
+      sellTime: '03:17',
       inStock: true,
     },
     {
-      company: 'Buzzdog',
-      name: 'HL Mountain Frame',
+      brand: 'Buzzdog',
+      model: 'Mountain Frame',
       price: 268,
       sellDate: '29/08/2020',
-      orderID: '44-4028',
+      sellTime: '08:01',
       inStock: true,
     },
     {
-      company: 'Katz',
-      name: 'Half-Finger Gloves',
+      brand: 'Katz',
+      model: 'Half-Finger Gloves',
       price: 204,
       sellDate: '02/10/2020',
-      orderID: '08-2758',
+      sellTime: '12:23',
       inStock: true,
     },
   ],
   columns: [
     {
       type: 'text',
-      data: 'company',
+      data: 'brand',
+    },
+    {
+      type: 'text',
+      data: 'model',
     },
     {
       type: 'numeric',
@@ -1460,16 +1465,12 @@ const yourHandsontableInstance = new Handsontable(container, {
       },
     },
     {
-      type: 'text',
-      data: 'name',
-    },
-    {
       type: 'date',
       data: 'sellDate',
     },
     {
-      type: 'text',
-      data: 'orderID',
+      type: 'time',
+      data: 'sellTime',
     },
     {
       type: 'checkbox',
@@ -1477,12 +1478,12 @@ const yourHandsontableInstance = new Handsontable(container, {
     },
   ],
   colHeaders: [
-    'Company',
+    'Brand',
+    'Model',
     'Price',
-    'Name',
-    'Sell date',
-    'Order ID',
-    'Stock',
+    'Date',
+    'Time',
+    'In stock',
   ],
   rowHeaders: true,
   height: 'auto',
@@ -1531,50 +1532,54 @@ export const YourHandsontableComponent = () => {
     <HotTable
       data={[
       {
-        company: 'Tagcat',
-        name: 'Classic Vest',
+        brand: 'Tagcat',
+        model: 'Classic Vest',
         price: 327,
         sellDate: '11/10/2020',
-        orderID: '01-2331',
+        sellTime: '01-2331',
         inStock: true,
       },
       {
-        company: 'Zoomzone',
-        name: 'Cycling Cap',
+        brand: 'Zoomzone',
+        model: 'Cycling Cap',
         price: 717,
         sellDate: '03/05/2020',
-        orderID: '88-2768',
+        sellTime: '88-2768',
         inStock: true,
       },
       {
-        company: 'Meeveo',
-        name: 'Full-Finger Gloves',
+        brand: 'Meeveo',
+        model: 'Full-Finger Gloves',
         price: 314,
         sellDate: '27/03/2020',
-        orderID: '51-6775',
+        sellTime: '51-6775',
         inStock: true,
       },
       {
-        company: 'Buzzdog',
-        name: 'HL Mountain Frame',
+        brand: 'Buzzdog',
+        model: 'Mountain Frame',
         price: 268,
         sellDate: '29/08/2020',
-        orderID: '44-4028',
+        sellTime: '44-4028',
         inStock: true,
       },
       {
-        company: 'Katz',
-        name: 'Half-Finger Gloves',
+        brand: 'Katz',
+        model: 'Half-Finger Gloves',
         price: 204,
         sellDate: '02/10/2020',
-        orderID: '08-2758',
+        sellTime: '08-2758',
         inStock: true,
       },
     ]}
       columns={[
         {
           type: 'text',
-          data: 'company',
+          data: 'brand',
+        },
+        {
+          type: 'text',
+          data: 'model',
         },
         {
           type: 'numeric',
@@ -1585,16 +1590,12 @@ export const YourHandsontableComponent = () => {
           },
         },
         {
-          type: 'text',
-          data: 'name',
-        },
-        {
           type: 'date',
           data: 'sellDate',
         },
         {
           type: 'text',
-          data: 'orderID',
+          data: 'sellTime',
         },
         {
           type: 'checkbox',
@@ -1602,12 +1603,12 @@ export const YourHandsontableComponent = () => {
         },
       ]}
       colHeaders={[
-        'Company',
+        'Brand',
+        'Model',
         'Price',
-        'Name',
-        'Sell date',
-        'Order ID',
-        'Stock',
+        'Date',
+        'Time',
+        'In stock',
       ]}
       columnSorting={{
         // at initialization, sort rows by column 1, in descending order
@@ -1810,15 +1811,10 @@ Mind that [`columnSorting.sort()`](@/api/columnSorting.md#sort) erases any previ
 const columnSortingPluginInstance = handsontableInstance.getPlugin('columnSorting');
 
 columnSortingPluginInstance.sort(
-  // sort column 1 in ascending order
+  // sort rows by the first column, in ascending order
   {
     column: 0,
     sortOrder: 'asc',
-  },
-  // sort column 2 in descending order
-  {
-    column: 1,
-    sortOrder: 'desc',
   },
 );
 ```
@@ -1834,15 +1830,10 @@ const hotTableComponentRef = useRef(null);
 const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
 
 columnSortingPluginInstance.sort(
-  // sort column 1 in ascending order
+  // sort rows by the first column, in ascending order
   {
     column: 0,
     sortOrder: 'asc',
-  },
-  // sort column 2 in descending order
-  {
-    column: 1,
-    sortOrder: 'desc',
   },
 );
 ```
@@ -1878,50 +1869,54 @@ const button_descending = document.querySelector('#sort_desc');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
-      company: 'Tagcat',
-      name: 'Classic Vest',
+      brand: 'Tagcat',
+      model: 'Classic Vest',
       price: 327,
       sellDate: '11/10/2020',
-      orderID: '01-2331',
+      sellTime: '01:23',
       inStock: true,
     },
     {
-      company: 'Zoomzone',
-      name: 'Cycling Cap',
+      brand: 'Zoomzone',
+      model: 'Cycling Cap',
       price: 717,
       sellDate: '03/05/2020',
-      orderID: '88-2768',
+      sellTime: '11:27',
       inStock: true,
     },
     {
-      company: 'Meeveo',
-      name: 'Full-Finger Gloves',
+      brand: 'Meeveo',
+      model: 'Full-Finger Gloves',
       price: 314,
       sellDate: '27/03/2020',
-      orderID: '51-6775',
+      sellTime: '03:17',
       inStock: true,
     },
     {
-      company: 'Buzzdog',
-      name: 'HL Mountain Frame',
+      brand: 'Buzzdog',
+      model: 'Mountain Frame',
       price: 268,
       sellDate: '29/08/2020',
-      orderID: '44-4028',
+      sellTime: '08:01',
       inStock: true,
     },
     {
-      company: 'Katz',
-      name: 'Half-Finger Gloves',
+      brand: 'Katz',
+      model: 'Half-Finger Gloves',
       price: 204,
       sellDate: '02/10/2020',
-      orderID: '08-2758',
+      sellTime: '12:23',
       inStock: true,
     },
   ],
   columns: [
     {
       type: 'text',
-      data: 'company',
+      data: 'brand',
+    },
+    {
+      type: 'text',
+      data: 'model',
     },
     {
       type: 'numeric',
@@ -1932,16 +1927,12 @@ const handsontableInstance = new Handsontable(container, {
       },
     },
     {
-      type: 'text',
-      data: 'name',
-    },
-    {
       type: 'date',
       data: 'sellDate',
     },
     {
-      type: 'text',
-      data: 'orderID',
+      type: 'time',
+      data: 'sellTime',
     },
     {
       type: 'checkbox',
@@ -1949,12 +1940,12 @@ const handsontableInstance = new Handsontable(container, {
     },
   ],
   colHeaders: [
-    'Company',
+    'Brand',
+    'Model',
     'Price',
-    'Name',
-    'Sell date',
-    'Order ID',
-    'Stock',
+    'Date',
+    'Time',
+    'In stock',
   ],
   rowHeaders: true,
   columnSorting: true,
@@ -2030,50 +2021,54 @@ export const YourHandsontableComponent = () => {
         ref={hotTableComponentRef}
         data={[
         {
-          company: 'Tagcat',
-          name: 'Classic Vest',
+          brand: 'Tagcat',
+          model: 'Classic Vest',
           price: 327,
           sellDate: '11/10/2020',
-          orderID: '01-2331',
+          sellTime: '01-2331',
           inStock: true,
         },
         {
-          company: 'Zoomzone',
-          name: 'Cycling Cap',
+          brand: 'Zoomzone',
+          model: 'Cycling Cap',
           price: 717,
           sellDate: '03/05/2020',
-          orderID: '88-2768',
+          sellTime: '88-2768',
           inStock: true,
         },
         {
-          company: 'Meeveo',
-          name: 'Full-Finger Gloves',
+          brand: 'Meeveo',
+          model: 'Full-Finger Gloves',
           price: 314,
           sellDate: '27/03/2020',
-          orderID: '51-6775',
+          sellTime: '51-6775',
           inStock: true,
         },
         {
-          company: 'Buzzdog',
-          name: 'HL Mountain Frame',
+          brand: 'Buzzdog',
+          model: 'Mountain Frame',
           price: 268,
           sellDate: '29/08/2020',
-          orderID: '44-4028',
+          sellTime: '44-4028',
           inStock: true,
         },
         {
-          company: 'Katz',
-          name: 'Half-Finger Gloves',
+          brand: 'Katz',
+          model: 'Half-Finger Gloves',
           price: 204,
           sellDate: '02/10/2020',
-          orderID: '08-2758',
+          sellTime: '08-2758',
           inStock: true,
         },
       ]}
         columns={[
           {
             type: 'text',
-            data: 'company',
+            data: 'brand',
+          },
+          {
+            type: 'text',
+            data: 'model',
           },
           {
             type: 'numeric',
@@ -2084,16 +2079,12 @@ export const YourHandsontableComponent = () => {
             },
           },
           {
-            type: 'text',
-            data: 'name',
-          },
-          {
             type: 'date',
             data: 'sellDate',
           },
           {
             type: 'text',
-            data: 'orderID',
+            data: 'sellTime',
           },
           {
             type: 'checkbox',
@@ -2101,12 +2092,12 @@ export const YourHandsontableComponent = () => {
           },
         ]}
         colHeaders={[
-          'Company',
+          'Brand',
+          'Model',
           'Price',
-          'Name',
-          'Sell date',
-          'Order ID',
-          'Stock',
+          'Date',
+          'Time',
+          'In stock',
         ]}
         columnSorting={{
           // at initialization, sort rows by column 1, in descending order
