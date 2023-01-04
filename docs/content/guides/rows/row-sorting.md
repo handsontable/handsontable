@@ -2137,27 +2137,27 @@ Read our [blog article](https://handsontable.com/blog/articles/2018/11/feature-s
 
 ::: only-for javascript
 
-- [Disable sorting for individual columns](https://jsfiddle.net/handsoncode/gsvy8m0f)
+- [Disable sorting for individual columns](https://jsfiddle.net/kirszenbaum/Lzwcbn2o)
 - [Sort remote data]()
 - [Make the sorted state persistent]()
-- [Sort different units in the same column](https://jsfiddle.net/aszymanski/4pzrdtjw/)
+- [Sort different units in the same column](https://jsfiddle.net/aszymanski/4pzrdtjw)
 - [Sort the child rows of a parent row]()
 - [Ignore HTML while sorting]()
 - [Change the background color of the sorted column headers]()
-- [Get the current sort configuration](https://jsfiddle.net/aszymanski/mbzh3sLk/)
+- [Get the current sort configuration](https://jsfiddle.net/kirszenbaum/ezqcL3wu)
 
 :::
 
 ::: only-for react
 
-- [Disable sorting for individual columns](https://jsfiddle.net/kirszenbaum/r0pbLzgs/9)
+- [Disable sorting for individual columns](https://jsfiddle.net/kirszenbaum/r0pbLzgs)
 - [Sort remote data]()
 - [Make the sorted state persistent]()
 - [Sort different units in the same column](https://jsfiddle.net/aszymanski/nxewLkhz)
 - [Sort the child rows of a parent row]()
 - [Ignore HTML while sorting]()
 - [Change the background color of the sorted column headers]()
-- [Get the current sort configuration](https://jsfiddle.net/aszymanski/2g5ary7n/)
+- [Get the current sort configuration](https://jsfiddle.net/kirszenbaum/usbfnz01)
 
 :::
 
