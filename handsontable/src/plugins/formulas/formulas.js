@@ -178,6 +178,14 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
+    this.addHook('afterColumnMove', (movedColumns, finalIndex, dropIndex, movePossible, orderChanged) => {
+      if (movePossible === false || orderChanged === false) {
+        return;
+      }
+
+      this.engine.moveColumns(this.sheetId, movedColumns[0], movedColumns.length, dropIndex);
+    });
+
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', (action) => {
       // TODO: Move action isn't handled by HyperFormula.
@@ -426,17 +434,10 @@ export class Formulas extends BasePlugin {
    * @returns {boolean}
    */
   isFormulaCellType(row, column, sheet = this.sheetId) {
-    const physicalRow = this.hot.toPhysicalRow(row);
-    const physicalColumn = this.hot.toPhysicalColumn(column);
-
-    if (physicalRow === null || physicalColumn === null) {
-      return false;
-    }
-
     return this.engine.doesCellHaveFormula({
       sheet,
-      row: physicalRow,
-      col: physicalColumn
+      row,
+      col: column
     });
   }
 
@@ -537,8 +538,8 @@ export class Formulas extends BasePlugin {
    */
   syncChangeWithEngine(row, column, newValue) {
     const address = {
-      row: this.toPhysicalRowPosition(row),
-      col: this.toPhysicalColumnPosition(column),
+      row,
+      col: column,
       sheet: this.sheetId
     };
 
@@ -702,8 +703,8 @@ export class Formulas extends BasePlugin {
 
     // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `DataMap`.
     const address = {
-      row,
-      col: this.toPhysicalColumnPosition(column),
+      row: visualRow,
+      col: column,
       sheet: this.sheetId
     };
     const cellValue = this.engine.getCellValue(address);
@@ -759,9 +760,8 @@ export class Formulas extends BasePlugin {
     }
 
     const address = {
-      row,
-      // Workaround for inconsistencies in `src/dataSource.js`
-      col: this.toPhysicalColumnPosition(visualColumn),
+      row: visualRow,
+      col: visualColumn,
       sheet: this.sheetId
     };
 
@@ -790,8 +790,8 @@ export class Formulas extends BasePlugin {
         const physicalRow = this.hot.toPhysicalRow(row);
         const physicalColumn = this.hot.toPhysicalColumn(column);
         const address = {
-          row: physicalRow,
-          col: physicalColumn,
+          row,
+          col: column,
           sheet: this.sheetId,
         };
 
