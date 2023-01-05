@@ -230,7 +230,7 @@ class DataSource {
     if (this.hot.hasHook('modifySourceData')) {
       const valueHolder = createObjectPropListener(result);
 
-      this.hot.runHooks('modifySourceData', row, this.colToProp(column), valueHolder, 'get');
+      this.hot.runHooks('modifySourceData', row, column, valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         result = valueHolder.value;
