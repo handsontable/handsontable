@@ -78,11 +78,11 @@ The most popular features of Handsontable:
 
 #### Using a package manager
 
+Get Handsontable from [npm](https://www.npmjs.com/package/handsontable), [Yarn](https://yarnpkg.com/package/handsontable) or [NuGet](https://www.nuget.org/packages/Handsontable).
+
 ```bash
 npm install handsontable
 ```
-
-You can also use [Yarn](https://yarnpkg.com/package/handsontable) or [NuGet](https://www.nuget.org/packages/Handsontable).
 
 ```js
 import Handsontable from 'handsontable';
@@ -107,16 +107,14 @@ import 'handsontable/dist/handsontable.full.min.css';
 ### 3. Initialize your grid
 
 ```js
-const data = [
-  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-  ['2019', 10, 11, 12, 13],
-  ['2020', 20, 11, 14, 13],
-  ['2021', 30, 15, 12, 13]
-];
-
 const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
-  data: data,
+  data: [
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
+  ],
   rowHeaders: true,
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only

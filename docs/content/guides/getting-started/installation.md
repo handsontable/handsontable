@@ -135,17 +135,15 @@ In your HTML, add an empty `div`, which serves as a container for your Handsonta
 Now turn your container into a data grid with sample data.
 
 ```js
-const data = [
-  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-  ['2019', 10, 11, 12, 13],
-  ['2020', 20, 11, 14, 13],
-  ['2021', 30, 15, 12, 13]
-];
-
 const container = document.querySelector('#example');
 
 const hot = new Handsontable(container, {
-  data: data,
+  data: [
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
+  ],
   rowHeaders: true,
   colHeaders: true,
   height: 'auto',
@@ -234,7 +232,12 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 ```jsx
 <HotTable
-  data={data}
+  data={[
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
+  ]}
   rowHeaders={true}
   colHeaders={true}
   height="auto"
@@ -242,7 +245,7 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 />
 ```
 
-## Basic example
+## Preview the result
 
 ::: example #example :react
 
@@ -255,16 +258,15 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 export const ExampleComponent = () => {
-  const data = [
-    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-    ['2019', 10, 11, 12, 13],
-    ['2020', 20, 11, 14, 13],
-    ['2021', 30, 15, 12, 13]
-  ];
 
   return (
       <HotTable
-        data={data}
+        data={[
+          ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+          ['2019', 10, 11, 12, 13],
+          ['2020', 20, 11, 14, 13],
+          ['2021', 30, 15, 12, 13]
+        ]}
         rowHeaders={true}
         colHeaders={true}
         height="auto"

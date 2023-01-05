@@ -50,26 +50,27 @@ The most popular features of Handsontable for React:
 
 ### 1. Install Handsontable
 
+Get Handsontable from [npm](https://www.npmjs.com/package/@handsontable/react) or [Yarn](https://yarnpkg.com/package/@handsontable/react).
+
 ```bash
 npm install handsontable @handsontable/react
 ```
 
-### 2. Import Handsontable's CSS
+Import Handsontable's CSS:
 
 ```jsx
 import 'handsontable/dist/handsontable.full.min.css';
 ```
 
-### 3. Register Handsontable's modules
+### 2. Register Handsontable's modules
 
 ```jsx
-import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 ```
 
-### 4. Use the `HotTable` component
+### 3. Use the `HotTable` component
 
 The main Handsontable component is called `HotTable`.
 
@@ -80,14 +81,33 @@ import { HotTable } from '@handsontable/react';
 To set Handsontable's [configuration options](https://handsontable.com/docs/react-data-grid/configuration-options), use `HotTable`'s props. For example:
 
 ```jsx
-<HotTable
-  data={data}
-  rowHeaders={true}
-  colHeaders={true}
-  height="auto"
-  licenseKey="non-commercial-and-evaluation" // for non-commercial use only
-/>
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+registerAllModules();
+
+export const ExampleComponent = () => {
+
+  return (
+      <HotTable
+        // set `HotTable`'s props here
+        data={[
+          ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+          ['2019', 10, 11, 12, 13],
+          ['2020', 20, 11, 14, 13],
+          ['2021', 30, 15, 12, 13]
+        ]}
+        rowHeaders={true}
+        colHeaders={true}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation" // for non-commercial use only
+      />
+  );
+};
 ```
+
+
 
 ### [View live demo](https://handsontable.com/docs/react-data-grid/demo/)
 
