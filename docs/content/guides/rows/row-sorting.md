@@ -541,7 +541,7 @@ const configurationOptions = {
 
 :::
 
-This demo sets a different [`type`](@/api/options.md#type) for each column, and configures a few additional options for formatting numbers and dates.
+This demo uses a different [`type`](@/api/options.md#type) in each column.
 
 ::: only-for javascript
 
@@ -555,7 +555,6 @@ const container = document.querySelector('#example2');
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
     {
-      brand: 'Tagcat',
       model: 'Classic Vest',
       price: 327,
       sellDate: '11/10/2020',
@@ -563,7 +562,6 @@ const yourHandsontableInstance = new Handsontable(container, {
       inStock: true,
     },
     {
-      brand: 'Zoomzone',
       model: 'Cycling Cap',
       price: 717,
       sellDate: '03/05/2020',
@@ -571,7 +569,6 @@ const yourHandsontableInstance = new Handsontable(container, {
       inStock: true,
     },
     {
-      brand: 'Meeveo',
       model: 'Full-Finger Gloves',
       price: 314,
       sellDate: '27/03/2020',
@@ -579,7 +576,6 @@ const yourHandsontableInstance = new Handsontable(container, {
       inStock: true,
     },
     {
-      brand: 'Buzzdog',
       model: 'Mountain Frame',
       price: 268,
       sellDate: '29/08/2020',
@@ -587,7 +583,6 @@ const yourHandsontableInstance = new Handsontable(container, {
       inStock: true,
     },
     {
-      brand: 'Katz',
       model: 'Half-Finger Gloves',
       price: 204,
       sellDate: '02/10/2020',
@@ -599,15 +594,10 @@ const yourHandsontableInstance = new Handsontable(container, {
     {
       // set the data type of column 1
       type: 'text', // 'text' is the default type, so you can omit it
-      data: 'brand',
-    },
-    {
-      // set the data type of column 2
-      type: 'text',
       data: 'model',
     },
     {
-      // set the data type of column 3
+      // set the data type of column 2
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -616,23 +606,22 @@ const yourHandsontableInstance = new Handsontable(container, {
       },
     },
     {
-      // set the data type of column 4
+      // set the data type of column 3
       type: 'date',
       data: 'sellDate',
     },
     {
-      // set the data type of column 5
+      // set the data type of column 4
       type: 'time',
       data: 'sellTime',
     },
     {
-      // set the data type of column 6
+      // set the data type of column 5
       type: 'checkbox',
       data: 'inStock',
     },
   ],
   colHeaders: [
-    'Brand',
     'Model',
     'Price',
     'Date',
@@ -666,7 +655,6 @@ export const YourHandsontableComponent = () => {
     <HotTable
       data={[
       {
-        brand: 'Tagcat',
         model: 'Classic Vest',
         price: 327,
         sellDate: '11/10/2020',
@@ -674,7 +662,6 @@ export const YourHandsontableComponent = () => {
         inStock: true,
       },
       {
-        brand: 'Zoomzone',
         model: 'Cycling Cap',
         price: 717,
         sellDate: '03/05/2020',
@@ -682,7 +669,6 @@ export const YourHandsontableComponent = () => {
         inStock: true,
       },
       {
-        brand: 'Meeveo',
         model: 'Full-Finger Gloves',
         price: 314,
         sellDate: '27/03/2020',
@@ -690,7 +676,6 @@ export const YourHandsontableComponent = () => {
         inStock: true,
       },
       {
-        brand: 'Buzzdog',
         model: 'Mountain Frame',
         price: 268,
         sellDate: '29/08/2020',
@@ -698,7 +683,6 @@ export const YourHandsontableComponent = () => {
         inStock: true,
       },
       {
-        brand: 'Katz',
         model: 'Half-Finger Gloves',
         price: 204,
         sellDate: '02/10/2020',
@@ -710,15 +694,10 @@ export const YourHandsontableComponent = () => {
         {
           // set the data type of column 1
           type: 'text', // 'text' is the default type, so you can omit it
-          data: 'brand',
-        },
-        {
-          // set the data type of column 2
-          type: 'text',
           data: 'model',
         },
         {
-          // set the data type of column 3
+          // set the data type of column 2
           type: 'numeric',
           data: 'price',
           numericFormat: {
@@ -727,23 +706,22 @@ export const YourHandsontableComponent = () => {
           },
         },
         {
-          // set the data type of column 4
+          // set the data type of column 3
           type: 'date',
           data: 'sellDate',
         },
         {
-          // set the data type of column 5
+          // set the data type of column 4
           type: 'text',
           data: 'sellTime',
         },
         {
-          // set the data type of column 6
+          // set the data type of column 5
           type: 'checkbox',
           data: 'inStock',
         },
       ]}
       colHeaders={[
-        'Brand',
         'Model',
         'Price',
         'Date',
