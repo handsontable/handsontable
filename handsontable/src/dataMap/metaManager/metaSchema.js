@@ -2904,13 +2904,13 @@ export default () => {
      * @example
      * ```js
      * // enable the `ManualRowResize` plugin
-     * manualColumnResize: true,
+     * manualRowResize: true,
      *
      * // enable the `ManualRowResize` plugin
      * // set the initial height of row 0 to 40 pixels
      * // set the initial height of row 1 to 50 pixels
      * // set the initial height of row 2 to 60 pixels
-     * manualColumnResize: [40, 50, 60],
+     * manualRowResize: [40, 50, 60],
      * ```
      */
     manualRowResize: void 0,
