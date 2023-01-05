@@ -76,52 +76,39 @@ The most popular features of Handsontable:
 
 ### 1. Install Handsontable
 
-Using a package manager:
+#### Using a package manager
 
 ```bash
 npm install handsontable
+
+// or Yarn
+yarn add handsontable
+
+// or NuGet
+PM> Install-Package Handsontable
 ```
-
-Or, using a CDN:
-
-- [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js)
-- [https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css](https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css)
-
-### 2. Import Handsontable's JavaScript
-
-Using CommonJS or a package manager:
 
 ```js
 import Handsontable from 'handsontable';
-```
 
-Or, using the `script` tag:
-
-```html
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
-```
-
-### 3. Import Handsontable's CSS
-
-Using `import`:
-
-```js
 import 'handsontable/dist/handsontable.full.min.css';
 ```
 
-Or, using the `link` tag:
+#### Using a CDN
 
 ```html
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
 ```
 
-### 4. Create a container
+### 2. Create a container
 
 ```html
 <div id="example"></div>
 ```
 
-### 5. Initialize your grid
+### 3. Initialize your grid
 
 ```js
 const data = [
@@ -136,7 +123,6 @@ const hot = new Handsontable(container, {
   data: data,
   rowHeaders: true,
   colHeaders: true,
-  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
 });
 ```
