@@ -80,13 +80,9 @@ The most popular features of Handsontable:
 
 ```bash
 npm install handsontable
-
-// or Yarn
-yarn add handsontable
-
-// or NuGet
-PM> Install-Package Handsontable
 ```
+
+You can also use [Yarn](https://yarnpkg.com/package/handsontable) or [NuGet](https://www.nuget.org/packages/Handsontable).
 
 ```js
 import Handsontable from 'handsontable';
