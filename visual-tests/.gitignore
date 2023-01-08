@@ -3,3 +3,4 @@ node_modules/
 /playwright-report/
 /playwright/.cache/
 /tests/screenshots/
+.env

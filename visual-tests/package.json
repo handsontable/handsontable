@@ -5,11 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node ./scripts/visual-tests-build.mjs",
-    "docker:run": "docker pull mcr.microsoft.com/playwright:v1.28.1-focal && docker run -v $(INIT_CWD)/..:/tests/ -w /tests/visual-test --rm -it mcr.microsoft.com/playwright:v1.28.1-focal /bin/bash",
-    "docker:run:win": "docker pull mcr.microsoft.com/playwright:v1.28.1-focal && docker run -v %INIT_CWD%/..:/tests/ -w /tests/visual-test --rm -it mcr.microsoft.com/playwright:v1.28.1-focal /bin/bash",
-    "upload": "node ./scripts/visual-tests-upload.mjs",
-    "all": "node ./scripts/visual-tests-build.mjs && node ./scripts/visual-tests-upload.mjs"
+    "docker:build": "cd .. && docker build --no-cache --tag vtests -f visual-tests/Dockerfile .",
+    "test": "node ./scripts/visual-tests-launcher.mjs build",
+    "upload": "node ./scripts/visual-tests-launcher.mjs upload"
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "license": "ISC",
@@ -21,6 +19,7 @@
   },
   "dependencies": {
     "axios": "^1.2.1",
+    "dotenv": "^16.0.3",
     "playwright": "^1.28.1"
   }
 }
