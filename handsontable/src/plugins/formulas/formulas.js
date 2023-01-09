@@ -110,6 +110,9 @@ export class Formulas extends BasePlugin {
    */
   sheetName = null;
 
+  rowIndexesSequence = [];
+  columnIndexesSequence = [];
+
   /**
    * HyperFormula's sheet id.
    *
@@ -178,12 +181,50 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
-    this.addHook('afterColumnMove', (movedColumns, finalIndex, dropIndex, movePossible, orderChanged) => {
-      if (movePossible === false || orderChanged === false) {
-        return;
-      }
+    this.hot.columnIndexMapper.addLocalHook('init', () => {
+      this.columnIndexesSequence = this.hot.columnIndexMapper.getIndexesSequence();
+    });
 
-      this.engine.moveColumns(this.sheetId, movedColumns[0], movedColumns.length, dropIndex);
+    this.hot.rowIndexMapper.addLocalHook('init', () => {
+      this.rowIndexesSequence = this.hot.rowIndexMapper.getIndexesSequence();
+    });
+
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', (updatedInfo) => {
+      if (this.sheetId !== null && updatedInfo.indexesSequenceChanged === true) {
+        const newOrder = this.hot.columnIndexMapper.getIndexesSequence();
+
+        // Just sequence has been changed
+        if (this.columnIndexesSequence.length !== newOrder.length) {
+          this.columnIndexesSequence = newOrder;
+
+          return;
+        }
+
+        const relativeTransformation = this.columnIndexesSequence.map(index => newOrder.indexOf(index));
+
+        this.columnIndexesSequence = newOrder;
+
+        this.engine.setColumnOrder(this.sheetId, relativeTransformation);
+      }
+    });
+
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', (updatedInfo) => {
+      if (this.sheetId !== null && updatedInfo.indexesSequenceChanged === true) {
+        const newOrder = this.hot.rowIndexMapper.getIndexesSequence();
+
+        // Just sequence has been changed
+        if (this.rowIndexesSequence.length !== newOrder.length) {
+          this.rowIndexesSequence = newOrder;
+
+          return;
+        }
+
+        const relativeTransformation = this.rowIndexesSequence.map(index => newOrder.indexOf(index));
+
+        this.rowIndexesSequence = newOrder;
+
+        this.engine.setRowOrder(this.sheetId, relativeTransformation);
+      }
     });
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
@@ -224,6 +265,9 @@ export class Formulas extends BasePlugin {
     unregisterEngine(this.engine, this.hot);
 
     this.engine = null;
+
+    this.hot.rowIndexMapper.clearLocalHooks();
+    this.hot.columnIndexMapper.clearLocalHooks();
 
     super.disablePlugin();
   }
@@ -273,6 +317,9 @@ export class Formulas extends BasePlugin {
     unregisterEngine(this.engine, this.hot);
 
     this.engine = null;
+
+    this.hot.rowIndexMapper.clearLocalHooks();
+    this.hot.columnIndexMapper.clearLocalHooks();
 
     super.destroy();
   }
