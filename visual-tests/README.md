@@ -27,7 +27,7 @@ ARGOS_TOKEN=xxx
 
 After that launch `npm run vtests:upload` in main directory or `npm run upload` in `./visual-tests` directory to upload all of screenshots. Do not worry, you will not overwrite anything - uploading golden screenshots from base branch (if nothing changed in a meanwhile it's `develop`) is not possible on local environment.
 
-After upload you can find URL to your set of images in console or Github Actions logs as a result of `Visual testing - upload` job.
+After upload you can find URL to your set of images in console or Github Actions logs as a result of `Visual testing - upload` job (NOTE: add example link when first build from official repo will be ready).
 
 If you open Pull Request and try to merge to the base branch, you will be informed in Github `checks` section if there are detected some differences between images and merge will be not possible until fix or decision that differences were expected (in Argos there is option `Accept this build`).
 
