@@ -146,6 +146,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
      * @returns {boolean}
      */
     isCtrlPressed: () => !isCtrlKeySilenced && (keyRecorder.isPressed('control') || keyRecorder.isPressed('meta')),
+    releaseAll: () => keyRecorder.releaseAll(),
     /**
      * Destroy a context manager instance.
      *

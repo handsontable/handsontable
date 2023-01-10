@@ -4712,6 +4712,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     ownerWindow: this.rootWindow,
   });
 
+  this.addHook('beforeOnCellMouseDown', (event) => {
+    // Releasing keys as it seems that some browser/system shortcut hasn't triggered `keyup` event.
+    if (event.ctrlKey === false && event.metaKey === false) {
+      shortcutManager.releaseAll();
+    }
+  });
+
   /**
    * Returns instance of a manager responsible for handling shortcuts stored in some contexts. It run actions after
    * pressing key combination in active Handsontable instance.
