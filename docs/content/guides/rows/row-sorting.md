@@ -52,7 +52,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       price: 717,
       sellDate: '03/05/2020',
       sellTime: '11:27',
-      inStock: true,
+      inStock: false,
     },
     {
       brand: 'Meeveo',
@@ -68,7 +68,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       price: 268,
       sellDate: '29/08/2020',
       sellTime: '08:01',
-      inStock: true,
+      inStock: false,
     },
     {
       brand: 'Katz',
@@ -163,7 +163,7 @@ export const YourHandsontableComponent = () => {
         price: 717,
         sellDate: '03/05/2020',
         sellTime: '88-2768',
-        inStock: true,
+        inStock: false,
       },
       {
         brand: 'Meeveo',
@@ -179,7 +179,7 @@ export const YourHandsontableComponent = () => {
         price: 268,
         sellDate: '29/08/2020',
         sellTime: '44-4028',
-        inStock: true,
+        inStock: false,
       },
       {
         brand: 'Katz',
@@ -566,7 +566,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       price: 717,
       sellDate: '03/05/2020',
       sellTime: '11:27',
-      inStock: true,
+      inStock: false,
     },
     {
       model: 'Full-Finger Gloves',
@@ -580,7 +580,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       price: 268,
       sellDate: '29/08/2020',
       sellTime: '08:01',
-      inStock: true,
+      inStock: false,
     },
     {
       model: 'Half-Finger Gloves',
@@ -666,7 +666,7 @@ export const YourHandsontableComponent = () => {
         price: 717,
         sellDate: '03/05/2020',
         sellTime: '88-2768',
-        inStock: true,
+        inStock: false,
       },
       {
         model: 'Full-Finger Gloves',
@@ -680,7 +680,7 @@ export const YourHandsontableComponent = () => {
         price: 268,
         sellDate: '29/08/2020',
         sellTime: '44-4028',
-        inStock: true,
+        inStock: false,
       },
       {
         model: 'Half-Finger Gloves',
@@ -894,7 +894,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       price: 717,
       sellDate: '03/05/2020',
       sellTime: '11:27',
-      inStock: true,
+      inStock: false,
     },
     {
       brand: 'Meeveo',
@@ -910,7 +910,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       price: 268,
       sellDate: '29/08/2020',
       sellTime: '08:01',
-      inStock: true,
+      inStock: false,
     },
     {
       brand: 'Katz',
@@ -1000,7 +1000,7 @@ export const YourHandsontableComponent = () => {
         price: 717,
         sellDate: '03/05/2020',
         sellTime: '88-2768',
-        inStock: true,
+        inStock: false,
       },
       {
         brand: 'Meeveo',
@@ -1016,7 +1016,7 @@ export const YourHandsontableComponent = () => {
         price: 268,
         sellDate: '29/08/2020',
         sellTime: '44-4028',
-        inStock: true,
+        inStock: false,
       },
       {
         brand: 'Katz',
@@ -1145,7 +1145,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       price: 717,
       sellDate: '03/05/2020',
       sellTime: '11:27',
-      inStock: true,
+      inStock: false,
     },
     {
       brand: 'Meeveo',
@@ -1161,7 +1161,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       price: 268,
       sellDate: '29/08/2020',
       sellTime: '08:01',
-      inStock: true,
+      inStock: false,
     },
     {
       brand: 'Katz',
@@ -1256,7 +1256,7 @@ export const YourHandsontableComponent = () => {
         price: 717,
         sellDate: '03/05/2020',
         sellTime: '88-2768',
-        inStock: true,
+        inStock: false,
       },
       {
         brand: 'Meeveo',
@@ -1272,7 +1272,7 @@ export const YourHandsontableComponent = () => {
         price: 268,
         sellDate: '29/08/2020',
         sellTime: '44-4028',
-        inStock: true,
+        inStock: false,
       },
       {
         brand: 'Katz',
@@ -1398,7 +1398,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       price: 717,
       sellDate: '03/05/2020',
       sellTime: '11:27',
-      inStock: true,
+      inStock: false,
     },
     {
       brand: 'Meeveo',
@@ -1414,7 +1414,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       price: 268,
       sellDate: '29/08/2020',
       sellTime: '08:01',
-      inStock: true,
+      inStock: false,
     },
     {
       brand: 'Katz',
@@ -1523,7 +1523,7 @@ export const YourHandsontableComponent = () => {
         price: 717,
         sellDate: '03/05/2020',
         sellTime: '88-2768',
-        inStock: true,
+        inStock: false,
       },
       {
         brand: 'Meeveo',
@@ -1539,7 +1539,7 @@ export const YourHandsontableComponent = () => {
         price: 268,
         sellDate: '29/08/2020',
         sellTime: '44-4028',
-        inStock: true,
+        inStock: false,
       },
       {
         brand: 'Katz',
@@ -1860,7 +1860,7 @@ const handsontableInstance = new Handsontable(container, {
       price: 717,
       sellDate: '03/05/2020',
       sellTime: '11:27',
-      inStock: true,
+      inStock: false,
     },
     {
       brand: 'Meeveo',
@@ -1876,7 +1876,7 @@ const handsontableInstance = new Handsontable(container, {
       price: 268,
       sellDate: '29/08/2020',
       sellTime: '08:01',
-      inStock: true,
+      inStock: false,
     },
     {
       brand: 'Katz',
@@ -2012,7 +2012,7 @@ export const YourHandsontableComponent = () => {
           price: 717,
           sellDate: '03/05/2020',
           sellTime: '88-2768',
-          inStock: true,
+          inStock: false,
         },
         {
           brand: 'Meeveo',
@@ -2028,7 +2028,7 @@ export const YourHandsontableComponent = () => {
           price: 268,
           sellDate: '29/08/2020',
           sellTime: '44-4028',
-          inStock: true,
+          inStock: false,
         },
         {
           brand: 'Katz',
