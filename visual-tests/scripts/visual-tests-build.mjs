@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+/* eslint-disable no-restricted-globals */
 import path from 'path';
 import execa from 'execa';
 import fse from 'fs-extra';
@@ -9,6 +11,7 @@ const dirs = {
   init: process.cwd(),
   examples: '../examples/next/visual-tests',
   codeToRun: 'demo',
+  screenshots: './tests/screenshots',
 };
 
 process.chdir(dirs.examples);
@@ -36,6 +39,15 @@ for (let i = 0, maxi = (currentBranch === baseBranch ? 1 : wrappers.length); i <
 
   process.chdir(dirs.init);
 
+  console.log(`
+  
+  =====
+  
+  Run tests for ${wrappers[i]} wrapper
+  
+  =====
+  
+  `);
   // eslint-disable-next-line no-await-in-loop
   await execa.command('npx playwright test', { env: { HOT_WRAPPER: wrappers[i] }, stdout: 'inherit' });
 
@@ -53,11 +65,18 @@ if (currentBranch === baseBranch) {
   // so we have to make this trick to make comparision available.
   // On other branches we will generate screenshots for wrappers in a "normal" way
   // and then we will be able to see differences
+  if (!fse.existsSync(dirs.screenshots)) {
+    throw new Error(`Directory \`${dirs.screenshots}\` doesn't exists`);
+  }
+
+  if (!fse.existsSync(`${dirs.screenshots}/${wrappers[0]}`)) {
+    throw new Error(`Directory \`${dirs.screenshots}/${wrappers[0]}\` doesn't exists`);
+  }
 
   for (let i = 1; i < wrappers.length; ++i) {
     fse.copySync(
-      path.resolve(`./tests/screenshots/${wrappers[0]}`),
-      path.resolve(`./tests/screenshots/${wrappers[i]}`),
+      path.resolve(`${dirs.screenshots}/${wrappers[0]}`),
+      path.resolve(`${dirs.screenshots}/${wrappers[i]}`),
       { overwrite: true });
   }
 }
