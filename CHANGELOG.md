@@ -11,15 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [12.3.1] - 2023-01-18
 
-### Fixed
-- Fixed the _NestedRows_ plugin that did not react when the Core `updateData` method was called. [#466](https://github.com/handsontable/handsontable/issues/466)
-- Fixed unwanted rendered overlay that was visible in the Filters conditional component. [#83](https://github.com/handsontable/handsontable/issues/83)
+### Added
+- Added a Japanese translation of the "Copy with headers" feature. [#10201](https://github.com/handsontable/handsontable/pull/10201)
 
 ### Removed
-- Removed the license key delay condition that prevents printing warnings about key expiration in the console. [#588](https://github.com/handsontable/handsontable/issues/588)
+- Removed the two-week delay in showing the console warning about license expiration. [#10175](https://github.com/handsontable/handsontable/pull/10175)
 
-### Added
-- Added Japanese translation for Copy with Headers feature. [#950](https://github.com/handsontable/handsontable/issues/950)
+### Fixed
+- Fixed an issue where `updateData()` didn't work with nested data structures (`NestedRows`). [#10178](https://github.com/handsontable/handsontable/pull/10178)
+- Fixed an issue of unwanted pixels in the "Filter by condition" menu, by removing a superfluous overlay. [#10174](https://github.com/handsontable/handsontable/pull/10174)
 
 ## [12.3.0] - 2022-12-14
 
