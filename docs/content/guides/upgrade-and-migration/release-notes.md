@@ -25,7 +25,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 ## 12.3.1
 
-Released on February 2, 2022.
+Released on February 1, 2022.
 
 For more information on this release, see:
 - [Blog post](PLACEHOLDER)

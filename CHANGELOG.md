@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
-## [12.3.1] - 2023-02-02
+## [12.3.1] - 2023-02-01
 
 ### Added
 - Added a Japanese translation of the "Copy with headers" feature. [#10201](https://github.com/handsontable/handsontable/pull/10201)
