@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
-## [12.3.1] - 2023-01-18
+## [12.3.1] - 2023-02-02
 
 ### Added
 - Added a Japanese translation of the "Copy with headers" feature. [#10201](https://github.com/handsontable/handsontable/pull/10201)
@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed an issue where `updateData()` didn't work with nested data structures (`NestedRows`). [#10178](https://github.com/handsontable/handsontable/pull/10178)
 - Fixed an issue of unwanted pixels in the "Filter by condition" menu, by removing a superfluous overlay. [#10174](https://github.com/handsontable/handsontable/pull/10174)
+
+For more information on Handsontable 12.3.1, see:
+- [Blog post (12.3.1)](PLACEHOLDER)
+- [Documentation (12.3)](https://handsontable.com/docs/12.3)
+- [Release notes (12.3.1)](https://handsontable.com/docs/release-notes/#_12-3-1)
 
 ## [12.3.0] - 2022-12-14
 

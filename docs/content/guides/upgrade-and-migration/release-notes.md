@@ -23,6 +23,24 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 12.3.1
+
+Released on February 2, 2022.
+
+For more information on this release, see:
+- [Blog post](PLACEHOLDER)
+- [Documentation (12.3)](https://handsontable.com/docs/12.3/)
+
+### Added
+- Added a Japanese translation of the "Copy with headers" feature. [#10201](https://github.com/handsontable/handsontable/pull/10201)
+
+### Removed
+- Removed the two-week delay in showing the console warning about license expiration. [#10175](https://github.com/handsontable/handsontable/pull/10175)
+
+### Fixed
+- Fixed an issue where [`updateData()`](@/api/core.md#updatedata) didn't work with nested data structures ([`NestedRows`](@/api/nestedRows.md)). [#10178](https://github.com/handsontable/handsontable/pull/10178)
+- Fixed an issue of unwanted pixels in the "Filter by condition" menu, by removing a superfluous overlay. [#10174](https://github.com/handsontable/handsontable/pull/10174)
+
 ## 12.3.0
 
 Released on December 14, 2022.
