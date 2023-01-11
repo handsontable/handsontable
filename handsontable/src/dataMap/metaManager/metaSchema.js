@@ -52,7 +52,7 @@ import { isObjectEqual } from '../../helpers/object';
  * ::: only-for react
  *
  * To apply configuration options, pass them as individual props
- * of the [`HotTable`](@/guides/getting-started/installation.md#use-the-hottable-component)
+ * of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component)
  * or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
  *
  * Read more on the [Configuration options](@/guides/getting-started/configuration-options.md) page.
