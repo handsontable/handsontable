@@ -18,6 +18,6 @@ console.log('Upload to Argos');
 if (currentBranch === baseBranch && !isCI) {
   throw new Error('Screenshots from base branch can be uploaded only from Github');
 } else {
-  await execa.command('npx @argos-ci/cli upload tests/screenshots',
+  await execa.command('npx @argos-ci/cli upload screenshots',
     { env: { ARGOS_TOKEN: process?.env?.ARGOS_TOKEN }, stdio: 'inherit' });
 }

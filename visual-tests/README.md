@@ -12,7 +12,7 @@ In Github `Visual tests` workflow is launched automatically after `Tests` workfl
 Launch `npm run vtests:test` in main directory or `npm run test` in `./visual-tests` directory to run all of tests with all of wrappers in all of browsers.
 Launch by command `npx playwright test {{ name of file }}` in `./visual-tests` directory to run specific test, e.g. `npx playwright test mouse-wheel`
 
-Launch `npm run vtests:docker:build` in main project directory or `npm run docker:build` in `./visual-tests` directory to build Docker image. After tests screenshots will appear in `./visual-tests/tests/screenshots`.
+Launch `npm run vtests:docker:build` in main project directory or `npm run docker:build` in `./visual-tests` directory to build Docker image. After tests screenshots will appear in `./visual-tests/screenshots`.
 
 ## Upload and compare screenshots
 

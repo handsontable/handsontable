@@ -1,7 +1,7 @@
 export const helpers = {
   defaultHOTWrapper: 'js',
 
-  screenshotsDirectory: './tests/screenshots',
+  screenshotsDirectory: './screenshots',
   screenshotsExtension: 'png',
 
   selectors: {
@@ -25,7 +25,7 @@ export const helpers = {
     return `./tests-css/${file}`;
   },
 
-  init(workerInfo, process) {
+  init(workerInfo) {
     this.hotWrapper = process.env.HOT_WRAPPER || this.defaultHOTWrapper;
     this.testURL = 'http://localhost:8080/';
     this.workerInfo = workerInfo;
@@ -53,7 +53,7 @@ export const helpers = {
   },
 
   testTitle(filename) {
-    const title = filename.split('\\').slice(-1)[0].split('.spec.js')[0].split('-').join(' ');
+    const title = filename.split('.spec.js')[0].split('-').join(' ');
 
     return `${title.substring(0, 1).toUpperCase()}${title.substring(1)}`;
   },
