@@ -25,8 +25,6 @@ test(helpers.testTitle(__filename), async({ page }, workerInfo) => {
   const dropdownMenu = page.locator(helpers.selectors.dropdownMenu);
 
   await page.screenshot({ path: helpers.screenshotPath() });
-  // You can take a screenshot of any element, not only entire page, e.g:
-  // await dropdownMenu.screenshot({ path: helpers.screenshotPath() });
   await dropdownMenu.locator('"Clear column"').click();
   await page.screenshot({ path: helpers.screenshotPath() });
 });

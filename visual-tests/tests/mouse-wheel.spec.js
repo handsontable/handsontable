@@ -19,7 +19,7 @@ test(helpers.testTitle(__filename), async({ page }, workerInfo) => {
   helpers.tbody = table.locator(helpers.selectors.mainTableBody);
   helpers.thead = table.locator(helpers.selectors.mainTableHead);
 
-  const tbodyCoordinates = await helpers.tbody.boundingBox(); // || { x: 0, y: 0, width: 0, height: 0 };
+  const tbodyCoordinates = await helpers.tbody.boundingBox();
 
   await page.mouse.move(
     tbodyCoordinates.x + (tbodyCoordinates.width / 2), tbodyCoordinates.y + (tbodyCoordinates.height / 2)
