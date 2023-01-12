@@ -3,7 +3,7 @@
  * - detects branch name on local environment or reads it from parameter sent from CI;
  * - depends on parameter (`build` or `upload`) it:
  *    - `build` - launches visual testing and builds package of screenshots;
- *    - `upload` - uploads package of screenshots prepared in previous step to comparing service;
+ *    - `upload` - uploads package of screenshots prepared in previous step to comparing service.
  */
 
 import execa from 'execa';

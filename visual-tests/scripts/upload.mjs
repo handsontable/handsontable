@@ -1,3 +1,7 @@
+/**
+ * This script is responsible for uploading package of screenshots to external comparing services.
+ */
+
 /* eslint-disable no-console */
 /* eslint-disable no-restricted-globals */
 import execa from 'execa';
