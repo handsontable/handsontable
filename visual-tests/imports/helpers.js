@@ -34,14 +34,6 @@ export const helpers = {
     this.screenshotsCount = 0;
     this.screenshotDirName = this.workerInfo.titlePath[0].split('.spec.js')[0];
     this.browser = this.workerInfo.project.name;
-
-    if (this.browser === 'webkit') {
-      this.browser = 'safari';
-    }
-
-    if (this.browser === 'chromium') {
-      this.browser = 'chrome';
-    }
   },
 
   findCell(options = { row: 1, cell: 1, cellType: 'td' }) {
