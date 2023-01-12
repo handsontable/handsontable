@@ -1,8 +1,8 @@
 /**
- * Visual testing runner. This script makes few steps:
+ * Visual testing runner and screenshots package builder responsible for following steps:
  * - builds all of examples for all of wrappers to test;
  * - runs visual testing;
- * - prepares package of screenshots which will be send to compare by `-upload` script
+ * - builds package of screenshots which will be send to compare by `upload` script
  */
 
 /* eslint-disable no-console */
