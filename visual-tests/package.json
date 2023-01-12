@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "docker:build": "cd .. && docker build --no-cache --tag vtests -f visual-tests/Dockerfile .",
+    "docker:build": "docker build --no-cache --tag vtests .",
     "test": "node ./scripts/visual-tests-launcher.mjs build",
     "upload": "node ./scripts/visual-tests-launcher.mjs upload"
   },
