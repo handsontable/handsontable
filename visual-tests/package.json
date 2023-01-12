@@ -6,8 +6,8 @@
   "main": "index.js",
   "scripts": {
     "docker:build": "docker build --no-cache --tag vtests .",
-    "test": "node ./scripts/visual-tests-launcher.mjs build",
-    "upload": "node ./scripts/visual-tests-launcher.mjs upload"
+    "test": "node ./scripts/launcher.mjs build",
+    "upload": "node ./scripts/launcher.mjs upload"
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "license": "ISC",

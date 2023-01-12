@@ -29,7 +29,7 @@ if (!currentBranch) {
 
 if (process?.argv?.includes('build')) {
   if (isCI) {
-    await execa.command('node scripts/visual-tests-build.mjs',
+    await execa.command('node scripts/build.mjs',
       { env: { CURRENT_BRANCH: currentBranch }, stdio: 'inherit' });
   } else {
     // we need access to `examples` and `virtual-tests` directories,
@@ -44,6 +44,6 @@ if (process?.argv?.includes('build')) {
 }
 
 if (process?.argv?.includes('upload')) {
-  await execa.command(`node scripts/visual-tests-upload.mjs ${isCI ? 'CI' : ''}`,
+  await execa.command(`node scripts/upload.mjs ${isCI ? 'CI' : ''}`,
     { env: { CURRENT_BRANCH: currentBranch }, stdio: 'inherit' });
 }
