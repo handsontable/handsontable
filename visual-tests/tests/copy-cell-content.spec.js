@@ -2,8 +2,6 @@ import { helpers } from '../imports/helpers';
 
 const { test, expect } = require('@playwright/test');
 
-/* ======= */
-
 const stylesToAdd = [
   helpers.cssFiles.cookieInfo,
   helpers.cssFiles.dynamicDataFreeze
