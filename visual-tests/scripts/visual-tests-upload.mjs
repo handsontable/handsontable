@@ -7,11 +7,11 @@ import { baseBranch } from './config.mjs';
 
 dotenv.config();
 const currentBranch = process?.env?.CURRENT_BRANCH;
-const isCICD = process?.argv?.includes('CICD');
+const isCI = process?.argv?.includes('CI');
 
 console.log('Upload to Argos');
 
-if (currentBranch === baseBranch && !isCICD) {
+if (currentBranch === baseBranch && !isCI) {
   throw new Error('Screenshots from base branch can be uploaded only from Github');
 } else {
   await execa.command('npx @argos-ci/cli upload tests/screenshots',

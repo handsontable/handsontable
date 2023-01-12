@@ -5,11 +5,11 @@ import { hideBin } from 'yargs/helpers';
 let currentBranch;
 const argv = yargs(hideBin(process.argv)).argv;
 const pathToMount = `${process.cwd().split('\\').join('/')}/../`;
-const isCICD = process?.argv?.includes('CICD');
+const isCI = process?.argv?.includes('CI');
 
-// in CICD we know name of current branch from Github Actions - it is send as a `currentBranch` argv,
+// in CI we know name of current branch from Github Actions - it is send as a `currentBranch` argv,
 // in local environment we have to take this name from Git by ourselves.
-if (isCICD) {
+if (isCI) {
   currentBranch = argv?.currentBranch;
 } else {
   currentBranch = (await execa.command('git rev-parse --abbrev-ref HEAD', { silent: true })).stdout;
@@ -20,7 +20,7 @@ if (!currentBranch) {
 }
 
 if (process?.argv?.includes('build')) {
-  if (isCICD) {
+  if (isCI) {
     await execa.command('node scripts/visual-tests-build.mjs',
       { env: { CURRENT_BRANCH: currentBranch }, stdio: 'inherit' });
   } else {
@@ -36,6 +36,6 @@ if (process?.argv?.includes('build')) {
 }
 
 if (process?.argv?.includes('upload')) {
-  await execa.command(`node scripts/visual-tests-upload.mjs ${isCICD ? 'CICD' : ''}`,
+  await execa.command(`node scripts/visual-tests-upload.mjs ${isCI ? 'CI' : ''}`,
     { env: { CURRENT_BRANCH: currentBranch }, stdio: 'inherit' });
 }

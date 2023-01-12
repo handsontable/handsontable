@@ -1,3 +1,10 @@
+/**
+ * Visual testing runner. This script makes few steps:
+ * - builds all of examples for all of wrappers to test;
+ * - runs visual testing;
+ * - prepares package of screenshots which will be send to compare by `-upload` script
+ */
+
 /* eslint-disable no-console */
 /* eslint-disable no-restricted-globals */
 import path from 'path';

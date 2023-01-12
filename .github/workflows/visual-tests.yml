@@ -32,10 +32,10 @@ jobs:
       - name: Run visual tests
         run: | 
           cd visual-tests
-          npm run test CICD -- --currentBranch ${GITHUB_REF##*/}
+          npm run test CI -- --currentBranch ${GITHUB_REF##*/}
       - name: Upload screenshots
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
         run: | 
           cd visual-tests
-          npm run upload CICD -- --currentBranch ${GITHUB_REF##*/}
+          npm run upload CI -- --currentBranch ${GITHUB_REF##*/}
