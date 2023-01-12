@@ -22,7 +22,7 @@ const dirs = {
 };
 
 process.chdir(dirs.examples);
-execa.command('npm install');
+await execa.command('npm install');
 
 // If we are on a base branch, we do not want to run all of tests
 // and make screenshots for all of wrappers.
