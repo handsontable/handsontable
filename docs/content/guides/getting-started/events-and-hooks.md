@@ -1,4 +1,5 @@
 ---
+id: own6evdy
 title: Events and hooks
 metaTitle: Events and hooks - JavaScript Data Grid | Handsontable
 description: Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
@@ -15,6 +16,7 @@ tags:
 - events
 - hooks
 react:
+  id: d966se98
   metaTitle: Events and hooks - React Data Grid | Handsontable
 searchCategory: Guides
 ---

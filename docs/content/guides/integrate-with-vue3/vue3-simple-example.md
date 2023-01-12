@@ -1,4 +1,5 @@
 ---
+id: exlnnr23
 title: Basic example in Vue 3
 metaTitle: Basic example - Vue 3 Data Grid | Handsontable
 description: Start with a basic example of the Vue 3 data grid, using component props for configuration and external control.

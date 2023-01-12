@@ -1,4 +1,5 @@
 ---
+id: 25b7vhfs
 title: Column menu
 metaTitle: Column menu - JavaScript Data Grid | Handsontable
 description: Display a configurable dropdown menu, triggered by clicking on a button in a column header.
@@ -7,6 +8,7 @@ canonicalUrl: /column-menu
 tags:
   - dropdown menu
 react:
+  id: uc7w8gu1
   metaTitle: Column menu - React Data Grid | Handsontable
 searchCategory: Guides
 ---

@@ -54,7 +54,7 @@ const deprecationWarns = new Set();
  *
  * ::: only-for react
  * To use these methods, associate a Handsontable instance with your instance
- * of the [`HotTable` component](@/guides/getting-started/installation.md#use-the-hottable-component),
+ * of the [`HotTable` component](@/guides/getting-started/installation.md#_4-use-the-hottable-component),
  * by using React's `ref` feature (read more on the [Instance methods](@/guides/getting-started/react-methods.md) page).
  * :::
  *
@@ -4316,7 +4316,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     metaManager.clearCache();
 
     if (isRootInstance(instance)) {
-      const licenseInfo = this.rootDocument.querySelector('#hot-display-license-info');
+      const licenseInfo = this.rootDocument.querySelector('.hot-display-license-info');
 
       if (licenseInfo) {
         licenseInfo.parentNode.removeChild(licenseInfo);

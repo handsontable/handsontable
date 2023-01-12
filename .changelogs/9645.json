@@ -1,7 +1,0 @@
-{
-  "title": "Comment editor will be shown properly, when comment had been added on fixed column and some scrolling was performed",
-  "type": "fixed",
-  "issue": 9645,
-  "breaking": false,
-  "framework": "none"
-}

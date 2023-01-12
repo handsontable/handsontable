@@ -1,4 +1,5 @@
 ---
+id: p7oq0ph7
 title: Configuration options
 metaTitle: Configuration options - JavaScript Data Grid | Handsontable
 description: Configure the data grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
@@ -9,6 +10,7 @@ tags:
   - config
   - options
 react:
+  id: gmpbmisy
   metaTitle: Configuration options - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -52,7 +54,7 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
-To apply configuration options, pass them as individual props of the [`HotTable`](@/guides/getting-started/installation.md#use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
+To apply configuration options, pass them as individual props of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
 
 ```jsx
 <HotTable
@@ -152,7 +154,7 @@ To apply configuration options to the entire grid:
 :::
 
 ::: only-for react
-- Pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation.md##use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
+- Pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
 - You can also pass your options as an object, using the `settings` prop.
 :::
 

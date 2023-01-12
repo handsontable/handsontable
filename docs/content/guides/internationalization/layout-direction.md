@@ -1,4 +1,5 @@
 ---
+id: gcdt3pns
 title: Layout direction
 metaTitle: Layout direction - JavaScript Data Grid | Handsontable
 description: Set the layout direction for right-to-left languages. Automatically inherit your HTML file's "dir" property, or set the layout direction manually.
@@ -16,6 +17,7 @@ tags:
   - L10n
   - i18n
 react:
+  id: g4mu790t
   metaTitle: Layout direction - React Data Grid | Handsontable
 searchCategory: Guides
 ---
