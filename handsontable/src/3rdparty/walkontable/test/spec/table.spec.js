@@ -2435,6 +2435,84 @@ describe('WalkontableTable', () => {
     });
   });
 
+  describe('areAnyRowsFullyInViewport', () => {
+    it('should recognize if there are any rows fully rendered in the viewport', () => {
+      spec().$wrapper.css({ marginBottom: '10000px', overflow: 'visible' });
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: 30,
+        totalColumns: 10
+      });
+
+      wt.draw();
+
+      expect(wt.wtTable.areAnyRowsFullyInViewport()).toEqual(true);
+
+      window.scrollBy(
+        0,
+        $(wt.wtTable.hider).height() +
+        $(wt.wtTable.hider).offset().top -
+        wt.wtSettings.getSetting('defaultRowHeight')
+      );
+
+      wt.draw();
+
+      expect(wt.wtTable.areAnyRowsFullyInViewport()).toEqual(true);
+
+      window.scrollBy(0, 1);
+
+      expect(wt.wtTable.areAnyRowsFullyInViewport()).toEqual(false);
+
+      window.scrollBy(0, 30);
+
+      expect(wt.wtTable.areAnyRowsFullyInViewport()).toEqual(false);
+
+      window.scrollBy(0, -31);
+
+      expect(wt.wtTable.areAnyRowsFullyInViewport()).toEqual(true);
+    });
+  });
+
+  describe('areAnyColumnsFullyInViewport', () => {
+    it('should recognize if there are any columns fully rendered in the viewport', () => {
+      spec().$wrapper.css({ paddingRight: '10000px', overflow: 'visible' });
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: 10,
+        totalColumns: 30
+      });
+
+      wt.draw();
+
+      expect(wt.wtTable.areAnyColumnsFullyInViewport()).toEqual(true);
+
+      window.scrollBy(
+        $(wt.wtTable.hider).width() +
+        $(wt.wtTable.hider).offset().left -
+        wt.wtSettings.getSetting('defaultColumnWidth'),
+        0
+      );
+
+      wt.draw();
+
+      expect(wt.wtTable.areAnyColumnsFullyInViewport()).toEqual(true);
+
+      window.scrollBy(1, 0);
+
+      expect(wt.wtTable.areAnyColumnsFullyInViewport()).toEqual(false);
+
+      window.scrollBy(30, 0);
+
+      expect(wt.wtTable.areAnyColumnsFullyInViewport()).toEqual(false);
+
+      window.scrollBy(-31, 0);
+
+      expect(wt.wtTable.areAnyColumnsFullyInViewport()).toEqual(true);
+    });
+  });
+
   it('should render a table with overlays with corresponding backward compatible CSS classes', () => {
     const wt = walkontable({
       data: getData,

@@ -1,4 +1,5 @@
 import {
+  getScrollableElement,
   hasClass,
   index,
   offset,
@@ -264,7 +265,19 @@ class Table {
 
     if (this.isMaster) {
       this.holderOffset = offset(this.holder);
-      runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
+
+      const areRowsFullyInViewport = this.areAnyRowsFullyInViewport();
+      const areColumnsFullyInViewport = this.areAnyColumnsFullyInViewport();
+      const doesPositionInViewportMatter = areRowsFullyInViewport !== void 0 && areColumnsFullyInViewport !== void 0;
+      let isOutsideOfViewport = false;
+
+      if (doesPositionInViewportMatter) {
+        isOutsideOfViewport = areRowsFullyInViewport === false || areColumnsFullyInViewport === false;
+      }
+
+      runFastDraw = wtViewport.createRenderCalculators(isOutsideOfViewport ? true : runFastDraw, isOutsideOfViewport);
+
+      runFastDraw = isOutsideOfViewport ? true : runFastDraw;
 
       if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
         const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
@@ -682,7 +695,8 @@ class Table {
    *
    * @param {number} row Row index.
    * @param {number} [level=0] Header level (0 = most distant to the table).
-   * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have row headers`.
+   * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have
+   *   row headers`.
    */
   getRowHeader(row, level = 0) {
     if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
@@ -730,7 +744,8 @@ class Table {
    * Returns cell coords object for a given TD (or a child element of a TD element).
    *
    * @param {HTMLTableCellElement} TD A cell DOM element (or a child of one).
-   * @returns {CellCoords|null} The coordinates of the provided TD element (or the closest TD element) or null, if the provided element is not applicable.
+   * @returns {CellCoords|null} The coordinates of the provided TD element (or the closest TD element) or null, if the
+   *   provided element is not applicable.
    */
   getCoords(TD) {
     let cellElement = TD;
@@ -1185,6 +1200,70 @@ class Table {
     }
 
     return rowHeaderWidth;
+  }
+
+  /**
+   * Returns `true` if at least one row is fully visible in the viewport, `false` otherwise.
+   * It can also return undefined when the method is not applicable - when the table is self-contained and not
+   * controlled by the window's scrollbar or is not rendered yet (during the cycle of full rendering).
+   *
+   * @returns {boolean|undefined}
+   */
+  areAnyRowsFullyInViewport() {
+    // Scroll position is only relevant in terms of the visibility in the viewport, when the scrollable element is
+    // the window.
+    if (getScrollableElement(this.TABLE) !== this.instance.domBindings.rootWindow) {
+      return;
+    }
+
+    const { wtOverlays } = this.dataAccessObject;
+    const topScrollPos = wtOverlays.topOverlay.getScrollPosition();
+    const hiderHeight = outerHeight(this.hider);
+    const containerHeight = Math.max(hiderHeight, outerHeight(this.TABLE));
+
+    if (hiderHeight === 0) {
+      return;
+    }
+
+    const secondToLastRowEndPosition = (
+      offset(this.holder).top + containerHeight -
+      (this.getRowHeight(this.instance.wtSettings.getSetting('totalRows') - 1) ||
+        this.instance.wtSettings.getSetting('defaultRowHeight'))
+    );
+
+    return secondToLastRowEndPosition >= topScrollPos;
+  }
+
+  /**
+   * Returns `true` if at least one column is fully visible in the viewport, `false` otherwise.
+   * It can also return undefined when the method is not applicable - when the table is self-contained and not
+   * controlled by the window's scrollbar or is not rendered yet (during the cycle of full rendering).
+   *
+   * @returns {boolean|undefined}
+   */
+  areAnyColumnsFullyInViewport() {
+    // Scroll position is only relevant in terms of the visibility in the viewport, when the scrollable element is
+    // the window.
+    if (getScrollableElement(this.TABLE) !== this.instance.domBindings.rootWindow) {
+      return;
+    }
+
+    const { wtOverlays } = this.dataAccessObject;
+    const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
+    const hiderWidth = outerWidth(this.hider);
+    const containerWidth = Math.max(hiderWidth, outerWidth(this.TABLE));
+
+    if (hiderWidth === 0) {
+      return;
+    }
+
+    const secondToLastColumnEndPosition = (
+      offset(this.holder).left + containerWidth -
+      (this.getColumnWidth(this.instance.wtSettings.getSetting('totalColumns') - 1) ||
+        this.instance.wtSettings.getSetting('defaultColumnWidth'))
+    );
+
+    return secondToLastColumnEndPosition >= leftScrollPos;
   }
 }
 

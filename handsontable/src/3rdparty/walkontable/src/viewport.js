@@ -395,11 +395,12 @@ class Viewport {
    * Creates rowsRenderCalculator and columnsRenderCalculator (before draw, to determine what rows and
    * cols should be rendered).
    *
-   * @param {boolean} fastDraw If `true`, will try to avoid full redraw and only update the border positions.
+   * @param {boolean} [fastDraw=false] If `true`, will try to avoid full redraw and only update the border positions.
    *                           If `false` or `undefined`, will perform a full redraw.
+   * @param {boolean} [isOutsideOfViewport=false] `true` if the table is outside of the viewport.
    * @returns {boolean} The fastDraw value, possibly modified.
    */
-  createRenderCalculators(fastDraw = false) {
+  createRenderCalculators(fastDraw = false, isOutsideOfViewport = false) {
     let runFastDraw = fastDraw;
 
     if (runFastDraw) {
@@ -412,7 +413,7 @@ class Viewport {
       }
     }
 
-    if (!runFastDraw) {
+    if (!runFastDraw && !isOutsideOfViewport) {
       this.rowsRenderCalculator = this.createRowsCalculator(RENDER_TYPE);
       this.columnsRenderCalculator = this.createColumnsCalculator(RENDER_TYPE);
     }
