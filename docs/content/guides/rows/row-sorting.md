@@ -41,7 +41,7 @@ You can sort rows in different ways:
 - By a single column, or by [multiple columns](#sort-by-multiple-columns).
 - Using Handsontable's [UI](#demo) or [API](#control-sorting-programmatically).
 
-Only the table view is sorted. Your source data remains in the original order.
+Data is sorted only visually. Your source data remains in the original order.
 
 ### Demo
 
