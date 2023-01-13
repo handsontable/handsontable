@@ -11,11 +11,13 @@ test(__filename, async({ page }) => {
   const cellCoordinates = await cell.boundingBox();
 
   await page.mouse.move(
-    cellCoordinates.x + (cellCoordinates.width / 2), cellCoordinates.y + (cellCoordinates.height / 2)
+    cellCoordinates!.x + (cellCoordinates!.width / 2),
+    cellCoordinates!.y + (cellCoordinates!.height / 2)
   );
   await page.mouse.down();
   await page.mouse.move(
-    cellCoordinates.x + (cellCoordinates.width / 2) + 100, cellCoordinates.y + (cellCoordinates.height / 2) + 100
+    cellCoordinates!.x + (cellCoordinates!.width / 2) + 100,
+    cellCoordinates!.y + (cellCoordinates!.height / 2) + 100
   );
   await page.mouse.up();
   await page.screenshot({ path: helpers.screenshotPath() });

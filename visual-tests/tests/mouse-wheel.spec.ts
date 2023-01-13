@@ -11,7 +11,8 @@ test(__filename, async({ page }) => {
   const tbodyCoordinates = await tbody.boundingBox();
 
   await page.mouse.move(
-    tbodyCoordinates.x + (tbodyCoordinates.width / 2), tbodyCoordinates.y + (tbodyCoordinates.height / 2)
+    tbodyCoordinates!.x + (tbodyCoordinates!.width / 2),
+    tbodyCoordinates!.y + (tbodyCoordinates!.height / 2)
   );
 
   await page.mouse.wheel(0, 270);

@@ -1,7 +1,6 @@
 ## Installation
 
 Install by command `npm install` in `./visual-tests` folder.
-Launch `npm run vtests:docker:build` in main project directory or `npm run docker:build` in `./visual-tests` directory to build Docker image.
 
 ## Usage
 
@@ -18,7 +17,7 @@ Launch `npm run vtests:docker:build` in main project directory or `npm run docke
 
 For the screen comparision we use external service (currently it's Argos CI). Argos CI compares screenshots from your branch with the base branch (which currently is `develop`).
 
-In Github screenshots are uploaded automatically after every test. 
+In Github screenshots are uploaded automatically after every test.
 In local environment upload won't work until you create `.env` file in `./visual-tests/` directory and set variable `ARGOS_TOKEN` there - ask your teammates or supervisor for its value.
 
 ```

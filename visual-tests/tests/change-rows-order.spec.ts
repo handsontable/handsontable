@@ -19,9 +19,9 @@ test(__filename, async({ page }) => {
 
   const cellCoordinates = await cell.boundingBox();
 
-  await page.mouse.move(cellCoordinates.x + 1, cellCoordinates.y + 1);
+  await page.mouse.move(cellCoordinates!.x + 1, cellCoordinates!.y + 1);
   await page.mouse.down();
-  await page.mouse.move(cellCoordinates.x + 1, cellCoordinates.y - 50);
+  await page.mouse.move(cellCoordinates!.x + 1, cellCoordinates!.y - 50);
   await page.mouse.up();
   await page.screenshot({ path: helpers.screenshotPath() });
 });

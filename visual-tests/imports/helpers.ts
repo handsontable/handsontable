@@ -21,19 +21,24 @@ export const helpers = {
 
   expectedPageTitle: /Handsontable for .* example/,
 
+  hotWrapper: '',
+  testURL: `http://${process.env.CI ? 'localhost' : 'host.docker.internal'}:8080/`,
+  isMac: true,
+  modifier: 'Meta',
+  screenshotsCount: 0,
+  screenshotDirName: '',
+  browser: '',
+
   cssPath(file) {
     return `./tests-css/${file}`;
   },
 
   init(workerInfo) {
     this.hotWrapper = process.env.HOT_WRAPPER || this.defaultHOTWrapper;
-    this.testURL = `http://${process.env.CI ? 'localhost' : 'host.docker.internal'}:8080/`;
-    this.workerInfo = workerInfo;
     this.isMac = workerInfo.project.name === 'webkit';
     this.modifier = this.isMac ? 'Meta' : 'Control';
-    this.screenshotsCount = 0;
-    this.screenshotDirName = this.workerInfo.titlePath[0].split('.spec.js')[0];
-    this.browser = this.workerInfo.project.name;
+    this.screenshotDirName = workerInfo.titlePath[0].split('.spec.js')[0];
+    this.browser = workerInfo.project.name;
   },
 
   findCell(options = { row: 1, cell: 1, cellType: 'td' }) {
