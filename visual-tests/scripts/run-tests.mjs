@@ -79,7 +79,7 @@ for (let i = 0, maxi = (currentBranch === baseBranch ? 1 : wrappers.length); i <
         --rm \
         -t \
         --name vtests-container \
-        --env CURRENT_BRANCH=${currentBranch} \
+        --env HOT_WRAPPER=${wrappers[i]} \
         -v ${pathToMount}:/vtests/ \
         -w /vtests/visual-tests \
         mcr.microsoft.com/playwright:v${playwrightVersion}-focal npx playwright test`;
