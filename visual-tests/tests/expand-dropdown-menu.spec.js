@@ -16,9 +16,6 @@ test(helpers.testTitle(path.basename(__filename)), async({ page }, workerInfo) =
   const table = page.locator(helpers.selectors.mainTable);
 
   await table.waitFor();
-  helpers.mainTableFirstColumn = table.locator(helpers.selectors.mainTableFirstColumn);
-  helpers.tbody = table.locator(helpers.selectors.mainTableBody);
-  helpers.thead = table.locator(helpers.selectors.mainTableHead);
 
   const changeTypeButton = table.locator(helpers.findDropdownMenuExpander({ col: 2 }));
 

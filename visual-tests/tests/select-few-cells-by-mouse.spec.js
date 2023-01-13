@@ -16,11 +16,8 @@ test(helpers.testTitle(path.basename(__filename)), async({ page }, workerInfo) =
   const table = page.locator(helpers.selectors.mainTable);
 
   await table.waitFor();
-  helpers.mainTableFirstColumn = table.locator(helpers.selectors.mainTableFirstColumn);
-  helpers.tbody = table.locator(helpers.selectors.mainTableBody);
-  helpers.thead = table.locator(helpers.selectors.mainTableHead);
-
-  const cell = helpers.tbody.locator(helpers.findCell({ row: 2, cell: 2, cellType: 'td' }));
+  const tbody = table.locator(helpers.selectors.mainTableBody);
+  const cell = tbody.locator(helpers.findCell({ row: 2, cell: 2, cellType: 'td' }));
   const cellCoordinates = await cell.boundingBox();
 
   await page.mouse.move(
