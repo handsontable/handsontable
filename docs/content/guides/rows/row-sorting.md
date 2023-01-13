@@ -8,11 +8,17 @@ canonicalUrl: /row-sorting
 tags:
   - row sorting
   - column sorting
-  - columns sorting
   - columnSorting
   - multicolumn sorting
   - multi-column sorting
   - multiColumnSorting
+  - row ordering
+  - order by
+  - sort ascending
+  - sort descending
+  - highest to lowest
+  - unordered data
+  - sortEmptyCells
 react:
   id: h4jfevxj
   metaTitle: Rows sorting - React Data Grid | Handsontable
