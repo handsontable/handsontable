@@ -2,9 +2,10 @@ name: Visual tests
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: [Tests]
-    types: [completed]
+  # temporarily disable the directives
+  # workflow_run:
+  #   workflows: [Tests]
+  #   types: [completed]
 
 env:
   NODE_VERSION: 16
