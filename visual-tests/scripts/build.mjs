@@ -18,7 +18,7 @@ const dirs = {
   init: process.cwd(),
   examples: '../examples/next/visual-tests',
   codeToRun: 'demo',
-  screenshots: './tests/screenshots',
+  screenshots: './screenshots',
 };
 
 process.chdir(dirs.examples);
