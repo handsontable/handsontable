@@ -13,9 +13,7 @@ describe('ColumnSorting', () => {
         throw Error('Please check the test scenario. The header doesn\'t exist.');
       }
 
-      $spanInsideHeader.simulate('mousedown');
-      $spanInsideHeader.simulate('mouseup');
-      $spanInsideHeader.simulate('click');
+      simulateClick($spanInsideHeader[0]);
     };
   });
 
