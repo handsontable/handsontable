@@ -33,7 +33,7 @@ Sort data alphabetically or numerically, in ascending, descending or a custom or
 
 ## Overview
 
-With Handsontable's sorting features, you can easily rearrange rows of data, based on the values in specified columns. This is especially useful for analyzing and organizing large datasets, helping you identify patterns and trends.
+With sorting, you can easily rearrange rows of data, based on the values in specified columns. This is especially useful for analyzing and organizing large datasets, helping you identify patterns and trends.
 
 You can sort rows in different ways:
 - Alphabetically, numerically, or based on a [custom data type](@/guides/cell-types/cell-type.md).
@@ -425,9 +425,9 @@ By default:
     columnSorting: {
       // let the end user sort rows by clicking on the column name
       headerAction: true,
-      // don't sort empty cells (move rows with empty cells to the bottom)
+      // don't sort empty cells: move rows with empty cells to the bottom
       sortEmptyCells: false,
-      // show the sort order indicator in the column header
+      // enable the sort order icon that appears next to the column name
       indicator: true,
     },
   };
@@ -444,7 +444,7 @@ By default:
       headerAction: false,
       // sort empty cells, too
       sortEmptyCells: true,
-      // hide the sort order indicator in the column header
+      // disable the sort order icon that appears next to the column name
       indicator: false,
 
       // at initialization, sort rows by column 1, in descending order
@@ -479,9 +479,9 @@ By default:
     columnSorting={{
       // let the end user sort rows by clicking on the column name
       headerAction: true,
-      // don't sort empty cells (move rows with empty cells to the bottom)
+      // don't sort empty cells: move rows with empty cells to the bottom
       sortEmptyCells: false,
-      // show the sort order indicator in the column header
+      // enable the sort order icon that appears next to the column name
       indicator: true,
     }}
   />
@@ -498,7 +498,7 @@ By default:
       headerAction: false,
       // sort empty cells, too
       sortEmptyCells: true,
-      // hide the sort order indicator in the column header
+      // disable the sort order icon that appears next to the column name
       indicator: false,
 
       // at initialization, sort rows by column 1, in descending order
@@ -786,7 +786,7 @@ To let the end user apply multiple levels of sort criteria, use the [`multiColum
   
   ```js
   const configurationOptions = {
-    // enable sorting by multiple columns (for the entire grid)
+    // enable sorting by multiple columns, for the entire grid
     multiColumnSorting: true,
   };
   ```
@@ -798,11 +798,11 @@ To let the end user apply multiple levels of sort criteria, use the [`multiColum
   const configurationOptions = {
     columns: [
       {
-        // enable sorting by multiple columns (for column 1)
+        // enable sorting by multiple columns, for column 1
         multiColumnSorting: true,
       },
       {
-        // disable sorting by multiple columns (for column 2)
+        // disable sorting by multiple columns, for column 2
         multiColumnSorting: false,
       },
     ],
@@ -814,7 +814,7 @@ To let the end user apply multiple levels of sort criteria, use the [`multiColum
   
   ```js
   const configurationOptions = {
-    // enable sorting by multiple columns (for the entire grid)
+    // enable sorting by multiple columns, for the entire grid
     multiColumnSorting: true,
 
     // exclude rows 1 and 2 from sorting
@@ -840,7 +840,7 @@ To let the end user apply multiple levels of sort criteria, use the [`multiColum
   
   ```jsx
   <HotTable
-    // enable sorting by multiple columns (for the entire grid)
+    // enable sorting by multiple columns, for the entire grid
     multiColumnSorting={true}
   />
   ```
@@ -851,11 +851,11 @@ To let the end user apply multiple levels of sort criteria, use the [`multiColum
   ```jsx
   <HotTable>
     <HotColumn
-      // enable sorting by multiple columns (for column 1)
+      // enable sorting by multiple columns, for column 1
       multiColumnSorting={true}
     />
     <HotColumn
-      // disable sorting by multiple columns (for column 2)
+      // disable sorting by multiple columns, for column 2
       multiColumnSorting={false}
     />
   </HotTable>
@@ -872,7 +872,7 @@ To let the end user apply multiple levels of sort criteria, use the [`multiColum
   <HotTable
     ref={hotTableComponentRef}
 
-    // enable sorting by multiple columns (for the entire grid)
+    // enable sorting by multiple columns, for the entire grid
     columnSorting={true}
 
     // exclude rows 1 and 2 from sorting
@@ -995,7 +995,7 @@ const yourHandsontableInstance = new Handsontable(container, {
   ],
   height: 'auto',
   width: 'auto',
-  // enable sorting by multiple columns (for the entire grid)
+  // enable sorting by multiple columns, for the entire grid
   multiColumnSorting: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
@@ -1102,7 +1102,7 @@ export const YourHandsontableComponent = () => {
         'Time',
         'In stock',
       ]}
-      // enable sorting by multiple columns (for the entire grid)
+      // enable sorting by multiple columns, for the entire grid
       multiColumnSorting={true}
       height="auto"
       width="auto"
