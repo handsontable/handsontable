@@ -27,11 +27,25 @@ searchCategory: Guides
 
 # Rows sorting
 
-<p style="font-size:20px;">Sort rows alphabetically or numerically, in ascending, descending or a custom order, across one or multiple columns.</p>
+Sort data alphabetically or numerically, in ascending, descending or a custom order, across one or multiple columns.
 
 [[toc]]
 
-Try it out: click on a column label to sort the rows in ascending, descending, or the original order.
+## Overview
+
+With Handsontable's sorting features, you can easily rearrange rows of data, based on the values in specified columns. This is especially useful for analyzing and organizing large datasets, helping you identify patterns and trends.
+
+You can sort rows in different ways:
+- Alphabetically, numerically, or based on a [custom data type](@/guides/cell-types/cell-type.md).
+- In ascending, descending, or a [custom order](#add-a-custom-comparator).
+- By a single column, or by [multiple columns](#sort-by-multiple-columns).
+- Using Handsontable's [UI](#demo) or [API](#control-sorting-programmatically).
+
+Only the table view is sorted. Your source data remains in the original order.
+
+### Demo
+
+Click on a column name to sort the rows in ascending (↑) or descending (↓) order, or to restore the original order.
 
 ::: only-for javascript
 
@@ -257,11 +271,9 @@ ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example1
 
 :::
 
-Only the table view is sorted. Your source data remains in the original order.
+## Enable sorting
 
-## Enable rows sorting
-
-To enable rows sorting, use the [`columnSorting`](@/api/options.md#columnsorting) option.
+To enable sorting, use the [`columnSorting`](@/api/options.md#columnsorting) option.
 
 ::: only-for javascript
 
@@ -270,7 +282,7 @@ To enable rows sorting, use the [`columnSorting`](@/api/options.md#columnsorting
   
   ```js
   const configurationOptions = {
-    // enable rows sorting for the entire grid
+    // enable sorting for the entire grid
     columnSorting: true,
   };
   ```
@@ -298,7 +310,7 @@ To enable rows sorting, use the [`columnSorting`](@/api/options.md#columnsorting
   
   ```js
   const configurationOptions = {
-    // enable rows sorting for the entire grid
+    // enable sorting for the entire grid
     columnSorting: true,
 
     // exclude rows 1 and 2 from sorting
@@ -324,7 +336,7 @@ To enable rows sorting, use the [`columnSorting`](@/api/options.md#columnsorting
   
   ```jsx
   <HotTable
-    // enable rows sorting for the entire grid
+    // enable sorting for the entire grid
     columnSorting={true}
   />
   ```
@@ -356,7 +368,7 @@ To enable rows sorting, use the [`columnSorting`](@/api/options.md#columnsorting
   <HotTable
     ref={hotTableComponentRef}
 
-    // enable rows sorting for the entire grid
+    // enable sorting for the entire grid
     columnSorting={true}
 
     // exclude rows 1 and 2 from sorting
@@ -397,13 +409,13 @@ import {
 registerPlugin(ColumnSorting);
 ```
 
-## Configure rows sorting
+## Configure sorting
 
 Configure the sort UI, set an initial sort order, and implement your own compare function.
 
 By default:
 - Sorting is enabled for all columns.
-- The end user can sort rows by clicking on the column label.
+- The end user can sort rows by clicking on the column name.
 - The sort order indicator is visible.
 - No rows are sorted initially.
 
@@ -415,7 +427,7 @@ By default:
   ```js
   const configurationOptions = {
     columnSorting: {
-      // let the end user sort rows by clicking on the column label
+      // let the end user sort rows by clicking on the column name
       headerAction: true,
       // don't sort empty cells (move rows with empty cells to the bottom)
       sortEmptyCells: false,
@@ -432,7 +444,7 @@ By default:
   ```js
   const configurationOptions = {
     columnSorting: {
-      // don't let the end user sort rows by clicking on the column label
+      // don't let the end user sort rows by clicking on the column name
       headerAction: false,
       // sort empty cells, too
       sortEmptyCells: true,
@@ -469,7 +481,7 @@ By default:
   ```jsx
   <HotTable
     columnSorting={{
-      // let the end user sort rows by clicking on the column label
+      // let the end user sort rows by clicking on the column name
       headerAction: true,
       // don't sort empty cells (move rows with empty cells to the bottom)
       sortEmptyCells: false,
@@ -486,7 +498,7 @@ By default:
   ```jsx
   <HotTable
     columnSorting={{
-      // don't let the end user sort rows by clicking on the column label
+      // don't let the end user sort rows by clicking on the column name
       headerAction: false,
       // sort empty cells, too
       sortEmptyCells: true,
@@ -871,9 +883,9 @@ Don't use the [`columnSorting`](@/api/options.md#columnsorting) and [`multiColum
 
 Try it out:
 
-1. Click on a column label to sort the rows by a single column.
+1. Click on a column name to sort the rows by a single column.
 2. Hold down <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd>.
-3. Click on other column labels to apply additional levels of sort criteria.
+3. Click on other column names to apply additional levels of sort criteria.
 
 ::: only-for javascript
 
@@ -1667,7 +1679,7 @@ To learn how to access the API methods, read the [Instance methods](@/guides/get
 
 :::
 
-### Disable rows sorting
+### Disable sorting
 
 To disable and re-enable sorting at Handsontable's runtime, use the [`updateSettings()`](@/api/core.md#updatesettings) method.
 
@@ -1677,12 +1689,12 @@ To disable and re-enable sorting at Handsontable's runtime, use the [`updateSett
   <code-block title="Entire grid">
   
   ```js
-  // disable rows sorting for the entire grid
+  // disable sorting for the entire grid
   handsontableInstance.updateSettings({
     columnSorting: false,
   });
 
-  // re-enable rows sorting for the entire grid
+  // re-enable sorting for the entire grid
   handsontableInstance.updateSettings({
     columnSorting: true,
   });
@@ -1732,12 +1744,12 @@ To disable and re-enable sorting at Handsontable's runtime, use the [`updateSett
   ```jsx
   const hotTableComponentRef = useRef(null);
 
-  // disable rows sorting for the entire grid
+  // disable sorting for the entire grid
   hotTableComponentRef.current.hotInstance.updateSettings({
     columnSorting: false,
   });
 
-  // re-enable rows sorting for the entire grid
+  // re-enable sorting for the entire grid
   hotTableComponentRef.current.hotInstance.updateSettings({
     columnSorting: true,
   });
@@ -1784,7 +1796,7 @@ To disable and re-enable sorting at Handsontable's runtime, use the [`updateSett
 ### Sort rows programmatically
 
 To sort rows programmatically, use the [`columnSorting.sort()`](@/api/columnSorting.md#sort) method.
-Remember to [enable rows sorting](#enable-rows-sorting) first.
+Remember to [enable sorting](#enable-sorting) first.
 
 Mind that [`columnSorting.sort()`](@/api/columnSorting.md#sort) erases any previous sort orders.
 
@@ -2115,7 +2127,7 @@ ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example6
 
 ## Related resources
 
-Read our [blog article](https://handsontable.com/blog/articles/2018/11/feature-spotlight-multi-column-sorting) about multi-column rows sorting.
+Read our [blog article](https://handsontable.com/blog/articles/2018/11/feature-spotlight-multi-column-sorting) about multi-column sorting.
 
 ### More examples
 
@@ -2155,8 +2167,8 @@ Read our [blog article](https://handsontable.com/blog/articles/2018/11/feature-s
 
 Didn't find what you need? Try this:
 
-- View [GitHub issues](https://github.com/handsontable/handsontable/labels/Column%20sorting) related to rows sorting
-- Report a [new GitHub issue](https://github.com/handsontable/handsontable/issues/new/choose)
-- Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/handsontable)
-- Ask a question on [Handsontable's forum](https://forum.handsontable.com/c/getting-help/questions)
-- Contact Handsontable's [technical support](https://handsontable.com/contact?category=technical_support)
+- View [GitHub issues](https://github.com/handsontable/handsontable/labels/Column%20sorting) related to sorting.
+- Report a [new GitHub issue](https://github.com/handsontable/handsontable/issues/new/choose).
+- Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/handsontable).
+- Ask a question on [Handsontable's forum](https://forum.handsontable.com/c/getting-help/questions).
+- Contact Handsontable's [technical support](https://handsontable.com/contact?category=technical_support).
