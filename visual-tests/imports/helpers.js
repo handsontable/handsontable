@@ -27,7 +27,7 @@ export const helpers = {
 
   init(workerInfo) {
     this.hotWrapper = process.env.HOT_WRAPPER || this.defaultHOTWrapper;
-    this.testURL = 'http://localhost:8080/';
+    this.testURL = `http://${process.env.CI ? 'localhost' : 'host.docker.internal'}:8080/`;
     this.workerInfo = workerInfo;
     this.isMac = workerInfo.project.name === 'webkit';
     this.modifier = this.isMac ? 'Meta' : 'Control';

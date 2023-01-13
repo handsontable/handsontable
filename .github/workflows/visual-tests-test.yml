@@ -22,9 +22,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Log the branch name
-        run: echo running on branch ${GITHUB_REF##*/}
-
       - name: Install monorepo dependencies
         run: |
           npm ci --no-audit
@@ -37,11 +34,11 @@ jobs:
       - name: Run visual tests
         run: |
           cd visual-tests
-          npm run test CI -- --currentBranch ${GITHUB_REF##*/}
+          npm run test
 
       - name: Upload screenshots
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
         run: |
           cd visual-tests
-          npm run upload CI -- --currentBranch ${GITHUB_REF##*/}
+          npm run upload

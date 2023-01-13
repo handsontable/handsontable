@@ -7,18 +7,25 @@
 import path from 'path';
 import execa from 'execa';
 import fse from 'fs-extra';
-import { baseBranch, wrappers } from './config.mjs';
+import chalk from 'chalk';
+import mainPackageJSON from '../package.json' assert { type: 'json' };
+import { getCurrentBranchName, sleep } from './utils/utils.mjs';
+import { baseBranch, wrappers } from './utils/config.mjs';
 
-const currentBranch = process.env.CURRENT_BRANCH;
+const currentBranch = getCurrentBranchName();
+const playwrightVersion = mainPackageJSON.dependencies.playwright;
+const pathToMount = `${process.cwd().split('\\').join('/')}/../`;
 const dirs = {
   examples: '../examples/next/visual-tests',
   codeToRun: 'demo',
   screenshots: './screenshots',
 };
 
-console.log('Installing dependencies for Examples monorepo');
+console.log(chalk.green('Installing dependencies for Visual Tests Examples project...'));
+
 await execa.command('npm install', {
-  stdio: 'inherit',
+  stdout: 'ignore',
+  stderr: 'inherit',
   cwd: dirs.examples
 });
 
@@ -28,33 +35,67 @@ await execa.command('npm install', {
 // which is declared as a first position in wrappers array.
 
 for (let i = 0, maxi = (currentBranch === baseBranch ? 1 : wrappers.length); i < maxi; ++i) {
+  console.log(chalk.green(`Installing dependencies for "${wrappers[i]}" examples...`));
+
   await execa.command('npm install', {
-    stdout: 'inherit',
+    stdout: 'ignore',
+    stderr: 'inherit',
     cwd: `${dirs.examples}/${wrappers[i]}`
   });
 
+  console.log(chalk.green(`Building "${wrappers[i]}" examples...`));
+
   await execa.command('npm run build', {
-    stdout: 'inherit',
+    stdout: 'ignore',
+    stderr: 'inherit',
     cwd: `${dirs.examples}/${wrappers[i]}/${dirs.codeToRun}`
   });
 
-  const localhostProcess = execa.command('npm run start', {
+  const localhostProcess = execa.command('npm run serve', {
     detached: true,
     stdio: 'ignore',
     windowsHide: true,
     cwd: `${dirs.examples}/${wrappers[i]}/${dirs.codeToRun}`
   });
 
-  // eslint-disable-next-line no-await-in-loop
-  await execa.command('npx playwright test', {
-    env: {
-      HOT_WRAPPER: wrappers[i]
-    },
-    stdout: 'inherit'
-  });
+  // Make sure that the `http-server` has time to load and serve example
+  await sleep(200);
+
+  console.log(chalk.green(`Testing "${wrappers[i]}" examples...`));
+
+  try {
+    if (process.env.CI) {
+      await execa.command('npx playwright test', {
+        env: {
+          HOT_WRAPPER: wrappers[i]
+        },
+        stdout: 'inherit'
+      });
+    } else {
+      // we need access to `examples` and `virtual-tests` directories,
+      // so here we mount entire HoT directory as a virtual `vtests`
+      // and on start open `visual-tests` in it
+      const dockerCommand = `docker run \
+        --rm \
+        -t \
+        --name vtests-container \
+        --env CURRENT_BRANCH=${currentBranch} \
+        -v ${pathToMount}:/vtests/ \
+        -w /vtests/visual-tests \
+        mcr.microsoft.com/playwright:v${playwrightVersion}-focal npx playwright test`;
+
+      await execa.command(dockerCommand, { stdio: 'inherit' });
+    }
+  } catch {
+    console.log(chalk.yellow(`There are reported some errors while testing "${wrappers[i]}" examples.`));
+  }
 
   localhostProcess.kill();
+  console.log(chalk.green(`Finished testing "${wrappers[i]}" examples.`));
+  console.log('');
 }
+
+console.log(chalk.green('Done.'));
 
 if (currentBranch === baseBranch) {
   // Golden screenshots are already done,

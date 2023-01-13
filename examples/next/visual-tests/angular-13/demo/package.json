@@ -13,6 +13,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "ng": "ng",
+    "serve": "http-server dist",
     "start": "ng serve --port 8080",
     "build": "ng build",
     "test": "node spec/support/jasmine.config.js"
@@ -34,12 +35,13 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "v13-lts",
-    "@angular/localize": "v13-lts",
-    "@angular/service-worker": "v13-lts",
     "@angular/cli": "v13-lts",
     "@angular/compiler-cli": "v13-lts",
+    "@angular/localize": "v13-lts",
+    "@angular/service-worker": "v13-lts",
     "@types/jasmine": "3.6.9",
     "@types/node": "12.20.7",
+    "http-server": "^14.1.1",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
     "puppeteer": "14.3.0",

@@ -15,6 +15,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "start": "parcel index.html --port 8080",
+    "serve": "http-server dist",
     "build": "parcel build index.html --public-url '.'",
     "test": "node spec/support/jasmine.config.js"
   },
@@ -22,6 +23,7 @@
     "handsontable": "latest"
   },
   "devDependencies": {
+    "http-server": "^14.1.1",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
     "parcel-bundler": "1.12.3",

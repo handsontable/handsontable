@@ -33,7 +33,6 @@
     "examples:build": "node examples/scripts/code-examples.mjs build",
     "examples:test": "node examples/scripts/code-examples.mjs test",
     "examples:start": "http-server ./examples/tmp",
-    "vtests:docker:build": "cd visual-tests && npm run docker:build",
     "vtests:test": "cd visual-tests && npm run test",
     "vtests:upload": "cd visual-tests && npm run upload"
   },

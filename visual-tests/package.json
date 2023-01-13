@@ -6,15 +6,15 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint --ext .js,.mjs imports scripts tests",
-    "docker:build": "docker build --no-cache --tag vtests .",
-    "test": "node ./scripts/launcher.mjs build",
-    "upload": "node ./scripts/launcher.mjs upload"
+    "test": "node ./scripts/run-tests.mjs",
+    "upload": "node ./scripts/upload.mjs"
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "license": "ISC",
   "devDependencies": {
     "@argos-ci/cli": "^0.3.1",
     "@playwright/test": "1.28.1",
+    "chalk": "^4.1.0",
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2"
   },
