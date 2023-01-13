@@ -1,21 +1,11 @@
-import { test, expect } from '@playwright/test';
-import path from 'path';
+import { test } from '../imports/test-runner';
 import { helpers } from '../imports/helpers';
 
-const stylesToAdd = [
-  helpers.cssFiles.cookieInfo,
-  helpers.cssFiles.dynamicDataFreeze
-];
-
-test(helpers.testTitle(path.basename(__filename)), async({ page }, workerInfo) => {
-  helpers.init(workerInfo);
-  await page.goto(helpers.testURL);
-  await expect(page).toHaveTitle(helpers.expectedPageTitle);
-  stylesToAdd.forEach(item => page.addStyleTag({ path: helpers.cssPath(item) }));
-
+test(__filename, async({ page }) => {
   const table = page.locator(helpers.selectors.mainTable);
 
   await table.waitFor();
+
   const tbody = table.locator(helpers.selectors.mainTableBody);
   const cell = tbody.locator(helpers.findCell({ row: 2, cell: 2, cellType: 'td' }));
   const cellCoordinates = await cell.boundingBox();
