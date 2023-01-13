@@ -1,4 +1,4 @@
-name: Visual tests linter
+name: Visual tests Linter
 
 on:
   push:

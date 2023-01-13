@@ -16,7 +16,7 @@ const dirs = {
   screenshots: './screenshots',
 };
 
-console.log(chalk.green('Installing dependencies for Examples monorepo'));
+console.log('Installing dependencies for Examples monorepo');
 await execa.command('npm install', {
   stdio: 'inherit',
   cwd: dirs.examples
