@@ -59,43 +59,43 @@ const container = document.querySelector('#example1');
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
     {
-      brand: 'Tagcat',
-      model: 'Classic Vest',
-      price: 327,
-      sellDate: '11/10/2020',
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
       sellTime: '01:23',
-      inStock: true,
+      inStock: false,
     },
     {
-      brand: 'Zoomzone',
-      model: 'Cycling Cap',
-      price: 717,
-      sellDate: '03/05/2020',
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.90,
+      sellDate: '03/05/2023',
       sellTime: '11:27',
       inStock: false,
     },
     {
-      brand: 'Meeveo',
-      model: 'Full-Finger Gloves',
-      price: 314,
-      sellDate: '27/03/2020',
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.10,
+      sellDate: '27/03/2023',
       sellTime: '03:17',
       inStock: true,
     },
     {
-      brand: 'Buzzdog',
-      model: 'Mountain Frame',
-      price: 268,
-      sellDate: '29/08/2020',
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
       sellTime: '08:01',
-      inStock: false,
+      inStock: true,
     },
     {
-      brand: 'Katz',
-      model: 'Half-Finger Gloves',
-      price: 204,
-      sellDate: '02/10/2020',
-      sellTime: '12:23',
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
       inStock: true,
     },
   ],
@@ -115,19 +115,23 @@ const yourHandsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US'
       },
+      className: 'htLeft',
     },
     {
       type: 'date',
       data: 'sellDate',
+      className: 'htRight',
     },
     {
       type: 'time',
       data: 'sellTime',
       correctFormat: true,
+      className: 'htRight',
     },
     {
       type: 'checkbox',
       data: 'inStock',
+      className: 'htCenter',
     },
   ],
   colHeaders: [
@@ -138,15 +142,9 @@ const yourHandsontableInstance = new Handsontable(container, {
     'Time',
     'In stock',
   ],
-  rowHeaders: true,
   height: 'auto',
   width: 'auto',
-  columnSorting: {
-    initialConfig: {
-      column: 1,
-      sortOrder: 'desc',
-    },
-  },
+  columnSorting: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -169,46 +167,46 @@ export const YourHandsontableComponent = () => {
   return (
     <HotTable
       data={[
-      {
-        brand: 'Tagcat',
-        model: 'Classic Vest',
-        price: 327,
-        sellDate: '11/10/2020',
-        sellTime: '01-2331',
-        inStock: true,
-      },
-      {
-        brand: 'Zoomzone',
-        model: 'Cycling Cap',
-        price: 717,
-        sellDate: '03/05/2020',
-        sellTime: '88-2768',
-        inStock: false,
-      },
-      {
-        brand: 'Meeveo',
-        model: 'Full-Finger Gloves',
-        price: 314,
-        sellDate: '27/03/2020',
-        sellTime: '51-6775',
-        inStock: true,
-      },
-      {
-        brand: 'Buzzdog',
-        model: 'Mountain Frame',
-        price: 268,
-        sellDate: '29/08/2020',
-        sellTime: '44-4028',
-        inStock: false,
-      },
-      {
-        brand: 'Katz',
-        model: 'Half-Finger Gloves',
-        price: 204,
-        sellDate: '02/10/2020',
-        sellTime: '08-2758',
-        inStock: true,
-      },
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.90,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.10,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: true,
+        },
     ]}
       columns={[
         {
@@ -226,18 +224,23 @@ export const YourHandsontableComponent = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US'
           },
+          className: 'htLeft',
         },
         {
           type: 'date',
           data: 'sellDate',
+          className: 'htRight',
         },
         {
-          type: 'text',
+          type: 'time',
           data: 'sellTime',
+          correctFormat: true,
+          className: 'htRight',
         },
         {
           type: 'checkbox',
           data: 'inStock',
+          className: 'htCenter',
         },
       ]}
       colHeaders={[
@@ -248,14 +251,7 @@ export const YourHandsontableComponent = () => {
         'Time',
         'In stock',
       ]}
-      columnSorting={{
-        // at initialization, sort rows by column 1, in descending order
-        initialConfig: {
-          column: 1,
-          sortOrder: 'desc',
-        },
-      }}
-      rowHeaders={true}
+      columnSorting={true}
       height="auto"
       width="auto"
       licenseKey="non-commercial-and-evaluation"
@@ -573,38 +569,43 @@ const container = document.querySelector('#example2');
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
     {
-      model: 'Classic Vest',
-      price: 327,
-      sellDate: '11/10/2020',
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
       sellTime: '01:23',
-      inStock: true,
+      inStock: false,
     },
     {
-      model: 'Cycling Cap',
-      price: 717,
-      sellDate: '03/05/2020',
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.90,
+      sellDate: '03/05/2023',
       sellTime: '11:27',
       inStock: false,
     },
     {
-      model: 'Full-Finger Gloves',
-      price: 314,
-      sellDate: '27/03/2020',
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.10,
+      sellDate: '27/03/2023',
       sellTime: '03:17',
       inStock: true,
     },
     {
-      model: 'Mountain Frame',
-      price: 268,
-      sellDate: '29/08/2020',
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
       sellTime: '08:01',
-      inStock: false,
+      inStock: true,
     },
     {
-      model: 'Half-Finger Gloves',
-      price: 204,
-      sellDate: '02/10/2020',
-      sellTime: '12:23',
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
       inStock: true,
     },
   ],
@@ -622,21 +623,25 @@ const yourHandsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US'
       },
+      className: 'htLeft',
     },
     {
       // set the data type of column 3
       type: 'date',
       data: 'sellDate',
+      className: 'htRight',
     },
     {
       // set the data type of column 4
       type: 'time',
       data: 'sellTime',
+      className: 'htRight',
     },
     {
       // set the data type of column 5
       type: 'checkbox',
       data: 'inStock',
+      className: 'htCenter',
     },
   ],
   colHeaders: [
@@ -646,7 +651,6 @@ const yourHandsontableInstance = new Handsontable(container, {
     'Time',
     'In stock',
   ],
-  rowHeaders: true,
   height: 'auto',
   width: 'auto',
   columnSorting: true,
@@ -672,41 +676,46 @@ export const YourHandsontableComponent = () => {
   return (
     <HotTable
       data={[
-      {
-        model: 'Classic Vest',
-        price: 327,
-        sellDate: '11/10/2020',
-        sellTime: '01-2331',
-        inStock: true,
-      },
-      {
-        model: 'Cycling Cap',
-        price: 717,
-        sellDate: '03/05/2020',
-        sellTime: '88-2768',
-        inStock: false,
-      },
-      {
-        model: 'Full-Finger Gloves',
-        price: 314,
-        sellDate: '27/03/2020',
-        sellTime: '51-6775',
-        inStock: true,
-      },
-      {
-        model: 'Mountain Frame',
-        price: 268,
-        sellDate: '29/08/2020',
-        sellTime: '44-4028',
-        inStock: false,
-      },
-      {
-        model: 'Half-Finger Gloves',
-        price: 204,
-        sellDate: '02/10/2020',
-        sellTime: '08-2758',
-        inStock: true,
-      },
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.90,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.10,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: true,
+        },
     ]}
       columns={[
         {
@@ -722,21 +731,25 @@ export const YourHandsontableComponent = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US'
           },
+          className: 'htLeft',
         },
         {
           // set the data type of column 3
           type: 'date',
           data: 'sellDate',
+          className: 'htRight',
         },
         {
           // set the data type of column 4
           type: 'text',
           data: 'sellTime',
+          className: 'htRight',
         },
         {
           // set the data type of column 5
           type: 'checkbox',
           data: 'inStock',
+          className: 'htCenter',
         },
       ]}
       colHeaders={[
@@ -747,7 +760,6 @@ export const YourHandsontableComponent = () => {
         'In stock',
       ]}
       columnSorting={true}
-      rowHeaders={true}
       height="auto"
       width="auto"
       licenseKey="non-commercial-and-evaluation"
@@ -899,43 +911,43 @@ const container = document.querySelector('#example3');
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
     {
-      brand: 'Tagcat',
-      model: 'Classic Vest',
-      price: 327,
-      sellDate: '11/10/2020',
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
       sellTime: '01:23',
-      inStock: true,
+      inStock: false,
     },
     {
-      brand: 'Zoomzone',
-      model: 'Cycling Cap',
-      price: 717,
-      sellDate: '03/05/2020',
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.90,
+      sellDate: '03/05/2023',
       sellTime: '11:27',
       inStock: false,
     },
     {
-      brand: 'Meeveo',
-      model: 'Full-Finger Gloves',
-      price: 314,
-      sellDate: '27/03/2020',
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.10,
+      sellDate: '27/03/2023',
       sellTime: '03:17',
       inStock: true,
     },
     {
-      brand: 'Buzzdog',
-      model: 'Mountain Frame',
-      price: 268,
-      sellDate: '29/08/2020',
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
       sellTime: '08:01',
-      inStock: false,
+      inStock: true,
     },
     {
-      brand: 'Katz',
-      model: 'Half-Finger Gloves',
-      price: 204,
-      sellDate: '02/10/2020',
-      sellTime: '12:23',
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
       inStock: true,
     },
   ],
@@ -955,18 +967,22 @@ const yourHandsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US'
       },
+      className: 'htLeft',
     },
     {
       type: 'date',
       data: 'sellDate',
+      className: 'htRight',
     },
     {
       type: 'time',
       data: 'sellTime',
+      className: 'htRight',
     },
     {
       type: 'checkbox',
       data: 'inStock',
+      className: 'htCenter',
     },
   ],
   colHeaders: [
@@ -977,7 +993,6 @@ const yourHandsontableInstance = new Handsontable(container, {
     'Time',
     'In stock',
   ],
-  rowHeaders: true,
   height: 'auto',
   width: 'auto',
   // enable sorting by multiple columns (for the entire grid)
@@ -1004,46 +1019,46 @@ export const YourHandsontableComponent = () => {
   return (
     <HotTable
       data={[
-      {
-        brand: 'Tagcat',
-        model: 'Classic Vest',
-        price: 327,
-        sellDate: '11/10/2020',
-        sellTime: '01-2331',
-        inStock: true,
-      },
-      {
-        brand: 'Zoomzone',
-        model: 'Cycling Cap',
-        price: 717,
-        sellDate: '03/05/2020',
-        sellTime: '88-2768',
-        inStock: false,
-      },
-      {
-        brand: 'Meeveo',
-        model: 'Full-Finger Gloves',
-        price: 314,
-        sellDate: '27/03/2020',
-        sellTime: '51-6775',
-        inStock: true,
-      },
-      {
-        brand: 'Buzzdog',
-        model: 'Mountain Frame',
-        price: 268,
-        sellDate: '29/08/2020',
-        sellTime: '44-4028',
-        inStock: false,
-      },
-      {
-        brand: 'Katz',
-        model: 'Half-Finger Gloves',
-        price: 204,
-        sellDate: '02/10/2020',
-        sellTime: '08-2758',
-        inStock: true,
-      },
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.90,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.10,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: true,
+        },
     ]}
       columns={[
         {
@@ -1061,18 +1076,22 @@ export const YourHandsontableComponent = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US'
           },
+          className: 'htLeft',
         },
         {
           type: 'date',
           data: 'sellDate',
+          className: 'htRight',
         },
         {
           type: 'text',
           data: 'sellTime',
+          className: 'htRight',
         },
         {
           type: 'checkbox',
           data: 'inStock',
+          className: 'htCenter',
         },
       ]}
       colHeaders={[
@@ -1085,7 +1104,6 @@ export const YourHandsontableComponent = () => {
       ]}
       // enable sorting by multiple columns (for the entire grid)
       multiColumnSorting={true}
-      rowHeaders={true}
       height="auto"
       width="auto"
       licenseKey="non-commercial-and-evaluation"
@@ -1150,43 +1168,43 @@ const container = document.querySelector('#example4');
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
     {
-      brand: 'Tagcat',
-      model: 'Classic Vest',
-      price: 327,
-      sellDate: '11/10/2020',
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
       sellTime: '01:23',
-      inStock: true,
+      inStock: false,
     },
     {
-      brand: 'Zoomzone',
-      model: 'Cycling Cap',
-      price: 717,
-      sellDate: '03/05/2020',
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.90,
+      sellDate: '03/05/2023',
       sellTime: '11:27',
       inStock: false,
     },
     {
-      brand: 'Meeveo',
-      model: 'Full-Finger Gloves',
-      price: 314,
-      sellDate: '27/03/2020',
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.10,
+      sellDate: '27/03/2023',
       sellTime: '03:17',
       inStock: true,
     },
     {
-      brand: 'Buzzdog',
-      model: 'Mountain Frame',
-      price: 268,
-      sellDate: '29/08/2020',
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
       sellTime: '08:01',
-      inStock: false,
+      inStock: true,
     },
     {
-      brand: 'Katz',
-      model: 'Half-Finger Gloves',
-      price: 204,
-      sellDate: '02/10/2020',
-      sellTime: '12:23',
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
       inStock: true,
     },
   ],
@@ -1206,18 +1224,22 @@ const yourHandsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US'
       },
+      className: 'htLeft',
     },
     {
       type: 'date',
       data: 'sellDate',
+      className: 'htRight',
     },
     {
       type: 'time',
       data: 'sellTime',
+      className: 'htRight',
     },
     {
       type: 'checkbox',
       data: 'inStock',
+      className: 'htCenter',
     },
   ],
   colHeaders: [
@@ -1228,7 +1250,6 @@ const yourHandsontableInstance = new Handsontable(container, {
     'Time',
     'In stock',
   ],
-  rowHeaders: true,
   height: 'auto',
   width: 'auto',
   columnSorting: {
@@ -1260,46 +1281,46 @@ export const YourHandsontableComponent = () => {
   return (
     <HotTable
       data={[
-      {
-        brand: 'Tagcat',
-        model: 'Classic Vest',
-        price: 327,
-        sellDate: '11/10/2020',
-        sellTime: '01-2331',
-        inStock: true,
-      },
-      {
-        brand: 'Zoomzone',
-        model: 'Cycling Cap',
-        price: 717,
-        sellDate: '03/05/2020',
-        sellTime: '88-2768',
-        inStock: false,
-      },
-      {
-        brand: 'Meeveo',
-        model: 'Full-Finger Gloves',
-        price: 314,
-        sellDate: '27/03/2020',
-        sellTime: '51-6775',
-        inStock: true,
-      },
-      {
-        brand: 'Buzzdog',
-        model: 'Mountain Frame',
-        price: 268,
-        sellDate: '29/08/2020',
-        sellTime: '44-4028',
-        inStock: false,
-      },
-      {
-        brand: 'Katz',
-        model: 'Half-Finger Gloves',
-        price: 204,
-        sellDate: '02/10/2020',
-        sellTime: '08-2758',
-        inStock: true,
-      },
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.90,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.10,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: true,
+        },
     ]}
       columns={[
         {
@@ -1317,18 +1338,22 @@ export const YourHandsontableComponent = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US'
           },
+          className: 'htLeft',
         },
         {
           type: 'date',
           data: 'sellDate',
+          className: 'htRight',
         },
         {
           type: 'text',
           data: 'sellTime',
+          className: 'htRight',
         },
         {
           type: 'checkbox',
           data: 'inStock',
+          className: 'htCenter',
         },
       ]}
       colHeaders={[
@@ -1346,7 +1371,6 @@ export const YourHandsontableComponent = () => {
           sortOrder: 'asc',
         },
       }}
-      rowHeaders={true}
       height="auto"
       width="auto"
       licenseKey="non-commercial-and-evaluation"
@@ -1403,43 +1427,43 @@ const container = document.querySelector('#example5');
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
     {
-      brand: 'Tagcat',
-      model: 'Classic Vest',
-      price: 327,
-      sellDate: '11/10/2020',
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
       sellTime: '01:23',
-      inStock: true,
+      inStock: false,
     },
     {
-      brand: 'Zoomzone',
-      model: 'Cycling Cap',
-      price: 717,
-      sellDate: '03/05/2020',
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.90,
+      sellDate: '03/05/2023',
       sellTime: '11:27',
       inStock: false,
     },
     {
-      brand: 'Meeveo',
-      model: 'Full-Finger Gloves',
-      price: 314,
-      sellDate: '27/03/2020',
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.10,
+      sellDate: '27/03/2023',
       sellTime: '03:17',
       inStock: true,
     },
     {
-      brand: 'Buzzdog',
-      model: 'Mountain Frame',
-      price: 268,
-      sellDate: '29/08/2020',
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
       sellTime: '08:01',
-      inStock: false,
+      inStock: true,
     },
     {
-      brand: 'Katz',
-      model: 'Half-Finger Gloves',
-      price: 204,
-      sellDate: '02/10/2020',
-      sellTime: '12:23',
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
       inStock: true,
     },
   ],
@@ -1459,18 +1483,22 @@ const yourHandsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US'
       },
+      className: 'htLeft',
     },
     {
       type: 'date',
       data: 'sellDate',
+      className: 'htRight',
     },
     {
       type: 'time',
       data: 'sellTime',
+      className: 'htRight',
     },
     {
       type: 'checkbox',
       data: 'inStock',
+      className: 'htCenter',
     },
   ],
   colHeaders: [
@@ -1481,7 +1509,6 @@ const yourHandsontableInstance = new Handsontable(container, {
     'Time',
     'In stock',
   ],
-  rowHeaders: true,
   height: 'auto',
   width: 'auto',
   className: 'your-handsontable-instance',
@@ -1527,46 +1554,46 @@ export const YourHandsontableComponent = () => {
   return (
     <HotTable
       data={[
-      {
-        brand: 'Tagcat',
-        model: 'Classic Vest',
-        price: 327,
-        sellDate: '11/10/2020',
-        sellTime: '01-2331',
-        inStock: true,
-      },
-      {
-        brand: 'Zoomzone',
-        model: 'Cycling Cap',
-        price: 717,
-        sellDate: '03/05/2020',
-        sellTime: '88-2768',
-        inStock: false,
-      },
-      {
-        brand: 'Meeveo',
-        model: 'Full-Finger Gloves',
-        price: 314,
-        sellDate: '27/03/2020',
-        sellTime: '51-6775',
-        inStock: true,
-      },
-      {
-        brand: 'Buzzdog',
-        model: 'Mountain Frame',
-        price: 268,
-        sellDate: '29/08/2020',
-        sellTime: '44-4028',
-        inStock: false,
-      },
-      {
-        brand: 'Katz',
-        model: 'Half-Finger Gloves',
-        price: 204,
-        sellDate: '02/10/2020',
-        sellTime: '08-2758',
-        inStock: true,
-      },
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.90,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.10,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: true,
+        },
     ]}
       columns={[
         {
@@ -1584,18 +1611,22 @@ export const YourHandsontableComponent = () => {
             pattern: '$ 0,0.00',
             culture: 'en-US'
           },
+          className: 'htLeft',
         },
         {
           type: 'date',
           data: 'sellDate',
+          className: 'htRight',
         },
         {
           type: 'text',
           data: 'sellTime',
+          className: 'htRight',
         },
         {
           type: 'checkbox',
           data: 'inStock',
+          className: 'htCenter',
         },
       ]}
       colHeaders={[
@@ -1614,7 +1645,6 @@ export const YourHandsontableComponent = () => {
         },
       }}
       className="your-handsontable-instance"
-      rowHeaders={true}
       height="auto"
       width="auto"
       licenseKey="non-commercial-and-evaluation"
@@ -1865,43 +1895,43 @@ const button_descending = document.querySelector('#sort_desc');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
-      brand: 'Tagcat',
-      model: 'Classic Vest',
-      price: 327,
-      sellDate: '11/10/2020',
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
       sellTime: '01:23',
-      inStock: true,
+      inStock: false,
     },
     {
-      brand: 'Zoomzone',
-      model: 'Cycling Cap',
-      price: 717,
-      sellDate: '03/05/2020',
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.90,
+      sellDate: '03/05/2023',
       sellTime: '11:27',
       inStock: false,
     },
     {
-      brand: 'Meeveo',
-      model: 'Full-Finger Gloves',
-      price: 314,
-      sellDate: '27/03/2020',
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.10,
+      sellDate: '27/03/2023',
       sellTime: '03:17',
       inStock: true,
     },
     {
-      brand: 'Buzzdog',
-      model: 'Mountain Frame',
-      price: 268,
-      sellDate: '29/08/2020',
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
       sellTime: '08:01',
-      inStock: false,
+      inStock: true,
     },
     {
-      brand: 'Katz',
-      model: 'Half-Finger Gloves',
-      price: 204,
-      sellDate: '02/10/2020',
-      sellTime: '12:23',
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
       inStock: true,
     },
   ],
@@ -1921,18 +1951,22 @@ const handsontableInstance = new Handsontable(container, {
         pattern: '$ 0,0.00',
         culture: 'en-US'
       },
+      className: 'htLeft',
     },
     {
       type: 'date',
       data: 'sellDate',
+      className: 'htRight',
     },
     {
       type: 'time',
       data: 'sellTime',
+      className: 'htRight',
     },
     {
       type: 'checkbox',
       data: 'inStock',
+      className: 'htCenter',
     },
   ],
   colHeaders: [
@@ -1943,7 +1977,6 @@ const handsontableInstance = new Handsontable(container, {
     'Time',
     'In stock',
   ],
-  rowHeaders: true,
   columnSorting: true,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
@@ -2016,47 +2049,47 @@ export const YourHandsontableComponent = () => {
       <HotTable
         ref={hotTableComponentRef}
         data={[
-        {
-          brand: 'Tagcat',
-          model: 'Classic Vest',
-          price: 327,
-          sellDate: '11/10/2020',
-          sellTime: '01-2331',
-          inStock: true,
-        },
-        {
-          brand: 'Zoomzone',
-          model: 'Cycling Cap',
-          price: 717,
-          sellDate: '03/05/2020',
-          sellTime: '88-2768',
-          inStock: false,
-        },
-        {
-          brand: 'Meeveo',
-          model: 'Full-Finger Gloves',
-          price: 314,
-          sellDate: '27/03/2020',
-          sellTime: '51-6775',
-          inStock: true,
-        },
-        {
-          brand: 'Buzzdog',
-          model: 'Mountain Frame',
-          price: 268,
-          sellDate: '29/08/2020',
-          sellTime: '44-4028',
-          inStock: false,
-        },
-        {
-          brand: 'Katz',
-          model: 'Half-Finger Gloves',
-          price: 204,
-          sellDate: '02/10/2020',
-          sellTime: '08-2758',
-          inStock: true,
-        },
-      ]}
+          {
+            brand: 'Jetpulse',
+            model: 'Racing Socks',
+            price: 30,
+            sellDate: '11/10/2023',
+            sellTime: '01:23',
+            inStock: false,
+          },
+          {
+            brand: 'Gigabox',
+            model: 'HL Mountain Frame',
+            price: 1890.90,
+            sellDate: '03/05/2023',
+            sellTime: '11:27',
+            inStock: false,
+          },
+          {
+            brand: 'Camido',
+            model: 'Cycling Cap',
+            price: 130.10,
+            sellDate: '27/03/2023',
+            sellTime: '03:17',
+            inStock: true,
+          },
+          {
+            brand: 'Chatterpoint',
+            model: 'Road Tire Tube',
+            price: 59,
+            sellDate: '28/08/2023',
+            sellTime: '08:01',
+            inStock: true,
+          },
+          {
+            brand: 'Eidel',
+            model: 'HL Road Tire',
+            price: 279.99,
+            sellDate: '02/10/2023',
+            sellTime: '13:23',
+            inStock: true,
+          },
+        ]}
         columns={[
           {
             type: 'text',
@@ -2073,18 +2106,22 @@ export const YourHandsontableComponent = () => {
               pattern: '$ 0,0.00',
               culture: 'en-US'
             },
+            className: 'htLeft',
           },
           {
             type: 'date',
             data: 'sellDate',
+            className: 'htRight',
           },
           {
             type: 'text',
             data: 'sellTime',
+            className: 'htRight',
           },
           {
             type: 'checkbox',
             data: 'inStock',
+            className: 'htCenter',
           },
         ]}
         colHeaders={[
@@ -2102,15 +2139,15 @@ export const YourHandsontableComponent = () => {
             sortOrder: 'desc',
           },
         }}
-        rowHeaders={true}
         height="auto"
         width="auto"
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <br></br>
-        <button onClick={sort_asc}>Sort column 1, in ascending order</button>
-        <button onClick={sort_desc}>Sort column 1, in descending order</button>
+        <button onClick={sort_asc}>Sort rows by column 1, in ascending order</button>
+        <br />
+        <br />
+        <button onClick={sort_desc}>Sort rows by column 1, in descending order</button>
       </div>
     </>
   );
