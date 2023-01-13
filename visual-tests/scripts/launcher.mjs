@@ -5,7 +5,6 @@
  *    - `build` - launches visual testing and builds package of screenshots;
  *    - `upload` - uploads package of screenshots prepared in previous step to comparing service.
  */
-
 import execa from 'execa';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -13,7 +12,7 @@ import { hideBin } from 'yargs/helpers';
 let currentBranch;
 const argv = yargs(hideBin(process.argv)).argv;
 const pathToMount = `${process.cwd().split('\\').join('/')}/../`;
-const isCI = process?.argv?.includes('CI');
+const isCI = process.argv.includes('CI');
 
 // in CI we know name of current branch from Github Actions - it is send as a `currentBranch` argv,
 // in local environment we have to take this name from Git by ourselves.
@@ -27,23 +26,29 @@ if (!currentBranch) {
   throw new Error('There is lack of information about current branch');
 }
 
-if (process?.argv?.includes('build')) {
+if (process.argv.includes('build')) {
   if (isCI) {
-    await execa.command('node scripts/build.mjs',
-      { env: { CURRENT_BRANCH: currentBranch }, stdio: 'inherit' });
+    await execa.command('node scripts/build.mjs', {
+      env: { CURRENT_BRANCH: currentBranch },
+      stdio: 'inherit'
+    });
   } else {
     // we need access to `examples` and `virtual-tests` directories,
     // so here we mount entire HoT directory as a virtual `vtests`
     // and on start open `visual-tests` in it
-
-    // eslint-disable-next-line max-len
-    await execa.command(`docker run --name vtests-container --env CURRENT_BRANCH=${currentBranch} -v ${pathToMount}:/vtests/ -w /vtests/visual-tests --rm vtests`,
-      { stdio: 'inherit' });
+    await execa.command(`docker run --rm \
+      --name vtests-container \
+      --env CURRENT_BRANCH=${currentBranch} \
+      -v ${pathToMount}:/vtests/ \
+      -w /vtests/visual-tests \
+      vtests`, { stdio: 'inherit' });
     await execa.command('docker stop vtests-container', { stdio: 'inherit' });
   }
 }
 
-if (process?.argv?.includes('upload')) {
-  await execa.command(`node scripts/upload.mjs ${isCI ? 'CI' : ''}`,
-    { env: { CURRENT_BRANCH: currentBranch }, stdio: 'inherit' });
+if (process.argv.includes('upload')) {
+  await execa.command(`node scripts/upload.mjs ${isCI ? 'CI' : ''}`, {
+    env: { CURRENT_BRANCH: currentBranch },
+    stdio: 'inherit'
+  });
 }

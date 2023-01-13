@@ -4,23 +4,23 @@
  * - runs visual testing;
  * - builds package of screenshots which will be send to compare by `upload` script.
  */
-
-/* eslint-disable no-console */
-/* eslint-disable no-restricted-globals */
 import path from 'path';
 import execa from 'execa';
 import fse from 'fs-extra';
-// eslint-disable-next-line import/extensions
 import { baseBranch, wrappers } from './config.mjs';
 
-const currentBranch = process?.env?.CURRENT_BRANCH;
+const currentBranch = process.env.CURRENT_BRANCH;
 const dirs = {
   examples: '../examples/next/visual-tests',
   codeToRun: 'demo',
   screenshots: './screenshots',
 };
 
-await execa.command('npm install', { stdio: 'inherit', cwd: dirs.examples });
+console.log(chalk.green('Installing dependencies for Examples monorepo'));
+await execa.command('npm install', {
+  stdio: 'inherit',
+  cwd: dirs.examples
+});
 
 // If we are on a base branch, we do not want to run all of tests
 // and make screenshots for all of wrappers.
@@ -28,13 +28,16 @@ await execa.command('npm install', { stdio: 'inherit', cwd: dirs.examples });
 // which is declared as a first position in wrappers array.
 
 for (let i = 0, maxi = (currentBranch === baseBranch ? 1 : wrappers.length); i < maxi; ++i) {
-  // eslint-disable-next-line no-await-in-loop
-  await execa.command('npm install', { stdout: 'inherit', cwd: `${dirs.examples}/${wrappers[i]}` });
+  await execa.command('npm install', {
+    stdout: 'inherit',
+    cwd: `${dirs.examples}/${wrappers[i]}`
+  });
 
-  // eslint-disable-next-line no-await-in-loop
-  await execa.command('npm run build', { stdout: 'inherit', cwd: `${dirs.examples}/${wrappers[i]}/${dirs.codeToRun}` });
+  await execa.command('npm run build', {
+    stdout: 'inherit',
+    cwd: `${dirs.examples}/${wrappers[i]}/${dirs.codeToRun}`
+  });
 
-  // eslint-disable-next-line no-await-in-loop
   const localhostProcess = execa.command('npm run start', {
     detached: true,
     stdio: 'ignore',
@@ -42,17 +45,13 @@ for (let i = 0, maxi = (currentBranch === baseBranch ? 1 : wrappers.length); i <
     cwd: `${dirs.examples}/${wrappers[i]}/${dirs.codeToRun}`
   });
 
-  console.log(`
-  
-  =====
-  
-  Run tests for ${wrappers[i]} wrapper
-  
-  =====
-  
-  `);
   // eslint-disable-next-line no-await-in-loop
-  await execa.command('npx playwright test', { env: { HOT_WRAPPER: wrappers[i] }, stdout: 'inherit' });
+  await execa.command('npx playwright test', {
+    env: {
+      HOT_WRAPPER: wrappers[i]
+    },
+    stdout: 'inherit'
+  });
 
   localhostProcess.kill();
 }
@@ -61,7 +60,7 @@ if (currentBranch === baseBranch) {
   // Golden screenshots are already done,
   // now we need to copy them into rest of wrappers -
   // external services compares files with the same name and path,
-  // so we have to make this trick to make comparision available.
+  // so we have to make this trick to make comparison available.
   // On other branches we will generate screenshots for wrappers in a "normal" way
   // and then we will be able to see differences
   if (!fse.existsSync(dirs.screenshots)) {

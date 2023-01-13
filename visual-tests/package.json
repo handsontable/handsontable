@@ -5,6 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint --ext .js,.mjs imports scripts tests",
     "docker:build": "docker build --no-cache --tag vtests .",
     "test": "node ./scripts/launcher.mjs build",
     "upload": "node ./scripts/launcher.mjs upload"
