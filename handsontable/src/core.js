@@ -4713,9 +4713,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   this.addHook('beforeOnCellMouseDown', (event) => {
-    // Releasing keys as it seems that some browser/system shortcut hasn't triggered `keyup` event.
+    // Releasing keys as some browser/system shortcuts break events sequence (thus the `keyup` event isn't triggered).
     if (event.ctrlKey === false && event.metaKey === false) {
-      shortcutManager.releaseAll();
+      shortcutManager.releasePressedKeys();
     }
   });
 

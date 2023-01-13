@@ -71,7 +71,7 @@ export const pressedModifierKeys = {
 /**
  * @param {object} options Object for storing information about pressed modifier key.
  * @param {string} modifiedKey Name of the modifier key.
- * @param {boolean} isPressed Information whether the modifier kay was pressed.
+ * @param {boolean} isPressed Information whether the modifier kay has been pressed.
  */
 function saveStateAndExtendEvent(options, modifiedKey, isPressed) {
   pressedModifierKeys[modifiedKey] = isPressed;

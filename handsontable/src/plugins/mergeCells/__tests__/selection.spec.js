@@ -173,7 +173,6 @@ describe('MergeCells Selection', () => {
 
     keyDown('control/meta');
 
-
     mouseDown(firstRowHeader);
     mouseOver(thirdRowHeader);
     mouseUp(thirdRowHeader);
