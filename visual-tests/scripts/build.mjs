@@ -15,14 +15,12 @@ import { baseBranch, wrappers } from './config.mjs';
 
 const currentBranch = process?.env?.CURRENT_BRANCH;
 const dirs = {
-  init: process.cwd(),
   examples: '../examples/next/visual-tests',
   codeToRun: 'demo',
   screenshots: './screenshots',
 };
 
-process.chdir(dirs.examples);
-await execa.command('npm install');
+await execa.command('npm install', { stdio: 'inherit', cwd: dirs.examples });
 
 // If we are on a base branch, we do not want to run all of tests
 // and make screenshots for all of wrappers.
@@ -30,21 +28,19 @@ await execa.command('npm install');
 // which is declared as a first position in wrappers array.
 
 for (let i = 0, maxi = (currentBranch === baseBranch ? 1 : wrappers.length); i < maxi; ++i) {
-  process.chdir(`${wrappers[i]}`);
   // eslint-disable-next-line no-await-in-loop
-  await execa.command('npm install', { stdout: 'inherit' });
+  await execa.command('npm install', { stdout: 'inherit', cwd: `${dirs.examples}/${wrappers[i]}` });
 
-  process.chdir(`${dirs.codeToRun}`);
   // eslint-disable-next-line no-await-in-loop
-  await execa.command('npm run build', { stdout: 'inherit' });
+  await execa.command('npm run build', { stdout: 'inherit', cwd: `${dirs.examples}/${wrappers[i]}/${dirs.codeToRun}` });
 
   // eslint-disable-next-line no-await-in-loop
   const localhostProcess = execa.command('npm run start', {
     detached: true,
     stdio: 'ignore',
-    windowsHide: true });
-
-  process.chdir(dirs.init);
+    windowsHide: true,
+    cwd: `${dirs.examples}/${wrappers[i]}/${dirs.codeToRun}`
+  });
 
   console.log(`
   
@@ -59,10 +55,6 @@ for (let i = 0, maxi = (currentBranch === baseBranch ? 1 : wrappers.length); i <
   await execa.command('npx playwright test', { env: { HOT_WRAPPER: wrappers[i] }, stdout: 'inherit' });
 
   localhostProcess.kill();
-
-  if (i !== maxi - 1) {
-    process.chdir(dirs.examples);
-  }
 }
 
 if (currentBranch === baseBranch) {
