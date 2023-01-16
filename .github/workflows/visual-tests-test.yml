@@ -26,19 +26,16 @@ jobs:
         run: |
           npm ci --no-audit
 
-      - name: Install visual tests dependencies
+      - name: Build all packages
         run: |
-          cd visual-tests
-          npm ci --no-audit
+          npm run build
 
       - name: Run visual tests
         run: |
-          cd visual-tests
-          npm run test
+          npm run in visual-tests test
 
       - name: Upload screenshots
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
         run: |
-          cd visual-tests
-          npm run upload
+          npm run in visual-tests upload

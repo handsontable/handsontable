@@ -29,7 +29,7 @@ export const helpers = {
   screenshotDirName: '',
   browser: '',
 
-  cssPath(file) {
+  cssPath(file: string) {
     return `./tests-css/${file}`;
   },
 
@@ -49,7 +49,7 @@ export const helpers = {
     return `${this.selectors.mainTableHead} > tr > th:nth-child(${options.col + 1}) button.changeType`;
   },
 
-  testTitle(filename) {
+  testTitle(filename: string) {
     const title = filename.split('.spec.ts')[0].split('-').join(' ');
 
     return `${title.substring(0, 1).toUpperCase()}${title.substring(1)}`;

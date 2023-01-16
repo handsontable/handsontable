@@ -1,21 +1,19 @@
 ## Installation
 
-Install by command `npm install` in `./visual-tests` folder.
+Install by command `npm install` in the root directory.
 
 ## Usage
 
-In Github `Visual tests` workflow is launched automatically after `Tests` workflow passed succesfully. In local environment you have to launch it manually.
+In Github `Visual tests` workflow is launched automatically after `Tests` workflow passed successfully. In local environment you have to launch it manually.
 
 ## Testing
 
-Launch `npm run vtests:test` in main directory or `npm run test` in `./visual-tests` directory to run all of tests with all of frameworks in all of browsers.
-Launch by command `npx playwright test {{ name of file }}` in `./visual-tests` directory to run specific test, e.g. `npx playwright test mouse-wheel`
-
-Launch `npm run vtests:docker:build` in main project directory or `npm run docker:build` in `./visual-tests` directory to build Docker image. After tests screenshots will appear in `./visual-tests/screenshots`.
+Launch `npm run in visual-tests test` in main directory or `npm run test` in `./visual-tests` directory to run all of tests with all of frameworks in all of browsers. After tests screenshots will appear in `./visual-tests/screenshots`.
+Launch by command `npx playwright test {{ name of file }}` in `./visual-tests` directory to run specific test, e.g. `npx playwright test mouse-wheel`.
 
 ## Upload and compare screenshots
 
-For the screen comparision we use external service (currently it's Argos CI). Argos CI compares screenshots from your branch with the base branch (which currently is `develop`).
+For the screen comparison we use external service (currently it's Argos CI). Argos CI compares screenshots from your branch with the base branch (which currently is `develop`).
 
 In Github screenshots are uploaded automatically after every test.
 In local environment upload won't work until you create `.env` file in `./visual-tests/` directory and set variable `ARGOS_TOKEN` there - ask your teammates or supervisor for its value.
@@ -24,7 +22,7 @@ In local environment upload won't work until you create `.env` file in `./visual
 ARGOS_TOKEN=xxx
 ```
 
-After that launch `npm run vtests:upload` in main directory or `npm run upload` in `./visual-tests` directory to upload all of screenshots. Do not worry, you will not overwrite anything - uploading golden screenshots from base branch (if nothing changed in a meanwhile it's `develop`) is not possible on local environment.
+After that launch `npm run in visual-tests upload` in main directory or `npm run upload` in `./visual-tests` directory to upload all of screenshots. Do not worry, you will not overwrite anything - uploading golden screenshots from base branch (if nothing changed in a meanwhile it's `develop`) is not possible on local environment.
 
 After upload you can find URL to your set of images in console or Github Actions logs as a result of `Visual testing - upload` job (NOTE: add example link when first build from official repo will be ready).
 
@@ -32,11 +30,11 @@ If you open Pull Request and try to merge to the base branch, you will be inform
 
 ## Writing tests
 
-In `tests` folder there is file `.empty-test-template.js` - copy-paste it if you want to add new test, it will make some configuration things faster. There is marked place for your code also.
+In `tests` folder there is file `.empty-test-template.ts` - copy-paste it if you want to add new test, it will make some configuration things faster. There is marked place for your code also.
 
-Test file must have `.spec.js` in the name of file.
+Test file must have `.spec.ts` in the name of file.
 Test files must be stored in `tests` folder.
-Test filename should describe as much as possible what test is doing - it will be used as a title in logs and in screenshots names, you do not have to define them manually anymore. Example: `./tests/open-dropdown-menu.spec.js`.
+Test filename should describe as much as possible what test is doing - it will be used as a title in logs and in screenshots names, you do not have to define them manually anymore. Example: `./tests/open-dropdown-menu.spec.ts`.
 
 ## Making screenshots
 

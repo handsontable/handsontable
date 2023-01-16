@@ -32,9 +32,7 @@
     "examples:install": "node examples/scripts/code-examples.mjs install",
     "examples:build": "node examples/scripts/code-examples.mjs build",
     "examples:test": "node examples/scripts/code-examples.mjs test",
-    "examples:start": "http-server ./examples/tmp",
-    "vtests:test": "cd visual-tests && npm run test",
-    "vtests:upload": "cd visual-tests && npm run upload"
+    "examples:start": "http-server ./examples/tmp"
   },
   "devDependencies": {
     "@actions/core": "^1.2.6",
@@ -83,6 +81,7 @@
   "workspaces": [
     "handsontable",
     "wrappers/*",
+    "visual-tests",
     "examples"
   ]
 }

@@ -7,7 +7,9 @@
   "scripts": {
     "lint": "eslint --ext .js,.mjs,.ts imports scripts tests",
     "test": "node ./scripts/run-tests.mjs",
-    "upload": "node ./scripts/upload.mjs"
+    "upload": "node ./scripts/upload.mjs",
+    "build": "echo \"There is nothing to build. Skipped.\"",
+    "publish-package": "echo \"There is nothing to publish. Skipped.\""
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "license": "ISC",
@@ -17,12 +19,9 @@
     "@typescript-eslint/eslint-plugin": "^5.48.1",
     "@typescript-eslint/parser": "^5.48.1",
     "chalk": "^4.1.0",
-    "execa": "^5.0.0",
-    "fs-extra": "^4.0.2"
-  },
-  "dependencies": {
-    "axios": "^1.2.1",
     "dotenv": "^16.0.3",
+    "execa": "^5.0.0",
+    "fs-extra": "^4.0.2",
     "playwright": "1.28.1"
   }
 }

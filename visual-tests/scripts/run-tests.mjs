@@ -12,9 +12,10 @@ import mainPackageJSON from '../package.json' assert { type: 'json' };
 import { isReferenceBranch, getFrameworkList, sleep } from './utils/utils.mjs';
 import { WRAPPERS, REFERENCE_FRAMEWORK } from './utils/config.mjs';
 
-const playwrightVersion = mainPackageJSON.dependencies.playwright;
+const playwrightVersion = mainPackageJSON.devDependencies.playwright;
 const pathToMount = `${process.cwd().split('\\').join('/')}/../`;
 const dirs = {
+  monorepoRoot: '..',
   examples: '../examples/next/visual-tests',
   codeToRun: 'demo',
   screenshots: './screenshots',
@@ -22,10 +23,10 @@ const dirs = {
 
 console.log(chalk.green('Installing dependencies for Visual Tests Examples project...'));
 
-await execa.command('npm install', {
+await execa.command('npm run examples:install next/visual-tests', {
   stdout: 'ignore',
   stderr: 'inherit',
-  cwd: dirs.examples
+  cwd: dirs.monorepoRoot
 });
 
 // If we are on a base branch, we do not want to run all of tests
@@ -35,14 +36,6 @@ const frameworksToTest = getFrameworkList();
 
 for (let i = 0; i < frameworksToTest.length; ++i) {
   const frameworkName = frameworksToTest[i];
-
-  console.log(chalk.green(`Installing dependencies for "${frameworkName}" examples...`));
-
-  await execa.command('npm install', {
-    stdout: 'ignore',
-    stderr: 'inherit',
-    cwd: `${dirs.examples}/${frameworkName}`
-  });
 
   console.log(chalk.green(`Building "${frameworkName}" examples...`));
 

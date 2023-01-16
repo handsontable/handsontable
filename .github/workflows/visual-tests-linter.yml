@@ -27,10 +27,6 @@ jobs:
         run: |
           npm ci --no-audit
 
-      - name: Install visual tests dependencies
-        run: |
-          cd visual-tests/ && npm ci --no-audit
-
       - name: Lint
         run: |
-          cd visual-tests/ && npm run lint
+          npm run in visual-tests lint
