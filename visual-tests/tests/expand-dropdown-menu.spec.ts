@@ -9,6 +9,7 @@ test(__filename, async({ page }) => {
   const changeTypeButton = table.locator(helpers.findDropdownMenuExpander({ col: 2 }));
 
   await changeTypeButton.click();
+
   const dropdownMenu = page.locator(helpers.selectors.dropdownMenu);
 
   await page.screenshot({ path: helpers.screenshotPath() });
