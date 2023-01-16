@@ -1,5 +1,5 @@
 export const helpers = {
-  defaultHOTWrapper: 'js',
+  defaultHOTFramework: 'js',
 
   screenshotsDirectory: './screenshots',
   screenshotsExtension: 'png',
@@ -21,7 +21,7 @@ export const helpers = {
 
   expectedPageTitle: /Handsontable for .* example/,
 
-  hotWrapper: '',
+  hotFramework: '',
   testURL: `http://${process.env.CI ? 'localhost' : 'host.docker.internal'}:8080/`,
   isMac: true,
   modifier: 'Meta',
@@ -34,7 +34,7 @@ export const helpers = {
   },
 
   init(workerInfo) {
-    this.hotWrapper = process.env.HOT_WRAPPER || this.defaultHOTWrapper;
+    this.hotWrapper = process.env.HOT_FRAMEWORK || this.defaultHOTFramework;
     this.isMac = workerInfo.project.name === 'webkit';
     this.modifier = this.isMac ? 'Meta' : 'Control';
     this.screenshotDirName = workerInfo.titlePath[0].split('.spec.ts')[0];

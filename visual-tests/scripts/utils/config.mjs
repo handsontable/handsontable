@@ -1,5 +1,12 @@
-export const baseBranch = 'develop';
-// Main wrapper should be defined as a first one -
-// it will be used to generate golden screenshots,
-// rest of wrappers will be compared to it.
-export const wrappers = ['js', 'angular', 'react', 'vue'];
+/**
+ * The branch that holds the golden screenshots.
+ */
+export const BASE_BRANCH = 'develop';
+/**
+ * The list of the wrappers that are considered to test.
+ */
+export const WRAPPERS = ['angular', 'react', 'vue'];
+/**
+ * The framework that provides reference screenshots to compare with other frameworks.
+ */
+export const REFERENCE_FRAMEWORK = 'js';

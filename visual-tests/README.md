@@ -8,7 +8,7 @@ In Github `Visual tests` workflow is launched automatically after `Tests` workfl
 
 ## Testing
 
-Launch `npm run vtests:test` in main directory or `npm run test` in `./visual-tests` directory to run all of tests with all of wrappers in all of browsers.
+Launch `npm run vtests:test` in main directory or `npm run test` in `./visual-tests` directory to run all of tests with all of frameworks in all of browsers.
 Launch by command `npx playwright test {{ name of file }}` in `./visual-tests` directory to run specific test, e.g. `npx playwright test mouse-wheel`
 
 Launch `npm run vtests:docker:build` in main project directory or `npm run docker:build` in `./visual-tests` directory to build Docker image. After tests screenshots will appear in `./visual-tests/screenshots`.
@@ -42,7 +42,7 @@ Test filename should describe as much as possible what test is doing - it will b
 
 If you want to make screenshot, just copy-paste this line anywhere:
 `await page.screenshot({ path: helpers.screenshotPath() });`
-From now it will take care about names, browsers, wrappers and paths automatically.
+From now it will take care about names, browsers, frameworks and paths automatically.
 
 You can make as much screenshots per test as needed (it can be 0 also - we still can test anything without screenshots too), for example:
 
