@@ -8,7 +8,7 @@ export const helpers = {
     mainTable: '#root > .handsontable',
     mainTableBody: '> .ht_master.handsontable table tbody',
     mainTableHead: '> .ht_clone_top.handsontable table thead',
-    mainTableFirstColumn: '> .ht_clone_inline_start.ht_clone_left.handsontable table tbody',
+    cloneInlineStartTable: '> .ht_clone_inline_start.handsontable table tbody',
     dropdownMenu: '.htMenu.htDropdownMenu.handsontable',
   },
 

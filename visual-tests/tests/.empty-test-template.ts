@@ -5,7 +5,7 @@ test(__filename, async({ page }) => {
   const table = page.locator(helpers.selectors.mainTable);
 
   await table.waitFor();
-  // const mainTableFirstColumn = table.locator(helpers.selectors.mainTableFirstColumn);
+  // const cloneInlineStartTable = table.locator(helpers.selectors.cloneInlineStartTable);
   // const tbody = table.locator(helpers.selectors.mainTableBody);
   // const thead = table.locator(helpers.selectors.mainTableHead);
 

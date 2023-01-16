@@ -12,7 +12,7 @@
     "publish-package": "echo \"There is nothing to publish. Skipped.\""
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "license": "ISC",
+  "license": "CC BY 4.0",
   "devDependencies": {
     "@argos-ci/cli": "^0.3.1",
     "@playwright/test": "1.28.1",
