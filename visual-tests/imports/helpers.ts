@@ -37,7 +37,7 @@ export const helpers = {
     this.hotWrapper = process.env.HOT_WRAPPER || this.defaultHOTWrapper;
     this.isMac = workerInfo.project.name === 'webkit';
     this.modifier = this.isMac ? 'Meta' : 'Control';
-    this.screenshotDirName = workerInfo.titlePath[0].split('.spec.js')[0];
+    this.screenshotDirName = workerInfo.titlePath[0].split('.spec.ts')[0];
     this.browser = workerInfo.project.name;
   },
 
@@ -50,7 +50,7 @@ export const helpers = {
   },
 
   testTitle(filename) {
-    const title = filename.split('.spec.js')[0].split('-').join(' ');
+    const title = filename.split('.spec.ts')[0].split('-').join(' ');
 
     return `${title.substring(0, 1).toUpperCase()}${title.substring(1)}`;
   },
