@@ -1,10 +1,13 @@
 name: Visual tests
 
 on:
-  workflow_dispatch:
-  workflow_run:
-    workflows: [Tests]
-    types: [completed]
+  push: # for tests
+    paths:
+      - 'visual-tests/**'
+  # workflow_dispatch:
+  # workflow_run:
+  #   workflows: [Tests]
+  #   types: [completed]
 
 env:
   NODE_VERSION: 16

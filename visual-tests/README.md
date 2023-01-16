@@ -1,6 +1,6 @@
 ## Installation
 
-Install by command `npm install` in the root directory.
+Install by command `npm install` in the root directory and make sure that before testing you've installed and executed the [Docker Desktop](https://www.docker.com/products/docker-desktop/) application.
 
 ## Usage
 
