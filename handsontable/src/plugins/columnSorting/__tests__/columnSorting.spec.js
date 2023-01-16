@@ -13,7 +13,7 @@ describe('ColumnSorting', () => {
         throw Error('Please check the test scenario. The header doesn\'t exist.');
       }
 
-      simulateClick($spanInsideHeader[0]);
+      simulateClick($spanInsideHeader);
     };
   });
 
