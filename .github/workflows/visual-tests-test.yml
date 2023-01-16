@@ -1,6 +1,7 @@
 name: Visual tests
 
 on:
+  push:
   workflow_dispatch:
   # temporarily disable the directives
   # workflow_run:
