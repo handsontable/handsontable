@@ -214,7 +214,8 @@ export class MergeCells extends BasePlugin {
 
     rowIndexesToRefresh.forEach((rowIndex) => {
       const wtTableRef = this.hot.view._wt.wtTable;
-      const rowToRefresh = wtTableRef.getRow(rowIndex);
+      const renderableRowIndex = this.hot.rowIndexMapper.getRenderableFromVisualIndex(rowIndex);
+      const rowToRefresh = wtTableRef.getRow(renderableRowIndex);
 
       // Modify the TR's `background` property to later modify it asynchronously.
       // The background color is getting modified only with the alpha, so the change should not be visible (and is
@@ -450,7 +451,9 @@ export class MergeCells extends BasePlugin {
         this.hot.populateFromArray(mergeParent.row, mergeParent.col, clearedData, void 0, void 0, this.pluginName);
       }
 
-      this.#ifChromeForceRepaint();
+      if (!auto) {
+        this.#ifChromeForceRepaint();
+      }
 
       this.hot.runHooks('afterMergeCells', cellRange, mergeParent, auto);
 
