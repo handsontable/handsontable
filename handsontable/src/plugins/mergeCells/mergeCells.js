@@ -11,6 +11,8 @@ import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
 import { applySpanProperties } from './utils';
 import './mergeCells.css';
+import { getStyle } from '../../helpers/dom/element';
+import { isChrome } from '../../helpers/browser';
 
 Hooks.getSingleton().register('beforeMergeCells');
 Hooks.getSingleton().register('afterMergeCells');
@@ -169,7 +171,8 @@ export class MergeCells extends BasePlugin {
   /**
    * Updates the plugin's state.
    *
-   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the
+   * following configuration options:
    *  - [`mergeCells`](@/api/options.md#mergecells)
    */
   updatePlugin() {
@@ -181,6 +184,53 @@ export class MergeCells extends BasePlugin {
     this.generateFromSettings(settings);
 
     super.updatePlugin();
+  }
+
+  /**
+   * If the browser is recognized as Chrome, force an additional repaint to prevent showing the effects of a Chrome bug.
+   *
+   * Issue described in https://github.com/handsontable/dev-handsontable/issues/521.
+   *
+   * @private
+   */
+  #ifChromeForceRepaint() {
+    if (!isChrome()) {
+      return;
+    }
+
+    const rowsToRefresh = [];
+    let rowIndexesToRefresh = [];
+
+    this.mergedCellsCollection.mergedCells.forEach((mergedCell) => {
+      const { row, rowspan } = mergedCell;
+
+      for (let r = row + 1; r < row + rowspan; r++) {
+        rowIndexesToRefresh.push(r);
+      }
+    });
+
+    // Remove duplicates
+    rowIndexesToRefresh = [...new Set(rowIndexesToRefresh)];
+
+    rowIndexesToRefresh.forEach((rowIndex) => {
+      const wtTableRef = this.hot.view._wt.wtTable;
+      const rowToRefresh = wtTableRef.getRow(rowIndex);
+
+      // Modify the TR's `background` property to later modify it asynchronously.
+      // The background color is getting modified only with the alpha, so the change should not be visible (and is
+      // covered by the TDs' background color).
+      rowToRefresh.style.background =
+        getStyle(rowToRefresh, 'backgroundColor').replace(')', ', 0.99)');
+
+      rowsToRefresh.push(rowToRefresh);
+    });
+
+    // Asynchronously revert the TRs' `background` property to force a fresh repaint.
+    setTimeout(() => {
+      rowsToRefresh.forEach((rowElement) => {
+        rowElement.style.background = '';
+      });
+    }, 1);
   }
 
   /**
@@ -343,8 +393,10 @@ export class MergeCells extends BasePlugin {
    * @private
    * @param {CellRange} cellRange Cell range to merge.
    * @param {boolean} [auto=false] `true` if is called automatically, e.g. At initialization.
-   * @param {boolean} [preventPopulation=false] `true`, if the method should not run `populateFromArray` at the end, but rather return its arguments.
-   * @returns {Array|boolean} Returns an array of [row, column, dataUnderCollection] if preventPopulation is set to true. If the the merging process went successful, it returns `true`, otherwise - `false`.
+   * @param {boolean} [preventPopulation=false] `true`, if the method should not run `populateFromArray` at the end,
+   *   but rather return its arguments.
+   * @returns {Array|boolean} Returns an array of [row, column, dataUnderCollection] if preventPopulation is set to
+   *   true. If the the merging process went successful, it returns `true`, otherwise - `false`.
    * @fires Hooks#beforeMergeCells
    * @fires Hooks#afterMergeCells
    */
@@ -397,6 +449,8 @@ export class MergeCells extends BasePlugin {
       } else {
         this.hot.populateFromArray(mergeParent.row, mergeParent.col, clearedData, void 0, void 0, this.pluginName);
       }
+
+      this.#ifChromeForceRepaint();
 
       this.hot.runHooks('afterMergeCells', cellRange, mergeParent, auto);
 
@@ -539,7 +593,8 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Modifies the information on whether the current selection contains multiple cells. The `afterIsMultipleSelection` hook callback.
+   * Modifies the information on whether the current selection contains multiple cells. The `afterIsMultipleSelection`
+   * hook callback.
    *
    * @private
    * @param {boolean} isMultiple Determines whether the current selection contains multiple cells.
@@ -776,7 +831,8 @@ export class MergeCells extends BasePlugin {
 
   /**
    * `beforeSetRangeEnd` hook callback.
-   * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell.
+   * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the
+   * merged cell.
    *
    * Note: Please keep in mind that callback may modify both start and end range coordinates by the reference.
    *
@@ -1146,13 +1202,15 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * `afterModifyTransformStart` hook callback. Fixes a problem with navigating through merged cells at the edges of the table
-   * with the ENTER/SHIFT+ENTER/TAB/SHIFT+TAB keys.
+   * `afterModifyTransformStart` hook callback. Fixes a problem with navigating through merged cells at the edges of
+   * the table with the ENTER/SHIFT+ENTER/TAB/SHIFT+TAB keys.
    *
    * @private
    * @param {CellCoords} coords Coordinates of the to-be-selected cell.
-   * @param {number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value = down).
-   * @param {number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value = down).
+   * @param {number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value =
+   *   down).
+   * @param {number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value =
+   *   down).
    */
   onAfterModifyTransformStart(coords, rowTransformDir, colTransformDir) {
     if (!this.enabled) {
@@ -1187,9 +1245,11 @@ export class MergeCells extends BasePlugin {
    * @private
    * @param {number} currentRow Visual row index of the currently processed cell.
    * @param {number} currentColumn Visual column index of the currently cell.
-   * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
+   * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow,
+   *   endColumn]`.
    * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.
-   * @returns {string|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.
+   * @returns {string|undefined} A `String`, which will act as an additional `className` to be added to the currently
+   *   processed cell.
    */
   onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) {
     // Nothing's selected (hook might be triggered by the custom borders)
@@ -1205,7 +1265,8 @@ export class MergeCells extends BasePlugin {
    * `beforeRemoveCellClassNames` hook callback. Used to remove additional class name from all cells in the table.
    *
    * @private
-   * @returns {string[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.
+   * @returns {string[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from
+   *   all the cells in the table.
    */
   onBeforeRemoveCellClassNames() {
     return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();

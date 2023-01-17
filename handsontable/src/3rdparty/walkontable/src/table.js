@@ -622,13 +622,7 @@ class Table {
       return -4;
     }
 
-    let TR;
-
-    if (row < 0) {
-      TR = this.THEAD.childNodes[this.rowFilter.sourceRowToVisibleColHeadedRow(row)];
-    } else {
-      TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
-    }
+    const TR = this.getRow(row);
 
     if (!TR && row >= 0) {
       throw new Error('TR was expected to be rendered but is not');
@@ -641,6 +635,18 @@ class Table {
     }
 
     return TD;
+  }
+
+  /**
+   * Get the DOM element of the row with the provided index.
+   *
+   * @param {number} rowIndex Row index.
+   * @returns {HTMLTableRowElement}
+   */
+  getRow(rowIndex) {
+    return rowIndex < 0 ?
+      this.THEAD.childNodes[this.rowFilter.sourceRowToVisibleColHeadedRow(rowIndex)] :
+      this.TBODY.childNodes[this.rowFilter.sourceToRendered(rowIndex)];
   }
 
   /**
