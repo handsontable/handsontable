@@ -712,9 +712,7 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      $(getCell(-2, 1)) // Header "B3"
-        .simulate('mousedown')
-        .simulate('mouseup');
+      simulateClick(getCell(-2, 1)); // Header "B3"
 
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
@@ -773,9 +771,7 @@ describe('NestedHeaders', () => {
 
       keyDown('control/meta');
 
-      $(getCell(-3, 5)) // Header "F2"
-        .simulate('mousedown')
-        .simulate('mouseup');
+      simulateClick(getCell(-3, 5)); // Header "F2"
 
       keyUp('control/meta');
 
@@ -839,9 +835,7 @@ describe('NestedHeaders', () => {
 
       keyDown('control/meta');
 
-      $(getCell(-3, 1)) // Header "B2"
-        .simulate('mousedown')
-        .simulate('mouseup');
+      simulateClick(getCell(-3, 1)); // Header "B2"
 
       keyUp('control/meta');
 
