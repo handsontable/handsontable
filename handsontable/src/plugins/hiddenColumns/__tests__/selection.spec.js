@@ -234,9 +234,9 @@ describe('HiddenColumns', () => {
         },
       });
 
-      $(getCell(1, 3)).simulate('mousedown');
-      $(getCell(4, 6)).simulate('mouseover');
-      $(getCell(4, 6)).simulate('mouseup');
+      mouseDown(getCell(1, 3));
+      mouseOver(getCell(4, 6));
+      mouseUp(getCell(4, 6));
 
       expect(getSelected()).toEqual([[1, 3, 4, 6]]);
       expect(getSelectedRangeLast().highlight.row).toBe(1);
@@ -260,9 +260,9 @@ describe('HiddenColumns', () => {
 
       keyDown('control/meta');
 
-      $(getCell(3, 5)).simulate('mousedown');
-      $(getCell(5, 8)).simulate('mouseover');
-      $(getCell(5, 8)).simulate('mouseup');
+      mouseDown(getCell(3, 5));
+      mouseOver(getCell(5, 8));
+      mouseUp(getCell(5, 8));
 
       keyUp('control/meta');
 
@@ -1066,19 +1066,19 @@ describe('HiddenColumns', () => {
           },
         });
 
-        $(getCell(1, 3)).simulate('mousedown');
-        $(getCell(4, 6)).simulate('mouseover');
-        $(getCell(4, 6)).simulate('mouseup');
+        mouseDown(getCell(1, 3));
+        mouseOver(getCell(4, 6));
+        mouseUp(getCell(4, 6));
 
         keyDown('control/meta');
 
-        $(getCell(3, 5)).simulate('mousedown');
-        $(getCell(5, 8)).simulate('mouseover');
-        $(getCell(5, 8)).simulate('mouseup');
+        mouseDown(getCell(3, 5));
+        mouseOver(getCell(5, 8));
+        mouseUp(getCell(5, 8));
 
-        $(getCell(3, 6)).simulate('mousedown');
-        $(getCell(6, 9)).simulate('mouseover');
-        $(getCell(6, 9)).simulate('mouseup');
+        mouseDown(getCell(3, 6));
+        mouseOver(getCell(6, 9));
+        mouseUp(getCell(6, 9));
 
         keyUp('control/meta');
 
@@ -1212,19 +1212,19 @@ describe('HiddenColumns', () => {
           hiddenColumns: true,
         });
 
-        $(getCell(1, 3)).simulate('mousedown');
-        $(getCell(4, 6)).simulate('mouseover');
-        $(getCell(4, 6)).simulate('mouseup');
+        mouseDown(getCell(1, 3));
+        mouseOver(getCell(4, 6));
+        mouseUp(getCell(4, 6));
 
         keyDown('control/meta');
 
-        $(getCell(3, 5)).simulate('mousedown');
-        $(getCell(5, 8)).simulate('mouseover');
-        $(getCell(5, 8)).simulate('mouseup');
+        mouseDown(getCell(3, 5));
+        mouseOver(getCell(5, 8));
+        mouseUp(getCell(5, 8));
 
-        $(getCell(3, 6)).simulate('mousedown');
-        $(getCell(6, 9)).simulate('mouseover');
-        $(getCell(6, 9)).simulate('mouseup');
+        mouseDown(getCell(3, 6));
+        mouseOver(getCell(6, 9));
+        mouseUp(getCell(6, 9));
 
         keyUp('control/meta');
 
