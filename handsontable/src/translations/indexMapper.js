@@ -120,6 +120,11 @@ export class IndexMapper {
      */
     this.indexesSequenceChanged = false;
     /**
+     * 
+     * @type {null}
+     */
+    this.indexesChangeSource = null;
+    /**
      * Flag determining whether any action on trimmed indexes has been performed. It's used for cache management.
      *
      * @private
@@ -161,6 +166,7 @@ export class IndexMapper {
       // Sequence of stored indexes might change.
       this.updateCache();
 
+      this.runLocalHooks('indexesSequenceChange', this.indexesChangeSource);
       this.runLocalHooks('change', this.indexesSequence, null);
     });
 
@@ -479,7 +485,9 @@ export class IndexMapper {
     this.notHiddenIndexesCache = [...new Array(length).keys()];
 
     this.suspendOperations();
+    this.indexesChangeSource = 'init';
     this.indexesSequence.init(length);
+    this.indexesChangeSource = null;
     this.trimmingMapsCollection.initEvery(length);
     this.resumeOperations();
 
@@ -529,7 +537,15 @@ export class IndexMapper {
    * @param {Array} indexes Physical indexes.
    */
   setIndexesSequence(indexes) {
+    if (this.indexesChangeSource === null) {
+      this.indexesChangeSource = 'update';
+    }
+
     this.indexesSequence.setValues(indexes);
+
+    if (this.indexesChangeSource === 'update') {
+      this.indexesChangeSource = null;
+    }
   }
 
   /**
@@ -655,8 +671,12 @@ export class IndexMapper {
       destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
     }
 
+    this.indexesChangeSource = 'move';
+
     // Adding indexes without re-indexing.
     this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, destinationPosition, physicalMovedIndexes));
+
+    this.indexesChangeSource = null;
   }
 
   /**
@@ -695,7 +715,9 @@ export class IndexMapper {
       (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
     this.suspendOperations();
+    this.indexesChangeSource = 'insert';
     this.indexesSequence.insert(insertionIndex, insertedIndexes);
+    this.indexesChangeSource = null;
     this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);

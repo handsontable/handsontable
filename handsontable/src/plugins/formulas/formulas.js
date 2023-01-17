@@ -181,51 +181,41 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
-    this.hot.columnIndexMapper.addLocalHook('init', () => {
-      this.columnIndexesSequence = this.hot.columnIndexMapper.getIndexesSequence();
-    });
+    const getIndexesChangeSyncMethod = (indexesType) => {
+      return (source) => {
+        const newSequence = this.hot[`${indexesType}IndexMapper`].getIndexesSequence();
 
-    this.hot.rowIndexMapper.addLocalHook('init', () => {
-      this.rowIndexesSequence = this.hot.rowIndexMapper.getIndexesSequence();
-    });
+        if (source === 'update') {
+          const relativeTransformation = this[`${indexesType}IndexesSequence`].map(index => newSequence.indexOf(index));
+          const syncMethodName = `set${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}Order`;
 
-    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', (updatedInfo) => {
-      if (this.sheetId !== null && updatedInfo.indexesSequenceChanged === true) {
-        const newOrder = this.hot.columnIndexMapper.getIndexesSequence();
+          this.engine[syncMethodName](this.sheetId, relativeTransformation);
+        }
 
-        // Just sequence has been changed
-        if (this.columnIndexesSequence.length !== newOrder.length) {
-          this.columnIndexesSequence = newOrder;
+        this[`${indexesType}IndexesSequence`] = newSequence;
+      };
+    };
 
+    const getIndexMoveSyncMethod = (indexesType) => {
+      return (movedIndexes, finalIndex, dropIndex, movePossible, orderChanged) => {
+        if (movePossible === false || orderChanged === false) {
           return;
         }
 
-        const relativeTransformation = this.columnIndexesSequence.map(index => newOrder.indexOf(index));
-
-        this.columnIndexesSequence = newOrder;
-
-        this.engine.setColumnOrder(this.sheetId, relativeTransformation);
-      }
-    });
-
-    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', (updatedInfo) => {
-      if (this.sheetId !== null && updatedInfo.indexesSequenceChanged === true) {
-        const newOrder = this.hot.rowIndexMapper.getIndexesSequence();
-
-        // Just sequence has been changed
-        if (this.rowIndexesSequence.length !== newOrder.length) {
-          this.rowIndexesSequence = newOrder;
-
-          return;
+        if (finalIndex > movedIndexes[0]) {
+          finalIndex += 1;
         }
 
-        const relativeTransformation = this.rowIndexesSequence.map(index => newOrder.indexOf(index));
+        const syncMethodName = `move${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}s`;
 
-        this.rowIndexesSequence = newOrder;
+        this.engine[syncMethodName](this.sheetId, movedIndexes[0], movedIndexes.length, finalIndex);
+      };
+    };
 
-        this.engine.setRowOrder(this.sheetId, relativeTransformation);
-      }
-    });
+    this.hot.addHook('afterRowSequenceChange', getIndexesChangeSyncMethod('row'));
+    this.hot.addHook('afterColumnSequenceChange', getIndexesChangeSyncMethod('column'));
+    this.hot.addHook('afterRowMove', getIndexMoveSyncMethod('row'));
+    this.hot.addHook('afterColumnMove', getIndexMoveSyncMethod('column'));
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', (action) => {
@@ -265,9 +255,6 @@ export class Formulas extends BasePlugin {
     unregisterEngine(this.engine, this.hot);
 
     this.engine = null;
-
-    this.hot.rowIndexMapper.clearLocalHooks();
-    this.hot.columnIndexMapper.clearLocalHooks();
 
     super.disablePlugin();
   }
@@ -317,9 +304,6 @@ export class Formulas extends BasePlugin {
     unregisterEngine(this.engine, this.hot);
 
     this.engine = null;
-
-    this.hot.rowIndexMapper.clearLocalHooks();
-    this.hot.columnIndexMapper.clearLocalHooks();
 
     super.destroy();
   }

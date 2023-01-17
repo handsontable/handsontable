@@ -238,6 +238,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.rowIndexMapper = new IndexMapper();
 
+  this.columnIndexMapper.addLocalHook('indexesSequenceChange', (source) => {
+    instance.runHooks('afterColumnSequenceChange', source);
+  });
+
+  this.rowIndexMapper.addLocalHook('indexesSequenceChange', (source) => {
+    instance.runHooks('afterRowSequenceChange', source);
+  });
+
   dataSource = new DataSource(instance);
 
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
@@ -4299,9 +4307,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (datamap) {
       datamap.destroy();
     }
-
-    instance.rowIndexMapper = null;
-    instance.columnIndexMapper = null;
 
     datamap = null;
     grid = null;
