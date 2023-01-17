@@ -479,7 +479,7 @@ describe('shortcutManager', () => {
     document.body.removeChild(externalInputElement);
   });
 
-  it('should check if there is a need of releasing keys on click #32', () => {
+  it('should check if there is a need of releasing keys on click #dev-1025', () => {
     const hot = handsontable();
     const shortcutManager = hot.getShortcutManager();
     const releasePressedKeys = spyOn(shortcutManager, 'releasePressedKeys');
