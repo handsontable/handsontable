@@ -114,7 +114,7 @@ describe('UndoRedo', () => {
 
           expect(countRows()).toEqual(2);
 
-          alter('insert_row');
+          alter('insert_row_above');
 
           expect(countRows()).toEqual(3);
 
@@ -130,7 +130,7 @@ describe('UndoRedo', () => {
 
           expect(countRows()).toEqual(2);
 
-          alter('insert_row', 0, 5);
+          alter('insert_row_above', 0, 5);
 
           expect(countRows()).toEqual(7);
 
@@ -297,6 +297,39 @@ describe('UndoRedo', () => {
           expect(getDataAtCell(2, 1)).toEqual('B1');
         });
 
+        it('should undo the removal of rows when the instance is configured with the `columns` option', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(3, 3),
+            columns: [
+              { data: 1 }
+            ]
+          });
+
+          alter('remove_row', 0, 3);
+
+          expect(countRows()).toEqual(0);
+          expect(countSourceRows()).toEqual(0);
+          expect(countCols()).toEqual(1);
+          expect(countSourceCols()).toEqual(0);
+
+          undo();
+
+          expect(countRows()).toEqual(3);
+          expect(countSourceRows()).toEqual(3);
+          expect(countCols()).toEqual(1);
+          expect(countSourceCols()).toEqual(3);
+
+          expect(getData(0, 0, 2, 0)).toEqual([
+            ['B1'], ['B2'], ['B3']
+          ]);
+
+          expect(getSourceData(0, 0, 2, 2)).toEqual([
+            ['A1', 'B1', 'C1'],
+            ['A2', 'B2', 'C2'],
+            ['A3', 'B3', 'C3'],
+          ]);
+        });
+
         it('should undo creation of a single column (colHeaders: undefined)', () => {
           const HOT = handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 3)
@@ -304,7 +337,7 @@ describe('UndoRedo', () => {
 
           expect(countCols()).toEqual(3);
 
-          alter('insert_col');
+          alter('insert_col_start');
 
           expect(countCols()).toEqual(4);
 
@@ -322,7 +355,7 @@ describe('UndoRedo', () => {
           expect(countCols()).toEqual(3);
           expect(getColHeader()).toEqual(['A', 'B', 'C']);
 
-          alter('insert_col');
+          alter('insert_col_start');
 
           expect(countCols()).toEqual(4);
           expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
@@ -342,7 +375,7 @@ describe('UndoRedo', () => {
           expect(countCols()).toEqual(3);
           expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3']);
 
-          alter('insert_col', 1);
+          alter('insert_col_start', 1);
 
           expect(countCols()).toEqual(4);
           expect(getColHeader()).toEqual(['Header1', 'B', 'Header2', 'Header3']);
@@ -360,7 +393,7 @@ describe('UndoRedo', () => {
 
           expect(countCols()).toEqual(2);
 
-          alter('insert_col', 1, 5);
+          alter('insert_col_start', 1, 5);
 
           expect(countCols()).toEqual(7);
 
@@ -378,7 +411,7 @@ describe('UndoRedo', () => {
           expect(countCols()).toEqual(2);
           expect(getColHeader()).toEqual(['A', 'B']);
 
-          alter('insert_col', 1, 5);
+          alter('insert_col_start', 1, 5);
 
           expect(countCols()).toEqual(7);
           expect(getColHeader()).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G']);
@@ -398,7 +431,7 @@ describe('UndoRedo', () => {
           expect(countCols()).toEqual(2);
           expect(getColHeader()).toEqual(['Header1', 'Header2']);
 
-          alter('insert_col', 1, 5);
+          alter('insert_col_start', 1, 5);
 
           expect(countCols()).toEqual(7);
           expect(getColHeader()).toEqual(['Header1', 'B', 'C', 'D', 'E', 'F', 'Header2']);
@@ -428,7 +461,7 @@ describe('UndoRedo', () => {
           expect(getData()).toEqual([['A1', null, null]]);
         });
 
-        it('should unde removal of multiple columns with minSpareCols', () => {
+        it('should undo removal of multiple columns with minSpareCols', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(1, 2),
             minSpareCols: 1,
@@ -824,10 +857,10 @@ describe('UndoRedo', () => {
 
           expect(countRows()).toEqual(2);
 
-          alter('insert_row');
-          alter('insert_row');
-          alter('insert_row');
-          alter('insert_row');
+          alter('insert_row_above');
+          alter('insert_row_above');
+          alter('insert_row_above');
+          alter('insert_row_above');
 
           expect(countRows()).toEqual(6);
 
@@ -1094,7 +1127,7 @@ describe('UndoRedo', () => {
 
           expect(countRows()).toEqual(2);
 
-          alter('insert_row');
+          alter('insert_row_above');
 
           expect(countRows()).toEqual(3);
 
@@ -1114,7 +1147,7 @@ describe('UndoRedo', () => {
 
           expect(countRows()).toEqual(2);
 
-          alter('insert_row', 0, 5);
+          alter('insert_row_above', 0, 5);
 
           expect(countRows()).toEqual(7);
 
@@ -1218,7 +1251,7 @@ describe('UndoRedo', () => {
 
           expect(countCols()).toEqual(2);
 
-          alter('insert_col');
+          alter('insert_col_start');
 
           expect(countCols()).toEqual(3);
 
@@ -1238,7 +1271,7 @@ describe('UndoRedo', () => {
 
           expect(countCols()).toEqual(2);
 
-          alter('insert_col', 1, 5);
+          alter('insert_col_start', 1, 5);
 
           expect(countCols()).toEqual(7);
 
@@ -1488,10 +1521,10 @@ describe('UndoRedo', () => {
 
           expect(countRows()).toEqual(2);
 
-          alter('insert_row');
-          alter('insert_row');
-          alter('insert_row');
-          alter('insert_row');
+          alter('insert_row_above');
+          alter('insert_row_above');
+          alter('insert_row_above');
+          alter('insert_row_above');
 
           expect(countRows()).toEqual(6);
 
@@ -1679,7 +1712,7 @@ describe('UndoRedo', () => {
 
           expect(countRows()).toEqual(2);
 
-          alter('insert_row');
+          alter('insert_row_above');
 
           expect(countRows()).toEqual(3);
 
@@ -1695,7 +1728,7 @@ describe('UndoRedo', () => {
 
           expect(countRows()).toEqual(2);
 
-          alter('insert_row', 0, 5);
+          alter('insert_row_above', 0, 5);
 
           expect(countRows()).toEqual(7);
 
@@ -1921,10 +1954,10 @@ describe('UndoRedo', () => {
 
           expect(countRows()).toEqual(2);
 
-          alter('insert_row');
-          alter('insert_row');
-          alter('insert_row');
-          alter('insert_row');
+          alter('insert_row_above');
+          alter('insert_row_above');
+          alter('insert_row_above');
+          alter('insert_row_above');
 
           expect(countRows()).toEqual(6);
 
@@ -2078,7 +2111,7 @@ describe('UndoRedo', () => {
 
           expect(countRows()).toEqual(2);
 
-          alter('insert_row');
+          alter('insert_row_above');
 
           expect(countRows()).toEqual(3);
 
@@ -2098,7 +2131,7 @@ describe('UndoRedo', () => {
 
           expect(countRows()).toEqual(2);
 
-          alter('insert_row', 0, 5);
+          alter('insert_row_above', 0, 5);
 
           expect(countRows()).toEqual(7);
 
@@ -2341,10 +2374,10 @@ describe('UndoRedo', () => {
 
           expect(countRows()).toEqual(2);
 
-          alter('insert_row');
-          alter('insert_row');
-          alter('insert_row');
-          alter('insert_row');
+          alter('insert_row_above');
+          alter('insert_row_above');
+          alter('insert_row_above');
+          alter('insert_row_above');
 
           expect(countRows()).toEqual(6);
 

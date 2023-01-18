@@ -41,22 +41,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  * * `true` (to enable default options),
  * * `false` (to disable completely)
  * * `{ uiContainer: containerDomElement }` (to declare a container for all of the Context Menu's dom elements to be placed in).
- *
- * or array of any available strings:
- * * `'row_above'`
- * * `'row_below'`
- * * `'col_left'`
- * * `'col_right'`
- * * `'remove_row'`
- * * `'remove_col'`
- * * `'undo'`
- * * `'redo'`
- * * `'make_read_only'`
- * * `'alignment'`
- * * `'---------'` (menu item separator)
- * * `'borders'` (with {@link Options#customBorders} turned on)
- * * `'commentsAddEdit'` (with {@link Options#comments} turned on)
- * * `'commentsRemove'` (with {@link Options#comments} turned on).
+ * * An array of [the available strings](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options)
  *
  * See [the context menu demo](@/guides/accessories-and-menus/context-menu.md) for examples.
  *
@@ -143,7 +128,7 @@ export class ContextMenu extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link ContextMenu#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link ContextMenu#enablePlugin} method is called.
    *
    * @returns {boolean}
    */

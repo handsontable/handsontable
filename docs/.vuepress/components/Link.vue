@@ -43,13 +43,14 @@ export default {
 
   computed: {
     parsedHref() {
+      const frameworkDir = `${this.$page.currentFramework}${this.$page.frameworkSuffix}`;
       let href = this.href;
 
       if (!this.isExternal) {
         if (this.hideLatestVersion && this.$page.currentVersion === this.$page.latestVersion) {
-          href = href.replace('/{docsVersion}/', '/');
+          href = href.replace('/{docsVersion}/', `/${frameworkDir}/`);
         } else {
-          href = href.replace('/{docsVersion}/', `/${this.$page.currentVersion}/`);
+          href = href.replace('/{docsVersion}/', `/${this.$page.currentVersion}/${frameworkDir}/`);
         }
       }
 

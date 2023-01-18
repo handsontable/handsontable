@@ -39,7 +39,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *
  * ```js
  * // as a number (300 columns in sync, rest async)
- * autoColumnSize: {syncLimit: 300},.
+ * autoColumnSize: {syncLimit: 300},
  *
  * // as a string (percent)
  * autoColumnSize: {syncLimit: '40%'},
@@ -70,6 +70,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
  *   data: getData(),
@@ -84,6 +85,34 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *   // code...
  * }
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * const hotRef = useRef(null);
+ *
+ * ...
+ *
+ * // First, let's contruct Handsontable
+ * <HotTable
+ *   ref={hotRef}
+ *   data={getData()}
+ *   autoColumnSize={true}
+ * />
+ *
+ * ...
+ *
+ * // Access to plugin instance:
+ * const hot = hotRef.current.hotInstance;
+ * const plugin = hot.getPlugin('autoColumnSize');
+ *
+ * plugin.getColumnWidth(4);
+ *
+ * if (plugin.isEnabled()) {
+ *   // code...
+ * }
+ * ```
+ * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export class AutoColumnSize extends BasePlugin {
@@ -185,7 +214,7 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link #enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link #enablePlugin} method is called.
    *
    * @returns {boolean}
    */

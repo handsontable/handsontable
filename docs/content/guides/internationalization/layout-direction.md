@@ -1,6 +1,8 @@
 ---
+id: gcdt3pns
 title: Layout direction
-metaTitle: Layout direction - Guide - Handsontable Documentation
+metaTitle: Layout direction - JavaScript Data Grid | Handsontable
+description: Set the layout direction for right-to-left languages. Automatically inherit your HTML file's "dir" property, or set the layout direction manually.
 permalink: /layout-direction
 canonicalUrl: /layout-direction
 tags:
@@ -14,38 +16,47 @@ tags:
   - localization
   - L10n
   - i18n
+react:
+  id: g4mu790t
+  metaTitle: Layout direction - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Layout direction
 
+Set the layout direction for right-to-left languages. Automatically inherit your HTML file's `dir` property, or set the layout direction manually.
+
 [[toc]]
 
-Configure Handsontable's layout direction, to properly handle right-to-left (RTL) and left-to-right (LTR) [languages](@/guides/internationalization/language.md).
-
-## About layout direction
+## Overview
 
 To properly display Handsontable's UI and data in LTR languages (such as English, Chinese, or Russian) and RTL languages (such as Arabic, Persian, or Hebrew), configure your grid's layout direction.
 
 By default, Handsontable's layout direction is set automatically, based on on the value of your HTML document's `dir` attribute.
 
 You can:
-- [Set the layout direction automatically](#setting-the-layout-direction-automatically)
-- [Set the layout direction to RTL](#setting-the-layout-direction-to-rtl)
-- [Set the layout direction to LTR](#setting-the-layout-direction-to-ltr)
+- [Set the layout direction automatically](#set-the-layout-direction-automatically)
+- [Set the layout direction to RTL](#set-the-layout-direction-to-rtl)
+- [Set the layout direction to LTR](#set-the-layout-direction-to-ltr)
 
 ### RTL support
 
-If your app uses an RTL language, we recommend [setting Handsontable's layout direction to RTL](#setting-the-layout-direction-to-rtl).
+If your app uses an RTL language, we recommend [setting Handsontable's layout direction to RTL](#set-the-layout-direction-to-rtl).
 
-For Arabic, use Handsontable's built-in [Arabic translation](@/guides/internationalization/language.md#list-of-available-languages). For any other RTL language, [add your own translation](@/guides/internationalization/language.md#creating-custom-languages).
+For Arabic, use Handsontable's built-in [Arabic translation](@/guides/internationalization/language.md#list-of-available-languages). For any other RTL language, [add your own translation](@/guides/internationalization/language.md#create-custom-languages).
 
 #### RTL demo
 
 To try out Handsontable's RTL support, check out the demo below:
 
+::: only-for javascript
 ::: example #example1 :hot-lang
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
+import 'handsontable/dist/handsontable.full.min.css';
+
+registerLanguageDictionary(arAR);
 
 // generate random RTL data (e.g., Arabic)
 function generateArabicData() {
@@ -76,6 +87,7 @@ function generateArabicData() {
   return arr;
 }
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: generateArabicData(),
@@ -93,6 +105,71 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react-languages
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+registerLanguageDictionary(arAR);
+
+//  generate random RTL data (e.g., Arabic)
+function generateArabicData() {
+  const randomName = () => ["عمر", "علي", "عبد الله", "معتصم"][Math.floor(Math.random() * 3)];
+  const randomCountry = () => ["تركيا", "مصر", "لبنان", "العراق"][Math.floor(Math.random() * 3)];
+  const randomDate = () =>
+          new Date(Math.floor(Math.random() * Date.now())).toLocaleDateString()
+  const randomBool = () => Math.random() > 0.5;
+  const randomNumber = (a = 0, b = 1000) => a + Math.floor(Math.random() * b);
+  const randomPhrase = () =>
+          `${randomCountry()} ${randomName()} ${randomNumber()}`;
+
+  const arr = Array.from({ length: 10 }, () => [
+    randomBool(),
+    randomName(),
+    randomCountry(),
+    randomPhrase(),
+    randomDate(),
+    randomPhrase(),
+    randomBool(),
+    randomNumber(0, 200).toString(),
+    randomNumber(0, 10),
+    randomNumber(0, 5),
+  ]);
+
+  return arr;
+}
+
+export const ExampleComponent = () => {
+  return (
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={generateArabicData()}
+      colHeaders={true}
+      rowHeaders={true}
+      height="auto"
+      layoutDirection="rtl"
+      language="ar-AR"
+      dropdownMenu={true}
+      filters={true}
+      contextMenu={true}
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
 
 ### Elements affected by layout direction
 
@@ -114,11 +191,11 @@ Setting a different layout direction affects the behavior of the following areas
 
 The list above is not exhaustive. Setting a different layout direction might affect other areas of Handsontable as well.
 
-## Setting the layout direction
+## Set the layout direction
 
 You can set the layout direction only at Handsontable's initialization. Any change of the [`layoutDirection`](@/api/options.md#layoutdirection) option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
 
-### Setting the layout direction automatically
+### Set the layout direction automatically
 
 You can set Handsontable's layout direction automatically,
 based on on the value of your HTML document's `dir` attribute.
@@ -130,16 +207,18 @@ and set it to `'inherit'`. As this is the default setting, you can also skip set
 
 In the example below, the RTL layout direction is inherited from a `dir` attribute up in the DOM tree:
 
+::: only-for javascript
 ::: example #example2 --html 1 --js 2
 ```html
 <section dir="rtl">
   <div id="example2"></div>
 </section>
 ```
-
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -157,18 +236,60 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
 
-### Setting the layout direction to RTL
+::: only-for react
+::: example #example2 :react
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  return (
+    <section dir="rtl">
+      <HotTable
+        licenseKey="non-commercial-and-evaluation"
+        data={[
+          ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+          ['2019', 10, 11, 12, 13],
+          ['2020', 20, 11, 14, 13],
+          ['2021', 30, 15, 12, 13]
+        ]}
+        colHeaders={true}
+        rowHeaders={true}
+        height="auto"
+        layoutDirection="inherit"
+      />
+    </section>
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
+
+### Set the layout direction to RTL
 
 You can render Handsontable from the right to the left, regardless of your HTML document's `dir` attribute.
 
 At Handsontable's initialization, add [`layoutDirection`](@/api/options.md#layoutdirection) as a top-level grid option,
 and set it to `'rtl'`:
 
+::: only-for javascript
 ::: example #example3
 ```js
-const container = document.querySelector('#example3');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -186,18 +307,58 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
 
-### Setting the layout direction to LTR
+::: only-for react
+::: example #example3 :react
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  return (
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={[
+        ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+        ['2019', 10, 11, 12, 13],
+        ['2020', 20, 11, 14, 13],
+        ['2021', 30, 15, 12, 13]
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      height="auto"
+      layoutDirection="rtl"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
+
+### Set the layout direction to LTR
 
 You can render Handsontable from the left to the right, regardless of your HTML document's `dir` attribute.
 
 At Handsontable's initialization, add [`layoutDirection`](@/api/options.md#layoutdirection) as a top-level grid option,
 and set it to `'ltr'`:
 
+::: only-for javascript
 ::: example #example4
 ```js
-const container = document.querySelector('#example4');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -215,17 +376,57 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
 
-## Setting the horizontal text alignment
+::: only-for react
+::: example #example4 :react
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  return (
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={[
+        ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+        ['2019', 10, 11, 12, 13],
+        ['2020', 20, 11, 14, 13],
+        ['2021', 30, 15, 12, 13]
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      height="auto"
+      layoutDirection="ltr"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
+
+## Set the horizontal text alignment
 
 You can apply different horizontal [text alignment](@/guides/cell-features/text-alignment.md) settings, overwriting the horizontal text alignment resulting from your grid's layout direction.
 
 In the example below, some columns are explicitly aligned to the left, center, or right:
 
+::: only-for javascript
 ::: example #example5
 ```js
-const container = document.querySelector('#example5');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example5');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -253,13 +454,60 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example5 :react
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  return (
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={[
+        ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+        ['2019', 10, 11, 12, 13],
+        ['2020', 20, 11, 14, 13],
+        ['2021', 30, 15, 12, 13]
+      ]}
+      colHeaders={true}
+      rowHeaders={true}
+      height="auto"
+      layoutDirection="rtl"
+      columns={[
+        {},
+        // align this column's text to the left
+        { className: 'htLeft' },
+        // align this column's text to the center
+        { className: 'htCenter' },
+        // align this column's text to the right
+        { className: 'htRight' },
+        {},
+      ]}
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example5'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
 
 You can apply the horizontal text alignment settings to:
-- [The entire grid](@/guides/getting-started/setting-options.md#setting-grid-options), by setting [`className`](@/api/options.md#classname) on the global level
-- [Individual columns](@/guides/getting-started/setting-options.md#setting-column-options), by setting [`className`](@/api/options.md#classname) on the column level
-- [Individual rows](@/guides/getting-started/setting-options.md#setting-row-options), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
-- [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options), by setting [`className`](@/api/options.md#classname) on the cell level
-- [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
+- [The entire grid](@/guides/getting-started/configuration-options.md#set-grid-options), by setting [`className`](@/api/options.md#classname) on the global level
+- [Individual columns](@/guides/getting-started/configuration-options.md#set-column-options), by setting [`className`](@/api/options.md#classname) on the column level
+- [Individual rows](@/guides/getting-started/configuration-options.md#set-row-options), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
+- [Individual cells](@/guides/getting-started/configuration-options.md#set-cell-options), by setting [`className`](@/api/options.md#classname) on the cell level
+- [Individual grid elements, based on any logic you implement](@/guides/getting-started/configuration-options.md#implement-custom-logic), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
 
 ## Related articles
 

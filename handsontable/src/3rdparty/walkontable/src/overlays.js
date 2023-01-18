@@ -2,6 +2,7 @@ import {
   getScrollableElement,
   getScrollbarWidth,
 } from '../../../helpers/dom/element';
+import { requestAnimationFrame } from '../../../helpers/feature';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { isChrome } from '../../../helpers/browser';
@@ -80,6 +81,23 @@ class Overlays {
    * @type {Settings}
    */
   wtSettings = null;
+
+  /**
+   * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
+   * In case of the size change detection the `onContainerElementResize` is fired.
+   *
+   * @private
+   * @type {ResizeObserver}
+   */
+  resizeObserver = new ResizeObserver((entries) => {
+    requestAnimationFrame(() => {
+      if (!Array.isArray(entries) || !entries.length) {
+        return;
+      }
+
+      this.wtSettings.getSetting('onContainerElementResize');
+    });
+  });
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.
@@ -293,6 +311,10 @@ class Overlays {
         this.wtSettings.getSetting('onWindowResize');
       }, 200);
     });
+
+    if (!isScrollOnWindow) {
+      this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);
+    }
   }
 
   /**
@@ -511,6 +533,7 @@ class Overlays {
    *
    */
   destroy() {
+    this.resizeObserver.disconnect();
     this.eventManager.destroy();
     // todo, probably all below `destory` calls has no sense. To analyze
     this.topOverlay.destroy();
@@ -537,13 +560,9 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    const spreader = this.wtTable.spreader;
-    const width = spreader.clientWidth;
-    const height = spreader.clientHeight;
+    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
 
-    if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
-      this.spreaderLastSize.width = width;
-      this.spreaderLastSize.height = height;
+    if (wasSpreaderSizeUpdated) {
       this.adjustElementsSize();
     }
 
@@ -561,6 +580,25 @@ class Overlays {
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
       this.bottomInlineStartCornerOverlay.refresh(fastDraw);
     }
+  }
+
+  /**
+   * Update the last cached spreader size with the current size.
+   *
+   * @returns {boolean} `true` if the lastSpreaderSize cache was updated, `false` otherwise.
+   */
+  updateLastSpreaderSize() {
+    const spreader = this.wtTable.spreader;
+    const width = spreader.clientWidth;
+    const height = spreader.clientHeight;
+    const needsUpdating = width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height;
+
+    if (needsUpdating) {
+      this.spreaderLastSize.width = width;
+      this.spreaderLastSize.height = height;
+    }
+
+    return needsUpdating;
   }
 
   /**

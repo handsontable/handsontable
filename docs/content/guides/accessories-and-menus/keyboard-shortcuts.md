@@ -1,6 +1,8 @@
 ---
+id: 5w6juytv
 title: Keyboard shortcuts
-metaTitle: Keyboard shortcuts - Guide - Handsontable Documentation
+metaTitle: Keyboard shortcuts - JavaScript Data Grid | Handsontable
+description: Navigate the grid similarly to Google Sheets or Microsoft Excel, using built-in keyboard shortcuts. Create shortcuts of your own.
 permalink: /keyboard-shortcuts
 canonicalUrl: /keyboard-shortcuts
 tags:
@@ -13,24 +15,27 @@ tags:
 - accessibility
 - function key
 - commands
-
+react:
+  id: ddjw4zt8
+  metaTitle: Keyboard shortcuts - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Keyboard shortcuts
 
-Use and manage Handsontable's keyboard shortcuts.
+Navigate the grid similarly to Google Sheets or Microsoft Excel, using built-in keyboard shortcuts. Create shortcuts of your own.
 
 [[toc]]
 
 ## Overview
 
-You can navigate Handsontable similarly to Google Sheets or Microsoft Excel, using the [default](#default-keyboard-shortcuts) keyboard shortcuts.
+To navigate Handsontable similarly to Google Sheets or Microsoft Excel, use the [default](#default-keyboard-shortcuts) keyboard shortcuts.
 
 You can also completely [customize](#custom-keyboard-shortcuts) your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutManager.md) API:
-- [Add custom keyboard shortcuts](#adding-a-custom-keyboard-shortcut)
-- [Remove keyboard shortcuts](#removing-a-keyboard-shortcut)
-- [Replace keyboard shortcuts](#replacing-a-keyboard-shortcut)
-- [Block keyboard shortcuts' actions](#blocking-a-keyboard-shortcut-s-actions)
+- [Add custom keyboard shortcuts](#add-a-custom-keyboard-shortcut)
+- [Remove keyboard shortcuts](#remove-a-keyboard-shortcut)
+- [Replace keyboard shortcuts](#replace-a-keyboard-shortcut)
+- [Block keyboard shortcuts' actions](#block-a-keyboard-shortcut-s-actions)
 
 ## Default keyboard shortcuts
 
@@ -194,6 +199,14 @@ These keyboard shortcuts work in context menus. To activate them, enable the [`C
 
 You can customize your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutManager.md) API.
 
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+:::
+
 1. Access the [`ShortcutManager`](@/api/shortcutManager.md) API:
     ```js
     hot.getShortcutManager()
@@ -223,13 +236,13 @@ Every keyboard action is registered in a particular context:
 | `grid`   | Activates when the user navigates the data grid (initial context) | Built-in |
 | `editor` | Activates when the user opens a cell editor                       | Built-in |
 | `menu`   | Activates when the user opens a cell's context menu               | Built-in |
-| Custom   | Your [custom context](#managing-keyboard-shortcut-contexts)       | Custom   |
+| Custom   | Your [custom context](#manage-keyboard-shortcut-contexts)       | Custom   |
 
 When the user interacts with the keyboard, only actions registered for the currently-active context are executed.
 
 Only one context is active at a time.
 
-#### Managing keyboard shortcut contexts
+#### Manage keyboard shortcut contexts
 
 Using the [`ShortcutManager`](@/api/shortcutManager.md) API methods, you can:
 
@@ -241,7 +254,7 @@ Using the [`ShortcutManager`](@/api/shortcutManager.md) API methods, you can:
 For example: if you're using a complex [custom editor](@/guides/cell-functions/cell-editor.md#how-to-create-a-custom-editor),
 you can create a new shortcut context to navigate your editor's UI with the arrow keys (normally, the arrow keys would navigate the grid instead).
 
-### Adding a custom keyboard shortcut
+### Add a custom keyboard shortcut
 
 To add a custom keyboard shortcut:
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to add a shortcut, for example:
@@ -272,7 +285,7 @@ To add a custom keyboard shortcut:
     To properly use <kbd>**Alt**</kbd> (<kbd>**Option ⌥**</kbd>) in your shortcut, you may need to pass language-specific signs (such as `à` or `ś`) to the [`keys`](@/api/shortcutContext.md#addshortcut) parameter.
     :::
 
-#### Adding a conditional keyboard action
+#### Add a conditional keyboard action
 
 To make a keyboard action run on a certain condition, set the [`runOnlyIf`](@/api/shortcutContext.md#addshortcut) parameter to a function:
 
@@ -287,7 +300,7 @@ gridContext.addShortcut({
 });
 ```
 
-#### Setting the order of keyboard actions
+#### Set the order of keyboard actions
 
 You can assign multiple actions to a single keyboard shortcut.
 
@@ -312,7 +325,7 @@ gridContext.addShortcut({
 });
 ```
 
-### Removing a keyboard shortcut
+### Remove a keyboard shortcut
 
 To remove a keyboard shortcut (e.g., one of the [default](#default-keyboard-shortcuts) keyboard shortcuts):
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to remove a keyboard shortcut.
@@ -332,7 +345,7 @@ const gridContext = hot.getShortcutManager().getContext('grid');
 gridContext.removeShortcutsByGroup('group_ID');
 ```
 
-### Replacing a keyboard shortcut
+### Replace a keyboard shortcut
 
 To replace a keyboard shortcut:
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to replace a keyboard shortcut.
@@ -353,10 +366,11 @@ undoShortcut.map((shortcut) => {
 gridContext.addShortcuts(undoShortcut);
 ```
 
-### Blocking a keyboard shortcut's actions
+### Block a keyboard shortcut's actions
 
 To block a keyboard shortcut's actions, return `false` in the [`beforeKeyDown`](@/api/hooks.md#beforekeydown) hook's callback:
 
+::: only-for javascript
 ```js
 hot.addHook('beforeKeyDown', (event) => {
   // the `Enter` shortcut won't work
@@ -365,6 +379,20 @@ hot.addHook('beforeKeyDown', (event) => {
   }
 });
 ```
+:::
+
+::: only-for react
+```jsx
+<HotTable
+  beforeKeyDown={(event) => {
+    // the `Enter` shortcut won't work
+    if (event.key === 'enter') {
+      return false;
+    }
+  }}
+/>
+```
+:::
 
 ## Related API reference
 

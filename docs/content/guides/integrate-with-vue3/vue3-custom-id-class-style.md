@@ -1,11 +1,16 @@
 ---
-title: 'Custom ID, Class, Style and other attributes in Vue 3'
-metaTitle: 'Custom ID, Class, Style and other attributes in Vue 3 - Guide - Handsontable Documentation'
+id: 2kg0f1og
+title: Custom ID, Class, Style and other attributes in Vue 3
+metaTitle: Custom ID, class, and style - Vue 3 Data Grid | Handsontable
+description: Pass a custom ID, class, and style to the "HotTable" component, to further customize your Vue 3 data grid.
 permalink: /vue3-custom-id-class-style
 canonicalUrl: /vue3-custom-id-class-style
+searchCategory: Guides
 ---
 
 # Custom ID, Class, Style, and other attributes in Vue 3
+
+Pass a custom ID, class, and style to the "HotTable" component, to further customize your Vue 3 data grid.
 
 [[toc]]
 
@@ -26,14 +31,15 @@ Each of them will be applied to the root Handsontable element, allowing further 
 ```
 
 ```js
-import { createApp } from 'vue';
+import { defineComponent } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const app = createApp({
+const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
@@ -53,6 +59,14 @@ const app = createApp({
   }
 });
 
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+import { createApp } from 'vue';
+
+const app = createApp(ExampleComponent);
+
 app.mount('#example1');
+/* end:skip-in-preview */
 ```
 :::

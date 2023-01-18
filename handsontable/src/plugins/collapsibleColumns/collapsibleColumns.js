@@ -5,6 +5,7 @@ import { warn } from '../../helpers/console';
 import {
   addClass,
   hasClass,
+  removeClass,
   fastInnerText
 } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
@@ -13,6 +14,7 @@ import { stopImmediatePropagation } from '../../helpers/dom/event';
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
 const SETTING_KEYS = ['nestedHeaders'];
+const COLLAPSIBLE_ELEMENT_CLASS = 'collapsibleIndicator';
 
 const actionDictionary = new Map([
   ['collapse', {
@@ -45,6 +47,7 @@ const actionDictionary = new Map([
  * of objects, as in the example below.
  *
  * @example
+ * ::: only-for javascript
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -69,6 +72,33 @@ const actionDictionary = new Map([
  *   ],
  * });
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={generateDataObj()}
+ *   colHeaders={true}
+ *   rowHeaders={true}
+ *   nestedHeaders={true}
+ *   // enable plugin
+ *   collapsibleColumns={true}
+ * />
+ *
+ * // or
+ * <HotTable
+ *   data={generateDataObj()}
+ *   colHeaders={true}
+ *   rowHeaders={true}
+ *   nestedHeaders={true}
+ *   // enable and configure which columns can be collapsed
+ *   collapsibleColumns={[
+ *     {row: -4, col: 1, collapsible: true},
+ *     {row: -3, col: 5, collapsible: true}
+ *   ]}
+ * />
+ * ```
+ * :::
  */
 export class CollapsibleColumns extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -123,7 +153,7 @@ export class CollapsibleColumns extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link CollapsibleColumns#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link CollapsibleColumns#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -151,7 +181,7 @@ export class CollapsibleColumns extends BasePlugin {
 
     this.addHook('init', () => this.onInit());
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
-    this.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
+    this.addHook('afterGetColHeader', (...args) => this.onAfterGetColHeader(...args));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.onBeforeOnCellMouseDown(event, coords, TD));
 
     super.enablePlugin();
@@ -234,18 +264,18 @@ export class CollapsibleColumns extends BasePlugin {
       const topLeftCornerLevel = topLeftCornerHeaders ? topLeftCornerHeaders.childNodes[i] : null;
 
       rangeEach(0, masterLevel.childNodes.length - 1, (j) => {
-        let button = masterLevel.childNodes[j].querySelector('.collapsibleIndicator');
+        let button = masterLevel.childNodes[j].querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
         removeButton(button);
 
         if (topLevel && topLevel.childNodes[j]) {
-          button = topLevel.childNodes[j].querySelector('.collapsibleIndicator');
+          button = topLevel.childNodes[j].querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
           removeButton(button);
         }
 
         if (topLeftCornerHeaders && topLeftCornerLevel && topLeftCornerLevel.childNodes[j]) {
-          button = topLeftCornerLevel.childNodes[j].querySelector('.collapsibleIndicator');
+          button = topLeftCornerLevel.childNodes[j].querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
           removeButton(button);
         }
@@ -422,48 +452,44 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Generates the indicator element.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @param {number} column Column index.
-   * @returns {HTMLElement}
-   */
-  generateIndicator(row, column) {
-    const divEl = this.hot.rootDocument.createElement('div');
-    const columnSettings = this.headerStateManager.getHeaderSettings(row, column);
-
-    addClass(divEl, 'collapsibleIndicator');
-
-    if (columnSettings.isCollapsed) {
-      addClass(divEl, 'collapsed');
-      fastInnerText(divEl, '+');
-
-    } else {
-      addClass(divEl, 'expanded');
-      fastInnerText(divEl, '-');
-    }
-
-    return divEl;
-  }
-
-  /**
    * Adds the indicator to the headers.
    *
    * @private
    * @param {number} column Column index.
    * @param {HTMLElement} TH TH element.
+   * @param {number} headerLevel The index of header level counting from the top (positive
+   *                             values counting from 0 to N).
    */
-  onAfterGetColHeader(column, TH) {
-    const TR = TH.parentNode;
-    const THEAD = TR.parentNode;
-    const row = ((-1) * THEAD.childNodes.length) + Array.prototype.indexOf.call(THEAD.childNodes, TR);
-    const { collapsible, origColspan } = this.headerStateManager.getHeaderSettings(row, column) ?? {};
+  onAfterGetColHeader(column, TH, headerLevel) {
+    const {
+      collapsible,
+      origColspan,
+      isCollapsed,
+    } = this.headerStateManager.getHeaderSettings(headerLevel, column) ?? {};
 
-    if (collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsStart) {
-      const button = this.generateIndicator(row, column);
+    const isNodeCollapsible = collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsStart;
+    let collapsibleElement = TH.querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
-      TH.querySelector('div:first-child').appendChild(button);
+    if (isNodeCollapsible) {
+      if (!collapsibleElement) {
+        collapsibleElement = this.hot.rootDocument.createElement('div');
+
+        addClass(collapsibleElement, COLLAPSIBLE_ELEMENT_CLASS);
+        TH.querySelector('div:first-child').appendChild(collapsibleElement);
+      }
+
+      removeClass(collapsibleElement, ['collapsed', 'expanded']);
+
+      if (isCollapsed) {
+        addClass(collapsibleElement, 'collapsed');
+        fastInnerText(collapsibleElement, '+');
+
+      } else {
+        addClass(collapsibleElement, 'expanded');
+        fastInnerText(collapsibleElement, '-');
+      }
+    } else {
+      collapsibleElement?.remove();
     }
   }
 
@@ -475,7 +501,7 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {object} coords Event coordinates.
    */
   onBeforeOnCellMouseDown(event, coords) {
-    if (hasClass(event.target, 'collapsibleIndicator')) {
+    if (hasClass(event.target, COLLAPSIBLE_ELEMENT_CLASS)) {
       if (hasClass(event.target, 'expanded')) {
         this.eventManager.fireEvent(event.target, 'mouseup');
         this.toggleCollapsibleSection([coords], 'collapse');

@@ -1,21 +1,24 @@
 ---
-title: 'Setting up a translation in Vue 3'
-metaTitle: 'Setting up a translation in Vue 3 - Guide - Handsontable Documentation'
-permalink: /vue3-setting-up-a-language
-canonicalUrl: /vue3-setting-up-a-language
+id: 7ezlo7y5
+title: Setting up a translation in Vue 3
+metaTitle: Setting up a translation - Vue 3 Data Grid | Handsontable
+description: Configure your Vue 3 data grid with different number formats, depending on the specified language and culture.
+permalink: /vue3-setting-up-a-translation
+canonicalUrl: /vue3-setting-up-a-translation
+searchCategory: Guides
 ---
 
 # Setting up a translation in Vue 3
 
+Configure your Vue 3 data grid with different number formats, depending on the specified language and culture.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following example shows a Handsontable instance with translations set up in Vue 3.
 
 [Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
-
-## Example
 
 ::: example #example1 :vue3-numbro --html 1 --js 2
 ```html
@@ -46,22 +49,22 @@ The following example shows a Handsontable instance with translations set up in 
 ```
 
 ```js
-import { createApp } from 'vue';
+import { defineComponent } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import numbro from 'numbro';
-import languages from 'numbro/dist/languages.min.js';
+import jaJP from 'numbro/languages/ja-JP';
+import trTR from 'numbro/languages/tr-TR';
 import { registerAllModules } from 'handsontable/registry';
-
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 // register the languages you need
-numbro.registerLanguage(languages['ja-JP']);
-numbro.registerLanguage(languages['tr-TR']);
+numbro.registerLanguage(jaJP);
+numbro.registerLanguage(trTR);
 
-const app = createApp({
+const ExampleComponent = defineComponent({
   data() {
     return {
       formatJP: {
@@ -101,7 +104,15 @@ const app = createApp({
   }
 });
 
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+import { createApp } from 'vue';
+
+const app = createApp(ExampleComponent);
+
 app.mount('#example1');
+/* end:skip-in-preview */
 ```
 :::
 

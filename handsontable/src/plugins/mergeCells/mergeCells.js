@@ -33,6 +33,7 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  *
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
  *  data: getData(),
@@ -42,6 +43,21 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  *    {row: 4, col: 8, rowspan: 3, colspan: 3}
  *  ],
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={getData()}
+ *   // enable plugin
+ *   mergeCells={[
+ *    {row: 0, col: 3, rowspan: 3, colspan: 3},
+ *    {row: 2, col: 6, rowspan: 2, colspan: 2},
+ *    {row: 4, col: 8, rowspan: 3, colspan: 3}
+ *   ]}
+ * />
+ * ```
+ * :::
  */
 export class MergeCells extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -84,7 +100,7 @@ export class MergeCells extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link MergeCells#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link MergeCells#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -213,7 +229,7 @@ export class MergeCells extends BasePlugin {
    */
   generateFromSettings(settings) {
     if (Array.isArray(settings)) {
-      let populationArgumentsList = [];
+      const populatedNulls = [];
 
       arrayEach(settings, (setting) => {
         if (!this.validateSetting(setting)) {
@@ -225,69 +241,26 @@ export class MergeCells extends BasePlugin {
           setting.col + setting.colspan - 1);
         const mergeRange = this.hot._createCellRange(highlight, highlight, rangeEnd);
 
-        populationArgumentsList.push(this.mergeRange(mergeRange, true, true));
-      });
+        // Merging without data population.
+        this.mergeRange(mergeRange, true, true);
 
-      // remove 'empty' setting objects, caused by improper merge range declarations
-      populationArgumentsList = populationArgumentsList.filter(value => value !== true);
-
-      const bulkPopulationData = this.getBulkCollectionData(populationArgumentsList);
-
-      this.hot.populateFromArray(...bulkPopulationData);
-    }
-  }
-
-  /**
-   * Generates a bulk set of all the data to be populated to fill the data "under" the added merged cells.
-   *
-   * @private
-   * @param {Array} populationArgumentsList Array in a form of `[row, column, dataUnderCollection]`.
-   * @returns {Array} Array in a form of `[row, column, dataOfAllCollections]`.
-   */
-  getBulkCollectionData(populationArgumentsList) {
-    const populationDataRange = this.getBulkCollectionDataRange(populationArgumentsList);
-    const dataAtRange = this.hot.getData(...populationDataRange);
-    const newDataAtRange = dataAtRange.splice(0);
-
-    arrayEach(populationArgumentsList, (mergedCellArguments) => {
-      const [mergedCellRowIndex, mergedCellColumnIndex, mergedCellData] = mergedCellArguments;
-
-      arrayEach(mergedCellData, (mergedCellRow, rowIndex) => {
-        arrayEach(mergedCellRow, (mergedCellElement, columnIndex) => {
-          newDataAtRange[mergedCellRowIndex - populationDataRange[0] + rowIndex][mergedCellColumnIndex - populationDataRange[1] + columnIndex] = mergedCellElement; // eslint-disable-line max-len
+        rangeEach(setting.row, setting.row + setting.rowspan - 1, (rowIndex) => {
+          rangeEach(setting.col, setting.col + setting.colspan - 1, (columnIndex) => {
+            // Not resetting a cell representing a merge area's value.
+            if ((rowIndex === setting.row && columnIndex === setting.col) === false) {
+              populatedNulls.push([rowIndex, columnIndex, null]);
+            }
+          });
         });
       });
-    });
 
-    return [populationDataRange[0], populationDataRange[1], newDataAtRange];
-  }
+      // There are no merged cells. Thus, no data population is needed.
+      if (populatedNulls.length === 0) {
+        return;
+      }
 
-  /**
-   * Gets the range of combined data ranges provided in a form of an array of arrays ([row, column, dataUnderCollection]).
-   *
-   * @private
-   * @param {Array} populationArgumentsList Array containing argument lists for the `populateFromArray` method - row, column and data for population.
-   * @returns {Array[]} Start and end coordinates of the merged cell range. (in a form of [rowIndex, columnIndex]).
-   */
-  getBulkCollectionDataRange(populationArgumentsList) {
-    const start = [0, 0];
-    const end = [0, 0];
-    let mergedCellRow = null;
-    let mergedCellColumn = null;
-    let mergedCellData = null;
-
-    arrayEach(populationArgumentsList, (mergedCellArguments) => {
-      mergedCellRow = mergedCellArguments[0];
-      mergedCellColumn = mergedCellArguments[1];
-      mergedCellData = mergedCellArguments[2];
-
-      start[0] = Math.min(mergedCellRow, start[0]);
-      start[1] = Math.min(mergedCellColumn, start[1]);
-      end[0] = Math.max(mergedCellRow + mergedCellData.length - 1, end[0]);
-      end[1] = Math.max(mergedCellColumn + mergedCellData[0].length - 1, end[1]);
-    });
-
-    return [...start, ...end];
+      this.hot.setDataAtCell(populatedNulls);
+    }
   }
 
   /**
@@ -402,7 +375,8 @@ export class MergeCells extends BasePlugin {
         }
 
         if (i === 0 && j === 0) {
-          clearedValue = this.hot.getDataAtCell(mergeParent.row, mergeParent.col);
+          clearedValue = this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(mergeParent.row),
+            this.hot.toPhysicalColumn(mergeParent.col));
 
         } else {
           this.hot.setCellMeta(mergeParent.row + i, mergeParent.col + j, 'hidden', true);

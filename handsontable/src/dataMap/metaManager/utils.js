@@ -1,34 +1,61 @@
-import { hasOwnProperty, isObject, objectEach, inherit } from '../../helpers/object';
+import { hasOwnProperty, isObject, objectEach, inherit, extend } from '../../helpers/object';
 import { getCellType } from '../../cellTypes/registry';
+
+/**
+ * Checks if the given property can be overwritten.
+ *
+ * @param {string} propertyName The property name to check.
+ * @param {object} metaObject The current object meta settings.
+ * @returns {boolean}
+ */
+function canBeOverwritten(propertyName, metaObject) {
+  if (propertyName === 'CELL_TYPE') {
+    return false;
+  }
+
+  return metaObject._automaticallyAssignedMetaProps?.has(propertyName) ||
+    !hasOwnProperty(metaObject, propertyName);
+}
 
 /**
  * Expands "type" property of the meta object to single values. For example `type: 'numeric'` sets
  * "renderer", "editor", "validator" properties to specific functions designed for numeric values.
  * If "type" is passed as an object that object will be returned, excluding properties that
- * already exist in the "metaObject" if passed.
+ * already exist in the "metaObject".
  *
- * @param {object|string} type Type to expand;.
- * @param {object|undefined} [metaObject] Source meta object.
- * @returns {object|undefined}
+ * The function utilizes `_automaticallyAssignedMetaProps` meta property that allows tracking what
+ * properties are changed by the "type" expanding feature. That properties can be always overwritten by
+ * the user.
+ *
+ * @param {object} metaObject The meta object.
+ * @param {object} settings The settings object with the "type" setting.
+ * @param {object} settingsToCompareWith The object to compare which properties need to be updated.
  */
-export function expandMetaType(type, metaObject) {
-  const validType = typeof type === 'string' ? getCellType(type) : type;
+export function extendByMetaType(metaObject, settings, settingsToCompareWith = metaObject) {
+  const validType = typeof settings.type === 'string' ? getCellType(settings.type) : settings.type;
+
+  if (metaObject._automaticallyAssignedMetaProps) {
+    objectEach(settings, (value, key) => void metaObject._automaticallyAssignedMetaProps.delete(key));
+  }
 
   if (!isObject(validType)) {
     return;
   }
 
-  const preventSourceOverwrite = isObject(metaObject);
+  if (settingsToCompareWith === metaObject && !metaObject._automaticallyAssignedMetaProps) {
+    metaObject._automaticallyAssignedMetaProps = new Set();
+  }
+
   const expandedType = {};
 
   objectEach(validType, (value, property) => {
-    if (property !== 'CELL_TYPE' && (!preventSourceOverwrite
-        || preventSourceOverwrite && !hasOwnProperty(metaObject, property))) {
+    if (canBeOverwritten(property, settingsToCompareWith)) {
       expandedType[property] = value;
+      metaObject._automaticallyAssignedMetaProps?.add(property);
     }
   });
 
-  return expandedType;
+  extend(metaObject, expandedType);
 }
 
 /**

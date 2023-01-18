@@ -519,7 +519,7 @@ class DataManager {
 
     } else {
       this.plugin.disableCoreAPIModifiers();
-      this.hot.alter('insert_row', index, 1, 'NestedRows.addChildAtIndex');
+      this.hot.alter('insert_row_above', index, 1, 'NestedRows.addChildAtIndex');
       this.plugin.enableCoreAPIModifiers();
 
       flattenedIndex = this.getRowIndex(this.data[index]);

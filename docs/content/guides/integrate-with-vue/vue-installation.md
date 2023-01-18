@@ -1,17 +1,18 @@
 ---
-title: 'Installation in Vue 2'
-metaTitle: 'Installation in Vue 2 - Guide - Handsontable Documentation'
+id: m1qrgnlo
+title: Installation in Vue 2
+metaTitle: Installation - Vue 2 Data Grid | Handsontable
+description: Install Handsontable's Vue 2 wrapper via npm, import the stylesheets, and get your application up and running.
 permalink: /vue-installation
 canonicalUrl: /vue-installation
+searchCategory: Guides
 ---
 
 # Installation in Vue 2
 
+Install Handsontable's Vue 2 wrapper via npm, import the stylesheets, and get your application up and running.
+
 [[toc]]
-
-## Overview
-
-Vue 2 installation and basic usage guide.
 
 ## Install with npm
 
@@ -31,6 +32,7 @@ npm install handsontable @handsontable/vue
 <script>
   import { HotTable } from '@handsontable/vue';
   import { registerAllModules } from 'handsontable/registry';
+  import 'handsontable/dist/handsontable.full.css';
 
   // register Handsontable's modules
   registerAllModules();
@@ -51,8 +53,6 @@ npm install handsontable @handsontable/vue
     }
   }
 </script>
-
-<style src="../node_modules/handsontable/dist/handsontable.full.css"></style>
 ```
 
 ## Related API reference

@@ -1,15 +1,23 @@
 ---
-title: Row header
-metaTitle: Row header - Guide - Handsontable Documentation
+id: j1zswn3i
+title: Row headers
+metaTitle: Row headers - JavaScript Data Grid | Handsontable
+description: Use default row headers (1, 2, 3), or set them to custom values provided by an array or a function.
 permalink: /row-header
 canonicalUrl: /row-header
 tags:
   - custom headers
   - bind rows with headers
   - row id
+react:
+  id: prlcpqk8
+  metaTitle: Row headers - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
-# Row header
+# Row headers
+
+Use default row headers (1, 2, 3), or set them to custom values provided by an array or a function.
 
 [[toc]]
 
@@ -31,8 +39,12 @@ There is a plugin **Bind rows with headers** which allows the binding of row num
 
 To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders) property to `true`. Move the rows in the example below to see what this plugin does.
 
+::: only-for javascript
 ::: example #example1
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 // Generate an array of arrays with a dummy data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
@@ -62,6 +74,56 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  //  Generate an array of arrays with a dummy data
+  const generateData = (rows = 3, columns = 7, additionalRows = true) => {
+    let counter = 0;
+
+    const array2d = [...new Array(rows)]
+      .map(_ => [...new Array(columns)]
+        .map(_ => counter++));
+
+    if (additionalRows) {
+      array2d.push([]);
+      array2d.push([]);
+    }
+
+    return array2d;
+  };
+
+  return (
+    <HotTable
+      data={generateData()}
+      colHeaders={true}
+      rowHeaders={true}
+      height="auto"
+      contextMenu={true}
+      manualRowMove={true}
+      bindRowsWithHeaders="strict"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
 
 ## Tree grid
 

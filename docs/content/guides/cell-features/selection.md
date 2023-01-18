@@ -1,13 +1,22 @@
 ---
+id: a52om5wr
 title: Selection
-metaTitle: Selection - Guide - Handsontable Documentation
+metaTitle: Selection - JavaScript Data Grid | Handsontable
+description: Select a single cell, a range of adjacent cells, or multiple non-adjacent ranges of cells.
 permalink: /selection
 canonicalUrl: /selection
 tags:
   - selecting ranges
+  - cell selection
+react:
+  id: k88lznt8
+  metaTitle: Selection - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Selection
+
+Select a single cell, a range of adjacent cells, or multiple non-adjacent ranges of cells.
 
 [[toc]]
 
@@ -21,7 +30,7 @@ With this feature, you can select single cells or ranges of cells across a grid.
 
 Use <kbd>**Cmd**</kbd> on Mac or <kbd>**Ctrl**</kbd> on Windows to select non-adjacent ranges of cells.
 
-## Selecting ranges
+## Select ranges
 
 There are different modes in which you can use this plugin. Choose between selecting a single cell, a range of adjacent cells, and multiple non-adjacent ranges of cells.
 
@@ -29,13 +38,14 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 - [`single`](@/api/options.md#selectionmode) - A single cell can be selected.
 - [`range`](@/api/options.md#selectionmode) - Multiple cells within a single range can be selected.
-- [`multiple`](@/api/options.md#selectionmode) - Multiple non-contiguous ranges of cells can be selected.
+- [`multiple`](@/api/options.md#selectionmode) - Multiple, non-adjacent ranges of cells can be selected.
 
+::: only-for javascript
 ::: example #example1 --html 1 --js 2
 ```html
-<div id="example1" class="hot"></div>
-<div>
-  <select id="selectOption" style="width: auto; margin-top: 16px">
+<div id="example1"></div>
+<div class="controls">
+  <select id="selectOption">
     <option>Single selection</option>
     <option>Range selection</option>
     <option selected="selected">Multiple ranges selection</option>
@@ -43,11 +53,23 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 </div>
 ```
 ```js
-const container = document.querySelector('#example1');
-const selectOption = document.querySelector('#selectOption');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const selectOption = document.querySelector('#selectOption');
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(10, 10),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5'],
+    ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6', 'I6'],
+    ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7', 'I7'],
+    ['A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', 'I8'],
+    ['A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'I9'],
+  ],
   width: 'auto',
   height: 'auto',
   colWidths: 100,
@@ -68,38 +90,116 @@ selectOption.addEventListener('change', event => {
 });
 ```
 :::
+:::
 
-## Getting data from the selected ranges
+::: only-for react
+::: example #example1 :react
+```jsx
+import { useRef, useEffect } from 'react';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  const hotRef = useRef(null);
+
+  let selectOptionChangeCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    selectOptionChangeCallback = event => {
+      const value = event.target.value;
+      const first = value.split(' ')[0].toLowerCase();
+
+      hot.updateSettings({
+        selectionMode: first
+      });
+    };
+  });
+
+  return (
+    <>
+      <HotTable
+        ref={hotRef}
+        data={[
+          ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4'],
+          ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5'],
+          ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6', 'I6'],
+          ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7', 'I7'],
+          ['A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', 'I8'],
+          ['A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'I9'],
+        ]}
+        width="auto"
+        height="auto"
+        colWidths={100}
+        rowHeights={23}
+        rowHeaders={true}
+        colHeaders={true}
+        selectionMode="multiple" // 'single', 'range' or 'multiple',
+        licenseKey="non-commercial-and-evaluation"
+      />
+      <div className="controls">
+        <select
+          id="selectOption"
+          onChange={(...args) => selectOptionChangeCallback(...args)}
+          defaultValue="multiple"
+        >
+          <option value="single">Single selection</option>
+          <option value="range">Range selection</option>
+          <option value="multiple">Multiple ranges selection</option>
+        </select>
+      </div>
+    </>
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
+
+## Get data from the selected ranges
 
 To retrieve the selected cells as an array of arrays, you use the [`getSelected()`](@/api/core.md#getselected) or [`getSelectedRange()`](@/api/core.md#getselectedrange) methods.
 
-::: example #example2 --css 2 --html 1 --js 3
+::: only-for javascript
+::: example #example2 --html 1 --js 2
 ```html
-<div id="example2" class="hot"></div>
-<pre id="output"></pre>
+<div id="example2"></div>
+<output class="console" id="output">Here you will see the log</output>
 <div class="controls">
   <button id="getButton">Get data</button>
 </div>
 ```
-```css
-#output {
-  margin: 16px 0 7px;
-  width: 100%;
-  height: 160px;
-  overflow:scroll;
-  border: 1px solid #ccc;
-  background: #fff;
-  color: #2c3e50;
-  box-sizing: border-box;
-}
-```
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const output = document.querySelector('#output');
 const getButton = document.querySelector('#getButton');
-
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(10, 10),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5'],
+    ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6', 'I6'],
+    ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7', 'I7'],
+    ['A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', 'I8'],
+    ['A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'I9'],
+  ],
   width: 'auto',
   height: 'auto',
   colWidths: 100,
@@ -121,22 +221,103 @@ getButton.addEventListener('click', event => {
     data.push(hot.getData(...item));
   }
 
-  output.innerText = JSON.stringify(data, null, 2);
+  output.innerText = JSON.stringify(data);
 });
 ```
 :::
+:::
 
-## Modifying the selected cells
+::: only-for react
+::: example #example2 :react
+```jsx
+import { useRef, useEffect, useState } from 'react';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  const hotRef = useRef(null);
+  const [output, setOutput] = useState('');
+
+  let getButtonClickCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    getButtonClickCallback = event => {
+      const selected = hot.getSelected() || [];
+      const data = [];
+
+      for (let i = 0; i < selected.length; i += 1) {
+        const item = selected[i];
+
+        data.push(hot.getData(...item));
+      }
+
+      setOutput(JSON.stringify(data));
+    };
+  });
+
+  return (
+    <>
+      <HotTable
+        ref={hotRef}
+        data={[
+          ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4'],
+          ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5'],
+          ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6', 'I6'],
+          ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7', 'I7'],
+          ['A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', 'I8'],
+          ['A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'I9'],
+        ]}
+        width="auto"
+        height="auto"
+        colWidths={100}
+        rowHeights={23}
+        rowHeaders={true}
+        colHeaders={true}
+        outsideClickDeselects={false}
+        selectionMode="multiple" // 'single', 'range' or 'multiple',
+        licenseKey="non-commercial-and-evaluation"
+      />
+      <output className="console" id="output">{output}</output>
+      <div className="controls">
+        <button
+          id="getButton"
+          onClick={(...args) => getButtonClickCallback(...args)}
+        >
+          Get data
+        </button>
+      </div>
+    </>
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
+
+## Modify the selected cells
 
 You may want to delete, format, or otherwise change the selected cells. For example, you can change a value or add CSS classes to the selected cells using the demo below.
 
+::: only-for javascript
 ::: example #example3 --html 1 --css 2 --js 3
 ```html
-<div id="example3" class="hot"></div>
+<div id="example3"></div>
 
-<div id="buttons" class="controls" style="margin-top: 10px">
-  <button id="set-data-action">Change selected data</button>
-  <button id="add-css-class-action">Make selected cells red</button>
+<div class="controls">
+  <button id="set-data-action">Click to modify the selected cells</button>
 </div>
 ```
 ```css
@@ -145,11 +326,23 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 }
 ```
 ```js
-const container = document.querySelector('#example3');
-const buttons = document.querySelector('#buttons');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const button = document.querySelector('#set-data-action');
+const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(10, 10),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5'],
+    ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6', 'I6'],
+    ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7', 'I7'],
+    ['A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', 'I8'],
+    ['A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'I9'],
+  ],
   width: 'auto',
   height: 272,
   colWidths: 100,
@@ -161,7 +354,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-buttons.addEventListener('click', event => {
+button.addEventListener('click', event => {
   const selected = hot.getSelected() || [];
   const target = event.target.id;
 
@@ -176,13 +369,8 @@ buttons.addEventListener('click', event => {
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
       for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
-        if (target === 'set-data-action') {
-          hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
-        }
-
-        if (target === 'add-css-class-action') {
-          hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
-        }
+        hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
+        hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
       }
     }
   }
@@ -192,8 +380,99 @@ buttons.addEventListener('click', event => {
 });
 ```
 :::
+:::
 
-## Styling the selection area
+::: only-for react
+::: example #example3 :react --css 1 --js 2
+```css
+.c-red {
+  color: red;
+}
+```
+```jsx
+import { useRef, useEffect } from 'react';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  const hotRef = useRef(null);
+
+  let buttonClickCallback;
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    buttonClickCallback = event => {
+      const selected = hot.getSelected() || [];
+      const target = event.target.id;
+
+      hot.suspendRender();
+
+      for (let index = 0; index < selected.length; index += 1) {
+        const [row1, column1, row2, column2] = selected[index];
+        const startRow = Math.max(Math.min(row1, row2), 0);
+        const endRow = Math.max(row1, row2);
+        const startCol = Math.max(Math.min(column1, column2), 0);
+        const endCol = Math.max(column1, column2);
+
+        for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
+          for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
+            hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
+            hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
+          }
+        }
+      }
+
+      hot.render();
+      hot.resumeRender();
+    };
+  });
+
+  return (
+    <>
+      <HotTable
+        ref={hotRef}
+        data={[
+          ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4'],
+          ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5'],
+          ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6', 'I6'],
+          ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7', 'I7'],
+          ['A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', 'I8'],
+          ['A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'I9'],
+        ]}
+        width="auto"
+        height={272}
+        colWidths={100}
+        rowHeights={23}
+        rowHeaders={true}
+        colHeaders={true}
+        outsideClickDeselects={false}
+        selectionMode="multiple" // 'single', 'range' or 'multiple',
+        licenseKey="non-commercial-and-evaluation"
+      />
+      <div className="controls">
+        <button id="set-data-action" onClick={(...args) => buttonClickCallback(...args)}>Click to modify the selected cells</button>
+      </div>
+    </>
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
+
+## Style the selection area
 
 The background color can be easily changed using CSS styles. The main, light blue background color is defined in the `.area` class.
 
@@ -201,11 +480,11 @@ For non-adjacent selection, multiple classes are making each level a bit darker.
 
 Unfortunately, there is no easy way to change the border color of the selection.
 
-## Jumping across the grid's edges
+## Jump across the grid's edges
 
 When you use keyboard navigation, and you cross an edge of the grid, you can set cell selection to jump to the opposite edge.
 
-#### Jumping across vertical edges
+#### Jump across vertical edges
 
 To enable jumping across the left and right edges:
 - Set the [`autoWrapRow`](@/api/options.md#autowraprow) configuration option to `true`.
@@ -214,7 +493,7 @@ To jump across a vertical edge:
 - When cell selection is on a row's first cell, press the left arrow key.
 - When cell selection is on a row's last cell, press the right arrow key, or press <kbd>**Tab**</kbd>.
 
-#### Jumping across horizontal edges
+#### Jump across horizontal edges
 
 To enable jumping across the top and bottom edges:
 - Set the [`autoWrapCol`](@/api/options.md#autowrapcol) configuration option to `true`.

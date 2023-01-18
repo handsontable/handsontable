@@ -1,19 +1,22 @@
 ---
-title: 'Setting up a translation in Vue 2'
-metaTitle: 'Setting up a translation in Vue 2 - Guide - Handsontable Documentation'
-permalink: /vue-setting-up-a-language
-canonicalUrl: /vue-setting-up-a-language
+id: 6i276a7s
+title: Setting up a translation in Vue 2
+metaTitle: Setting up a translation - Vue 2 Data Grid | Handsontable
+description: Configure your Vue 2 data grid with different number formats, depending on the specified language and culture.
+permalink: /vue-setting-up-a-translation
+canonicalUrl: /vue-setting-up-a-translation
+searchCategory: Guides
 ---
 
 # Setting up a translation in Vue 2
 
+Configure your Vue 2 data grid with different number formats, depending on the specified language and culture.
+
 [[toc]]
 
-## Overview
+## Example
 
 The following example shows a Handsontable instance with translations set up in Vue 2.
-
-## Example
 
 ::: example #example1 :vue-numbro --html 1 --js 2
 ```html
@@ -44,24 +47,22 @@ The following example shows a Handsontable instance with translations set up in 
 ```
 
 ```js
-import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
 import numbro from 'numbro';
-import languages from 'numbro/dist/languages.min.js';
+import jaJP from 'numbro/languages/ja-JP';
+import trTR from 'numbro/languages/tr-TR';
 import { registerAllModules } from 'handsontable/registry';
-
-import 'handsontable/dist/handsontable.min.css';
+import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 // register the languages you need
-numbro.registerLanguage(languages['ja-JP']);
-numbro.registerLanguage(languages['tr-TR']);
+numbro.registerLanguage(jaJP);
+numbro.registerLanguage(trTR);
 
-new Vue({
-  el: '#example1',
-  data() {
+const ExampleComponent = {
+data() {
     return {
       formatJP: {
         pattern: '0,0.00 $',
@@ -98,7 +99,16 @@ new Vue({
     HotTable,
     HotColumn,
   },
+}
+
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+new Vue({
+  ...ExampleComponent,
+  el: '#example1',
 });
+/* end:skip-in-preview */
 ```
 :::
 

@@ -1,17 +1,21 @@
 ---
+id: kdie9yhz
 title: Handsontable cell type
-metaTitle: Handsontable cell type - Guide - Handsontable Documentation
+metaTitle: Handsontable cell type - JavaScript Data Grid | Handsontable
+description: Add a spreadsheet editor in a popup, by using the Handsontable cell type.
 permalink: /handsontable-cell-type
 canonicalUrl: /handsontable-cell-type
+react:
+  id: fcxtj167
+  metaTitle: Handsontable cell type - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Handsontable cell type
 
+Add a spreadsheet editor in a popup, by using the Handsontable cell type.
+
 [[toc]]
-
-## Overview
-
-This page describes how to use Handsontable as a cell editor in Handsontable.
 
 ## Usage
 
@@ -35,8 +39,12 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 
 ## Basic example
 
+::: only-for javascript
 ::: example #example1
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example1');
 const colorData = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
 const manufacturerData = [
@@ -92,6 +100,90 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example1 :react
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  const colorData = [
+    ['yellow'],
+    ['red'],
+    ['orange'],
+    ['green'],
+    ['blue'],
+    ['gray'],
+    ['black'],
+    ['white']
+  ];
+  const manufacturerData = [
+    { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
+    { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
+    { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
+    { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
+    { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
+    { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' }
+  ];
+
+  return (
+    <HotTable
+      licenseKey="non-commercial-and-evaluation"
+      data={[
+        ['Tesla', 2017, 'black', 'black'],
+        ['Nissan', 2018, 'blue', 'blue'],
+        ['Chrysler', 2019, 'yellow', 'black'],
+        ['Volvo', 2020, 'white', 'gray']
+      ]}
+      colHeaders={['Car', 'Year', 'Chassis color', 'Bumper color']}
+      columns={[{
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            autoColumnSize: true,
+            data: manufacturerData,
+            getValue() {
+              const selection = this.getSelectedLast();
+
+              // Get the manufacturer name of the clicked row and ignore header
+              // coordinates (negative values)
+              return this.getSourceDataAtRow(Math.max(selection[0], 0)).name;
+            },
+          }
+        },
+        { type: 'numeric' },
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: false,
+            data: colorData
+          }
+        },
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: false,
+            data: colorData
+          }
+        }
+      ]}
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
 
 ## Related articles
 

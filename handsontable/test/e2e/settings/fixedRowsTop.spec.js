@@ -190,7 +190,7 @@ describe('settings', () => {
         fixedRowsTop: 3,
       });
 
-      alter('insert_row', 0);
+      alter('insert_row_above', 0);
 
       expect(getMaster().height()).toBe(50); // 25px corner + 25px added row
       expect(getTopClone().height()).toBe(50);
@@ -198,7 +198,7 @@ describe('settings', () => {
       expect(getInlineStartClone().height()).toBe(50);
       expect(getBottomClone().height()).toBe(0);
 
-      alter('insert_row', 0);
+      alter('insert_row_above', 0);
 
       expect(getMaster().height()).toBe(73);
       expect(getTopClone().height()).toBe(73);

@@ -1,13 +1,21 @@
 ---
+id: w6bvsin5
 title: Performance
-metaTitle: Performance - Guide - Handsontable Documentation
+metaTitle: Performance - JavaScript Data Grid | Handsontable
+description: Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
 permalink: /performance
 canonicalUrl: /performance
 tags:
   - speed
+react:
+  id: gbdbrlc8
+  metaTitle: Performance - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Performance
+
+Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
 
 [[toc]]
 
@@ -15,24 +23,38 @@ tags:
 
 Handsontable performs multiple calculations to display the grid properly. The most demanding actions are performed on load, change, and scroll events. Every single operation decreases the performance, but most of them are unavoidable.
 
-We use Performance Lab to measure the execution times in various configurations. Some tests have shown that there are methods that may potentially boost the performance of your application. These only work in certain cases, but we hope they can be successfully applied to your app as well.
+To measure Handsontable's execution times in various configurations, we use our own library called [Performance Lab](https://github.com/handsontable/performance-lab). Some tests have shown that there are methods that may potentially boost the performance of your application. These only work in certain cases, but we hope they can be successfully applied to your app as well.
 
-## Set constant size
+## Set constant row and column sizes
 
-You can set a constant size for your table's columns. This way, Handsontable won't have to calculate the optimal width for each column. To do this, define the column widths by setting the [`colWidths`](@/api/options.md#colwidths) configuration option:
+Configure your [column widths](@/guides/columns/column-width.md) and [row heights](@/guides/rows/row-height.md) in advance. This way, Handsontable doesn't have to calculate them.
 
+::: only-for javascript
 ```js
 const hot = new Handsontable(obj, {
-  // other options
-  colWidths: [50, 150, 45]
+  colWidths: [50, 150, 45],
+  rowHeights: [40, 40, 40, 40],
 });
 ```
-
-For more information, see [our documentation](@/api/options.md#colwidths).
-
-::: tip
-When using this setting, Handsontable won't perform the column width calculations, so you will need to ensure that your table contents fit inside the columns with the provided widths.
 :::
+
+::: only-for react
+```js
+<HotTable
+  colWidths={[50, 150, 45]}
+  rowHeights={[40, 40, 40, 40]}
+/>
+```
+:::
+
+When taking this approach, make sure that the contents of your cells fit in your row and column sizes, or let the user change [column widths](@/guides/columns/column-width.md#adjust-the-column-width-manually) and [row heights](@/guides/rows/row-height.md#adjust-row-heights-manually) manually.
+
+Read more:
+- [Grid size](@/guides/getting-started/grid-size.md)
+- [Column widths](@/guides/columns/column-width.md)
+- [Row heights](@/guides/rows/row-height.md)
+- [`colWidths`](@/api/options.md#colwidths)
+- [`rowHeights`](@/api/options.md#rowheights)
 
 ## Turn off autoRowSize and/or autoColumnSize
 
@@ -54,9 +76,17 @@ Changing your background, font colors, etc., shouldn't lower the performance. Ho
 
 By default, Handsontable will call the render after each CRUD operation. Usually, this is expected behavior, but you may find it slightly excessive in some use cases. By using one of the batching methods, you can suspend rendering and call it just once at the end. For example:
 
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+:::
+
 ```js
 hot.batch(() => {
-  hot.alter('insert_row', 5, 45);
+  hot.alter('insert_row_above', 5, 45);
   hot.setDataAtCell(1, 1, 'x');
 
   const filters = hot.getPlugin('filters');

@@ -60,7 +60,7 @@ describe('Core.selectAll', () => {
 
     expect(getSelected()).toEqual([[-1, -1, -1, 4]]);
     expect(`
-      |   ║ - : - : - : - : - |
+      |   ║ * : * : * : * : * |
       |===:===:===:===:===:===|
     `).toBeMatchToSelectionPattern();
   });

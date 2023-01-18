@@ -1,14 +1,22 @@
 ---
+id: zu0ja2qo
 title: Icon pack
-metaTitle: Icon pack - Guide - Handsontable Documentation
+metaTitle: Icon pack - JavaScript Data Grid | Handsontable
+description: Create toolbars, menu bars, and context menus with our set of icons, designed specifically for tables, spreadsheets, and data-rich components.
 permalink: /icon-pack
 canonicalUrl: /icon-pack
 tags:
   - spreadsheet icons
   - toolbar icons
+react:
+  id: 24wgu6o9
+  metaTitle: Icon pack - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Icon pack
+
+Create toolbars, menu bars, and context menus with our set of icons, designed specifically for tables, spreadsheets, and data-rich components.
 
 [[toc]]
 

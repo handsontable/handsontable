@@ -2,13 +2,19 @@ import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
-import { rangeEach } from '../../helpers/number';
 import { sanitize } from '../../helpers/string';
 import { getSelectionText } from '../../helpers/dom/element';
 import copyItem from './contextMenuItem/copy';
+import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
+import copyWithColumnGroupHeadersItem from './contextMenuItem/copyWithColumnGroupHeaders';
+import copyWithColumnHeadersItem from './contextMenuItem/copyWithColumnHeaders';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
+import {
+  CopyableRangesFactory,
+  normalizeRanges,
+} from './copyableRanges';
 import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
 
 import './copyPaste.css';
@@ -25,9 +31,6 @@ Hooks.getSingleton().register('afterCopy');
 export const PLUGIN_KEY = 'copyPaste';
 export const PLUGIN_PRIORITY = 80;
 const SETTING_KEYS = ['fragmentSelection'];
-const ROWS_LIMIT = Infinity;
-const COLUMNS_LIMIT = Infinity;
-const privatePool = new WeakMap();
 const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
@@ -36,29 +39,32 @@ const META_HEAD = [
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
- * This plugin enables the copy/paste functionality in the Handsontable. The functionality works for API, Context Menu,
- * using keyboard shortcuts and menu bar from the browser.
- * Possible values:
- * * `true` (to enable default options),
- * * `false` (to disable completely).
+ * Copy, cut, and paste data by using the `CopyPaste` plugin.
  *
- * or an object with values:
- * * `'columnsLimit'` (see {@link CopyPaste#columnsLimit})
- * * `'rowsLimit'` (see {@link CopyPaste#rowsLimit})
- * * `'pasteMode'` (see {@link CopyPaste#pasteMode})
- * * `'uiContainer'` (see {@link CopyPaste#uiContainer}).
+ * Control the `CopyPaste` plugin programmatically through its [API methods](#methods).
  *
- * See [the copy/paste demo](@/guides/cell-features/clipboard.md) for examples.
+ * The user can access the copy-paste features through:
+ * - The [context menu](@/guides/cell-features/clipboard.md#context-menu).
+ * - The [keyboard shortcuts](@/guides/cell-features/clipboard.md#related-keyboard-shortcuts).
+ * - The browser's menu bar.
+ *
+ * Read more:
+ * - [Guides: Clipboard](@/guides/cell-features/clipboard.md)
+ * - [Configuration options: `copyPaste`](@/api/options.md#copypaste)
  *
  * @example
  * ```js
- * // Enables the plugin with default values
+ * // enable the plugin with the default configuration
  * copyPaste: true,
- * // Enables the plugin with custom values
+ *
+ * // or, enable the plugin with a custom configuration
  * copyPaste: {
  *   columnsLimit: 25,
  *   rowsLimit: 50,
  *   pasteMode: 'shift_down',
+ *   copyColumnHeaders: true,
+ *   copyColumnGroupHeaders: true,
+ *   copyColumnHeadersOnly: true,
  *   uiContainer: document.body,
  * },
  * ```
@@ -81,65 +87,115 @@ export class CopyPaste extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Maximum number of columns than can be copied to clipboard using <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>.
-     *
-     * @type {number}
-     * @default Infinity
-     */
-    this.columnsLimit = COLUMNS_LIMIT;
-    /**
-     * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
-     *
-     * @private
-     * @type {Array}
-     */
-    this.copyableRanges = [];
-    /**
-     * Provides focusable element to support IME and copy/paste/cut actions.
-     *
-     * @private
-     * @type {FocusableWrapper}
-     */
-    this.focusableElement = void 0;
-    /**
-     * Defines paste (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**V**</kbd>) behavior.
-     * * Default value `"overwrite"` will paste clipboard value over current selection.
-     * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
-     * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
-     *
-     * @type {string}
-     * @default 'overwrite'
-     */
-    this.pasteMode = 'overwrite';
-    /**
-     * Maximum number of rows than can be copied to clipboard using <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**C**</kbd>.
-     *
-     * @type {number}
-     * @default Infinity
-     */
-    this.rowsLimit = ROWS_LIMIT;
-
-    /**
-     * UI container for the secondary focusable element.
-     *
-     * @type {HTMLElement}
-     */
-    this.uiContainer = this.hot.rootDocument.body;
-
-    privatePool.set(this, {
-      isTriggeredByCopy: false,
-      isTriggeredByCut: false,
-      isBeginEditing: false,
-      isFragmentSelectionEnabled: false,
-    });
-  }
+  /**
+   * The maximum number of columns than can be copied to the clipboard.
+   *
+   * @type {number}
+   * @default Infinity
+   */
+  columnsLimit = Infinity;
+  /**
+   * The maximum number of rows than can be copied to the clipboard.
+   *
+   * @type {number}
+   * @default Infinity
+   */
+  rowsLimit = Infinity;
+  /**
+   * When pasting:
+   * - `'overwrite'`: overwrite the currently-selected cells
+   * - `'shift_down'`: move currently-selected cells down
+   * - `'shift_right'`: move currently-selected cells to the right
+   *
+   * @type {string}
+   * @default 'overwrite'
+   */
+  pasteMode = 'overwrite';
+  /**
+   * The UI container for the secondary focusable element.
+   *
+   * @type {HTMLElement}
+   */
+  uiContainer = this.hot.rootDocument.body;
+  /**
+   * Shows the "Copy with headers" item in the context menu and extends the context menu with the
+   * `'copy_with_column_headers'` option that can be used for creating custom menus arrangements.
+   *
+   * @type {boolean}
+   * @default false
+   */
+  #enableCopyColumnHeaders = false;
+  /**
+   * Shows the "Copy with group headers" item in the context menu and extends the context menu with the
+   * `'copy_with_column_group headers'` option that can be used for creating custom menus arrangements.
+   *
+   * @type {boolean}
+   * @default false
+   */
+  #enableCopyColumnGroupHeaders = false;
+  /**
+   * Shows the "Copy headers only" item in the context menu and extends the context menu with the
+   * `'copy_column_headers_only'` option that can be used for creating custom menus arrangements.
+   *
+   * @type {boolean}
+   * @default false
+   */
+  #enableCopyColumnHeadersOnly = false;
+  /**
+   * Defines the data range to copy. Possible values:
+   *  * `'cells-only'` Copy selected cells only;
+   *  * `'column-headers-only'` Copy column headers only;
+   *  * `'with-all-column-headers'` Copy cells with all column headers;
+   *  * `'with-column-headers'` Copy cells with column headers;
+   *
+   * @type {'cells-only' | 'column-headers-only' | 'with-all-column-headers' | 'with-column-headers'}
+   */
+  #copyMode = 'cells-only';
+  /**
+   * Flag that is used to prevent copying when the native shortcut was not pressed.
+   *
+   * @type {boolean}
+   */
+  #isTriggeredByCopy = false;
+  /**
+   * Flag that is used to prevent cutting when the native shortcut was not pressed.
+   *
+   * @type {boolean}
+   */
+  #isTriggeredByCut = false;
+  /**
+   * Class that helps generate copyable ranges based on the current selection for different copy mode
+   * types.
+   *
+   * @type {CopyableRangesFactory}
+   */
+  #copyableRangesFactory = new CopyableRangesFactory({
+    countRows: () => this.hot.countRows(),
+    countColumns: () => this.hot.countCols(),
+    rowsLimit: () => this.rowsLimit,
+    columnsLimit: () => this.columnsLimit,
+    countColumnHeaders: () => this.hot.view.getColumnHeadersCount(),
+  });
+  /**
+   * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
+   *
+   * @private
+   * @type {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>}
+   */
+  copyableRanges = [];
+  /**
+   * Provides focusable element to support IME and copy/paste/cut actions.
+   *
+   * @private
+   * @type {FocusableWrapper}
+   */
+  focusableElement = void 0;
 
   /**
-   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link CopyPaste#enablePlugin} method is called.
+   * Checks if the [`CopyPaste`](#copypaste) plugin is enabled.
+   *
+   * This method gets called by Handsontable's [`beforeInit`](@/api/hooks.md#beforeinit) hook.
+   * If it returns `true`, the [`enablePlugin()`](#enableplugin) method gets called.
    *
    * @returns {boolean}
    */
@@ -148,22 +204,22 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Enables the plugin functionality for this Handsontable instance.
+   * Enables the [`CopyPaste`](#copypaste) plugin for your Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
       return;
     }
-    const { [PLUGIN_KEY]: settings, fragmentSelection } = this.hot.getSettings();
-    const priv = privatePool.get(this);
-
-    priv.isFragmentSelectionEnabled = !!fragmentSelection;
+    const { [PLUGIN_KEY]: settings } = this.hot.getSettings();
 
     if (typeof settings === 'object') {
-      this.pasteMode = settings.pasteMode || this.pasteMode;
+      this.pasteMode = settings.pasteMode ?? this.pasteMode;
       this.rowsLimit = isNaN(settings.rowsLimit) ? this.rowsLimit : settings.rowsLimit;
       this.columnsLimit = isNaN(settings.columnsLimit) ? this.columnsLimit : settings.columnsLimit;
-      this.uiContainer = settings.uiContainer || this.uiContainer;
+      this.#enableCopyColumnHeaders = !!settings.copyColumnHeaders;
+      this.#enableCopyColumnGroupHeaders = !!settings.copyColumnGroupHeaders;
+      this.#enableCopyColumnHeadersOnly = !!settings.copyColumnHeadersOnly;
+      this.uiContainer = settings.uiContainer ?? this.uiContainer;
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
@@ -181,9 +237,10 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Updates the plugin's state.
+   * Updates the state of the [`CopyPaste`](#copypaste) plugin.
    *
-   * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
+   * Gets called when [`updateSettings()`](@/api/core.md#updatesettings)
+   * is invoked with any of the following configuration options:
    *  - [`copyPaste`](@/api/options.md#copypaste)
    *  - [`fragmentSelection`](@/api/options.md#fragmentselection)
    */
@@ -196,7 +253,7 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Disables the plugin functionality for this Handsontable instance.
+   * Disables the [`CopyPaste`](#copypaste) plugin for your Handsontable instance.
    */
   disablePlugin() {
     if (this.focusableElement) {
@@ -207,114 +264,108 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Copies the selected cell into the clipboard.
+   * Copies the contents of the selected cells (and/or their related column headers) to the system clipboard.
+   *
+   * Takes an optional parameter (`copyMode`) that defines the scope of copying:
+   *
+   * | `copyMode` value            | Description                                                     |
+   * | --------------------------- | --------------------------------------------------------------- |
+   * | `'cells-only'` (default)    | Copy the selected cells                                         |
+   * | `'with-column-headers'`     | - Copy the selected cells<br>- Copy the nearest column headers  |
+   * | `'with-all-column-headers'` | - Copy the selected cells<br>- Copy all related columns headers |
+   * | `'column-headers-only'`     | Copy the nearest column headers (without copying cells)         |
+   *
+   * @param {string} [copyMode='cells-only'] Copy mode.
    */
-  copy() {
-    const priv = privatePool.get(this);
-
-    priv.isTriggeredByCopy = true;
-
+  copy(copyMode = 'cells-only') {
+    this.#copyMode = copyMode;
+    this.#isTriggeredByCopy = true;
     this.getOrCreateFocusableElement();
     this.focusableElement.focus();
     this.hot.rootDocument.execCommand('copy');
   }
 
   /**
-   * Cuts the selected cell into the clipboard.
+   * Copies the contents of the selected cells.
+   */
+  copyCellsOnly() {
+    this.copy('cells-only');
+  }
+  /**
+   * Copies the contents of column headers that are nearest to the selected cells.
+   */
+  copyColumnHeadersOnly() {
+    this.copy('column-headers-only');
+  }
+  /**
+   * Copies the contents of the selected cells and all their related column headers.
+   */
+  copyWithAllColumnHeaders() {
+    this.copy('with-column-group-headers');
+  }
+  /**
+   * Copies the contents of the selected cells and their nearest column headers.
+   */
+  copyWithColumnHeaders() {
+    this.copy('with-column-headers');
+  }
+
+  /**
+   * Cuts the contents of the selected cells to the system clipboard.
    */
   cut() {
-    const priv = privatePool.get(this);
-
-    priv.isTriggeredByCut = true;
-
+    this.#isTriggeredByCut = true;
     this.getOrCreateFocusableElement();
     this.focusableElement.focus();
     this.hot.rootDocument.execCommand('cut');
   }
 
   /**
-   * Creates copyable text releated to range objects.
+   * Converts the contents of multiple ranges (`ranges`) into a single string.
    *
-   * @param {object[]} ranges Array of objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
-   * @returns {string} Returns string which will be copied into clipboard.
+   * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges Array of objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
+   * @returns {string} A string that will be copied to the clipboard.
    */
   getRangedCopyableData(ranges) {
-    const dataSet = [];
-    const copyableRows = [];
-    const copyableColumns = [];
-
-    // Count all copyable rows and columns
-    arrayEach(ranges, (range) => {
-      rangeEach(range.startRow, range.endRow, (row) => {
-        if (copyableRows.indexOf(row) === -1) {
-          copyableRows.push(row);
-        }
-      });
-      rangeEach(range.startCol, range.endCol, (column) => {
-        if (copyableColumns.indexOf(column) === -1) {
-          copyableColumns.push(column);
-        }
-      });
-    });
-    // Concat all rows and columns data defined in ranges into one copyable string
-    arrayEach(copyableRows, (row) => {
-      const rowSet = [];
-
-      arrayEach(copyableColumns, (column) => {
-        rowSet.push(this.hot.getCopyableData(row, column));
-      });
-
-      dataSet.push(rowSet);
-    });
-
-    return stringify(dataSet);
+    return stringify(this.getRangedData(ranges));
   }
 
   /**
-   * Creates copyable text releated to range objects.
+   * Converts the contents of multiple ranges (`ranges`) into an array of arrays.
    *
-   * @param {object[]} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
-   * @returns {Array[]} Returns array of arrays which will be copied into clipboard.
+   * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   * @returns {Array[]} An array of arrays that will be copied to the clipboard.
    */
   getRangedData(ranges) {
-    const dataSet = [];
-    const copyableRows = [];
-    const copyableColumns = [];
+    const data = [];
+    const { rows, columns } = normalizeRanges(ranges);
 
-    // Count all copyable rows and columns
-    arrayEach(ranges, (range) => {
-      rangeEach(range.startRow, range.endRow, (row) => {
-        if (copyableRows.indexOf(row) === -1) {
-          copyableRows.push(row);
-        }
-      });
-      rangeEach(range.startCol, range.endCol, (column) => {
-        if (copyableColumns.indexOf(column) === -1) {
-          copyableColumns.push(column);
-        }
-      });
-    });
-    // Concat all rows and columns data defined in ranges into one copyable string
-    arrayEach(copyableRows, (row) => {
+    // concatenate all rows and columns data defined in ranges into one copyable string
+    arrayEach(rows, (row) => {
       const rowSet = [];
 
-      arrayEach(copyableColumns, (column) => {
-        rowSet.push(this.hot.getCopyableData(row, column));
+      arrayEach(columns, (column) => {
+        if (row < 0) {
+          // `row` as the second argument acts here as the `headerLevel` argument
+          rowSet.push(this.hot.getColHeader(column, row));
+        } else {
+          rowSet.push(this.hot.getCopyableData(row, column));
+        }
       });
 
-      dataSet.push(rowSet);
+      data.push(rowSet);
     });
 
-    return dataSet;
+    return data;
   }
 
   /**
    * Simulates the paste action.
    *
-   * Due to security reasons, modern browsers disallow reading from the system clipboard.
+   * For security reasons, modern browsers don't allow reading from the system clipboard.
    *
-   * @param {string} pastableText Value as raw string to paste.
-   * @param {string} [pastableHtml=''] Value as HTML to paste.
+   * @param {string} pastableText The value to paste, as a raw string.
+   * @param {string} [pastableHtml=''] The value to paste, as HTML.
    */
   paste(pastableText = '', pastableHtml = pastableText) {
     if (!pastableText && !pastableHtml) {
@@ -338,35 +389,48 @@ export class CopyPaste extends BasePlugin {
    * Prepares copyable text from the cells selection in the invisible textarea.
    */
   setCopyableText() {
-    const selRange = this.hot.getSelectedRangeLast();
+    const selectionRange = this.hot.getSelectedRangeLast();
 
-    if (!selRange) {
+    if (!selectionRange) {
       return;
     }
 
-    const topStart = selRange.getTopStartCorner();
-    const bottomEnd = selRange.getBottomEndCorner();
-    const startRow = topStart.row;
-    const startCol = topStart.col;
-    const endRow = bottomEnd.row;
-    const endCol = bottomEnd.col;
-    const finalEndRow = Math.min(endRow, startRow + this.rowsLimit - 1);
-    const finalEndCol = Math.min(endCol, startCol + this.columnsLimit - 1);
+    this.#copyableRangesFactory.setSelectedRange(selectionRange);
 
-    this.copyableRanges.length = 0;
+    const groupedRanges = new Map([
+      ['headers', null],
+      ['cells', null],
+    ]);
 
-    this.copyableRanges.push({
-      startRow,
-      startCol,
-      endRow: finalEndRow,
-      endCol: finalEndCol
-    });
+    if (this.#copyMode === 'column-headers-only') {
+      groupedRanges.set('headers', this.#copyableRangesFactory.getMostBottomColumnHeadersRange());
+
+    } else {
+      if (this.#copyMode === 'with-column-headers') {
+        groupedRanges.set('headers', this.#copyableRangesFactory.getMostBottomColumnHeadersRange());
+
+      } else if (this.#copyMode === 'with-column-group-headers') {
+        groupedRanges.set('headers', this.#copyableRangesFactory.getAllColumnHeadersRange());
+      }
+
+      groupedRanges.set('cells', this.#copyableRangesFactory.getCellsRange());
+    }
+
+    this.copyableRanges = Array.from(groupedRanges.values())
+      .filter(range => range !== null)
+      .map(({ startRow, startCol, endRow, endCol }) => ({ startRow, startCol, endRow, endCol }));
 
     this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
 
-    if (endRow !== finalEndRow || endCol !== finalEndCol) {
-      this.hot
-        .runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, this.rowsLimit, this.columnsLimit);
+    const cellsRange = groupedRanges.get('cells');
+
+    if (cellsRange !== null && cellsRange.isRangeTrimmed) {
+      const {
+        startRow, startCol, endRow, endCol
+      } = cellsRange;
+
+      this.hot.runHooks('afterCopyLimit',
+        endRow - startRow + 1, endCol - startCol + 1, this.rowsLimit, this.columnsLimit);
     }
   }
 
@@ -376,8 +440,7 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   getOrCreateFocusableElement() {
-    const editor = this.hot.getActiveEditor();
-    const editableElement = editor ? editor.TEXTAREA : void 0;
+    const editableElement = this.hot.getActiveEditor()?.TEXTAREA;
 
     if (editableElement) {
       this.focusableElement.setFocusableElement(editableElement);
@@ -393,9 +456,32 @@ export class CopyPaste extends BasePlugin {
    * @returns {boolean}
    */
   isEditorOpened() {
-    const editor = this.hot.getActiveEditor();
+    return this.hot.getActiveEditor()?.isOpened();
+  }
 
-    return editor && editor.isOpened();
+  /**
+   * Counts how many column headers will be copied based on the passed range.
+   *
+   * @private
+   * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   * @returns {{ columnHeadersCount: number }} Returns an object with keys that holds
+   *                                           information with the number of copied headers.
+   */
+  #countCopiedHeaders(ranges) {
+    const { rows } = normalizeRanges(ranges);
+    let columnHeadersCount = 0;
+
+    for (let row = 0; row < rows.length; row++) {
+      if (rows[row] >= 0) {
+        break;
+      }
+
+      columnHeadersCount += 1;
+    }
+
+    return {
+      columnHeadersCount,
+    };
   }
 
   /**
@@ -473,23 +559,22 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onCopy(event) {
-    const priv = privatePool.get(this);
-
-    if ((!this.hot.isListening() && !priv.isTriggeredByCopy) || this.isEditorOpened()) {
+    if ((!this.hot.isListening() && !this.#isTriggeredByCopy) || this.isEditorOpened()) {
       return;
     }
 
     this.setCopyableText();
-    priv.isTriggeredByCopy = false;
+    this.#isTriggeredByCopy = false;
 
-    const rangedData = this.getRangedData(this.copyableRanges);
-    const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
+    const data = this.getRangedData(this.copyableRanges);
+    const copiedHeadersCount = this.#countCopiedHeaders(this.copyableRanges);
+    const allowCopying = !!this.hot.runHooks('beforeCopy', data, this.copyableRanges, copiedHeadersCount);
 
     if (allowCopying) {
-      const textPlain = stringify(rangedData);
+      const textPlain = stringify(data);
 
       if (event && event.clipboardData) {
-        const textHTML = _dataToHTML(rangedData, this.hot.rootDocument);
+        const textHTML = _dataToHTML(data, this.hot.rootDocument);
 
         event.clipboardData.setData('text/plain', textPlain);
         event.clipboardData.setData('text/html', [META_HEAD, textHTML].join(''));
@@ -498,9 +583,10 @@ export class CopyPaste extends BasePlugin {
         this.hot.rootWindow.clipboardData.setData('Text', textPlain);
       }
 
-      this.hot.runHooks('afterCopy', rangedData, this.copyableRanges);
+      this.hot.runHooks('afterCopy', data, this.copyableRanges, copiedHeadersCount);
     }
 
+    this.#copyMode = 'cells-only';
     event.preventDefault();
   }
 
@@ -511,14 +597,12 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onCut(event) {
-    const priv = privatePool.get(this);
-
-    if ((!this.hot.isListening() && !priv.isTriggeredByCut) || this.isEditorOpened()) {
+    if ((!this.hot.isListening() && !this.#isTriggeredByCut) || this.isEditorOpened()) {
       return;
     }
 
     this.setCopyableText();
-    priv.isTriggeredByCut = false;
+    this.#isTriggeredByCut = false;
 
     const rangedData = this.getRangedData(this.copyableRanges);
     const allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
@@ -611,12 +695,27 @@ export class CopyPaste extends BasePlugin {
    */
   onAfterContextMenuDefaultOptions(options) {
     options.items.push(
-      {
-        name: '---------',
-      },
+      { name: '---------' },
       copyItem(this),
-      cutItem(this)
     );
+
+    if (this.#enableCopyColumnHeaders) {
+      options.items.push(
+        copyWithColumnHeadersItem(this),
+      );
+    }
+    if (this.#enableCopyColumnGroupHeaders) {
+      options.items.push(
+        copyWithColumnGroupHeadersItem(this),
+      );
+    }
+    if (this.#enableCopyColumnHeadersOnly) {
+      options.items.push(
+        copyColumnHeadersOnlyItem(this),
+      );
+    }
+
+    options.items.push(cutItem(this));
   }
 
   /**
@@ -641,15 +740,13 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onAfterSelectionEnd() {
-    const { isFragmentSelectionEnabled } = privatePool.get(this);
-
     if (this.isEditorOpened()) {
       return;
     }
 
     this.getOrCreateFocusableElement();
 
-    if (isFragmentSelectionEnabled &&
+    if (this.hot.getSettings().fragmentSelection &&
         this.focusableElement.getFocusableElement() !== this.hot.rootDocument.activeElement && getSelectionText()) {
       return;
     }
@@ -680,7 +777,7 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Destroys the plugin instance.
+   * Destroys the `CopyPaste` plugin instance.
    */
   destroy() {
     if (this.focusableElement) {

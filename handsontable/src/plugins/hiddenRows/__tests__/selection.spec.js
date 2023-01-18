@@ -219,7 +219,7 @@ describe('HiddenRows', () => {
         },
       });
 
-      $(getCell(3, 1)).simulate('mousedown');
+      mouseDown(getCell(3, 1));
       $(getCell(6, 4)).simulate('mouseover').simulate('mouseup');
 
       expect(getSelected()).toEqual([[3, 1, 6, 4]]);
@@ -246,7 +246,7 @@ describe('HiddenRows', () => {
 
       keyDown('control/meta');
 
-      $(getCell(5, 3)).simulate('mousedown');
+      mouseDown(getCell(5, 3));
       $(getCell(8, 5)).simulate('mouseover').simulate('mouseup');
 
       keyUp('control/meta');
@@ -956,15 +956,15 @@ describe('HiddenRows', () => {
           },
         });
 
-        $(getCell(3, 1)).simulate('mousedown');
+        mouseDown(getCell(3, 1));
         $(getCell(6, 4)).simulate('mouseover').simulate('mouseup');
 
         keyDown('control/meta');
 
-        $(getCell(5, 3)).simulate('mousedown');
+        mouseDown(getCell(5, 3));
         $(getCell(8, 5)).simulate('mouseover').simulate('mouseup');
 
-        $(getCell(6, 3)).simulate('mousedown');
+        mouseDown(getCell(6, 3));
         $(getCell(9, 6)).simulate('mouseover').simulate('mouseup');
 
         keyUp('control/meta');
@@ -1101,15 +1101,15 @@ describe('HiddenRows', () => {
           hiddenRows: true,
         });
 
-        $(getCell(3, 1)).simulate('mousedown');
+        mouseDown(getCell(3, 1));
         $(getCell(6, 4)).simulate('mouseover').simulate('mouseup');
 
         keyDown('control/meta');
 
-        $(getCell(5, 3)).simulate('mousedown');
+        mouseDown(getCell(5, 3));
         $(getCell(8, 5)).simulate('mouseover').simulate('mouseup');
 
-        $(getCell(6, 3)).simulate('mousedown');
+        mouseDown(getCell(6, 3));
         $(getCell(9, 6)).simulate('mouseover').simulate('mouseup');
 
         keyUp('control/meta');

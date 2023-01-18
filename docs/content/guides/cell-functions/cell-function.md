@@ -1,11 +1,19 @@
 ---
-title: Cell function
-metaTitle: Cell function - Guide - Handsontable Documentation
+id: neoo8dhv
+title: Cell functions
+metaTitle: Cell functions - JavaScript Data Grid | Handsontable
+description: Render, edit, and validate the contents of your cells, using Handsontable's cell functions. Quickly set up your cell, using cell types.
 permalink: /cell-function
 canonicalUrl: /cell-function
+react:
+  id: i2sqtwh6
+  metaTitle: Cell functions - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
-# Cell function
+# Cell functions
+
+Render, edit, and validate the contents of your cells, using Handsontable's cell functions. Quickly set up your cell, using cell types.
 
 [[toc]]
 
@@ -31,7 +39,7 @@ Cell editors are the most complex cell functions. We have prepared a separate pa
 
 ## Validator
 
-Cell validator can be either a function or a regular expression. A cell is considered valid, when the validator function calls a `callback` (passed as one of the `validator` arguments) with `true` or the validation regex [test()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test) method returns `true`. Because the validity of a value is determined only by the argument that is passed to `callback`, `validator` function can be synchronous or asynchronous.
+Cell validator can be either a function or a regular expression. A cell is considered valid, when the validator function calls a `callback` (passed as one of the `validator` arguments) with `true` or the validation regex [`test()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test) method returns `true`. Because the validity of a value is determined only by the argument that is passed to `callback`, `validator` function can be synchronous or asynchronous.
 
 Contrary to `renderer` and `editor` functions, the `validator` function doesn't have to be defined for each cell. If the `validator` function is not defined, then a cell value is always valid.
 
@@ -41,11 +49,17 @@ Manually defining those functions for cells or columns would be tedious, so to s
 
 ## Cell functions getters
 
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+:::
+
 If, for some reason, you have to get the `renderer`, `editor` or `validator` function of specific cell you can use standard [`getCellMeta()`](@/api/core.md#getcellmeta) method to get all properties of particular cell and then refer to cell functions like so:
 
 ```js
-const container = document.querySelector('#container');
-
 // get cell properties for cell [0, 0]
 const cellProperties = hot.getCellMeta(0, 0);
 
@@ -56,9 +70,12 @@ cellProperties.validator; // get cell validator
 
 However, you have to remember that [`getCellMeta()`](@/api/core.md#getcellmeta) return cell properties "as they are", which means that if you use cell type to set cell functions, instead of defining functions directly those cell functions will be `undefined`:
 
+::: only-for javascript
 ```js
-const container = document.querySelector('#container');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
   columns: [{
     type: 'numeric'
@@ -73,6 +90,36 @@ cellProperties.editor; // undefined
 cellProperties.validator; // undefined
 cellProperties.type; // "numeric"
 ```
+:::
+
+::: only-for react
+```jsx
+export const ExampleComponent = () => {
+  const hotRef = useRef(null);
+
+  useEffect(() => {
+    const hot = hotRef.current.hotInstance;
+
+    // get cell properties for cell [0, 0]
+    const cellProperties = hot.getCellMeta(0, 0);
+
+    cellProperties.renderer; // undefined
+    cellProperties.editor; // undefined
+    cellProperties.validator; // undefined
+    cellProperties.type; // "numeric"
+  });
+
+  return (
+    <HotTable
+      ref={hotRef}
+      columns={[{
+        type: 'numeric'
+      }]}
+    />
+  );
+};
+```
+:::
 
 To get the actual cell function use appropriate _cell function getter_:
 

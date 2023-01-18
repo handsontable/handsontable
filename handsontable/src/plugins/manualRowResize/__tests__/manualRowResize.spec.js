@@ -143,7 +143,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toBe(120);
     expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight + 1);
 
-    alter('insert_row', 0);
+    alter('insert_row_above', 0);
 
     expect(rowHeight(spec().$container, 0)).toBe(defaultRowHeight + 2);
     expect(rowHeight(spec().$container, 1)).toBe(defaultRowHeight + 1);

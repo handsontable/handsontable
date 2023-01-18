@@ -1,11 +1,16 @@
 ---
-title: 'Custom editor in Vue 2'
-metaTitle: 'Custom editor in Vue 2 - Guide - Handsontable Documentation'
+id: faa5ylt6
+title: Custom editor in Vue 2
+metaTitle: Custom cell editor - Vue 2 Data Grid | Handsontable
+description: Create a custom cell editor, and use it in your Vue 2 data grid by declaring it as a class.
 permalink: /vue-custom-editor-example
 canonicalUrl: /vue-custom-editor-example
+searchCategory: Guides
 ---
 
 # Custom editor in Vue 2
+
+Create a custom cell editor, and use it in your Vue 2 data grid by declaring it as a class.
 
 [[toc]]
 
@@ -24,19 +29,15 @@ The following example implements the `@handsontable/vue` component with a custom
 </div>
 ```
 ```js
-import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
 class CustomEditor extends TextEditor {
-  constructor(props) {
-    super(props);
-  }
-
   createElements() {
     super.createElements();
 
@@ -49,8 +50,12 @@ class CustomEditor extends TextEditor {
   }
 }
 
-new Vue({
-  el: '#example1',
+import 'handsontable/dist/handsontable.full.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+const ExampleComponent = {
   data() {
     return {
       hotSettings: {
@@ -69,7 +74,16 @@ new Vue({
   components: {
     HotTable
   }
+}
+
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+new Vue({
+  ...ExampleComponent,
+  el: '#example1',
 });
+/* end:skip-in-preview */
 ```
 :::
 

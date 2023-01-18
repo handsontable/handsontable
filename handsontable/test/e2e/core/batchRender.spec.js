@@ -51,8 +51,8 @@ describe('Core.batchRender', () => {
     spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     const result = hot.batchRender(() => {
-      hot.alter('insert_row', 1, 5);
-      hot.alter('insert_col', 1, 5);
+      hot.alter('insert_row_above', 1, 5);
+      hot.alter('insert_col_start', 1, 5);
 
       hot.batchRender(() => {
         hot.setDataAtCell(1, 1, 'x');

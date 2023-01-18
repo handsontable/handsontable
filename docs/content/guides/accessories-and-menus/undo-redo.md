@@ -1,6 +1,8 @@
 ---
+id: glh01i6q
 title: Undo and redo
-metaTitle: Undo and redo - Guide - Handsontable Documentation
+metaTitle: Undo and redo - JavaScript Data Grid | Handsontable
+description: Revert and restore your changes, using the undo and redo features.
 permalink: /undo-redo
 canonicalUrl: /undo-redo
 tags:
@@ -11,9 +13,15 @@ tags:
   - reverse
   - erase last change
   - roll back changes
+react:
+  id: me8uxp3w
+  metaTitle: Undo and redo - React Data Grid | Handsontable
+searchCategory: Guides
 ---
 
 # Undo and redo
+
+Revert and restore your changes, using the undo and redo features.
 
 [[toc]]
 
@@ -38,20 +46,75 @@ Not all user-triggered actions are covered by this feature. See the below list o
 
 Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Z**</kbd> command to redo the previous state. Then, use <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Y**</kbd> (or <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**Z**</kbd>) to restore it.
 
+::: only-for javascript
 ::: example #example
 ```javascript
-const container = document.querySelector('#example');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
- data: Handsontable.helper.createSpreadsheetData(10, 5),
- rowHeaders: true,
- colHeaders: true,
- stretchH: 'all',
- height: 'auto',
- licenseKey: 'non-commercial-and-evaluation'
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5'],
+    ['A6', 'B6', 'C6', 'D6', 'E6'],
+    ['A7', 'B7', 'C7', 'D7', 'E7'],
+    ['A8', 'B8', 'C8', 'D8', 'E8'],
+    ['A9', 'B9', 'C9', 'D9', 'E9'],
+  ],
+  rowHeaders: true,
+  colHeaders: true,
+  stretchH: 'all',
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::
+:::
+
+::: only-for react
+::: example #example :react
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  return (
+    <HotTable
+      data={[
+        ['A1', 'B1', 'C1', 'D1', 'E1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4'],
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+        ['A6', 'B6', 'C6', 'D6', 'E6'],
+        ['A7', 'B7', 'C7', 'D7', 'E7'],
+        ['A8', 'B8', 'C8', 'D8', 'E8'],
+        ['A9', 'B9', 'C9', 'D9', 'E9'],
+      ]}
+      rowHeaders={true}
+      colHeaders={true}
+      stretchH="all"
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
 
 ## Related keyboard shortcuts
 

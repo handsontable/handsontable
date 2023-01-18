@@ -29,7 +29,7 @@ describe('Comments (RTL mode)', () => {
           cell: [
             { row: 1, col: 1, comment: { value: 'test' } },
             { row: 2, col: 2, comment: { value: 'test' } }
-          ]
+          ],
         });
 
         expect(getCell(1, 1).classList.contains('htCommentCell')).toBeTrue();
@@ -142,8 +142,38 @@ describe('Comments (RTL mode)', () => {
         expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth, 0);
       });
 
-      it('should display the comment editor on the right of the cell when on the left there is no left space', async() => {
+      it('should display the comment editor on the right of the cell when there is not enough space of the left', async() => {
         // For this configuration object "{ htmlDir: 'ltr', layoutDirection: 'rtl' }" it's necessary to force
+        // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
+        if (htmlDir === 'ltr' && layoutDirection === 'rtl') {
+          $('html').attr('dir', 'rtl');
+        }
+
+        handsontable({
+          layoutDirection,
+          data: Handsontable.helper.createSpreadsheetData(100, 100),
+          comments: true,
+        });
+
+        scrollViewportTo(countRows() - 1, countCols() - 1);
+
+        const plugin = getPlugin('comments');
+        const $editor = $(plugin.editor.getInputElement());
+
+        await sleep(10);
+
+        plugin.showAtCell(countRows() - 5, countCols() - 2);
+
+        const cellOffset = $(getCell(countRows() - 5, countCols() - 3)).offset();
+        const editorOffset = $editor.offset();
+
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left + 1, 0);
+      });
+
+      it('should display the comment editor on the top-right of the cell when there is not enough space of the' +
+        ' bottom-left', async() => {
+        // For this configuration object "{ htmlDir: 'rtl', layoutDirection: 'ltr'}" it's necessary to force
         // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
         if (htmlDir === 'ltr' && layoutDirection === 'rtl') {
           $('html').attr('dir', 'rtl');
@@ -164,11 +194,15 @@ describe('Comments (RTL mode)', () => {
 
         plugin.showAtCell(countRows() - 2, countCols() - 2);
 
-        const cellOffset = $(getCell(countRows() - 2, countCols() - 3)).offset();
+        const $cell = $(getCell(countRows() - 2, countCols() - 2));
+        const cellOffset = $cell.offset();
         const editorOffset = $editor.offset();
+        const cellHeight = $cell.outerHeight();
+        const cellWidth = $cell.outerWidth();
+        const editorHeight = $editor.outerHeight();
 
-        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).toBeCloseTo(cellOffset.left + 1, 0);
+        expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left + cellWidth + 1, 0);
       });
 
       it('should display the comment editor on the top-left of the cell when on the bottom there is no left space', async() => {

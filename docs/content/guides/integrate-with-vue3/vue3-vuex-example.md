@@ -1,27 +1,28 @@
 ---
-title: 'Vuex in Vue 3'
-metaTitle: 'Vuex in Vue 3 - Guide - Handsontable Documentation'
+id: pxr5suzy
+title: Vuex in Vue 3
+metaTitle: Integration with Vuex - Vue 3 Data Grid - Handsontable
+description: Use the Vuex state management pattern to maintain the data and configuration options of your Vue 3 data grid.
 permalink: /vue3-vuex-example
 canonicalUrl: /vue3-vuex-example
+searchCategory: Guides
 ---
 
 # Vuex in Vue 3
 
+Use the Vuex state management pattern to maintain the data and configuration options of your Vue 3 data grid.
+
 [[toc]]
 
-## Overview
+## Example - Vuex store dump
 
 The following example implements the `@handsontable/vue3` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Vuex state manager.
 
 [Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 
-## Example - Vuex store dump:
-
-Toggle [`readOnly`](@/api/options.md#readonly) for the entire table.
-
 ::: example #example1 :vue3-vuex --html 1 --js 2
 ```html
-<div id="example1">
+<div id="example1" class="dump-example-container">
   <div id="example-preview">
     <div id="toggle-boxes">
       <br/>
@@ -38,11 +39,11 @@ Toggle [`readOnly`](@/api/options.md#readonly) for the entire table.
 </div>
 ```
 ```js
-import { createApp } from 'vue';
 import { createStore } from 'vuex';
+import { defineComponent } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import { createSpreadsheetData } from './helpers';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
@@ -66,11 +67,16 @@ const store = createStore({
   }
 });
 
-const app = createApp({
+const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
-        data: createSpreadsheetData(4, 4),
+        data: [
+          ['A1', 'B1', 'C1', 'D1'],
+          ['A2', 'B2', 'C2', 'D2'],
+          ['A3', 'B3', 'C3', 'D3'],
+          ['A4', 'B4', 'C4', 'D4'],
+        ],
         colHeaders: true,
         rowHeaders: true,
         readOnly: true,
@@ -87,9 +93,7 @@ const app = createApp({
   },
   mounted() {
     this.hotRef = this.$refs.wrapper.hotInstance;
-    store.subscribe((mutation, state) => {
-      this.updateVuexPreview();
-    });
+    store.subscribe(() => this.updateVuexPreview());
     store.commit('updateData', this.hotRef.getSourceData());
   },
   methods: {
@@ -141,7 +145,14 @@ const app = createApp({
   }
 });
 
-app.use(store);
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+import { createApp } from 'vue';
+
+const app = createApp(ExampleComponent);
+
 app.mount('#example1');
+/* end:skip-in-preview */
 ```
 :::

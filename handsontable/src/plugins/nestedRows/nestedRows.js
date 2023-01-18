@@ -73,7 +73,7 @@ export class NestedRows extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link NestedRows#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -116,6 +116,7 @@ export class NestedRows extends BasePlugin {
     this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
     this.addHook('beforeRowMove', (...args) => this.onBeforeRowMove(...args));
     this.addHook('beforeLoadData', data => this.onBeforeLoadData(data));
+    this.addHook('beforeUpdateData', data => this.onBeforeLoadData(data));
 
     super.enablePlugin();
   }

@@ -1,5 +1,5 @@
 import { extend } from '../../../helpers/object';
-import { expandMetaType, assert, isUnsignedNumber } from '../utils';
+import { extendByMetaType, assert, isUnsignedNumber } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -62,7 +62,7 @@ export default class CellMeta {
     const meta = this.getMeta(physicalRow, physicalColumn);
 
     extend(meta, settings);
-    extend(meta, expandMetaType(settings.type, meta));
+    extendByMetaType(meta, settings);
   }
 
   /**
@@ -138,6 +138,7 @@ export default class CellMeta {
   setMeta(physicalRow, physicalColumn, key, value) {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
+    cellMeta._automaticallyAssignedMetaProps?.delete(key);
     cellMeta[key] = value;
   }
 
@@ -174,7 +175,7 @@ export default class CellMeta {
 
   /**
    * Returns all cell meta objects that were created during the Handsontable operation but for
-   * specyfic row index.
+   * specific row index.
    *
    * @param {number} physicalRow The physical row index.
    * @returns {object[]}

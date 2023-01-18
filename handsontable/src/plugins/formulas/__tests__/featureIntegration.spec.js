@@ -1,6 +1,6 @@
 import HyperFormula from 'hyperformula';
 
-describe('Integration with other features', () => {
+describe('Formulas: Integration with other features', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -22,18 +22,17 @@ describe('Integration with other features', () => {
           engine: HyperFormula,
           sheetName: 'Sheet1'
         },
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
-      alter('insert_row', 0, 1);
-      alter('insert_row', 2, 1);
-      alter('insert_row', hot.countRows(), 1);
+      alter('insert_row_above', 0, 1);
+      alter('insert_row_above', 2, 1);
+      alter('insert_row_above', hot.countRows(), 1);
 
       expect(hot.countRows()).toEqual(5);
 
-      alter('insert_col', 0, 1);
-      alter('insert_col', 2, 1);
-      alter('insert_col', hot.countCols(), 1);
+      alter('insert_col_start', 0, 1);
+      alter('insert_col_start', 2, 1);
+      alter('insert_col_start', hot.countCols(), 1);
 
       expect(hot.countCols()).toEqual(5);
     });
@@ -47,7 +46,6 @@ describe('Integration with other features', () => {
           engine: HyperFormula,
           sheetName: 'Sheet1'
         },
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const copyEvent = getClipboardEvent();
@@ -81,7 +79,6 @@ describe('Integration with other features', () => {
         },
         minSpareRows: 3,
         minSpareCols: 3,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       expect(hot.countRows()).toEqual(5);
@@ -186,9 +183,9 @@ describe('Integration with other features', () => {
       expect(hot.getDataAtCell(1, 0)).toEqual('parent1-');
       expect(hot.getDataAtCell(4, 0)).toEqual('PARENT1');
 
-      hot.alter('insert_row', 1, 1);
-      hot.alter('insert_row', 3, 1);
-      hot.alter('insert_row', 7, 1);
+      hot.alter('insert_row_above', 1, 1);
+      hot.alter('insert_row_above', 3, 1);
+      hot.alter('insert_row_above', 7, 1);
 
       expect(hot.getDataAtCell(2, 0)).toEqual('parent1-');
       expect(hot.getDataAtCell(6, 0)).toEqual('PARENT1');

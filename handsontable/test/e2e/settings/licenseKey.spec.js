@@ -1,3 +1,4 @@
+/* eslint no-console: off */
 describe('settings', () => {
   describe('licenseKey', () => {
     const id = 'testContainer';
@@ -13,11 +14,12 @@ describe('settings', () => {
       }
     });
 
-    it('should add info under table about missing license key', () => {
-      handsontable({});
+    it('should print information about key invalidation right after the Handsontable root element', () => {
+      handsontable({}, true);
 
       const info = spec().$container[0].nextSibling;
 
+      expect(info.className).toBe('hot-display-license-info');
       expect(info.innerText).toBe([
         'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
         'Alternatively, you can activate Handsontable to use for non-commercial purposes ',
@@ -26,25 +28,22 @@ describe('settings', () => {
       ].join(''));
     });
 
-    it('should add info under table about invalid license key', () => {
-      handsontable({
-        licenseKey: 'invalidKey'
-      });
+    it('should destroy all DOM elements related to the invalidation information for specific HoT instance only', () => {
+      const element2 = $('<div id="hot2"></div>').appendTo('body');
 
-      const info = spec().$container[0].nextSibling;
+      const hot1 = handsontable({}, true);
+      const hot2 = new Handsontable(element2[0], {});
 
-      expect(info.innerText).toBe([
-        'The license key for Handsontable is invalid. ',
-        'Read more on how to install it properly or contact us at support@handsontable.com.',
-      ].join(''));
-    });
+      expect(document.querySelectorAll('.hot-display-license-info').length).toBe(2);
 
-    it('should not add info under table if non-commercial key is used', () => {
-      handsontable({
-        licenseKey: 'non-commercial-and-evaluation'
-      });
+      hot1.destroy();
 
-      expect(spec().$container[0].nextSibling).toBe(null);
+      expect(document.querySelectorAll('.hot-display-license-info').length).toBe(1);
+
+      hot2.destroy();
+      element2.remove();
+
+      expect(document.querySelectorAll('.hot-display-license-info').length).toBe(0);
     });
   });
 });

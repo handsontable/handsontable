@@ -1,6 +1,5 @@
 import { stringify } from '../3rdparty/SheetClip';
 import {
-  cellMethodLookupFactory,
   countFirstRowKeys
 } from '../helpers/data';
 import {
@@ -16,8 +15,6 @@ import {
 import { extendArray, to2dArray } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
-
-const copyableLookup = cellMethodLookupFactory('copyable', false);
 
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -68,9 +65,9 @@ class DataMap {
   /**
    * @param {object} instance Instance of Handsontable.
    * @param {Array} data Array of arrays or array of objects containing data.
-   * @param {TableMeta} tableMeta The table meta instance.
+   * @param {MetaManager} metaManager The meta manager instance.
    */
-  constructor(instance, data, tableMeta) {
+  constructor(instance, data, metaManager) {
     /**
      * Instance of {@link Handsontable}.
      *
@@ -79,12 +76,19 @@ class DataMap {
      */
     this.instance = instance;
     /**
+     * Instance of {@link MetaManager}.
+     *
+     * @private
+     * @type {MetaManager}
+     */
+    this.metaManager = metaManager;
+    /**
      * Instance of {@link TableMeta}.
      *
      * @private
      * @type {TableMeta}
      */
-    this.tableMeta = tableMeta;
+    this.tableMeta = metaManager.getTableMeta();
     /**
      * Reference to the original dataset.
      *
@@ -96,7 +100,7 @@ class DataMap {
      *
      * @type {object}
      */
-    this.duckSchema = this.dataSource && this.dataSource[0] ? duckSchema(this.dataSource[0]) : {};
+    this.duckSchema = this.createDuckSchema();
     /**
      * Cached array of properties to columns.
      *
@@ -280,15 +284,33 @@ class DataMap {
   }
 
   /**
+   * Creates the duck schema based on the current dataset.
+   *
+   * @returns {Array|object}
+   */
+  createDuckSchema() {
+    return this.dataSource && this.dataSource[0] ? duckSchema(this.dataSource[0]) : {};
+  }
+
+  /**
+   * Refresh the data schema.
+   */
+  refreshDuckSchema() {
+    this.duckSchema = this.createDuckSchema();
+  }
+
+  /**
    * Creates row at the bottom of the data array.
    *
    * @param {number} [index] Physical index of the row before which the new row will be inserted.
    * @param {number} [amount=1] An amount of rows to add.
-   * @param {string} [source] Source of method call.
+   * @param {object} [options] Additional options for created rows.
+   * @param {string} [options.source] Source of method call.
+   * @param {'above'|'below'} [options.mode] Sets where the row is inserted: above or below the passed index.
    * @fires Hooks#afterCreateRow
    * @returns {number} Returns number of created rows.
    */
-  createRow(index, amount = 1, source) {
+  createRow(index, amount = 1, { source, mode = 'above' } = {}) {
     const sourceRowsCount = this.instance.countSourceRows();
     let physicalRowIndex = sourceRowsCount;
     let numberOfCreatedRows = 0;
@@ -305,11 +327,13 @@ class DataMap {
     const continueProcess = this.instance.runHooks('beforeCreateRow', rowIndex, amount, source);
 
     if (continueProcess === false || physicalRowIndex === null) {
-      return 0;
+      return {
+        delta: 0,
+      };
     }
 
     const maxRows = this.tableMeta.maxRows;
-    const columnCount = this.instance.countCols();
+    const columnCount = this.getSchema().length;
     const rowsToAdd = [];
 
     while (numberOfCreatedRows < amount && sourceRowsCount + numberOfCreatedRows < maxRows) {
@@ -341,12 +365,38 @@ class DataMap {
 
     this.instance.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
 
+    if (mode === 'below') {
+      physicalRowIndex = Math.min(physicalRowIndex + 1, sourceRowsCount);
+    }
+
     this.spliceData(physicalRowIndex, 0, rowsToAdd);
 
-    this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
+    const newVisualRowIndex = this.instance.toVisualRow(physicalRowIndex);
+
+    // In case the created rows are the only ones in the table, the column index mappers need to be rebuilt based on
+    // the number of columns created in the row or the schema.
+    if (this.instance.countSourceRows() === rowsToAdd.length) {
+      this.instance.columnIndexMapper.initToLength(this.instance.getInitialColumnCount());
+    }
+
+    if (numberOfCreatedRows > 0) {
+      if ((index === void 0 || index === null)) {
+        // Creates the meta rows at the end of the rows collection without shifting the cells
+        // that were defined out of the range of the dataset.
+        this.metaManager.createRow(null, numberOfCreatedRows);
+
+      } else if (source !== 'auto') {
+        this.metaManager.createRow(physicalRowIndex, amount);
+      }
+    }
+
+    this.instance.runHooks('afterCreateRow', newVisualRowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
 
-    return numberOfCreatedRows;
+    return {
+      delta: numberOfCreatedRows,
+      startPhysicalIndex: physicalRowIndex,
+    };
   }
 
   /**
@@ -354,11 +404,14 @@ class DataMap {
    *
    * @param {number} [index] Visual index of the column before which the new column will be inserted.
    * @param {number} [amount=1] An amount of columns to add.
-   * @param {string} [source] Source of method call.
+   * @param {object} [options] Additional options for created columns.
+   * @param {string} [options.source] Source of method call.
+   * @param {'start'|'end'} [options.mode] Sets where the column is inserted: at the start (left in [LTR](@/api/options.md#layoutdirection), right in [RTL](@/api/options.md#layoutdirection)) or at the end (right in LTR, left in LTR)
+   * the passed index.
    * @fires Hooks#afterCreateCol
    * @returns {number} Returns number of created columns.
    */
-  createCol(index, amount = 1, source) {
+  createCol(index, amount = 1, { source, mode = 'start' } = {}) {
     if (!this.instance.isColumnModificationAllowed()) {
       throw new Error('Cannot create new column. When data source in an object, ' +
         'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
@@ -367,19 +420,22 @@ class DataMap {
 
     const dataSource = this.dataSource;
     const maxCols = this.tableMeta.maxCols;
+    const countSourceCols = this.instance.countSourceCols();
     let columnIndex = index;
 
-    if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countSourceCols()) {
-      columnIndex = this.instance.countSourceCols();
+    if (typeof columnIndex !== 'number' || columnIndex >= countSourceCols) {
+      columnIndex = countSourceCols;
     }
 
     const continueProcess = this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
 
     if (continueProcess === false) {
-      return 0;
+      return {
+        delta: 0,
+      };
     }
 
-    let physicalColumnIndex = this.instance.countSourceCols();
+    let physicalColumnIndex = countSourceCols;
 
     if (columnIndex < this.instance.countCols()) {
       physicalColumnIndex = this.instance.toPhysicalColumn(columnIndex);
@@ -389,6 +445,12 @@ class DataMap {
     let nrOfColumns = this.instance.countCols();
     let numberOfCreatedCols = 0;
     let currentIndex = physicalColumnIndex;
+
+    if (mode === 'end') {
+      currentIndex = Math.min(currentIndex + 1, countSourceCols);
+    }
+
+    const startPhysicalIndex = currentIndex;
 
     while (numberOfCreatedCols < amount && nrOfColumns < maxCols) {
       if (typeof columnIndex !== 'number' || columnIndex >= nrOfColumns) {
@@ -417,10 +479,28 @@ class DataMap {
 
     this.instance.columnIndexMapper.insertIndexes(columnIndex, numberOfCreatedCols);
 
-    this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
+    if (numberOfCreatedCols > 0) {
+      if ((index === void 0 || index === null)) {
+        // Creates the meta columns at the end of the columns collection without shifting the cells
+        // that were defined out of the range of the dataset.
+        this.metaManager.createColumn(null, numberOfCreatedCols);
+
+      } else if (source !== 'auto') {
+        this.metaManager.createColumn(startPhysicalIndex, amount);
+      }
+    }
+
+    const newVisualColumnIndex = this.instance.toVisualColumn(startPhysicalIndex);
+
+    this.instance.runHooks('afterCreateCol', newVisualColumnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
 
-    return numberOfCreatedCols;
+    this.refreshDuckSchema();
+
+    return {
+      delta: numberOfCreatedCols,
+      startPhysicalIndex,
+    };
   }
 
   /**
@@ -466,8 +546,13 @@ class DataMap {
       }
     }
 
-    this.instance.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
+    const descendingPhysicalRows = removedPhysicalIndexes.slice(0).sort((a, b) => b - a);
 
+    descendingPhysicalRows.forEach((rowPhysicalIndex) => {
+      this.metaManager.removeRow(rowPhysicalIndex, 1);
+    });
+
+    this.instance.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
     this.instance.forceFullRender = true; // used when data was changed
 
     return true;
@@ -491,40 +576,49 @@ class DataMap {
 
     columnIndex = (this.instance.countCols() + columnIndex) % this.instance.countCols();
 
-    const logicColumns = this.visualColumnsToPhysical(columnIndex, amount);
-    const descendingLogicColumns = logicColumns.slice(0).sort((a, b) => b - a);
-    const actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', columnIndex, amount, logicColumns, source);
+    const removedPhysicalIndexes = this.visualColumnsToPhysical(columnIndex, amount);
+    const descendingPhysicalColumns = removedPhysicalIndexes.slice(0).sort((a, b) => b - a);
+    const actionWasNotCancelled = this.instance
+      .runHooks('beforeRemoveCol', columnIndex, amount, removedPhysicalIndexes, source);
 
     if (actionWasNotCancelled === false) {
       return false;
     }
 
     let isTableUniform = true;
-    const removedColumnsCount = descendingLogicColumns.length;
+    const removedColumnsCount = descendingPhysicalColumns.length;
     const data = this.dataSource;
 
     for (let c = 0; c < removedColumnsCount; c++) {
-      if (isTableUniform && logicColumns[0] !== logicColumns[c] - c) {
+      if (isTableUniform && removedPhysicalIndexes[0] !== removedPhysicalIndexes[c] - c) {
         isTableUniform = false;
       }
     }
 
     if (isTableUniform) {
       for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
-        data[r].splice(logicColumns[0], amount);
+        data[r].splice(removedPhysicalIndexes[0], amount);
+
+        if (r === 0) {
+          this.metaManager.removeColumn(removedPhysicalIndexes[0], amount);
+        }
       }
 
     } else {
       for (let r = 0, rlen = this.instance.countSourceRows(); r < rlen; r++) {
         for (let c = 0; c < removedColumnsCount; c++) {
-          data[r].splice(descendingLogicColumns[c], 1);
+          data[r].splice(descendingPhysicalColumns[c], 1);
+
+          if (r === 0) {
+            this.metaManager.removeColumn(descendingPhysicalColumns[c], 1);
+          }
         }
       }
     }
 
     // TODO: Function `removeCol` should validate fully, probably above.
     if (columnIndex < this.instance.countCols()) {
-      this.instance.columnIndexMapper.removeIndexes(logicColumns);
+      this.instance.columnIndexMapper.removeIndexes(removedPhysicalIndexes);
 
       // All columns have been removed. There shouldn't be any rows.
       if (this.instance.columnIndexMapper.getNotTrimmedIndexesLength() === 0) {
@@ -532,9 +626,9 @@ class DataMap {
       }
     }
 
-    this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
-
+    this.instance.runHooks('afterRemoveCol', columnIndex, amount, removedPhysicalIndexes, source);
     this.instance.forceFullRender = true; // used when data was changed
+    this.refreshDuckSchema();
 
     return true;
   }
@@ -698,7 +792,7 @@ class DataMap {
    * @returns {string}
    */
   getCopyable(row, prop) {
-    if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
+    if (this.instance.getCellMeta(row, this.propToCol(prop)).copyable) {
       return this.get(row, prop);
     }
 
@@ -946,7 +1040,7 @@ class DataMap {
    */
   destroy() {
     this.instance = null;
-    this.tableMeta = null;
+    this.metaManager = null;
     this.dataSource = null;
     this.duckSchema = null;
     this.colToPropCache.length = 0;

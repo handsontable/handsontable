@@ -1,7 +1,7 @@
 /**
  * @preserve
- * Authors: Tomas Rapkauskas, Anton Brouwer
- * Last updated: Jun 07, 2018
+ * Authors: Tomas Rapkauskas, Anton Brouwer, webjazznl
+ * Last updated: Dec 5, 2022
  *
  * Description: Definition file for Dutch - The Netherlands language-country.
  */
@@ -48,6 +48,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Samenvoeging van cellen opheffen',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopiëren',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Kopiëren met koptekst', 'Kopiëren met kopteksten'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'Kopiëren met groepskoptekst',
+    'Kopiëren met groepskopteksten'
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Kopiëren koptekst', 'Kopiëren kopteksten'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Knippen',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Geneste rij invoegen',

@@ -18,10 +18,14 @@ import { Plugins } from './plugins';
 import { CellType } from './cellTypes';
 import { ShortcutManager } from './shortcuts';
 
+type AlterActions = 'insert_row' | 'insert_row_above' | 'insert_row_below' |
+                    'insert_col' | 'insert_col_start' | 'insert_col_end' |
+                    'remove_row' | 'remove_col';
+
 export default class Core {
   addHook<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>): void;
   addHookOnce<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>): void;
-  alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index?: number | Array<[number, number]>, amount?: number, source?: string, keepEmptyRows?: boolean): void;
+  alter(action: AlterActions, index?: number | Array<[number, number]>, amount?: number, source?: string, keepEmptyRows?: boolean): void;
   batch<R>(wrappedOperations: () => R): R;
   batchExecution<R>(wrappedOperations: () => R, forceFlushChanges: boolean): R;
   batchRender<R>(wrappedOperations: () => R): R;
@@ -58,7 +62,7 @@ export default class Core {
   getCellValidator(cellMeta: CellMeta): BaseValidator | RegExp | undefined;
   getCellValidator(row: number, col: number): BaseValidator | RegExp | undefined;
   getColHeader(): Array<number | string>;
-  getColHeader(col: number): number | string;
+  getColHeader(column: number, headerLevel?: number): number | string;
   getColWidth(col: number): number;
   getCoords(elem: Element | null): CellCoords;
   getCopyableData(row: number, column: number): string;

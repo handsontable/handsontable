@@ -35,3 +35,10 @@ export function mockClientDimensions(element: HTMLElement, width: number, height
     value: height,
   });
 }
+
+export class IntersectionObserverMock {
+  /* eslint-disable @typescript-eslint/no-empty-function */
+  observe() {}
+  unobserve() {}
+  /* eslint-enable @typescript-eslint/no-empty-function */
+}

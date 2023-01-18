@@ -16,6 +16,7 @@ const docsDataCommon = {
   versions: [],
   latestVersion: '',
   urls: [],
+  versionsWithPatches: [],
 };
 
 module.exports = (options, context) => {
@@ -25,16 +26,13 @@ module.exports = (options, context) => {
     name: pluginName,
 
     /**
-     * Based on the permalink of the latest docs version generate nginx redirect rules.
+     * Collect the canonical URLs of the currently generated Docs version.
      *
      * @param {object} $page The $page value of the page you’re currently reading.
      */
     async extendPageData($page) {
-      if ($page.frontmatter.permalink) {
-        // Remove the slash ('/') from the beginning and ending of the URL path to reduce
-        // the resulting file size
-        rawCanonicalURLs.urls
-          .push($page.frontmatter.canonicalUrl.replace(/^\/docs\//, '').replace(/\/$/, ''));
+      if ($page.frontmatter.canonicalShortUrl) {
+        rawCanonicalURLs.urls.push($page.frontmatter.canonicalShortUrl);
       }
     },
 
@@ -56,6 +54,7 @@ module.exports = (options, context) => {
       docsDataCommon.urls = Array.from(canonicalURLs);
       docsDataCommon.versions = docsVersions.versions;
       docsDataCommon.latestVersion = docsVersions.latestVersion;
+      docsDataCommon.versionsWithPatches = docsVersions.versionsWithPatches;
 
       try {
         await fsp.writeFile(`${outputDir}/common.json`, JSON.stringify(docsDataCommon));

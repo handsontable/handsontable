@@ -1,11 +1,16 @@
 ---
-title: 'Custom renderer in Vue 2'
-metaTitle: 'Custom renderer in Vue 2 - Guide - Handsontable Documentation'
+id: 1ng09buy
+title: Custom renderer in Vue 2
+metaTitle: Custom cell renderer - Vue 2 Data Grid | Handsontable
+description: Create a custom cell renderer, and use it in your Vue 2 data grid by declaring it as a function.
 permalink: /vue-custom-renderer-example
 canonicalUrl: /vue-custom-renderer-example
+searchCategory: Guides
 ---
 
 # Custom renderer in Vue 2
+
+Create a custom cell renderer, and use it in your Vue 2 data grid by declaring it as a function.
 
 [[toc]]
 
@@ -24,43 +29,36 @@ The following example is an implementation of `@handsontable/vue` with a custom 
 </div>
 ```
 ```js
-import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
 import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-new Vue({
-  el: '#example1',
+const ExampleComponent = {
   data() {
     return {
       hotSettings: {
         data:
           [
-            ['A1', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-            ['A2', 'https://handsontable.com/docs/{{$page.currentVersion}}/img/examples/javascript-the-good-parts.jpg']],
+            ['A1', '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+            ['A2', '{{$basePath}}/img/examples/javascript-the-good-parts.jpg']
+          ],
         columns: [
           {},
           {
-            renderer(instance, td, row, col, prop, value, cellProperties) {
-              const escaped = `${value}`;
+            renderer(instance, td, row, col, prop, value) {
+              const img = document.createElement('img');
 
-              if (escaped.indexOf('http') === 0) {
-                const img = document.createElement('IMG');
-                img.src = value;
+              img.src = value;
 
-                img.addEventListener('mousedown', event => {
-                  event.preventDefault();
-                });
+              img.addEventListener('mousedown', event => {
+                event.preventDefault();
+              });
 
-                td.innerText = '';
-                td.appendChild(img);
-
-              } else {
-                textRenderer.apply(this, arguments);
-              }
+              td.innerText = '';
+              td.appendChild(img);
 
               return td;
             }
@@ -76,7 +74,16 @@ new Vue({
   components: {
     HotTable
   }
+}
+
+export default ExampleComponent;
+
+/* start:skip-in-preview */
+new Vue({
+  ...ExampleComponent,
+  el: '#example1',
 });
+/* end:skip-in-preview */
 ```
 :::
 
