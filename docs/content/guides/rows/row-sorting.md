@@ -711,77 +711,17 @@ ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example2
 
 ## Sort by multiple columns
 
-To let the end user apply multiple levels of sort criteria,
-use the [`multiColumnSorting`](@/api/options.md#multicolumnsorting) option.
+You can sort data by more than one column, which lets you apply multiple sets of sort criteria at the same time.
 
-::: only-for javascript
-
-```js
-const configurationOptions = {
-  // enable sorting by multiple columns, for the entire grid
-  multiColumnSorting: true,
-};
-```
-
-:::
-
-::: only-for react
-
-```jsx
-<HotTable
-  // enable sorting by multiple columns, for the entire grid
-  multiColumnSorting={true}
-/>
-```
-
-:::
-
-To select which columns can be sorted at the same time,
-set [`multiColumnSorting`](@/api/options.md#multicolumnsorting) for each column separately.
-
-::: only-for javascript
-
-```js
-const configurationOptions = {
-  columns: [
-    {
-      // enable sorting by multiple columns, for column 1
-      multiColumnSorting: true,
-    },
-    {
-      // disable sorting by multiple columns, for column 2
-      multiColumnSorting: false,
-    },
-  ],
-};
-```
-
-:::
-
-::: only-for react
-
-```jsx
-<HotTable>
-  <HotColumn
-    // enable sorting by multiple columns, for column 1
-    multiColumnSorting={true}
-  />
-  <HotColumn
-    // disable sorting by multiple columns, for column 2
-    multiColumnSorting={false}
-  />
-</HotTable>
-```
-
-:::
-
-You can't use the [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options at the same time, though.
+For example, if you display a list of employees, you can sort them by last name
+and then, within each last name, by first name.
+This way, you can easily sort the list even if there are multiple employees with the same last name.
 
 Try it out:
 
-1. Click on a column name to sort the rows by a single column.
+1. Click on the **Brand** column name. The data gets sorted by brand.
 2. Hold down <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd>.
-3. Click on other column names to apply additional levels of sort criteria.
+3. Click on the **Model** column name. The data gets sorted by model, but within each brand.
 
 ::: only-for javascript
 
@@ -803,7 +743,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       inStock: false,
     },
     {
-      brand: 'Gigabox',
+      brand: 'Jetpulse',
       model: 'HL Mountain Frame',
       price: 1890.90,
       sellDate: '03/05/2023',
@@ -811,7 +751,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       inStock: false,
     },
     {
-      brand: 'Camido',
+      brand: 'Jetpulse',
       model: 'Cycling Cap',
       price: 130.10,
       sellDate: '27/03/2023',
@@ -827,7 +767,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       inStock: true,
     },
     {
-      brand: 'Eidel',
+      brand: 'Chatterpoint',
       model: 'HL Road Tire',
       price: 279.99,
       sellDate: '02/10/2023',
@@ -998,6 +938,72 @@ ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example3
 :::
 
 :::
+
+To enable sorting by multiple columns, use the [`multiColumnSorting`](@/api/options.md#multicolumnsorting) option.
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  // enable sorting by multiple columns, for the entire grid
+  multiColumnSorting: true,
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  // enable sorting by multiple columns, for the entire grid
+  multiColumnSorting={true}
+/>
+```
+
+:::
+
+To select which columns can be sorted at the same time,
+set [`multiColumnSorting`](@/api/options.md#multicolumnsorting) for each column separately.
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  columns: [
+    {
+      // enable sorting by multiple columns, for column 1
+      multiColumnSorting: true,
+    },
+    {
+      // enable sorting by multiple columns, for column 2
+      multiColumnSorting: true,
+    },
+  ],
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable>
+  <HotColumn
+    // enable sorting by multiple columns, for column 1
+    multiColumnSorting={true}
+  />
+  <HotColumn
+    // enable sorting by multiple columns, for column 2
+    multiColumnSorting={true}
+  />
+</HotTable>
+```
+
+:::
+
+You can't use the [`columnSorting`](@/api/options.md#columnsorting)
+and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options at the same time.
 
 ## Set an initial sort order
 
