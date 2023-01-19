@@ -850,7 +850,7 @@ export const YourHandsontableComponent = () => {
           inStock: false,
         },
         {
-          brand: 'Gigabox',
+          brand: 'Jetpulse',
           model: 'HL Mountain Frame',
           price: 1890.90,
           sellDate: '03/05/2023',
@@ -858,7 +858,7 @@ export const YourHandsontableComponent = () => {
           inStock: false,
         },
         {
-          brand: 'Camido',
+          brand: 'Jetpulse',
           model: 'Cycling Cap',
           price: 130.10,
           sellDate: '27/03/2023',
@@ -874,7 +874,7 @@ export const YourHandsontableComponent = () => {
           inStock: true,
         },
         {
-          brand: 'Eidel',
+          brand: 'Chatterpoint',
           model: 'HL Road Tire',
           price: 279.99,
           sellDate: '02/10/2023',
@@ -1003,7 +1003,7 @@ const configurationOptions = {
 :::
 
 The [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting)
-options override each other. If you set them both, the one defined later takes precedence.
+options override each other. If you use them both, the one defined later takes precedence.
 
 ::: only-for javascript
 
@@ -1031,40 +1031,11 @@ const configurationOptions = {
 
 ## Set an initial sort order
 
-To initialize Handsontable with a particular sort order, use the [`initialConfig`](@/api/options.md#columnsorting) option. 
+You can set a default way of sorting data that's applied every time Handsontable is launched.
 
-::: only-for javascript
-
-```js
-const configurationOptions = {
-  columnSorting: {
-    // at initialization, sort rows by column 1, in ascending order
-    initialConfig: {
-      column: 0,
-      sortOrder: 'asc', // for descending order, use `'desc'`
-    },
-};
-```
-
-:::
-
-::: only-for react
-
-```jsx
-<HotTable
-  columnSorting={{
-    // at initialization, sort rows by column 1, in ascending order
-    initialConfig: {
-      column: 0,
-      sortOrder: 'asc',  // for descending order, use `'desc'`
-    },
-  }}
-/>
-```
-
-:::
-
-In this demo, rows are initially sorted by the first column, in ascending order.
+In this demo, the data is initially sorted:
+- By the **Brand** column, in ascending order.
+- By the **Model** column, in descending order.
 
 ::: only-for javascript
 
@@ -1086,7 +1057,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       inStock: false,
     },
     {
-      brand: 'Gigabox',
+      brand: 'Jetpulse',
       model: 'HL Mountain Frame',
       price: 1890.90,
       sellDate: '03/05/2023',
@@ -1094,7 +1065,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       inStock: false,
     },
     {
-      brand: 'Camido',
+      brand: 'Jetpulse',
       model: 'Cycling Cap',
       price: 130.10,
       sellDate: '27/03/2023',
@@ -1110,7 +1081,7 @@ const yourHandsontableInstance = new Handsontable(container, {
       inStock: true,
     },
     {
-      brand: 'Eidel',
+      brand: 'Chatterpoint',
       model: 'HL Road Tire',
       price: 279.99,
       sellDate: '02/10/2023',
@@ -1160,12 +1131,19 @@ const yourHandsontableInstance = new Handsontable(container, {
   ],
   height: 'auto',
   width: 'auto',
-  columnSorting: {
+  multiColumnSorting: {
     // at initialization, sort rows by column 1, in ascending order
-    initialConfig: {
+    initialConfig: [
+      {
       column: 0,
       sortOrder: 'asc',
-    },
+      },
+      // at initialization, sort rows by column 2, in descending order
+      {
+        column: 1,
+        sortOrder: 'desc',
+      },
+    ],
   },
   licenseKey: 'non-commercial-and-evaluation',
 });
@@ -1198,7 +1176,7 @@ export const YourHandsontableComponent = () => {
           inStock: false,
         },
         {
-          brand: 'Gigabox',
+          brand: 'Jetpulse',
           model: 'HL Mountain Frame',
           price: 1890.90,
           sellDate: '03/05/2023',
@@ -1206,7 +1184,7 @@ export const YourHandsontableComponent = () => {
           inStock: false,
         },
         {
-          brand: 'Camido',
+          brand: 'Jetpulse',
           model: 'Cycling Cap',
           price: 130.10,
           sellDate: '27/03/2023',
@@ -1222,7 +1200,7 @@ export const YourHandsontableComponent = () => {
           inStock: true,
         },
         {
-          brand: 'Eidel',
+          brand: 'Chatterpoint',
           model: 'HL Road Tire',
           price: 279.99,
           sellDate: '02/10/2023',
@@ -1270,12 +1248,19 @@ export const YourHandsontableComponent = () => {
           className: 'htCenter',
         },
       ]}
-      columnSorting={{
+      multiColumnSorting={{
         // at initialization, sort rows by column 1, in ascending order
-        initialConfig: {
+        initialConfig: [
+          {
           column: 0,
           sortOrder: 'asc',
-        },
+          },
+          // at initialization, sort rows by column 2, in descending order
+          {
+            column: 1,
+            sortOrder: 'desc',
+          },
+        ],
       }}
       height="auto"
       width="auto"
@@ -1289,6 +1274,39 @@ ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example4
 /* end:skip-in-preview */
 ```
 :::
+
+:::
+
+To set an initial sort order, use the [`initialConfig`](@/api/options.md#columnsorting) option. 
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  columnSorting: {
+    // at initialization, sort rows by column 1, in ascending order
+    initialConfig: {
+      column: 0,
+      sortOrder: 'asc', // for descending order, use `'desc'`
+    },
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  columnSorting={{
+    // at initialization, sort rows by column 1, in ascending order
+    initialConfig: {
+      column: 0,
+      sortOrder: 'asc',  // for descending order, use `'desc'`
+    },
+  }}
+/>
+```
 
 :::
 
