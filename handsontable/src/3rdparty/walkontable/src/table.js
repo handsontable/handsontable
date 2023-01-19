@@ -657,7 +657,7 @@ class Table {
       parentElement = this.TBODY;
     }
 
-    if (renderedRowIndex && parentElement) {
+    if (renderedRowIndex !== void 0 && parentElement !== void 0) {
       if (parentElement.childNodes.length < renderedRowIndex + 1) {
         return false;
 
