@@ -60,7 +60,7 @@ await dropdownMenu.screenshot({ path: helpers.screenshotPath() });
 
 ## Helpers
 
-There are prepared few helpers, you can find them in `/imports/helpers`. Helpers are loaded automatically (if you use `.empty-test-template` file). Not all of them will be necessary for you in writing tests, but for sure few of them would make work easier:
+There are prepared few helpers, you can find them in `/src/helpers`. Helpers are loaded automatically (if you use `.empty-test-template` file). Not all of them will be necessary for you in writing tests, but for sure few of them would make work easier:
 
 ### modifier
 Returns modifier key - CTRL / Meta depending on system. It can be useful e.g. if you want to copy-paste something.

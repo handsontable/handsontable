@@ -5,10 +5,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint --ext .js,.mjs,.ts imports scripts tests",
+    "lint": "eslint --ext .js,.mjs,.ts .",
+    "build": "node ./scripts/build.mjs",
     "test": "node ./scripts/run-tests.mjs",
     "upload": "node ./scripts/upload.mjs",
-    "build": "echo \"There is nothing to build. Skipped.\"",
+    "install-system-dependencies": "npx playwright install --with-deps",
     "publish-package": "echo \"There is nothing to publish. Skipped.\""
   },
   "author": "Handsoncode <hello@handsontable.com>",

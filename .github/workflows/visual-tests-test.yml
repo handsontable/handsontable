@@ -16,8 +16,6 @@ jobs:
   build:
     name: Build and upload visual tests
     runs-on: ubuntu-latest
-    container:
-      image:  mcr.microsoft.com/playwright:v1.28.1-focal
     # if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
@@ -33,11 +31,24 @@ jobs:
         run: |
           npm run build
 
-      - name: Run visual tests
+      - name: Install system dependencies
+        run: |
+          npm run in visual-tests install-system-dependencies
+
+      - name: Run tests
         run: |
           npm run in visual-tests test
 
-      - name: Upload screenshots
+      - run: |
+          tar -zcf screenshots.tar.gz ./visual-tests/screenshots
+
+      - name: Upload the screenshots artifacts
+        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
+        with:
+          name: screenshots
+          path: screenshots.tar.gz
+
+      - name: Diff screenshots
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
         run: |

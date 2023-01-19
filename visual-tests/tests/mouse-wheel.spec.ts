@@ -1,5 +1,5 @@
-import { test } from '../imports/test-runner';
-import { helpers } from '../imports/helpers';
+import { test } from '../src/test-runner';
+import { helpers } from '../src/helpers';
 
 test(__filename, async({ page }) => {
   const table = page.locator(helpers.selectors.mainTable);
