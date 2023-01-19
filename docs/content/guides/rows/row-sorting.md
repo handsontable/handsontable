@@ -101,14 +101,17 @@ const yourHandsontableInstance = new Handsontable(container, {
   ],
   columns: [
     {
+      title: 'Brand',
       type: 'text',
       data: 'brand',
     },
     {
+      title: 'Model',
       type: 'text',
       data: 'model',
     },
     {
+      title: 'Price',
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -118,29 +121,24 @@ const yourHandsontableInstance = new Handsontable(container, {
       className: 'htLeft',
     },
     {
+      title: 'Date',
       type: 'date',
       data: 'sellDate',
       className: 'htRight',
     },
     {
+      title: 'Time',
       type: 'time',
       data: 'sellTime',
       correctFormat: true,
       className: 'htRight',
     },
     {
+      title: 'In stock',
       type: 'checkbox',
       data: 'inStock',
       className: 'htCenter',
     },
-  ],
-  colHeaders: [
-    'Brand',
-    'Model',
-    'Price',
-    'Date',
-    'Time',
-    'In stock',
   ],
   height: 'auto',
   width: 'auto',
@@ -210,14 +208,17 @@ export const YourHandsontableComponent = () => {
     ]}
       columns={[
         {
+          title: 'Brand',
           type: 'text',
           data: 'brand',
         },
         {
+          title: 'Model',
           type: 'text',
           data: 'model',
         },
         {
+          title: 'Price',
           type: 'numeric',
           data: 'price',
           numericFormat: {
@@ -227,29 +228,24 @@ export const YourHandsontableComponent = () => {
           className: 'htLeft',
         },
         {
+          title: 'Date',
           type: 'date',
           data: 'sellDate',
           className: 'htRight',
         },
         {
+          title: 'Time',
           type: 'time',
           data: 'sellTime',
           correctFormat: true,
           className: 'htRight',
         },
         {
+          title: 'In stock',
           type: 'checkbox',
           data: 'inStock',
           className: 'htCenter',
         },
-      ]}
-      colHeaders={[
-        'Brand',
-        'Model',
-        'Price',
-        'Date',
-        'Time',
-        'In stock',
       ]}
       columnSorting={true}
       height="auto"
@@ -611,11 +607,13 @@ const yourHandsontableInstance = new Handsontable(container, {
   ],
   columns: [
     {
+      title: 'Model',
       // set the data type of column 1
       type: 'text', // 'text' is the default type, so you can omit it
       data: 'model',
     },
     {
+      title: 'Price',
       // set the data type of column 2
       type: 'numeric',
       data: 'price',
@@ -626,30 +624,26 @@ const yourHandsontableInstance = new Handsontable(container, {
       className: 'htLeft',
     },
     {
+      title: 'Date',
       // set the data type of column 3
       type: 'date',
       data: 'sellDate',
       className: 'htRight',
     },
     {
+      title: 'Time',
       // set the data type of column 4
       type: 'time',
       data: 'sellTime',
       className: 'htRight',
     },
     {
+      title: 'In stock',
       // set the data type of column 5
       type: 'checkbox',
       data: 'inStock',
       className: 'htCenter',
     },
-  ],
-  colHeaders: [
-    'Model',
-    'Price',
-    'Date',
-    'Time',
-    'In stock',
   ],
   height: 'auto',
   width: 'auto',
@@ -719,11 +713,13 @@ export const YourHandsontableComponent = () => {
     ]}
       columns={[
         {
+          title: 'Model',
           // set the data type of column 1
           type: 'text', // 'text' is the default type, so you can omit it
           data: 'model',
         },
         {
+          title: 'Price',
           // set the data type of column 2
           type: 'numeric',
           data: 'price',
@@ -734,30 +730,26 @@ export const YourHandsontableComponent = () => {
           className: 'htLeft',
         },
         {
+          title: 'Date',
           // set the data type of column 3
           type: 'date',
           data: 'sellDate',
           className: 'htRight',
         },
         {
+          title: 'Time',
           // set the data type of column 4
-          type: 'text',
+          type: 'time',
           data: 'sellTime',
           className: 'htRight',
         },
         {
+          title: 'In stock',
           // set the data type of column 5
           type: 'checkbox',
           data: 'inStock',
           className: 'htCenter',
         },
-      ]}
-      colHeaders={[
-        'Model',
-        'Price',
-        'Date',
-        'Time',
-        'In stock',
       ]}
       columnSorting={true}
       height="auto"
@@ -953,14 +945,17 @@ const yourHandsontableInstance = new Handsontable(container, {
   ],
   columns: [
     {
+      title: 'Brand',
       type: 'text',
       data: 'brand',
     },
     {
+      title: 'Model',
       type: 'text',
       data: 'model',
     },
     {
+      title: 'Price',
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -970,28 +965,23 @@ const yourHandsontableInstance = new Handsontable(container, {
       className: 'htLeft',
     },
     {
+      title: 'Date',
       type: 'date',
       data: 'sellDate',
       className: 'htRight',
     },
     {
+      title: 'Time',
       type: 'time',
       data: 'sellTime',
       className: 'htRight',
     },
     {
+      title: 'In stock',
       type: 'checkbox',
       data: 'inStock',
       className: 'htCenter',
     },
-  ],
-  colHeaders: [
-    'Brand',
-    'Model',
-    'Price',
-    'Date',
-    'Time',
-    'In stock',
   ],
   height: 'auto',
   width: 'auto',
@@ -1062,14 +1052,17 @@ export const YourHandsontableComponent = () => {
     ]}
       columns={[
         {
+          title: 'Brand',
           type: 'text',
           data: 'brand',
         },
         {
+          title: 'Model',
           type: 'text',
           data: 'model',
         },
         {
+          title: 'Price',
           type: 'numeric',
           data: 'price',
           numericFormat: {
@@ -1079,28 +1072,23 @@ export const YourHandsontableComponent = () => {
           className: 'htLeft',
         },
         {
+          title: 'Date',
           type: 'date',
           data: 'sellDate',
           className: 'htRight',
         },
         {
-          type: 'text',
+          title: 'Time',
+          type: 'time',
           data: 'sellTime',
           className: 'htRight',
         },
         {
+          title: 'In stock',
           type: 'checkbox',
           data: 'inStock',
           className: 'htCenter',
         },
-      ]}
-      colHeaders={[
-        'Brand',
-        'Model',
-        'Price',
-        'Date',
-        'Time',
-        'In stock',
       ]}
       // enable sorting by multiple columns, for the entire grid
       multiColumnSorting={true}
@@ -1210,14 +1198,17 @@ const yourHandsontableInstance = new Handsontable(container, {
   ],
   columns: [
     {
+      title: 'Brand',
       type: 'text',
       data: 'brand',
     },
     {
+      title: 'Model',
       type: 'text',
       data: 'model',
     },
     {
+      title: 'Price',
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -1227,28 +1218,23 @@ const yourHandsontableInstance = new Handsontable(container, {
       className: 'htLeft',
     },
     {
+      title: 'Date',
       type: 'date',
       data: 'sellDate',
       className: 'htRight',
     },
     {
+      title: 'Time',
       type: 'time',
       data: 'sellTime',
       className: 'htRight',
     },
     {
+      title: 'In stock',
       type: 'checkbox',
       data: 'inStock',
       className: 'htCenter',
     },
-  ],
-  colHeaders: [
-    'Brand',
-    'Model',
-    'Price',
-    'Date',
-    'Time',
-    'In stock',
   ],
   height: 'auto',
   width: 'auto',
@@ -1324,14 +1310,17 @@ export const YourHandsontableComponent = () => {
     ]}
       columns={[
         {
+          title: 'Brand',
           type: 'text',
           data: 'brand',
         },
         {
+          title: 'Model',
           type: 'text',
           data: 'model',
         },
         {
+          title: 'Price',
           type: 'numeric',
           data: 'price',
           numericFormat: {
@@ -1341,28 +1330,23 @@ export const YourHandsontableComponent = () => {
           className: 'htLeft',
         },
         {
+          title: 'Date',
           type: 'date',
           data: 'sellDate',
           className: 'htRight',
         },
         {
-          type: 'text',
+          title: 'Time',
+          type: 'time',
           data: 'sellTime',
           className: 'htRight',
         },
         {
+          title: 'In stock',
           type: 'checkbox',
           data: 'inStock',
           className: 'htCenter',
         },
-      ]}
-      colHeaders={[
-        'Brand',
-        'Model',
-        'Price',
-        'Date',
-        'Time',
-        'In stock',
       ]}
       columnSorting={{
         // at initialization, sort rows by column 1, in ascending order
@@ -1469,14 +1453,17 @@ const yourHandsontableInstance = new Handsontable(container, {
   ],
   columns: [
     {
+      title: 'Brand',
       type: 'text',
       data: 'brand',
     },
     {
+      title: 'Model',
       type: 'text',
       data: 'model',
     },
     {
+      title: 'Price',
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -1486,28 +1473,23 @@ const yourHandsontableInstance = new Handsontable(container, {
       className: 'htLeft',
     },
     {
+      title: 'Date',
       type: 'date',
       data: 'sellDate',
       className: 'htRight',
     },
     {
+      title: 'Time',
       type: 'time',
       data: 'sellTime',
       className: 'htRight',
     },
     {
+      title: 'In stock',
       type: 'checkbox',
       data: 'inStock',
       className: 'htCenter',
     },
-  ],
-  colHeaders: [
-    'Brand',
-    'Model',
-    'Price',
-    'Date',
-    'Time',
-    'In stock',
   ],
   height: 'auto',
   width: 'auto',
@@ -1597,14 +1579,17 @@ export const YourHandsontableComponent = () => {
     ]}
       columns={[
         {
+          title: 'Brand',
           type: 'text',
           data: 'brand',
         },
         {
+          title: 'Model',
           type: 'text',
           data: 'model',
         },
         {
+          title: 'Price',
           type: 'numeric',
           data: 'price',
           numericFormat: {
@@ -1614,28 +1599,23 @@ export const YourHandsontableComponent = () => {
           className: 'htLeft',
         },
         {
+          title: 'Date',
           type: 'date',
           data: 'sellDate',
           className: 'htRight',
         },
         {
-          type: 'text',
+          title: 'Time',
+          type: 'time',
           data: 'sellTime',
           className: 'htRight',
         },
         {
+          title: 'In stock',
           type: 'checkbox',
           data: 'inStock',
           className: 'htCenter',
         },
-      ]}
-      colHeaders={[
-        'Brand',
-        'Model',
-        'Price',
-        'Date',
-        'Time',
-        'In stock',
       ]}
       columnSorting={{
         // at initialization, sort rows by column 1, in descending order
@@ -1937,14 +1917,17 @@ const handsontableInstance = new Handsontable(container, {
   ],
   columns: [
     {
+      title: 'Brand',
       type: 'text',
       data: 'brand',
     },
     {
+      title: 'Model',
       type: 'text',
       data: 'model',
     },
     {
+      title: 'Price',
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -1954,28 +1937,23 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htLeft',
     },
     {
+      title: 'Date',
       type: 'date',
       data: 'sellDate',
       className: 'htRight',
     },
     {
+      title: 'Time',
       type: 'time',
       data: 'sellTime',
       className: 'htRight',
     },
     {
+      title: 'In stock',
       type: 'checkbox',
       data: 'inStock',
       className: 'htCenter',
     },
-  ],
-  colHeaders: [
-    'Brand',
-    'Model',
-    'Price',
-    'Date',
-    'Time',
-    'In stock',
   ],
   columnSorting: true,
   height: 'auto',
@@ -2092,14 +2070,17 @@ export const YourHandsontableComponent = () => {
         ]}
         columns={[
           {
+            title: 'Brand',
             type: 'text',
             data: 'brand',
           },
           {
+            title: 'Model',
             type: 'text',
             data: 'model',
           },
           {
+            title: 'Price',
             type: 'numeric',
             data: 'price',
             numericFormat: {
@@ -2109,28 +2090,23 @@ export const YourHandsontableComponent = () => {
             className: 'htLeft',
           },
           {
+            title: 'Date',
             type: 'date',
             data: 'sellDate',
             className: 'htRight',
           },
           {
-            type: 'text',
+            title: 'Time',
+            type: 'time',
             data: 'sellTime',
             className: 'htRight',
           },
           {
+            title: 'In stock',
             type: 'checkbox',
             data: 'inStock',
             className: 'htCenter',
           },
-        ]}
-        colHeaders={[
-          'Brand',
-          'Model',
-          'Price',
-          'Date',
-          'Time',
-          'In stock',
         ]}
         columnSorting={{
           // at initialization, sort rows by column 1, in descending order
@@ -2166,38 +2142,10 @@ ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example6
 
 Read our [blog article](https://handsontable.com/blog/articles/2018/11/feature-spotlight-multi-column-sorting) about multi-column sorting.
 
-### More examples
-
-::: only-for javascript
-
-- [Disable sorting for individual columns](https://jsfiddle.net/kirszenbaum/Lzwcbn2o)
-- [Sort remote data]()
-- [Make the sorted state persistent]()
-- [Sort different units in the same column](https://jsfiddle.net/aszymanski/4pzrdtjw)
-- [Sort the child rows of a parent row]()
-- [Ignore HTML while sorting]()
-- [Change the background color of the sorted column headers]()
-- [Get the current sort configuration](https://jsfiddle.net/kirszenbaum/ezqcL3wu)
-
-:::
-
-::: only-for react
-
-- [Disable sorting for individual columns](https://jsfiddle.net/kirszenbaum/r0pbLzgs)
-- [Sort remote data]()
-- [Make the sorted state persistent]()
-- [Sort different units in the same column](https://jsfiddle.net/aszymanski/nxewLkhz)
-- [Sort the child rows of a parent row]()
-- [Ignore HTML while sorting]()
-- [Change the background color of the sorted column headers]()
-- [Get the current sort configuration](https://jsfiddle.net/kirszenbaum/usbfnz01)
-
-:::
-
 ### API reference
 
-| Plugins                                                                                          | Options                                                                                                               | Handsontable's hooks                                                                                         |
-| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Plugins                                                                                          | Options                                                                                                          | Handsontable's hooks                                                                                         |
+| ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | [`ColumnSorting`](@/api/columnSorting.md)<br>[`MultiColumnSorting`](@/api/multiColumnSorting.md) | [`columnSorting`](@/api/options.md#columnsorting)<br>[`multiColumnSorting`](@/api/options.md#multicolumnsorting) | [`afterColumnSort`](@/api/hooks.md#aftercolumnsort)<br>[`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) |
 
 ## Troubleshooting
