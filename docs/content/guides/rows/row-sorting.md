@@ -1135,8 +1135,8 @@ const yourHandsontableInstance = new Handsontable(container, {
     // at initialization, sort rows by column 1, in ascending order
     initialConfig: [
       {
-      column: 0,
-      sortOrder: 'asc',
+        column: 0,
+        sortOrder: 'asc',
       },
       // at initialization, sort rows by column 2, in descending order
       {
@@ -1252,8 +1252,8 @@ export const YourHandsontableComponent = () => {
         // at initialization, sort rows by column 1, in ascending order
         initialConfig: [
           {
-          column: 0,
-          sortOrder: 'asc',
+            column: 0,
+            sortOrder: 'asc',
           },
           // at initialization, sort rows by column 2, in descending order
           {
@@ -1312,18 +1312,9 @@ const configurationOptions = {
 
 ## Add custom sort icons
 
-To replace the default sort icons, overwrite the `.columnSorting.ascending::before`
-and `.columnSorting.descending::before` pseudo-elements of Handsontable's CSS.
-
-```css
-/* the icon for ascending order */
-.handsontable span.colHeader.columnSorting.ascending::before
-
-/* the icon for descending order */
-.handsontable span.colHeader.columnSorting.descending::before
-```
-
-This demo replaces the default sort icons with the 👆 and 👇 emojis.
+The default sort icons are encoded in Base64. You can replace them with PNG files by changing the `background-image`
+property in the `.columnSorting.ascending::before` and `.columnSorting.descending::before`
+pseudo-elements of Handsontable's CSS.
 
 ::: only-for javascript
 
@@ -1331,15 +1322,13 @@ This demo replaces the default sort icons with the 👆 and 👇 emojis.
 
 ```css
 /* the icon for ascending order */
-.your-handsontable-instance span.colHeader.columnSorting.ascending::before {
-  content: '👆';
-  background-image: none !important;
+.handsontable1 span.colHeader.columnSorting.ascending::before {
+  background-image: url("https://cdn-icons-png.flaticon.com/512/130/130906.png") !important;
 }
 
 /* the icon for descending order */
-.your-handsontable-instance span.colHeader.columnSorting.descending::before {
-  content: '👇';
-  background-image: none !important;
+.handsontable1 span.colHeader.columnSorting.descending::before {
+  background-image: url("https://cdn-icons-png.flaticon.com/512/32/32195.png") !important;
 }
 ```
 ```js
@@ -1433,7 +1422,7 @@ const yourHandsontableInstance = new Handsontable(container, {
   ],
   height: 'auto',
   width: 'auto',
-  className: 'your-handsontable-instance',
+  className: 'handsontable1',
   columnSorting: {
     initialConfig: {
       column: 1,
@@ -1453,14 +1442,269 @@ const yourHandsontableInstance = new Handsontable(container, {
 ::: example #example5 :react --css 1 --js 2
 ```css
 /* the icon for ascending order */
-.your-handsontable-instance span.colHeader.columnSorting.ascending::before {
-  content: '👆';
+.handsontable1 span.colHeader.columnSorting.ascending::before {
+  background-image: url("https://cdn-icons-png.flaticon.com/512/130/130906.png") !important;
+}
+
+/* the icon for descending order */
+.handsontable1 span.colHeader.columnSorting.descending::before {
+  background-image: url("https://cdn-icons-png.flaticon.com/512/2985/2985150.png") !important;
+}
+```
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const YourHandsontableComponent = () => {
+  return (
+    <HotTable
+      data={[
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.90,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.10,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: true,
+        },
+    ]}
+      columns={[
+        {
+          title: 'Brand',
+          type: 'text',
+          data: 'brand',
+        },
+        {
+          title: 'Model',
+          type: 'text',
+          data: 'model',
+        },
+        {
+          title: 'Price',
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US'
+          },
+          className: 'htLeft',
+        },
+        {
+          title: 'Date',
+          type: 'date',
+          data: 'sellDate',
+          className: 'htRight',
+        },
+        {
+          title: 'Time',
+          type: 'time',
+          data: 'sellTime',
+          className: 'htRight',
+        },
+        {
+          title: 'In stock',
+          type: 'checkbox',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+      ]}
+      columnSorting={{
+        // at initialization, sort rows by column 1, in descending order
+        initialConfig: {
+          column: 1,
+          sortOrder: 'desc',
+        },
+      }}
+      className="handsontable1"
+      height="auto"
+      width="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example5'));
+/* end:skip-in-preview */
+```
+:::
+
+:::
+
+You can also change the sort icons by changing the `content` property of the same psuedo-elements:
+
+::: only-for javascript
+
+::: example #example6 --css 1 --js 2
+
+```css
+/* the icon for ascending order */
+.handsontable2 span.colHeader.columnSorting.ascending::before {
+  content: '△';
   background-image: none !important;
 }
 
 /* the icon for descending order */
-.your-handsontable-instance span.colHeader.columnSorting.descending::before {
-  content: '👇';
+.handsontable2 span.colHeader.columnSorting.descending::before {
+  content: '▽';
+  background-image: none !important;
+}
+```
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#example6');
+
+const yourHandsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.90,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.10,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: true,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
+      inStock: true,
+    },
+  ],
+  columns: [
+    {
+      title: 'Brand',
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      title: 'Model',
+      type: 'text',
+      data: 'model',
+    },
+    {
+      title: 'Price',
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US'
+      },
+      className: 'htLeft',
+    },
+    {
+      title: 'Date',
+      type: 'date',
+      data: 'sellDate',
+      className: 'htRight',
+    },
+    {
+      title: 'Time',
+      type: 'time',
+      data: 'sellTime',
+      className: 'htRight',
+    },
+    {
+      title: 'In stock',
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  height: 'auto',
+  width: 'auto',
+  className: 'handsontable2',
+  columnSorting: {
+    initialConfig: {
+      column: 1,
+      sortOrder: 'desc',
+    },
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example6 :react --css 1 --js 2
+```css
+/* the icon for ascending order */
+.handsontable2 span.colHeader.columnSorting.ascending::before {
+  content: '△';
+  background-image: none !important;
+}
+
+/* the icon for descending order */
+.handsontable2 span.colHeader.columnSorting.descending::before {
+  content: '▽';
   background-image: none !important;
 }
 ```
@@ -1564,7 +1808,7 @@ export const YourHandsontableComponent = () => {
           sortOrder: 'desc',
         },
       }}
-      className="your-handsontable-instance"
+      className="handsontable2"
       height="auto"
       width="auto"
       licenseKey="non-commercial-and-evaluation"
@@ -1573,7 +1817,7 @@ export const YourHandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example5'));
+ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example6'));
 /* end:skip-in-preview */
 ```
 :::
@@ -1782,9 +2026,9 @@ Try it out:
 
 ::: only-for javascript
 
-::: example #example6 --html 1 --js 2
+::: example #example7 --html 1 --js 2
 ```html
-<div id="example6"></div>
+<div id="example7"></div>
 
 <div class="controls">
   <button id="sort_asc" class="button">Sort rows by column 1, in ascending order</button>
@@ -1798,7 +2042,7 @@ Try it out:
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example6');
+const container = document.querySelector('#example7');
 
 const button_ascending = document.querySelector('#sort_asc');
 const button_descending = document.querySelector('#sort_desc');
@@ -1915,7 +2159,7 @@ button_descending.addEventListener('click', () => {
 
 ::: only-for react
 
-::: example #example6 :react
+::: example #example7 :react
 ```jsx
 import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -2062,7 +2306,7 @@ export const YourHandsontableComponent = () => {
 }
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example6'));
+ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example7'));
 /* end:skip-in-preview */
 ```
 
