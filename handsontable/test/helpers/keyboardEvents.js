@@ -61,6 +61,23 @@ const KEY_CODES_MAP = new Map([
   ['z', KEY_CODES.Z],
 ]);
 
+export const pressedModifierKeys = {
+  ctrlKey: false,
+  metaKey: false,
+  shiftKey: false,
+  altKey: false,
+};
+
+/**
+ * @param {object} options Object for storing information about pressed modifier key.
+ * @param {string} modifiedKey Name of the modifier key.
+ * @param {boolean} isPressed Information whether the modifier kay has been pressed.
+ */
+function saveStateAndExtendEvent(options, modifiedKey, isPressed) {
+  pressedModifierKeys[modifiedKey] = isPressed;
+  options[modifiedKey] = isPressed;
+}
+
 /**
  * Returns a function that triggers a key event.
  *
@@ -115,11 +132,14 @@ function triggerKeys(type) {
     });
 
     keys.forEach((key) => {
-      extend.ctrlKey = isKeyUp && key === 'control' ? false : keys.includes('control');
-      extend.metaKey = isKeyUp && key === 'meta' ? false : keys.includes('meta');
-      extend.shiftKey = isKeyUp && key === 'shift' ? false : keys.includes('shift');
-      extend.altKey = isKeyUp && key === 'alt' ? false : keys.includes('alt');
-
+      saveStateAndExtendEvent(extend, 'ctrlKey',
+        isKeyUp === true && key === 'control' ? false : keys.includes('control'));
+      saveStateAndExtendEvent(extend, 'metaKey',
+        isKeyUp === true && key === 'meta' ? false : keys.includes('meta'));
+      saveStateAndExtendEvent(extend, 'shiftKey',
+        isKeyUp === true && key === 'shift' ? false : keys.includes('shift'));
+      saveStateAndExtendEvent(extend, 'altKey',
+        isKeyUp === true && key === 'alt' ? false : keys.includes('alt'));
       keyTriggerFactory(type, key, { extend, target, ime });
     });
   };
