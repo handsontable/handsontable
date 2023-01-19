@@ -641,12 +641,33 @@ class Table {
    * Get the DOM element of the row with the provided index.
    *
    * @param {number} rowIndex Row index.
-   * @returns {HTMLTableRowElement}
+   * @returns {HTMLTableRowElement|boolean} Return the row's DOM element or `false` if the row with the provided
+   * index doesn't exist.
    */
   getRow(rowIndex) {
-    return rowIndex < 0 ?
-      this.THEAD.childNodes[this.rowFilter.sourceRowToVisibleColHeadedRow(rowIndex)] :
-      this.TBODY.childNodes[this.rowFilter.sourceToRendered(rowIndex)];
+    let renderedRowIndex = null;
+    let parentElement = null;
+
+    if (rowIndex < 0) {
+      renderedRowIndex = this.rowFilter?.sourceRowToVisibleColHeadedRow(rowIndex);
+      parentElement = this.THEAD;
+
+    } else {
+      renderedRowIndex = this.rowFilter?.sourceToRendered(rowIndex);
+      parentElement = this.TBODY;
+    }
+
+    if (renderedRowIndex && parentElement) {
+      if (parentElement.childNodes.length < renderedRowIndex + 1) {
+        return false;
+
+      } else {
+        return parentElement.childNodes[renderedRowIndex];
+      }
+
+    } else {
+      return false;
+    }
   }
 
   /**

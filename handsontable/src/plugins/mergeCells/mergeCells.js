@@ -213,23 +213,34 @@ export class MergeCells extends BasePlugin {
     rowIndexesToRefresh = [...new Set(rowIndexesToRefresh)];
 
     rowIndexesToRefresh.forEach((rowIndex) => {
-      const wtTableRef = this.hot.view._wt.wtTable;
       const renderableRowIndex = this.hot.rowIndexMapper.getRenderableFromVisualIndex(rowIndex);
-      const rowToRefresh = wtTableRef.getRow(renderableRowIndex);
 
-      // Modify the TR's `background` property to later modify it asynchronously.
-      // The background color is getting modified only with the alpha, so the change should not be visible (and is
-      // covered by the TDs' background color).
-      rowToRefresh.style.background =
-        getStyle(rowToRefresh, 'backgroundColor').replace(')', ', 0.99)');
+      [
+        'topOverlay',
+        'bottomOverlay',
+        'inlineStartOverlay',
+        'topInlineStartCornerOverlay',
+        'bottomInlineStartCornerOverlay'
+      ].map(overlay => this.hot.view._wt.wtOverlays[overlay].clone.wtTable).forEach((wtTableRef) => {
+        const rowToRefresh = wtTableRef.getRow(renderableRowIndex);
 
-      rowsToRefresh.push(rowToRefresh);
+        if (rowToRefresh) {
+          // Modify the TR's `background` property to later modify it asynchronously.
+          // The background color is getting modified only with the alpha, so the change should not be visible (and is
+          // covered by the TDs' background color).
+          rowToRefresh.style.background =
+            getStyle(rowToRefresh, 'backgroundColor').replace(')', ', 0.99)');
+
+          rowsToRefresh.push();
+        }
+      });
     });
 
     // Asynchronously revert the TRs' `background` property to force a fresh repaint.
-    setTimeout(() => {
+    this.hot._registerTimeout(() => {
       rowsToRefresh.forEach((rowElement) => {
-        rowElement.style.background = '';
+        rowElement.style.background =
+          getStyle(rowElement, 'backgroundColor').replace(', 0.99)', ')');
       });
     }, 1);
   }
