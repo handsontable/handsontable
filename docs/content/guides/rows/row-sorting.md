@@ -1002,8 +1002,32 @@ const configurationOptions = {
 
 :::
 
-You can't use the [`columnSorting`](@/api/options.md#columnsorting)
-and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options at the same time.
+The [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting)
+options override each other. If you set them both, the one defined later takes precedence.
+
+::: only-for javascript
+
+```js
+// here, `multiColumnSorting` overrides `columnSorting`
+const configurationOptions = {
+  columnSorting: true,
+  multiColumnSorting: true,
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+// here, `multiColumnSorting` overrides `columnSorting`
+<HotTable
+  columnSorting={true}
+  multiColumnSorting={true}
+/>
+```
+
+:::
 
 ## Set an initial sort order
 
