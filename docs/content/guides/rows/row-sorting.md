@@ -33,7 +33,8 @@ Sort data alphabetically or numerically, in ascending, descending or a custom or
 
 ## Overview
 
-With sorting, you can easily rearrange rows of data, based on the values in specified columns. This is especially useful for analyzing and organizing large datasets, helping you identify patterns and trends.
+With sorting, you can easily rearrange rows of data, based on the values in specified columns.
+This is particularly useful for analyzing and organizing large datasets, which helps you identify patterns and trends.
 
 You can sort rows in different ways:
 - Alphabetically, numerically, or based on a [custom data type](@/guides/cell-types/cell-type.md).
@@ -41,7 +42,7 @@ You can sort rows in different ways:
 - By a single column, or by [multiple columns](#sort-by-multiple-columns).
 - Using Handsontable's [UI](#demo) or [API](#control-sorting-programmatically).
 
-Data is sorted only visually. Your source data remains in the original order.
+Data is sorted just visually. Your source data remains in the original order.
 
 ### Demo
 
@@ -269,113 +270,62 @@ To enable sorting, use the [`columnSorting`](@/api/options.md#columnsorting) opt
 
 ::: only-for javascript
 
-<code-group>
-  <code-block title="Entire grid">
-  
-  ```js
-  const configurationOptions = {
-    // enable sorting for the entire grid
-    columnSorting: true,
-  };
-  ```
-  
-  </code-block>
-  <code-block title="Columns">
-  
-  ```js
-  const configurationOptions = {
-    columns: [
-      {
-        // enable sorting by column 1
-        columnSorting: true,
-      },
-      {
-        // disable sorting by column 2
-        columnSorting: false,
-      },
-    ],
-  };
-  ```
-  
-  </code-block>
-  <code-block title="Rows">
-  
-  ```js
-  const configurationOptions = {
-    // enable sorting for the entire grid
-    columnSorting: true,
-
-    // exclude rows 1 and 2 from sorting
-    afterColumnSort() {
-      yourHandsontableInstance.rowIndexMapper.moveIndexes(
-        [
-          yourHandsontableInstance.toVisualRow(0),
-          yourHandsontableInstance.toVisualRow(1)
-        ], 0);
-    },
-  };
-  ```
-  
-  </code-block>
-</code-group>
+```js
+const configurationOptions = {
+  // enable sorting for the entire grid
+  columnSorting: true,
+};
+```
 
 :::
 
 ::: only-for react
 
-<code-group>
-  <code-block title="Entire grid">
-  
-  ```jsx
-  <HotTable
-    // enable sorting for the entire grid
-    columnSorting={true}
-  />
-  ```
-  
-  </code-block>
-  <code-block title="Columns">
-  
-  ```jsx
-  <HotTable>
-    <HotColumn
+```jsx
+<HotTable
+  // enable sorting for the entire grid
+  columnSorting={true}
+/>
+```
+
+:::
+
+To select which columns are sortable,
+set [`columnSorting`](@/api/options.md#columnsorting) for each column separately.
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  columns: [
+    {
       // enable sorting by column 1
-      columnSorting={true}
-    />
-    <HotColumn
+      columnSorting: true,
+    },
+    {
       // disable sorting by column 2
-      columnSorting={false}
-    />
-  </HotTable>
-  ```
-  
-  </code-block>
-  <code-block title="Rows">
-  
-  ```jsx
-  // you need `useRef` to call Handsontable's instance methods
-  import { useRef } from 'react';
-  const hotTableComponentRef = useRef(null);
+      columnSorting: false,
+    },
+  ],
+};
+```
 
-  <HotTable
-    ref={hotTableComponentRef}
+:::
 
-    // enable sorting for the entire grid
+::: only-for react
+
+```jsx
+<HotTable>
+  <HotColumn
+    // enable sorting by column 1
     columnSorting={true}
-
-    // exclude rows 1 and 2 from sorting
-    afterColumnSort={{
-      hotTableComponentRef.current.hotInstance.rowIndexMapper.moveIndexes(
-        [
-          hotTableComponentRef.current.hotInstance.toVisualRow(0),
-          hotTableComponentRef.current.hotInstance.toVisualRow(1),
-        ], 0);
-    }},
   />
-  ```
-  
-  </code-block>
-</code-group>
+  <HotColumn
+    // disable sorting by column 2
+    columnSorting={false}
+  />
+</HotTable>
+```
 
 :::
 
@@ -403,7 +353,7 @@ registerPlugin(ColumnSorting);
 
 ## Configure sorting
 
-Configure the sort UI, set an initial sort order, and implement your own compare function.
+You can configure the sort UI, set an initial sort order, and implement your own compare function.
 
 By default:
 - Sorting is enabled for all columns.
@@ -411,111 +361,103 @@ By default:
 - The sort order indicator is visible.
 - No rows are sorted initially.
 
+The default sorting configuration:
+
 ::: only-for javascript
 
-<code-group>
-  <code-block title="Default options">
-  
-  ```js
-  const configurationOptions = {
-    columnSorting: {
-      // let the end user sort rows by clicking on the column name
-      headerAction: true,
-      // don't sort empty cells: move rows with empty cells to the bottom
-      sortEmptyCells: false,
-      // enable the sort order icon that appears next to the column name
-      indicator: true,
-    },
-  };
-  ```
-
-  </code-block>
-
-  <code-block title="All options">
-
-  ```js
-  const configurationOptions = {
-    columnSorting: {
-      // don't let the end user sort rows by clicking on the column name
-      headerAction: false,
-      // sort empty cells, too
-      sortEmptyCells: true,
-      // disable the sort order icon that appears next to the column name
-      indicator: false,
-
-      // at initialization, sort rows by column 1, in descending order
-      initialConfig: {
-        column: 1,
-        sortOrder: 'desc',
-      },
-
-      // implement your own comparator
-      compareFunctionFactory(sortOrder, columnMeta) {
-        return function(value, nextValue) {
-          // here, add a compare function
-          // that returns `-1`, or `0`, or `1`
-        }
-      },
-    },
-  };
-  ```
-
-  </code-block>
-</code-group>
+```js
+const configurationOptions = {
+  columnSorting: {
+    // let the end user sort rows by clicking on the column name
+    headerAction: true,
+    // don't sort empty cells: move rows with empty cells to the bottom
+    sortEmptyCells: false,
+    // enable the sort order icon that appears next to the column name
+    indicator: true,
+  },
+};
+```
 
 :::
 
 ::: only-for react
 
-<code-group>
-  <code-block title="Default options">
-  
-  ```jsx
-  <HotTable
-    columnSorting={{
-      // let the end user sort rows by clicking on the column name
-      headerAction: true,
-      // don't sort empty cells: move rows with empty cells to the bottom
-      sortEmptyCells: false,
-      // enable the sort order icon that appears next to the column name
-      indicator: true,
-    }}
-  />
-  ```
+```jsx
+<HotTable
+  columnSorting={{
+    // let the end user sort rows by clicking on the column name
+    headerAction: true,
+    // don't sort empty cells: move rows with empty cells to the bottom
+    sortEmptyCells: false,
+    // enable the sort order icon that appears next to the column name
+    indicator: true,
+  }}
+/>
+```
 
-  </code-block>
+:::
 
-  <code-block title="All options">
+All sorting options:
 
-  ```jsx
-  <HotTable
-    columnSorting={{
-      // don't let the end user sort rows by clicking on the column name
-      headerAction: false,
-      // sort empty cells, too
-      sortEmptyCells: true,
-      // disable the sort order icon that appears next to the column name
-      indicator: false,
+::: only-for javascript
 
-      // at initialization, sort rows by column 1, in descending order
-      initialConfig: {
-        column: 1,
-        sortOrder: 'desc',
+```js
+const configurationOptions = {
+  columnSorting: {
+    // don't let the end user sort rows by clicking on the column name
+    headerAction: false,
+    // sort empty cells, too
+    sortEmptyCells: true,
+    // disable the sort order icon that appears next to the column name
+    indicator: false,
+
+    // at initialization, sort rows by column 1, in descending order
+    initialConfig: {
+      column: 1,
+      sortOrder: 'desc',
+    },
+
+    // implement your own comparator
+    compareFunctionFactory(sortOrder, columnMeta) {
+      return function(value, nextValue) {
+        // here, add a compare function
+        // that returns `-1`, or `0`, or `1`
+      }
+    },
+  },
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  columnSorting={{
+    // don't let the end user sort rows by clicking on the column name
+    headerAction: false,
+    // sort empty cells, too
+    sortEmptyCells: true,
+    // disable the sort order icon that appears next to the column name
+    indicator: false,
+
+    // at initialization, sort rows by column 1, in descending order
+    initialConfig: {
+      column: 1,
+      sortOrder: 'desc',
+    },
+
+    // implement your own comparator
+    compareFunctionFactory(sortOrder, columnMeta) {
+      return function(value, nextValue) {
+        // here, add a compare function
+        // that returns `-1`, or `0`, or `1`
       },
-
-      // implement your own comparator
-      compareFunctionFactory(sortOrder, columnMeta) {
-        return function(value, nextValue) {
-          // here, add a compare function
-          // that returns `-1`, or `0`, or `1`
-        },
-      },
-    }}
-  />
-  ```
-
-  </code-block>
-</code-group>
+    },
+  }}
+/>
+```
 
 :::
 
@@ -769,121 +711,71 @@ ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example2
 
 ## Sort by multiple columns
 
-To let the end user apply multiple levels of sort criteria, use the [`multiColumnSorting`](@/api/options.md#multicolumnsorting) option.
+To let the end user apply multiple levels of sort criteria,
+use the [`multiColumnSorting`](@/api/options.md#multicolumnsorting) option.
 
 ::: only-for javascript
 
-<code-group>
-  <code-block title="Entire grid">
-  
-  ```js
-  const configurationOptions = {
-    // enable sorting by multiple columns, for the entire grid
-    multiColumnSorting: true,
-  };
-  ```
-  
-  </code-block>
-  <code-block title="Columns">
-  
-  ```js
-  const configurationOptions = {
-    columns: [
-      {
-        // enable sorting by multiple columns, for column 1
-        multiColumnSorting: true,
-      },
-      {
-        // disable sorting by multiple columns, for column 2
-        multiColumnSorting: false,
-      },
-    ],
-  };
-  ```
-  
-  </code-block>
-  <code-block title="Rows">
-  
-  ```js
-  const configurationOptions = {
-    // enable sorting by multiple columns, for the entire grid
-    multiColumnSorting: true,
-
-    // exclude rows 1 and 2 from sorting
-    afterColumnSort() {
-      yourHandsontableInstance.rowIndexMapper.moveIndexes(
-        [
-          yourHandsontableInstance.toVisualRow(0),
-          yourHandsontableInstance.toVisualRow(1)
-        ], 0);
-    },
-  };
-  ```
-  
-  </code-block>
-</code-group>
+```js
+const configurationOptions = {
+  // enable sorting by multiple columns, for the entire grid
+  multiColumnSorting: true,
+};
+```
 
 :::
 
 ::: only-for react
 
-<code-group>
-  <code-block title="Entire grid">
-  
-  ```jsx
-  <HotTable
-    // enable sorting by multiple columns, for the entire grid
-    multiColumnSorting={true}
-  />
-  ```
-  
-  </code-block>
-  <code-block title="Columns">
-  
-  ```jsx
-  <HotTable>
-    <HotColumn
-      // enable sorting by multiple columns, for column 1
-      multiColumnSorting={true}
-    />
-    <HotColumn
-      // disable sorting by multiple columns, for column 2
-      multiColumnSorting={false}
-    />
-  </HotTable>
-  ```
-  
-  </code-block>
-  <code-block title="Rows">
-
-  ```jsx
-  // you need `useRef` to call Handsontable's instance methods
-  import { useRef } from 'react';
-  const hotTableComponentRef = useRef(null);
-
-  <HotTable
-    ref={hotTableComponentRef}
-
-    // enable sorting by multiple columns, for the entire grid
-    columnSorting={true}
-
-    // exclude rows 1 and 2 from sorting
-    afterColumnSort={{
-      hotTableComponentRef.current.hotInstance.rowIndexMapper.moveIndexes(
-        [
-          hotTableComponentRef.current.hotInstance.toVisualRow(0),
-          hotTableComponentRef.current.hotInstance.toVisualRow(1),
-        ], 0);
-    }},
-  />
-  ```
-  
-  </code-block>
-</code-group>
+```jsx
+<HotTable
+  // enable sorting by multiple columns, for the entire grid
+  multiColumnSorting={true}
+/>
+```
 
 :::
 
-Don't use the [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options at the same time, though.
+To select which columns can be sorted at the same time,
+set [`multiColumnSorting`](@/api/options.md#multicolumnsorting) for each column separately.
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  columns: [
+    {
+      // enable sorting by multiple columns, for column 1
+      multiColumnSorting: true,
+    },
+    {
+      // disable sorting by multiple columns, for column 2
+      multiColumnSorting: false,
+    },
+  ],
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable>
+  <HotColumn
+    // enable sorting by multiple columns, for column 1
+    multiColumnSorting={true}
+  />
+  <HotColumn
+    // disable sorting by multiple columns, for column 2
+    multiColumnSorting={false}
+  />
+</HotTable>
+```
+
+:::
+
+You can't use the [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options at the same time, though.
 
 Try it out:
 
@@ -1681,7 +1573,7 @@ const configurationOptions = {
 
 ## Control sorting programmatically
 
-Control sorting at runtime by using Handsontable's API.
+You can control sorting at runtime by using Handsontable's API.
 
 ::: only-for react
 
@@ -1695,111 +1587,103 @@ To disable and re-enable sorting at Handsontable's runtime, use the [`updateSett
 
 ::: only-for javascript
 
-<code-group>
-  <code-block title="Entire grid">
-  
-  ```js
-  // disable sorting for the entire grid
-  handsontableInstance.updateSettings({
-    columnSorting: false,
-  });
+```js
+// disable sorting for the entire grid
+handsontableInstance.updateSettings({
+  columnSorting: false,
+});
 
-  // re-enable sorting for the entire grid
-  handsontableInstance.updateSettings({
-    columnSorting: true,
-  });
-  ```
-  
-  </code-block>
-  <code-block title="Columns">
-  
-  ```js
-  handsontableInstance.updateSettings({
-    columns: [
-      {
-        // disable sorting by column 1
-        columnSorting: false,
-      },
-      {
-        // disable sorting by column 2
-        columnSorting: false,
-      },
-    ],
-  });
-
-  handsontableInstance.updateSettings({
-    columns: [
-      {
-        // re-enable sorting by column 1
-        columnSorting: true,
-      },
-      {
-        // re-enable sorting by column 2
-        columnSorting: true,
-      },
-    ],
-  });
-  ```
-  
-  </code-block>
-</code-group>
+// re-enable sorting for the entire grid
+handsontableInstance.updateSettings({
+  columnSorting: true,
+});
+```
 
 :::
 
 ::: only-for react
 
-<code-group>
-  <code-block title="Entire grid">
-  
-  ```jsx
-  const hotTableComponentRef = useRef(null);
+```jsx
+const hotTableComponentRef = useRef(null);
 
-  // disable sorting for the entire grid
-  hotTableComponentRef.current.hotInstance.updateSettings({
-    columnSorting: false,
-  });
+// disable sorting for the entire grid
+hotTableComponentRef.current.hotInstance.updateSettings({
+  columnSorting: false,
+});
 
-  // re-enable sorting for the entire grid
-  hotTableComponentRef.current.hotInstance.updateSettings({
-    columnSorting: true,
-  });
-  ```
-  
-  </code-block>
-  <code-block title="Columns">
-  
-  ```jsx
-  const hotTableComponentRef = useRef(null);
+// re-enable sorting for the entire grid
+hotTableComponentRef.current.hotInstance.updateSettings({
+  columnSorting: true,
+});
+```
 
-  hotTableComponentRef.current.hotInstance.updateSettings({
-    columns: [
-      {
-        // disable sorting by column 1
-        columnSorting: false,
-      },
-      {
-        // disable sorting by column 2
-        columnSorting: false,
-      },
-    ],
-  });
+:::
 
-  hotTableComponentRef.current.hotInstance.updateSettings({
-    columns: [
-      {
-        // re-enable sorting by column 1
-        columnSorting: true,
-      },
-      {
-        // re-enable sorting by column 2
-        columnSorting: true,
-      },
-    ],
-  });
-  ```
-  
-  </code-block>
-</code-group>
+You can also disable and re-enable sorting for specified columns.
+
+::: only-for javascript
+
+```js
+handsontableInstance.updateSettings({
+  columns: [
+    {
+      // disable sorting by column 1
+      columnSorting: false,
+    },
+    {
+      // disable sorting by column 2
+      columnSorting: false,
+    },
+  ],
+});
+
+handsontableInstance.updateSettings({
+  columns: [
+    {
+      // re-enable sorting by column 1
+      columnSorting: true,
+    },
+    {
+      // re-enable sorting by column 2
+      columnSorting: true,
+    },
+  ],
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+const hotTableComponentRef = useRef(null);
+
+hotTableComponentRef.current.hotInstance.updateSettings({
+  columns: [
+    {
+      // disable sorting by column 1
+      columnSorting: false,
+    },
+    {
+      // disable sorting by column 2
+      columnSorting: false,
+    },
+  ],
+});
+
+hotTableComponentRef.current.hotInstance.updateSettings({
+  columns: [
+    {
+      // re-enable sorting by column 1
+      columnSorting: true,
+    },
+    {
+      // re-enable sorting by column 2
+      columnSorting: true,
+    },
+  ],
+});
+```
 
 :::
 
