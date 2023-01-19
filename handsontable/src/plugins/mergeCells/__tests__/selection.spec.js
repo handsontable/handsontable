@@ -53,8 +53,7 @@ describe('MergeCells Selection', () => {
 
     keyDown('control/meta');
 
-    $(firstRowHeader).simulate('mousedown');
-    $(firstRowHeader).simulate('mouseup');
+    simulateClick(firstRowHeader);
 
     keyUp('control/meta');
 
@@ -124,12 +123,12 @@ describe('MergeCells Selection', () => {
     deselectCell();
 
     keyDown('control/meta');
-    $(rowHeaders[0]).simulate('mousedown');
-    $(rowHeaders[1]).simulate('mouseover');
-    $(rowHeaders[1]).simulate('mouseup');
-    $(rowHeaders[2]).simulate('mousedown');
-    $(rowHeaders[2]).simulate('mouseover');
-    $(rowHeaders[2]).simulate('mouseup');
+    mouseDown(rowHeaders[0]);
+    mouseOver(rowHeaders[1]);
+    mouseUp(rowHeaders[1]);
+    mouseDown(rowHeaders[2]);
+    mouseOver(rowHeaders[2]);
+    mouseUp(rowHeaders[2]);
     keyUp('control/meta');
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
@@ -138,12 +137,12 @@ describe('MergeCells Selection', () => {
     deselectCell();
 
     keyDown('control/meta');
-    $(columnHeaders[0]).simulate('mousedown');
-    $(columnHeaders[1]).simulate('mouseover');
-    $(columnHeaders[1]).simulate('mouseup');
-    $(columnHeaders[2]).simulate('mousedown');
-    $(columnHeaders[3]).simulate('mouseover');
-    $(columnHeaders[3]).simulate('mouseup');
+    mouseDown(columnHeaders[0]);
+    mouseOver(columnHeaders[1]);
+    mouseUp(columnHeaders[1]);
+    mouseDown(columnHeaders[2]);
+    mouseOver(columnHeaders[3]);
+    mouseUp(columnHeaders[3]);
     keyUp('control/meta');
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
@@ -174,9 +173,9 @@ describe('MergeCells Selection', () => {
 
     keyDown('control/meta');
 
-    $(firstRowHeader).simulate('mousedown');
-    $(thirdRowHeader).simulate('mouseover');
-    $(thirdRowHeader).simulate('mouseup');
+    mouseDown(firstRowHeader);
+    mouseOver(thirdRowHeader);
+    mouseUp(thirdRowHeader);
 
     keyUp('control/meta');
 
