@@ -173,6 +173,7 @@ export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDow
   return {
     mount,
     unmount,
-    isPressed: key => modifierKeysObserver.isPressed(key)
+    isPressed: key => modifierKeysObserver.isPressed(key),
+    releasePressedKeys: () => modifierKeysObserver.releaseAll(),
   };
 }
