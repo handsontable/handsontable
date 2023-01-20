@@ -1040,7 +1040,7 @@ const configurationOptions = {
 
 ## Set a initial sort order
 
-You can set a default way of sorting data that's applied every time Handsontable is launched.
+You can set a default sort order that's applied every time Handsontable is launched.
 
 In this demo, the data is initially sorted:
 - By the **Brand** column, in ascending order.
