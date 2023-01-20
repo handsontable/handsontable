@@ -19,6 +19,11 @@ tags:
   - highest to lowest
   - unordered data
   - sortEmptyCells
+  - data sorting
+  - sort data
+  - sort rows
+  - sort columns
+  - sorting
 react:
   id: h4jfevxj
   metaTitle: Rows sorting - React Data Grid | Handsontable
@@ -36,7 +41,7 @@ Sort data alphabetically or numerically, in ascending, descending or a custom or
 With sorting, you can easily rearrange rows of data, based on the values in specified columns.
 This is particularly useful for analyzing and organizing large datasets, which helps you identify patterns and trends.
 
-You can sort rows in different ways:
+You can sort data in different ways:
 - Alphabetically, numerically, or based on a [custom data type](@/guides/cell-types/cell-type.md).
 - In ascending, descending, or a [custom order](#add-a-custom-comparator).
 - By a single column, or by [multiple columns](#sort-by-multiple-columns).
@@ -46,7 +51,8 @@ Data is sorted just visually. Your source data remains in the original order.
 
 ### Demo
 
-Click on a column name to sort the rows in ascending (↑) or descending (↓) order, or to restore the original order.
+Click on any column name. Based on the values in that column,
+the rows get sorted in ascending (↑) or descending (↓) order, or go back to the original order.
 
 ::: only-for javascript
 
@@ -266,13 +272,14 @@ ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example1
 
 ## Enable sorting
 
-To enable sorting, use the [`columnSorting`](@/api/options.md#columnsorting) option.
+To enable sorting, set the [`columnSorting`](@/api/options.md#columnsorting) option to `true`
+for one or more columns of your grid.
 
 ::: only-for javascript
 
 ```js
 const configurationOptions = {
-  // enable sorting for the entire grid
+  // enable sorting for every column
   columnSorting: true,
 };
 ```
@@ -283,7 +290,7 @@ const configurationOptions = {
 
 ```jsx
 <HotTable
-  // enable sorting for the entire grid
+  // enable sorting for every column
   columnSorting={true}
 />
 ```
@@ -291,7 +298,8 @@ const configurationOptions = {
 :::
 
 To select which columns are sortable,
-set [`columnSorting`](@/api/options.md#columnsorting) for each column separately.
+set [`columnSorting`](@/api/options.md#columnsorting) for each column separately,
+using the [`columns`](@/api/options.md#columns) option.
 
 ::: only-for javascript
 
@@ -299,11 +307,11 @@ set [`columnSorting`](@/api/options.md#columnsorting) for each column separately
 const configurationOptions = {
   columns: [
     {
-      // enable sorting by column 1
+      // enable sorting for column 1
       columnSorting: true,
     },
     {
-      // disable sorting by column 2
+      // disable sorting for column 2
       columnSorting: false,
     },
   ],
@@ -317,11 +325,11 @@ const configurationOptions = {
 ```jsx
 <HotTable>
   <HotColumn
-    // enable sorting by column 1
+    // enable sorting for column 1
     columnSorting={true}
   />
   <HotColumn
-    // disable sorting by column 2
+    // disable sorting for column 2
     columnSorting={false}
   />
 </HotTable>
@@ -357,7 +365,7 @@ You can configure the sort UI, set an initial sort order, and implement your own
 
 By default:
 - Sorting is enabled for all columns.
-- The end user can sort rows by clicking on the column name.
+- The end user can sort data by clicking on the column name.
 - The sort order indicator is visible.
 - No rows are sorted initially.
 
@@ -368,7 +376,7 @@ The default sorting configuration:
 ```js
 const configurationOptions = {
   columnSorting: {
-    // let the end user sort rows by clicking on the column name
+    // let the end user sort data by clicking on the column name
     headerAction: true,
     // don't sort empty cells: move rows with empty cells to the bottom
     sortEmptyCells: false,
@@ -385,7 +393,7 @@ const configurationOptions = {
 ```jsx
 <HotTable
   columnSorting={{
-    // let the end user sort rows by clicking on the column name
+    // let the end user sort data by clicking on the column name
     headerAction: true,
     // don't sort empty cells: move rows with empty cells to the bottom
     sortEmptyCells: false,
@@ -404,14 +412,14 @@ All sorting options:
 ```js
 const configurationOptions = {
   columnSorting: {
-    // don't let the end user sort rows by clicking on the column name
+    // don't let the end user sort data by clicking on the column name
     headerAction: false,
     // sort empty cells, too
     sortEmptyCells: true,
     // disable the sort order icon that appears next to the column name
     indicator: false,
 
-    // at initialization, sort rows by column 1, in descending order
+    // at initialization, sort data by column 1, in descending order
     initialConfig: {
       column: 1,
       sortOrder: 'desc',
@@ -435,14 +443,14 @@ const configurationOptions = {
 ```jsx
 <HotTable
   columnSorting={{
-    // don't let the end user sort rows by clicking on the column name
+    // don't let the end user sort data by clicking on the column name
     headerAction: false,
     // sort empty cells, too
     sortEmptyCells: true,
     // disable the sort order icon that appears next to the column name
     indicator: false,
 
-    // at initialization, sort rows by column 1, in descending order
+    // at initialization, sort data by column 1, in descending order
     initialConfig: {
       column: 1,
       sortOrder: 'desc',
@@ -817,7 +825,7 @@ const yourHandsontableInstance = new Handsontable(container, {
   ],
   height: 'auto',
   width: 'auto',
-  // enable sorting by multiple columns, for the entire grid
+  // enable sorting by multiple columns, for every column
   multiColumnSorting: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
@@ -922,7 +930,7 @@ export const YourHandsontableComponent = () => {
           className: 'htCenter',
         },
       ]}
-      // enable sorting by multiple columns, for the entire grid
+      // enable sorting by multiple columns, for every column
       multiColumnSorting={true}
       height="auto"
       width="auto"
@@ -939,13 +947,14 @@ ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example3
 
 :::
 
-To enable sorting by multiple columns, use the [`multiColumnSorting`](@/api/options.md#multicolumnsorting) option.
+To enable sorting by multiple columns, set the [`multiColumnSorting`](@/api/options.md#multicolumnsorting) option
+to `true`.
 
 ::: only-for javascript
 
 ```js
 const configurationOptions = {
-  // enable sorting by multiple columns, for the entire grid
+  // enable sorting by multiple columns, for every column
   multiColumnSorting: true,
 };
 ```
@@ -956,7 +965,7 @@ const configurationOptions = {
 
 ```jsx
 <HotTable
-  // enable sorting by multiple columns, for the entire grid
+  // enable sorting by multiple columns, for every column
   multiColumnSorting={true}
 />
 ```
@@ -1029,7 +1038,7 @@ const configurationOptions = {
 
 :::
 
-## Set an initial sort order
+## Set a initial sort order
 
 You can set a default way of sorting data that's applied every time Handsontable is launched.
 
@@ -1132,13 +1141,13 @@ const yourHandsontableInstance = new Handsontable(container, {
   height: 'auto',
   width: 'auto',
   multiColumnSorting: {
-    // at initialization, sort rows by column 1, in ascending order
+    // at initialization, sort data by column 1, in ascending order
     initialConfig: [
       {
         column: 0,
         sortOrder: 'asc',
       },
-      // at initialization, sort rows by column 2, in descending order
+      // at initialization, sort data by column 2, in descending order
       {
         column: 1,
         sortOrder: 'desc',
@@ -1249,13 +1258,13 @@ export const YourHandsontableComponent = () => {
         },
       ]}
       multiColumnSorting={{
-        // at initialization, sort rows by column 1, in ascending order
+        // at initialization, sort data by column 1, in ascending order
         initialConfig: [
           {
             column: 0,
             sortOrder: 'asc',
           },
-          // at initialization, sort rows by column 2, in descending order
+          // at initialization, sort data by column 2, in descending order
           {
             column: 1,
             sortOrder: 'desc',
@@ -1284,7 +1293,7 @@ To set an initial sort order, use the [`initialConfig`](@/api/options.md#columns
 ```js
 const configurationOptions = {
   columnSorting: {
-    // at initialization, sort rows by column 1, in ascending order
+    // at initialization, sort data by column 1, in ascending order
     initialConfig: {
       column: 0,
       sortOrder: 'asc', // for descending order, use `'desc'`
@@ -1299,7 +1308,7 @@ const configurationOptions = {
 ```jsx
 <HotTable
   columnSorting={{
-    // at initialization, sort rows by column 1, in ascending order
+    // at initialization, sort data by column 1, in ascending order
     initialConfig: {
       column: 0,
       sortOrder: 'asc',  // for descending order, use `'desc'`
@@ -1310,11 +1319,59 @@ const configurationOptions = {
 
 :::
 
+## Exclude rows from sorting
+
+To exclude frozen rows from the range being sorted,
+pass the number of rows explicitly, or use the custom code presented in the showcase below.
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  // enable sorting for every column
+  columnSorting: true,
+  // exclude rows number 1 and 2 from sorting
+  afterColumnSort() {
+    yourHandsontableInstance.rowIndexMapper.moveIndexes(
+      [
+        yourHandsontableInstance.toVisualRow(0),
+        yourHandsontableInstance.toVisualRow(1)
+      ], 0);
+  },
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+// you need `useRef` to call Handsontable's instance methods
+import { useRef } from 'react';
+const hotTableComponentRef = useRef(null);
+<HotTable
+  ref={hotTableComponentRef}
+  // enable sorting for every column
+  columnSorting={true}
+  // exclude rows number 1 and 2 from sorting
+  afterColumnSort={{
+    hotTableComponentRef.current.hotInstance.rowIndexMapper.moveIndexes(
+      [
+        hotTableComponentRef.current.hotInstance.toVisualRow(0),
+        hotTableComponentRef.current.hotInstance.toVisualRow(1),
+      ], 0);
+  }},
+/>
+```
+
+:::
+
 ## Add custom sort icons
 
 The default sort icons are encoded in Base64. You can replace them with PNG files by changing the `background-image`
-property in the `.columnSorting.ascending::before` and `.columnSorting.descending::before`
-pseudo-elements of Handsontable's CSS.
+property in the following pseudo-elements of Handsontable's CSS:
+- `.columnSorting.ascending::before`
+- `.columnSorting.descending::before`
 
 ::: only-for javascript
 
@@ -1545,7 +1602,7 @@ export const YourHandsontableComponent = () => {
         },
       ]}
       columnSorting={{
-        // at initialization, sort rows by column 1, in descending order
+        // at initialization, sort data by column 1, in descending order
         initialConfig: {
           column: 1,
           sortOrder: 'desc',
@@ -1802,7 +1859,7 @@ export const YourHandsontableComponent = () => {
         },
       ]}
       columnSorting={{
-        // at initialization, sort rows by column 1, in descending order
+        // at initialization, sort data by column 1, in descending order
         initialConfig: {
           column: 1,
           sortOrder: 'desc',
@@ -1869,25 +1926,25 @@ You can control sorting at runtime by using Handsontable's API.
 
 ::: only-for react
 
-To learn how to access the API methods, read the [Instance methods](@/guides/getting-started/react-methods.md) guide.
+To learn how to access Handsontable's API methods, see [Instance methods](@/guides/getting-started/react-methods.md).
 
 :::
 
-### Disable sorting
+### Enable or disable sorting programmatically
 
-To disable and re-enable sorting at Handsontable's runtime, use the [`updateSettings()`](@/api/core.md#updatesettings) method.
+To enable or disable sorting programmatically, use the [`updateSettings()`](@/api/core.md#updatesettings) method.
 
 ::: only-for javascript
 
 ```js
-// disable sorting for the entire grid
-handsontableInstance.updateSettings({
-  columnSorting: false,
-});
-
-// re-enable sorting for the entire grid
+// enable sorting for every column
 handsontableInstance.updateSettings({
   columnSorting: true,
+});
+
+// disable sorting for every column
+handsontableInstance.updateSettings({
+  columnSorting: false,
 });
 ```
 
@@ -1898,20 +1955,20 @@ handsontableInstance.updateSettings({
 ```jsx
 const hotTableComponentRef = useRef(null);
 
-// disable sorting for the entire grid
-hotTableComponentRef.current.hotInstance.updateSettings({
-  columnSorting: false,
-});
-
-// re-enable sorting for the entire grid
+// enable sorting for every column
 hotTableComponentRef.current.hotInstance.updateSettings({
   columnSorting: true,
+});
+
+// disable sorting for every column
+hotTableComponentRef.current.hotInstance.updateSettings({
+  columnSorting: false,
 });
 ```
 
 :::
 
-You can also disable and re-enable sorting for specified columns.
+You can also enable or disable sorting for specified columns.
 
 ::: only-for javascript
 
@@ -1919,25 +1976,12 @@ You can also disable and re-enable sorting for specified columns.
 handsontableInstance.updateSettings({
   columns: [
     {
-      // disable sorting by column 1
-      columnSorting: false,
-    },
-    {
-      // disable sorting by column 2
-      columnSorting: false,
-    },
-  ],
-});
-
-handsontableInstance.updateSettings({
-  columns: [
-    {
-      // re-enable sorting by column 1
+      // enable sorting for column 1
       columnSorting: true,
     },
     {
-      // re-enable sorting by column 2
-      columnSorting: true,
+      // disable sorting for column 2
+      columnSorting: false,
     },
   ],
 });
@@ -1953,25 +1997,12 @@ const hotTableComponentRef = useRef(null);
 hotTableComponentRef.current.hotInstance.updateSettings({
   columns: [
     {
-      // disable sorting by column 1
-      columnSorting: false,
-    },
-    {
-      // disable sorting by column 2
-      columnSorting: false,
-    },
-  ],
-});
-
-hotTableComponentRef.current.hotInstance.updateSettings({
-  columns: [
-    {
-      // re-enable sorting by column 1
+      // enable sorting for column 1
       columnSorting: true,
     },
     {
-      // re-enable sorting by column 2
-      columnSorting: true,
+      // disable sorting for column 2
+      columnSorting: false,
     },
   ],
 });
@@ -1979,12 +2010,12 @@ hotTableComponentRef.current.hotInstance.updateSettings({
 
 :::
 
-### Sort rows programmatically
+### Sort data programmatically
 
-To sort rows programmatically, use the [`columnSorting.sort()`](@/api/columnSorting.md#sort) method.
+To sort data programmatically, use the [`columnSorting.sort()`](@/api/columnSorting.md#sort) method.
 Remember to [enable sorting](#enable-sorting) first.
 
-Mind that [`columnSorting.sort()`](@/api/columnSorting.md#sort) erases any previous sort orders.
+Mind that using [`columnSorting.sort()`](@/api/columnSorting.md#sort) erases any previous sort orders.
 
 ::: only-for javascript
 
@@ -1993,10 +2024,10 @@ Mind that [`columnSorting.sort()`](@/api/columnSorting.md#sort) erases any previ
 const columnSortingPluginInstance = handsontableInstance.getPlugin('columnSorting');
 
 columnSortingPluginInstance.sort(
-  // sort rows by the first column, in ascending order
+  // sort data by the first column, in ascending order
   {
     column: 0,
-    sortOrder: 'asc',
+    sortOrder: 'asc', // for descending order, use `'desc'`
   },
 );
 ```
@@ -2012,10 +2043,10 @@ const hotTableComponentRef = useRef(null);
 const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
 
 columnSortingPluginInstance.sort(
-  // sort rows by the first column, in ascending order
+  // sort data by the first column, in ascending order
   {
     column: 0,
-    sortOrder: 'asc',
+    sortOrder: 'asc', // for descending order, use `'desc'`
   },
 );
 ```
@@ -2031,10 +2062,10 @@ Try it out:
 <div id="example7"></div>
 
 <div class="controls">
-  <button id="sort_asc" class="button">Sort rows by column 1, in ascending order</button>
+  <button id="sort_asc" class="button">Sort by column 1, in ascending order</button>
   <br>
   <br>
-  <button id="sort_desc" class="button">Sort rows by column 1, in descending order</button>
+  <button id="sort_desc" class="button">Sort by column 1, in descending order</button>
 </div>
 ```
 
@@ -2175,7 +2206,7 @@ export const YourHandsontableComponent = () => {
   const sort_asc = () => {
   
    // get the `ColumnSorting` plugin instance
-  const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('ColumnSorting');
+  const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
   
     columnSortingPluginInstance.sort(
       {
@@ -2188,7 +2219,7 @@ export const YourHandsontableComponent = () => {
     const sort_desc = () => {
     
     // get the `ColumnSorting` plugin instance
-    const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('ColumnSorting');
+    const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
     
     columnSortingPluginInstance.sort(
       {
@@ -2284,22 +2315,16 @@ export const YourHandsontableComponent = () => {
             className: 'htCenter',
           },
         ]}
-        columnSorting={{
-          // at initialization, sort rows by column 1, in descending order
-          initialConfig: {
-            column: 1,
-            sortOrder: 'desc',
-          },
-        }}
+        columnSorting={true}
         height="auto"
         width="auto"
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button onClick={sort_asc}>Sort rows by column 1, in ascending order</button>
+        <button onClick={sort_asc}>Sort by column 1, in ascending order</button>
         <br />
         <br />
-        <button onClick={sort_desc}>Sort rows by column 1, in descending order</button>
+        <button onClick={sort_desc}>Sort by column 1, in descending order</button>
       </div>
     </>
   );
@@ -2314,11 +2339,340 @@ ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example7
 
 :::
 
-## Related resources
+### Sort data programmatically by multiple columns
 
-Read our [blog article](https://handsontable.com/blog/articles/2018/11/feature-spotlight-multi-column-sorting) about multi-column sorting.
+To sort data programmatically [by multiple columns](#sort-by-multiple-columns),
+use the [`multiColumnSorting.sort()`](@/api/multiColumnSorting.md#sort) method.
 
-### API reference
+Remember to [enable](#sort-by-multiple-columns) sorting by multiple columns first.
+
+Mind that using [`multiColumnSorting.sort()`](@/api/multiColumnSorting.md#sort) erases any previous sort orders.
+
+::: only-for javascript
+
+```js
+// get the `MultiColumnSorting` plugin instance
+const multiColumnSortingPluginInstance = handsontableInstance.getPlugin('multiColumnSorting');
+
+multiColumnSortingPluginInstance.sort(
+  [
+    // sort data by the first column, in ascending order
+    {
+      column: 0,
+      sortOrder: 'asc',
+    },
+    // within the above sort criteria,
+    // sort data by the second column, in descending order
+    {
+      column: 1,
+      sortOrder: 'desc',
+    },
+  ],
+);
+```
+
+:::
+
+::: only-for react
+
+```jsx
+const hotTableComponentRef = useRef(null);
+
+// get the `ColumnSorting` plugin instance
+const multiColumnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('multiColumnSorting');
+
+multiColumnSortingPluginInstance.sort(
+  [
+    // sort data by the first column, in ascending order
+    {
+      column: 0,
+      sortOrder: 'asc',
+    },
+    // within the above sort criteria,
+    // sort data by the second column, in descending order
+    {
+      column: 1,
+      sortOrder: 'desc',
+    },
+  ],
+);
+```
+
+:::
+
+Try it out:
+
+::: only-for javascript
+
+::: example #example8 --html 1 --js 2
+```html
+<div id="example8"></div>
+
+<div class="controls">
+  <button id="sort" class="button">Sort</button>
+</div>
+```
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#example8');
+
+const button_sort = document.querySelector('#sort');
+
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: false,
+    },
+    {
+      brand: 'Jetpulse',
+      model: 'HL Mountain Frame',
+      price: 1890.90,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: false,
+    },
+    {
+      brand: 'Jetpulse',
+      model: 'Cycling Cap',
+      price: 130.10,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
+      inStock: true,
+    },
+  ],
+  columns: [
+    {
+      title: 'Brand',
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      title: 'Model',
+      type: 'text',
+      data: 'model',
+    },
+    {
+      title: 'Price',
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US'
+      },
+      className: 'htLeft',
+    },
+    {
+      title: 'Date',
+      type: 'date',
+      data: 'sellDate',
+      className: 'htRight',
+    },
+    {
+      title: 'Time',
+      type: 'time',
+      data: 'sellTime',
+      className: 'htRight',
+    },
+    {
+      title: 'In stock',
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  multiColumnSorting: true,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+});
+
+const multiColumnSortingPluginInstance = handsontableInstance.getPlugin('multiColumnSorting');
+
+button_sort.addEventListener('click', () => {
+  multiColumnSortingPluginInstance.sort(
+    [
+      {
+        column: 0,
+        sortOrder: 'asc',
+      },
+      {
+        column: 1,
+        sortOrder: 'desc',
+      },
+    ],
+  );
+});
+```
+:::
+
+:::
+
+
+::: only-for react
+
+::: example #example8 :react
+```jsx
+import { useRef } from 'react';
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const YourHandsontableComponent = () => {
+  const hotTableComponentRef = useRef(null);
+
+  const sort = () => {
+  
+   // get the `MultiColumnSorting` plugin instance
+  const multiColumnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('multiColumnSorting');
+  
+    multiColumnSortingPluginInstance.sort(
+      [
+        {
+          column: 0,
+          sortOrder: 'asc',
+        },
+        {
+          column: 1,
+          sortOrder: 'desc',
+        },
+      ],
+    );
+  };
+
+  return (
+    <>
+      <HotTable
+        ref={hotTableComponentRef}
+        data={[
+          {
+            brand: 'Jetpulse',
+            model: 'Racing Socks',
+            price: 30,
+            sellDate: '11/10/2023',
+            sellTime: '01:23',
+            inStock: false,
+          },
+          {
+            brand: 'Jetpulse',
+            model: 'HL Mountain Frame',
+            price: 1890.90,
+            sellDate: '03/05/2023',
+            sellTime: '11:27',
+            inStock: false,
+          },
+          {
+            brand: 'Jetpulse',
+            model: 'Cycling Cap',
+            price: 130.10,
+            sellDate: '27/03/2023',
+            sellTime: '03:17',
+            inStock: true,
+          },
+          {
+            brand: 'Chatterpoint',
+            model: 'Road Tire Tube',
+            price: 59,
+            sellDate: '28/08/2023',
+            sellTime: '08:01',
+            inStock: true,
+          },
+          {
+            brand: 'Chatterpoint',
+            model: 'HL Road Tire',
+            price: 279.99,
+            sellDate: '02/10/2023',
+            sellTime: '13:23',
+            inStock: true,
+          },
+        ]}
+        columns={[
+          {
+            title: 'Brand',
+            type: 'text',
+            data: 'brand',
+          },
+          {
+            title: 'Model',
+            type: 'text',
+            data: 'model',
+          },
+          {
+            title: 'Price',
+            type: 'numeric',
+            data: 'price',
+            numericFormat: {
+              pattern: '$ 0,0.00',
+              culture: 'en-US'
+            },
+            className: 'htLeft',
+          },
+          {
+            title: 'Date',
+            type: 'date',
+            data: 'sellDate',
+            className: 'htRight',
+          },
+          {
+            title: 'Time',
+            type: 'time',
+            data: 'sellTime',
+            className: 'htRight',
+          },
+          {
+            title: 'In stock',
+            type: 'checkbox',
+            data: 'inStock',
+            className: 'htCenter',
+          },
+        ]}
+        multiColumnSorting={true}
+        height="auto"
+        width="auto"
+        licenseKey="non-commercial-and-evaluation"
+      />
+      <div className="controls">
+        <button onClick={sort}>Sort</button>
+      </div>
+    </>
+  );
+}
+
+/* start:skip-in-preview */
+ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example8'));
+/* end:skip-in-preview */
+```
+
+:::
+
+:::
+
+## API reference
 
 | Plugins                                                                                          | Options                                                                                                          | Handsontable's hooks                                                                                         |
 | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
