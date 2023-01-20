@@ -190,6 +190,13 @@ export class Formulas extends BasePlugin {
           const syncMethodName = `set${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}Order`;
 
           this.engine[syncMethodName](this.sheetId, relativeTransformation);
+        } else if (source === 'move' && this.sheetId === null) {
+          const relativeTransformation = this[`${indexesType}IndexesSequence`].map(index => newSequence.indexOf(index));
+          const syncMethodName = `set${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}Order`;
+
+          this.callOnStart = () => {
+            this.engine[syncMethodName](this.sheetId, relativeTransformation);
+          };
         }
 
         this[`${indexesType}IndexesSequence`] = newSequence;
@@ -198,7 +205,7 @@ export class Formulas extends BasePlugin {
 
     const getIndexMoveSyncMethod = (indexesType) => {
       return (movedIndexes, finalIndex, dropIndex, movePossible, orderChanged) => {
-        if (movePossible === false || orderChanged === false) {
+        if (movePossible === false || orderChanged === false || this.sheetId === null) {
           return;
         }
 
@@ -598,8 +605,8 @@ export class Formulas extends BasePlugin {
 
     if (this.isFormulaCellType(visualRow, visualColumn)) {
       const address = {
-        row: this.hot.toPhysicalRow(visualRow),
-        col: this.hot.toPhysicalColumn(visualColumn),
+        row: visualRow,
+        col: visualColumn,
         sheet: this.sheetId,
       };
 
@@ -683,7 +690,13 @@ export class Formulas extends BasePlugin {
       if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
 
-        const dependentCells = this.engine.setSheetContent(this.sheetId, this.hot.getSourceDataArray());
+        const trimmedRows = this.hot.rowIndexMapper.getNotTrimmedIndexes();
+        const dependentCells = this.engine.setSheetContent(this.sheetId,
+          this.hot.getSourceDataArray().filter((_, index) => trimmedRows.includes(index)));
+
+        if (this.callOnStart) {
+          this.callOnStart();
+        }
 
         this.renderDependentSheets(dependentCells);
 
@@ -700,7 +713,7 @@ export class Formulas extends BasePlugin {
    *
    * @private
    * @param {number} row Physical row height.
-   * @param {number} column Physical column index.
+   * @param {number} column Visual column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
    *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
@@ -768,6 +781,10 @@ export class Formulas extends BasePlugin {
 
     const visualRow = this.hot.toVisualRow(row);
     const visualColumn = this.hot.propToCol(columnOrProp);
+
+    if (visualRow === null || visualColumn === null) {
+      return;
+    }
 
     // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
     const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
@@ -944,8 +961,10 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeRemoveRow(row, amount, physicalRows) {
-    const possible = physicalRows.every((physicalRow) => {
-      return this.engine.isItPossibleToRemoveRows(this.sheetId, [physicalRow, 1]);
+    this.visualRows = physicalRows.map(physicalRow => this.hot.toVisualRow(physicalRow));
+
+    const possible = this.visualRows.every((visualRow) => {
+      return this.engine.isItPossibleToRemoveRows(this.sheetId, [visualRow, 1]);
     });
 
     return possible === false ? false : void 0;
@@ -961,8 +980,10 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeRemoveCol(col, amount, physicalColumns) {
-    const possible = physicalColumns.every((physicalColumn) => {
-      return this.engine.isItPossibleToRemoveColumns(this.sheetId, [physicalColumn, 1]);
+    this.visualColumns = physicalColumns.map(physicalColumn => this.hot.toVisualColumn(physicalColumn));
+
+    const possible = this.visualColumns.every((visualColumn) => {
+      return this.engine.isItPossibleToRemoveColumns(this.sheetId, [visualColumn, 1]);
     });
 
     return possible === false ? false : void 0;
@@ -982,7 +1003,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const changes = this.engine.addRows(this.sheetId, [this.toPhysicalRowPosition(row), amount]);
+    const changes = this.engine.addRows(this.sheetId, [row, amount]);
 
     this.renderDependentSheets(changes);
   }
@@ -1001,7 +1022,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const changes = this.engine.addColumns(this.sheetId, [this.toPhysicalColumnPosition(col), amount]);
+    const changes = this.engine.addColumns(this.sheetId, [col, amount]);
 
     this.renderDependentSheets(changes);
   }
@@ -1021,11 +1042,10 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const descendingPhysicalRows = physicalRows.sort().reverse();
-
+    const descendingVisualRows = this.visualRows.sort().reverse();
     const changes = this.engine.batch(() => {
-      descendingPhysicalRows.forEach((physicalRow) => {
-        this.engine.removeRows(this.sheetId, [physicalRow, 1]);
+      descendingVisualRows.forEach((visualRow) => {
+        this.engine.removeRows(this.sheetId, [visualRow, 1]);
       });
     });
 
@@ -1047,11 +1067,11 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const descendingPhysicalColumns = physicalColumns.sort().reverse();
+    const descendingVisualColumns = this.visualColumns.sort().reverse();
 
     const changes = this.engine.batch(() => {
-      descendingPhysicalColumns.forEach((physicalColumn) => {
-        this.engine.removeColumns(this.sheetId, [physicalColumn, 1]);
+      descendingVisualColumns.forEach((visualColumn) => {
+        this.engine.removeColumns(this.sheetId, [visualColumn, 1]);
       });
     });
 
