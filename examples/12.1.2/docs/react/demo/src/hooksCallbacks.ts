@@ -1,16 +1,17 @@
-import Handsontable from "handsontable";
+import Handsontable from 'handsontable';
 import {
   SELECTED_CLASS,
   ODD_ROW_CLASS
-} from "./constants";
-import { RefObject } from "react";
-import { CellValue, RangeType } from "handsontable/common";
+} from './constants';
+import { RefObject } from 'react';
 
 const headerAlignments = new Map([
-  ["9", "htCenter"],
-  ["10", "htRight"],
-  ["12", "htCenter"]
+  ['9', 'htCenter'],
+  ['10', 'htRight'],
+  ['12', 'htCenter']
 ]);
+
+const marginTopValue = 9;
 
 type AddClassesToRows = (
   TD: HTMLTableCellElement,
@@ -65,11 +66,11 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawC
   row,
   TH
 ) {
-  const input = document.createElement("input");
+  const input = document.createElement('input');
 
-  input.type = "checkbox";
+  input.type = 'checkbox';
 
-  if (row >= 0 && this.getDataAtRowProp(row, "0")) {
+  if (row >= 0 && this.getDataAtRowProp(row, '0')) {
     input.checked = true;
   }
 
@@ -83,7 +84,7 @@ export function alignHeaders(this: Handsontable, column: number, TH: HTMLTableCe
     return;
   }
 
-  const alignmentClass = this.isRtl() ? "htRight" : "htLeft";
+  const alignmentClass = this.isRtl() ? 'htRight' : 'htLeft';
 
   if (TH.firstChild) {
     if (headerAlignments.has(column.toString())) {
@@ -107,7 +108,7 @@ export const changeCheckboxCell: ChangeCheckboxCell = function changeCheckboxCel
 ) {
   const target = event.target as HTMLInputElement;
 
-  if (coords.col === -1 && event.target && target.nodeName === "INPUT") {
+  if (coords.col === -1 && event.target && target.nodeName === 'INPUT') {
     event.preventDefault(); // Handsontable will render checked/unchecked checkbox by it own.
 
     this.setDataAtRowProp(coords.row, "0", !target.checked);
@@ -124,13 +125,14 @@ type PositionVertically = (editorInstance: EditorInstance) => void;
 
 export const positionVertically: PositionVertically = function positionVertically(editorInstance) {
   const editedCellRect = editorInstance.getEditedCellRect();
+
   if (editedCellRect) {
     if (editedCellRect.maxHeight < editedCellRect.height) {
-      editorInstance.editorRef.current!.style.top = 9 + 'px';
+      editorInstance.editorRef.current!.style.top = `${marginTopValue}px`;
       return;
     }
     if (editedCellRect.top > 0) {
-      editorInstance.editorRef.current!.style.top = editedCellRect.top + window.pageYOffset + 9 + 'px';
+      editorInstance.editorRef.current!.style.top = `${editedCellRect.top + window.pageYOffset + marginTopValue}px`;
       return;
     }
   }
@@ -141,23 +143,14 @@ type PositionHorizontally = (editorInstance: EditorInstance) => void;
 export const positionHorizontally: PositionHorizontally = function positionHorizontally(editorInstance) {
   const editedCellRect = editorInstance.getEditedCellRect();
   if (editedCellRect) {
-      if (editedCellRect.start < 1) {
-        editorInstance.editorRef.current!.style.display = 'none';
-        return;
-      }
-      if (editedCellRect.start > 1 && editorInstance.editorRef.current!.style.display === 'none') {
-        editorInstance.editorRef.current!.style.display = 'block';
-        return;
-      }
-      editorInstance.editorRef.current!.style.left = editedCellRect.start + window.pageYOffset + 9 + 'px';
+    if (editedCellRect.start < 1) {
+      editorInstance.editorRef.current!.style.display = 'none';
+      return;
     }
-}
-
-type OmitNonNumericPaste = (data: CellValue[], coords: RangeType[]) => void | boolean;
-
-export const omitNonNumericPaste: OmitNonNumericPaste = function omitNonNumericPaste(data, coords) {
-  const { startCol } = coords[0];
-  if ((startCol === 5 || startCol === 6) && isNaN(data[0] as any)) {
-    return false
+    if (editedCellRect.start > 1 && editorInstance.editorRef.current!.style.display === 'none') {
+      editorInstance.editorRef.current!.style.display = 'block';
+      return;
+    }
+    editorInstance.editorRef.current!.style.left = `${editedCellRect.start + window.pageYOffset + marginTopValue}px`;
   }
 }

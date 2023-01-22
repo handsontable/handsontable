@@ -1,7 +1,11 @@
-import React, { ChangeEvent, CSSProperties, MouseEvent } from "react";
-import { BaseEditorComponent, HotEditorProps } from "@handsontable/react";
-import { EditorInstance, positionHorizontally, positionVertically } from "../hooksCallbacks";
-import { CellProperties } from "handsontable/types/settings";
+import React, { ChangeEvent, MouseEvent } from 'react';
+import { BaseEditorComponent, HotEditorProps } from '@handsontable/react';
+import { EditorInstance, positionHorizontally, positionVertically } from '../hooksCallbacks';
+import { CellProperties } from '../../../../../../../handsontable/types/settings';
+import { getRangeValue, defaultEditorStyles } from './utils';
+
+const minAllowedValue = 0;
+const maxAllowedValue = 100;
 
 interface IProgressBarRendererProps extends HotEditorProps {
   isEditor?: boolean;
@@ -11,19 +15,7 @@ interface IProgressBarRendererProps extends HotEditorProps {
 export class ProgressBarRenderer extends BaseEditorComponent {
   editorRef = React.createRef<HTMLDivElement>();
   props!: IProgressBarRendererProps;
-  state: {value: string};
-  
-  editorContainerStyle: CSSProperties = {
-    display: 'none',
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    zIndex: 1,
-    width: 106,
-    marginLeft: 1,
-    marginTop: 1,
-    background: 'white'
-  };
+  state: { value: string };
   
   constructor(props: IProgressBarRendererProps) {
     super(props);
@@ -37,7 +29,7 @@ export class ProgressBarRenderer extends BaseEditorComponent {
     e.stopPropagation();
   }
 
-  setValue(value: string, callback: () => void) {
+  setValue(value: number, callback: () => void) {
     this.setState(() => {
       return { value: value };
     }, callback);
@@ -63,38 +55,29 @@ export class ProgressBarRenderer extends BaseEditorComponent {
 
   prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement, originalValue: number, cellProperties: CellProperties) {
     super.prepare(row, col, prop, td, originalValue, cellProperties);
-
-    const tdPosition = td.getBoundingClientRect();
     
-    this.editorRef.current!.style.left = tdPosition.left + window.pageXOffset + 'px';
-    this.editorRef.current!.style.top = tdPosition.top + window.pageYOffset + 'px';
+    const tdRect = td.getBoundingClientRect();
+
+    this.editorRef.current!.style.width = `${tdRect.width}px`;
+    this.editorRef.current!.style.left = `${tdRect.left + window.pageXOffset}px`;
+    this.editorRef.current!.style.top = `${tdRect.top + window.pageYOffset}px`;
   }
 
   handleInputChange(event: ChangeEvent<HTMLInputElement>) {
-    this.setValue(this.getRangeValue(event.target.value), () => {});
-  }
-
-  getRangeValue(value: string): string {
-    const numberValue = parseInt(value);
-    if (numberValue < 0 || !numberValue ) {
-      return '0';
-    }
-    if (numberValue > 100) {
-      return '100';
-    }
-    return value;
+    this.setValue(getRangeValue(event.target.value, minAllowedValue, maxAllowedValue), () => {});
   }
 
   render() {
     if (this.props.isEditor) {
       return (
-        <div style={this.editorContainerStyle} ref={this.editorRef} onMouseDown={this.stopMousedownPropagation}>
+        <div style={defaultEditorStyles} ref={this.editorRef} onMouseDown={this.stopMousedownPropagation}>
           <form onSubmit={(event) => {
-            event.preventDefault();
-            this.finishEditing();
-          }}>
+              event.preventDefault();
+              this.finishEditing();
+            }}
+          >
             <input
-              style={{width: 103, border: 'none', outline: 'none'}}
+              style={{ width: '95%', border: 'none', outline: 'none' }}
               type="number"
               value={this.state.value}
               onChange={this.handleInputChange.bind(this)}
@@ -106,7 +89,7 @@ export class ProgressBarRenderer extends BaseEditorComponent {
 
     return (
       <div style={{marginTop: 6}}>
-        <div className="progressBar" style={{ width: `${this.getRangeValue(this.props.value)}px` }} />
+        <div className="progressBar" style={{ width: `${getRangeValue(this.props.value, minAllowedValue, maxAllowedValue)}px` }} />
       </div>
     );
   }

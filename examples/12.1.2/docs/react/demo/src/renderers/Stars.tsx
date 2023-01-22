@@ -1,7 +1,11 @@
-import React, { ChangeEvent, CSSProperties, MouseEvent } from "react";
-import { BaseEditorComponent, HotEditorProps } from "@handsontable/react";
-import { EditorInstance, positionHorizontally, positionVertically } from "../hooksCallbacks";
-import { CellProperties } from "handsontable/types/settings";
+import React, { ChangeEvent, MouseEvent } from 'react';
+import { BaseEditorComponent, HotEditorProps } from '@handsontable/react';
+import { EditorInstance, positionHorizontally, positionVertically } from '../hooksCallbacks';
+import { CellProperties } from '../../../../../../../handsontable/types/settings';
+import { getRangeValue, defaultEditorStyles } from './utils';
+
+const minAllowedValue = 0;
+const maxAllowedValue = 5;
 
 interface IStarsRendererProps extends HotEditorProps {
   isEditor?: boolean;
@@ -12,18 +16,6 @@ export class StarsRenderer extends BaseEditorComponent {
   editorRef = React.createRef<HTMLDivElement>();
   props!: IStarsRendererProps;
   state: { value: string };
-
-  editorContainerStyle: CSSProperties = {
-    display: 'none',
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    zIndex: 1,
-    width: 90,
-    marginLeft: 1,
-    marginTop: 1,
-    background: 'white'
-  };
 
   constructor(props: IStarsRendererProps) {
     super(props);
@@ -37,7 +29,7 @@ export class StarsRenderer extends BaseEditorComponent {
     e.stopPropagation();
   }
 
-  setValue(value: string, callback: () => void) {
+  setValue(value: number, callback: () => void) {
     this.setState(() => {
       return { value: value };
     }, callback);
@@ -57,43 +49,35 @@ export class StarsRenderer extends BaseEditorComponent {
 
   close() {
     this.editorRef.current!.style.display = 'none';
+    this.hotInstance.removeHook('afterScrollVertically')
+    this.hotInstance.removeHook('afterScrollHorizontally')
   }
 
   prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement, originalValue: number, cellProperties: CellProperties) {
     super.prepare(row, col, prop, td, originalValue, cellProperties);
+    
+    const tdRect = td.getBoundingClientRect();
 
-    const tdPosition = td.getBoundingClientRect();
-
-    this.editorRef.current!.style.left = tdPosition.left + window.pageXOffset + 'px';
-    this.editorRef.current!.style.top = tdPosition.top + window.pageYOffset + 'px';
+    this.editorRef.current!.style.width = `${tdRect.width}px`;
+    this.editorRef.current!.style.left = `${tdRect.left + window.pageXOffset}px`;
+    this.editorRef.current!.style.top = `${tdRect.top + window.pageYOffset}px`;
   }
 
   handleInputChange(event: ChangeEvent<HTMLInputElement>): void {
-    this.setValue(this.getRangeValue(event.target.value), () => {});
-  }
-
-  getRangeValue(value: string): string {
-    if (parseInt(value) < 0) {
-      return '0';
-    }
-    if (parseInt(value) > 5) {
-      return '5';
-    }
-    return value;
+    this.setValue(getRangeValue(event.target.value, minAllowedValue, maxAllowedValue), () => {});
   }
 
   render() {
     if (this.props.isEditor) {
       return (
-        <div style={this.editorContainerStyle} ref={this.editorRef} onMouseDown={this.stopMousedownPropagation}>
-          <form
-            onSubmit={(event) => {
+        <div style={defaultEditorStyles} ref={this.editorRef} onMouseDown={this.stopMousedownPropagation}>
+          <form onSubmit={(event) => {
               event.preventDefault();
               this.finishEditing();
             }}
           >
             <input
-              style={{ width: 90, border: 'none', outline: 'none' }}
+              style={{ width: '95%', border: 'none', outline: 'none' }}
               type="number"
               value={this.state.value}
               onChange={this.handleInputChange.bind(this)}
@@ -104,7 +88,7 @@ export class StarsRenderer extends BaseEditorComponent {
     }
 
     return (
-      <div className="star htCenter">{"★".repeat(parseInt(this.getRangeValue(this.props.value)))}</div>
+      <div className="star htCenter">{"★".repeat(getRangeValue(this.props.value, minAllowedValue, maxAllowedValue))}</div>
     );
   }
 }

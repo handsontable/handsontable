@@ -4,7 +4,7 @@ import "pikaday/css/pikaday.css";
 import "./styles.css";
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from "@handsontable/react";
-import { data } from "./constants";
+import { data as defaultData } from "./constants";
 import { ProgressBarRenderer } from "./renderers/ProgressBar";
 import { StarsRenderer } from "./renderers/Stars";
 
@@ -12,11 +12,16 @@ import {
   drawCheckboxInRowHeaders,
   addClassesToRows,
   changeCheckboxCell,
-  alignHeaders,
-  omitNonNumericPaste
+  alignHeaders
 } from "./hooksCallbacks";
 
 import "handsontable/dist/handsontable.min.css";
+
+const data: Handsontable.RowObject[] = [];
+
+for (let x = 1; x <= 3; x++) {
+  data.push(...JSON.parse(JSON.stringify(defaultData)));
+}
 
 const App = () => {
   return (
@@ -47,7 +52,6 @@ const App = () => {
       beforeRenderer={addClassesToRows}
       afterGetRowHeader={drawCheckboxInRowHeaders}
       afterOnCellMouseDown={changeCheckboxCell}
-      beforePaste={omitNonNumericPaste}
       manualRowMove={true}
       licenseKey="non-commercial-and-evaluation"
     >
@@ -62,7 +66,7 @@ const App = () => {
       </HotColumn>
       <HotColumn data="rating" className="htCenter" type="numeric">
         {/* @ts-ignore Element inherits some props. It's hard to type it. */}
-        <StarsRenderer hot-renderer hot-editor />
+        <StarsRenderer hot-renderer hot-editor/>
       </HotColumn>
       <HotColumn data="orderId" />
       <HotColumn data="country" />
@@ -74,4 +78,3 @@ const rootElement = document.getElementById("root");
 ReactDOM.render(<App />, rootElement);
 
 console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`);
-
