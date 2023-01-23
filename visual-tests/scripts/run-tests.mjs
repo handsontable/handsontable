@@ -13,7 +13,7 @@ import { isReferenceBranch, getFrameworkList, sleep } from './utils/utils.mjs';
 import { WRAPPERS, REFERENCE_FRAMEWORK } from './utils/config.mjs';
 
 const playwrightVersion = mainPackageJSON.devDependencies.playwright;
-const pathToMount = `${process.cwd().split('\\').join('/')}/../`;
+const pathToMount = path.resolve(process.cwd(), '..');
 const dirs = {
   examples: '../examples/next/visual-tests',
   codeToRun: 'demo',

@@ -401,7 +401,15 @@ jobs:
   visual-tests:
     name: "[TEST] Visual tests"
     runs-on: ubuntu-latest
-    needs: [ check-scope, test-angular, test-react, test-vue, test-vue3, test-handsontable-e2e, test-handsontable-e2e-min ]
+    needs:
+      - check-scope
+      - test-handsontable-walkontable
+      # - test-handsontable-e2e
+      # - test-handsontable-e2e-min
+      - test-angular
+      - test-react
+      - test-vue
+      - test-vue3
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
       - name: Use Node.js ${{ env.NODE_VERSION }}
@@ -419,12 +427,12 @@ jobs:
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           path: ./
-      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
-      - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
-      - run: tar -zxf angular.tar.gz ./wrappers/angular && rm angular.tar.gz
-      - run: tar -zxf react.tar.gz ./wrappers/react && rm react.tar.gz
-      - run: tar -zxf vue.tar.gz ./wrappers/vue && rm vue.tar.gz
-      - run: tar -zxf vue3.tar.gz ./wrappers/vue3 && rm vue3.tar.gz
+      - run: tar -zxf handsontable-build-es-cjs/tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+      - run: tar -zxf handsontable-build-umd/dist.tar.gz ./handsontable/dist && rm dist.tar.gz
+      - run: tar -zxf angular-build/angular.tar.gz ./wrappers/angular && rm angular.tar.gz
+      - run: tar -zxf react-build/react.tar.gz ./wrappers/react && rm react.tar.gz
+      - run: tar -zxf vue-build/vue.tar.gz ./wrappers/vue && rm vue.tar.gz
+      - run: tar -zxf vue3-build/vue3.tar.gz ./wrappers/vue3 && rm vue3.tar.gz
 
       - name: Build test examples
         run: |
