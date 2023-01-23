@@ -1,4 +1,5 @@
 ---
+id: xndxqkoc
 title: Column summary
 metaTitle: Column summary - JavaScript Data Grid | Handsontable
 description: Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
@@ -10,6 +11,7 @@ tags:
   - formulas
   - functions
 react:
+  id: r3x4l0gp
   metaTitle: Column summary - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -27,7 +29,7 @@ The [`ColumnSummary`](@/api/columnSummary.md) plugin lets you quickly calculate 
 To customize your column summaries, you can:
 - Decide how a summary is calculated:
     - Either select one of the [built-in summary functions](#built-in-summary-functions)
-    - Or implement a [custom summary function](#implementing-a-custom-summary-function)
+    - Or implement a [custom summary function](#implement-a-custom-summary-function)
 - [Select columns and ranges of rows](#step-2-select-cells-that-you-want-to-summarize) that you want to summarize
 - [Display your summary result](#step-4-provide-the-destination-cell-s-coordinates) in a specific cell
 
@@ -171,7 +173,7 @@ To decide how a column summary is calculated, you can use one of the following s
 | `max`     | Returns the highest value in a column.                                                                 |
 | `count`   | Returns the number of all non-empty cells in a column.                                                 |
 | `average` | Returns the sum of all values in a column,<br>divided by the number of non-empty cells in that column. |
-| `custom`  | Lets you implement a [custom summary function](#implementing-a-custom-summary-function).               |
+| `custom`  | Lets you implement a [custom summary function](#implement-a-custom-summary-function).               |
 
 ### Column summary options
 
@@ -336,7 +338,7 @@ Now, decide how you want to calculate your column summary.
 
 You can:
 - Either select one of the [built-in summary functions](#built-in-summary-functions)
-- Or implement a [custom summary function](#implementing-a-custom-summary-function)
+- Or implement a [custom summary function](#implement-a-custom-summary-function)
 
 ::: only-for javascript
 ```js
@@ -540,7 +542,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 
 ## Set up column summaries, using a function
 
-Instead of [setting up the column summary options manually](#setting-up-a-column-summary), you can provide the whole column summary configuration as a function that returns a required array of objects.
+Instead of [setting up the column summary options manually](#set-up-a-column-summary), you can provide the whole column summary configuration as a function that returns a required array of objects.
 
 The example below sets up five different column summaries. To do this, it:
 - Defines a function named `generateData` which generates an array of arrays with dummy numeric data, and which lets you add an empty row at the bottom of the grid (to make room for displaying column summaries)
@@ -843,7 +845,7 @@ Apart from using the [built-in summary functions](#built-in-summary-functions), 
 
 To implement a custom summary function:
 
-1. [Set up your column summary](#setting-up-a-column-summary).
+1. [Set up your column summary](#set-up-a-column-summary).
 2. In your [column summary object](#step-1-enable-the-columnsummary-plugin), set the [`type`](@/api/options.md#type) option to `'custom'`:
 
 ::: only-for javascript

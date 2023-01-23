@@ -12,102 +12,98 @@ import hotConfig from '../hot.config.js';
 //  process after all the tests are done.
 
 /**
- * Verify if the builds of all of the packages defined as workspaces have correct version number in them.
- * Currently it's checking the following builds:
+ * Verify if the builds of all the packages defined as workspaces have correct version number in them.
+ * Currently, it's checking the following builds:
  * - the one declared as default,
  * - UMD (if it's declared under the 'jsdelivr' key in the package.json file or a `umd` key in this function's
  * settings).
  */
-async function verifyBundles() {
-  const packagesInfo = {
-    handsontable: {
-      className: 'Handsontable',
-      umd: 'tmp/dist/handsontable.full.min.js',
-      entryFile: 'tmp/index.mjs',
-      defaultExport: true
-    },
-    '@handsontable/angular': {
-      className: 'HotTableModule'
-    },
-    '@handsontable/react': {
-      className: 'HotTable'
-    },
-    '@handsontable/vue': {
-      className: 'HotTable'
-    },
-    '@handsontable/vue3': {
-      className: 'HotTable'
-    }
-  };
-  const { default: mainPackageJson } = await import('../package.json');
-  const workspacePackages = mainPackageJson.workspaces;
-  const mismatchedVersions = [];
 
-  JSDOMGlobal();
+const packagesInfo = {
+  handsontable: {
+    className: 'Handsontable',
+    umd: 'tmp/dist/handsontable.full.min.js',
+    entryFile: 'tmp/index.mjs',
+    defaultExport: true
+  },
+  '@handsontable/angular': {
+    className: 'HotTableModule'
+  },
+  '@handsontable/react': {
+    className: 'HotTable'
+  },
+  '@handsontable/vue': {
+    className: 'HotTable'
+  },
+  '@handsontable/vue3': {
+    className: 'HotTable'
+  }
+};
+const {
+  default: mainPackageJson
+} = await import('../package.json', { assert: { type: 'json' } });
+const workspacePackages = mainPackageJson.workspaces;
+const mismatchedVersions = [];
 
-  console.log(`\nHOT config version:\n${chalk.green(hotConfig.HOT_VERSION)}\n`);
+JSDOMGlobal();
 
-  for (const packagesLocation of workspacePackages) {
-    const subdirs = glob.sync(packagesLocation);
+console.log(`\nHOT config version:\n${chalk.green(hotConfig.HOT_VERSION)}\n`);
 
-    for (const subdir of subdirs) {
-      const packageJsonLocation = `../${subdir}/package.json`;
-      const { default: packageJson } = await import(packageJsonLocation);
-      const packageName = packageJson.name;
+for (const packagesLocation of workspacePackages) {
+  const subdirs = glob.sync(packagesLocation);
 
-      if (packagesInfo[packageName]) {
-        const defaultPackage = await import(
+  for (const subdir of subdirs) {
+    const packageJsonLocation = `../${subdir}/package.json`;
+    const { default: packageJson } = await import(packageJsonLocation, { assert: { type: 'json' } });
+    const packageName = packageJson.name;
+
+    if (packagesInfo[packageName]) {
+      const defaultPackage = await import(
+        packagesInfo[packageName].entryFile ? `../${subdir}/${packagesInfo[packageName].entryFile}` : packageName
+      );
+      let defaultPackageVersion = null;
+      let umdPackageVersion = null;
+      let umdPackage = null;
+
+      if (packagesInfo[packageName].umd || packageJson.jsdelivr) {
+        umdPackage = await import(
           packagesInfo[packageName].entryFile ?
-            `../${subdir}/${packagesInfo[packageName].entryFile}` :
-            packageName
-        );
-        let defaultPackageVersion = null;
-        let umdPackageVersion = null;
-        let umdPackage = null;
+            `../${subdir}/${packagesInfo[packageName].umd}` :
+            `${packageName}/${packageJson.jsdelivr.replace('./', '')}`);
+        umdPackage = umdPackage.default;
+      }
 
-        if (packagesInfo[packageName].umd || packageJson.jsdelivr) {
-          umdPackage = await import(
-            packagesInfo[packageName].entryFile ?
-              `../${subdir}/${packagesInfo[packageName].umd}` :
-              `${packageName}/${packageJson.jsdelivr}`
-          );
-          umdPackage = umdPackage.default;
+      if (packagesInfo[packageName]?.defaultExport) {
+        defaultPackageVersion = defaultPackage.default.version;
+
+      } else {
+        defaultPackageVersion = defaultPackage[packagesInfo[packageName]?.className]?.version;
+
+        if (umdPackage) {
+          umdPackageVersion = umdPackage[packagesInfo[packageName]?.className]?.version;
         }
+      }
 
-        if (packagesInfo[packageName]?.defaultExport) {
-          defaultPackageVersion = defaultPackage.default.version;
+      if (hotConfig.HOT_VERSION !== defaultPackageVersion) {
+        mismatchedVersions.push(`${packageName} (default) - ${defaultPackageVersion}`);
+      }
 
-        } else {
-          defaultPackageVersion = defaultPackage[packagesInfo[packageName]?.className]?.version;
-
-          if (umdPackage) {
-            umdPackageVersion = umdPackage[packagesInfo[packageName]?.className]?.version;
-          }
-        }
-
-        if (hotConfig.HOT_VERSION !== defaultPackageVersion) {
-          mismatchedVersions.push(`${packageName} (default) - ${defaultPackageVersion}`);
-        }
-
-        if (umdPackageVersion && (hotConfig.HOT_VERSION !== umdPackageVersion)) {
-          mismatchedVersions.push(`${packageName} (UMD) - ${umdPackageVersion}`);
-        }
+      if (umdPackageVersion && (hotConfig.HOT_VERSION !== umdPackageVersion)) {
+        mismatchedVersions.push(`${packageName} (UMD) - ${umdPackageVersion}`);
       }
     }
   }
-
-  if (mismatchedVersions.length > 0) {
-    mismatchedVersions.forEach((mismatch) => {
-      displayErrorMessage(`\nMismatched versions in ${mismatch}.`);
-    });
-
-    process.exit(1);
-
-  } else {
-    displayConfirmationMessage('\nAll packages have the expected version number.\n');
-
-    process.exit(0);
-  }
 }
 
-verifyBundles();
+if (mismatchedVersions.length > 0) {
+  mismatchedVersions.forEach((mismatch) => {
+    displayErrorMessage(`\nMismatched versions in ${mismatch}.`);
+  });
+
+  process.exit(1);
+
+} else {
+  displayConfirmationMessage('\nAll packages have the expected version number.\n');
+
+  process.exit(0);
+}

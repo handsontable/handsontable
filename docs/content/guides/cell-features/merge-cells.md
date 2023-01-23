@@ -1,23 +1,29 @@
 ---
+id: k5920uow
 title: Merge cells
 metaTitle: Merge cells - JavaScript Data Grid | Handsontable
-description: Merge adjacent cells, using the "Ctrl + M" shortcut or the right-click context menu. Control merged cells, using Handsontable's API.
+description: Merge adjacent cells, using the "Ctrl + M" shortcut or the context menu. Control merged cells, using Handsontable's API.
 permalink: /merge-cells
 canonicalUrl: /merge-cells
 react:
+  id: ulndkavi
   metaTitle: Merge cells - React Data Grid | Handsontable
 searchCategory: Guides
 ---
 
 # Merge cells
 
-Merge adjacent cells, using the <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> shortcut or the right-click context menu. Control merged cells, using Handsontable's API.
+Merge adjacent cells, using the <kbd>**Ctrl**</kbd> + <kbd>**M**</kbd> shortcut or the context menu. Control merged cells, using Handsontable's API.
 
 [[toc]]
 
 ## Overview
 
-The merging cells feature enables you to combine the contents of two or more cells to create a new larger cell that spans several columns. Particularly useful when you have data that's length is greater than the width of the column. For example, a license id that's length is so long that it needs more than one column width to view it in its entirety.
+By merging, you can combine two or more adjacent cells into a single cell that spans several rows or columns.
+
+Handsontable merges cells in the same way as Microsoft Excel: keeps only the upper-left value of the selected range and clears other values.
+
+Cell merging happens on Handsontable's visual layer and doesn't affect your source data structure.
 
 ## How to merge cells
 

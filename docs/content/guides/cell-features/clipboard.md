@@ -1,7 +1,8 @@
 ---
+id: 2vbt7ev0
 title: Clipboard
 metaTitle: Clipboard - JavaScript Data Grid | Handsontable
-description: Copy data from selected cells to the clipboard, using the "Ctrl/Cmd + C" shortcut or the right-click context menu. Control the clipboard with Handsontable's API.
+description: Copy data from selected cells to the clipboard, using the "Ctrl/Cmd + C" shortcut or the context menu. Control the clipboard with Handsontable's API.
 permalink: /basic-clipboard
 canonicalUrl: /basic-clipboard
 tags:
@@ -9,13 +10,14 @@ tags:
   - cut
   - paste
 react:
+  id: mlctr1ri
   metaTitle: Clipboard - React Data Grid | Handsontable
 searchCategory: Guides
 ---
 
 # Clipboard
 
-Copy data from selected cells to the clipboard, using the <kbd>**Ctrl**</kbd> / <kbd>**Cmd**</kbd>  + <kbd>**C**</kbd> shortcut or the right-click context menu. Control the clipboard with Handsontable's API.
+Copy data from selected cells to the clipboard, using the <kbd>**Ctrl**</kbd> / <kbd>**Cmd**</kbd>  + <kbd>**C**</kbd> shortcut or the context menu. Control the clipboard with Handsontable's API.
 
 [[toc]]
 
@@ -39,6 +41,8 @@ Available options in the browser's toolbar:
 - `Edit > Copy` - copies the content of the last cell in the selected range
 - `Edit > Cut` - cuts the content of the last cell in the selected range
 
+To let the end user copy the contents of column headers, see the [Copy with headers](#copy-with-headers) section.
+
 ### Context menu
 
 When the context menu is enabled, it includes default items, including copy & cut options.
@@ -47,7 +51,6 @@ When the context menu is enabled, it includes default items, including copy & cu
 - Cut - as a predefined key `cut`
 
 You can use them in the same way as the rest of the predefined items in the [context menu](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options). These operations are executed by `document.execCommand()`.
-
 
 ::: only-for javascript
 ::: example #example1
@@ -110,7 +113,6 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 :::
 :::
 
-
 ### Trigger copy & cut programmatically
 
 ::: only-for react
@@ -134,11 +136,10 @@ Then use one of the following commands:
 
 The **CopyPaste** plugin listens to the browser's `copy` and `cut` events. If triggered, our implementation will copy or cut the selected data to the system clipboard.
 
-
 ::: only-for javascript
-::: example #example2 --html 1 --js 2
+::: example #example3 --html 1 --js 2
 ```html
-<div id="example2"></div>
+<div id="example3"></div>
 <div class="controls">
   <button id="copy">Select and copy cell B2</button>
   <button id="cut">Select and cut cell B2</button>
@@ -149,7 +150,7 @@ The **CopyPaste** plugin listens to the browser's `copy` and `cut` events. If tr
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example2');
+const container = document.querySelector('#example3');
 const copyBtn = document.querySelector('#copy');
 const cutBtn = document.querySelector('#cut');
 
@@ -188,7 +189,7 @@ cutBtn.addEventListener('click', function() {
 :::
 
 ::: only-for react
-::: example #example2 :react
+::: example #example3 :react
 ```jsx
 import { useEffect, useRef } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -259,19 +260,17 @@ export const ExampleComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
 :::
 :::
 
-
 **Note:** Not all selection-related Handsontable methods result in it gaining focus. Make sure your table instance is focused by calling [isListening()](@/api/core.md#islistening) before copying or pasting data.
-
 
 ### Hooks
 
-The [CopyPaste](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during copy or cut operations:
+The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during copy or cut operations:
 
 - [`beforeCopy`](@/api/hooks.md#beforecopy)
 - [`afterCopy`](@/api/hooks.md#aftercopy)
@@ -279,6 +278,142 @@ The [CopyPaste](@/api/copyPaste.md) plugin exposes the following hooks to manipu
 - [`afterCut`](@/api/hooks.md#aftercut)
 
 Examples of how to use them are provided in their descriptions.
+
+### Copy with headers
+
+Let the end user copy the contents of column headers, by enabling additional [context menu](@/guides/accessories-and-menus/context-menu.md) items:
+
+| Context menu item         | Copied area                                                               |
+| ------------------------- | ------------------------------------------------------------------------- |
+| Copy with header       | ![copy_with_headers]({{$basePath}}/img/copy_with_headers.png)             |
+| Copy with group header | ![copy_with_group_headers]({{$basePath}}/img/copy_with_group_headers.png) |
+| Copy header only       | ![copy_headers_only]({{$basePath}}/img/copy_headers_only.png)             |
+
+Right-click on a cell to try it out:
+
+::: only-for javascript
+::: example #example2
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#example2');
+const hot = new Handsontable(container, {
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+  ],
+  contextMenu: true,
+  copyPaste: {
+    copyColumnHeaders: true,
+    copyColumnGroupHeaders: true,
+    copyColumnHeadersOnly: true,
+  },
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  nestedHeaders: [
+    ['A', { label: 'B', colspan: 2 }, { label: 'C', colspan: 2 }, { label: 'D', colspan: 2 }, { label: 'E', colspan: 2 }, 'F'],
+    ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+:::
+
+::: only-for react
+::: example #example2 :react
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const ExampleComponent = () => {
+  return (
+  <HotTable
+    data={[
+      ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
+      ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+      ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+      ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+      ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+    ]}
+    contextMenu={true}
+    copyPaste={{
+      copyColumnHeaders: true,
+      copyColumnGroupHeaders: true,
+      copyColumnHeadersOnly: true,
+    }}
+    colHeaders={true}
+    rowHeaders={true}
+    height="auto"
+    nestedHeaders={[
+      ['A', { label: 'B', colspan: 2 }, { label: 'C', colspan: 2 }, { label: 'D', colspan: 2 }, { label: 'E', colspan: 2 }, 'F'],
+      ['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']
+    ]}
+    licenseKey="non-commercial-and-evaluation"
+      >
+  </HotTable>
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
+```
+:::
+:::
+
+To add the context menu items, configure the [`CopyPaste`](@/api/copyPaste.md) plugin with these options:
+- [`copyColumnHeaders`](@/api/options.md#copypaste-additional-options)
+- [`copyColumnGroupHeaders`](@/api/options.md#copypaste-additional-options)
+- [`copyColumnHeadersOnly`](@/api/options.md#copypaste-additional-options)
+
+```js
+copyPaste: {
+  copyColumnHeaders: true,
+  copyColumnGroupHeaders: true,
+  copyColumnHeadersOnly: true,
+}
+```
+
+To copy column headers programmatically, call the [`copyPaste.copy()`](@/api/copyPaste.md#copy) method with these arguments:
+- [`'with-column-headers'`](@/api/copyPaste.md#copy)
+- [`'with-all-column-headers'`](@/api/copyPaste.md#copy)
+- [`'column-headers-only'`](@/api/copyPaste.md#copy)
+
+::: only-for react
+::: tip
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [`Instance Methods`](@/guides/getting-started/react-methods.md) page.
+:::
+:::
+
+```js
+// access the `CopyPaste` plugin instance
+const copyPastePlugin = hot.getPlugin('copyPaste');
+
+// select some cells
+hot.selectCell(1, 1);
+
+// copy the selected cells along with their nearest column headers
+copyPastePlugin.copy('with-column-headers');
+
+// copy the selected cells along with all their related columns headers
+copyPastePlugin.copy('with-all-column-headers');
+
+// copy the column headers nearest to the selected cells
+// (without copying the cells themselves)
+copyPastePlugin.copy('column-headers-only');
+```
 
 ## Paste
 
@@ -304,14 +439,14 @@ Due to security reasons, modern browsers disallow reading from the system clipbo
 
 ### Hooks
 
-The [CopyPaste](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during the pasting operation:
+The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during the pasting operation:
 
 - [`beforePaste`](@/api/hooks.md#beforepaste)
 - [`afterPaste`](@/api/hooks.md#afterpaste)
 
 Examples of how to use them are provided in their descriptions.
 
-## Limitations
+## Known limitations
 
 1.  The [`CopyPaste`](@/api/copyPaste.md) plugin doesn't copy, cut or paste cells' appearance.
 2.  The data copied from Handsontable will always remain as plain text. For example, if you copy a checked checkbox, the input will be kept as a value of `'true'`.

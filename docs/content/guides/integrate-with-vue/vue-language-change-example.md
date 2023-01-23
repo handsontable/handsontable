@@ -1,7 +1,8 @@
 ---
+id: 2cdkooki
 title: Language change in Vue 2
 metaTitle: Language change - Vue 2 Data Grid | Handsontable
-description: Change the default language of the right-click context menu from English to any of the built-in translations, using the "language" property.
+description: Change the default language of the context menu from English to any of the built-in translations, using the "language" property.
 permalink: /vue-language-change-example
 canonicalUrl: /vue-language-change-example
 searchCategory: Guides
@@ -9,7 +10,7 @@ searchCategory: Guides
 
 # Language change in Vue 2
 
-Change the default language of the right-click context menu from English to any of the built-in translations, using the `language` property.
+Change the default language of the context menu from English to any of the built-in translations, using the `language` property.
 
 [[toc]]
 

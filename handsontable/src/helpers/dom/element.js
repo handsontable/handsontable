@@ -1131,3 +1131,25 @@ export function selectElementIfAllowed(element) {
 export function isDetached(element) {
   return !element.parentNode;
 }
+
+/**
+ * Set up an observer to recognize when the provided element first becomes visible and trigger a callback when it
+ * happens.
+ *
+ * @param {HTMLElement} elementToBeObserved Element to be observed.
+ * @param {Function} callback The callback function.
+ */
+export function observeVisibilityChangeOnce(elementToBeObserved, callback) {
+  const visibilityObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting && elementToBeObserved.offsetParent !== null) {
+        callback();
+        observer.unobserve(elementToBeObserved);
+      }
+    });
+  }, {
+    root: elementToBeObserved.ownerDocument.body
+  });
+
+  visibilityObserver.observe(elementToBeObserved);
+}

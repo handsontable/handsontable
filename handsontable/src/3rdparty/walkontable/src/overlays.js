@@ -2,6 +2,7 @@ import {
   getScrollableElement,
   getScrollbarWidth,
 } from '../../../helpers/dom/element';
+import { requestAnimationFrame } from '../../../helpers/feature';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { isChrome } from '../../../helpers/browser';
@@ -88,7 +89,15 @@ class Overlays {
    * @private
    * @type {ResizeObserver}
    */
-  resizeObserver = new ResizeObserver(() => this.wtSettings.getSetting('onContainerElementResize'));
+  resizeObserver = new ResizeObserver((entries) => {
+    requestAnimationFrame(() => {
+      if (!Array.isArray(entries) || !entries.length) {
+        return;
+      }
+
+      this.wtSettings.getSetting('onContainerElementResize');
+    });
+  });
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.
@@ -137,6 +146,29 @@ class Overlays {
     this.registerListeners();
     this.lastScrollX = rootWindow.scrollX;
     this.lastScrollY = rootWindow.scrollY;
+  }
+
+  /**
+   * Get the list of references to all overlays.
+   *
+   * @param {boolean} [includeMaster = false] If set to `true`, the list will contain the master table as the last
+   * element.
+   * @returns {(TopOverlay|TopInlineStartCornerOverlay|InlineStartOverlay|BottomOverlay|BottomInlineStartCornerOverlay)[]}
+   */
+  getOverlays(includeMaster = false) {
+    const overlays = [
+      this.topOverlay,
+      this.topInlineStartCornerOverlay,
+      this.inlineStartOverlay,
+      this.bottomOverlay,
+      this.bottomInlineStartCornerOverlay
+    ];
+
+    if (includeMaster) {
+      overlays.push(this.wtTable);
+    }
+
+    return overlays;
   }
 
   /**
@@ -551,13 +583,9 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    const spreader = this.wtTable.spreader;
-    const width = spreader.clientWidth;
-    const height = spreader.clientHeight;
+    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
 
-    if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
-      this.spreaderLastSize.width = width;
-      this.spreaderLastSize.height = height;
+    if (wasSpreaderSizeUpdated) {
       this.adjustElementsSize();
     }
 
@@ -575,6 +603,25 @@ class Overlays {
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
       this.bottomInlineStartCornerOverlay.refresh(fastDraw);
     }
+  }
+
+  /**
+   * Update the last cached spreader size with the current size.
+   *
+   * @returns {boolean} `true` if the lastSpreaderSize cache was updated, `false` otherwise.
+   */
+  updateLastSpreaderSize() {
+    const spreader = this.wtTable.spreader;
+    const width = spreader.clientWidth;
+    const height = spreader.clientHeight;
+    const needsUpdating = width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height;
+
+    if (needsUpdating) {
+      this.spreaderLastSize.width = width;
+      this.spreaderLastSize.height = height;
+    }
+
+    return needsUpdating;
   }
 
   /**

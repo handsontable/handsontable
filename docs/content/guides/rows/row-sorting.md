@@ -1,10 +1,12 @@
 ---
+id: 6o0zftmc
 title: Row sorting
 metaTitle: Row sorting - JavaScript Data Grid | Handsontable
 description: Sort your data in ascending, descending, or a custom order, across one or multiple rows of the data grid.
 permalink: /row-sorting
 canonicalUrl: /row-sorting
 react:
+  id: h4jfevxj
   metaTitle: Row sorting - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -31,14 +33,14 @@ Don't enable the [`ColumnSorting`](@/api/columnSorting.md) and [`MultiColumnSort
 
 ## Basic plugin configuration
 
-The simplest way to enable the plugin is to set the [`columnSorting`](@/api/options.md#columnSorting) option to `true`. You will then be able to **use [the API methods](#api)** and **click on the header to sort**, as shown in the example below:
+The simplest way to enable the plugin is to set the [`columnSorting`](@/api/options.md#columnSorting) option to `true`. You will then be able to use [the API methods](@/api/columnSorting.md#methods) and click on the header to sort, as shown in the example below:
 
 By default:
 
 * No column will be sorted initially
 * A sorting indicator will be enabled
 * Empty cells won't be sorted
-* The sort method will use default compare functions - read more about them [here](#default-compare-functions)
+* The sort method will use default compare functions - read more about them [here](#default-compare-functions-sorting-different-kinds-of-data)
 
 ::: only-for javascript
 ::: example #example1
@@ -374,7 +376,7 @@ The next section details how the plugin may be used just for certain columns.
 
 ## Plugin options for certain columns only
 
-The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator`, can be set just for a particular column. This can be done by using [columns](@/api/options.md#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**:
+The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator`, can be set just for a particular column. This can be done by using the [`columns`](@/api/options.md#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**:
 
 ::: only-for javascript
 ::: example #example4
@@ -571,10 +573,10 @@ beforeColumnSort(currentSortConfig, destinationSortConfigs) {
 
 The plugin provides two hooks:
 
-* [beforeColumnSort](@/api/hooks.md#beforecolumnsort) runs before the sort
+* [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) runs before the sort
   * The sort configuration obtained by the [`getSortConfig`](@/api/columnSorting.md#getsortconfig) method within the callback will match the sort configuration preserved before the hook call
   * The callback for [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) will return `false` and stop the table from being sorted, which results in the [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) hook not being called
-* [afterColumnSort](@/api/hooks.md#aftercolumnsort) always runs after sorting unless the callback for [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) hook returns `false`
+* [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) always runs after sorting unless the callback for [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) hook returns `false`
 
 ::: tip
 Hooks are also run when you use the [`clearSort`](@/api/columnSorting.md#clearsort) method or provide a configuration that won't be processed, causing validation to fail.

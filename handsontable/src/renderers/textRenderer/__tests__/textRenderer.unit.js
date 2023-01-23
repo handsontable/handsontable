@@ -8,16 +8,15 @@ import {
   getRenderer,
   registerRenderer,
 } from '../../registry';
+import {
+  registerCellType,
+  TextCellType,
+} from '../../../cellTypes';
+
+registerCellType(TextCellType);
 
 describe('textRenderer', () => {
   describe('registering', () => {
-    it('should throw an error if renderer is not registered', () => {
-      expect(getRegisteredRendererNames()).toEqual([]);
-      expect(() => {
-        getRenderer(RENDERER_TYPE);
-      }).toThrowError();
-    });
-
     it('should register renderer', () => {
       registerRenderer(RENDERER_TYPE, textRenderer);
 

@@ -71,16 +71,6 @@ class HotColumn extends React.Component<HotColumnProps, {}> {
   }
 
   /**
-   * Check whether the HotColumn component contains a provided prop.
-   *
-   * @param {String} propName Property name.
-   * @returns {Boolean}
-   */
-  hasProp(propName: string): boolean {
-    return !!this.props[propName];
-  }
-
-  /**
    * Get the editor element for the current column.
    *
    * @returns {React.ReactElement} React editor component element.
@@ -101,22 +91,10 @@ class HotColumn extends React.Component<HotColumnProps, {}> {
     if (rendererElement !== null) {
       this.columnSettings.renderer = this.props._getRendererWrapper(rendererElement);
       this.props._componentRendererColumns.set(this.props._columnIndex, true);
-
-    } else if (this.hasProp('renderer')) {
-      this.columnSettings.renderer = this.props.renderer;
-
-    } else {
-      this.columnSettings.renderer = void 0;
     }
 
     if (editorElement !== null) {
       this.columnSettings.editor = this.props._getEditorClass(editorElement, this.props._columnIndex);
-
-    } else if (this.hasProp('editor')) {
-      this.columnSettings.editor = this.props.editor;
-
-    } else {
-      this.columnSettings.editor = void 0;
     }
   }
 

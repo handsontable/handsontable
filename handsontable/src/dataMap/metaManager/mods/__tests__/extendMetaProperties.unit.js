@@ -1,6 +1,9 @@
 import Handsontable from 'handsontable';
 import MetaManager from '../../index';
 import { ExtendMetaPropertiesMod } from '../extendMetaProperties';
+import { registerAllCellTypes } from '../../../../cellTypes';
+
+registerAllCellTypes();
 
 jest.mock('handsontable');
 

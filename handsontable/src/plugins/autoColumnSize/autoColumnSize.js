@@ -39,7 +39,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *
  * ```js
  * // as a number (300 columns in sync, rest async)
- * autoColumnSize: {syncLimit: 300},.
+ * autoColumnSize: {syncLimit: 300},
  *
  * // as a string (percent)
  * autoColumnSize: {syncLimit: '40%'},

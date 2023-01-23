@@ -1,4 +1,5 @@
 ---
+id: 5w6juytv
 title: Keyboard shortcuts
 metaTitle: Keyboard shortcuts - JavaScript Data Grid | Handsontable
 description: Navigate the grid similarly to Google Sheets or Microsoft Excel, using built-in keyboard shortcuts. Create shortcuts of your own.
@@ -15,6 +16,7 @@ tags:
 - function key
 - commands
 react:
+  id: ddjw4zt8
   metaTitle: Keyboard shortcuts - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -30,10 +32,10 @@ Navigate the grid similarly to Google Sheets or Microsoft Excel, using built-in 
 To navigate Handsontable similarly to Google Sheets or Microsoft Excel, use the [default](#default-keyboard-shortcuts) keyboard shortcuts.
 
 You can also completely [customize](#custom-keyboard-shortcuts) your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutManager.md) API:
-- [Add custom keyboard shortcuts](#adding-a-custom-keyboard-shortcut)
-- [Remove keyboard shortcuts](#removing-a-keyboard-shortcut)
-- [Replace keyboard shortcuts](#replacing-a-keyboard-shortcut)
-- [Block keyboard shortcuts' actions](#blocking-a-keyboard-shortcut-s-actions)
+- [Add custom keyboard shortcuts](#add-a-custom-keyboard-shortcut)
+- [Remove keyboard shortcuts](#remove-a-keyboard-shortcut)
+- [Replace keyboard shortcuts](#replace-a-keyboard-shortcut)
+- [Block keyboard shortcuts' actions](#block-a-keyboard-shortcut-s-actions)
 
 ## Default keyboard shortcuts
 
@@ -234,7 +236,7 @@ Every keyboard action is registered in a particular context:
 | `grid`   | Activates when the user navigates the data grid (initial context) | Built-in |
 | `editor` | Activates when the user opens a cell editor                       | Built-in |
 | `menu`   | Activates when the user opens a cell's context menu               | Built-in |
-| Custom   | Your [custom context](#managing-keyboard-shortcut-contexts)       | Custom   |
+| Custom   | Your [custom context](#manage-keyboard-shortcut-contexts)       | Custom   |
 
 When the user interacts with the keyboard, only actions registered for the currently-active context are executed.
 

@@ -1,4 +1,5 @@
 ---
+id: bpcuomaq
 title: Column widths
 metaTitle: Column widths - JavaScript Data Grid | Handsontable
 description: Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable's interface.
@@ -11,9 +12,10 @@ tags:
   - width
   - max-width
   - min-width
-  - column dimmensions
+  - column dimensions
   - manual resize
 react:
+  id: gr6w8qsy
   metaTitle: Column widths - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -470,13 +472,13 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example6'));
 
 As mentioned above, the default width of the column is based on the widest value in any cell within the column. You may be wondering how it's possible for data sets containing hundreds of thousands of records.
 
-This feature is made possible thanks to the [AutoColumnSize](@/api/autoColumnSize.md) plugin, which is enabled by default. Internally it divides the data set into smaller sets and renders only some of them to measure their size. The size is then applied to the entire column based on the width of the widest found value.
+This feature is made possible thanks to the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin, which is enabled by default. Internally it divides the data set into smaller sets and renders only some of them to measure their size. The size is then applied to the entire column based on the width of the widest found value.
 
 To increase the performance, you can turn off this feature by defining the fixed size for the specified column or all columns.
 
 ## Size of the container
 
-Setting the dimensions of the container that holds Handsontable is described in detail on the [Grid Size](@/guides/getting-started/grid-size.md) page.
+Setting the dimensions of the container that holds Handsontable is described in detail on the [Grid size](@/guides/getting-started/grid-size.md) page.
 
 ## Related API reference
 

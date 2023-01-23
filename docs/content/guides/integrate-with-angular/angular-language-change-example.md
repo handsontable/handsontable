@@ -1,7 +1,8 @@
 ---
+id: 0gszzt14
 title: Language change in Angular
 metaTitle: Language change - Angular Data Grid | Handsontable
-description: Change the default language of the right-click context menu from English to any of the built-in translations, using the "language" property.
+description: Change the default language of the context menu from English to any of the built-in translations, using the "language" property.
 permalink: /angular-language-change-example
 canonicalUrl: /angular-language-change-example
 searchCategory: Guides
@@ -9,7 +10,7 @@ searchCategory: Guides
 
 # Language change in Angular
 
-Change the default language of the right-click context menu from English to any of the built-in translations, using the `language` property.
+Change the default language of the context menu from English to any of the built-in translations, using the `language` property.
 
 [[toc]]
 

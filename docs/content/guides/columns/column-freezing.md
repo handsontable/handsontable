@@ -1,4 +1,5 @@
 ---
+id: 2anhuqf7
 title: Column freezing
 metaTitle: Column freezing - JavaScript Data Grid | Handsontable
 description: Lock (freeze) the position of specified columns, keeping them visible while scrolling to another area of the grid.
@@ -10,6 +11,7 @@ tags:
   - pinning columns
   - fixedColumns
 react:
+  id: otumcpty
   metaTitle: Column freezing - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -28,10 +30,10 @@ Columns can be frozen during initialization and by the user.
 
 ## Freeze columns at initialization
 
-To freeze the columns on the left-hand side, you need to pass the option [`fixedColumnsStart`](@/api/options.md#fixedcolumnstart) in the Settings object. The container you initialize the data grid in will need additional CSS attributes configured: `width` and `overflow: hidden`.
+To freeze the columns on the left-hand side, you need to pass the option [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) in the Settings object. The container you initialize the data grid in will need additional CSS attributes configured: `width` and `overflow: hidden`.
 
 ::: warning
-The [`fixedColumnsStart`](@/api/options.md#fixedcolumnstart) property used to be called [`fixedColumnsLeft`](@/api/options.md#fixedcolumnleft) before Handsontable 12.0.0. The old name [`fixedColumnsLeft`](@/api/options.md#fixedcolumnleft) works in the LTR [layout direction](@/guides/internationalization/layout-direction.md) but throws an error when the layout direction is set to RTL.
+The [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) property used to be called [`fixedColumnsLeft`](@/api/options.md#fixedcolumnleft) before Handsontable 12.0.0. The old name [`fixedColumnsLeft`](@/api/options.md#fixedcolumnleft) works in the LTR [layout direction](@/guides/internationalization/layout-direction.md) but throws an error when the layout direction is set to RTL.
 :::
 
 ::: only-for javascript

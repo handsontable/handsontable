@@ -1,7 +1,7 @@
 /**
  * @preserve
  * Authors: hand-dot
- * Last updated: Jan 28, 2018
+ * Last updated: Jan 9, 2023
  *
  * Description: Definition file for Japanese - Japan language-country.
  */
@@ -48,6 +48,12 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'セルの結合を解除',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'コピー',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['ヘッダ付きでコピー', 'ヘッダ付きでコピー'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: [
+    'グループヘッダ付きでコピー',
+    'グループヘッダ付きでコピー'
+  ],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['ヘッダのみコピー', 'ヘッダのみコピー'],
   [C.CONTEXTMENU_ITEMS_CUT]: '切り取り',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: '子の行を挿入',

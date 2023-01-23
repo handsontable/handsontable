@@ -2530,7 +2530,6 @@ describe('Formulas general', () => {
       formulas: {
         engine: HyperFormula
       },
-      licenseKey: 'non-commercial-and-evaluation'
     });
 
     hot.getPlugin('nestedRows').collapsingUI.collapseMultipleChildren([0, 6, 18]);
@@ -2756,5 +2755,41 @@ describe('Formulas general', () => {
       [1, 2, 3, 4, 5],
       [9, 8, 7, 6, '#NAME?'],
     ]);
+  });
+
+  it('should recalculate the formulas after calling the `loadData` method', () => {
+    handsontable({
+      data: [
+        [0],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    loadData([
+      [1, 2, 3, 4, 5],
+      [9, 8, 7, 6, '=A1 + B1']
+    ]);
+
+    expect(getDataAtCell(1, 4)).toEqual(3);
+  });
+
+  it('should recalculate the formulas after calling the `updateData` method', () => {
+    handsontable({
+      data: [
+        [0],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+
+    updateData([
+      [1, 2, 3, 4, 5],
+      [9, 8, 7, 6, '=A1 + B1']
+    ]);
+
+    expect(getDataAtCell(1, 4)).toEqual(3);
   });
 });

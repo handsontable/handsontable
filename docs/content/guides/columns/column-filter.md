@@ -1,4 +1,5 @@
 ---
+id: 3xxlonuv
 title: Column filter
 metaTitle: Column filter - JavaScript Data Grid | Handsontable
 description: Filter your data by a value or by a combination of conditions.
@@ -7,6 +8,7 @@ canonicalUrl: /column-filter
 tags:
   - filtering data
 react:
+  id: vz7ct2bv
   metaTitle: Column filter - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -23,7 +25,7 @@ The [`Filters`](@/api/filters.md) plugin allows filtering the data in the table'
 
 ## Basic configuration
 
-To enable the plugin, set the [`filters`](@/api/options.md#filters) configuration option to `true` and enable the filters dependency, which is the [dropdownMenu](@/guides/columns/column-menu.md) plugin.
+To enable the plugin, set the [`filters`](@/api/options.md#filters) configuration option to `true` and enable the filters dependency, which is the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
 
 ::: only-for javascript
 ::: example #example1

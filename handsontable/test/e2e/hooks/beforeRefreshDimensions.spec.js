@@ -22,7 +22,7 @@ describe('Hook', () => {
         beforeRefreshDimensions,
       });
 
-      await sleep(20);
+      await sleep(50);
       hot.rootElement.style.width = '200px';
 
       expect(beforeRefreshDimensions.calls.count()).toBe(1);
@@ -43,7 +43,7 @@ describe('Hook', () => {
 
       hot.rootElement.style.width = '200px';
 
-      await sleep(20);
+      await sleep(50);
 
       expect(beforeRefreshDimensions.calls.count()).toBe(1);
       expect(afterRefreshDimensions.calls.count()).toBe(0);
@@ -59,7 +59,7 @@ describe('Hook', () => {
       });
 
       hot.rootElement.style.width = '200px';
-      await sleep(20);
+      await sleep(50);
 
       expect(beforeRefreshDimensions).toHaveBeenCalledWith(
         { width: 120, height: 100 },
@@ -78,13 +78,31 @@ describe('Hook', () => {
       });
 
       hot.rootElement.style.width = '120px';
-      await sleep(20);
+      await sleep(50);
 
       expect(beforeRefreshDimensions).toHaveBeenCalledWith(
         { width: 120, height: 100 },
         { width: 120, height: 100 },
         false,
       );
+    });
+
+    it('should be synced with `requestAnimationFrame` call', async() => {
+      const beforeRefreshDimensions = jasmine.createSpy('beforeRefreshDimensions');
+
+      spyOn(window, 'requestAnimationFrame');
+
+      const hot = handsontable({
+        width: 120,
+        height: 100,
+        beforeRefreshDimensions,
+      });
+
+      await sleep(50);
+      hot.rootElement.style.width = '200px';
+
+      expect(window.requestAnimationFrame).toHaveBeenCalledTimes(1);
+      expect(beforeRefreshDimensions.calls.count()).toBe(0);
     });
 
     describe('running in iframe', () => {

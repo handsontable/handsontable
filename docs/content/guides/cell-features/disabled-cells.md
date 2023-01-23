@@ -1,4 +1,5 @@
 ---
+id: k41dcpud
 title: Disabled cells
 metaTitle: Disabled cells - JavaScript Data Grid | Handsontable
 description: Make specified cells read-only to protect them from unwanted changes but still allow navigation and copying of data.
@@ -11,6 +12,7 @@ tags:
   - noneditable
   - locked
 react:
+  id: zhv7fs29
   metaTitle: Disabled cells - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -26,9 +28,9 @@ Make specified cells read-only to protect them from unwanted changes but still a
 Disabling a cell makes the cell read-only or non-editable. Both have similar outcomes, with the following differences:
 
 | Read-only cell<br>`readOnly: true`                                           | Non-editable cell<br>`editor: false`                                       |
-| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+|------------------------------------------------------------------------------| -------------------------------------------------------------------------- |
 | Has an additional CSS class (`htDimmed`)                                     | Has no additional CSS class                                                |
-| Copy-paste doesn't work                                                      | Copy-paste works                                                           |
+| Copy works, paste doesn't work                                               | Copy-paste works                                                           |
 | Drag-to-fill doesn't work                                                    | Drag-to-fill works                                                         |
 | Can't be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) | Can be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) |
 

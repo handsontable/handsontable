@@ -1,4 +1,5 @@
 ---
+id: p7oq0ph7
 title: Configuration options
 metaTitle: Configuration options - JavaScript Data Grid | Handsontable
 description: Configure the data grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
@@ -7,7 +8,9 @@ canonicalUrl: /configuration-options
 tags:
   - properties
   - config
+  - options
 react:
+  id: gmpbmisy
   metaTitle: Configuration options - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -51,7 +54,7 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
-To apply configuration options, pass them as individual props of the [`HotTable`](@/guides/getting-started/installation.md##hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
+To apply configuration options, pass them as individual props of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
 
 ```jsx
 <HotTable
@@ -99,20 +102,20 @@ You can also pass your options as an object, using the `settings` prop.
 :::
 
 Depending on your needs, you can apply configuration options to different elements of your grid, such as:
-- [The entire grid](#setting-grid-options)
-- [Individual columns](#setting-column-options)
-- [Individual rows](#setting-row-options)
-- [Individual cells](#setting-cell-options)
-- [Individual grid elements, based on any logic you implement](#implementing-custom-logic)
+- [The entire grid](#set-grid-options)
+- [Individual columns](#set-column-options)
+- [Individual rows](#set-row-options)
+- [Individual cells](#set-cell-options)
+- [Individual grid elements, based on any logic you implement](#implement-custom-logic)
 
 For the full list of available configuration options, see the [configuration options' API reference](@/api/options.md).
 
 ### Cascading configuration
 
 Handsontable's configuration cascades down:
-- From the top-level grid options ([`GlobalMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/globalMeta.js))
-- Through the mid-level column options ([`ColumnMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/columnMeta.js))
-- To the bottom-level cell options ([`CellMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/cellMeta.js))
+- From the top-level grid options ([`GlobalMeta`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/metaLayers/globalMeta.js))
+- Through the mid-level column options ([`ColumnMeta`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/metaLayers/columnMeta.js))
+- To the bottom-level cell options ([`CellMeta`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/metaLayers/cellMeta.js))
 
 When you modify the mid-level column options (using the [`columns`](@/api/options.md#columns) option):
 - The options that you change overwrite the top-level grid options.
@@ -126,10 +129,10 @@ When you modify the bottom-level cell options (using the [`cell`](@/api/options.
 
 When you modify any options with the [`cells`](@/api/options.md#cells) function, the changes overwrite all other options.
 ::: tip
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
+The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#change-cell-options) method don't meet your needs.
 :::
 
-For more details on Handsontable's cascading configuration, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/index.js).
+For more details on Handsontable's cascading configuration, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/index.js).
 
 ### Plugin options
 
@@ -151,7 +154,7 @@ To apply configuration options to the entire grid:
 :::
 
 ::: only-for react
-- Pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation.md##hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
+- Pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
 - You can also pass your options as an object, using the `settings` prop.
 :::
 
@@ -188,10 +191,7 @@ The top-level grid options cascade down:
 As a result, each cell in the grid is read-only:
 
 ::: only-for javascript
-::: example #example1 --html 1 --js 2
-```html
-<div id="example1"></div>
-```
+::: example #example1
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -317,10 +317,7 @@ The modified mid-level column options:
 As a result, each cell in the third and ninth columns is read-only:
 
 ::: only-for javascript
-::: example #example2 --html 1 --js 2
-```html
-<div id="example2"></div>
-```
+::: example #example2
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -412,7 +409,7 @@ To apply configuration options to an individual row (or a range of rows), use th
 Any options modified through [`cells`](@/api/options.md#cells) overwrite all other options.
 
 ::: tip
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
+The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#change-cell-options) method don't meet your needs.
 :::
 
 ::: only-for javascript
@@ -474,10 +471,7 @@ In the example below, the [`cells`](@/api/options.md#cells) option sets each cel
 Options modified through [`cells`](@/api/options.md#cells) overwrite all other options.
 
 ::: only-for javascript
-::: example #example3 --html 1 --js 2
-```html
-<div id="example3"></div>
-```
+::: example #example3
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -619,10 +613,7 @@ The modified [`cell`](@/api/options.md#cell) options:
 - Overwrite mid-level column options
 
 ::: only-for javascript
-::: example #example4 --html 1 --js 2
-```html
-<div id="example4"></div>
-```
+::: example #example4
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -725,13 +716,12 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
 :::
 :::
 
-
 ### Read cell options
 
 When Handsontable is running, you can check a cell's current options, using the [`getCellMeta()`](@/api/core.md#getcellmeta) method.
 
 The [`getCellMeta()`](@/api/core.md#getcellmeta) method returns an object with:
-- All built-in options (stored in the [`CellMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/cellMeta.js) [prototype](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_prototypes))
+- All built-in options (stored in the [`CellMeta`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/metaLayers/cellMeta.js) [prototype](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_prototypes))
 - Any options you add
 
 For example:
@@ -863,7 +853,7 @@ You can apply configuration options to individual grid elements (columns, rows, 
 The [`cells`](@/api/options.md#cells) option overwrites all other options.
 
 ::: tip
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
+The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#change-cell-options) method don't meet your needs.
 :::
 
 ::: only-for javascript
@@ -913,10 +903,7 @@ The function can take three arguments:<br>
 In the example below, the modified [`cells`](@/api/options.md#cells) options overwrite the top-level grid options.
 
 ::: only-for javascript
-::: example #example5 --html 1 --js 2
-```html
-<div id="example5"></div>
-```
+::: example #example5
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -980,10 +967,7 @@ In the example below, some cells are read-only, and some cells are editable:
   As a result, cell `C3` (`3, 3`) is editable, despite not being part of the editable first column.
 
 ::: only-for javascript
-::: example #example6 --html 1 --js 2
-```html
-<div id="example6"></div>
-```
+::: example #example6
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';

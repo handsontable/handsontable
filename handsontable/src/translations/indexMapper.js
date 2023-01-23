@@ -228,10 +228,10 @@ export class IndexMapper {
   }
 
   /**
-   * Creates and register the new IndexMap for specified IndexMapper instance.
+   * Creates and registers a new `IndexMap` for a specified `IndexMapper` instance.
    *
-   * @param {string} indexName The uniq index name.
-   * @param {string} mapType The index map type (e.q. "hiding, "trimming", "physicalIndexToValue").
+   * @param {string} indexName A unique index name.
+   * @param {string} mapType The index map type (e.g., "hiding", "trimming", "physicalIndexToValue").
    * @param {*} [initValueOrFn] The initial value for the index map.
    * @returns {IndexMap}
    */

@@ -1,4 +1,5 @@
 ---
+id: m117dytd
 title: Modules in Vue 2
 metaTitle: Modules - Vue 2 Data Grid | Handsontable
 description: Reduce the size of your Vue 2 app by importing only the modules that you need and use.

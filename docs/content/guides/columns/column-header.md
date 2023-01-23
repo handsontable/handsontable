@@ -1,10 +1,12 @@
 ---
+id: qiasr3y1
 title: Column headers
 metaTitle: Column headers - JavaScript Data Grid | Handsontable
 description: Use default column headers (A, B, C), or set them to custom values provided by an array or a function.
 permalink: /column-header
 canonicalUrl: /column-header
 react:
+  id: 5e0tnexi
   metaTitle: Column headers - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -23,7 +25,7 @@ To reflect the type or category of data in a particular column, give it a custom
 
 ## Default headers
 
-Setting the [colHeaders](@/api/options.md#colheaders) option to `true` enables the default column headers as shown in the example below:
+Setting the [`colHeaders`](@/api/options.md#colheaders) option to `true` enables the default column headers as shown in the example below:
 
 ::: only-for javascript
 ::: example #example1

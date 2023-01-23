@@ -1,10 +1,12 @@
 ---
+id: de2hxgso
 title: Cell type
 metaTitle: Cell type - JavaScript Data Grid | Handsontable
 description: Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
 permalink: /cell-type
 canonicalUrl: /cell-type
 react:
+  id: m60w87tn
   metaTitle: Cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -619,7 +621,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
 :::
 
 
-Empty cells may be treated differently in different contexts, for example, the [ColumnSorting](@/api/columnSorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.
+Empty cells may be treated differently in different contexts, for example, the [`ColumnSorting`](@/api/columnSorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.
 
 ## Related articles
 

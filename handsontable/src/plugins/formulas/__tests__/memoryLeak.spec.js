@@ -54,7 +54,6 @@ describe('Formulas memory leak check', () => {
         engine: hfInstance1,
         sheetName: 'Sheet1'
       },
-      licenseKey: 'non-commercial-and-evaluation'
     });
     const hot2 = spec().$container2.handsontable({
       data: [['bar'], ['Sheet1:A1']],
@@ -62,7 +61,6 @@ describe('Formulas memory leak check', () => {
         engine: hfInstance1,
         sheetName: 'Sheet2'
       },
-      licenseKey: 'non-commercial-and-evaluation'
     }).data('handsontable');
 
     const internalEvents = hfInstance1._emitter.e;
@@ -97,7 +95,6 @@ describe('Formulas memory leak check', () => {
         engine: HyperFormula,
         sheetName: 'Sheet1'
       },
-      licenseKey: 'non-commercial-and-evaluation'
     });
     const hot2 = spec().$container2.handsontable({
       data: [['bar'], ['Sheet1:A1']],
@@ -105,7 +102,6 @@ describe('Formulas memory leak check', () => {
         engine: hot1.getPlugin('formulas').engine,
         sheetName: 'Sheet2'
       },
-      licenseKey: 'non-commercial-and-evaluation'
     }).data('handsontable');
 
     const internalEvents = hot1.getPlugin('formulas').engine._emitter.e;
@@ -145,7 +141,6 @@ describe('Formulas memory leak check', () => {
         engine: hfInstance1,
         sheetName: 'Sheet1'
       },
-      licenseKey: 'non-commercial-and-evaluation'
     });
     const hot2 = spec().$container2.handsontable({
       data: [['bar'], ['Sheet1:A1']],
@@ -153,7 +148,6 @@ describe('Formulas memory leak check', () => {
         engine: hfInstance1,
         sheetName: 'Sheet2'
       },
-      licenseKey: 'non-commercial-and-evaluation'
     }).data('handsontable');
 
     const internalEvents = hfInstance1._emitter.e;
@@ -198,7 +192,6 @@ describe('Formulas memory leak check', () => {
         engine: HyperFormula,
         sheetName: 'Sheet1'
       },
-      licenseKey: 'non-commercial-and-evaluation'
     });
     const hot2 = spec().$container2.handsontable({
       data: [['bar'], ['Sheet1:A1']],
@@ -206,7 +199,6 @@ describe('Formulas memory leak check', () => {
         engine: hot1.getPlugin('formulas').engine,
         sheetName: 'Sheet2'
       },
-      licenseKey: 'non-commercial-and-evaluation'
     }).data('handsontable');
 
     const internalEvents = hot1.getPlugin('formulas').engine._emitter.e;
