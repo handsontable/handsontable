@@ -730,6 +730,10 @@ export class Formulas extends BasePlugin {
 
     const visualRow = this.hot.toVisualRow(row);
 
+    if (visualRow === null || column === null) {
+      return;
+    }
+
     // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
     const isFormulaCellType = this.isFormulaCellType(visualRow, column);
 

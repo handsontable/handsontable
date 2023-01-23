@@ -1344,8 +1344,8 @@ describe('Formulas general', () => {
 
       expect(getSourceData()).toEqual([
         [5],
-        ['=A1+1'],
         ['=A2+1'],
+        ['=A1+1'],
       ]);
       expect(getData()).toEqual([
         [6],
