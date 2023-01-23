@@ -227,7 +227,7 @@ export class MergeCells extends BasePlugin {
           rowToRefresh.style.background =
             getStyle(rowToRefresh, 'backgroundColor').replace(')', ', 0.99)');
 
-          rowsToRefresh.push();
+          rowsToRefresh.push(rowToRefresh);
         }
       });
     });
