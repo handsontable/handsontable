@@ -1982,6 +1982,9 @@ columnSortingPluginInstance.sort(
     sortOrder: 'asc', // for descending order, use `'desc'`
   },
 );
+
+// go back to the original order
+columnSortingPluginInstance.clearSort();
 ```
 
 :::
@@ -2001,6 +2004,9 @@ columnSortingPluginInstance.sort(
     sortOrder: 'asc', // for descending order, use `'desc'`
   },
 );
+
+// go back to the original order
+columnSortingPluginInstance.clearSort();
 ```
 
 :::
@@ -2017,7 +2023,7 @@ Try it out:
   <button id="sort_asc" class="button">Sort by column 1, in ascending order</button>
   <br>
   <br>
-  <button id="sort_desc" class="button">Sort by column 1, in descending order</button>
+  <button id="unsort" class="button">Go back to the original order</button>
 </div>
 ```
 
@@ -2027,8 +2033,8 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example7');
 
-const button_ascending = document.querySelector('#sort_asc');
-const button_descending = document.querySelector('#sort_desc');
+const button_sort_ascending = document.querySelector('#sort_asc');
+const button_unsort = document.querySelector('#unsort');
 
 
 const handsontableInstance = new Handsontable(container, {
@@ -2121,18 +2127,15 @@ const handsontableInstance = new Handsontable(container, {
 
 const columnSortingPluginInstance = handsontableInstance.getPlugin('columnSorting');
 
-button_ascending.addEventListener('click', () => {
+button_sort_ascending.addEventListener('click', () => {
   columnSortingPluginInstance.sort({
     column: 0,
     sortOrder: 'asc',
   });
 });
 
-button_descending.addEventListener('click', () => {
-  columnSortingPluginInstance.sort({
-    column: 0,
-    sortOrder: 'desc',
-  });
+button_unsort.addEventListener('click', () => {
+  columnSortingPluginInstance.clearSort();
 });
 ```
 :::
@@ -2168,17 +2171,12 @@ export const YourHandsontableComponent = () => {
     );
   };
   
-    const sort_desc = () => {
+    const unsort = () => {
     
     // get the `ColumnSorting` plugin instance
     const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
     
-    columnSortingPluginInstance.sort(
-      {
-        column: 0,
-        sortOrder: 'desc',
-      },
-    );
+    columnSortingPluginInstance.clearSort();
   };
 
   return (
@@ -2276,7 +2274,7 @@ export const YourHandsontableComponent = () => {
         <button onClick={sort_asc}>Sort by column 1, in ascending order</button>
         <br />
         <br />
-        <button onClick={sort_desc}>Sort by column 1, in descending order</button>
+        <button onClick={unsort}>Go back to the original order</button>
       </div>
     </>
   );
