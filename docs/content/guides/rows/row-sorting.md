@@ -298,8 +298,7 @@ const configurationOptions = {
 :::
 
 To select which columns are sortable,
-set [`columnSorting`](@/api/options.md#columnsorting) for each column separately,
-using the [`columns`](@/api/options.md#columns) option.
+set [`columnSorting`](@/api/options.md#columnsorting) for each column separately.
 
 ::: only-for javascript
 
@@ -369,7 +368,7 @@ By default:
 - The sort order indicator is visible.
 - No rows are sorted initially.
 
-The default sorting configuration:
+This is the default sorting configuration:
 
 ::: only-for javascript
 
@@ -1038,7 +1037,7 @@ const configurationOptions = {
 
 :::
 
-## Set a initial sort order
+## Set an initial sort order
 
 You can set a default sort order that's applied every time Handsontable is launched.
 
@@ -1328,7 +1327,7 @@ property in the following pseudo-elements of Handsontable's CSS:
 
 ::: only-for javascript
 
-::: example #example7 --css 1 --js 2
+::: example #example5 --css 1 --js 2
 
 ```css
 /* the icon for ascending order */
@@ -1345,7 +1344,7 @@ property in the following pseudo-elements of Handsontable's CSS:
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example7');
+const container = document.querySelector('#example5');
 
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
@@ -1449,7 +1448,7 @@ const yourHandsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example7 :react --css 1 --js 2
+::: example #example5 :react --css 1 --js 2
 ```css
 /* the icon for ascending order */
 .handsontable1 span.colHeader.columnSorting.ascending::before {
@@ -1570,7 +1569,7 @@ export const YourHandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example7'));
+ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example5'));
 /* end:skip-in-preview */
 ```
 :::
@@ -1581,7 +1580,7 @@ You can also change the sort icons by changing the `content` property of the sam
 
 ::: only-for javascript
 
-::: example #example8 --css 1 --js 2
+::: example #example6 --css 1 --js 2
 
 ```css
 /* the icon for ascending order */
@@ -1600,7 +1599,7 @@ You can also change the sort icons by changing the `content` property of the sam
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example8');
+const container = document.querySelector('#example6');
 
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
@@ -1704,7 +1703,7 @@ const yourHandsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example8 :react --css 1 --js 2
+::: example #example6 :react --css 1 --js 2
 ```css
 /* the icon for ascending order */
 .handsontable2 span.colHeader.columnSorting.ascending::before {
@@ -1827,7 +1826,7 @@ export const YourHandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example8'));
+ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example6'));
 /* end:skip-in-preview */
 ```
 :::
@@ -2010,9 +2009,9 @@ Try it out:
 
 ::: only-for javascript
 
-::: example #example9 --html 1 --js 2
+::: example #example7 --html 1 --js 2
 ```html
-<div id="example9"></div>
+<div id="example7"></div>
 
 <div class="controls">
   <button id="sort_asc" class="button">Sort by column 1, in ascending order</button>
@@ -2026,7 +2025,7 @@ Try it out:
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example9');
+const container = document.querySelector('#example7');
 
 const button_ascending = document.querySelector('#sort_asc');
 const button_descending = document.querySelector('#sort_desc');
@@ -2143,7 +2142,7 @@ button_descending.addEventListener('click', () => {
 
 ::: only-for react
 
-::: example #example9 :react
+::: example #example7 :react
 ```jsx
 import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -2284,7 +2283,7 @@ export const YourHandsontableComponent = () => {
 }
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example9'));
+ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example7'));
 /* end:skip-in-preview */
 ```
 
@@ -2357,9 +2356,9 @@ Try it out:
 
 ::: only-for javascript
 
-::: example #example10 --html 1 --js 2
+::: example #example8 --html 1 --js 2
 ```html
-<div id="example10"></div>
+<div id="example8"></div>
 
 <div class="controls">
   <button id="sort" class="button">Sort</button>
@@ -2370,7 +2369,7 @@ Try it out:
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example10');
+const container = document.querySelector('#example8');
 
 const button_sort = document.querySelector('#sort');
 
@@ -2486,7 +2485,7 @@ button_sort.addEventListener('click', () => {
 
 ::: only-for react
 
-::: example #example10 :react
+::: example #example8 :react
 ```jsx
 import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -2617,7 +2616,7 @@ export const YourHandsontableComponent = () => {
 }
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example10'));
+ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example8'));
 /* end:skip-in-preview */
 ```
 
@@ -2666,16 +2665,16 @@ const exclude = () => {
 ```
 :::
 
-In this demo, click on any column name. The rows get sorted, except for the first and last row.
+In this demo, click on any column name. The rows get sorted, but the the first row and the last row stay in place.
 
 ::: only-for javascript
 
-::: example #example5
+::: example #example9
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example5');
+const container = document.querySelector('#example9');
 
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
@@ -2788,7 +2787,7 @@ const yourHandsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example5 :react
+::: example #example9 :react
 ```jsx
 // you need `useRef` to call Handsontable's instance methods
 import { useRef } from 'react';
@@ -2914,23 +2913,24 @@ export const YourHandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example5'));
+ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example9'));
 /* end:skip-in-preview */
 ```
 :::
 
 :::
 
-You can also exclude [frozen rows](@/guides/rows/row-freezing.md) from sorting.
+You can also exclude [frozen rows](@/guides/rows/row-freezing.md) from sorting. In the following demo,
+click on any column name: the rows get sorted, but the frozen bottom row stays in place.
 
 ::: only-for javascript
 
-::: example #example6
+::: example #example10
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example6');
+const container = document.querySelector('#example10');
 
 const yourHandsontableInstance = new Handsontable(container, {
   data: [
@@ -2974,6 +2974,86 @@ const yourHandsontableInstance = new Handsontable(container, {
       sellTime: '13:23',
       inStock: true,
     },
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.90,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.10,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: true,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
+      inStock: true,
+    },
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      price: 1890.90,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      price: 130.10,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: true,
+    },
+    {
+      brand: 'Vinte',
+      model: 'ML Road Frame-W',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: false,
+    },
   ],
   columns: [
     {
@@ -3016,9 +3096,23 @@ const yourHandsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  height: 'auto',
+  height: 150,
   width: 'auto',
+  fixedRowsBottom: 1,
   columnSorting: true,
+  afterColumnSort() {
+  	 let howManyRows = this.countRows() -1;
+     this.rowIndexMapper.moveIndexes([this.toVisualRow(howManyRows)]);
+  },
+  cells(row) {
+    if ([14].includes(row)) {
+      return {
+        fixedRowsBottom: row,
+      }
+    }
+        
+    return {};
+  },
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -3028,8 +3122,10 @@ const yourHandsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example6 :react
+::: example #example10 :react
 ```jsx
+// you need `useRef` to call Handsontable's instance methods
+import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -3038,8 +3134,16 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 export const YourHandsontableComponent = () => {
+  const hotTableComponentRef = useRef(null);
+
+  const exclude = () => {
+    let howManyRows = hotTableComponentRef.current.hotInstance.countRows() -1;
+    hotTableComponentRef.current.hotInstance.rowIndexMapper.moveIndexes([hotTableComponentRef.current.hotInstance.toVisualRow(howManyRows)]);
+  };
+
   return (
     <HotTable
+      ref={hotTableComponentRef}
       data={[
         {
           brand: 'Jetpulse',
@@ -3074,14 +3178,94 @@ export const YourHandsontableComponent = () => {
           inStock: true,
         },
         {
-          brand: 'Eidel',
-          model: 'HL Road Tire',
-          price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.90,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.10,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
           inStock: true,
         },
-    ]}
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          price: 1890.90,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.10,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          price: 130.10,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Vinte',
+          model: 'ML Road Frame-W',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+      ]}
       columns={[
         {
           title: 'Brand',
@@ -3123,8 +3307,17 @@ export const YourHandsontableComponent = () => {
           className: 'htCenter',
         },
       ]}
+      fixedRowsBottom={1}
       columnSorting={true}
-      height="auto"
+      afterColumnSort={exclude}
+      cells={(row) => {
+        if ([14].includes(row)) {
+          return {
+            fixedRowsBottom: row,
+          }
+        }
+      }}
+      height={150}
       width="auto"
       licenseKey="non-commercial-and-evaluation"
     />
@@ -3132,7 +3325,7 @@ export const YourHandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example6'));
+ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example10'));
 /* end:skip-in-preview */
 ```
 :::
