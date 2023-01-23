@@ -215,13 +215,9 @@ export class MergeCells extends BasePlugin {
     rowIndexesToRefresh.forEach((rowIndex) => {
       const renderableRowIndex = this.hot.rowIndexMapper.getRenderableFromVisualIndex(rowIndex);
 
-      [
-        'topOverlay',
-        'bottomOverlay',
-        'inlineStartOverlay',
-        'topInlineStartCornerOverlay',
-        'bottomInlineStartCornerOverlay'
-      ].map(overlay => this.hot.view._wt.wtOverlays[overlay].clone.wtTable).forEach((wtTableRef) => {
+      this.hot.view._wt.wtOverlays.getOverlays(true).map(
+        overlay => (overlay?.name === 'master' ? overlay : overlay.clone.wtTable)
+      ).forEach((wtTableRef) => {
         const rowToRefresh = wtTableRef.getRow(renderableRowIndex);
 
         if (rowToRefresh) {
