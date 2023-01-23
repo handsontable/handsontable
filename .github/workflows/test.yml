@@ -98,10 +98,6 @@ jobs:
             test-vue3:
               - *hot-shared
               - 'wrappers/vue3/**'
-            build-and-test-visual-tests:
-              - *hot-shared
-              - './visual-tests/**'
-              - './examples/next/visual-tests/**'
 
   build-handsontable-umd:
     name: "[BUILD] Handsontable: UMD"
