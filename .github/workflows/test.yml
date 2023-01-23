@@ -112,18 +112,21 @@ jobs:
       needs.check-scope.outputs.build-handsontable-umd == 'true'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
+
       - name: Build
         run: |
           cd handsontable
           npm run build:umd && npm run build:languages
           npm run build:umd.min && npm run build:languages.min
       - run: tar -zcf dist.tar.gz ./handsontable/dist
+
       - name: Upload the Handsontable UMD build artifact.
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
         with:
@@ -139,12 +142,14 @@ jobs:
       needs.check-scope.outputs.build-handsontable-es-cjs == 'true'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
+
       - name: Build
         run: |
           cd handsontable
@@ -152,6 +157,7 @@ jobs:
           npm run build:commonjs
           npm run postbuild
       - run: tar -zcf tmp.tar.gz ./handsontable/tmp
+
       - name: Upload the Handsontable ES + CJS build artifact.
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
         with:
@@ -167,12 +173,14 @@ jobs:
       needs.check-scope.outputs.test-handsontable-unit == 'true'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
+
       - name: Test
         run: |
           cd handsontable
@@ -187,12 +195,14 @@ jobs:
       needs.check-scope.outputs.test-handsontable-types == 'true'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
+
       - name: Test
         run: |
           cd handsontable
@@ -207,12 +217,14 @@ jobs:
       needs.check-scope.outputs.test-handsontable-walkontable == 'true'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
+
       - name: Test
         run: |
           cd handsontable
@@ -227,18 +239,21 @@ jobs:
       needs.check-scope.outputs.test-handsontable-e2e == 'true'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
+
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           name: handsontable-build-umd
           path: ./
       - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
+
       - name: Test
         run: |
           cd handsontable
@@ -253,18 +268,21 @@ jobs:
       needs.check-scope.outputs.test-handsontable-e2e-min == 'true'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
+
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           name: handsontable-build-umd
           path: ./
       - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
+
       - name: Test
         run: |
           cd handsontable
@@ -279,12 +297,14 @@ jobs:
       needs.check-scope.outputs.test-angular == 'true'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
+
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
@@ -295,12 +315,15 @@ jobs:
       - run: npm run swap-package-links
       - run: npm run in angular build
       - run: tar --exclude='node_modules' -zcf angular.tar.gz ./wrappers/angular
+
       - name: Upload the Angular build artifact
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
         with:
           name: angular-build
           path: angular.tar.gz
-      - run: npm run in angular test:ci
+
+      - name: Test
+        run: npm run in angular test:ci
 
   test-react:
     name: "[TEST] Wrapper: React"
@@ -311,12 +334,14 @@ jobs:
       needs.check-scope.outputs.test-react == 'true'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
+
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
@@ -327,12 +352,14 @@ jobs:
       - run: npm run swap-package-links
       - run: npm run in react build
       - run: tar --exclude='node_modules' -zcf react.tar.gz ./wrappers/react
+
       - name: Upload the React build artifact
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
         with:
           name: react-build
           path: react.tar.gz
-      - run: npm run in react test
+      - name: Test
+        run: npm run in react test
 
   test-vue:
     name: "[TEST] Wrapper: Vue"
@@ -343,12 +370,14 @@ jobs:
       needs.check-scope.outputs.test-vue == 'true'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
+
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
@@ -359,12 +388,14 @@ jobs:
       - run: npm run swap-package-links
       - run: npm run in vue build
       - run: tar --exclude='node_modules' -zcf vue.tar.gz ./wrappers/vue
+
       - name: Upload the Vue2 build artifact
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
         with:
           name: vue-build
           path: vue.tar.gz
-      - run: npm run in vue test
+      - name: Test
+        run: npm run in vue test
 
   test-vue3:
     name: "[TEST] Wrapper: Vue3"
@@ -375,12 +406,14 @@ jobs:
       needs.check-scope.outputs.test-vue3 == 'true'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
+
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
@@ -391,12 +424,14 @@ jobs:
       - run: npm run swap-package-links
       - run: npm run in vue3 build
       - run: tar --exclude='node_modules' -zcf vue3.tar.gz ./wrappers/vue3
+
       - name: Upload the Vue3 build artifact
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
         with:
           name: vue3-build
           path: vue3.tar.gz
-      - run: npm run in vue3 test
+      - name: Test
+        run: npm run in vue3 test
 
   visual-tests:
     name: "[TEST] Visual tests"
@@ -412,6 +447,7 @@ jobs:
       !failure() && contains(needs.*.result, 'success')
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
       - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
@@ -420,8 +456,7 @@ jobs:
       - run: npm ci --no-audit
 
       - name: Install system dependencies
-        run: |
-          npm run in visual-tests install-system-dependencies
+        run: npm run in visual-tests install-system-dependencies
 
       - name: Download artifacts
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
@@ -431,15 +466,12 @@ jobs:
       - run: tar -zxf handsontable-build-umd/dist.tar.gz ./handsontable/dist && rm -r handsontable-build-umd
 
       - name: Build wrappers and test examples
-        run: |
-          npm run build -- -e handsontable
+        run: npm run build -- -e handsontable
 
       - name: Run tests
-        run: |
-          npm run in visual-tests test
+        run: npm run in visual-tests test
 
-      - run: |
-          tar -zcf screenshots.tar.gz ./visual-tests/screenshots
+      - run: tar -zcf screenshots.tar.gz ./visual-tests/screenshots
 
       - name: Upload the screenshot artifacts
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
@@ -450,5 +482,4 @@ jobs:
       - name: Compare screenshots
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
-        run: |
-          npm run in visual-tests upload
+        run: npm run in visual-tests upload
