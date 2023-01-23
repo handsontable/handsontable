@@ -58,6 +58,8 @@ the rows get sorted in ascending (↑) or descending (↓) order, or go back to 
 
 ::: example #example1
 ```js
+// to import just individual modules, see the 'Import the sorting module' section of this page
+
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -161,6 +163,8 @@ const yourHandsontableInstance = new Handsontable(container, {
 
 ::: example #example1 :react
 ```jsx
+// to import just individual modules, see the 'Import the sorting module' section of this page
+
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -336,27 +340,8 @@ const configurationOptions = {
 
 :::
 
-### Import the sorting module
-
 If you're using Handsontable through [modules](@/guides/tools-and-building/modules.md),
-import the [`ColumnSorting`](@/api/columnSorting.md) module.
-
-```js
-// import the base module
-import Handsontable from 'handsontable/base';
-
-// import Handsontable's CSS
-import 'handsontable/dist/handsontable.full.min.css';
-
-// import the `ColumnSorting` module
-import {
-  registerPlugin,
-  ColumnSorting,
-} from 'handsontable/plugins';
-
-// register the `ColumnSorting` plugin
-registerPlugin(ColumnSorting);
-```
+[import the sorting module](#import-the-sorting-module) first.
 
 ## Configure sorting
 
@@ -3345,6 +3330,30 @@ ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example1
 :::
 
 :::
+
+## Import the sorting module
+
+If you're using Handsontable through [modules](@/guides/tools-and-building/modules.md),
+you need to do the following before you can [enable sorting](#enable-sorting):
+
+```js
+// import the base module
+import Handsontable from 'handsontable/base';
+
+// import Handsontable's CSS
+import 'handsontable/dist/handsontable.full.min.css';
+
+// import the sorting plugins
+import {
+  registerPlugin,
+  ColumnSorting,
+  MultiColumnSorting,
+} from 'handsontable/plugins';
+
+// register the sorting plugins
+registerPlugin(ColumnSorting);
+registerPlugin(MultiColumnSorting);
+```
 
 ## API reference
 
