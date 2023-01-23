@@ -1,7 +1,8 @@
 {
+  "issuesOrigin": "private",
   "title": "Added Japanese translation for Copy with Headers feature.",
   "type": "added",
-  "issue": 950,
+  "issueOrPR": 10201,
   "breaking": false,
   "framework": "none"
 }
