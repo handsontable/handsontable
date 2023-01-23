@@ -899,4 +899,35 @@ describe('WalkontableOverlay', () => {
 
     expect(getTableTopClone().find('thead tr th').css('border-bottom-width')).toBe('1px');
   });
+
+  it('should return the list of all overlays when calling the `getOverlays` method', () => {
+    createDataArray(3, 3);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+
+    const wtOverlaysRef = wt.wtOverlays;
+    const overlays = wtOverlaysRef.getOverlays();
+    const overlaysWithMaster = wtOverlaysRef.getOverlays(true);
+
+    expect(overlays).toEqual([
+      wtOverlaysRef.topOverlay,
+      wtOverlaysRef.topInlineStartCornerOverlay,
+      wtOverlaysRef.inlineStartOverlay,
+      wtOverlaysRef.bottomOverlay,
+      wtOverlaysRef.bottomInlineStartCornerOverlay
+    ]);
+
+    expect(overlaysWithMaster).toEqual([
+      wtOverlaysRef.topOverlay,
+      wtOverlaysRef.topInlineStartCornerOverlay,
+      wtOverlaysRef.inlineStartOverlay,
+      wtOverlaysRef.bottomOverlay,
+      wtOverlaysRef.bottomInlineStartCornerOverlay,
+      wtOverlaysRef.wtTable
+    ]);
+  });
 });
