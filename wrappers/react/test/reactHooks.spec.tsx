@@ -48,8 +48,8 @@ describe('Using hooks within HotTable renderers', () => {
     simulateMouseEvent(hotInstance.getCell(0,0).querySelector('button'), 'click');
     simulateMouseEvent(hotInstance.getCell(0,0).querySelector('button'), 'click');
 
-    expect(hotInstance.getCell(0,0).querySelector('span').innerHTML).toEqual('3');
-    expect(hotInstance.getCell(1,1).querySelector('span').innerHTML).toEqual('0');
+    expect(hotInstance.getCell(0,0).querySelector('span').innerHTML).toEqual('30');
+    expect(hotInstance.getCell(1,1).querySelector('span').innerHTML).toEqual('20');
   });
 });
 
