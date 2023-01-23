@@ -542,13 +542,13 @@ const yourHandsontableInstance = new Handsontable(container, {
   columns: [
     {
       title: 'Model',
-      // set the data type of column 1
+      // set the data type of the 'Model' column
       type: 'text', // 'text' is the default type, so you can omit it
       data: 'model',
     },
     {
       title: 'Price',
-      // set the data type of column 2
+      // set the data type of the 'Price' column
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -559,21 +559,21 @@ const yourHandsontableInstance = new Handsontable(container, {
     },
     {
       title: 'Date',
-      // set the data type of column 3
+      // set the data type of the 'Date' column
       type: 'date',
       data: 'sellDate',
       className: 'htRight',
     },
     {
       title: 'Time',
-      // set the data type of column 4
+      // set the data type of the 'Time' column
       type: 'time',
       data: 'sellTime',
       className: 'htRight',
     },
     {
       title: 'In stock',
-      // set the data type of column 5
+      // set the data type of the 'In stock' column
       type: 'checkbox',
       data: 'inStock',
       className: 'htCenter',
@@ -648,13 +648,13 @@ export const YourHandsontableComponent = () => {
       columns={[
         {
           title: 'Model',
-          // set the data type of column 1
+          // set the data type of the 'Model' column
           type: 'text', // 'text' is the default type, so you can omit it
           data: 'model',
         },
         {
           title: 'Price',
-          // set the data type of column 2
+          // set the data type of the 'Price' column
           type: 'numeric',
           data: 'price',
           numericFormat: {
@@ -665,21 +665,21 @@ export const YourHandsontableComponent = () => {
         },
         {
           title: 'Date',
-          // set the data type of column 3
+          // set the data type of the 'Date' column
           type: 'date',
           data: 'sellDate',
           className: 'htRight',
         },
         {
           title: 'Time',
-          // set the data type of column 4
+          // set the data type of the 'Time' column
           type: 'time',
           data: 'sellTime',
           className: 'htRight',
         },
         {
           title: 'In stock',
-          // set the data type of column 5
+          // set the data type of the 'In stock' column
           type: 'checkbox',
           data: 'inStock',
           className: 'htCenter',
@@ -1125,13 +1125,13 @@ const yourHandsontableInstance = new Handsontable(container, {
   height: 'auto',
   width: 'auto',
   multiColumnSorting: {
-    // at initialization, sort data by column 1, in ascending order
     initialConfig: [
+      // at initialization, sort the data by the 'Brand' column, in ascending order
       {
         column: 0,
         sortOrder: 'asc',
       },
-      // at initialization, sort data by column 2, in descending order
+      // at initialization, sort the data by the 'Model' column, in descending order
       {
         column: 1,
         sortOrder: 'desc',
@@ -1242,13 +1242,13 @@ export const YourHandsontableComponent = () => {
         },
       ]}
       multiColumnSorting={{
-        // at initialization, sort data by column 1, in ascending order
         initialConfig: [
           {
+            // at initialization, sort the data by the 'Brand' column, in ascending order
             column: 0,
             sortOrder: 'asc',
           },
-          // at initialization, sort data by column 2, in descending order
+            // at initialization, sort the data by the 'Model' column, in ascending order
           {
             column: 1,
             sortOrder: 'desc',
@@ -1555,7 +1555,7 @@ export const YourHandsontableComponent = () => {
         },
       ]}
       columnSorting={{
-        // at initialization, sort data by column 1, in descending order
+        // at initialization, sort the data by the 'Brand' column, in descending order
         initialConfig: {
           column: 1,
           sortOrder: 'desc',
@@ -1812,7 +1812,7 @@ export const YourHandsontableComponent = () => {
         },
       ]}
       columnSorting={{
-        // at initialization, sort data by column 1, in descending order
+        // at initialization, sort the data by the 'Brand' column, in descending order
         initialConfig: {
           column: 1,
           sortOrder: 'desc',
@@ -2021,7 +2021,7 @@ Try it out:
 <div id="example7"></div>
 
 <div class="controls">
-  <button id="sort_asc" class="button">Sort by column 1, in ascending order</button>
+  <button id="sort_asc" class="button">Sort by the "Brand" column, in ascending order</button>
   <br>
   <br>
   <button id="unsort" class="button">Go back to the original order</button>
@@ -2272,7 +2272,7 @@ export const YourHandsontableComponent = () => {
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button onClick={sort_asc}>Sort by column 1, in ascending order</button>
+        <button onClick={sort_asc}>Sort by the "Brand" column, in ascending order</button>
         <br />
         <br />
         <button onClick={unsort}>Go back to the original order</button>
