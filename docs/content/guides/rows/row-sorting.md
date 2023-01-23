@@ -341,7 +341,7 @@ const configurationOptions = {
 :::
 
 If you're using Handsontable through [modules](@/guides/tools-and-building/modules.md),
-[import the sorting module](#import-the-sorting-module) first.
+remember to [import the sorting module](#import-the-sorting-module) first.
 
 ## Configure sorting
 
