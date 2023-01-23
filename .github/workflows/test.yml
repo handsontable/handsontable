@@ -62,7 +62,6 @@ jobs:
             hot-e2e-test-shared: &hot-e2e-test-shared
               - './handsontable/test/e2e/**'
               - './handsontable/test/scripts/**'
-
             build-handsontable-umd:
               - *hot-shared
               - './handsontable/test/e2e/**'
@@ -99,6 +98,10 @@ jobs:
             test-vue3:
               - *hot-shared
               - 'wrappers/vue3/**'
+            build-and-test-visual-tests:
+              - *hot-shared
+              - './visual-tests/**'
+              - './examples/next/visual-tests/**'
 
   build-handsontable-umd:
     name: "[BUILD] Handsontable: UMD"
@@ -370,3 +373,57 @@ jobs:
       - run: npm run swap-package-links
       - run: npm run in vue3 build
       - run: npm run in vue3 test
+
+  visual-tests:
+    name: "[TEST] Visual tests"
+    runs-on: ubuntu-latest
+    needs: [ check-scope, test-angular, test-react, test-vue, test-vue3, test-handsontable-e2e, test-handsontable-e2e-min ]
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+
+      - name: Install system dependencies
+        run: |
+          npm run in visual-tests install-system-dependencies
+
+      - name: Download the Handsontable CommonJS and ESM artifacts
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+
+      - name: Download the Handsontable UMD artifact
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
+        with:
+          name: handsontable-build-umd
+          path: ./
+      - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
+
+      - name: Build test examples
+        run: |
+          npm run in visual-tests build
+
+      - name: Run tests
+        run: |
+          npm run in visual-tests test
+
+      - run: |
+          tar -zcf screenshots.tar.gz ./visual-tests/screenshots
+
+      - name: Upload the screenshot artifacts
+        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
+        with:
+          name: screenshots
+          path: screenshots.tar.gz
+
+      - name: Compare screenshots
+        env:
+          ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
+        run: |
+          npm run in visual-tests upload
