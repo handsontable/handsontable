@@ -294,6 +294,12 @@ jobs:
       - run: cd handsontable
       - run: npm run swap-package-links
       - run: npm run in angular build
+      - run: tar --exclude='node_modules' -zcf angular.tar.gz ./wrappers/angular
+      - name: Upload the Angular build artifact
+        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
+        with:
+          name: angular-build
+          path: angular.tar.gz
       - run: npm run in angular test:ci
 
   test-react:
@@ -320,6 +326,12 @@ jobs:
       - run: cd handsontable
       - run: npm run swap-package-links
       - run: npm run in react build
+      - run: tar --exclude='node_modules' -zcf react.tar.gz ./wrappers/react
+      - name: Upload the React build artifact
+        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
+        with:
+          name: react-build
+          path: react.tar.gz
       - run: npm run in react test
 
   test-vue:
@@ -346,6 +358,12 @@ jobs:
       - run: cd handsontable
       - run: npm run swap-package-links
       - run: npm run in vue build
+      - run: tar --exclude='node_modules' -zcf vue.tar.gz ./wrappers/vue
+      - name: Upload the Vue2 build artifact
+        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
+        with:
+          name: vue-build
+          path: vue.tar.gz
       - run: npm run in vue test
 
   test-vue3:
@@ -372,6 +390,12 @@ jobs:
       - run: cd handsontable
       - run: npm run swap-package-links
       - run: npm run in vue3 build
+      - run: tar --exclude='node_modules' -zcf vue3.tar.gz ./wrappers/vue3
+      - name: Upload the Vue3 build artifact
+        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
+        with:
+          name: vue3-build
+          path: vue3.tar.gz
       - run: npm run in vue3 test
 
   visual-tests:
@@ -391,19 +415,16 @@ jobs:
         run: |
           npm run in visual-tests install-system-dependencies
 
-      - name: Download the Handsontable CommonJS and ESM artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
-          name: handsontable-build-es-cjs
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
-
-      - name: Download the Handsontable UMD artifact
-        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
-        with:
-          name: handsontable-build-umd
-          path: ./
       - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
+      - run: tar -zxf angular.tar.gz ./wrappers/angular && rm angular.tar.gz
+      - run: tar -zxf react.tar.gz ./wrappers/react && rm react.tar.gz
+      - run: tar -zxf vue.tar.gz ./wrappers/vue && rm vue.tar.gz
+      - run: tar -zxf vue3.tar.gz ./wrappers/vue3 && rm vue3.tar.gz
 
       - name: Build test examples
         run: |
