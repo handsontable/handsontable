@@ -1330,14 +1330,22 @@ property in the following pseudo-elements of Handsontable's CSS:
 ::: example #example5 --css 1 --js 2
 
 ```css
-/* the icon for ascending order */
-.handsontable1 span.colHeader.columnSorting.ascending::before {
+/* custom sort icon for both ascending and descending order */
+.handsontable1 span.colHeader.columnSorting.ascending::before,
+.handsontable1 span.colHeader.columnSorting.descending::before {
   background-image: url("https://cdn-icons-png.flaticon.com/512/130/130906.png") !important;
+  /* minor adjustments, as the custom icon has a different size than the original */
+  top: 12px;
+  right: -35px;
+  width: 16px;
+  height: 22px;
+  zoom: .4;
 }
 
-/* the icon for descending order */
-.handsontable1 span.colHeader.columnSorting.descending::before {
-  background-image: url("https://cdn-icons-png.flaticon.com/512/32/32195.png") !important;
+/* same icon as for ascending order, but pointed downward – rotated 180 degrees */
+.handsontable1 span.colHeader.columnSorting.descending:before {
+  top: 16px;
+  transform: rotate(180deg);
 }
 ```
 ```js
@@ -1450,14 +1458,22 @@ const yourHandsontableInstance = new Handsontable(container, {
 
 ::: example #example5 :react --css 1 --js 2
 ```css
-/* the icon for ascending order */
-.handsontable1 span.colHeader.columnSorting.ascending::before {
+/* custom sort icon for both ascending and descending order */
+.handsontable1 span.colHeader.columnSorting.ascending::before,
+.handsontable1 span.colHeader.columnSorting.descending::before {
   background-image: url("https://cdn-icons-png.flaticon.com/512/130/130906.png") !important;
+  /* minor adjustments, as the custom icon has a different size than the original */
+  top: 12px;
+  right: -35px;
+  width: 16px;
+  height: 22px;
+  zoom: .4;
 }
 
-/* the icon for descending order */
-.handsontable1 span.colHeader.columnSorting.descending::before {
-  background-image: url("https://cdn-icons-png.flaticon.com/512/2985/2985150.png") !important;
+/* same icon as for ascending order, but pointed downward – rotated 180 degrees */
+.handsontable1 span.colHeader.columnSorting.descending:before {
+  top: 16px;
+  transform: rotate(180deg);
 }
 ```
 ```jsx
