@@ -149,6 +149,29 @@ class Overlays {
   }
 
   /**
+   * Get the list of references to all overlays.
+   *
+   * @param {boolean} [includeMaster = false] If set to `true`, the list will contain the master table as the last
+   * element.
+   * @returns {(TopOverlay|TopInlineStartCornerOverlay|InlineStartOverlay|BottomOverlay|BottomInlineStartCornerOverlay)[]}
+   */
+  getOverlays(includeMaster = false) {
+    const overlays = [
+      this.topOverlay,
+      this.topInlineStartCornerOverlay,
+      this.inlineStartOverlay,
+      this.bottomOverlay,
+      this.bottomInlineStartCornerOverlay
+    ];
+
+    if (includeMaster) {
+      overlays.push(this.wtTable);
+    }
+
+    return overlays;
+  }
+
+  /**
    * Retrieve browser line height and apply its value to `browserLineHeight`.
    *
    * @private
