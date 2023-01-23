@@ -403,7 +403,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - check-scope
-      - test-handsontable-walkontable
+      # - test-handsontable-walkontable
       # - test-handsontable-e2e
       # - test-handsontable-e2e-min
       - test-angular
@@ -427,16 +427,12 @@ jobs:
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           path: ./
-      - run: tar -zxf handsontable-build-es-cjs/tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
-      - run: tar -zxf handsontable-build-umd/dist.tar.gz ./handsontable/dist && rm dist.tar.gz
-      - run: tar -zxf angular-build/angular.tar.gz ./wrappers/angular && rm angular.tar.gz
-      - run: tar -zxf react-build/react.tar.gz ./wrappers/react && rm react.tar.gz
-      - run: tar -zxf vue-build/vue.tar.gz ./wrappers/vue && rm vue.tar.gz
-      - run: tar -zxf vue3-build/vue3.tar.gz ./wrappers/vue3 && rm vue3.tar.gz
+      - run: tar -zxf handsontable-build-es-cjs/tmp.tar.gz ./handsontable/tmp && rm -r handsontable-build-es-cjs
+      - run: tar -zxf handsontable-build-umd/dist.tar.gz ./handsontable/dist && rm -r handsontable-build-umd
 
-      - name: Build test examples
+      - name: Build wrappers and test examples
         run: |
-          npm run in visual-tests build
+          npm run build -- -e handsontable
 
       - name: Run tests
         run: |
