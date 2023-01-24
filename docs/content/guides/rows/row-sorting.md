@@ -58,7 +58,7 @@ the rows get sorted in ascending (↑) or descending (↓) order, or go back to 
 
 ::: example #example1
 ```js
-// to import just individual modules, see the 'Import the sorting module' section of this page
+// to import sorting as an individual module, see the 'Import the sorting module' section of this page
 
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -310,11 +310,11 @@ set [`columnSorting`](@/api/options.md#columnsorting) for each column separately
 const configurationOptions = {
   columns: [
     {
-      // enable sorting for column 1
+      // enable sorting for the first column
       columnSorting: true,
     },
     {
-      // disable sorting for column 2
+      // disable sorting for the second column
       columnSorting: false,
     },
   ],
@@ -328,20 +328,17 @@ const configurationOptions = {
 ```jsx
 <HotTable>
   <HotColumn
-    // enable sorting for column 1
+    // enable sorting for the first column
     columnSorting={true}
   />
   <HotColumn
-    // disable sorting for column 2
+    // disable sorting for the second column
     columnSorting={false}
   />
 </HotTable>
 ```
 
 :::
-
-If you're using Handsontable through [modules](@/guides/tools-and-building/modules.md),
-remember to [import the sorting module](#import-the-sorting-module) first.
 
 ## Configure sorting
 
@@ -403,7 +400,7 @@ const configurationOptions = {
     // disable the sort order icon that appears next to the column name
     indicator: false,
 
-    // at initialization, sort data by column 1, in descending order
+    // at initialization, sort data by the first column, in descending order
     initialConfig: {
       column: 1,
       sortOrder: 'desc',
@@ -434,7 +431,7 @@ const configurationOptions = {
     // disable the sort order icon that appears next to the column name
     indicator: false,
 
-    // at initialization, sort data by column 1, in descending order
+    // at initialization, sort data by the first column, in descending order
     initialConfig: {
       column: 1,
       sortOrder: 'desc',
@@ -463,7 +460,7 @@ Handsontable automatically sorts different types of data, such as text, numbers,
 const configurationOptions = {
   columns: [
     {
-      // set the data type of column 1
+      // set the data type of the first column
       type: 'numeric',
     },
   ],
@@ -477,7 +474,7 @@ const configurationOptions = {
 ```jsx
 <HotTable>
   <HotColumn
-    // set the data type of column 1
+    // set the data type of the first column
     type={'numeric'}
   />
 </HotTable>
@@ -965,11 +962,11 @@ set [`multiColumnSorting`](@/api/options.md#multicolumnsorting) for each column 
 const configurationOptions = {
   columns: [
     {
-      // enable sorting by multiple columns, for column 1
+      // enable sorting by multiple columns, for the first column
       multiColumnSorting: true,
     },
     {
-      // enable sorting by multiple columns, for column 2
+      // enable sorting by multiple columns, for the second column
       multiColumnSorting: true,
     },
   ],
@@ -983,11 +980,11 @@ const configurationOptions = {
 ```jsx
 <HotTable>
   <HotColumn
-    // enable sorting by multiple columns, for column 1
+    // enable sorting by multiple columns, for the first column
     multiColumnSorting={true}
   />
   <HotColumn
-    // enable sorting by multiple columns, for column 2
+    // enable sorting by multiple columns, for the second column
     multiColumnSorting={true}
   />
 </HotTable>
@@ -1277,7 +1274,7 @@ To set an initial sort order, use the [`initialConfig`](@/api/options.md#columns
 ```js
 const configurationOptions = {
   columnSorting: {
-    // at initialization, sort data by column 1, in ascending order
+    // at initialization, sort data by the first column, in ascending order
     initialConfig: {
       column: 0,
       sortOrder: 'asc', // for descending order, use `'desc'`
@@ -1292,7 +1289,7 @@ const configurationOptions = {
 ```jsx
 <HotTable
   columnSorting={{
-    // at initialization, sort data by column 1, in ascending order
+    // at initialization, sort data by the first column, in ascending order
     initialConfig: {
       column: 0,
       sortOrder: 'asc',  // for descending order, use `'desc'`
@@ -1929,11 +1926,11 @@ You can also enable or disable sorting for specified columns.
 handsontableInstance.updateSettings({
   columns: [
     {
-      // enable sorting for column 1
+      // enable sorting for the first column
       columnSorting: true,
     },
     {
-      // disable sorting for column 2
+      // disable sorting for the second column
       columnSorting: false,
     },
   ],
@@ -1950,11 +1947,11 @@ const hotTableComponentRef = useRef(null);
 hotTableComponentRef.current.hotInstance.updateSettings({
   columns: [
     {
-      // enable sorting for column 1
+      // enable sorting for the first column
       columnSorting: true,
     },
     {
-      // disable sorting for column 2
+      // disable sorting for the second column
       columnSorting: false,
     },
   ],
