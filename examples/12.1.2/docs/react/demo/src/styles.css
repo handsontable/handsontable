@@ -13,6 +13,7 @@ table.htCore tr.odd td {
 table.htCore td .progressBar {
   background: #37bc6c;
   height: 10px;
+  margin: 6px 0 0;
 }
 
 table.htCore tr.selected td {
