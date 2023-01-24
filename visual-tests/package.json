@@ -10,7 +10,8 @@
     "test": "node ./scripts/run-tests.mjs",
     "upload": "node ./scripts/upload.mjs",
     "install-system-dependencies": "npx --no playwright install --with-deps",
-    "publish-package": "echo \"There is nothing to publish. Skipped.\""
+    "publish-package": "echo \"There is nothing to publish. Skipped.\"",
+    "clean": "echo \"There is nothing to clean. Skipped.\""
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "license": "CC BY 4.0",
