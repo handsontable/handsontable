@@ -1,15 +1,11 @@
-import Handsontable from "handsontable";
-
-export type RendererProps = {
-  TD: HTMLTableCellElement;
-  value: any;
-  cellProperties: Handsontable.CellProperties;
-};
-
-export const addClassWhenNeeded = (props: RendererProps) => {
-  const className = props.cellProperties.className;
-
-  if (className !== void 0) {
-    Handsontable.dom.addClass(props.TD, className);
+export function getRangeValue(value: number, minAllowedValue: number, maxAllowedValue: number): number {
+  if (value < minAllowedValue || !value) {
+    return minAllowedValue;
   }
-};
+
+  if (value > maxAllowedValue) {
+    return maxAllowedValue;
+  }
+
+  return value;
+}

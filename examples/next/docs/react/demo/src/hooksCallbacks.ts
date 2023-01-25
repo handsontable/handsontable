@@ -1,13 +1,13 @@
-import Handsontable from "handsontable";
+import Handsontable from 'handsontable';
 import {
   SELECTED_CLASS,
   ODD_ROW_CLASS
-} from "./constants";
+} from './constants';
 
 const headerAlignments = new Map([
-  ["9", "htCenter"],
-  ["10", "htRight"],
-  ["12", "htCenter"]
+  ['9', 'htCenter'],
+  ['10', 'htRight'],
+  ['12', 'htCenter']
 ]);
 
 type AddClassesToRows = (
@@ -63,11 +63,11 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawC
   row,
   TH
 ) {
-  const input = document.createElement("input");
+  const input = document.createElement('input');
 
-  input.type = "checkbox";
+  input.type = 'checkbox';
 
-  if (row >= 0 && this.getDataAtRowProp(row, "0")) {
+  if (row >= 0 && this.getDataAtRowProp(row, '0')) {
     input.checked = true;
   }
 
@@ -81,7 +81,7 @@ export function alignHeaders(this: Handsontable, column: number, TH: HTMLTableCe
     return;
   }
 
-  const alignmentClass = this.isRtl() ? "htRight" : "htLeft";
+  const alignmentClass = this.isRtl() ? 'htRight' : 'htLeft';
 
   if (TH.firstChild) {
     if (headerAlignments.has(column.toString())) {
@@ -105,9 +105,9 @@ export const changeCheckboxCell: ChangeCheckboxCell = function changeCheckboxCel
 ) {
   const target = event.target as HTMLInputElement;
 
-  if (coords.col === -1 && event.target && target.nodeName === "INPUT") {
+  if (coords.col === -1 && event.target && target.nodeName === 'INPUT') {
     event.preventDefault(); // Handsontable will render checked/unchecked checkbox by it own.
 
-    this.setDataAtRowProp(coords.row, "0", !target.checked);
+    this.setDataAtRowProp(coords.row, '0', !target.checked);
   }
 };

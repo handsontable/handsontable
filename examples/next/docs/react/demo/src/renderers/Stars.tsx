@@ -1,8 +1,22 @@
 import React from "react";
-import { addClassWhenNeeded, RendererProps } from "./utils";
+import { BaseEditorComponent, HotEditorProps } from '@handsontable/react';
+import { getRangeValue } from './utils';
 
-export function StarsRenderer(props: RendererProps) {
-  addClassWhenNeeded(props);
+const minAllowedValue = 0;
+const maxAllowedValue = 5;
 
-  return <div className="star htCenter">{"★".repeat(props.value)}</div>;
+interface IStarsRendererProps extends HotEditorProps {
+  value: number;
+}
+
+export class StarsRenderer extends BaseEditorComponent {
+  props!: IStarsRendererProps;
+
+  render() {
+    return (
+      <div className="star htCenter">
+        {"★".repeat(getRangeValue(this.props.value, minAllowedValue, maxAllowedValue))}
+      </div>
+    );
+  }
 }

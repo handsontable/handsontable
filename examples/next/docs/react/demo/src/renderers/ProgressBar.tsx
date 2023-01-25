@@ -1,10 +1,24 @@
 import React from "react";
-import { addClassWhenNeeded, RendererProps } from "./utils";
+import { BaseEditorComponent, HotEditorProps } from '@handsontable/react';
+import { getRangeValue } from './utils';
 
-export function ProgressBarRenderer(props: RendererProps) {
-  addClassWhenNeeded(props);
+const minAllowedValue = 0;
+const maxAllowedValue = 100;
 
-  return (
-    <div className={`progressBar`} style={{ width: `${props.value * 10}px` }} />
-  );
+
+interface IProgressBarRendererProps extends HotEditorProps {
+  value: number;
+}
+
+export class ProgressBarRenderer extends BaseEditorComponent {
+  props!: IProgressBarRendererProps;
+  
+  render() {
+    return (
+      <div
+        className="progressBar" 
+        style={{ width: `${getRangeValue(this.props.value, minAllowedValue, maxAllowedValue)}px` }}
+      />
+    );
+  }
 }

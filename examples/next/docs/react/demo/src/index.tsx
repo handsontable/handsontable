@@ -4,7 +4,7 @@ import "pikaday/css/pikaday.css";
 import "./styles.css";
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from "@handsontable/react";
-import { data } from "./constants";
+import { data as defaultData } from "./constants";
 import { ProgressBarRenderer } from "./renderers/ProgressBar";
 import { StarsRenderer } from "./renderers/Stars";
 
@@ -16,6 +16,12 @@ import {
 } from "./hooksCallbacks";
 
 import "handsontable/dist/handsontable.min.css";
+
+const data: Handsontable.RowObject[] = [];
+
+for (let x = 1; x <= 5; x++) {
+  data.push(...JSON.parse(JSON.stringify(defaultData)));
+}
 
 const App = () => {
   return (
@@ -49,21 +55,21 @@ const App = () => {
       manualRowMove={true}
       licenseKey="non-commercial-and-evaluation"
     >
-      <HotColumn data={1} />
-      <HotColumn data={3} />
-      <HotColumn data={4} type="date" allowInvalid={false} />
-      <HotColumn data={6} type="checkbox" className="htCenter" />
-      <HotColumn data={7} type="numeric" />
-      <HotColumn data={8} readOnly={true} className="htMiddle">
+      <HotColumn data="companyName" />
+      <HotColumn data="name" />
+      <HotColumn data="sellDate" type="date" allowInvalid={false} />
+      <HotColumn data="inStock" type="checkbox" className="htCenter" />
+      <HotColumn data="quantity" type="numeric" />
+      <HotColumn data="progress" className="htMiddle" type="numeric">
         {/* @ts-ignore Element inherits some props. It's hard to type it. */}
         <ProgressBarRenderer hot-renderer />
       </HotColumn>
-      <HotColumn data={9} readOnly={true} className="htCenter">
+      <HotColumn data="rating" className="htCenter" type="numeric" allowInvalid={false} >
         {/* @ts-ignore Element inherits some props. It's hard to type it. */}
-        <StarsRenderer hot-renderer />
+        <StarsRenderer hot-renderer/>
       </HotColumn>
-      <HotColumn data={5} />
-      <HotColumn data={2} />
+      <HotColumn data="orderId" />
+      <HotColumn data="country" />
     </HotTable>
   );
 };
@@ -72,4 +78,3 @@ const rootElement = document.getElementById("root");
 ReactDOM.render(<App />, rootElement);
 
 console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`);
-
