@@ -19,7 +19,7 @@ import "handsontable/dist/handsontable.min.css";
 
 const data: Handsontable.RowObject[] = [];
 
-for (let x = 1; x <= 3; x++) {
+for (let x = 1; x <= 5; x++) {
   data.push(...JSON.parse(JSON.stringify(defaultData)));
 }
 
@@ -62,11 +62,11 @@ const App = () => {
       <HotColumn data="quantity" type="numeric" />
       <HotColumn data="progress" className="htMiddle" type="numeric">
         {/* @ts-ignore Element inherits some props. It's hard to type it. */}
-        <ProgressBarRenderer hot-renderer hot-editor />
+        <ProgressBarRenderer hot-renderer />
       </HotColumn>
-      <HotColumn data="rating" className="htCenter" type="numeric">
+      <HotColumn data="rating" className="htCenter" type="numeric" allowInvalid={false} >
         {/* @ts-ignore Element inherits some props. It's hard to type it. */}
-        <StarsRenderer hot-renderer hot-editor/>
+        <StarsRenderer hot-renderer/>
       </HotColumn>
       <HotColumn data="orderId" />
       <HotColumn data="country" />
