@@ -66,7 +66,7 @@ const App = () => {
       </HotColumn>
       <HotColumn data="rating" className="htCenter" type="numeric" allowInvalid={false} >
         {/* @ts-ignore Element inherits some props. It's hard to type it. */}
-        <StarsRenderer hot-renderer/>
+        <StarsRenderer hot-renderer />
       </HotColumn>
       <HotColumn data="orderId" />
       <HotColumn data="country" />
