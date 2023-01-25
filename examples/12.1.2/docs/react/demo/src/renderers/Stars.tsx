@@ -1,3 +1,4 @@
+import React from "react";
 import { BaseEditorComponent, HotEditorProps } from '@handsontable/react';
 import { getRangeValue } from './utils';
 
