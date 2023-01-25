@@ -56,7 +56,12 @@ the rows get sorted in ascending (↑) or descending (↓) order, or go back to 
 
 ::: only-for javascript
 
-::: example #example1
+::: example #example1 --html 1 --js 2
+
+```html
+<div id="example1"></div>
+```
+
 ```js
 // to import sorting as an individual module, see the 'Import the sorting module' section of this page
 
@@ -65,7 +70,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example1');
 
-const yourHandsontableInstance = new Handsontable(container, {
+const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
@@ -155,6 +160,7 @@ const yourHandsontableInstance = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
+
 :::
 
 :::
@@ -162,6 +168,7 @@ const yourHandsontableInstance = new Handsontable(container, {
 ::: only-for react
 
 ::: example #example1 :react
+
 ```jsx
 // to import just individual modules, see the 'Import the sorting module' section of this page
 
@@ -172,7 +179,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const YourHandsontableComponent = () => {
+export const HandsontableComponent = () => {
   return (
     <HotTable
       data={[
@@ -267,9 +274,10 @@ export const YourHandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example1'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example1'));
 /* end:skip-in-preview */
 ```
+
 :::
 
 :::
@@ -486,14 +494,19 @@ This demo uses a different [`type`](@/api/options.md#type) in each column.
 
 ::: only-for javascript
 
-::: example #example2
+::: example #example2 --html 1 --js 2
+
+```html
+<div id="example2"></div>
+```
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example2');
 
-const yourHandsontableInstance = new Handsontable(container, {
+const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
@@ -582,6 +595,7 @@ const yourHandsontableInstance = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
+
 :::
 
 :::
@@ -589,6 +603,7 @@ const yourHandsontableInstance = new Handsontable(container, {
 ::: only-for react
 
 ::: example #example2 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -597,7 +612,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const YourHandsontableComponent = () => {
+export const HandsontableComponent = () => {
   return (
     <HotTable
       data={[
@@ -691,9 +706,10 @@ export const YourHandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example2'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example2'));
 /* end:skip-in-preview */
 ```
+
 :::
 
 :::
@@ -714,14 +730,19 @@ Try it out:
 
 ::: only-for javascript
 
-::: example #example3
+::: example #example3 --html 1 --js 2
+
+```html
+<div id="example3"></div>
+```
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example3');
 
-const yourHandsontableInstance = new Handsontable(container, {
+const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
@@ -811,6 +832,7 @@ const yourHandsontableInstance = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
+
 :::
 
 :::
@@ -818,6 +840,7 @@ const yourHandsontableInstance = new Handsontable(container, {
 ::: only-for react
 
 ::: example #example3 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -826,7 +849,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const YourHandsontableComponent = () => {
+export const HandsontableComponent = () => {
   return (
     <HotTable
       data={[
@@ -921,9 +944,10 @@ export const YourHandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example3'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example3'));
 /* end:skip-in-preview */
 ```
+
 :::
 
 :::
@@ -1029,14 +1053,19 @@ In this demo, the data is initially sorted:
 
 ::: only-for javascript
 
-::: example #example4
+::: example #example4 --html 1 --js 2
+
+```html
+<div id="example4"></div>
+```
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example4');
 
-const yourHandsontableInstance = new Handsontable(container, {
+const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
@@ -1138,6 +1167,7 @@ const yourHandsontableInstance = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
+
 :::
 
 :::
@@ -1145,6 +1175,7 @@ const yourHandsontableInstance = new Handsontable(container, {
 ::: only-for react
 
 ::: example #example4 :react
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -1153,7 +1184,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const YourHandsontableComponent = () => {
+export const HandsontableComponent = () => {
   return (
     <HotTable
       data={[
@@ -1260,9 +1291,10 @@ export const YourHandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example4'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example4'));
 /* end:skip-in-preview */
 ```
+
 :::
 
 :::
@@ -1309,34 +1341,19 @@ property in the following pseudo-elements of Handsontable's CSS:
 
 ::: only-for javascript
 
-::: example #example5 --css 1 --js 2
+::: example #example5 --html 1 --js 2 --css 3
 
-```css
-/* custom sort icon for both ascending and descending order */
-.handsontable1 span.colHeader.columnSorting.ascending::before,
-.handsontable1 span.colHeader.columnSorting.descending::before {
-  background-image: url("https://cdn-icons-png.flaticon.com/512/130/130906.png") !important;
-  /* minor adjustments, as the custom icon has a different size than the original */
-  top: 12px;
-  right: -35px;
-  width: 16px;
-  height: 22px;
-  zoom: .4;
-}
-
-/* same icon as for ascending order, but pointed downward – rotated 180 degrees */
-.handsontable1 span.colHeader.columnSorting.descending:before {
-  top: 16px;
-  transform: rotate(180deg);
-}
+```html
+<div id="example5"></div>
 ```
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example5');
 
-const yourHandsontableInstance = new Handsontable(container, {
+const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
@@ -1432,13 +1449,6 @@ const yourHandsontableInstance = new Handsontable(container, {
 });
 ```
 
-:::
-
-:::
-
-::: only-for react
-
-::: example #example5 :react --css 1 --js 2
 ```css
 /* custom sort icon for both ascending and descending order */
 .handsontable1 span.colHeader.columnSorting.ascending::before,
@@ -1458,6 +1468,15 @@ const yourHandsontableInstance = new Handsontable(container, {
   transform: rotate(180deg);
 }
 ```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react --js 1 --css 2
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -1466,7 +1485,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const YourHandsontableComponent = () => {
+export const HandsontableComponent = () => {
   return (
     <HotTable
       data={[
@@ -1567,9 +1586,30 @@ export const YourHandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example5'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example5'));
 /* end:skip-in-preview */
 ```
+
+```css
+/* custom sort icon for both ascending and descending order */
+.handsontable1 span.colHeader.columnSorting.ascending::before,
+.handsontable1 span.colHeader.columnSorting.descending::before {
+  background-image: url("https://cdn-icons-png.flaticon.com/512/130/130906.png") !important;
+  /* minor adjustments, as the custom icon has a different size than the original */
+  top: 12px;
+  right: -35px;
+  width: 16px;
+  height: 22px;
+  zoom: .4;
+}
+
+/* same icon as for ascending order, but pointed downward – rotated 180 degrees */
+.handsontable1 span.colHeader.columnSorting.descending:before {
+  top: 16px;
+  transform: rotate(180deg);
+}
+```
+
 :::
 
 :::
@@ -1578,28 +1618,19 @@ You can also change the sort icons by changing the `content` property of the sam
 
 ::: only-for javascript
 
-::: example #example6 --css 1 --js 2
+::: example #example6 --html 1 --js 2 --css 3
 
-```css
-/* the icon for ascending order */
-.handsontable2 span.colHeader.columnSorting.ascending::before {
-  content: '△';
-  background-image: none !important;
-}
-
-/* the icon for descending order */
-.handsontable2 span.colHeader.columnSorting.descending::before {
-  content: '▽';
-  background-image: none !important;
-}
+```html
+<div id="example6"></div>
 ```
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example6');
 
-const yourHandsontableInstance = new Handsontable(container, {
+const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
@@ -1695,13 +1726,6 @@ const yourHandsontableInstance = new Handsontable(container, {
 });
 ```
 
-:::
-
-:::
-
-::: only-for react
-
-::: example #example6 :react --css 1 --js 2
 ```css
 /* the icon for ascending order */
 .handsontable2 span.colHeader.columnSorting.ascending::before {
@@ -1715,6 +1739,15 @@ const yourHandsontableInstance = new Handsontable(container, {
   background-image: none !important;
 }
 ```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example6 :react --js 1 --css 2
+
 ```jsx
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
@@ -1723,7 +1756,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const YourHandsontableComponent = () => {
+export const HandsontableComponent = () => {
   return (
     <HotTable
       data={[
@@ -1824,9 +1857,24 @@ export const YourHandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example6'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example6'));
 /* end:skip-in-preview */
 ```
+
+```css
+/* the icon for ascending order */
+.handsontable2 span.colHeader.columnSorting.ascending::before {
+  content: '△';
+  background-image: none !important;
+}
+
+/* the icon for descending order */
+.handsontable2 span.colHeader.columnSorting.descending::before {
+  content: '▽';
+  background-image: none !important;
+}
+```
+
 :::
 
 :::
@@ -2014,6 +2062,7 @@ Try it out:
 ::: only-for javascript
 
 ::: example #example7 --html 1 --js 2
+
 ```html
 <div id="example7"></div>
 
@@ -2144,6 +2193,7 @@ button_unsort.addEventListener('click', () => {
 ::: only-for react
 
 ::: example #example7 :react
+
 ```jsx
 import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -2153,7 +2203,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const YourHandsontableComponent = () => {
+export const HandsontableComponent = () => {
   const hotTableComponentRef = useRef(null);
 
   const sort_asc = () => {
@@ -2279,7 +2329,7 @@ export const YourHandsontableComponent = () => {
 }
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example7'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example7'));
 /* end:skip-in-preview */
 ```
 
@@ -2353,6 +2403,7 @@ Try it out:
 ::: only-for javascript
 
 ::: example #example8 --html 1 --js 2
+
 ```html
 <div id="example8"></div>
 
@@ -2482,6 +2533,7 @@ button_sort.addEventListener('click', () => {
 ::: only-for react
 
 ::: example #example8 :react
+
 ```jsx
 import { useRef } from 'react';
 import { HotTable } from '@handsontable/react';
@@ -2491,7 +2543,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const YourHandsontableComponent = () => {
+export const HandsontableComponent = () => {
   const hotTableComponentRef = useRef(null);
 
   const sort = () => {
@@ -2612,7 +2664,7 @@ export const YourHandsontableComponent = () => {
 }
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example8'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example8'));
 /* end:skip-in-preview */
 ```
 
@@ -2634,10 +2686,10 @@ to change the visual indexes of the rows that you want to exclude.
 const configurationOptions = {
   afterColumnSort() {
     // keep rows number 1 and 2 at index 0
-    yourHandsontableInstance.rowIndexMapper.moveIndexes(
+    handsontableInstance.rowIndexMapper.moveIndexes(
       [
-        yourHandsontableInstance.toVisualRow(0),
-        yourHandsontableInstance.toVisualRow(1),
+        handsontableInstance.toVisualRow(0),
+        handsontableInstance.toVisualRow(1),
       ], 0);
 
 ```
@@ -2665,14 +2717,19 @@ In this demo, click on any column name. The rows get sorted, but the the first r
 
 ::: only-for javascript
 
-::: example #example9
+::: example #example9 --html 1 --js 2
+
+```html
+<div id="example9"></div>
+```
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example9');
 
-const yourHandsontableInstance = new Handsontable(container, {
+const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
@@ -2762,15 +2819,15 @@ const yourHandsontableInstance = new Handsontable(container, {
   columnSorting: true,
   // exclude rows number 1 and 5 from sorting
   afterColumnSort() {
-    yourHandsontableInstance.rowIndexMapper.moveIndexes(
+    handsontableInstance.rowIndexMapper.moveIndexes(
       [
-        yourHandsontableInstance.toVisualRow(0),
+        handsontableInstance.toVisualRow(0),
         // you can add more top rows here
       ], 0);
 
-    yourHandsontableInstance.rowIndexMapper.moveIndexes(
+    handsontableInstance.rowIndexMapper.moveIndexes(
       [
-        yourHandsontableInstance.toVisualRow(4),
+        handsontableInstance.toVisualRow(4),
         // you can add more bottom rows here
       ], 4);
   },
@@ -2784,6 +2841,7 @@ const yourHandsontableInstance = new Handsontable(container, {
 ::: only-for react
 
 ::: example #example9 :react
+
 ```jsx
 // you need `useRef` to call Handsontable's instance methods
 import { useRef } from 'react';
@@ -2794,7 +2852,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const YourHandsontableComponent = () => {
+export const HandsontableComponent = () => {
   const hotTableComponentRef = useRef(null);
 
   const exclude = () => {
@@ -2909,7 +2967,7 @@ export const YourHandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example9'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example9'));
 /* end:skip-in-preview */
 ```
 :::
@@ -2921,14 +2979,19 @@ click on any column name: the rows get sorted, but the frozen bottom row stays i
 
 ::: only-for javascript
 
-::: example #example10
+::: example #example10 --html 1 --js 2
+
+```html
+<div id="example10"></div>
+```
+
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example10');
 
-const yourHandsontableInstance = new Handsontable(container, {
+const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
@@ -3119,6 +3182,7 @@ const yourHandsontableInstance = new Handsontable(container, {
 ::: only-for react
 
 ::: example #example10 :react
+
 ```jsx
 // you need `useRef` to call Handsontable's instance methods
 import { useRef } from 'react';
@@ -3129,7 +3193,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-export const YourHandsontableComponent = () => {
+export const HandsontableComponent = () => {
   const hotTableComponentRef = useRef(null);
 
   const exclude = () => {
@@ -3321,9 +3385,10 @@ export const YourHandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<YourHandsontableComponent />, document.getElementById('example10'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example10'));
 /* end:skip-in-preview */
 ```
+
 :::
 
 :::
