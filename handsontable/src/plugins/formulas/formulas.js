@@ -23,7 +23,6 @@ import Hooks from '../../pluginHooks';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
-const ROW_MOVE_UNDO_REDO_NAME = 'row_move';
 
 Hooks.getSingleton().register('afterNamedExpressionAdded');
 Hooks.getSingleton().register('afterNamedExpressionRemoved');
@@ -188,6 +187,10 @@ export class Formulas extends BasePlugin {
 
     const getIndexesChangeSyncMethod = (indexesType) => {
       return (source) => {
+        if (this.redo === true || this.undo === true) {
+          return;
+        }
+
         const newSequence = this.hot[`${indexesType}IndexMapper`].getIndexesSequence();
 
         if (source === 'update') {
@@ -210,6 +213,10 @@ export class Formulas extends BasePlugin {
 
     const getIndexMoveSyncMethod = (indexesType) => {
       return (movedIndexes, finalIndex, dropIndex, movePossible, orderChanged) => {
+        if (this.redo === true || this.undo === true) {
+          return;
+        }
+
         if (movePossible === false || orderChanged === false || this.sheetId === null) {
           return;
         }
@@ -230,23 +237,25 @@ export class Formulas extends BasePlugin {
     this.hot.addHook('afterColumnMove', getIndexMoveSyncMethod('column'));
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
-    this.addHook('beforeUndo', (action) => {
-      // TODO: Move action isn't handled by HyperFormula.
-      if (action?.actionType === ROW_MOVE_UNDO_REDO_NAME) {
-        return;
-      }
+    this.addHook('beforeUndo', () => {
+      this.undo = true;
 
       this.engine.undo();
     });
 
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
-    this.addHook('beforeRedo', (action) => {
-      // TODO: Move action isn't handled by HyperFormula.
-      if (action?.actionType === ROW_MOVE_UNDO_REDO_NAME) {
-        return;
-      }
+    this.addHook('beforeRedo', () => {
+      this.redo = true;
 
       this.engine.redo();
+    });
+
+    this.addHook('afterUndo', () => {
+      this.undo = false;
+    });
+
+    this.addHook('afterUndo', () => {
+      this.redo = false;
     });
 
     this.addHook('afterDetachChild', (...args) => this.onAfterDetachChild(...args));

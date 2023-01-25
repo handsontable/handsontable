@@ -330,8 +330,8 @@ describe('Formulas general', () => {
         beforeValidate,
       });
 
-      hot.columnIndexMapper.indexesSequence.setValues([0, 2, 3, 4, 1]);
-      hot.rowIndexMapper.indexesSequence.setValues([0, 2, 3, 4, 1]);
+      hot.columnIndexMapper.setIndexesSequence([0, 2, 3, 4, 1]);
+      hot.rowIndexMapper.setIndexesSequence([0, 2, 3, 4, 1]);
 
       render();
       setDataAtCell(0, 0, 6);

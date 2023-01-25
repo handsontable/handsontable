@@ -732,7 +732,9 @@ export class IndexMapper {
    */
   removeIndexes(removedIndexes) {
     this.suspendOperations();
+    this.indexesChangeSource = 'remove';
     this.indexesSequence.remove(removedIndexes);
+    this.indexesChangeSource = null;
     this.trimmingMapsCollection.removeFromEvery(removedIndexes);
     this.hidingMapsCollection.removeFromEvery(removedIndexes);
     this.variousMapsCollection.removeFromEvery(removedIndexes);
