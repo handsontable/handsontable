@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem where the formula plugin did not display accurate values when referencing date-typed cells.",
+  "type": "fixed",
+  "issueOrPR": 10220,
+  "breaking": false,
+  "framework": "none"
+}
