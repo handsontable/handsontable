@@ -2283,9 +2283,9 @@ describe('Formulas general', () => {
   it('should support basic sorting', () => {
     const hot = handsontable({
       data: [
-        ['B1', 3.9],
-        ['B2', 1.13],
-        ['B1+B2', '=SUM(B1:B2)']
+        ['B2', 3.5, '=B2'],
+        ['B1', 99, '=B1'],
+        ['SUM(B1:B2)', 1.5, '=SUM(B1:B2)'],
       ],
       colHeaders: true,
       rowHeaders: true,
@@ -2293,19 +2293,18 @@ describe('Formulas general', () => {
       formulas: {
         engine: HyperFormula
       },
-      columnSorting: {
-        sortEmptyCells: true,
-        initialConfig: {
-          column: 1,
-          sortOrder: 'asc'
-        }
-      }
+      columnSorting: true,
+    });
+
+    hot.getPlugin('columnSorting').sort({
+      column: 1,
+      sortOrder: 'asc'
     });
 
     expect(hot.getData()).toEqual([
-      ['B2', 1.13],
-      ['B1', 3.9],
-      ['B1+B2', 5.03]
+      ['SUM(B1:B2)', 1.5, '#REF!'],
+      ['B2', 3.5, 99],
+      ['B1', 99, 3.5],
     ]);
 
     hot.getPlugin('columnSorting').sort({
@@ -2314,17 +2313,17 @@ describe('Formulas general', () => {
     });
 
     expect(hot.getData()).toEqual([
-      ['B1+B2', 5.03],
-      ['B1', 3.9],
-      ['B2', 1.13]
+      ['B1', 99, '#REF!'],
+      ['B2', 3.5, 1.5],
+      ['SUM(B1:B2)', 1.5, '#REF!'],
     ]);
 
     hot.getPlugin('columnSorting').clearSort();
 
     expect(hot.getData()).toEqual([
-      ['B1', 3.9],
-      ['B2', 1.13],
-      ['B1+B2', 5.03]
+      ['B2', 3.5, 99],
+      ['B1', 99, '#REF!'],
+      ['SUM(B1:B2)', 1.5, '#REF!'],
     ]);
   });
 

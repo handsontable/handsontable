@@ -547,11 +547,10 @@ export class Formulas extends BasePlugin {
 
     dependentCells.forEach((change) => {
       const { row, col } = change.address ?? {};
-      const visualRow = isDefined(row) ? this.hot.toVisualRow(row) : null;
-      const visualColumn = isDefined(col) ? this.hot.toVisualColumn(col) : null;
 
       // Don't try to validate cells outside of the visual part of the table.
-      if (visualRow === null || visualColumn === null) {
+      if (isDefined(row) === false || isDefined(col) === false ||
+        row >= this.hot.countRows() || col >= this.hot.countCols()) {
         return;
       }
 
@@ -571,8 +570,8 @@ export class Formulas extends BasePlugin {
 
         // It will just re-render certain cell when necessary.
         boundHot.validateCell(
-          boundHot.getDataAtCell(visualRow, visualColumn),
-          boundHot.getCellMeta(visualRow, visualColumn),
+          boundHot.getDataAtCell(row, col),
+          boundHot.getCellMeta(row, col),
           () => {}
         );
       }
