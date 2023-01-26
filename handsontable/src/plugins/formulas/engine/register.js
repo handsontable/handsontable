@@ -47,6 +47,11 @@ export function setupEngine(hotInstance) {
   const hotSettings = hotInstance.getSettings();
   const pluginSettings = hotSettings[PLUGIN_KEY];
   const engineConfigItem = pluginSettings?.engine;
+  const configExtensions = {
+    // Make the engine skip date parsing and formatting - the dates will be treated as strings.
+    dateFormats: []
+  };
+
 
   if (pluginSettings === true) {
     return null;
@@ -58,33 +63,39 @@ export function setupEngine(hotInstance) {
 
   // `engine.hyperformula` or `engine` is the engine class
   if (typeof engineConfigItem.hyperformula === 'function' || typeof engineConfigItem === 'function') {
-    return registerEngine(
+    const engineInstance = registerEngine(
       engineConfigItem.hyperformula ?? engineConfigItem,
       hotSettings,
       hotInstance);
 
+    engineInstance.updateConfig(configExtensions);
+
+    return engineInstance;
+
     // `engine` is the engine instance
   } else if (typeof engineConfigItem === 'object' && isUndefined(engineConfigItem.hyperformula)) {
+    const engineInstance = engineConfigItem;
     const engineRelationship = getEngineRelationshipRegistry();
-    const sharedEngineUsage = getSharedEngineUsageRegistry().get(engineConfigItem);
+    const sharedEngineUsage = getSharedEngineUsageRegistry().get(engineInstance);
+    const licenseKeyExtension = {};
 
-    if (!engineRelationship.has(engineConfigItem)) {
-      engineRelationship.set(engineConfigItem, []);
+    if (!engineRelationship.has(engineInstance)) {
+      engineRelationship.set(engineInstance, []);
     }
 
-    engineRelationship.get(engineConfigItem).push(hotInstance);
+    engineRelationship.get(engineInstance).push(hotInstance);
 
     if (sharedEngineUsage) {
       sharedEngineUsage.push(hotInstance.guid);
     }
 
-    if (!engineConfigItem.getConfig().licenseKey) {
-      engineConfigItem.updateConfig({
-        licenseKey: DEFAULT_LICENSE_KEY
-      });
+    if (!engineInstance.getConfig().licenseKey) {
+      licenseKeyExtension.licenseKey = DEFAULT_LICENSE_KEY;
     }
 
-    return engineConfigItem;
+    engineInstance.updateConfig(Object.assign(configExtensions, licenseKeyExtension));
+
+    return engineInstance;
   }
 
   return null;

@@ -2792,4 +2792,33 @@ describe('Formulas general', () => {
 
     expect(getDataAtCell(1, 4)).toEqual(3);
   });
+
+  it('should not make the engine parse and format the date-typed cells and work on their string representation' +
+    ' passed by Handsontable', () => {
+    const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const hot1 = handsontable({
+      data: [
+        ['12/05/2023'],
+        ['=A1'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+      }
+    });
+    const hot2 = handsontable({
+      data: [
+        ['12/05/2023'],
+        ['=A1'],
+      ],
+      formulas: {
+        engine: hfInstance1,
+      }
+    });
+
+    expect(hot1.getPlugin('formulas').engine.getConfig().dateFormats).toEqual([]);
+    expect(hot2.getPlugin('formulas').engine.getConfig().dateFormats).toEqual([]);
+
+    expect(hot1.getDataAtCell(1, 0)).toEqual(hot1.getDataAtCell(0, 0));
+    expect(hot2.getDataAtCell(1, 0)).toEqual(hot2.getDataAtCell(0, 0));
+  });
 });
