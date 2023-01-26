@@ -52,7 +52,6 @@ export function setupEngine(hotInstance) {
     dateFormats: []
   };
 
-
   if (pluginSettings === true) {
     return null;
   }
