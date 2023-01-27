@@ -194,20 +194,13 @@ export class Formulas extends BasePlugin {
 
     const getIndexesChangeSyncMethod = (indexesType) => {
       return (source) => {
-        if (this.redo === true || this.undo === true) {
+        if (this.redo === true || this.undo === true || this.sheetId === null) {
           return;
         }
 
         const newSequence = this.hot[`${indexesType}IndexMapper`].getIndexesSequence();
 
-        if (source === 'move' && this.sheetId === null) {
-          const relativeTransformation = this[`${indexesType}IndexesSequence`].map(index => newSequence.indexOf(index));
-          const syncMethodName = `set${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}Order`;
-
-          this.hot.addHookOnce('init', () => {
-            this.engine[syncMethodName](this.sheetId, relativeTransformation);
-          });
-        } else if (source === 'update' || (source === 'move' && this[`is${indexesType}SequentialMove`] === false)) {
+        if (source === 'update' || (source === 'move' && this[`is${indexesType}SequentialMove`] === false)) {
           const relativeTransformation = this[`${indexesType}IndexesSequence`].map(index => newSequence.indexOf(index));
           const syncMethodName = `set${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}Order`;
 
@@ -716,9 +709,12 @@ export class Formulas extends BasePlugin {
       if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
 
-        const trimmedRows = this.hot.rowIndexMapper.getNotTrimmedIndexes();
+        const notTrimmedRows = this.hot.rowIndexMapper.getNotTrimmedIndexes();
         const dependentCells = this.engine.setSheetContent(this.sheetId,
-          this.hot.getSourceDataArray().filter((_, index) => trimmedRows.includes(index)));
+          notTrimmedRows.map(notTrimmedRow => sourceDataArray[notTrimmedRow]));
+
+        this.rowIndexesSequence = notTrimmedRows;
+        this.columnIndexesSequence = this.hot.columnIndexMapper.getNotTrimmedIndexes();
 
         this.renderDependentSheets(dependentCells);
 
