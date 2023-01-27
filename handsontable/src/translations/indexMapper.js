@@ -120,8 +120,9 @@ export class IndexMapper {
      */
     this.indexesSequenceChanged = false;
     /**
-     * 
-     * @type {null}
+     * Flag informing about source of the change.
+     *
+     * @type {null|string}
      */
     this.indexesChangeSource = null;
     /**
