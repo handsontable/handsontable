@@ -185,6 +185,13 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
+    const setMoveFlag = (indexesType) => {
+      return (movedIndexes) => {
+        this[`is${indexesType}SequentialMove`] =
+          movedIndexes.every((movedIndex, i) => movedIndexes[0] === movedIndex + i);
+      };
+    };
+
     const getIndexesChangeSyncMethod = (indexesType) => {
       return (source) => {
         if (this.redo === true || this.undo === true) {
@@ -193,18 +200,18 @@ export class Formulas extends BasePlugin {
 
         const newSequence = this.hot[`${indexesType}IndexMapper`].getIndexesSequence();
 
-        if (source === 'update') {
-          const relativeTransformation = this[`${indexesType}IndexesSequence`].map(index => newSequence.indexOf(index));
-          const syncMethodName = `set${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}Order`;
-
-          this.engine[syncMethodName](this.sheetId, relativeTransformation);
-        } else if (source === 'move' && this.sheetId === null) {
+        if (source === 'move' && this.sheetId === null) {
           const relativeTransformation = this[`${indexesType}IndexesSequence`].map(index => newSequence.indexOf(index));
           const syncMethodName = `set${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}Order`;
 
           this.callOnStart = () => {
             this.engine[syncMethodName](this.sheetId, relativeTransformation);
           };
+        } else if (source === 'update' || (source === 'move' && this[`is${indexesType}SequentialMove`] === false)) {
+          const relativeTransformation = this[`${indexesType}IndexesSequence`].map(index => newSequence.indexOf(index));
+          const syncMethodName = `set${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}Order`;
+
+          this.engine[syncMethodName](this.sheetId, relativeTransformation);
         }
 
         this[`${indexesType}IndexesSequence`] = newSequence;
@@ -221,6 +228,10 @@ export class Formulas extends BasePlugin {
           return;
         }
 
+        if (this[`is${indexesType}SequentialMove`] === false) {
+          return;
+        }
+
         if (finalIndex > movedIndexes[0]) {
           finalIndex += 1;
         }
@@ -233,6 +244,8 @@ export class Formulas extends BasePlugin {
 
     this.hot.addHook('afterRowSequenceChange', getIndexesChangeSyncMethod('row'));
     this.hot.addHook('afterColumnSequenceChange', getIndexesChangeSyncMethod('column'));
+    this.hot.addHook('beforeRowMove', setMoveFlag('row'));
+    this.hot.addHook('beforeColumnMove', setMoveFlag('column'));
     this.hot.addHook('afterRowMove', getIndexMoveSyncMethod('row'));
     this.hot.addHook('afterColumnMove', getIndexMoveSyncMethod('column'));
 
