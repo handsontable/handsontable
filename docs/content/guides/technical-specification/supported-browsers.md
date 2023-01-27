@@ -2,7 +2,7 @@
 id: zzjh2u93
 title: Supported browsers
 metaTitle: Supported browsers - JavaScript Data Grid | Handsontable
-description: Handsontable supports the most popular desktop and mobile browsers, such as Chrome, Safari, Firefox, Edge, Opera, Samsung Internet, and others.
+description: Handsontable supports the most popular desktop and mobile browsers, such as Chrome, Safari, Firefox, Edge, Opera, and others.
 permalink: /supported-browsers
 canonicalUrl: /supported-browsers
 tags:
@@ -15,31 +15,41 @@ searchCategory: Guides
 
 # Supported browsers
 
-Handsontable supports all the most popular desktop and mobile browsers.
+Handsontable supports the most popular desktop and mobile browsers, such as Chrome, Safari, Firefox, Edge, Opera, and others.
 
 [[toc]]
 
 ## Overview
 
-Handsontable supports Chrome, Safari, Firefox, Edge, Opera, Samsung Internet, and others.
+We test Handsontable on **two latest versions** of every modern browser, both on [desktop](#supported-desktop-browsers) and [mobile](#supported-mobile-browsers).
 
-We carefully test our code on the **two latest versions** of every modern browser, on both mobile and desktop devices. In addition to running unit and end-to-end tests, we focus on two factors that are crucial for all users: performance and accuracy of the user interface.
+We run our tests in [BrowserStack](https://www.browserstack.com/), and on a number of physical desktop and mobile devices.
 
-## Testing compatibility
+In addition to running unit and end-to-end tests, we focus on two crucial factors: performance and accuracy of the user interface.
 
-Tests are run in [BrowserStack](https://www.browserstack.com/) as well as on a limited number of physical desktop and mobile devices. Access to physical machines gives us an opportunity to measure the performance better which is hard to do with virtual machines.
+## Supported desktop browsers
 
-## List of browsers
+Handsontable supports the following desktop browsers:
 
-| Desktop Browsers | Mobile Browsers     |
-| :--------------- | :------------------ |
-| Chrome           | Chrome              |
-| Firefox          | Firefox for Android |
-| Safari           | Firefox for iOS     |
-| Edge             | Safari iOS          |
-| Opera            | Opera               |
-| QQ browser       | Samsung Internet    |
+| MacOS   | Windows |
+| ------- | ------- |
+| Chrome  | Chrome  |
+| Firefox | Firefox |
+| Edge    | Edge    |
+| Opera   | Opera   |
+| Safari  |         |
 
-::: tip
 Handsontable 11.x is the long-term support (LTS) version for Internet Explorer 11 and Edge Legacy (the non-Chromium version of Edge), until the end of 2023.
-:::
+
+## Supported mobile browsers
+
+Handsontable supports the following mobile browsers:
+
+| iOS    | Android |
+| ------ | ------- |
+| Chrome | Chrome  |
+| Safari |         |
+
+We also run a limited number of end-to-end tests on the following mobile browsers:
+- Samsung Internet
+- Firefox for Android
