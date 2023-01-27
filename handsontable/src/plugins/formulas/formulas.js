@@ -204,9 +204,9 @@ export class Formulas extends BasePlugin {
           const relativeTransformation = this[`${indexesType}IndexesSequence`].map(index => newSequence.indexOf(index));
           const syncMethodName = `set${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}Order`;
 
-          this.callOnStart = () => {
+          this.hot.addHookOnce('init', () => {
             this.engine[syncMethodName](this.sheetId, relativeTransformation);
-          };
+          });
         } else if (source === 'update' || (source === 'move' && this[`is${indexesType}SequentialMove`] === false)) {
           const relativeTransformation = this[`${indexesType}IndexesSequence`].map(index => newSequence.indexOf(index));
           const syncMethodName = `set${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}Order`;
@@ -719,10 +719,6 @@ export class Formulas extends BasePlugin {
         const trimmedRows = this.hot.rowIndexMapper.getNotTrimmedIndexes();
         const dependentCells = this.engine.setSheetContent(this.sheetId,
           this.hot.getSourceDataArray().filter((_, index) => trimmedRows.includes(index)));
-
-        if (this.callOnStart) {
-          this.callOnStart();
-        }
 
         this.renderDependentSheets(dependentCells);
 
