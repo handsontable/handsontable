@@ -1,7 +1,7 @@
 /**
  * Visual testing build script that is responsible for following steps:
  * - Installs all necessary dependencies for examples;
- * - Builds all of examples for all of frameworks to test;
+ * - Builds all of examples for all of frameworks to test.
  */
 import execa from 'execa';
 import chalk from 'chalk';

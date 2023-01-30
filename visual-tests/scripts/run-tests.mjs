@@ -66,7 +66,7 @@ for (let i = 0; i < frameworksToTest.length; ++i) {
 
       await execa.command(dockerCommand, { stdio: 'inherit' });
     }
-  } catch(ex) {
+  } catch (ex) {
     localhostProcess.kill();
     throw new Error(ex.message);
   }
