@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [12.3.1] - 2023-02-06
+
+### Added
+- Added Japanese translation for Copy with Headers feature. [#10201](https://github.com/handsontable/handsontable/pull/10201)
+
+### Removed
+- Removed the license key delay condition that prevents printing warnings about key expiration in the console. [#10175](https://github.com/handsontable/handsontable/pull/10175)
+
+### Fixed
+- Fixed the _NestedRows_ plugin that did not react when the Core `updateData` method was called. [#10178](https://github.com/handsontable/handsontable/pull/10178)
+- Fixed a Chrome issue, where the freshly-merged cells were missing right and bottom borders. [#10212](https://github.com/handsontable/handsontable/pull/10212)
+- Fixed an issue where some browser or system shortcuts left the CTRL/CMD key held down [#6441](https://github.com/handsontable/handsontable/issues/6441)
+- Fixed unwanted rendered overlay that was visible in the Filters conditional component. [#10174](https://github.com/handsontable/handsontable/pull/10174)
+
 ## [12.3.0] - 2022-12-14
 
 ### Added
