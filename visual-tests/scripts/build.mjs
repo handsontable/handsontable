@@ -1,8 +1,7 @@
 /**
- * Visual testing runner and screenshots package builder responsible for following steps:
- * - builds all of examples for all of frameworks to test;
- * - runs visual testing;
- * - builds package of screenshots which will be send to compare by `upload` script.
+ * Visual testing build script that is responsible for following steps:
+ * - Installs all necessary dependencies for examples;
+ * - Builds all of examples for all of frameworks to test;
  */
 import execa from 'execa';
 import chalk from 'chalk';

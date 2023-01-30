@@ -1,8 +1,8 @@
 /**
  * Visual testing runner and screenshots package builder responsible for following steps:
- * - builds all of examples for all of frameworks to test;
- * - runs visual testing;
- * - builds package of screenshots which will be send to compare by `upload` script.
+ * - Runs in the background http-server for each framework example;
+ * - Runs visual testing;
+ * - Creates and saves screenshots that are ready to upload.
  */
 import path from 'path';
 import execa from 'execa';
@@ -29,7 +29,7 @@ const frameworksToTest = getFrameworkList();
 
 for (let i = 0; i < frameworksToTest.length; ++i) {
   const frameworkName = frameworksToTest[i];
-  const localhostProcess = execa.command('npm run serve', {
+  const localhostProcess = execa.command('npm run serve --port=8080', {
     detached: true,
     stdio: 'ignore',
     windowsHide: true,
@@ -55,20 +55,26 @@ for (let i = 0; i < frameworksToTest.length; ++i) {
       // and on start open `visual-tests` in it
       const dockerCommand = `docker run \
         --rm \
-        -t \
+        -it \
         --name vtests-container \
         --env HOT_FRAMEWORK=${frameworkName} \
         -v ${pathToMount}:/vtests/ \
         -w /vtests/visual-tests \
-        mcr.microsoft.com/playwright:v${playwrightVersion}-focal npx playwright test`;
+        mcr.microsoft.com/playwright:v${playwrightVersion}-focal npx playwright test \
+        --reporter=dot \
+        --timeout=3000`;
 
       await execa.command(dockerCommand, { stdio: 'inherit' });
     }
-  } catch {
-    console.log(chalk.yellow(`There are reported some errors while testing "${frameworkName}" examples.`));
+  } catch(ex) {
+    localhostProcess.kill();
+    throw new Error(ex.message);
   }
 
-  localhostProcess.kill();
+  if (!localhostProcess.killed) {
+    localhostProcess.kill();
+  }
+
   console.log(chalk.green(`Finished testing "${frameworkName}" examples.`));
   console.log('');
 }
