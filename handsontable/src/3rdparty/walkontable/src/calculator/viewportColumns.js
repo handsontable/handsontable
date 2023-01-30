@@ -76,6 +76,7 @@ class ViewportColumnsCalculator {
      * @type {number|null}
      */
     this.startPosition = null;
+    this.isInViewport = false;
 
     this.stretchAllRatio = 0;
     this.stretchLastWidth = 0;
@@ -95,27 +96,28 @@ class ViewportColumnsCalculator {
     let needReverse = true;
     const startPositions = [];
     let columnWidth;
+    let lastVisibleColumnWidth = 0;
 
     const priv = privatePool.get(this);
     const calculationType = priv.calculationType;
     const overrideFn = priv.overrideFn;
     const scrollOffset = priv.scrollOffset;
+    const zeroBasedScrollOffset = Math.max(priv.scrollOffset, 0);
     const totalColumns = priv.totalColumns;
     const viewportWidth = priv.viewportWidth;
+    // +1 pixel for row header width compensation for horizontal scroll > 0
+    const compensatedViewportWidth = zeroBasedScrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
 
     for (let i = 0; i < totalColumns; i++) {
       columnWidth = this._getColumnWidth(i);
 
-      if (sum <= scrollOffset && calculationType !== FULLY_VISIBLE_TYPE) {
+      if (sum <= zeroBasedScrollOffset && calculationType !== FULLY_VISIBLE_TYPE) {
         this.startColumn = i;
       }
 
-      // +1 pixel for row header width compensation for horizontal scroll > 0
-      const compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
-
       if (
-        sum >= scrollOffset &&
-        sum + (calculationType === FULLY_VISIBLE_TYPE ? columnWidth : 0) <= scrollOffset + compensatedViewportWidth
+        sum >= zeroBasedScrollOffset &&
+        sum + (calculationType === FULLY_VISIBLE_TYPE ? columnWidth : 0) <= zeroBasedScrollOffset + compensatedViewportWidth
       ) {
         if (this.startColumn === null || this.startColumn === void 0) {
           this.startColumn = i;
@@ -124,14 +126,24 @@ class ViewportColumnsCalculator {
       }
       startPositions.push(sum);
       sum += columnWidth;
+      lastVisibleColumnWidth = columnWidth;
 
       if (calculationType !== FULLY_VISIBLE_TYPE) {
         this.endColumn = i;
       }
-      if (sum >= scrollOffset + viewportWidth) {
+      if (sum >= zeroBasedScrollOffset + viewportWidth) {
         needReverse = false;
         break;
       }
+    }
+
+    const mostRightScrollOffset = scrollOffset + viewportWidth - compensatedViewportWidth;
+    const columnOffset = calculationType === FULLY_VISIBLE_TYPE ? 0 : lastVisibleColumnWidth;
+
+    if (mostRightScrollOffset < 0 || scrollOffset > startPositions.at(-1) + columnOffset) {
+      this.isInViewport = false;
+    } else {
+      this.isInViewport = true;
     }
 
     if (this.endColumn === totalColumns - 1 && needReverse) {
