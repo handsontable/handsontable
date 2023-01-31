@@ -49,7 +49,7 @@ To jump straight into the sample code, open the demo app at CodeSandbox:
 :::
 
 ::: only-for react
-To jump straight into the sample code, [open the demo app at CodeSandbox](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-forked-56qvdt).
+To jump straight into the sample code, [open the demo app at CodeSandbox](https://codesandbox.io/s/handsontable-react-data-grid-hello-world-app-forked-j2vdws).
 :::
 
 Then, move on to [connecting](@/guides/getting-started/binding-to-data.md) your data and [configuring](@/guides/getting-started/configuration-options.md) Handsontable's built-in features. For more advanced implementations, use Handsontable's [API](@/api/introduction.md).
