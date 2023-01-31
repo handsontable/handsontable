@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where `updateData()` didn't work with nested data structures (`NestedRows`). [#10178](https://github.com/handsontable/handsontable/pull/10178)
 - Fixed an issue of unwanted pixels in the "Filter by condition" menu by removing a superfluous overlay. [#10174](https://github.com/handsontable/handsontable/pull/10174)
 - Fixed an issue where merged cells could lack right and bottom borders due to a Chrome bug. [#10212](https://github.com/handsontable/handsontable/pull/10212)
-- Fixed an issue where using some browser and system shortcuts could cause Handsontable to behave as if <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> was being held down. [#6441](https://github.com/handsontable/handsontable/issues/6441)
+- Fixed an issue where using some browser and system shortcuts could cause Handsontable to behave as if <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> was being held down. [#10210](https://github.com/handsontable/handsontable/pull/10210)
 
 For more information on Handsontable 12.3.1, see:
 - [Blog post (12.3.1)](PLACEHOLDER)
