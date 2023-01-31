@@ -160,6 +160,7 @@ const securityItems = [
 const technicalSpecificationItems = [
   // TODO { path: 'guides/technical-specification/about-handsontable' },
   { path: 'guides/technical-specification/supported-browsers' },
+  { path: 'guides/technical-specification/mobile-support' },
   { path: 'guides/technical-specification/software-license' },
   { path: 'guides/technical-specification/third-party-licenses' },
   { path: 'guides/technical-specification/documentation-license' },
