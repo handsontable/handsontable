@@ -1,5 +1,4 @@
 import {
-  getScrollableElement,
   hasClass,
   index,
   offset,
@@ -265,19 +264,7 @@ class Table {
 
     if (this.isMaster) {
       this.holderOffset = offset(this.holder);
-
-      const areRowsFullyInViewport = this.areAnyRowsFullyInViewport();
-      const areColumnsFullyInViewport = this.areAnyColumnsFullyInViewport();
-      const doesPositionInViewportMatter = areRowsFullyInViewport !== void 0 && areColumnsFullyInViewport !== void 0;
-      let isOutsideOfViewport = false;
-
-      if (doesPositionInViewportMatter) {
-        isOutsideOfViewport = areRowsFullyInViewport === false || areColumnsFullyInViewport === false;
-      }
-
-      runFastDraw = wtViewport.createRenderCalculators(isOutsideOfViewport ? true : runFastDraw, isOutsideOfViewport);
-
-      runFastDraw = isOutsideOfViewport ? true : runFastDraw;
+      runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
       if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
         const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
@@ -1227,70 +1214,6 @@ class Table {
     }
 
     return rowHeaderWidth;
-  }
-
-  /**
-   * Returns `true` if at least one row is fully visible in the viewport, `false` otherwise.
-   * It can also return undefined when the method is not applicable - when the table is self-contained and not
-   * controlled by the window's scrollbar or is not rendered yet (during the cycle of full rendering).
-   *
-   * @returns {boolean|undefined}
-   */
-  areAnyRowsFullyInViewport() {
-    // Scroll position is only relevant in terms of the visibility in the viewport, when the scrollable element is
-    // the window.
-    if (getScrollableElement(this.TABLE) !== this.instance.domBindings.rootWindow) {
-      return;
-    }
-
-    const { wtOverlays } = this.dataAccessObject;
-    const topScrollPos = wtOverlays.topOverlay.getScrollPosition();
-    const hiderHeight = outerHeight(this.hider);
-    const containerHeight = Math.max(hiderHeight, outerHeight(this.TABLE));
-
-    if (hiderHeight === 0) {
-      return;
-    }
-
-    const secondToLastRowEndPosition = (
-      offset(this.holder).top + containerHeight -
-      (this.getRowHeight(this.instance.wtSettings.getSetting('totalRows') - 1) ||
-        this.instance.wtSettings.getSetting('defaultRowHeight'))
-    );
-
-    return secondToLastRowEndPosition >= topScrollPos;
-  }
-
-  /**
-   * Returns `true` if at least one column is fully visible in the viewport, `false` otherwise.
-   * It can also return undefined when the method is not applicable - when the table is self-contained and not
-   * controlled by the window's scrollbar or is not rendered yet (during the cycle of full rendering).
-   *
-   * @returns {boolean|undefined}
-   */
-  areAnyColumnsFullyInViewport() {
-    // Scroll position is only relevant in terms of the visibility in the viewport, when the scrollable element is
-    // the window.
-    if (getScrollableElement(this.TABLE) !== this.instance.domBindings.rootWindow) {
-      return;
-    }
-
-    const { wtOverlays } = this.dataAccessObject;
-    const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
-    const hiderWidth = outerWidth(this.hider);
-    const containerWidth = Math.max(hiderWidth, outerWidth(this.TABLE));
-
-    if (hiderWidth === 0) {
-      return;
-    }
-
-    const secondToLastColumnEndPosition = (
-      offset(this.holder).left + containerWidth -
-      (this.getColumnWidth(this.instance.wtSettings.getSetting('totalColumns') - 1) ||
-        this.instance.wtSettings.getSetting('defaultColumnWidth'))
-    );
-
-    return secondToLastColumnEndPosition >= leftScrollPos;
   }
 }
 

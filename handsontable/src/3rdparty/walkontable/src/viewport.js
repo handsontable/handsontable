@@ -308,15 +308,11 @@ class Viewport {
 
     let pos = this.dataAccessObject.topScrollPosition - this.dataAccessObject.topParentOffset;
 
-    if (pos < 0) {
-      pos = 0;
-    }
-
     const fixedRowsTop = wtSettings.getSetting('fixedRowsTop');
     const fixedRowsBottom = wtSettings.getSetting('fixedRowsBottom');
     const totalRows = wtSettings.getSetting('totalRows');
 
-    if (fixedRowsTop) {
+    if (fixedRowsTop && pos >= 0) {
       fixedRowsHeight = this.dataAccessObject.topOverlay.sumCellSizes(0, fixedRowsTop);
       pos += fixedRowsHeight;
       height -= fixedRowsHeight;
@@ -361,13 +357,9 @@ class Viewport {
 
     this.columnHeaderHeight = NaN;
 
-    if (pos < 0) {
-      pos = 0;
-    }
-
     const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart');
 
-    if (fixedColumnsStart) {
+    if (fixedColumnsStart && pos >= 0) {
       const fixedColumnsWidth = this.dataAccessObject.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart);
 
       pos += fixedColumnsWidth;
@@ -379,7 +371,7 @@ class Viewport {
 
     return new ViewportColumnsCalculator({
       viewportSize: width,
-      scrollOffset: Math.abs(pos),
+      scrollOffset: pos,
       totalItems: wtSettings.getSetting('totalColumns'),
       itemSizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
@@ -395,12 +387,11 @@ class Viewport {
    * Creates rowsRenderCalculator and columnsRenderCalculator (before draw, to determine what rows and
    * cols should be rendered).
    *
-   * @param {boolean} [fastDraw=false] If `true`, will try to avoid full redraw and only update the border positions.
+   * @param {boolean} fastDraw If `true`, will try to avoid full redraw and only update the border positions.
    *                           If `false` or `undefined`, will perform a full redraw.
-   * @param {boolean} [isOutsideOfViewport=false] `true` if the table is outside of the viewport.
    * @returns {boolean} The fastDraw value, possibly modified.
    */
-  createRenderCalculators(fastDraw = false, isOutsideOfViewport = false) {
+  createRenderCalculators(fastDraw = false) {
     let runFastDraw = fastDraw;
 
     if (runFastDraw) {
@@ -413,7 +404,7 @@ class Viewport {
       }
     }
 
-    if (!runFastDraw && !isOutsideOfViewport) {
+    if (!runFastDraw) {
       this.rowsRenderCalculator = this.createRowsCalculator(RENDER_TYPE);
       this.columnsRenderCalculator = this.createColumnsCalculator(RENDER_TYPE);
     }
@@ -446,11 +437,11 @@ class Viewport {
       return false;
     }
 
-    const { startRow, endRow } = proposedRowsVisibleCalculator;
+    const { startRow, endRow, isInViewport } = proposedRowsVisibleCalculator;
 
     // if there are no fully visible rows at all, return false
     if (startRow === null && endRow === null) {
-      return false;
+      return !isInViewport;
     }
 
     const { startRow: renderedStartRow, endRow: renderedEndRow } = this.rowsRenderCalculator;
@@ -479,11 +470,11 @@ class Viewport {
       return false;
     }
 
-    const { startColumn, endColumn } = proposedColumnsVisibleCalculator;
+    const { startColumn, endColumn, isInViewport } = proposedColumnsVisibleCalculator;
 
     // if there are no fully visible columns at all, return false
     if (startColumn === null && endColumn === null) {
-      return false;
+      return !isInViewport;
     }
 
     const { startColumn: renderedStartColumn, endColumn: renderedEndColumn } = this.columnsRenderCalculator;
