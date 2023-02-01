@@ -2,10 +2,8 @@
  * This script is responsible for uploading package of screenshots to external comparing services.
  */
 import execa from 'execa';
-import dotenv from 'dotenv';
 import { isReferenceBranch } from './utils/utils.mjs';
 
-dotenv.config();
 console.log('Upload to Argos');
 
 if (isReferenceBranch() && !process.env.CI) {
