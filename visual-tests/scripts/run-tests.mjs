@@ -39,7 +39,7 @@ for (let i = 0; i < frameworksToTest.length; ++i) {
   // Make sure that the `http-server` has time to load and serve example
   await sleep(1000);
 
-  if (localhostProcess.exitCode !== null) {
+  if (localhostProcess.exitCode > 0) {
     throw new Error(`The examples static server startup failed. The port ${EXAMPLES_SERVER_PORT} is already in use.`);
   }
 
@@ -75,9 +75,7 @@ for (let i = 0; i < frameworksToTest.length; ++i) {
     throw new Error(ex.message);
   }
 
-  if (!localhostProcess.killed) {
-    localhostProcess.kill();
-  }
+  localhostProcess.kill();
 
   console.log(chalk.green(`Finished testing "${frameworkName}" examples.`));
   console.log('');
