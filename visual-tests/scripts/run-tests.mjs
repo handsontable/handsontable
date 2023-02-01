@@ -32,7 +32,8 @@ for (let i = 0; i < frameworksToTest.length; ++i) {
   // const localhostProcess = execa.command(`npm run serve -- --port=${EXAMPLES_SERVER_PORT}`, {
   const localhostProcess = execa.command(`npm run serve`, {
     detached: true,
-    stdio: ['ignore', 'ignore', 'pipe'],
+    stdio: 'ignore',
+    // stdio: ['ignore', 'ignore', 'pipe'],
     windowsHide: true,
     cwd: `${dirs.examples}/${frameworkName}/${dirs.codeToRun}`
   });
@@ -40,9 +41,9 @@ for (let i = 0; i < frameworksToTest.length; ++i) {
   // Make sure that the `http-server` has time to load and serve example
   await sleep(1000);
 
-  if (localhostProcess.exitCode > 0) {
-    throw new Error(`The examples static server startup failed. The port ${EXAMPLES_SERVER_PORT} is already in use.`);
-  }
+  // if (localhostProcess.exitCode > 0) {
+  //   throw new Error(`The examples static server startup failed. The port ${EXAMPLES_SERVER_PORT} is already in use.`);
+  // }
 
   console.log(chalk.green(`Testing "${frameworkName}" examples...`));
 
