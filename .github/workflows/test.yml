@@ -433,12 +433,12 @@ jobs:
     name: "[TEST] Visual tests"
     runs-on: ubuntu-latest
     needs:
-      - test-handsontable-e2e
-      - test-handsontable-e2e-min
-      - test-angular
+      # - test-handsontable-e2e
+      # - test-handsontable-e2e-min
+      # - test-angular
       - test-react
-      - test-vue
-      - test-vue3
+      # - test-vue
+      # - test-vue3
     if: |
       !failure() && contains(needs.*.result, 'success')
     steps:

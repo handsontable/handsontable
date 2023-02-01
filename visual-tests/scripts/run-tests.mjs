@@ -29,7 +29,8 @@ const frameworksToTest = getFrameworkList();
 
 for (let i = 0; i < frameworksToTest.length; ++i) {
   const frameworkName = frameworksToTest[i];
-  const localhostProcess = execa.command(`npm run serve -- --port=${EXAMPLES_SERVER_PORT}`, {
+  // const localhostProcess = execa.command(`npm run serve -- --port=${EXAMPLES_SERVER_PORT}`, {
+  const localhostProcess = execa.command(`npm run serve`, {
     detached: true,
     stdio: ['ignore', 'ignore', 'pipe'],
     windowsHide: true,
