@@ -477,7 +477,7 @@ jobs:
           name: screenshots
           path: screenshots.tar.gz
 
-      - name: Compare screenshots
+      - name: Upload the screenshot to Argos CI
         env:
           ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
         run: npm run in visual-tests upload
