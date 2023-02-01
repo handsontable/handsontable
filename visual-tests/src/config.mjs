@@ -11,6 +11,6 @@ export const WRAPPERS = ['angular', 'react', 'vue'];
  */
 export const REFERENCE_FRAMEWORK = 'js';
 /**
- * The port for the static server.
+ * The port for the static server that servers the example.
  */
 export const EXAMPLES_SERVER_PORT = '8080';

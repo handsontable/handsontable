@@ -436,9 +436,9 @@ jobs:
       # - test-handsontable-e2e
       # - test-handsontable-e2e-min
       # - test-angular
-      - test-react
+      # - test-react
       # - test-vue
-      # - test-vue3
+      - test-vue3
     if: |
       !failure() && contains(needs.*.result, 'success')
     steps:
