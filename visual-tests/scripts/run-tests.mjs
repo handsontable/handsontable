@@ -10,7 +10,7 @@ import fse from 'fs-extra';
 import chalk from 'chalk';
 import mainPackageJSON from '../package.json' assert { type: 'json' };
 import { isReferenceBranch, getFrameworkList, sleep } from './utils/utils.mjs';
-import { WRAPPERS, REFERENCE_FRAMEWORK } from './utils/config.mjs';
+import { WRAPPERS, REFERENCE_FRAMEWORK, EXAMPLES_SERVER_PORT } from '../src/config.mjs';
 
 const playwrightVersion = mainPackageJSON.devDependencies.playwright;
 const pathToMount = path.resolve(process.cwd(), '..');
@@ -29,15 +29,19 @@ const frameworksToTest = getFrameworkList();
 
 for (let i = 0; i < frameworksToTest.length; ++i) {
   const frameworkName = frameworksToTest[i];
-  const localhostProcess = execa.command('npm run serve --port=8080', {
+  const localhostProcess = execa.command(`npm run serve -- --port=${EXAMPLES_SERVER_PORT}`, {
     detached: true,
-    stdio: 'ignore',
+    stdio: ['ignore', 'ignore', 'pipe'],
     windowsHide: true,
     cwd: `${dirs.examples}/${frameworkName}/${dirs.codeToRun}`
   });
 
   // Make sure that the `http-server` has time to load and serve example
-  await sleep(200);
+  await sleep(1000);
+
+  if (localhostProcess.exitCode !== null) {
+    throw new Error(`The examples static server startup failed. The port ${EXAMPLES_SERVER_PORT} is already in use.`);
+  }
 
   console.log(chalk.green(`Testing "${frameworkName}" examples...`));
 
@@ -62,7 +66,7 @@ for (let i = 0; i < frameworksToTest.length; ++i) {
         -w /vtests/visual-tests \
         mcr.microsoft.com/playwright:v${playwrightVersion}-focal npx playwright test \
         --reporter=dot \
-        --timeout=3000`;
+        --timeout=7000`;
 
       await execa.command(dockerCommand, { stdio: 'inherit' });
     }

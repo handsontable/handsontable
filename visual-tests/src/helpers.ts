@@ -1,3 +1,5 @@
+import { EXAMPLES_SERVER_PORT } from './config.mjs';
+
 export const helpers = {
   defaultHOTFramework: 'js',
 
@@ -22,7 +24,7 @@ export const helpers = {
   expectedPageTitle: /Handsontable for .* example/,
 
   hotFramework: '',
-  testURL: `http://${process.env.CI ? 'localhost' : 'host.docker.internal'}:8080/`,
+  testURL: `http://${process.env.CI ? 'localhost' : 'host.docker.internal'}:${EXAMPLES_SERVER_PORT}/`,
   isMac: true,
   modifier: 'Meta',
   screenshotsCount: 0,

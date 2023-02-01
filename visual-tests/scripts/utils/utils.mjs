@@ -1,5 +1,5 @@
 import execa from 'execa';
-import { BASE_BRANCH, REFERENCE_FRAMEWORK, WRAPPERS } from './config.mjs';
+import { BASE_BRANCH, REFERENCE_FRAMEWORK, WRAPPERS } from '../../src/config.mjs';
 
 /**
  * Returns a Promise which is resolved after some milliseconds.
