@@ -76,6 +76,8 @@ for (let i = 0; i < frameworksToTest.length; ++i) {
   }
 
   localhostProcess.kill();
+  // Make sure that the `http-server` has time to exit gracefully
+  await sleep(500);
 
   console.log(chalk.green(`Finished testing "${frameworkName}" examples.`));
   console.log('');
