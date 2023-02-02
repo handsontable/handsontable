@@ -27,13 +27,11 @@ console.log(chalk.green('Running Visual Tests...'));
 // On base branch we need to create golden screenshots from main framework only.
 const frameworksToTest = getFrameworkList();
 
-for (let i = 0; i < frameworksToTest.length; ++i) {
+for (let i = 0; i < frameworksToTest.length; i++) {
   const frameworkName = frameworksToTest[i];
-  // const localhostProcess = execa.command(`npm run serve -- --port=${EXAMPLES_SERVER_PORT}`, {
-  const localhostProcess = execa.command(`npm run serve`, {
+  const localhostProcess = execa.command(`npm run serve -- --port=${EXAMPLES_SERVER_PORT}`, {
     detached: true,
     stdio: 'ignore',
-    // stdio: ['ignore', 'ignore', 'pipe'],
     windowsHide: true,
     cwd: `${dirs.examples}/${frameworkName}/${dirs.codeToRun}`
   });
@@ -41,9 +39,9 @@ for (let i = 0; i < frameworksToTest.length; ++i) {
   // Make sure that the `http-server` has time to load and serve example
   await sleep(1000);
 
-  // if (localhostProcess.exitCode > 0) {
-  //   throw new Error(`The examples static server startup failed. The port ${EXAMPLES_SERVER_PORT} is already in use.`);
-  // }
+  if (localhostProcess.exitCode > 0) {
+    throw new Error(`The examples static server startup failed. The port ${EXAMPLES_SERVER_PORT} is already in use.`);
+  }
 
   console.log(chalk.green(`Testing "${frameworkName}" examples...`));
 
@@ -73,11 +71,11 @@ for (let i = 0; i < frameworksToTest.length; ++i) {
       await execa.command(dockerCommand, { stdio: 'inherit' });
     }
   } catch (ex) {
-    localhostProcess.kill();
+    localhostProcess.kill('SIGTERM');
     throw new Error(ex.message);
   }
 
-  localhostProcess.kill();
+  localhostProcess.kill('SIGTERM');
 
   console.log(chalk.green(`Finished testing "${frameworkName}" examples.`));
   console.log('');
