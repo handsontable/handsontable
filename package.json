@@ -81,6 +81,7 @@
   "workspaces": [
     "handsontable",
     "wrappers/*",
+    "visual-tests",
     "examples"
   ]
 }
