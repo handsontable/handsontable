@@ -2,7 +2,7 @@
 id: da14qoxl
 title: Mobile support
 metaTitle: Mobile support - JavaScript Data Grid | Handsontable
-description: Although Handsontable is used mainly on desktop, many of its features work on mobile as well.
+description: Although Handsontable is designed primarily for desktop use, many of its features work on mobile as well.
 permalink: /mobile-support
 canonicalUrl: /mobile-support
 tags:
@@ -21,81 +21,93 @@ searchCategory: Guides
 
 # Mobile support
 
-Although Handsontable is used mainly on desktop, many of its features work on mobile as well.
+Although Handsontable is designed primarily for desktop use, many of its features work on mobile as well.
 
 [[toc]]
 
-## Overview
-
-Ogolne info o zachowaniu sie handsontable na mobile.
-Info o dodatkowych selection handles (te duze kropki na mobile na rogach komorek)
-Info o tym jak header mozna przykleic (position sticky) do viewportu komorki w trakcie scrollowania strony (tzn jak polowa handsontable jest schowana “u gory” ekranu).
-Info o accessibility: screen readers na mobilkach
-Info o stylowaniu wersji mobile
-Info o tym jak zastapic scrollowanie ONE finger scrollowaniem TWO fingers. Case google maps. W przypadku gdy handsontable jest wyzsze niz ekran i jest rozciagniete od brzegu do brzegu uzytkownik moze byc “uwieziony” w handsontable.
-
 ## Use Handsontable on mobile
 
-## Features tested on mobile
+To use Handsontable's UI on a mobile device:
 
-We test the following areas of Handsontable on a number of physical devices:
+| How to...                            | Usage                                            | Android |   iOS   |
+| ------------------------------------ | ------------------------------------------------ | :-----: | :-----: |
+| Select a cell                        | Tap a cell                                       | &check; | &check; |
+| Edit a cell                          | Double-tap a cell                                | &check; | &check; |
+| Sort the data                        | Tap a column name                                | &check; | &check; |
+| Select a range of cells              | Drag the [selection handles](#selection-handles) | &check; | &check; |
+| Scroll vertically                    | Swipe up or down                                 | &check; | &check; |
+| Scroll horizontally                  | Swipe left or right                              | &check; | &check; |
+| Change to portrait or landscape mode | Rotate the screen                                | &check; | &check; |
+| Open the column menu                 | In a column header, tap &#9660;                  | &check; | &check; |
+| Open the context menu                | Long-press a cell                                | &check; | &cross; |
+| Interact with menus                  | Tap a menu item                                  | &check; | &check; |
 
-| Feature                                 | iOS     | Android |
-| --------------------------------------- | ------- | ------- |
-| Vertical scroll                         | &check; | &check; |
-| Horizontal scroll                       | &check; | &check; |
-| Rotation between portrait and landscape | &check; | &check; |
-|                                         | &check; | &check; |
-|                                         | &check; | &check; |
+#### Selection handles
 
-Single click on a cell
-Double-click on a cell to open an editor
-Touch on cell
-Long touch on cell
-Touches and clicks on any cell type
-Various functionalities have been tested, including:
+To select a range of cells, drag the selection handles that display only on mobile:
 
-Setting row height
-Sorting
-Nested rows
-Collapsing headers
-Row hiding
-All functionalities available in the dropdown menu on iOS and Android devices have been tested, including:
+![Selection handles]({{$basePath}}/img/selection_handles.png)
 
-Inserting rows and columns
-Removing rows and columns
-Undo and redo
-Making cells read-only
-Text alignment
-Copy and cut
-Filtering
-All functionalities available in the context menu on Android devices have also been tested, including:
+## Features supported on mobile
 
-Inserting rows and columns
-Removing rows and columns
-Undo and redo
-Making cells read-only
-Merging cells
-Custom borders
-Comments
-Row and column fixing and freezing
+As desktop use cases are our priority, we test only selected Handsontable functionalities on mobile.
+See the following table for the list of features that work
+on the [supported mobile browsers](@/guides/technical-specification/supported-browsers.md#supported-mobile-browsers):
 
-See the list of [supported mobile browsers](@/guides/technical-specification/supported-browsers.md#supported-mobile-browsers).
+- &check; We regularly test these features on a limited number of physical devices.
+- &cross; These features may work properly on mobile, but we don't test them on mobile devices.
 
-## Known limitations
+| Feature                                                                    | Android (Chrome) | iOS (Chrome) | iOS (Safari) |
+| -------------------------------------------------------------------------- | :--------------: | :----------: | :----------: |
+| All the built-in [cell types](@/guides/cell-types/cell-type.md)            |     &check;      |   &check;    |   &check;    |
+| Insert rows                                                                |     &check;      |   &check;    |   &check;    |
+| Insert columns                                                             |     &check;      |   &check;    |   &check;    |
+| Remove rows                                                                |     &check;      |   &check;    |   &check;    |
+| Remove columns                                                             |     &check;      |   &check;    |   &check;    |
+| [Column headers](@/guides/columns/column-header.md)                        |     &check;      |   &check;    |   &check;    |
+| [Column groups](@/guides/columns/column-groups.md)                         |     &check;      |   &check;    |   &check;    |
+| [Column hiding](@/guides/columns/column-hiding.md)                         |     &check;      |   &check;    |   &check;    |
+| [Column moving](@/guides/columns/column-moving.md)                         |     &cross;      |   &cross;    |   &cross;    |
+| [Column freezing](@/guides/columns/column-moving.md)                       |     &cross;      |   &cross;    |   &cross;    |
+| [Manual column resizing](@/guides/columns/column-width.md)                 |     &cross;      |   &cross;    |   &cross;    |
+| [Column summary](@/guides/columns/column-summary.md)                       |     &check;      |   &check;    |   &check;    |
+| [Column virtualization](@/guides/columns/column-virtualization.md)         |     &check;      |   &check;    |   &check;    |
+| [Column menu](@/guides/columns/column-menu.md)                             |     &check;      |   &check;    |   &check;    |
+| [Column filter](@/guides/columns/column-filter.md)                         |     &check;      |   &check;    |   &check;    |
+| [Row headers](@/guides/rows/row-header.md)                                 |     &check;      |   &check;    |   &check;    |
+| [Row parent-child](@/guides/rows/row-parent-child.md)                      |     &check;      |   &check;    |   &check;    |
+| [Row hiding](@/guides/rows/row-hiding.md)                                  |     &check;      |   &check;    |   &check;    |
+| [Row moving](@/guides/rows/row-moving.md)                                  |     &cross;      |   &cross;    |   &cross;    |
+| [Row freezing](@/guides/rows/row-freezing.md)                              |     &cross;      |   &cross;    |   &cross;    |
+| [Manual row resizing](@/guides/rows/row-height.md)                         |     &cross;      |   &cross;    |   &cross;    |
+| [Row virtualization](@/guides/rows/row-virtualization.md)                  |     &check;      |   &check;    |   &check;    |
+| [Rows sorting](@/guides/rows/row-sorting.md)                               |     &check;      |   &check;    |   &check;    |
+| [Row trimming](@/guides/rows/row-trimming.md)                              |     &check;      |   &check;    |   &check;    |
+| [Row pre-populating](@/guides/rows/row-prepopulating.md)                   |     &cross;      |   &cross;    |   &cross;    |
+| [Clipboard](@/guides/cell-features/clipboard.md)                           |     &check;      |   &check;    |   &check;    |
+| [Merge cells](@/guides/cell-features/merge-cells.md)                       |     &check;      |   &check;    |   &check;    |
+| [Conditional formatting](@/guides/cell-features/conditional-formatting.md) |     &check;      |   &check;    |   &check;    |
+| [Text alignment](@/guides/cell-features/text-alignment.md)                 |     &check;      |   &check;    |   &check;    |
+| [Disabled cells](@/guides/cell-features/disabled-cells.md)                 |     &check;      |   &check;    |   &check;    |
+| [Comments](@/guides/cell-features/comments.md)                             |     &cross;      |   &cross;    |   &cross;    |
+| [Autofill values](@/guides/cell-features/autofill-values.md)               |     &cross;      |   &cross;    |   &cross;    |
+| [Formula calculation](@/guides/formulas/formula-calculation.md)            |     &check;      |   &check;    |   &check;    |
+| [Context menu](@/guides/accessories-and-menus/context-menu.md)<sup>*</sup> |     &check;      |   &cross;    |   &cross;    |
+| [Undo and redo](@/guides/accessories-and-menus/undo-redo.md)               |     &check;      |   &check;    |   &check;    |
+| [Searching values](@/guides/accessories-and-menus/searching-values.md)     |     &check;      |   &check;    |   &check;    |
+| [Export to CSV](@/guides/accessories-and-menus/export-to-csv.md)           |     &cross;      |   &cross;    |   &cross;    |
+| [Layout direction](@/guides/internationalization/layout-direction.md)      |     &cross;      |   &cross;    |   &cross;    |
+| [IME support](@/guides/internationalization/ime-support.md)                |     &cross;      |   &cross;    |   &cross;    |
 
-However, there are a few exceptions:
-
-Autofill (fillHandle)
-drag and drop: moving rows and columns, resizing them
-Row repopulating may not work properly
-In addition, the reported bugs show that there are some main blockers:
-
-the context menu may not function correctly on iOS and iPadOS, it doesn't open at all Long-touch doesn't trigger Context-Menu #917
-there are some scrolling issues Scrolling issue on mobiles #656, with fixed columns No scrolling when using fixedColumnsLeft (on tablets) #911,
-iPad issues iPadOS 13 & 14 issues #905
-we have more than 20 bugs in total related to the mobile devices
+<sup>*</sup>Although the context menu is not supported on iOS,
+you can easily include all of its actions in the [column menu](@/guides/columns/column-menu.md).
 
 ## Troubleshooting
 
-If you spot a bug, view [GitHub issues](https://github.com/handsontable/handsontable/issues?q=is%3Aissue+is%3Aopen+mobile+label%3Abug+label%3AMobile) related to mobile support, or report a [new GitHub issue](https://github.com/handsontable/handsontable/issues/new/choose).
+Didn't find what you need? Try this:
+
+- View [GitHub issues](https://github.com/handsontable/handsontable/issues?q=is%3Aissue+is%3Aopen+mobile+label%3Abug+label%3AMobile) related to mobile support.
+- Report a [new GitHub issue](https://github.com/handsontable/handsontable/issues/new/choose).
+- Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/handsontable).
+- Ask a question on [Handsontable's forum](https://forum.handsontable.com/c/getting-help/questions).
+- Contact Handsontable's [technical support](https://handsontable.com/contact?category=technical_support).

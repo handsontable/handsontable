@@ -31,13 +31,13 @@ In addition to running unit and end-to-end tests, we focus on two crucial factor
 
 Handsontable supports the following desktop browsers:
 
-| MacOS   | Windows |
+| Windows | macOS   |
 | ------- | ------- |
 | Chrome  | Chrome  |
 | Firefox | Firefox |
 | Edge    | Edge    |
 | Opera   | Opera   |
-| Safari  |         |
+|         | Safari  |
 
 Handsontable 11.x is the long-term support (LTS) version for Internet Explorer 11 and Edge Legacy (the non-Chromium version of Edge), until the end of 2023.
 
@@ -45,10 +45,10 @@ Handsontable 11.x is the long-term support (LTS) version for Internet Explorer 1
 
 Handsontable supports the following mobile browsers:
 
-| iOS    | Android |
-| ------ | ------- |
-| Chrome | Chrome  |
-| Safari |         |
+| Android | iOS    |
+| ------- | ------ |
+| Chrome  | Chrome |
+|         | Safari |
 
 We also run a limited number of end-to-end tests on the following mobile browsers:
 - Samsung Internet
