@@ -7,7 +7,6 @@ const { promises: fs } = require('fs');
 const util = require('util');
 
 const chalk = require('chalk');
-const execa = require('execa');
 const inquirer = require('inquirer');
 const lodash = require('lodash');
 const glob = util.promisify(require('glob'));
@@ -23,8 +22,10 @@ const changelogMarkDownMark = '<!-- UNVERSIONED -->';
 const changelogPath = path.join(__dirname, '../CHANGELOG.md');
 const changelogsDirectoryName = '.changelogs';
 
-const changelogEntryTypes = ['added', 'changed', 'deprecated', 'removed', 'fixed'];
+// The order of the items affects the order of the categories that are generated in the CHANGELOG.md file.
+const changelogEntryTypes = ['added', 'changed', 'deprecated', 'removed', 'fixed', 'security'];
 const changelogFrameworkTypes = ['none', 'react', 'vue', 'angular'];
+const changelogIssuesOriginTypes = ['private', 'public'];
 
 const uppercaseFirstLetter = s => s.slice(0, 1).toUpperCase() + s.slice(1);
 
@@ -36,25 +37,14 @@ const entryDestination = name =>
 
 const fileExists = p => fs.access(p).then(() => true).catch(() => false);
 
-const stringifyChangelogEntryObject = ({ title, issue, framework, breaking }) => {
+const stringifyChangelogEntryObject = ({ issuesOrigin, title, issueOrPR, framework, breaking }) => {
   const breakingFragment = breaking ? '**Breaking change**: ' : '';
-
-  const frameworkFragment = framework === 'none' ? '' : `*${uppercaseFirstLetter(framework)}:* `;
-
+  const frameworkFragment = framework === 'none' ? '' : `${uppercaseFirstLetter(framework)}: `;
+  const linkType = issuesOrigin === 'private' ? 'pull' : 'issues';
   const issueLinkFragment =
-    `[#${issue}](https://github.com/handsontable/handsontable/issues/${issue})`;
+    `[#${issueOrPR}](https://github.com/handsontable/handsontable/${linkType}/${issueOrPR})`;
 
   return `${breakingFragment}${frameworkFragment}${title} ${issueLinkFragment}`;
-};
-
-const extractNumberFromString = (s) => {
-  const result = /\d+/.exec(s);
-
-  if (result === null) {
-    return undefined;
-  }
-
-  return Number(result[0]);
 };
 
 const askToProceedOrExit = async(message = 'Proceed?') => {
@@ -84,6 +74,11 @@ const assertChangelogEntryFormat = (input) => {
     throw new TypeError(`input must be an object and not be null (got: ${input})`);
   }
 
+  if (typeof input.issuesOrigin !== 'string' || !changelogIssuesOriginTypes.includes(input.issuesOrigin)) {
+    throw new TypeError(
+      `input.issuesOrigin must be one of: ${changelogIssuesOriginTypes} (got: ${input.issuesOrigin})`);
+  }
+
   if (typeof input.title !== 'string' || input.title.length === 0) {
     throw new TypeError(`input.title must be a non-empty string (got: ${input.title})`);
   }
@@ -92,8 +87,8 @@ const assertChangelogEntryFormat = (input) => {
     throw new TypeError(`input.type must be one of: ${changelogEntryTypes} (got: ${input.type})`);
   }
 
-  if (typeof input.issue !== 'number' || Number.isNaN(input.issue)) {
-    throw new TypeError(`input.issue must be a non-NaN number (got: ${input.issue})`);
+  if (typeof input.issueOrPR !== 'number' || Number.isNaN(input.issueOrPR)) {
+    throw new TypeError(`input.issueOrPR must be a non-NaN number (got: ${input.issueOrPR})`);
   }
 
   if (typeof input.breaking !== 'boolean') {
@@ -105,21 +100,26 @@ const assertChangelogEntryFormat = (input) => {
   }
 
   return {
+    issuesOrigin: input.issuesOrigin,
     title: input.title,
     type: input.type,
-    issue: input.issue,
+    issueOrPR: input.issueOrPR,
     breaking: input.breaking,
     framework: input.framework
   };
 };
 
 const createEntryCommand = async(args) => {
-  // https://stackoverflow.com/a/11958481
-  const gitBranchName = (await execa('git', ['rev-parse', '--symbolic-full-name', '--abbrev-ref', 'HEAD'])).stdout;
-  const maybeExtractedNumber = extractNumberFromString(gitBranchName);
-
   const argTitle = args.title ? args.title.join(' ') : undefined;
   const answers = isTTY ? await inquirer.prompt([
+    {
+      name: 'issuesOrigin',
+      type: 'list',
+      message: 'Issue\'s origin',
+      choices: changelogIssuesOriginTypes,
+      default: changelogIssuesOriginTypes[0],
+      when: typeof args.issuesOrigin === 'undefined'
+    },
     {
       name: 'title',
       type: 'input',
@@ -129,13 +129,18 @@ const createEntryCommand = async(args) => {
       when: typeof argTitle === 'undefined'
     },
     {
-      name: 'issue',
+      name: 'issueOrPR',
       type: 'input',
-      message: '# of the related issue/PR (e.g. 512)',
-      default: maybeExtractedNumber,
+      message: ({ issuesOrigin }) => {
+        if (issuesOrigin === 'private') {
+          return '# of the related public PR (e.g. 512)';
+        }
+
+        return '# of the related public issue (e.g. 512)';
+      },
       validate: s => (Number.isInteger(s) ? true : 'The provided input is not a number'),
       filter: s => (Number.isNaN(parseInt(s, 10)) ? '' : parseInt(s, 10)),
-      when: typeof args.issue === 'undefined'
+      when: typeof args.issueOrPR === 'undefined'
     },
     {
       name: 'breaking',
@@ -172,7 +177,7 @@ const createEntryCommand = async(args) => {
 
   const changelogEntry = assertChangelogEntryFormat({ ...args, title: argTitle, ...answers });
 
-  const filename = changelogEntry.issue.toString();
+  const filename = changelogEntry.issueOrPR.toString();
   const destination = entryDestination(filename);
 
   console.log(`
@@ -237,8 +242,10 @@ const consumeCommand = async(args) => {
     .map(contents => assertChangelogEntryFormat(JSON.parse(contents)));
 
   const groupedEntries = lodash.groupBy(ungroupedEntries, 'type');
+  const groupedPairs = lodash.sortBy(lodash
+    .toPairs(groupedEntries), ([key]) => changelogEntryTypes.indexOf(key));
 
-  const compiledEntries = lodash.toPairs(groupedEntries)
+  const compiledEntries = groupedPairs
     .map(([type, entries]) =>
       `${`### ${uppercaseFirstLetter(type)}\n`}${
         lodash.chain(entries)
