@@ -49,7 +49,7 @@ if (pkgName && PACKAGE_LOCATIONS.has(pkgName)) {
 
 } else {
   displayWarningMessage(
-    `No package location for provided ${pkgName}, doing nothing. Known page names: ${
+    `No package location for provided ${pkgName}, doing nothing. Known packages names: ${
       Array.from(PACKAGE_LOCATIONS.keys()).join(', ')
     }.`);
 }
