@@ -433,14 +433,12 @@ jobs:
     name: "[TEST] Visual tests"
     runs-on: ubuntu-latest
     needs:
-      - build-handsontable-es-cjs
-      - build-handsontable-umd
-      # - test-handsontable-e2e
-      # - test-handsontable-e2e-min
-      # - test-angular
-      # - test-react
-      # - test-vue
-      # - test-vue3
+      - test-handsontable-e2e
+      - test-handsontable-e2e-min
+      - test-angular
+      - test-react
+      - test-vue
+      - test-vue3
     if: |
       !failure() && contains(needs.*.result, 'success')
     steps:
@@ -470,14 +468,6 @@ jobs:
 
       - name: Run tests
         run: npm run in visual-tests test
-
-      - run: tar -zcf screenshots.tar.gz ./visual-tests/screenshots
-
-      - name: Upload the screenshot artifacts
-        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb # https://github.com/actions/upload-artifact/releases/tag/v3.1.1
-        with:
-          name: screenshots
-          path: screenshots.tar.gz
 
       - name: Upload the screenshot to Argos CI
         env:
