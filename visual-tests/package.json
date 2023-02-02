@@ -24,6 +24,7 @@
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2",
     "playwright": "1.28.1",
-    "rimraf": "^4.1.2"
+    "rimraf": "^4.1.2",
+    "terminate": "^2.6.1"
   }
 }
