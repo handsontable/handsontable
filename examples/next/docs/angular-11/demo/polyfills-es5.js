@@ -3,7 +3,7 @@
 
   function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
-  function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+  function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -490,9 +490,7 @@
         var index = 0;
         var key;
 
-        while (length > index) {
-          definePropertyModule.f(O, key = keys[index++], Properties[key]);
-        }
+        while (length > index) definePropertyModule.f(O, key = keys[index++], Properties[key]);
 
         return O;
       };
@@ -1353,9 +1351,7 @@
           var args = [];
           var i = 1;
 
-          while (arguments.length > i) {
-            args.push(arguments[i++]);
-          }
+          while (arguments.length > i) args.push(arguments[i++]);
 
           queue[++counter] = function () {
             // eslint-disable-next-line no-new-func
@@ -1592,38 +1588,36 @@
           var target = IS_MAP ? create($this, length) : IS_FILTER || IS_FILTER_OUT ? create($this, 0) : undefined;
           var value, result;
 
-          for (; length > index; index++) {
-            if (NO_HOLES || index in self) {
-              value = self[index];
-              result = boundFunction(value, index, O);
+          for (; length > index; index++) if (NO_HOLES || index in self) {
+            value = self[index];
+            result = boundFunction(value, index, O);
 
-              if (TYPE) {
-                if (IS_MAP) target[index] = result; // map
-                else if (result) switch (TYPE) {
-                  case 3:
-                    return true;
-                  // some
+            if (TYPE) {
+              if (IS_MAP) target[index] = result; // map
+              else if (result) switch (TYPE) {
+                case 3:
+                  return true;
+                // some
 
-                  case 5:
-                    return value;
-                  // find
+                case 5:
+                  return value;
+                // find
 
-                  case 6:
-                    return index;
-                  // findIndex
+                case 6:
+                  return index;
+                // findIndex
 
-                  case 2:
-                    push.call(target, value);
-                  // filter
-                } else switch (TYPE) {
-                  case 4:
-                    return false;
-                  // every
+                case 2:
+                  push.call(target, value);
+                // filter
+              } else switch (TYPE) {
+                case 4:
+                  return false;
+                // every
 
-                  case 7:
-                    push.call(target, value);
-                  // filterOut
-                }
+                case 7:
+                  push.call(target, value);
+                // filterOut
               }
             }
           }
@@ -2076,15 +2070,11 @@
         var result = [];
         var key;
 
-        for (key in O) {
-          !has(hiddenKeys, key) && has(O, key) && result.push(key);
-        } // Don't enum bug & hidden keys
+        for (key in O) !has(hiddenKeys, key) && has(O, key) && result.push(key); // Don't enum bug & hidden keys
 
 
-        while (names.length > i) {
-          if (has(O, key = names[i++])) {
-            ~indexOf(result, key) || result.push(key);
-          }
+        while (names.length > i) if (has(O, key = names[i++])) {
+          ~indexOf(result, key) || result.push(key);
         }
 
         return result;
@@ -2402,9 +2392,7 @@
 
       var construct = function construct(C, argsLength, args) {
         if (!(argsLength in factories)) {
-          for (var list = [], i = 0; i < argsLength; i++) {
-            list[i] = 'a[' + i + ']';
-          } // eslint-disable-next-line no-new-func
+          for (var list = [], i = 0; i < argsLength; i++) list[i] = 'a[' + i + ']'; // eslint-disable-next-line no-new-func
 
 
           factories[argsLength] = Function('C,a', 'return new C(' + list.join(',') + ')');
@@ -2537,9 +2525,7 @@
         var n = toInteger(count);
         if (n < 0 || n == Infinity) throw RangeError('Wrong number of repetitions');
 
-        for (; n > 0; (n >>>= 1) && (str += str)) {
-          if (n & 1) result += str;
-        }
+        for (; n > 0; (n >>>= 1) && (str += str)) if (n & 1) result += str;
 
         return result;
       };
@@ -2745,9 +2731,7 @@
         var keys = getOwnPropertyNames(NativeRegExp);
         var index = 0;
 
-        while (keys.length > index) {
-          proxy(keys[index++]);
-        }
+        while (keys.length > index) proxy(keys[index++]);
 
         RegExpPrototype.constructor = RegExpWrapper;
         RegExpWrapper.prototype = RegExpPrototype;
@@ -4132,9 +4116,7 @@
             var $instance = new NativeConstructor();
             var index = 5;
 
-            while (index--) {
-              $instance[ADDER](index, index);
-            }
+            while (index--) $instance[ADDER](index, index);
 
             return !$instance.has(-0);
           });
@@ -8090,7 +8072,7 @@
         function patchPrototype(prototype, fnNames) {
           var source = prototype.constructor['name'];
 
-          var _loop3 = function _loop3(i) {
+          var _loop3 = function _loop3() {
             var name = fnNames[i];
             var delegate = prototype[name];
 
@@ -8113,7 +8095,7 @@
           };
 
           for (var i = 0; i < fnNames.length; i++) {
-            var _ret = _loop3(i);
+            var _ret = _loop3();
 
             if (_ret === "continue") continue;
           }
@@ -10419,10 +10401,8 @@
             }
           }
 
-          for (; IS_RIGHT ? index >= 0 : length > index; index += i) {
-            if (index in self) {
-              memo = callbackfn(memo, self[index], index, O);
-            }
+          for (; IS_RIGHT ? index >= 0 : length > index; index += i) if (index in self) {
+            memo = callbackfn(memo, self[index], index, O);
           }
 
           return memo;
@@ -11027,9 +11007,7 @@
 
           result = new (Constructor === undefined ? Array : Constructor)(max(fin - k, 0));
 
-          for (n = 0; k < fin; k++, n++) {
-            if (k in O) createProperty(result, n, O[k]);
-          }
+          for (n = 0; k < fin; k++, n++) if (k in O) createProperty(result, n, O[k]);
 
           result.length = n;
           return result;
@@ -11608,9 +11586,7 @@
               if (from in O) O[to] = O[from];else delete O[to];
             }
 
-            for (k = len; k > len - actualDeleteCount + insertCount; k--) {
-              delete O[k - 1];
-            }
+            for (k = len; k > len - actualDeleteCount + insertCount; k--) delete O[k - 1];
           } else if (insertCount > actualDeleteCount) {
             for (k = len - actualDeleteCount; k > actualStart; k--) {
               from = k + actualDeleteCount - 1;
@@ -12991,9 +12967,7 @@
               while (entry = entry ? entry.next : state.first) {
                 boundFunction(entry.value, entry.key, this); // revert to the last existing entry
 
-                while (entry && entry.removed) {
-                  entry = entry.previous;
-                }
+                while (entry && entry.removed) entry = entry.previous;
               }
             },
             // 23.1.3.7 Map.prototype.has(key)
@@ -13044,9 +13018,7 @@
             var kind = state.kind;
             var entry = state.last; // revert to the last existing entry
 
-            while (entry && entry.removed) {
-              entry = entry.previous;
-            } // get next entry
+            while (entry && entry.removed) entry = entry.previous; // get next entry
 
 
             if (!state.target || !(state.last = entry = entry ? entry.next : state.state.first)) {
@@ -13854,9 +13826,7 @@
           var argumentsLength = arguments.length;
           var result = new (typeof this == 'function' ? this : Array)(argumentsLength);
 
-          while (argumentsLength > index) {
-            createProperty(result, index, arguments[index++]);
-          }
+          while (argumentsLength > index) createProperty(result, index, arguments[index++]);
 
           result.length = argumentsLength;
           return result;
@@ -14111,9 +14081,7 @@
               len = toLength(E.length);
               if (n + len > MAX_SAFE_INTEGER) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED);
 
-              for (k = 0; k < len; k++, n++) {
-                if (k in E) createProperty(A, n, E[k]);
-              }
+              for (k = 0; k < len; k++, n++) if (k in E) createProperty(A, n, E[k]);
             } else {
               if (n >= MAX_SAFE_INTEGER) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED);
               createProperty(A, n++, E);
@@ -15581,9 +15549,7 @@
             var index = 1;
             var $replacer;
 
-            while (arguments.length > index) {
-              args.push(arguments[index++]);
-            }
+            while (arguments.length > index) args.push(arguments[index++]);
 
             $replacer = replacer;
             if (!isObject(replacer) && it === undefined || isSymbol(it)) return; // IE8 returns string on undefined
@@ -15692,9 +15658,7 @@
             if (typeof this != 'function' || !isObject(O)) return false;
             if (!isObject(this.prototype)) return O instanceof this; // for environment w/o native `@@hasInstance` logic enough `instanceof`, but add this:
 
-            while (O = getPrototypeOf(O)) {
-              if (this.prototype === O) return true;
-            }
+            while (O = getPrototypeOf(O)) if (this.prototype === O) return true;
 
             return false;
           }
@@ -17294,9 +17258,7 @@
         var end = argumentsLength > 2 ? arguments[2] : undefined;
         var endPos = end === undefined ? length : toAbsoluteIndex(end, length);
 
-        while (endPos > index) {
-          O[index++] = value;
-        }
+        while (endPos > index) O[index++] = value;
 
         return O;
       };
@@ -17409,9 +17371,7 @@
         if (arguments.length > 1) index = min(index, toInteger(arguments[1]));
         if (index < 0) index = length + index;
 
-        for (; index >= 0; index--) {
-          if (index in O && O[index] === searchElement) return index || 0;
-        }
+        for (; index >= 0; index--) if (index in O && O[index] === searchElement) return index || 0;
 
         return -1;
       } : nativeLastIndexOf;
@@ -18074,9 +18034,7 @@
         _NullProtoObject = activeXDocument ? NullProtoObjectViaActiveX(activeXDocument) : NullProtoObjectViaIFrame();
         var length = enumBugKeys.length;
 
-        while (length--) {
-          delete _NullProtoObject[PROTOTYPE][enumBugKeys[length]];
-        }
+        while (length--) delete _NullProtoObject[PROTOTYPE][enumBugKeys[length]];
 
         return _NullProtoObject();
       };
@@ -19226,9 +19184,7 @@
       "0K2p");
 
       module.exports = function (target, src, options) {
-        for (var key in src) {
-          redefine(target, key, src[key], options);
-        }
+        for (var key in src) redefine(target, key, src[key], options);
 
         return target;
       };
@@ -19341,9 +19297,7 @@
             // the slice polyfill when slicing native arrays) "doesn't work" in safari 9 and
             // causes a crash (https://pastebin.com/N21QzeQA) when trying to debug it.
 
-            for (var j = 1; j < result.length; j++) {
-              captures.push(maybeToString(result[j]));
-            }
+            for (var j = 1; j < result.length; j++) captures.push(maybeToString(result[j]));
 
             var namedCaptures = result.groups;
 

@@ -820,10 +820,10 @@ module.exports = function (exec, SKIP_CLOSING) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-var uncurryThisRaw = __webpack_require__(/*! ../internals/function-uncurry-this-raw */ "../../../../../node_modules/core-js/internals/function-uncurry-this-raw.js");
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
 
-var toString = uncurryThisRaw({}.toString);
-var stringSlice = uncurryThisRaw(''.slice);
+var toString = uncurryThis({}.toString);
+var stringSlice = uncurryThis(''.slice);
 
 module.exports = function (it) {
   return stringSlice(toString(it), 8, -1);
@@ -1119,8 +1119,8 @@ var splice = uncurryThis([].splice);
 var id = 0;
 
 // fallback for uncaught frozen keys
-var uncaughtFrozenStore = function (store) {
-  return store.frozen || (store.frozen = new UncaughtFrozenStore());
+var uncaughtFrozenStore = function (state) {
+  return state.frozen || (state.frozen = new UncaughtFrozenStore());
 };
 
 var UncaughtFrozenStore = function () {
@@ -1527,6 +1527,32 @@ module.exports = function (object, key, value) {
 
 /***/ }),
 
+/***/ "../../../../../node_modules/core-js/internals/date-to-primitive.js":
+/*!*******************************************************************************************************!*\
+  !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/date-to-primitive.js ***!
+  \*******************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var anObject = __webpack_require__(/*! ../internals/an-object */ "../../../../../node_modules/core-js/internals/an-object.js");
+var ordinaryToPrimitive = __webpack_require__(/*! ../internals/ordinary-to-primitive */ "../../../../../node_modules/core-js/internals/ordinary-to-primitive.js");
+
+var $TypeError = TypeError;
+
+// `Date.prototype[@@toPrimitive](hint)` method implementation
+// https://tc39.es/ecma262/#sec-date.prototype-@@toprimitive
+module.exports = function (hint) {
+  anObject(this);
+  if (hint === 'string' || hint === 'default') hint = 'string';
+  else if (hint !== 'number') throw $TypeError('Incorrect hint');
+  return ordinaryToPrimitive(this, hint);
+};
+
+
+/***/ }),
+
 /***/ "../../../../../node_modules/core-js/internals/define-built-in.js":
 /*!*****************************************************************************************************!*\
   !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/define-built-in.js ***!
@@ -1653,6 +1679,7 @@ module.exports = !fails(function () {
 var documentAll = typeof document == 'object' && document.all;
 
 // https://tc39.es/ecma262/#sec-IsHTMLDDA-internal-slot
+// eslint-disable-next-line unicorn/no-typeof-undefined -- required for testing
 var IS_HTMLDDA = typeof documentAll == 'undefined' && documentAll !== undefined;
 
 module.exports = {
@@ -1782,6 +1809,19 @@ module.exports = !!firefox && +firefox[1];
 
 /***/ }),
 
+/***/ "../../../../../node_modules/core-js/internals/engine-is-bun.js":
+/*!***************************************************************************************************!*\
+  !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/engine-is-bun.js ***!
+  \***************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/* global Bun -- Deno case */
+module.exports = typeof Bun == 'function' && Bun && typeof Bun.version == 'string';
+
+
+/***/ }),
+
 /***/ "../../../../../node_modules/core-js/internals/engine-is-ie-or-edge.js":
 /*!**********************************************************************************************************!*\
   !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/engine-is-ie-or-edge.js ***!
@@ -1818,9 +1858,8 @@ module.exports = /(?:ipad|iphone|ipod).*applewebkit/i.test(userAgent);
 /***/ (function(module, exports, __webpack_require__) {
 
 var classof = __webpack_require__(/*! ../internals/classof-raw */ "../../../../../node_modules/core-js/internals/classof-raw.js");
-var global = __webpack_require__(/*! ../internals/global */ "../../../../../node_modules/core-js/internals/global.js");
 
-module.exports = classof(global.process) == 'process';
+module.exports = typeof process != 'undefined' && classof(process) == 'process';
 
 
 /***/ }),
@@ -1830,11 +1869,9 @@ module.exports = classof(global.process) == 'process';
   !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/engine-user-agent.js ***!
   \*******************************************************************************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-var getBuiltIn = __webpack_require__(/*! ../internals/get-built-in */ "../../../../../node_modules/core-js/internals/get-built-in.js");
-
-module.exports = getBuiltIn('navigator', 'userAgent') || '';
+module.exports = typeof navigator != 'undefined' && String(navigator.userAgent) || '';
 
 
 /***/ }),
@@ -2008,7 +2045,7 @@ module.exports = function (exec) {
 
 // TODO: Remove from `core-js@4` since it's moved to entry points
 __webpack_require__(/*! ../modules/es.regexp.exec */ "../../../../../node_modules/core-js/modules/es.regexp.exec.js");
-var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this-clause */ "../../../../../node_modules/core-js/internals/function-uncurry-this-clause.js");
 var defineBuiltIn = __webpack_require__(/*! ../internals/define-built-in */ "../../../../../node_modules/core-js/internals/define-built-in.js");
 var regexpExec = __webpack_require__(/*! ../internals/regexp-exec */ "../../../../../node_modules/core-js/internals/regexp-exec.js");
 var fails = __webpack_require__(/*! ../internals/fails */ "../../../../../node_modules/core-js/internals/fails.js");
@@ -2128,7 +2165,7 @@ module.exports = typeof Reflect == 'object' && Reflect.apply || (NATIVE_BIND ? c
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this-clause */ "../../../../../node_modules/core-js/internals/function-uncurry-this-clause.js");
 var aCallable = __webpack_require__(/*! ../internals/a-callable */ "../../../../../node_modules/core-js/internals/a-callable.js");
 var NATIVE_BIND = __webpack_require__(/*! ../internals/function-bind-native */ "../../../../../node_modules/core-js/internals/function-bind-native.js");
 
@@ -2255,10 +2292,30 @@ module.exports = {
 
 /***/ }),
 
-/***/ "../../../../../node_modules/core-js/internals/function-uncurry-this-raw.js":
-/*!***************************************************************************************************************!*\
-  !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/function-uncurry-this-raw.js ***!
-  \***************************************************************************************************************/
+/***/ "../../../../../node_modules/core-js/internals/function-uncurry-this-clause.js":
+/*!******************************************************************************************************************!*\
+  !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/function-uncurry-this-clause.js ***!
+  \******************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var classofRaw = __webpack_require__(/*! ../internals/classof-raw */ "../../../../../node_modules/core-js/internals/classof-raw.js");
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
+
+module.exports = function (fn) {
+  // Nashorn bug:
+  //   https://github.com/zloirock/core-js/issues/1128
+  //   https://github.com/zloirock/core-js/issues/1130
+  if (classofRaw(fn) === 'Function') return uncurryThis(fn);
+};
+
+
+/***/ }),
+
+/***/ "../../../../../node_modules/core-js/internals/function-uncurry-this.js":
+/*!***********************************************************************************************************!*\
+  !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/function-uncurry-this.js ***!
+  \***********************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2272,26 +2329,6 @@ module.exports = NATIVE_BIND ? uncurryThisWithBind : function (fn) {
   return function () {
     return call.apply(fn, arguments);
   };
-};
-
-
-/***/ }),
-
-/***/ "../../../../../node_modules/core-js/internals/function-uncurry-this.js":
-/*!***********************************************************************************************************!*\
-  !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/internals/function-uncurry-this.js ***!
-  \***********************************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var classofRaw = __webpack_require__(/*! ../internals/classof-raw */ "../../../../../node_modules/core-js/internals/classof-raw.js");
-var uncurryThisRaw = __webpack_require__(/*! ../internals/function-uncurry-this-raw */ "../../../../../node_modules/core-js/internals/function-uncurry-this-raw.js");
-
-module.exports = function (fn) {
-  // Nashorn bug:
-  //   https://github.com/zloirock/core-js/issues/1128
-  //   https://github.com/zloirock/core-js/issues/1130
-  if (classofRaw(fn) === 'Function') return uncurryThisRaw(fn);
 };
 
 
@@ -3438,6 +3475,7 @@ module.exports = function (obj) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
 var fails = __webpack_require__(/*! ../internals/fails */ "../../../../../node_modules/core-js/internals/fails.js");
 var isCallable = __webpack_require__(/*! ../internals/is-callable */ "../../../../../node_modules/core-js/internals/is-callable.js");
 var hasOwn = __webpack_require__(/*! ../internals/has-own-property */ "../../../../../node_modules/core-js/internals/has-own-property.js");
@@ -3448,8 +3486,12 @@ var InternalStateModule = __webpack_require__(/*! ../internals/internal-state */
 
 var enforceInternalState = InternalStateModule.enforce;
 var getInternalState = InternalStateModule.get;
+var $String = String;
 // eslint-disable-next-line es/no-object-defineproperty -- safe
 var defineProperty = Object.defineProperty;
+var stringSlice = uncurryThis(''.slice);
+var replace = uncurryThis(''.replace);
+var join = uncurryThis([].join);
 
 var CONFIGURABLE_LENGTH = DESCRIPTORS && !fails(function () {
   return defineProperty(function () { /* empty */ }, 'length', { value: 8 }).length !== 8;
@@ -3458,8 +3500,8 @@ var CONFIGURABLE_LENGTH = DESCRIPTORS && !fails(function () {
 var TEMPLATE = String(String).split('String');
 
 var makeBuiltIn = module.exports = function (value, name, options) {
-  if (String(name).slice(0, 7) === 'Symbol(') {
-    name = '[' + String(name).replace(/^Symbol\(([^)]*)\)/, '$1') + ']';
+  if (stringSlice($String(name), 0, 7) === 'Symbol(') {
+    name = '[' + replace($String(name), /^Symbol\(([^)]*)\)/, '$1') + ']';
   }
   if (options && options.getter) name = 'get ' + name;
   if (options && options.setter) name = 'set ' + name;
@@ -3478,7 +3520,7 @@ var makeBuiltIn = module.exports = function (value, name, options) {
   } catch (error) { /* empty */ }
   var state = enforceInternalState(value);
   if (!hasOwn(state, 'source')) {
-    state.source = TEMPLATE.join(typeof name == 'string' ? name : '');
+    state.source = join(TEMPLATE, typeof name == 'string' ? name : '');
   } return value;
 };
 
@@ -4566,36 +4608,37 @@ module.exports = Object.is || function is(x, y) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
+"use strict";
+
 var global = __webpack_require__(/*! ../internals/global */ "../../../../../node_modules/core-js/internals/global.js");
 var apply = __webpack_require__(/*! ../internals/function-apply */ "../../../../../node_modules/core-js/internals/function-apply.js");
 var isCallable = __webpack_require__(/*! ../internals/is-callable */ "../../../../../node_modules/core-js/internals/is-callable.js");
-var userAgent = __webpack_require__(/*! ../internals/engine-user-agent */ "../../../../../node_modules/core-js/internals/engine-user-agent.js");
+var ENGINE_IS_BUN = __webpack_require__(/*! ../internals/engine-is-bun */ "../../../../../node_modules/core-js/internals/engine-is-bun.js");
+var USER_AGENT = __webpack_require__(/*! ../internals/engine-user-agent */ "../../../../../node_modules/core-js/internals/engine-user-agent.js");
 var arraySlice = __webpack_require__(/*! ../internals/array-slice */ "../../../../../node_modules/core-js/internals/array-slice.js");
 var validateArgumentsLength = __webpack_require__(/*! ../internals/validate-arguments-length */ "../../../../../node_modules/core-js/internals/validate-arguments-length.js");
 
-var MSIE = /MSIE .\./.test(userAgent); // <- dirty ie9- check
 var Function = global.Function;
+// dirty IE9- and Bun 0.3.0- checks
+var WRAP = /MSIE .\./.test(USER_AGENT) || ENGINE_IS_BUN && (function () {
+  var version = global.Bun.version.split('.');
+  return version.length < 3 || version[0] == 0 && (version[1] < 3 || version[1] == 3 && version[2] == 0);
+})();
 
-var wrap = function (scheduler) {
-  return MSIE ? function (handler, timeout /* , ...arguments */) {
-    var boundArgs = validateArgumentsLength(arguments.length, 1) > 2;
-    var fn = isCallable(handler) ? handler : Function(handler);
-    var args = boundArgs ? arraySlice(arguments, 2) : undefined;
-    return scheduler(boundArgs ? function () {
-      apply(fn, this, args);
-    } : fn, timeout);
-  } : scheduler;
-};
-
-// ie9- setTimeout & setInterval additional parameters fix
+// IE9- / Bun 0.3.0- setTimeout / setInterval / setImmediate additional parameters fix
 // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers
-module.exports = {
-  // `setTimeout` method
-  // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-settimeout
-  setTimeout: wrap(global.setTimeout),
-  // `setInterval` method
-  // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-setinterval
-  setInterval: wrap(global.setInterval)
+// https://github.com/oven-sh/bun/issues/1633
+module.exports = function (scheduler, hasTimeArg) {
+  var firstParamIndex = hasTimeArg ? 2 : 1;
+  return WRAP ? function (handler, timeout /* , ...arguments */) {
+    var boundArgs = validateArgumentsLength(arguments.length, 1) > firstParamIndex;
+    var fn = isCallable(handler) ? handler : Function(handler);
+    var params = boundArgs ? arraySlice(arguments, firstParamIndex) : [];
+    var callback = boundArgs ? function () {
+      apply(fn, this, params);
+    } : fn;
+    return hasTimeArg ? scheduler(callback, timeout) : scheduler(callback);
+  } : scheduler;
 };
 
 
@@ -4705,10 +4748,10 @@ var store = __webpack_require__(/*! ../internals/shared-store */ "../../../../..
 (module.exports = function (key, value) {
   return store[key] || (store[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.26.0',
+  version: '3.27.2',
   mode: IS_PURE ? 'pure' : 'global',
-  copyright: '© 2014-2022 Denis Pushkarev (zloirock.ru)',
-  license: 'https://github.com/zloirock/core-js/blob/v3.26.0/LICENSE',
+  copyright: '© 2014-2023 Denis Pushkarev (zloirock.ru)',
+  license: 'https://github.com/zloirock/core-js/blob/v3.27.2/LICENSE',
   source: 'https://github.com/zloirock/core-js'
 });
 
@@ -5068,10 +5111,10 @@ var queue = {};
 var ONREADYSTATECHANGE = 'onreadystatechange';
 var $location, defer, channel, port;
 
-try {
+fails(function () {
   // Deno throws a ReferenceError on `location` access without `--location` flag
   $location = global.location;
-} catch (error) { /* empty */ }
+});
 
 var run = function (id) {
   if (hasOwn(queue, id)) {
@@ -5087,11 +5130,11 @@ var runner = function (id) {
   };
 };
 
-var listener = function (event) {
+var eventListener = function (event) {
   run(event.data);
 };
 
-var post = function (id) {
+var globalPostMessageDefer = function (id) {
   // old engines have not location.origin
   global.postMessage(String(id), $location.protocol + '//' + $location.host);
 };
@@ -5126,7 +5169,7 @@ if (!set || !clear) {
   } else if (MessageChannel && !IS_IOS) {
     channel = new MessageChannel();
     port = channel.port2;
-    channel.port1.onmessage = listener;
+    channel.port1.onmessage = eventListener;
     defer = bind(port.postMessage, port);
   // Browsers with postMessage, skip WebWorkers
   // IE8 has postMessage, but it's sync & typeof its postMessage is 'object'
@@ -5135,10 +5178,10 @@ if (!set || !clear) {
     isCallable(global.postMessage) &&
     !global.importScripts &&
     $location && $location.protocol !== 'file:' &&
-    !fails(post)
+    !fails(globalPostMessageDefer)
   ) {
-    defer = post;
-    global.addEventListener('message', listener, false);
+    defer = globalPostMessageDefer;
+    global.addEventListener('message', eventListener, false);
   // IE8-
   } else if (ONREADYSTATECHANGE in createElement('script')) {
     defer = function (id) {
@@ -5538,21 +5581,15 @@ var uid = __webpack_require__(/*! ../internals/uid */ "../../../../../node_modul
 var NATIVE_SYMBOL = __webpack_require__(/*! ../internals/symbol-constructor-detection */ "../../../../../node_modules/core-js/internals/symbol-constructor-detection.js");
 var USE_SYMBOL_AS_UID = __webpack_require__(/*! ../internals/use-symbol-as-uid */ "../../../../../node_modules/core-js/internals/use-symbol-as-uid.js");
 
-var WellKnownSymbolsStore = shared('wks');
 var Symbol = global.Symbol;
-var symbolFor = Symbol && Symbol['for'];
-var createWellKnownSymbol = USE_SYMBOL_AS_UID ? Symbol : Symbol && Symbol.withoutSetter || uid;
+var WellKnownSymbolsStore = shared('wks');
+var createWellKnownSymbol = USE_SYMBOL_AS_UID ? Symbol['for'] || Symbol : Symbol && Symbol.withoutSetter || uid;
 
 module.exports = function (name) {
-  if (!hasOwn(WellKnownSymbolsStore, name) || !(NATIVE_SYMBOL || typeof WellKnownSymbolsStore[name] == 'string')) {
-    var description = 'Symbol.' + name;
-    if (NATIVE_SYMBOL && hasOwn(Symbol, name)) {
-      WellKnownSymbolsStore[name] = Symbol[name];
-    } else if (USE_SYMBOL_AS_UID && symbolFor) {
-      WellKnownSymbolsStore[name] = symbolFor(description);
-    } else {
-      WellKnownSymbolsStore[name] = createWellKnownSymbol(description);
-    }
+  if (!hasOwn(WellKnownSymbolsStore, name)) {
+    WellKnownSymbolsStore[name] = NATIVE_SYMBOL && hasOwn(Symbol, name)
+      ? Symbol[name]
+      : createWellKnownSymbol('Symbol.' + name);
   } return WellKnownSymbolsStore[name];
 };
 
@@ -5606,15 +5643,13 @@ var IS_CONCAT_SPREADABLE_SUPPORT = V8_VERSION >= 51 || !fails(function () {
   return array.concat()[0] !== array;
 });
 
-var SPECIES_SUPPORT = arrayMethodHasSpeciesSupport('concat');
-
 var isConcatSpreadable = function (O) {
   if (!isObject(O)) return false;
   var spreadable = O[IS_CONCAT_SPREADABLE];
   return spreadable !== undefined ? !!spreadable : isArray(O);
 };
 
-var FORCED = !IS_CONCAT_SPREADABLE_SUPPORT || !SPECIES_SUPPORT;
+var FORCED = !IS_CONCAT_SPREADABLE_SUPPORT || !arrayMethodHasSpeciesSupport('concat');
 
 // `Array.prototype.concat` method
 // https://tc39.es/ecma262/#sec-array.prototype.concat
@@ -5830,18 +5865,18 @@ addToUnscopables('includes');
 
 /* eslint-disable es/no-array-prototype-indexof -- required for testing */
 var $ = __webpack_require__(/*! ../internals/export */ "../../../../../node_modules/core-js/internals/export.js");
-var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this-clause */ "../../../../../node_modules/core-js/internals/function-uncurry-this-clause.js");
 var $indexOf = __webpack_require__(/*! ../internals/array-includes */ "../../../../../node_modules/core-js/internals/array-includes.js").indexOf;
 var arrayMethodIsStrict = __webpack_require__(/*! ../internals/array-method-is-strict */ "../../../../../node_modules/core-js/internals/array-method-is-strict.js");
 
 var nativeIndexOf = uncurryThis([].indexOf);
 
 var NEGATIVE_ZERO = !!nativeIndexOf && 1 / nativeIndexOf([1], 1, -0) < 0;
-var STRICT_METHOD = arrayMethodIsStrict('indexOf');
+var FORCED = NEGATIVE_ZERO || !arrayMethodIsStrict('indexOf');
 
 // `Array.prototype.indexOf` method
 // https://tc39.es/ecma262/#sec-array.prototype.indexof
-$({ target: 'Array', proto: true, forced: NEGATIVE_ZERO || !STRICT_METHOD }, {
+$({ target: 'Array', proto: true, forced: FORCED }, {
   indexOf: function indexOf(searchElement /* , fromIndex = 0 */) {
     var fromIndex = arguments.length > 1 ? arguments[1] : undefined;
     return NEGATIVE_ZERO
@@ -5946,11 +5981,11 @@ var arrayMethodIsStrict = __webpack_require__(/*! ../internals/array-method-is-s
 var nativeJoin = uncurryThis([].join);
 
 var ES3_STRINGS = IndexedObject != Object;
-var STRICT_METHOD = arrayMethodIsStrict('join', ',');
+var FORCED = ES3_STRINGS || !arrayMethodIsStrict('join', ',');
 
 // `Array.prototype.join` method
 // https://tc39.es/ecma262/#sec-array.prototype.join
-$({ target: 'Array', proto: true, forced: ES3_STRINGS || !STRICT_METHOD }, {
+$({ target: 'Array', proto: true, forced: FORCED }, {
   join: function join(separator) {
     return nativeJoin(toIndexedObject(this), separator === undefined ? ',' : separator);
   }
@@ -6021,14 +6056,14 @@ var arrayMethodIsStrict = __webpack_require__(/*! ../internals/array-method-is-s
 var CHROME_VERSION = __webpack_require__(/*! ../internals/engine-v8-version */ "../../../../../node_modules/core-js/internals/engine-v8-version.js");
 var IS_NODE = __webpack_require__(/*! ../internals/engine-is-node */ "../../../../../node_modules/core-js/internals/engine-is-node.js");
 
-var STRICT_METHOD = arrayMethodIsStrict('reduce');
 // Chrome 80-82 has a critical bug
 // https://bugs.chromium.org/p/chromium/issues/detail?id=1049982
 var CHROME_BUG = !IS_NODE && CHROME_VERSION > 79 && CHROME_VERSION < 83;
+var FORCED = CHROME_BUG || !arrayMethodIsStrict('reduce');
 
 // `Array.prototype.reduce` method
 // https://tc39.es/ecma262/#sec-array.prototype.reduce
-$({ target: 'Array', proto: true, forced: !STRICT_METHOD || CHROME_BUG }, {
+$({ target: 'Array', proto: true, forced: FORCED }, {
   reduce: function reduce(callbackfn /* , initialValue */) {
     var length = arguments.length;
     return $reduce(this, callbackfn, length, length > 1 ? arguments[1] : undefined);
@@ -6327,6 +6362,30 @@ $({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT }, {
 
 /***/ }),
 
+/***/ "../../../../../node_modules/core-js/modules/es.date.to-primitive.js":
+/*!********************************************************************************************************!*\
+  !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/modules/es.date.to-primitive.js ***!
+  \********************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var hasOwn = __webpack_require__(/*! ../internals/has-own-property */ "../../../../../node_modules/core-js/internals/has-own-property.js");
+var defineBuiltIn = __webpack_require__(/*! ../internals/define-built-in */ "../../../../../node_modules/core-js/internals/define-built-in.js");
+var dateToPrimitive = __webpack_require__(/*! ../internals/date-to-primitive */ "../../../../../node_modules/core-js/internals/date-to-primitive.js");
+var wellKnownSymbol = __webpack_require__(/*! ../internals/well-known-symbol */ "../../../../../node_modules/core-js/internals/well-known-symbol.js");
+
+var TO_PRIMITIVE = wellKnownSymbol('toPrimitive');
+var DatePrototype = Date.prototype;
+
+// `Date.prototype[@@toPrimitive]` method
+// https://tc39.es/ecma262/#sec-date.prototype-@@toprimitive
+if (!hasOwn(DatePrototype, TO_PRIMITIVE)) {
+  defineBuiltIn(DatePrototype, TO_PRIMITIVE, dateToPrimitive);
+}
+
+
+/***/ }),
+
 /***/ "../../../../../node_modules/core-js/modules/es.function.name.js":
 /*!****************************************************************************************************!*\
   !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/modules/es.function.name.js ***!
@@ -6489,11 +6548,13 @@ __webpack_require__(/*! ../modules/es.map.constructor */ "../../../../../node_mo
 
 "use strict";
 
+var $ = __webpack_require__(/*! ../internals/export */ "../../../../../node_modules/core-js/internals/export.js");
+var IS_PURE = __webpack_require__(/*! ../internals/is-pure */ "../../../../../node_modules/core-js/internals/is-pure.js");
 var DESCRIPTORS = __webpack_require__(/*! ../internals/descriptors */ "../../../../../node_modules/core-js/internals/descriptors.js");
 var global = __webpack_require__(/*! ../internals/global */ "../../../../../node_modules/core-js/internals/global.js");
+var path = __webpack_require__(/*! ../internals/path */ "../../../../../node_modules/core-js/internals/path.js");
 var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
 var isForced = __webpack_require__(/*! ../internals/is-forced */ "../../../../../node_modules/core-js/internals/is-forced.js");
-var defineBuiltIn = __webpack_require__(/*! ../internals/define-built-in */ "../../../../../node_modules/core-js/internals/define-built-in.js");
 var hasOwn = __webpack_require__(/*! ../internals/has-own-property */ "../../../../../node_modules/core-js/internals/has-own-property.js");
 var inheritIfRequired = __webpack_require__(/*! ../internals/inherit-if-required */ "../../../../../node_modules/core-js/internals/inherit-if-required.js");
 var isPrototypeOf = __webpack_require__(/*! ../internals/object-is-prototype-of */ "../../../../../node_modules/core-js/internals/object-is-prototype-of.js");
@@ -6508,9 +6569,10 @@ var trim = __webpack_require__(/*! ../internals/string-trim */ "../../../../../n
 
 var NUMBER = 'Number';
 var NativeNumber = global[NUMBER];
+var PureNumberNamespace = path[NUMBER];
 var NumberPrototype = NativeNumber.prototype;
 var TypeError = global.TypeError;
-var arraySlice = uncurryThis(''.slice);
+var stringSlice = uncurryThis(''.slice);
 var charCodeAt = uncurryThis(''.charCodeAt);
 
 // `ToNumeric` abstract operation
@@ -6538,7 +6600,7 @@ var toNumber = function (argument) {
         case 79: case 111: radix = 8; maxCode = 55; break; // fast equal of /^0o[0-7]+$/i
         default: return +it;
       }
-      digits = arraySlice(it, 2);
+      digits = stringSlice(it, 2);
       length = digits.length;
       for (index = 0; index < length; index++) {
         code = charCodeAt(digits, index);
@@ -6550,17 +6612,30 @@ var toNumber = function (argument) {
   } return +it;
 };
 
+var FORCED = isForced(NUMBER, !NativeNumber(' 0o1') || !NativeNumber('0b1') || NativeNumber('+0x1'));
+
+var calledWithNew = function (dummy) {
+  // includes check on 1..constructor(foo) case
+  return isPrototypeOf(NumberPrototype, dummy) && fails(function () { thisNumberValue(dummy); });
+};
+
 // `Number` constructor
 // https://tc39.es/ecma262/#sec-number-constructor
-if (isForced(NUMBER, !NativeNumber(' 0o1') || !NativeNumber('0b1') || NativeNumber('+0x1'))) {
-  var NumberWrapper = function Number(value) {
-    var n = arguments.length < 1 ? 0 : NativeNumber(toNumeric(value));
-    var dummy = this;
-    // check on 1..constructor(foo) case
-    return isPrototypeOf(NumberPrototype, dummy) && fails(function () { thisNumberValue(dummy); })
-      ? inheritIfRequired(Object(n), dummy, NumberWrapper) : n;
-  };
-  for (var keys = DESCRIPTORS ? getOwnPropertyNames(NativeNumber) : (
+var NumberWrapper = function Number(value) {
+  var n = arguments.length < 1 ? 0 : NativeNumber(toNumeric(value));
+  return calledWithNew(this) ? inheritIfRequired(Object(n), this, NumberWrapper) : n;
+};
+
+NumberWrapper.prototype = NumberPrototype;
+if (FORCED && !IS_PURE) NumberPrototype.constructor = NumberWrapper;
+
+$({ global: true, constructor: true, wrap: true, forced: FORCED }, {
+  Number: NumberWrapper
+});
+
+// Use `internal/copy-constructor-properties` helper in `core-js@4`
+var copyConstructorProperties = function (target, source) {
+  for (var keys = DESCRIPTORS ? getOwnPropertyNames(source) : (
     // ES3:
     'MAX_VALUE,MIN_VALUE,NaN,NEGATIVE_INFINITY,POSITIVE_INFINITY,' +
     // ES2015 (in case, if modules with ES2015 Number statics required before):
@@ -6568,14 +6643,14 @@ if (isForced(NUMBER, !NativeNumber(' 0o1') || !NativeNumber('0b1') || NativeNumb
     // ESNext
     'fromString,range'
   ).split(','), j = 0, key; keys.length > j; j++) {
-    if (hasOwn(NativeNumber, key = keys[j]) && !hasOwn(NumberWrapper, key)) {
-      defineProperty(NumberWrapper, key, getOwnPropertyDescriptor(NativeNumber, key));
+    if (hasOwn(source, key = keys[j]) && !hasOwn(target, key)) {
+      defineProperty(target, key, getOwnPropertyDescriptor(source, key));
     }
   }
-  NumberWrapper.prototype = NumberPrototype;
-  NumberPrototype.constructor = NumberWrapper;
-  defineBuiltIn(global, NUMBER, NumberWrapper, { constructor: true });
-}
+};
+
+if (IS_PURE && PureNumberNamespace) copyConstructorProperties(path[NUMBER], PureNumberNamespace);
+if (FORCED || IS_PURE) copyConstructorProperties(path[NUMBER], NativeNumber);
 
 
 /***/ }),
@@ -6803,8 +6878,7 @@ var toIndexedObject = __webpack_require__(/*! ../internals/to-indexed-object */ 
 var nativeGetOwnPropertyDescriptor = __webpack_require__(/*! ../internals/object-get-own-property-descriptor */ "../../../../../node_modules/core-js/internals/object-get-own-property-descriptor.js").f;
 var DESCRIPTORS = __webpack_require__(/*! ../internals/descriptors */ "../../../../../node_modules/core-js/internals/descriptors.js");
 
-var FAILS_ON_PRIMITIVES = fails(function () { nativeGetOwnPropertyDescriptor(1); });
-var FORCED = !DESCRIPTORS || FAILS_ON_PRIMITIVES;
+var FORCED = !DESCRIPTORS || fails(function () { nativeGetOwnPropertyDescriptor(1); });
 
 // `Object.getOwnPropertyDescriptor` method
 // https://tc39.es/ecma262/#sec-object.getownpropertydescriptor
@@ -7445,7 +7519,7 @@ $({ target: 'String', proto: true }, {
 "use strict";
 
 var $ = __webpack_require__(/*! ../internals/export */ "../../../../../node_modules/core-js/internals/export.js");
-var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this-clause */ "../../../../../node_modules/core-js/internals/function-uncurry-this-clause.js");
 var getOwnPropertyDescriptor = __webpack_require__(/*! ../internals/object-get-own-property-descriptor */ "../../../../../node_modules/core-js/internals/object-get-own-property-descriptor.js").f;
 var toLength = __webpack_require__(/*! ../internals/to-length */ "../../../../../node_modules/core-js/internals/to-length.js");
 var toString = __webpack_require__(/*! ../internals/to-string */ "../../../../../node_modules/core-js/internals/to-string.js");
@@ -8047,7 +8121,7 @@ fixRegExpWellKnownSymbolLogic('split', function (SPLIT, nativeSplit, maybeCallNa
 "use strict";
 
 var $ = __webpack_require__(/*! ../internals/export */ "../../../../../node_modules/core-js/internals/export.js");
-var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this-clause */ "../../../../../node_modules/core-js/internals/function-uncurry-this-clause.js");
 var getOwnPropertyDescriptor = __webpack_require__(/*! ../internals/object-get-own-property-descriptor */ "../../../../../node_modules/core-js/internals/object-get-own-property-descriptor.js").f;
 var toLength = __webpack_require__(/*! ../internals/to-length */ "../../../../../node_modules/core-js/internals/to-length.js");
 var toString = __webpack_require__(/*! ../internals/to-string */ "../../../../../node_modules/core-js/internals/to-string.js");
@@ -8538,6 +8612,27 @@ $({ target: 'Symbol', stat: true, forced: !NATIVE_SYMBOL_REGISTRY }, {
 
 /***/ }),
 
+/***/ "../../../../../node_modules/core-js/modules/es.symbol.to-primitive.js":
+/*!**********************************************************************************************************!*\
+  !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/modules/es.symbol.to-primitive.js ***!
+  \**********************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var defineWellKnownSymbol = __webpack_require__(/*! ../internals/well-known-symbol-define */ "../../../../../node_modules/core-js/internals/well-known-symbol-define.js");
+var defineSymbolToPrimitive = __webpack_require__(/*! ../internals/symbol-define-to-primitive */ "../../../../../node_modules/core-js/internals/symbol-define-to-primitive.js");
+
+// `Symbol.toPrimitive` well-known symbol
+// https://tc39.es/ecma262/#sec-symbol.toprimitive
+defineWellKnownSymbol('toPrimitive');
+
+// `Symbol.prototype[@@toPrimitive]` method
+// https://tc39.es/ecma262/#sec-symbol.prototype-@@toprimitive
+defineSymbolToPrimitive();
+
+
+/***/ }),
+
 /***/ "../../../../../node_modules/core-js/modules/es.weak-map.constructor.js":
 /*!***********************************************************************************************************!*\
   !*** /home/runner/work/handsontable/handsontable/node_modules/core-js/modules/es.weak-map.constructor.js ***!
@@ -8547,6 +8642,7 @@ $({ target: 'Symbol', stat: true, forced: !NATIVE_SYMBOL_REGISTRY }, {
 
 "use strict";
 
+var FREEZING = __webpack_require__(/*! ../internals/freezing */ "../../../../../node_modules/core-js/internals/freezing.js");
 var global = __webpack_require__(/*! ../internals/global */ "../../../../../node_modules/core-js/internals/global.js");
 var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "../../../../../node_modules/core-js/internals/function-uncurry-this.js");
 var defineBuiltIns = __webpack_require__(/*! ../internals/define-built-ins */ "../../../../../node_modules/core-js/internals/define-built-ins.js");
@@ -8554,10 +8650,26 @@ var InternalMetadataModule = __webpack_require__(/*! ../internals/internal-metad
 var collection = __webpack_require__(/*! ../internals/collection */ "../../../../../node_modules/core-js/internals/collection.js");
 var collectionWeak = __webpack_require__(/*! ../internals/collection-weak */ "../../../../../node_modules/core-js/internals/collection-weak.js");
 var isObject = __webpack_require__(/*! ../internals/is-object */ "../../../../../node_modules/core-js/internals/is-object.js");
-var isExtensible = __webpack_require__(/*! ../internals/object-is-extensible */ "../../../../../node_modules/core-js/internals/object-is-extensible.js");
 var enforceInternalState = __webpack_require__(/*! ../internals/internal-state */ "../../../../../node_modules/core-js/internals/internal-state.js").enforce;
+var fails = __webpack_require__(/*! ../internals/fails */ "../../../../../node_modules/core-js/internals/fails.js");
 var NATIVE_WEAK_MAP = __webpack_require__(/*! ../internals/weak-map-basic-detection */ "../../../../../node_modules/core-js/internals/weak-map-basic-detection.js");
 
+var $Object = Object;
+// eslint-disable-next-line es/no-array-isarray -- safe
+var isArray = Array.isArray;
+// eslint-disable-next-line es/no-object-isextensible -- safe
+var isExtensible = $Object.isExtensible;
+// eslint-disable-next-line es/no-object-isfrozen -- safe
+var isFrozen = $Object.isFrozen;
+// eslint-disable-next-line es/no-object-issealed -- safe
+var isSealed = $Object.isSealed;
+// eslint-disable-next-line es/no-object-freeze -- safe
+var freeze = $Object.freeze;
+// eslint-disable-next-line es/no-object-seal -- safe
+var seal = $Object.seal;
+
+var FROZEN = {};
+var SEALED = {};
 var IS_IE11 = !global.ActiveXObject && 'ActiveXObject' in global;
 var InternalWeakMap;
 
@@ -8570,18 +8682,27 @@ var wrapper = function (init) {
 // `WeakMap` constructor
 // https://tc39.es/ecma262/#sec-weakmap-constructor
 var $WeakMap = collection('WeakMap', wrapper, collectionWeak);
+var WeakMapPrototype = $WeakMap.prototype;
+var nativeSet = uncurryThis(WeakMapPrototype.set);
+
+// Chakra Edge bug: adding frozen arrays to WeakMap unfreeze them
+var hasMSEdgeFreezingBug = function () {
+  return FREEZING && fails(function () {
+    var frozenArray = freeze([]);
+    nativeSet(new $WeakMap(), frozenArray, 1);
+    return !isFrozen(frozenArray);
+  });
+};
 
 // IE11 WeakMap frozen keys fix
 // We can't use feature detection because it crash some old IE builds
 // https://github.com/zloirock/core-js/issues/485
-if (NATIVE_WEAK_MAP && IS_IE11) {
+if (NATIVE_WEAK_MAP) if (IS_IE11) {
   InternalWeakMap = collectionWeak.getConstructor(wrapper, 'WeakMap', true);
   InternalMetadataModule.enable();
-  var WeakMapPrototype = $WeakMap.prototype;
   var nativeDelete = uncurryThis(WeakMapPrototype['delete']);
   var nativeHas = uncurryThis(WeakMapPrototype.has);
   var nativeGet = uncurryThis(WeakMapPrototype.get);
-  var nativeSet = uncurryThis(WeakMapPrototype.set);
   defineBuiltIns(WeakMapPrototype, {
     'delete': function (key) {
       if (isObject(key) && !isExtensible(key)) {
@@ -8610,6 +8731,21 @@ if (NATIVE_WEAK_MAP && IS_IE11) {
         if (!state.frozen) state.frozen = new InternalWeakMap();
         nativeHas(this, key) ? nativeSet(this, key, value) : state.frozen.set(key, value);
       } else nativeSet(this, key, value);
+      return this;
+    }
+  });
+// Chakra Edge frozen keys fix
+} else if (hasMSEdgeFreezingBug()) {
+  defineBuiltIns(WeakMapPrototype, {
+    set: function set(key, value) {
+      var arrayIntegrityLevel;
+      if (isArray(key)) {
+        if (isFrozen(key)) arrayIntegrityLevel = FROZEN;
+        else if (isSealed(key)) arrayIntegrityLevel = SEALED;
+      }
+      nativeSet(this, key, value);
+      if (arrayIntegrityLevel == FROZEN) freeze(key);
+      if (arrayIntegrityLevel == SEALED) seal(key);
       return this;
     }
   });
@@ -8790,7 +8926,11 @@ __webpack_require__(/*! ../modules/web.set-immediate */ "../../../../../node_mod
 
 var $ = __webpack_require__(/*! ../internals/export */ "../../../../../node_modules/core-js/internals/export.js");
 var global = __webpack_require__(/*! ../internals/global */ "../../../../../node_modules/core-js/internals/global.js");
-var setImmediate = __webpack_require__(/*! ../internals/task */ "../../../../../node_modules/core-js/internals/task.js").set;
+var setTask = __webpack_require__(/*! ../internals/task */ "../../../../../node_modules/core-js/internals/task.js").set;
+var schedulersFix = __webpack_require__(/*! ../internals/schedulers-fix */ "../../../../../node_modules/core-js/internals/schedulers-fix.js");
+
+// https://github.com/oven-sh/bun/issues/1633
+var setImmediate = global.setImmediate ? schedulersFix(setTask, false) : setTask;
 
 // `setImmediate` method
 // http://w3c.github.io/setImmediate/#si-setImmediate
@@ -8810,9 +8950,11 @@ $({ global: true, bind: true, enumerable: true, forced: global.setImmediate !== 
 
 var $ = __webpack_require__(/*! ../internals/export */ "../../../../../node_modules/core-js/internals/export.js");
 var global = __webpack_require__(/*! ../internals/global */ "../../../../../node_modules/core-js/internals/global.js");
-var setInterval = __webpack_require__(/*! ../internals/schedulers-fix */ "../../../../../node_modules/core-js/internals/schedulers-fix.js").setInterval;
+var schedulersFix = __webpack_require__(/*! ../internals/schedulers-fix */ "../../../../../node_modules/core-js/internals/schedulers-fix.js");
 
-// ie9- setInterval additional parameters fix
+var setInterval = schedulersFix(global.setInterval, true);
+
+// Bun / IE9- setInterval additional parameters fix
 // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-setinterval
 $({ global: true, bind: true, forced: global.setInterval !== setInterval }, {
   setInterval: setInterval
@@ -8830,9 +8972,11 @@ $({ global: true, bind: true, forced: global.setInterval !== setInterval }, {
 
 var $ = __webpack_require__(/*! ../internals/export */ "../../../../../node_modules/core-js/internals/export.js");
 var global = __webpack_require__(/*! ../internals/global */ "../../../../../node_modules/core-js/internals/global.js");
-var setTimeout = __webpack_require__(/*! ../internals/schedulers-fix */ "../../../../../node_modules/core-js/internals/schedulers-fix.js").setTimeout;
+var schedulersFix = __webpack_require__(/*! ../internals/schedulers-fix */ "../../../../../node_modules/core-js/internals/schedulers-fix.js");
 
-// ie9- setTimeout additional parameters fix
+var setTimeout = schedulersFix(global.setTimeout, true);
+
+// Bun / IE9- setTimeout additional parameters fix
 // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-settimeout
 $({ global: true, bind: true, forced: global.setTimeout !== setTimeout }, {
   setTimeout: setTimeout
@@ -8862,7 +9006,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-/*! @license DOMPurify 2.4.0 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.4.0/LICENSE */
+/*! @license DOMPurify 2.4.3 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.4.3/LICENSE */
 
 (function (global, factory) {
    true ? module.exports = factory() :
@@ -8992,6 +9136,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
   var arrayPop = unapply(Array.prototype.pop);
   var arrayPush = unapply(Array.prototype.push);
   var stringToLowerCase = unapply(String.prototype.toLowerCase);
+  var stringToString = unapply(String.prototype.toString);
   var stringMatch = unapply(String.prototype.match);
   var stringReplace = unapply(String.prototype.replace);
   var stringIndexOf = unapply(String.prototype.indexOf);
@@ -9058,7 +9203,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
     var property;
 
     for (property in object) {
-      if (apply(hasOwnProperty, object, [property])) {
+      if (apply(hasOwnProperty, object, [property]) === true) {
         newObject[property] = object[property];
       }
     }
@@ -9118,6 +9263,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
   var MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode
 
   var ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
+  var TMPLIT_EXPR = seal(/\${[\w\W]*}/gm);
   var DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]/); // eslint-disable-line no-useless-escape
 
   var ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
@@ -9189,7 +9335,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
      */
 
 
-    DOMPurify.version = '2.4.0';
+    DOMPurify.version = '2.4.3';
     /**
      * Array of elements that DOMPurify removed during sanitation.
      * Empty if nothing was removed.
@@ -9258,6 +9404,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
     DOMPurify.isSupported = typeof getParentNode === 'function' && implementation && typeof implementation.createHTMLDocument !== 'undefined' && documentMode !== 9;
     var MUSTACHE_EXPR$1 = MUSTACHE_EXPR,
         ERB_EXPR$1 = ERB_EXPR,
+        TMPLIT_EXPR$1 = TMPLIT_EXPR,
         DATA_ATTR$1 = DATA_ATTR,
         ARIA_ATTR$1 = ARIA_ATTR,
         IS_SCRIPT_OR_DATA$1 = IS_SCRIPT_OR_DATA,
@@ -9397,6 +9544,10 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
 
     var NAMESPACE = HTML_NAMESPACE;
     var IS_EMPTY_INPUT = false;
+    /* Allowed XHTML+XML namespaces */
+
+    var ALLOWED_NAMESPACES = null;
+    var DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [MATHML_NAMESPACE, SVG_NAMESPACE, HTML_NAMESPACE], stringToString);
     /* Parsing of strict XHTML documents */
 
     var PARSER_MEDIA_TYPE;
@@ -9440,13 +9591,12 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
       PARSER_MEDIA_TYPE = // eslint-disable-next-line unicorn/prefer-includes
       SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE : PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE; // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
 
-      transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? function (x) {
-        return x;
-      } : stringToLowerCase;
+      transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? stringToString : stringToLowerCase;
       /* Set configuration parameters */
 
       ALLOWED_TAGS = 'ALLOWED_TAGS' in cfg ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc) : DEFAULT_ALLOWED_TAGS;
       ALLOWED_ATTR = 'ALLOWED_ATTR' in cfg ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc) : DEFAULT_ALLOWED_ATTR;
+      ALLOWED_NAMESPACES = 'ALLOWED_NAMESPACES' in cfg ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString) : DEFAULT_ALLOWED_NAMESPACES;
       URI_SAFE_ATTRIBUTES = 'ADD_URI_SAFE_ATTR' in cfg ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), // eslint-disable-line indent
       cfg.ADD_URI_SAFE_ATTR, // eslint-disable-line indent
       transformCaseFunc // eslint-disable-line indent
@@ -9629,7 +9779,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
 
       if (!parent || !parent.tagName) {
         parent = {
-          namespaceURI: HTML_NAMESPACE,
+          namespaceURI: NAMESPACE,
           tagName: 'template'
         };
       }
@@ -9637,13 +9787,17 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
       var tagName = stringToLowerCase(element.tagName);
       var parentTagName = stringToLowerCase(parent.tagName);
 
+      if (!ALLOWED_NAMESPACES[element.namespaceURI]) {
+        return false;
+      }
+
       if (element.namespaceURI === SVG_NAMESPACE) {
         // The only way to switch from HTML namespace to SVG
         // is via <svg>. If it happens via any other tag, then
         // it should be killed.
         if (parent.namespaceURI === HTML_NAMESPACE) {
           return tagName === 'svg';
-        } // The only way to switch from MathML to SVG is via
+        } // The only way to switch from MathML to SVG is via`
         // svg if parent is either <annotation-xml> or MathML
         // text integration points.
 
@@ -9691,9 +9845,15 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
 
 
         return !ALL_MATHML_TAGS[tagName] && (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName]);
+      } // For XHTML and XML documents that support custom namespaces
+
+
+      if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && ALLOWED_NAMESPACES[element.namespaceURI]) {
+        return true;
       } // The code should never reach this place (this means
       // that the element somehow got namespace that is not
-      // HTML, SVG or MathML). Return false just in case.
+      // HTML, SVG, MathML or allowed via ALLOWED_NAMESPACES).
+      // Return false just in case.
 
 
       return false;
@@ -9777,7 +9937,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
         leadingWhitespace = matches && matches[0];
       }
 
-      if (PARSER_MEDIA_TYPE === 'application/xhtml+xml') {
+      if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && NAMESPACE === HTML_NAMESPACE) {
         // Root of XHTML doc must contain xmlns declaration (see https://www.w3.org/TR/xhtml1/normative.html#strict)
         dirty = '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' + dirty + '</body></html>';
       }
@@ -9800,7 +9960,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
         doc = implementation.createDocument(NAMESPACE, 'template', null);
 
         try {
-          doc.documentElement.innerHTML = IS_EMPTY_INPUT ? '' : dirtyPayload;
+          doc.documentElement.innerHTML = IS_EMPTY_INPUT ? emptyHTML : dirtyPayload;
         } catch (_) {// Syntax error if dirtyPayload is invalid xml
         }
       }
@@ -9840,7 +10000,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
 
 
     var _isClobbered = function _isClobbered(elm) {
-      return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function');
+      return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function' || typeof elm.hasChildNodes !== 'function');
     };
     /**
      * _isNode
@@ -9982,6 +10142,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
         content = currentNode.textContent;
         content = stringReplace(content, MUSTACHE_EXPR$1, ' ');
         content = stringReplace(content, ERB_EXPR$1, ' ');
+        content = stringReplace(content, TMPLIT_EXPR$1, ' ');
 
         if (currentNode.textContent !== content) {
           arrayPush(DOMPurify.removed, {
@@ -10130,6 +10291,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
         if (SAFE_FOR_TEMPLATES) {
           value = stringReplace(value, MUSTACHE_EXPR$1, ' ');
           value = stringReplace(value, ERB_EXPR$1, ' ');
+          value = stringReplace(value, TMPLIT_EXPR$1, ' ');
         }
         /* Is `value` valid for this attribute? */
 
@@ -10425,6 +10587,7 @@ __webpack_require__(/*! ../modules/web.set-timeout */ "../../../../../node_modul
       if (SAFE_FOR_TEMPLATES) {
         serializedHTML = stringReplace(serializedHTML, MUSTACHE_EXPR$1, ' ');
         serializedHTML = stringReplace(serializedHTML, ERB_EXPR$1, ' ');
+        serializedHTML = stringReplace(serializedHTML, TMPLIT_EXPR$1, ' ');
       }
 
       return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
