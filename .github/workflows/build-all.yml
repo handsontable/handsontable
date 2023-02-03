@@ -6,6 +6,7 @@ on:
       - 'master'
       - 'develop'
       - 'release/**'
+      - 'feature/dev-issue-1094'
   workflow_dispatch:
 
 env:
@@ -18,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        os: [ windows-latest ]
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
 
