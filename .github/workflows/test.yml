@@ -433,7 +433,6 @@ jobs:
     name: "[TEST] Visual tests"
     runs-on: ubuntu-latest
     needs:
-      - test-handsontable-walkontable
       - test-handsontable-e2e
       - test-handsontable-e2e-min
       - test-angular
@@ -442,7 +441,6 @@ jobs:
       - test-vue3
     if: |
       !failure() && (
-        needs.test-handsontable-walkontable.result == 'success' ||
         needs.test-handsontable-e2e.result == 'success' ||
         needs.test-handsontable-e2e-min.result == 'success' ||
         needs.test-angular.result == 'success' ||

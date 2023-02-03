@@ -18,7 +18,7 @@ import { isMobileBrowser } from '../../../helpers/browser';
  *
  */
 class Border {
-  // TODO [test] As this is an internal class, should be designed for using {Walkontable}. It uses the facade,
+  // TODO As this is an internal class, should be designed for using {Walkontable}. It uses the facade,
   // TODO Con. Because the class is created on place where the instance reference comes from external origin.
   // TODO Imho, the discrimination for handling both, facade and non-facade should be handled.
   /**
