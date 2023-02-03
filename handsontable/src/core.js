@@ -1250,19 +1250,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     const activeEditor = instance.getActiveEditor();
-    const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
-    let shouldBeCanceled = true;
-
-    if (beforeChangeResult === false) {
-
-      if (activeEditor) {
-        activeEditor.cancelChanges();
-      }
-
-      return;
-    }
-
     const waitingForValidator = new ValidatorsQueue();
+    let shouldBeCanceled = true;
 
     waitingForValidator.onQueueEmpty = (isValid) => {
       if (activeEditor && shouldBeCanceled) {
@@ -1273,42 +1262,37 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     };
 
     for (let i = changes.length - 1; i >= 0; i--) {
-      if (changes[i] === null) {
-        changes.splice(i, 1);
-      } else {
-        const [row, prop, , newValue] = changes[i];
-        const col = datamap.propToCol(prop);
-        const cellProperties = instance.getCellMeta(row, col);
+      const [row, prop, , newValue] = changes[i];
+      const col = datamap.propToCol(prop);
+      const cellProperties = instance.getCellMeta(row, col);
 
-        if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
-          changes[i][3] = getParsedNumber(newValue);
-        }
+      if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
+        changes[i][3] = getParsedNumber(newValue);
+      }
 
-        /* eslint-disable no-loop-func */
-        if (instance.getCellValidator(cellProperties)) {
-          waitingForValidator.addValidatorToQueue();
-          instance.validateCell(changes[i][3], cellProperties, (function(index, cellPropertiesReference) {
-            return function(result) {
-              if (typeof result !== 'boolean') {
-                throw new Error('Validation error: result is not boolean');
+      /* eslint-disable no-loop-func */
+      if (instance.getCellValidator(cellProperties)) {
+        waitingForValidator.addValidatorToQueue();
+        instance.validateCell(changes[i][3], cellProperties, (function(index, cellPropertiesReference) {
+          return function(result) {
+            if (typeof result !== 'boolean') {
+              throw new Error('Validation error: result is not boolean');
+            }
+
+            if (result === false && cellPropertiesReference.allowInvalid === false) {
+              shouldBeCanceled = false;
+              changes.splice(index, 1); // cancel the change
+              cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
+
+              const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
+
+              if (cell !== null) {
+                removeClass(cell, tableMeta.invalidCellClassName);
               }
-
-              if (result === false && cellPropertiesReference.allowInvalid === false) {
-                shouldBeCanceled = false;
-                changes.splice(index, 1); // cancel the change
-                cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
-
-                const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
-
-                if (cell !== null) {
-                  removeClass(cell, tableMeta.invalidCellClassName);
-                }
-                // index -= 1;
-              }
-              waitingForValidator.removeValidatorFormQueue();
-            };
-          }(i, cellProperties)), source);
-        }
+            }
+            waitingForValidator.removeValidatorFormQueue();
+          };
+        }(i, cellProperties)), source);
       }
     }
     waitingForValidator.checkIfQueueIsEmpty();
@@ -1521,6 +1505,36 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   /**
+   * Process changes prepared for applying to the dataset (unifying list of changes, closing an editor - when needed,
+   * calling a hook).
+   *
+   * @private
+   * @param {Array} changes Array of changes in format `[[row, col, value],...]`.
+   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty.
+   * @returns {Array} List of changes finally applied to the dataset.
+   */
+  function processChanges(changes, source) {
+    const activeEditor = instance.getActiveEditor();
+    const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
+    let filteredChanges = changes;
+
+    if (Array.isArray(beforeChangeResult)) {
+      // The `beforeChange` hook could add a `null` for purpose of cancelling some dataset's change.
+      filteredChanges = beforeChangeResult.filter(change => change !== null);
+    }
+
+    if (beforeChangeResult === false || filteredChanges.length === 0) {
+      if (activeEditor) {
+        activeEditor.cancelChanges();
+      }
+
+      return [];
+    }
+
+    return filteredChanges;
+  }
+
+  /**
    * @description
    * Set new value to a cell. To change many cells at once (recommended way), pass an array of `changes` in format
    * `[[row, col, value],...]` as the first argument.
@@ -1567,10 +1581,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       changeSource = column;
     }
 
-    instance.runHooks('afterSetDataAtCell', changes, changeSource);
+    const processedChanges = processChanges(changes, source);
 
-    validateChanges(changes, changeSource, () => {
-      applyChanges(changes, changeSource);
+    instance.runHooks('afterSetDataAtCell', processedChanges, changeSource);
+
+    validateChanges(processedChanges, changeSource, () => {
+      applyChanges(processedChanges, changeSource);
     });
   };
 
@@ -1606,10 +1622,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       changeSource = prop;
     }
 
-    instance.runHooks('afterSetDataAtRowProp', changes, changeSource);
+    const processedChanges = processChanges(changes, source);
 
-    validateChanges(changes, changeSource, () => {
-      applyChanges(changes, changeSource);
+    instance.runHooks('afterSetDataAtRowProp', processedChanges, changeSource);
+
+    validateChanges(processedChanges, changeSource, () => {
+      applyChanges(processedChanges, changeSource);
     });
   };
 
