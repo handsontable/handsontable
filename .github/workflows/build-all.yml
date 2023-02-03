@@ -38,10 +38,6 @@ jobs:
   build-on-windows:
     name: Build all packages in windows-latest
     runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
     steps:
       - name: Checkout
         run: |
