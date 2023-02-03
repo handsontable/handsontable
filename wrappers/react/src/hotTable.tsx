@@ -29,7 +29,7 @@ import PropTypes from 'prop-types';
 /**
  * A Handsontable-ReactJS wrapper.
  *
- * To implement, use the `HotTable` tag with properties corresponding to Handsontable options.
+ * To [test] implement, use the `HotTable` tag with properties corresponding to Handsontable options.
  * For example:
  *
  * ```js
