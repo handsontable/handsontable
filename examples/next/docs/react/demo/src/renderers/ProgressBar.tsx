@@ -1,24 +1,33 @@
-import React from "react";
-import { BaseEditorComponent, HotEditorProps } from '@handsontable/react';
+import React from 'react';
+import { BaseEditorComponent } from '@handsontable/react';
 import { getRangeValue } from './utils';
+import { MESSAGE } from '../constants';
 
 const minAllowedValue = 0;
 const maxAllowedValue = 100;
 
-
-interface IProgressBarRendererProps extends HotEditorProps {
-  value: number;
-}
-
 export class ProgressBarRenderer extends BaseEditorComponent {
-  props!: IProgressBarRendererProps;
+  value: number;
+  isValid: boolean;
+  
+  constructor(props: any) {
+    super(props);
+    this.isValid = props.cellProperties.valid === false ? false : true;
+    this.value = props.value;
+  }
   
   render() {
-    return (
-      <div
-        className="progressBar" 
-        style={{ width: `${getRangeValue(this.props.value, minAllowedValue, maxAllowedValue)}px` }}
-      />
-    );
+    if (this.isValid) {
+      return (
+        <div
+          className="progressBar" 
+          style={{ width: `${getRangeValue(this.value, minAllowedValue, maxAllowedValue)}px` }}
+        />
+      );
+    } else {
+      return (
+        <div className="error"> { MESSAGE?.BAD_VALUE } </div>
+      );
+    }
   }
 }

@@ -23,6 +23,10 @@ for (let x = 1; x <= 5; x++) {
   data.push(...JSON.parse(JSON.stringify(defaultData)));
 }
 
+function handleChange(event: any) {
+  console.log(event.target.value);
+}
+
 const App = () => {
   return (
     <HotTable
@@ -60,11 +64,11 @@ const App = () => {
       <HotColumn data="sellDate" type="date" allowInvalid={false} />
       <HotColumn data="inStock" type="checkbox" className="htCenter" />
       <HotColumn data="quantity" type="numeric" />
-      <HotColumn data="progress" className="htMiddle" type="numeric" allowInvalid={false} >
+      <HotColumn data="progress" className="htMiddle" type="numeric">
         {/* @ts-ignore Element inherits some props. It's hard to type it. */}
         <ProgressBarRenderer hot-renderer />
       </HotColumn>
-      <HotColumn data="rating" className="htCenter" type="numeric" allowInvalid={false} >
+      <HotColumn data="rating" className="htCenter" type="numeric">
         {/* @ts-ignore Element inherits some props. It's hard to type it. */}
         <StarsRenderer hot-renderer />
       </HotColumn>

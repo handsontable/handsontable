@@ -53,3 +53,7 @@ export const data = [{
 
 export const SELECTED_CLASS = 'selected';
 export const ODD_ROW_CLASS = 'odd';
+
+export const MESSAGE = {
+  BAD_VALUE: '#bad-value#'
+};

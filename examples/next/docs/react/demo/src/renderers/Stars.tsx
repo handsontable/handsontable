@@ -1,22 +1,32 @@
-import React from "react";
-import { BaseEditorComponent, HotEditorProps } from '@handsontable/react';
+import React from 'react';
+import { BaseEditorComponent } from '@handsontable/react';
 import { getRangeValue } from './utils';
+import { MESSAGE } from '../constants';
 
 const minAllowedValue = 0;
 const maxAllowedValue = 5;
 
-interface IStarsRendererProps extends HotEditorProps {
-  value: number;
-}
-
 export class StarsRenderer extends BaseEditorComponent {
-  props!: IStarsRendererProps;
-
+  value: number;
+  isValid: boolean;
+  
+  constructor(props: any) {
+    super(props);
+    this.isValid = props.cellProperties.valid === false ? false : true;
+    this.value = props.value;
+  }
+  
   render() {
-    return (
-      <div className="star htCenter">
-        {"★".repeat(getRangeValue(this.props.value, minAllowedValue, maxAllowedValue))}
-      </div>
-    );
+    if (this.isValid) {
+      return (
+        <div className="star htCenter">
+          {"★".repeat(getRangeValue(this.value, minAllowedValue, maxAllowedValue))}
+        </div>
+      );
+    } else {
+      return (
+        <div className="error"> { MESSAGE?.BAD_VALUE } </div>
+      );
+    }
   }
 }

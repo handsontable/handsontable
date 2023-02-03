@@ -34,3 +34,7 @@ table.htCore tr.selected td {
 .collapsibleIndicator {
   text-align: center;
 }
+
+.error {
+  background: #ff4c42;
+}
