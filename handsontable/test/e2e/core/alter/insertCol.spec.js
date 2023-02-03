@@ -12,7 +12,7 @@ describe('Core.alter', () => {
     }
   });
 
-  // `insert_col` is an alias for `insert_col_start` action
+  // `insert_col` is an alias for `insert_col_start` action [test]
   describe('`insert_col` action', () => {
     it('should insert column on the right of the last column when there is missing the `index` argument', () => {
       handsontable({
