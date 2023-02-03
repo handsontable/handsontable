@@ -24,6 +24,7 @@ export default {
       hotSettings: {
         height: 450,
         dropdownMenu: true,
+        manualRowMove: true,
         hiddenColumns: {
           indicators: true,
         },
