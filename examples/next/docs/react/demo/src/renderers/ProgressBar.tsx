@@ -18,9 +18,9 @@ export const ProgressBarRenderer = (props: HandsontableProps) => {
         style={{ width: `${getRangeValue(props.value, minAllowedValue, maxAllowedValue)}px` }}
       />
     );
-  } else {
-    return (
-      <div className="error"> { MESSAGE?.BAD_VALUE } </div>
-    );
   }
+    
+  return (
+    <div className="error"> { MESSAGE?.BAD_VALUE } </div>
+  );
 }

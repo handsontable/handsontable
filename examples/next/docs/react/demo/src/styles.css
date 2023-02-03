@@ -35,6 +35,6 @@ table.htCore tr.selected td {
   text-align: center;
 }
 
-.error {
+td .error {
   background: #ff4c42;
 }
