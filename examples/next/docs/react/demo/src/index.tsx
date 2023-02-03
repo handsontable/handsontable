@@ -23,10 +23,6 @@ for (let x = 1; x <= 5; x++) {
   data.push(...JSON.parse(JSON.stringify(defaultData)));
 }
 
-function handleChange(event: any) {
-  console.log(event.target.value);
-}
-
 const App = () => {
   return (
     <HotTable
