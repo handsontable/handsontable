@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where using some browser and system shortcuts could cause Handsontable to behave as if <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> was being held down. [#10210](https://github.com/handsontable/handsontable/pull/10210)
 
 For more information on Handsontable 12.3.1, see:
-- [Blog post (12.3.1)](PLACEHOLDER)
+- [Blog post (12.3.1)](https://handsontable.com/blog/articles/2023/2/handsontable-12.3.1-japanese-translation-and-improved-keyboard-interaction)
 - [Documentation (12.3)](https://handsontable.com/docs/12.3)
 - [Release notes (12.3.1)](https://handsontable.com/docs/release-notes/#_12-3-1)
 

@@ -28,7 +28,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on February 6, 2023.
 
 For more information on this release, see:
-- [Blog post (12.3.1)](PLACEHOLDER)
+- [Blog post (12.3.1)](https://handsontable.com/blog/articles/2023/2/handsontable-12.3.1-japanese-translation-and-improved-keyboard-interaction)
 - [Documentation (12.3)](https://handsontable.com/docs/12.3)
 
 #### Added
