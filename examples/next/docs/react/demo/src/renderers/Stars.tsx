@@ -1,14 +1,9 @@
 import React from 'react';
-import { getRangeValue } from './utils';
+import { getRangeValue, HandsontableProps } from './utils';
 import { MESSAGE } from '../constants';
 
 const minAllowedValue = 0;
 const maxAllowedValue = 5;
-
-type HandsontableProps = {
-  cellProperties: { valid: boolean };
-  value: number;
-}
 
 export const StarsRenderer = (props: HandsontableProps) => {
   if (props.cellProperties.valid !== false) {
