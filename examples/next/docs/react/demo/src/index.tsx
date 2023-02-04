@@ -4,7 +4,7 @@ import 'pikaday/css/pikaday.css';
 import './styles.css';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
-import { data as defaultData } from './constants';
+import { data } from './constants';
 import { ProgressBarRenderer } from './renderers/ProgressBar';
 import { StarsRenderer } from './renderers/Stars';
 
@@ -16,12 +16,6 @@ import {
 } from './hooksCallbacks';
 
 import 'handsontable/dist/handsontable.min.css';
-
-const data: Handsontable.RowObject[] = [];
-
-for (let x = 1; x <= 5; x++) {
-  data.push(...JSON.parse(JSON.stringify(defaultData)));
-}
 
 const App = () => {
   return (

@@ -39,7 +39,7 @@ export const addClassesToRows: AddClassesToRows = (
   }
 
   // Add class to selected rows
-  if (cellProperties.instance.getDataAtRowProp(row, "0")) {
+  if (cellProperties.instance.getDataAtRowProp(row, '0')) {
     Handsontable.dom.addClass(parentElement, SELECTED_CLASS);
   } else {
     Handsontable.dom.removeClass(parentElement, SELECTED_CLASS);
