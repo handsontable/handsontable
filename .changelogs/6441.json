@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed an issue where some browser or system shortcuts left the CTRL/CMD key held down",
-  "type": "fixed",
-  "issueOrPR": 6441,
-  "breaking": false,
-  "framework": "none"
-}
