@@ -440,7 +440,14 @@ jobs:
       - test-vue
       - test-vue3
     if: |
-      !failure() && contains(needs.*.result, 'success')
+      !failure() && (
+        needs.test-handsontable-e2e.result == 'success' ||
+        needs.test-handsontable-e2e-min.result == 'success' ||
+        needs.test-angular.result == 'success' ||
+        needs.test-react.result == 'success' ||
+        needs.test-vue.result == 'success' ||
+        needs.test-vue3.result == 'success'
+        )
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
         with:
@@ -460,8 +467,28 @@ jobs:
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           path: ./
-      - run: tar -zxf handsontable-build-es-cjs/tmp.tar.gz ./handsontable/tmp && rm -r handsontable-build-es-cjs
-      - run: tar -zxf handsontable-build-umd/dist.tar.gz ./handsontable/dist && rm -r handsontable-build-umd
+      - run: |
+          if test -f "handsontable-build-es-cjs/tmp.tar.gz"; then
+            tar -zxf handsontable-build-es-cjs/tmp.tar.gz ./handsontable/tmp
+            rm -r handsontable-build-es-cjs
+          else
+            cd handsontable
+            npm run build:es
+            npm run build:commonjs
+            npm run build:languages.es
+            npm run postbuild
+          fi
+      - run: |
+          if test -f "handsontable-build-umd/dist.tar.gz"; then
+            tar -zxf handsontable-build-umd/dist.tar.gz ./handsontable/dist
+            rm -r handsontable-build-umd
+          else
+            cd handsontable
+            npm run build:umd
+            npm run build:umd.min
+            npm run build:languages
+            npm run build:languages.min
+          fi
 
       - name: Build wrappers and test examples
         run: npm run build -- -e handsontable
