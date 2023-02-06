@@ -8,6 +8,7 @@ on:
   push:
     branches-ignore:
       - 'prod-docs/**'
+      - 'master'
     paths:
       - 'docs/**'
   workflow_dispatch:
