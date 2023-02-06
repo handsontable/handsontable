@@ -317,6 +317,35 @@ describe('Core_setDataAtCell', () => {
     expect(errors).toBe(0);
   });
 
+  it('should override set values using `beforeChange` hook', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+      ],
+      beforeChange(changes) {
+        changes[0][3] = 'test';
+      }
+    });
+
+    setDataAtCell(0, 0, 5);
+    setDataAtCell(1, 1, 6);
+    setDataAtCell(2, 2, 7);
+    setDataAtRowProp(3, 3, 8);
+    setDataAtRowProp(4, 4, 9);
+
+    expect(getData()).toEqual([
+      ['test', 2, 3, 4, 5, 6],
+      [1, 'test', 3, 4, 5, 6],
+      [1, 2, 'test', 4, 5, 6],
+      [1, 2, 3, 4, 'test', 6],
+      [1, 2, 3, 4, 5, 'test'],
+    ]);
+  });
+
   describe('Coordinates out of dataset', () => {
     it('should insert new column', () => {
       handsontable({
