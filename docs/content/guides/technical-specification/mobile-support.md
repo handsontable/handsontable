@@ -53,7 +53,7 @@ To select a range of cells, drag the selection handles. They display only on mob
 See the following table for the list of features that work
 on the [supported mobile browsers](@/guides/technical-specification/supported-browsers.md#supported-mobile-browsers).
 
-As desktop is our priority, we test only selected Handsontable functionalities on mobile.
+As our priority is desktop, we test only selected Handsontable functionalities on mobile.
 Features not mentioned in the table may well work properly, but we don't test them on mobile devices.
 
 | Feature                                                                                        | Android (Chrome) | iOS (Chrome) | iOS (Safari) |
