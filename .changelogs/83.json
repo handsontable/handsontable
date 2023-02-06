@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed unwanted rendered overlay that was visible in the Filters conditional component.",
-  "type": "fixed",
-  "issueOrPR": 10174,
-  "breaking": false,
-  "framework": "none"
-}
