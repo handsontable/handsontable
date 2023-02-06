@@ -1,7 +1,0 @@
-{
-  "title": "Fixed unwanted rendered overlay that was visible in the Filters conditional component.",
-  "type": "fixed",
-  "issue": 83,
-  "breaking": false,
-  "framework": "none"
-}
