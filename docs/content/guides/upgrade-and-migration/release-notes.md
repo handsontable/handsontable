@@ -23,6 +23,26 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 12.3.1
+
+Released on February 6, 2023.
+
+For more information on this release, see:
+- [Blog post (12.3.1)](https://handsontable.com/blog/articles/2023/2/handsontable-12.3.1-japanese-translation-and-improved-keyboard-interaction)
+- [Documentation (12.3)](https://handsontable.com/docs/12.3)
+
+#### Added
+- Added a Japanese translation of the "Copy with headers" feature. [#10201](https://github.com/handsontable/handsontable/pull/10201)
+
+#### Removed
+- Removed the two-week delay in showing the console warning about license expiration. [#10175](https://github.com/handsontable/handsontable/pull/10175)
+
+#### Fixed
+- Fixed an issue where [`updateData()`](@/api/core.md#updatedata) didn't work with nested data structures ([`NestedRows`](@/api/nestedRows.md)). [#10178](https://github.com/handsontable/handsontable/pull/10178)
+- Fixed an issue of unwanted pixels in the "Filter by condition" menu by removing a superfluous overlay. [#10174](https://github.com/handsontable/handsontable/pull/10174)
+- Fixed an issue where merged cells could lack right and bottom borders due to a Chrome bug. [#10212](https://github.com/handsontable/handsontable/pull/10212)
+- Fixed an issue where using some browser and system shortcuts could cause Handsontable to behave as if <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> was being held down. [#10210](https://github.com/handsontable/handsontable/pull/10210)
+
 ## 12.3.0
 
 Released on December 14, 2022.
@@ -45,7 +65,7 @@ For more information on this release, see:
 - Fixed a regression where setting a column's [`type`](@/api/options.md#type) could overwrite other custom-defined settings. [#10128](https://github.com/handsontable/handsontable/pull/10128)
 - Fixed an issue where Handsontable didn't render properly when initialized inside of a hidden container. [#5322](https://github.com/handsontable/handsontable/issues/5322)
 - Fixed an issue of desynchronization between configuration options (cell meta) and Handsontable's data. The issue occurred when Handsontable's options were modified through the following hooks: [`beforeCreateRow`](@/api/hooks.md#beforecreaterow), [`afterCreateRow`](@/api/hooks.md#aftercreaterow), [`beforeCreateCol`](@/api/hooks.md#beforecreatecol), and [`afterCreateCol`](@/api/hooks.md#aftercreatecol). [#10136](https://github.com/handsontable/handsontable/pull/10136)
-- Fixed an issue where comments added to fixed columns didn't display properly after scrolling. [#9645](https://github.com/handsontable/handsontable/issues/9645) 
+- Fixed an issue where comments added to fixed columns didn't display properly after scrolling. [#9645](https://github.com/handsontable/handsontable/issues/9645)
 - Fixed an issue where typing in a [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) editor caused the IME to disappear, resulting in wrong characters being typed. [#9672](https://github.com/handsontable/handsontable/issues/9672)
 - React: Fixed an issue where [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) cells weren't validated properly when using the [`HotColumn`](@/react/guides/columns/react-hot-column.md) component. [#10065](https://github.com/handsontable/handsontable/issues/10065)
 
@@ -159,7 +179,7 @@ For more information on this release, see:
 - Fixed an issue where frozen rows were getting duplicated. [#4454](https://github.com/handsontable/handsontable/issues/4454)
 - Fixed an issue where comments rendered outside the viewport. [#4785](https://github.com/handsontable/handsontable/issues/4785)
 - Fixed an issue where comments got positioned incorrectly when Handsontable ran within a scrollable element. [#6744](https://github.com/handsontable/handsontable/issues/6744)
-- Fixed an issue that occurred when Handsontable ran within an HTML `<form>`: pressing <kbd>Enter</kbd> inside another form's `<input>` could open Handsontable's dropdown menu. [#9295](https://github.com/handsontable/handsontable/issues/9295)
+- Fixed an issue that occurred when Handsontable ran within an HTML `<form>`: pressing <kbd>**Enter**</kbd> inside another form's `<input>` could open Handsontable's dropdown menu. [#9295](https://github.com/handsontable/handsontable/issues/9295)
 - Fixed an issue where it was impossible to unmerge cells in the RTL layout direction. [#9362](https://github.com/handsontable/handsontable/issues/9362)
 - Fixed an issue where columns wider than the viewport's width and rows higher than the viewport's height didn't render correctly. [#9473](https://github.com/handsontable/handsontable/issues/9473)
 - Fixed an issue where dragging-to-scroll on mobile didn't work properly in the RTL layout direction. [#9475](https://github.com/handsontable/handsontable/issues/9475)
