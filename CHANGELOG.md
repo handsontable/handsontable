@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [12.3.1] - 2023-02-06
+
+### Added
+- Added a Japanese translation of the "Copy with headers" feature. [#10201](https://github.com/handsontable/handsontable/pull/10201)
+
+### Removed
+- Removed the two-week delay in showing the console warning about license expiration. [#10175](https://github.com/handsontable/handsontable/pull/10175)
+
+### Fixed
+- Fixed an issue where `updateData()` didn't work with nested data structures (`NestedRows`). [#10178](https://github.com/handsontable/handsontable/pull/10178)
+- Fixed an issue of unwanted pixels in the "Filter by condition" menu by removing a superfluous overlay. [#10174](https://github.com/handsontable/handsontable/pull/10174)
+- Fixed an issue where merged cells could lack right and bottom borders due to a Chrome bug. [#10212](https://github.com/handsontable/handsontable/pull/10212)
+- Fixed an issue where using some browser and system shortcuts could cause Handsontable to behave as if <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> was being held down. [#10210](https://github.com/handsontable/handsontable/pull/10210)
+
+For more information on Handsontable 12.3.1, see:
+- [Blog post (12.3.1)](https://handsontable.com/blog/articles/2023/2/handsontable-12.3.1-japanese-translation-and-improved-keyboard-interaction)
+- [Documentation (12.3)](https://handsontable.com/docs/12.3)
+- [Release notes (12.3.1)](https://handsontable.com/docs/release-notes/#_12-3-1)
+
 ## [12.3.0] - 2022-12-14
 
 ### Added
