@@ -43,6 +43,8 @@ Handsontable 11.x is the long-term support (LTS) version for Internet Explorer 1
 
 ## Supported mobile browsers
 
+Although Handsontable is designed primarily for desktop, many of its features work on mobile too. For more details, see [Mobile support](@/guides/technical-specification/mobile-support.md).
+
 Handsontable supports the following mobile browsers:
 
 | Android | iOS    |
@@ -53,3 +55,18 @@ Handsontable supports the following mobile browsers:
 We also run a limited number of end-to-end tests on the following mobile browsers:
 - Samsung Internet
 - Firefox for Android
+
+## Troubleshooting
+
+Didn't find what you need? Try this:
+
+- View GitHub issues related to:
+  - [Chrome](https://github.com/handsontable/handsontable/labels/Chrome)
+  - [Firefox](https://github.com/handsontable/handsontable/labels/Firefox)
+  - [Edge](https://github.com/handsontable/handsontable/labels/Edge)
+  - [Opera](https://github.com/handsontable/handsontable/labels/Opera)
+  - [Safari](https://github.com/handsontable/handsontable/labels/Safari)
+- Report a [new GitHub issue](https://github.com/handsontable/handsontable/issues/new/choose).
+- Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/handsontable).
+- Ask a question on [Handsontable's forum](https://forum.handsontable.com/c/getting-help/questions).
+- Contact Handsontable's [technical support](https://handsontable.com/contact?category=technical_support).
