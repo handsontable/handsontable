@@ -329,31 +329,14 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      $(getCell(-2, 7)) // Select header "H4"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-      $(getCell(-2, 7).querySelector('.collapsibleIndicator')) // Collapse header "H4"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
+      simulateClick(getCell(-2, 7)); // Select header "H4"
+      simulateClick(getCell(-2, 7).querySelector('.collapsibleIndicator')); // Collapse header "H4"
 
       keyDown('control/meta');
 
-      $(getCell(-1, 5)) // Select header "F5"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-
-      $(getCell(-2, 1).querySelector('.collapsibleIndicator')) // Collapse header "B4"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-
-      $(getCell(-2, 3)) // Select header "D4"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
+      simulateClick(getCell(-1, 5)); // Select header "F5"
+      simulateClick(getCell(-2, 1).querySelector('.collapsibleIndicator')); // Collapse header "B4"
+      simulateClick(getCell(-2, 3)); // Select header "D4"
 
       keyUp('control/meta');
 
@@ -413,10 +396,7 @@ describe('CollapsibleColumns', () => {
         `);
       expect(getSelected()).toEqual([[-2, 7, 4, 8], [-1, 5, 4, 5], [-2, 3, 4, 4]]);
 
-      $(getCell(-4, 1).querySelector('.collapsibleIndicator')) // Collapse header "B1"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
+      simulateClick(getCell(-4, 1).querySelector('.collapsibleIndicator')); // Collapse header "B1"
 
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>

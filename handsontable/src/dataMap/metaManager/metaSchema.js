@@ -52,7 +52,7 @@ import { isObjectEqual } from '../../helpers/object';
  * ::: only-for react
  *
  * To apply configuration options, pass them as individual props
- * of the [`HotTable`](@/guides/getting-started/installation.md#use-the-hottable-component)
+ * of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component)
  * or [`HotColumn`](@/guides/columns/react-hot-column.md) components.
  *
  * Read more on the [Configuration options](@/guides/getting-started/configuration-options.md) page.
@@ -2904,13 +2904,13 @@ export default () => {
      * @example
      * ```js
      * // enable the `ManualRowResize` plugin
-     * manualColumnResize: true,
+     * manualRowResize: true,
      *
      * // enable the `ManualRowResize` plugin
      * // set the initial height of row 0 to 40 pixels
      * // set the initial height of row 1 to 50 pixels
      * // set the initial height of row 2 to 60 pixels
-     * manualColumnResize: [40, 50, 60],
+     * manualRowResize: [40, 50, 60],
      * ```
      */
     manualRowResize: void 0,
