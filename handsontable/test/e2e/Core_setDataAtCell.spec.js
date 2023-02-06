@@ -317,6 +317,42 @@ describe('Core_setDataAtCell', () => {
     expect(errors).toBe(0);
   });
 
+  it('should trigger `beforeChange` and `afterSetDataAtCell` in the correct order', () => {
+    let hooksOrder = '';
+
+    handsontable({
+      data: [[1, 1]],
+      beforeChange() {
+        hooksOrder += '1';
+      },
+      afterSetDataAtCell() {
+        hooksOrder += '2';
+      },
+    });
+
+    setDataAtCell(0, 0, 5);
+
+    expect(hooksOrder).toBe('12');
+  });
+
+  it('should trigger `beforeChange` and `afterSetDataAtRowProp` in the correct order', () => {
+    let hooksOrder = '';
+
+    handsontable({
+      data: [[1, 1]],
+      beforeChange() {
+        hooksOrder += '1';
+      },
+      afterSetDataAtRowProp() {
+        hooksOrder += '2';
+      },
+    });
+
+    setDataAtRowProp(0, 0, 5);
+
+    expect(hooksOrder).toBe('12');
+  });
+
   it('should override set values using `beforeChange` hook', () => {
     handsontable({
       data: [
@@ -341,8 +377,8 @@ describe('Core_setDataAtCell', () => {
       ['test', 2, 3, 4, 5, 6],
       [1, 'test', 3, 4, 5, 6],
       [1, 2, 'test', 4, 5, 6],
+      [1, 2, 3, 'test', 5, 6],
       [1, 2, 3, 4, 'test', 6],
-      [1, 2, 3, 4, 5, 'test'],
     ]);
   });
 
