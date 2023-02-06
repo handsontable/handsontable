@@ -1,3 +1,31 @@
+# Handsontable visual testing
+
+To avoid unintended changes to Handsontable's UI, we perform automated visual regression tests.
+
+## Overview
+
+We use the following tools:
+
+| Tool                                                                                                   | Description                                                                                    |
+| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| [Playwright](https://playwright.dev/docs/intro)                                                        | An open-source testing framework backed by Microsoft. We use it to write and run visual tests. |
+| [Argos](https://argos-ci.com/docs/visual-testing)                                                      | A visual testing platform. We use it to compare screenshots.                                   |
+| [GitHub Actions](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) | A CI platform. We use it to automate our testing workflows.                                    |
+
+Here's an overview of the visual testing workflow:
+
+1. Developers add Playwright tests (as `*.spec.ts` files) to the `/visual-tests/tests` directory.
+2. On pushing a commit to a feature branch, the
+   [Visual tests Linter](https://github.com/handsontable/handsontable/actions/workflows/visual-tests-linter.yml) workflow
+   checks the code of all the visual tests.
+3. The [Tests](https://github.com/handsontable/handsontable/actions/workflows/test.yml) workflow runs all the visual tests
+   and uploads the resulting screenshots to Argos.
+4. Argos compares the feature branch screenshots against the base branch (`develop`) screenshots
+   (so-called "golden screenshots").
+5. 
+
+- which browsers? (I think only Chromium)
+
 ## Installation
 
 Install by command `npm install` in the root directory and make sure that before testing you've installed and executed the [Docker Desktop](https://www.docker.com/products/docker-desktop/) application.
