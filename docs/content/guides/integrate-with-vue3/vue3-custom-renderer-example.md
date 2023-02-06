@@ -1,4 +1,5 @@
 ---
+id: uu0rzeo6
 title: Custom renderer in Vue 3
 metaTitle: Custom cell renderer - Vue 3 Data Grid | Handsontable
 description: Create a custom cell renderer, and use it in your Vue 3 data grid by declaring it as a function.

@@ -1,4 +1,5 @@
 ---
+id: 7a5vawwl
 title: Custom builds
 metaTitle: Custom builds - JavaScript Data Grid | Handsontable
 description: Handsontable's building process transforms the source files located in the code repository into dedicated packages.
@@ -9,6 +10,7 @@ tags:
   - bundling
   - contributing
 react:
+  id: pcflnieu
   metaTitle: Custom builds - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -57,7 +59,7 @@ For more information on the distribution packages, see [this file](https://githu
 ### Build requirements
 
 Handsontable building processes require:
-- [Node.js](https://nodejs.org/) (version **16.18**+)
+- [Node.js](https://nodejs.org/) (version **16.19**+)
 - [npm](https://www.npmjs.com/) (version **8.19**+)
 - Node modules installed through `npm install` (e.g. [webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/))
 
@@ -77,7 +79,7 @@ Each Handsontable [project](#monorepo) has its own building processes defined in
 ## Run your first build
 
 To run your first build:
-1. Install [Node.js](https://nodejs.org/) (version **16.18**+).
+1. Install [Node.js](https://nodejs.org/) (version **16.19**+).
 2. Install [npm](https://www.npmjs.com/) (version **8.19**+).
 3. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
 4. From the root directory, run `npm install`.<br>All the required dependencies get installed.

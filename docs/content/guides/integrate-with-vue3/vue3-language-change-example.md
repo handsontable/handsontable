@@ -1,4 +1,5 @@
 ---
+id: tcabky5c
 title: Language change in Vue 3
 metaTitle: Language change - Vue 3 Data Grid | Handsontable
 description: Change the default language of the context menu from English to any of the built-in translations, using the "language" property.

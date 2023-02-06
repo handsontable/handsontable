@@ -1,3 +1,4 @@
+import { pressedModifierKeys } from './keyboardEvents';
 
 const MOUSE_BUTTONS = new Map();
 
@@ -24,7 +25,7 @@ function getMouseButton(buttonKey) {
  * @returns {Function}
  */
 export function handsontableMouseTriggerFactory(type, defaultButtonKey = getMouseButton('LMB')) {
-  return function(element, buttonKey = defaultButtonKey, eventProps = {}) {
+  return function(element, buttonKey = defaultButtonKey, eventProps = pressedModifierKeys) {
     let handsontableElement = element;
 
     if (!(handsontableElement instanceof jQuery)) {
@@ -56,7 +57,7 @@ export const contextMenuEvent = handsontableMouseTriggerFactory('contextmenu');
  * @param {number} [buttonKey] Number representing mouse button key.
  * @param {object} [eventProps] Addional object with props to merge with the event.
  */
-export function simulateClick(element, buttonKey = 'LMB', eventProps = {}) {
+export function simulateClick(element, buttonKey = 'LMB', eventProps = pressedModifierKeys) {
   const mouseButton = getMouseButton(buttonKey);
 
   mouseDown(element, mouseButton, eventProps);
@@ -79,7 +80,7 @@ export function simulateClick(element, buttonKey = 'LMB', eventProps = {}) {
  * @param {Element} element An element on which there will be performed mouse events.
  * @param {object} [eventProps] Addional object with props to merge with the event.
  */
-export function mouseDoubleClick(element, eventProps) {
+export function mouseDoubleClick(element, eventProps = pressedModifierKeys) {
   mouseDown(element, eventProps);
   mouseUp(element, eventProps);
   mouseDown(element, eventProps);

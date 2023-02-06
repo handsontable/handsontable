@@ -1,4 +1,5 @@
 ---
+id: kbk0pm8t
 title: Integration with Redux
 metaTitle: Integration with Redux - JavaScript Data Grid | Handsontable
 description: Maintain the data and configuration options of your grid by using the Redux state container.

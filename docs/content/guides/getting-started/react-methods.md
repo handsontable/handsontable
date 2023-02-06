@@ -1,4 +1,5 @@
 ---
+id: dceorl8m
 title: Instance methods
 metaTitle: Instance methods - JavaScript Data Grid | Handsontable
 description: Reference a Handsontable instance from within a React component, to programmatically perform actions such as selecting cells.
@@ -23,9 +24,9 @@ Reference a Handsontable instance from within a React component, to programmatic
 
 ## Use Handsontable's API
 
-You can programmatically change the internal state of Handsontable beyond what's possible with props. To do that, call API methods of the relevant Handsontable instance associated with your instance of the [`HotTable`](@/guides/getting-started/installation.md#use-the-hottable-component) component.
+You can programmatically change the internal state of Handsontable beyond what's possible with props. To do that, call API methods of the relevant Handsontable instance associated with your instance of the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) component.
 
-The following example implements the [`HotTable`](@/guides/getting-started/installation.md#use-the-hottable-component) component showing how to reference the Handsontable instance from the wrapper component.
+The following example implements the [`HotTable`](@/guides/getting-started/installation.md#_4-use-the-hottable-component) component showing how to reference the Handsontable instance from the wrapper component.
 
 ::: example #example1 :react
 ```jsx

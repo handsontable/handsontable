@@ -2,19 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- This file should generally be updated automatically using our changelog script. See `.changelogs/README.md` for more information. -->
 
 <!-- UNVERSIONED -->
 
-## [12.3.0] - 2022-12-14
+## [12.3.1] - 2023-02-06
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/articles/2022/12/handsontable-12-3-0-copying-cells-with-headers)
-- [Documentation (12.3)](https://handsontable.com/docs/12.3/)
-- [Release notes](https://handsontable.com/docs/release-notes/#_12-3-0)
+### Added
+- Added a Japanese translation of the "Copy with headers" feature. [#10201](https://github.com/handsontable/handsontable/pull/10201)
+
+### Removed
+- Removed the two-week delay in showing the console warning about license expiration. [#10175](https://github.com/handsontable/handsontable/pull/10175)
+
+### Fixed
+- Fixed an issue where `updateData()` didn't work with nested data structures (`NestedRows`). [#10178](https://github.com/handsontable/handsontable/pull/10178)
+- Fixed an issue of unwanted pixels in the "Filter by condition" menu by removing a superfluous overlay. [#10174](https://github.com/handsontable/handsontable/pull/10174)
+- Fixed an issue where merged cells could lack right and bottom borders due to a Chrome bug. [#10212](https://github.com/handsontable/handsontable/pull/10212)
+- Fixed an issue where using some browser and system shortcuts could cause Handsontable to behave as if <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> was being held down. [#10210](https://github.com/handsontable/handsontable/pull/10210)
+
+For more information on Handsontable 12.3.1, see:
+- [Blog post (12.3.1)](https://handsontable.com/blog/articles/2023/2/handsontable-12.3.1-japanese-translation-and-improved-keyboard-interaction)
+- [Documentation (12.3)](https://handsontable.com/docs/12.3)
+- [Release notes (12.3.1)](https://handsontable.com/docs/release-notes/#_12-3-1)
+
+## [12.3.0] - 2022-12-14
 
 ### Added
 
@@ -34,12 +48,12 @@ For more information on this release, see:
 - Fixed an issue where typing in a `dropdown` editor caused the IME to disappear, resulting in wrong characters being typed. [#9672](https://github.com/handsontable/handsontable/issues/9672)
 - React: Fixed an issue where `dropdown` cells weren't validated properly when using the `HotColumn` component. [#10065](https://github.com/handsontable/handsontable/issues/10065)
 
-## [12.2.0] - 2022-10-25
+For more information on Handsontable 12.3.0, see:
+- [Blog post (12.3.0)](https://handsontable.com/blog/articles/2022/12/handsontable-12-3-0-copying-cells-with-headers)
+- [Documentation (12.3)](https://handsontable.com/docs/12.3)
+- [Release notes (12.3.0)](https://handsontable.com/docs/release-notes/#_12-3-0)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/handsontable-12.2.0)
-- [Documentation (12.2)](https://handsontable.com/docs/12.2/)
-- [Release notes](https://handsontable.com/docs/release-notes/#_12-2-0)
+## [12.2.0] - 2022-10-25
 
 ### Added
 
@@ -62,11 +76,12 @@ For more information on this release, see:
 - Fixed an issue where changing a cell's `type` through `setCellMeta()` didn't properly set the cell's `editor` and `renderer`. [#9734](https://github.com/handsontable/handsontable/issues/9734)
 - Fixed an issue where the dropdown menu didn't display when the `NestedHeaders` plugin was enabled and all rows were trimmed out. [#9753](https://github.com/handsontable/handsontable/issues/9753)
 
-## [12.1.3] - 2022-09-22
+For more information on Handsontable 12.2.0, see:
+- [Blog post (12.2.0)](https://handsontable.com/blog/handsontable-12.2.0)
+- [Documentation (12.2)](https://handsontable.com/docs/12.2)
+- [Release notes (12.2.0)](https://handsontable.com/docs/release-notes/#_12-2-0)
 
-For more information on this release, see:
-- [Documentation (12.1)](https://handsontable.com/docs/12.1/)
-- [Release notes](https://handsontable.com/docs/release-notes/#_12-1-3)
+## [12.1.3] - 2022-09-22
 
 ### Removed
 
@@ -86,33 +101,32 @@ For more information on this release, see:
 - Fixed misalignment on mobile devices when the edge cells were selected. [#9621](https://github.com/handsontable/handsontable/issues/9621)
 - Fixed type definitions for the method `setSourceDataAtCell`. [#8599](https://github.com/handsontable/handsontable/issues/8599)
 
-## [12.1.2] - 2022-07-08
+For more information on Handsontable 12.1.3, see:
+- [Documentation (12.1)](https://handsontable.com/docs/12.1)
+- [Release notes (12.1.3)](https://handsontable.com/docs/release-notes/#_12-1-3)
 
-For more information on this release, see:
-- [Documentation (12.1)](https://handsontable.com/docs/12.1/)
-- [Release notes](https://handsontable.com/docs/release-notes/#_12-1-2)
+## [12.1.2] - 2022-07-08
 
 ### Changed
 
 - Changed the version of the Moment.js dependency from 2.29.3 to 2.29.4, in reaction to a recently-found Moment.js security vulnerability. The vulnerability did not affect a correct configuration of Handsontable. [#9638](https://github.com/handsontable/handsontable/issues/9638)
 - Vue: Freezed the version of the Vue framework that is used in our build chain to ~2.6. This shouldn't affect apps that use Vue 2.7+. [#9624](https://github.com/handsontable/handsontable/issues/9624)
 
-## [12.1.1] - 2022-07-05
+For more information on Handsontable 12.1.2, see:
+- [Documentation (12.1)](https://handsontable.com/docs/12.1)
+- [Release notes (12.1.2)](https://handsontable.com/docs/release-notes/#_12-1-2)
 
-For more information on this release, see:
-- [Documentation (12.1)](https://handsontable.com/docs/12.1/)
-- [Release notes](https://handsontable.com/docs/release-notes/#_12-1-1)
+## [12.1.1] - 2022-07-05
 
 ### Fixed
 
 - Angular: Fixed an issue where the installation of `@handsontable/angular` package failed for versions of Angular other than 9 [#9622](https://github.com/handsontable/handsontable/issues/9622)
 
-## [12.1.0] - 2022-06-28
+For more information on Handsontable 12.1.1, see:
+- [Documentation (12.1)](https://handsontable.com/docs/12.1)
+- [Release notes (12.1.1)](https://handsontable.com/docs/release-notes/#_12-1-1)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/handsontable-12.1.0-data-grid-new-hooks-new-translations-and-rendering-improvements)
-- [Documentation (12.1)](https://handsontable.com/docs/12.1/)
-- [Release notes](https://handsontable.com/docs/release-notes/#_12-1-0)
+## [12.1.0] - 2022-06-28
 
 ### Added
 
@@ -146,11 +160,12 @@ For more information on this release, see:
 - Fixed an issue where hiding columns with nested headers caused incorrect column width calculation (for the `stretchH: 'all'` option). [#9496](https://github.com/handsontable/handsontable/issues/9496)
 - Fixed an issue where `ShortcutManager` unnecessarily handled `keyup` events with no `key` defined. [#9562](https://github.com/handsontable/handsontable/issues/9562)
 
-## [12.0.1] - 2022-05-16
+For more information on Handsontable 12.1.0, see:
+- [Blog post (12.1.0)](https://handsontable.com/blog/handsontable-12.1.0-data-grid-new-hooks-new-translations-and-rendering-improvements)
+- [Documentation (12.1)](https://handsontable.com/docs/12.1)
+- [Release notes (12.1.0)](https://handsontable.com/docs/release-notes/#_12-1-0)
 
-For more information on this release, see:
-- [Documentation (12.0)](https://handsontable.com/docs/12.0/)
-- [Release notes](https://handsontable.com/docs/release-notes/#_12-0-1)
+## [12.0.1] - 2022-05-16
 
 ### Fixed
 
@@ -160,13 +175,11 @@ For more information on this release, see:
 - Fixed an issue where nested column headers didn't expand properly. [#9099](https://github.com/handsontable/handsontable/issues/9099)
 - Fixed an issue where updating custom borders could lead to uncaught error exceptions. [#9455](https://github.com/handsontable/handsontable/issues/9455)
 
-## [12.0.0] - 2022-04-28
+For more information on Handsontable 12.0.1, see:
+- [Documentation (12.0)](https://handsontable.com/docs/12.0)
+- [Release notes (12.0.1)](https://handsontable.com/docs/release-notes/#_12-0-1)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
-- [Documentation (12.0)](https://handsontable.com/docs/12.0/)
-- [Migration guide (11.1 → 12.0)](https://handsontable.com/docs/migration-from-11.1-to-12.0/)
-- [Release notes](https://handsontable.com/docs/release-notes/#_12-0-0)
+## [12.0.0] - 2022-04-28
 
 ### Added
 
@@ -215,12 +228,13 @@ For more information on this release, see:
 - Fixed an issue where the dropdown menu contained unwanted rectangle elements. [#9240](https://github.com/handsontable/handsontable/issues/9240)
 - React, Vue 2, Vue 3: Fixed an issue with registering modules for the React, Vue 2, and Vue 3 wrappers, by adding an `"exports"` field to their `package.json` files. [#9140](https://github.com/handsontable/handsontable/issues/9140)
 
-## [11.1.0] - 2022-01-13
+For more information on Handsontable 12.0.0, see:
+- [Blog post (12.0.0)](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
+- [Documentation (12.0)](https://handsontable.com/docs/12.0)
+- [Migration guide (11.1 → 12.0)](https://handsontable.com/docs/migration-from-11.1-to-12.0)
+- [Release notes (12.0.0)](https://handsontable.com/docs/release-notes/#_12-0-0)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/handsontable-11.1.0-vue-3-support-and-updatedata)
-- [Documentation (11.1)](https://handsontable.com/docs/11.1/)
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_11-1)
+## [11.1.0] - 2022-01-13
 
 ### Added
 
@@ -249,23 +263,22 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 - Fixed an issue where the `Comments` plugin's editor disappeared after adding a comment. [#9075](https://github.com/handsontable/handsontable/issues/9075) [#6661](https://github.com/handsontable/handsontable/issues/6661)
 - React: Fixed a wrong return type. [#9000](https://github.com/handsontable/handsontable/issues/9000)
 
-## [11.0.1] - 2021-11-17
+For more information on Handsontable 11.1.0, see:
+- [Blog post (11.1.0)](https://handsontable.com/blog/handsontable-11.1.0-vue-3-support-and-updatedata)
+- [Documentation (11.1)](https://handsontable.com/docs/11.1)
+- [Release notes (11.1.0)](https://handsontable.com/docs/javascript-data-grid/release-notes/#_11-1)
 
-For more information on this release, see:
-- [Documentation (11.0)](https://handsontable.com/docs/11.0/)
-- [Release notes](https://handsontable.com/docs/release-notes/#_11-0-1)
+## [11.0.1] - 2021-11-17
 
 ### Fixed
 
 - Fixed the UMD build of `@handsontable/angular`, which was not working properly in `11.0.0`. [#8946](https://github.com/handsontable/handsontable/pull/8946)
 
-## [11.0.0] - 2021-11-17
+For more information on Handsontable 11.0.0, see:
+- [Documentation (11.0)](https://handsontable.com/docs/11.0)
+- [Release notes (11.0.1)](https://handsontable.com/docs/release-notes/#_11-0-1)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue)
-- [Documentation (11.0)](https://handsontable.com/docs/11.0/)
-- [Migration guide (10.0 → 11.0)](https://handsontable.com/docs/migration-from-10.0-to-11.0/)
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_11-0)
+## [11.0.0] - 2021-11-17
 
 ### Added
 
@@ -294,13 +307,13 @@ For more information on this release, see:
 - Fixed an error thrown when autofill's source is a `date` cell. [#8894](https://github.com/handsontable/handsontable/issues/8894)
 - React: Fixed a React wrapper issue where it's impossible to use different sets of props in editor components reused across multiple columns. [#8527](https://github.com/handsontable/handsontable/issues/8527)
 
-## [10.0.0] - 2021-09-29
+For more information on Handsontable 11.0.0, see:
+- [Blog post (11.0.0)](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue)
+- [Documentation (11.0)](https://handsontable.com/docs/11.0)
+- [Migration guide (10.0 → 11.0)](https://handsontable.com/docs/migration-from-10.0-to-11.0)
+- [Release notes (11.0.0)](https://handsontable.com/docs/javascript-data-grid/release-notes/#_11-0)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/handsontable-10.0.0-improved-performance-and-consistency)
-- [Documentation (10.0)](https://handsontable.com/docs/10.0/)
-- [Migration guide (9.0 → 10.0)](https://handsontable.com/docs/migration-from-9.0-to-10.0/)
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_10-0)
+## [10.0.0] - 2021-09-29
 
 ### Changed
 
@@ -330,12 +343,13 @@ For more information on this release, see:
 - Adjusted directories and files related to `dataMap`, to prevent potential circular references. [#8704](https://github.com/handsontable/handsontable/issues/8704)
 - Improved the performance of the regular expression used to detect numeric values, and fixed major code smells. [#8752](https://github.com/handsontable/handsontable/issues/8752)
 
-## [9.0.2] - 2021-07-28
+For more information on Handsontable 10.0.0, see:
+- [Blog post (10.0.0)](https://handsontable.com/blog/handsontable-10.0.0-improved-performance-and-consistency)
+- [Documentation (10.0)](https://handsontable.com/docs/10.0)
+- [Migration guide (9.0 → 10.0)](https://handsontable.com/docs/migration-from-9.0-to-10.0)
+- [Release notes (10.0.0)](https://handsontable.com/docs/javascript-data-grid/release-notes/#_10-0)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/whats-new-in-handsontable-9.0.2)
-- [Documentation (9.0)](https://handsontable.com/docs/9.0/)
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_9-0-2)
+## [9.0.2] - 2021-07-28
 
 ### Fixed
 
@@ -354,11 +368,12 @@ For more information on this release, see:
 
 - Added new documentation engine [#7624](https://github.com/handsontable/handsontable/issues/7624)
 
-## [9.0.1] - 2021-06-17
+For more information on Handsontable 9.0.2, see:
+- [Blog post (9.0.2)](https://handsontable.com/blog/whats-new-in-handsontable-9.0.2)
+- [Documentation (9.0)](https://handsontable.com/docs/9.0)
+- [Release notes (9.0.2)](https://handsontable.com/docs/javascript-data-grid/release-notes/#_9-0-2)
 
-For more information on this release, see:
-- [Documentation (9.0)](https://handsontable.com/docs/9.0/)
-- [Release notes](https://handsontable.com/docs/release-notes/#_9-0-1)
+## [9.0.1] - 2021-06-17
 
 ### Removed
 
@@ -369,13 +384,11 @@ For more information on this release, see:
 - Fixed an issue where the validator function was called twice when the Formulas plugin was enabled. [#8138](https://github.com/handsontable/handsontable/issues/8138)
 - Introduced a new CSS style for cells of the `checkbox` type to restore previous behaviour. [#8196](https://github.com/handsontable/handsontable/issues/8196)
 
-## [9.0.0] - 2021-06-01
+For more information on Handsontable 9.0.1, see:
+- [Documentation (9.0)](https://handsontable.com/docs/9.0)
+- [Release notes (9.0.1)](https://handsontable.com/docs/release-notes/#_9-0-1)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/handsontable-9.0.0-new-formula-plugin)
-- [Documentation (9.0)](https://handsontable.com/docs/9.0/)
-- [Migration guide (8.4 → 9.0)](https://handsontable.com/docs/migration-from-8.4-to-9.0/)
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_9-0)
+## [9.0.0] - 2021-06-01
 
 ### Changed
 
@@ -397,12 +410,13 @@ For more information on this release, see:
 
 - Deprecated the `beforeAutofillInsidePopulate` hook. It will be removed in the next major release. [#8095](https://github.com/handsontable/handsontable/issues/8095)
 
-## [8.4.0] - 2021-05-11
+For more information on Handsontable 9.0.0, see:
+- [Blog post (9.0.0)](https://handsontable.com/blog/handsontable-9.0.0-new-formula-plugin)
+- [Documentation (9.0)](https://handsontable.com/docs/9.0)
+- [Migration guide (8.4 → 9.0)](https://handsontable.com/docs/migration-from-8.4-to-9.0)
+- [Release notes (9.0.0)](https://handsontable.com/docs/javascript-data-grid/release-notes/#_9-0)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/whats-new-in-handsontable-8-4-0)
-- [Documentation (8.4.0)](https://handsontable.com/docs/8.4.0/)
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-4)
+## [8.4.0] - 2021-05-11
 
 ### Added
 
@@ -440,11 +454,12 @@ For more information on this release, see:
 
 - Enhanced the ESLint config file by adding a rule that checks if there are new lines missing before some keywords or statements. [#7691](https://github.com/handsontable/handsontable/issues/7691)
 
-## [8.3.2] - 2021-03-16
+For more information on Handsontable 8.4.0, see:
+- [Blog post (8.4.0)](https://handsontable.com/blog/whats-new-in-handsontable-8-4-0)
+- [Documentation (8.4.0)](https://handsontable.com/docs/8.4.0)
+- [Release notes (8.4.0)](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-4)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/handsontable-8-3-2-introducing-monorepo)
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-3-2)
+## [8.3.2] - 2021-03-16
 
 ### Fixed
 
@@ -470,22 +485,22 @@ For more information on this release, see:
 - Introduced the monorepo to this repository. From now on, `handsontable`, `@handsontable/angular`, `@handsontable/react`, and `@handsontable/vue` will all be developed in the same repo - `handsontable`. [#7380](https://github.com/handsontable/handsontable/issues/7380)
 - Added a custom ESLint rule which allows restricting specified modules from loading by `import` or re-exporting. [#7473](https://github.com/handsontable/handsontable/issues/7473)
 
-## [8.3.1] - 2021-02-10
+For more information on Handsontable 8.3.2, see:
+- [Blog post (8.3.2)](https://handsontable.com/blog/handsontable-8-3-2-introducing-monorepo)
+- [Documentation (8.3.2)](https://handsontable.com/docs/8.3.2)
+- [Release notes (8.3.2)](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-3-2)
 
-For more information on this release, see:
-- [Documentation (8.3.1)](https://handsontable.com/docs/8.3.1/)
-- [Release notes](https://handsontable.com/docs/release-notes/#_8-3-1)
+## [8.3.1] - 2021-02-10
 
 ### Fixed
 
 - Fixed an issue where the CSS files could be eliminated during tree-shaking [#7516](https://github.com/handsontable/handsontable/issues/7516)
 
-## [8.3.0] - 2021-01-28
+For more information on Handsontable 8.3.1, see:
+- [Documentation (8.3.1)](https://handsontable.com/docs/8.3.1)
+- [Release notes (8.3.1)](https://handsontable.com/docs/release-notes/#_8-3-1)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/handsontable-8.3.0-has-been-released)
-- [Documentation (8.3.0)](https://handsontable.com/docs/8.3.0/)
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-3)
+## [8.3.0] - 2021-01-28
 
 ### Added
 
@@ -515,12 +530,12 @@ For more information on this release, see:
 - Corrected a typo in a helper method from the Column Sorting plugin. [#7375](https://github.com/handsontable/handsontable/issues/7375)
 - Optimized the performance of rendering the table with numerous spare rows (for `minSpareRows`, `minSpareCols`, `minRows`, and `minCols` options). [#7439](https://github.com/handsontable/handsontable/issues/7439)
 
-## [8.2.0] - 2020-11-12
+For more information on Handsontable 8.3.0, see:
+- [Blog post (8.3.0)](https://handsontable.com/blog/handsontable-8.3.0-has-been-released)
+- [Documentation (8.3.0)](https://handsontable.com/docs/8.3.0)
+- [Release notes (8.3.0)](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-3)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/handsontable-8.2.0-has-been-released)
-- [Documentation (8.2.0)](https://handsontable.com/docs/8.2.0/)
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-2)
+## [8.2.0] - 2020-11-12
 
 ### Added
 
@@ -540,12 +555,12 @@ For more information on this release, see:
 - Fix a problem with the inconsistent behavior of the Context Menu's "Clear column" disabled status. [#7003](https://github.com/handsontable/handsontable/issues/7003)
 - Fix a bug with parsing multiline cells on pasting `text/html` mime-type. [#7369](https://github.com/handsontable/handsontable/issues/7369)
 
-## [8.1.0] - 2020-10-01
+For more information on Handsontable 8.2.0, see:
+- [Blog post (8.2.0)](https://handsontable.com/blog/handsontable-8.2.0-has-been-released)
+- [Documentation (8.2.0)](https://handsontable.com/docs/8.2.0)
+- [Release notes (8.2.0)](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-2)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/handsontable-8.1.0-has-been-released)
-- [Documentation (8.1.0)](https://handsontable.com/docs/8.1.0/)
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-1)
+## [8.1.0] - 2020-10-01
 
 ### Added
 
@@ -573,13 +588,12 @@ For more information on this release, see:
 - Updated dependencies to meet security requirements [#7222](https://github.com/handsontable/handsontable/pull/7222)
 - Improved performance for TrimRows, HiddenRows and HiddenColumns plugins for big datasets with lots trimmed/hidden indexes [#7223](https://github.com/handsontable/handsontable/pull/7223)
 
-## [8.0.0] - 2020-08-05
+For more information on Handsontable 8.1.0, see:
+- [Blog post (8.1.0)](https://handsontable.com/blog/handsontable-8.1.0-has-been-released)
+- [Documentation (8.1.0)](https://handsontable.com/docs/8.1.0)
+- [Release notes (8.1.0)](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-1)
 
-For more information on this release, see:
-- [Blog post](https://handsontable.com/blog/the-new-handsontable-8-is-now-available)
-- [Documentation (8.0.0)](https://handsontable.com/docs/8.0.0/)
-- [Migration guide (7.4 → 8.0)](https://handsontable.com/docs/migration-from-7.4-to-8.0/)
-- [Release notes](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-0)
+## [8.0.0] - 2020-08-05
 
 ### Added
 
@@ -821,6 +835,12 @@ For more information on this release, see:
 - Fixed an issue with `BACKSPACE` not working properly in the filter by value input. [#6842](https://github.com/handsontable/handsontable/issues/6842)
 - Fixed an issue with Undo/Redo not working with fixing columns. [#6869](https://github.com/handsontable/handsontable/issues/6869)
 - Added a missing argument in the `deepObjectSize` function. [#6821](https://github.com/handsontable/handsontable/pull/6821)
+
+For more information on Handsontable 8.0.0, see:
+- [Blog post (8.0.0)](https://handsontable.com/blog/the-new-handsontable-8-is-now-available)
+- [Documentation (8.0.0)](https://handsontable.com/docs/8.0.0)
+- [Migration guide (7.4 → 8.0)](https://handsontable.com/docs/migration-from-7.4-to-8.0)
+- [Release notes (8.0.0)](https://handsontable.com/docs/javascript-data-grid/release-notes/#_8-0)
 
 ## Prior [8.0.0]
 
