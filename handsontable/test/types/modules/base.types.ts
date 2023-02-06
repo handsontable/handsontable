@@ -1,6 +1,12 @@
-import Handsontable from 'handsontable/base';
+import Handsontable, {
+  CellCoords,
+  CellRange,
+} from 'handsontable/base';
 
 const elem = document.createElement('div');
+
+const cellCoords = new CellCoords(1, 2);
+const cellRange = new CellRange(cellCoords, cellCoords, cellCoords);
 
 // Verify the various top-level namespace APIs exist
 Handsontable.baseVersion.toUpperCase();
@@ -19,7 +25,7 @@ Handsontable.validators;
 
 const hot = new Handsontable.Core(elem, {});
 
-hot.alter('insert_col', 0, 1);
+hot.alter('insert_col_start', 0, 1);
 hot.addHook('afterCopy', () => {});
 
 const defaultSettings: Handsontable.GridSettings = Handsontable.DefaultSettings;

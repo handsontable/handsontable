@@ -1,7 +1,0 @@
-{
-  "title": "Removed inconsistency in the ShortcutManager - both `keydown` and `keyup` events won't be handled by the manager in some cases",
-  "type": "fixed",
-  "issue": 9562,
-  "breaking": false,
-  "framework": "none"
-}

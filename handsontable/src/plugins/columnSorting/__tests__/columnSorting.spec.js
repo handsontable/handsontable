@@ -13,9 +13,7 @@ describe('ColumnSorting', () => {
         throw Error('Please check the test scenario. The header doesn\'t exist.');
       }
 
-      $spanInsideHeader.simulate('mousedown');
-      $spanInsideHeader.simulate('mouseup');
-      $spanInsideHeader.simulate('click');
+      simulateClick($spanInsideHeader);
     };
   });
 
@@ -1950,7 +1948,7 @@ describe('ColumnSorting', () => {
 
     expect(countRows()).toEqual(4);
 
-    alter('insert_row');
+    alter('insert_row_above');
 
     expect(countRows()).toEqual(5);
   });
@@ -3004,13 +3002,13 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    alter('insert_row');
+    alter('insert_row_below');
 
     getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
 
     loadData(Handsontable.helper.createSpreadsheetData(3, 3));
 
-    alter('insert_row');
+    alter('insert_row_below');
 
     expect(getData()).toEqual([
       ['A1', 'B1', 'C1'],
@@ -3055,7 +3053,7 @@ describe('ColumnSorting', () => {
         },
       });
 
-      alter('insert_col', 1);
+      alter('insert_col_start', 1);
 
       expect(getData()).toEqual([
         ['A3', null, 'B3', 'C3'],
@@ -3075,7 +3073,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      alter('insert_row', 2);
+      alter('insert_row_above', 2);
 
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1'],
@@ -3095,7 +3093,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      alter('insert_col', 2, 5);
+      alter('insert_col_start', 2, 5);
 
       expect(getHtCore().find('tbody tr:eq(0) td').length).toEqual(7);
     });

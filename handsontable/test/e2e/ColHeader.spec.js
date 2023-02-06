@@ -50,7 +50,7 @@ describe('ColHeader', () => {
 
     expect(cloneTop.width()).toBe(masterHolder.width());
 
-    alter('insert_row', void 0, 10);
+    alter('insert_row_below', null, 10);
 
     expect(cloneTop.width()).toBeLessThan(masterHolder.width());
   });
@@ -445,7 +445,7 @@ describe('ColHeader', () => {
       rowHeaders: true,
       colHeaders: ['0', '1', '2'],
       startCols: 3,
-      startRows: 1
+      startRows: 1,
     });
     const htCore = getHtCore();
 
@@ -456,27 +456,5 @@ describe('ColHeader', () => {
     expect(htCore.find('thead th:eq(1)').text()).toEqual('2');
     expect(htCore.find('thead th:eq(2)').text()).toEqual('1');
     expect(htCore.find('thead th:eq(3)').text()).toEqual('0');
-  });
-
-  it('should trigger `afterGetColHeader` hook for all displayed columns on init', () => {
-    const afterGetColHeader = jasmine.createSpy('afterGetColHeader');
-
-    handsontable({
-      startRows: 5,
-      startCols: 5,
-      colHeaders: true,
-      afterGetColHeader,
-    });
-
-    expect(afterGetColHeader).toHaveBeenCalledWith(0,
-      spec().$container.find('.ht_clone_top thead tr th:eq(0)')[0]);
-    expect(afterGetColHeader).toHaveBeenCalledWith(1,
-      spec().$container.find('.ht_clone_top thead tr th:eq(1)')[0]);
-    expect(afterGetColHeader).toHaveBeenCalledWith(2,
-      spec().$container.find('.ht_clone_top thead tr th:eq(2)')[0]);
-    expect(afterGetColHeader).toHaveBeenCalledWith(3,
-      spec().$container.find('.ht_clone_top thead tr th:eq(3)')[0]);
-    expect(afterGetColHeader).toHaveBeenCalledWith(4,
-      spec().$container.find('.ht_clone_top thead tr th:eq(4)')[0]);
   });
 });

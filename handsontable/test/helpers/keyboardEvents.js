@@ -1,5 +1,5 @@
 const { KEY_CODES } = Handsontable.helper;
-const KEYCODES_MAP = new Map([
+const KEY_CODES_MAP = new Map([
   ['A', KEY_CODES.A],
   ['a', 97],
   ['alt', KEY_CODES.ALT],
@@ -61,23 +61,47 @@ const KEYCODES_MAP = new Map([
   ['z', KEY_CODES.Z],
 ]);
 
+export const pressedModifierKeys = {
+  ctrlKey: false,
+  metaKey: false,
+  shiftKey: false,
+  altKey: false,
+};
+
+/**
+ * @param {object} options Object for storing information about pressed modifier key.
+ * @param {string} modifiedKey Name of the modifier key.
+ * @param {boolean} isPressed Information whether the modifier kay has been pressed.
+ */
+function saveStateAndExtendEvent(options, modifiedKey, isPressed) {
+  pressedModifierKeys[modifiedKey] = isPressed;
+  options[modifiedKey] = isPressed;
+}
+
 /**
  * Returns a function that triggers a key event.
  *
  * @param {string} type Event type.
- * @param {string|Element} target Event target.
- * @returns {Function}
+ * @param {string} key The event key name.
+ * @param {object} options Additional options which extends the event or change its behavior.
+ * @param {object} options.extend Additional options which extends the event object.
+ * @param {HTMLElement} options.target The DOM element that the event is dispatched from.
+ * @param {boolean} options.ime Indicates whether the event needs to be dispatched as it would by IME.
  */
-export function handsontableKeyTriggerFactory(type, target) {
-  return function(key, extend) {
-    const ev = {};
+export function keyTriggerFactory(type, key, { extend, target, ime }) {
+  const ev = {};
 
-    ev.keyCode = KEYCODES_MAP.has(key) ? KEYCODES_MAP.get(key) : key.codePointAt(0);
-    ev.key = key;
+  if (ime) {
+    // emulates the event that happens while using IME
+    ev.keyCode = 229;
+  } else {
+    ev.keyCode = KEY_CODES_MAP.has(key) ? KEY_CODES_MAP.get(key) : key.codePointAt(0);
+  }
 
-    $.extend(ev, extend);
-    $(target).simulate(type, ev);
-  };
+  ev.key = key;
+
+  $.extend(ev, extend);
+  $(target).simulate(type, ev);
 }
 
 export const keyDown = triggerKeys('keydown');
@@ -88,7 +112,7 @@ export const keyUp = triggerKeys('keyup');
  * @returns {Function}
  */
 function triggerKeys(type) {
-  return function(keys, extend = {}, target = document.activeElement) {
+  return function(keys, { extend = {}, target = document.activeElement, ime = false } = {}) {
     // Adds support for a single key as a string and as an array of strings.
     keys = typeof keys === 'string' ? [keys] : keys;
     const isKeyUp = type === 'keyup';
@@ -108,12 +132,15 @@ function triggerKeys(type) {
     });
 
     keys.forEach((key) => {
-      extend.ctrlKey = isKeyUp && key === 'control' ? false : keys.includes('control');
-      extend.metaKey = isKeyUp && key === 'meta' ? false : keys.includes('meta');
-      extend.shiftKey = isKeyUp && key === 'shift' ? false : keys.includes('shift');
-      extend.altKey = isKeyUp && key === 'alt' ? false : keys.includes('alt');
-
-      handsontableKeyTriggerFactory(type, target)(key, extend);
+      saveStateAndExtendEvent(extend, 'ctrlKey',
+        isKeyUp === true && key === 'control' ? false : keys.includes('control'));
+      saveStateAndExtendEvent(extend, 'metaKey',
+        isKeyUp === true && key === 'meta' ? false : keys.includes('meta'));
+      saveStateAndExtendEvent(extend, 'shiftKey',
+        isKeyUp === true && key === 'shift' ? false : keys.includes('shift'));
+      saveStateAndExtendEvent(extend, 'altKey',
+        isKeyUp === true && key === 'alt' ? false : keys.includes('alt'));
+      keyTriggerFactory(type, key, { extend, target, ime });
     });
   };
 }
@@ -122,12 +149,11 @@ function triggerKeys(type) {
  * Presses keyDown, then keyUp.
  *
  * @param {Array} keys The keys `key` which will be associated with the event.
- * @param {object} extend Additional options which extends the event.
- * @param {string|Element} target Event target.
+ * @param {object} options Additional options which extends the event or change its behavior.
  */
-export function keyDownUp(keys, extend, target) {
-  keyDown(keys, extend, target);
-  keyUp(keys, extend, target);
+export function keyDownUp(keys, options) {
+  keyDown(keys, options);
+  keyUp(keys, options);
 }
 
 /**

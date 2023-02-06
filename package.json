@@ -23,9 +23,10 @@
     "freeze": "node --experimental-json-modules scripts/freeze.mjs",
     "release": "node --experimental-json-modules scripts/release.mjs",
     "changelog": "bin/changelog",
-    "publish-all": "npm run all publish-package",
+    "publish-all": "npm run all publish-package -- -e=examples",
     "prein": "npm run swap-package-links",
     "preall": "npm run swap-package-links",
+    "pre-release": "node scripts/pre-release.mjs && npm run build && npm run publish-all --tag next",
     "swap-package-links": "node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable",
     "examples:version": "node examples/scripts/code-examples.mjs version",
     "examples:install": "node examples/scripts/code-examples.mjs install",
@@ -64,11 +65,14 @@
     "fs-extra": "^4.0.2",
     "inquirer": "^7.3.3",
     "jsdom-global": "^3.0.2",
-    "moment": "2.29.3",
+    "moment": "2.29.4",
     "replace-in-file": "^6.1.0",
     "rimraf": "^2.5.4",
     "semver": "^5.7.1",
     "yargs": "^16.2.0"
+  },
+  "overrides": {
+    "@types/babel__traverse": "7.18.2"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "resolutions": {
@@ -77,6 +81,7 @@
   "workspaces": [
     "handsontable",
     "wrappers/*",
+    "visual-tests",
     "examples"
   ]
 }

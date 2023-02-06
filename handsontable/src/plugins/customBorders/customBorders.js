@@ -101,7 +101,7 @@ export class CustomBorders extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link CustomBorders#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link CustomBorders#enablePlugin} method is called.
    *
    * @returns {boolean}
    */

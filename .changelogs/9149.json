@@ -1,7 +1,0 @@
-{
-  "title": "Add support for the latest Node LTS version that is used for development purposes.",
-  "type": "fixed",
-  "issue": 9149,
-  "breaking": false,
-  "framework": "none"
-}

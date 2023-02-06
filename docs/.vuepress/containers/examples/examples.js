@@ -8,7 +8,7 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 const { buildCode } = require('./code-builder');
 const { jsfiddle } = require('./jsfiddle');
 
-const tab = (tabName, token) => {
+const tab = (tabName, token, id) => {
   if (!token) return [];
 
   return [
@@ -20,7 +20,7 @@ const tab = (tabName, token) => {
       nesting: 0,
       level: 1,
       children: null,
-      content: `<tab name="${tabName}">`,
+      content: `<tab id="${tabName.toLowerCase()}-tab-${id}" name="${tabName}">`,
       markup: '',
       info: '',
       meta: null,
@@ -47,6 +47,8 @@ const tab = (tabName, token) => {
 };
 
 const getPreviewTab = (id, cssContent, htmlContent, code) => {
+  const renderElement = `$parent.$parent.isScriptLoaderActivated('${id}')`;
+
   return {
     type: 'html_block',
     tag: '',
@@ -58,8 +60,10 @@ const getPreviewTab = (id, cssContent, htmlContent, code) => {
     content: `
       <tab name="Preview" id="preview-tab-${id}">
         <style v-pre>${cssContent}</style>
-        <div v-pre>${htmlContent}</div>
-        <ScriptLoader v-if="$parent.$parent.isScriptLoaderActivated('${id}')" code="${code}"></ScriptLoader>
+        <template v-if="${renderElement}">
+          <div v-pre>${htmlContent}</div>
+        </template>
+        <ScriptLoader v-if="${renderElement}" code="${code}"></ScriptLoader>
       </tab>
     `,
     markup: '',
@@ -70,68 +74,86 @@ const getPreviewTab = (id, cssContent, htmlContent, code) => {
   };
 };
 
-module.exports = {
-  type: 'example',
-  render(tokens, index, opts, env) {
-    const token = tokens[index];
-    const m = token.info.trim().match(EXAMPLE_REGEX);
-    const version = env.relativePath.split('/')[0];
+module.exports = function(docsVersion, base) {
+  return {
+    type: 'example',
+    render(tokens, index, opts, env) {
+      const token = tokens[index];
+      const m = token.info.trim().match(EXAMPLE_REGEX);
 
-    if (token.nesting === 1 && m) { // open preview
-      let [, , id, klass, preset, args] = m;
+      if (token.nesting === 1 && m) { // open preview
+        let [, , id, klass, preset, args] = m;
 
-      id = id ? id.substring(1) : 'example1';
-      klass = klass ? klass.substring(1) : '';
-      preset = preset ? preset.substring(1) : 'hot';
-      args = args || '';
+        id = id ? id.substring(1) : 'example1';
+        klass = klass ? klass.substring(1) : '';
+        preset = preset ? preset.substring(1) : 'hot';
+        args = args || '';
 
-      const htmlPos = args.match(/--html (\d*)/)?.[1];
-      const htmlIndex = htmlPos ? index + Number.parseInt(htmlPos, 10) : 0;
-      const htmlToken = htmlPos ? tokens[htmlIndex] : undefined;
-      const htmlContent = htmlToken
-        ? htmlToken.content
-        : `<div id="${id}" class="hot ${klass}"></div>`;
-      const htmlContentRoot = `<div data-preset-type="${preset}">${htmlContent}</div>`;
+        const htmlPos = args.match(/--html (\d*)/)?.[1];
+        const htmlIndex = htmlPos ? index + Number.parseInt(htmlPos, 10) : 0;
+        const htmlToken = htmlPos ? tokens[htmlIndex] : undefined;
+        const htmlContent = htmlToken
+          ? htmlToken.content
+          : `<div id="${id}" class="hot ${klass}"></div>`;
+        const htmlContentRoot = `<div data-preset-type="${preset}" data-example-id="${id}" >${htmlContent}</div>`;
 
-      const cssPos = args.match(/--css (\d*)/)?.[1];
-      const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;
-      const cssToken = cssPos ? tokens[cssIndex] : undefined;
-      const cssContent = cssToken ? cssToken.content : '';
+        const cssPos = args.match(/--css (\d*)/)?.[1];
+        const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;
+        const cssToken = cssPos ? tokens[cssIndex] : undefined;
+        const cssContent = cssToken ? cssToken.content : '';
 
-      const jsPos = args.match(/--js (\d*)/)?.[1] || 1;
-      const jsIndex = index + Number.parseInt(jsPos, 10);
-      const jsToken = tokens[jsIndex];
-      const jsContent = jsToken.content;
+        const jsPos = args.match(/--js (\d*)/)?.[1] || 1;
+        const jsIndex = index + Number.parseInt(jsPos, 10);
+        const jsToken = tokens[jsIndex];
 
-      const activeTab = args.match(/--tab (code|html|css|preview)/)?.[1] || 'code';
-      const noEdit = !!args.match(/--no-edit/)?.[0];
+        jsToken.content = jsToken.content.replaceAll('{{$basePath}}', base);
 
-      const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), jsContent, env.relativePath);
-      const encodedCode = encodeURI(`useHandsontable('${version}', function(){${code}}, '${preset}')`);
+        const codeToCompile = jsToken.content
+          // Remove the all "/* start:skip-in-preview */" and "/* end:skip-in-preview */" comments
+          .replace(/\/\*(\s+)?(start|end):skip-in-preview(\s+)?\*\/\n/gm, '')
+          // Remove the code between "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" expressions
+          // eslint-disable-next-line max-len
+          .replace(/\/\*(\s+)?start:skip-in-compilation(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-compilation(\s+)?\*\/\n/msg, '');
+        const codeToPreview = jsToken.content
+          // Remove the all "/* start:skip-in-compilation */" and "/* end:skip-in-compilation */" comments
+          .replace(/\/\*(\s+)?(start|end):skip-in-compilation(\s+)?\*\/\n/gm, '')
+          // Remove the code between "/* start:skip-in-preview */" and "/* end:skip-in-preview */" expressions
+          .replace(/\/\*(\s+)?start:skip-in-preview(\s+)?\*\/\n.*?\/\*(\s+)?end:skip-in-preview(\s+)?\*\/\n/msg, '')
+          .trim();
 
-      [htmlIndex, jsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
-        tokens.splice(x, 1);
-      });
+        jsToken.content = codeToPreview;
 
-      const newTokens = [
-        ...tab('Code', jsToken),
-        ...tab('HTML', htmlToken),
-        ...tab('CSS', cssToken),
-        getPreviewTab(id, cssContent, htmlContentRoot, encodedCode)
-      ];
+        const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
+        const noEdit = !!args.match(/--no-edit/)?.[0];
 
-      tokens.splice(index + 1, 0, ...newTokens);
+        const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), codeToCompile, env.relativePath);
+        const encodedCode = encodeURI(`useHandsontable('${docsVersion}', function(){${code}}, '${preset}')`);
 
-      return `
-          ${!noEdit ? jsfiddle(id, htmlContent, jsContent, cssContent, version, preset) : ''}
-          <tabs
-            :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
-            cache-lifetime="0"
-            @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
-          >
-        `;
-    } else { // close preview
-      return '</tabs>';
+        [htmlIndex, jsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
+          tokens.splice(x, 1);
+        });
+
+        const newTokens = [
+          getPreviewTab(id, cssContent, htmlContentRoot, encodedCode),
+          ...tab('Code', jsToken, id),
+          ...tab('HTML', htmlToken, id),
+          ...tab('CSS', cssToken, id),
+        ];
+
+        tokens.splice(index + 1, 0, ...newTokens);
+
+        return `
+            ${!noEdit ? jsfiddle(id, htmlContent, codeToCompile, cssContent, docsVersion, preset) : ''}
+            <tabs
+              :class="$parent.$parent.addClassIfPreviewTabIsSelected('${id}', 'selected-preview')"
+              :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
+              cache-lifetime="0"
+              @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
+            >
+          `;
+      } else { // close preview
+        return '</tabs>';
+      }
     }
-  }
+  };
 };

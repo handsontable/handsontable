@@ -19,14 +19,14 @@
  * In any case, you must not make any such use of this software as to develop software which may be
  * considered competitive with this software.
  * 
- * UNLESS EXPRESSLY AGREED OTHERWISE, HANDSONCODE PROVIDES THIS SOFTWARE ON AN &quot;AS IS&quot;
+ * UNLESS EXPRESSLY AGREED OTHERWISE, HANDSONCODE PROVIDES THIS SOFTWARE ON AN "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, AND IN NO EVENT AND UNDER NO
  * LEGAL THEORY, SHALL HANDSONCODE BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY DIRECT,
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 12.0.1
- * Release date: 16/05/2022 (built at 13/05/2022 13:50:27)
+ * Version: 12.3.1
+ * Release date: 06/02/2023 (built at 02/02/2023 13:45:22)
  */
 /**
  * Fix for bootstrap styles
@@ -396,7 +396,7 @@ innerBorderBottom - Property controlled by bottom overlay
   white-space: nowrap;
 }
 
-#hot-display-license-info {
+.hot-display-license-info {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
   font-size: 10px;
   font-weight: normal;
@@ -405,7 +405,7 @@ innerBorderBottom - Property controlled by bottom overlay
   text-align: left;
 }
 
-#hot-display-license-info a {
+.hot-display-license-info a {
   color: #104acc;
   font-size: 10px;
 }
@@ -482,9 +482,7 @@ innerBorderBottom - Property controlled by bottom overlay
 .handsontable .columnSorting.sortAction:hover {
   text-decoration: underline;
   cursor: pointer;
-}
-
-/* Arrow position */
+} /* Arrow position */
 .handsontable span.colHeader.columnSorting::before {
   /* Centering start */
   top: 50%;
@@ -567,13 +565,13 @@ innerBorderBottom - Property controlled by bottom overlay
 /* Fix for IE10 and IE11 to spread the ":before" pseudo element to 100% height of the parent element */
 @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
   .handsontable td.area:before,
-.handsontable td.area-1:before,
-.handsontable td.area-2:before,
-.handsontable td.area-3:before,
-.handsontable td.area-4:before,
-.handsontable td.area-5:before,
-.handsontable td.area-6:before,
-.handsontable td.area-7:before {
+  .handsontable td.area-1:before,
+  .handsontable td.area-2:before,
+  .handsontable td.area-3:before,
+  .handsontable td.area-4:before,
+  .handsontable td.area-5:before,
+  .handsontable td.area-6:before,
+  .handsontable td.area-7:before {
     bottom: -100%;
   }
 }
@@ -840,12 +838,18 @@ TextRenderer placeholder value
 }
 
 /* Initial left/top coordinates - overwritten when actual position is set */
-.topSelectionHandle,
-.topSelectionHandle-HitArea,
-.bottomSelectionHandle,
-.bottomSelectionHandle-HitArea {
+.handsontable .topSelectionHandle,
+.handsontable .topSelectionHandle-HitArea,
+.handsontable .bottomSelectionHandle,
+.handsontable .bottomSelectionHandle-HitArea {
   left: -10000px;
+  right: unset;
   top: -10000px;
+}
+
+[dir=rtl].handsontable .topSelectionHandle, [dir=rtl].handsontable .topSelectionHandle-HitArea, [dir=rtl].handsontable .bottomSelectionHandle, [dir=rtl].handsontable .bottomSelectionHandle-HitArea {
+  right: -10000px;
+  left: unset;
 }
 
 .handsontable.hide-tween {
@@ -1219,8 +1223,10 @@ textarea.HandsontableCopyPaste {
 }
 
 .htFiltersConditionsMenu .ht_clone_top,
+.htFiltersConditionsMenu .ht_clone_bottom,
 .htFiltersConditionsMenu .ht_clone_inline_start,
-.htFiltersConditionsMenu .ht_clone_corner {
+.htFiltersConditionsMenu .ht_clone_top_inline_start_corner,
+.htFiltersConditionsMenu .ht_clone_bottom_inline_start_corner {
   display: none;
 }
 
@@ -1571,28 +1577,24 @@ textarea.HandsontableCopyPaste {
 
 .handsontable th.beforeHiddenColumn::after {
   right: 1px;
-  content: "◀";
-  /* left arrow */
+  content: "◀"; /* left arrow */
 }
 
 [dir=rtl].handsontable th.beforeHiddenColumn::after {
   right: initial;
   left: 1px;
-  content: "▶";
-  /* right arrow */
+  content: "▶"; /* right arrow */
 }
 
 .handsontable th.afterHiddenColumn::before {
   left: 1px;
-  content: "▶";
-  /* right arrow */
+  content: "▶"; /* right arrow */
 }
 
 [dir=rtl].handsontable th.afterHiddenColumn::before {
   right: 1px;
   left: initial;
-  content: "◀";
-  /* left arrow */
+  content: "◀"; /* left arrow */
 }
 @charset "UTF-8";
 /*!

@@ -260,7 +260,7 @@ describe('Core.selectColumns', () => {
     expect(getSelected()).toEqual([[-1, 0, -1, 0]]);
     expect(wasSelected).toBeTrue();
     expect(`
-      | - :   |
+      | * :   |
       |===:===|
       `).toBeMatchToSelectionPattern();
 
@@ -270,7 +270,7 @@ describe('Core.selectColumns', () => {
     expect(getSelected()).toEqual([[-1, 1, -1, 1]]);
     expect(wasSelected).toBeTrue();
     expect(`
-      |   : - |
+      |   : * |
       |===:===|
       `).toBeMatchToSelectionPattern();
 

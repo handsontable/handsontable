@@ -34,8 +34,8 @@ describe('Core.batch', () => {
 
     const result = hot.batch(() => {
       hot.setDataAtCell(2, 2, 'X');
-      hot.alter('insert_row', 1, 3);
-      hot.alter('insert_col', 1, 3);
+      hot.alter('insert_row_above', 1, 3);
+      hot.alter('insert_col_start', 1, 3);
 
       hot.columnIndexMapper.setIndexesSequence([0, 4, 5, 6, 7, 1, 2, 3]);
       hot.rowIndexMapper.setIndexesSequence([0, 4, 5, 6, 7, 1, 2, 3]);

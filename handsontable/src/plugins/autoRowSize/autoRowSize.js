@@ -52,6 +52,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *
  * @example
  *
+ * ::: only-for javascript
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
  *   data: getData(),
@@ -66,6 +67,34 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *   // code...
  * }
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * const hotRef = useRef(null);
+ *
+ * ...
+ *
+ * // First, let's contruct Handsontable
+ * <HotTable
+ *   ref={hotRef}
+ *   data={getData()}
+ *   autoRowSize={true}
+ * />
+ *
+ * ...
+ *
+ * // Access to plugin instance:
+ * const hot = hotRef.current.hotInstance;
+ * const plugin = hot.getPlugin('autoRowSize');
+ *
+ * plugin.getRowHeight(4);
+ *
+ * if (plugin.isEnabled()) {
+ *   // code...
+ * }
+ * ```
+ * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export class AutoRowSize extends BasePlugin {
@@ -165,7 +194,7 @@ export class AutoRowSize extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link AutoRowSize#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link AutoRowSize#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -370,13 +399,17 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Gets the calculated row height.
+   * Get a row's height, as measured in the DOM.
    *
-   * Mind that this method is different from the [Core](@/api/core.md)'s [`getRowHeight()`](@/api/core.md#getrowheight) method.
+   * The height returned includes 1 px of the row's bottom border.
    *
-   * @param {number} row Visual row index.
-   * @param {number} [defaultHeight] Default row height. It will be picked up if no calculated height found.
-   * @returns {number}
+   * Mind that this method is different from the
+   * [`getRowHeight()`](@/api/core.md#getrowheight) method
+   * of Handsontable's [Core](@/api/core.md).
+   *
+   * @param {number} row A visual row index.
+   * @param {number} [defaultHeight] If no height is found, `defaultHeight` is returned instead.
+   * @returns {number} The height of the specified row, in pixels.
    */
   getRowHeight(row, defaultHeight = void 0) {
     const cachedHeight = row < 0 ? this.headerHeight : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));

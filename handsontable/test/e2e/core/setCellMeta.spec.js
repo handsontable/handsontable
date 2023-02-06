@@ -146,4 +146,63 @@ describe('Core.setCellMeta', () => {
 
     expect(afterSetCellMeta).not.toHaveBeenCalled();
   });
+
+  it('should extend the the meta object with `type` setting', () => {
+    const { getCellType } = Handsontable.cellTypes;
+
+    handsontable();
+
+    expect(getCellMeta(0, 0).type).toBe('text');
+    expect(getCellMeta(0, 0).renderer).toBe(getCellType('text').renderer);
+    expect(getCellMeta(0, 0).editor).toBe(getCellType('text').editor);
+
+    setCellMeta(0, 0, 'type', 'autocomplete');
+    render();
+
+    expect(getCellMeta(0, 0).type).toBe(getCellType('autocomplete').CELL_TYPE);
+    expect(getCellMeta(0, 0).renderer).toBe(getCellType('autocomplete').renderer);
+    expect(getCellMeta(0, 0).editor).toBe(getCellType('autocomplete').editor);
+
+    setCellMeta(0, 0, 'type', 'password');
+    render();
+
+    expect(getCellMeta(0, 0).type).toBe(getCellType('password').CELL_TYPE);
+    expect(getCellMeta(0, 0).renderer).toBe(getCellType('password').renderer);
+    expect(getCellMeta(0, 0).editor).toBe(getCellType('password').editor);
+
+    setCellMeta(0, 0, 'type', 'numeric');
+    render();
+
+    expect(getCellMeta(0, 0).type).toBe(getCellType('numeric').CELL_TYPE);
+    expect(getCellMeta(0, 0).renderer).toBe(getCellType('numeric').renderer);
+    expect(getCellMeta(0, 0).editor).toBe(getCellType('numeric').editor);
+  });
+
+  it('should not overwrite the manually defined `renderer` and `editor` props by setting a `type` meta prop', () => {
+    const mockRenderer = () => {};
+    const mockEditor = () => {};
+    const { getCellType } = Handsontable.cellTypes;
+
+    handsontable();
+
+    expect(getCellMeta(0, 0).type).toBe('text');
+    expect(getCellMeta(0, 0).renderer).toBe(getCellType('text').renderer);
+    expect(getCellMeta(0, 0).editor).toBe(getCellType('text').editor);
+
+    setCellMeta(0, 0, 'renderer', mockRenderer);
+    setCellMeta(0, 0, 'type', 'autocomplete');
+    render();
+
+    expect(getCellMeta(0, 0).type).toBe(getCellType('autocomplete').CELL_TYPE);
+    expect(getCellMeta(0, 0).renderer).toBe(mockRenderer);
+    expect(getCellMeta(0, 0).editor).toBe(getCellType('autocomplete').editor);
+
+    setCellMeta(0, 0, 'editor', mockEditor);
+    setCellMeta(0, 0, 'type', 'password');
+    render();
+
+    expect(getCellMeta(0, 0).type).toBe(getCellType('password').CELL_TYPE);
+    expect(getCellMeta(0, 0).renderer).toBe(mockRenderer);
+    expect(getCellMeta(0, 0).editor).toBe(mockEditor);
+  });
 });

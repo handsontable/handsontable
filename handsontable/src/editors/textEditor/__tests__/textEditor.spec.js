@@ -31,6 +31,65 @@ describe('TextEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
 
+  it('should render an editor with proper width when body is a grid element', () => {
+    document.body.style.display = 'grid';
+
+    handsontable({
+      columns: [
+        {
+          type: 'text',
+        }
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+
+    document.body.style.display = '';
+  });
+
+  it('should render an editor with proper width when body is an inline-grid element', () => {
+    document.body.style.display = 'inline-grid';
+
+    handsontable({
+      columns: [
+        {
+          type: 'text',
+        }
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+
+    document.body.style.display = '';
+  });
+
+  it('should render an editor with proper width when body is a flex element', () => {
+    document.body.style.display = 'flex';
+    document.body.style.flexDirection = 'column';
+
+    handsontable({
+      columns: [
+        {
+          type: 'text',
+        }
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+
+    document.body.style.display = '';
+    document.body.style.flexDirection = '';
+  });
+
   it('should render an editor in specified position at cell 0, 0 when all headers are selected', () => {
     handsontable({
       rowHeaders: true,
@@ -55,7 +114,7 @@ describe('TextEditor', () => {
   it('should render an editor in specified position while opening an editor from top to bottom when ' +
      'top and bottom overlays are enabled', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      data: createSpreadsheetData(8, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsTop: 3,
@@ -122,7 +181,7 @@ describe('TextEditor', () => {
   it('should render an editor in specified position while opening an editor from left to right when ' +
      'left overlay is enabled', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      data: createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
       fixedColumnsStart: 3,
@@ -167,7 +226,7 @@ describe('TextEditor', () => {
   it('should render an editor in specified position while opening an editor from top to bottom when ' +
        'top and bottom overlays are enabled and the first row of the both overlays are hidden', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      data: createSpreadsheetData(8, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsTop: 3,
@@ -229,7 +288,7 @@ describe('TextEditor', () => {
   it('should render an editor in specified position while opening an editor from left to right when ' +
      'left overlay is enabled and the first column of the overlay is hidden', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      data: createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
       fixedColumnsStart: 3,
@@ -390,7 +449,7 @@ describe('TextEditor', () => {
 
   it('should change editor\'s z-index properties during switching to overlay where editor was open', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       editor: 'text',
       fixedRowsBottom: 2,
       fixedRowsTop: 2,
@@ -448,7 +507,7 @@ describe('TextEditor', () => {
 
   it('should render proper value after cell coords manipulation', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5)
+      data: createSpreadsheetData(5, 5)
     });
 
     hot.rowIndexMapper.setIndexesSequence([1, 2, 3, 4, 0]);
@@ -556,7 +615,7 @@ describe('TextEditor', () => {
 
   it('should hide whole editor when it is higher then header and TD is not rendered anymore', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(50, 50),
+      data: createSpreadsheetData(50, 50),
       rowHeaders: true,
       colHeaders: true
     });
@@ -579,7 +638,7 @@ describe('TextEditor', () => {
 
   it('should hide whole editor when it is higher then header and TD is still rendered', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(50, 50),
+      data: createSpreadsheetData(50, 50),
       rowHeaders: true,
       colHeaders: true
     });
@@ -604,7 +663,7 @@ describe('TextEditor', () => {
 
   it('should hide editor when quick navigation by click scrollbar was triggered', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(50, 50),
+      data: createSpreadsheetData(50, 50),
       rowHeaders: true,
       colHeaders: true
     });
@@ -948,7 +1007,7 @@ describe('TextEditor', () => {
 
   it('should open editor after double clicking on a cell', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2)
+      data: createSpreadsheetData(5, 2)
     });
     const cell = $(getCell(0, 0));
 
@@ -979,7 +1038,7 @@ describe('TextEditor', () => {
 
   it('should not open editor after double clicking on a cell using the middle mouse button', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2)
+      data: createSpreadsheetData(5, 2)
     });
     const cell = $(getCell(0, 0));
     const button = 1;
@@ -1013,7 +1072,7 @@ describe('TextEditor', () => {
 
   it('should not open editor after double clicking on a cell using the right mouse button', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2)
+      data: createSpreadsheetData(5, 2)
     });
     const cell = $(getCell(0, 0));
     const button = 2;
@@ -1063,7 +1122,7 @@ describe('TextEditor', () => {
 
   it('editor size should not exceed the viewport after text edit', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 5),
+      data: createSpreadsheetData(10, 5),
       width: 200,
       height: 200
     });
@@ -1132,7 +1191,7 @@ describe('TextEditor', () => {
 
   it('should open editor after pressing a printable character', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3)
+      data: createSpreadsheetData(3, 3)
     });
 
     selectCell(0, 0);
@@ -1146,7 +1205,7 @@ describe('TextEditor', () => {
 
   it('should open editor after pressing a printable character with shift key', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3)
+      data: createSpreadsheetData(3, 3)
     });
 
     selectCell(0, 0);
@@ -1160,7 +1219,7 @@ describe('TextEditor', () => {
 
   it('should be able to open editor after clearing cell data with DELETE', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3)
+      data: createSpreadsheetData(3, 3)
     });
 
     selectCell(0, 0);
@@ -1175,7 +1234,7 @@ describe('TextEditor', () => {
 
   it('should be able to open editor after clearing cell data with BACKSPACE', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3)
+      data: createSpreadsheetData(3, 3)
     });
 
     selectCell(0, 0);
@@ -1190,7 +1249,7 @@ describe('TextEditor', () => {
 
   it('should scroll editor to a cell, if trying to edit cell that is outside of the viewport', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(20, 20),
+      data: createSpreadsheetData(20, 20),
       width: 100,
       height: 50
     });
@@ -1212,9 +1271,27 @@ describe('TextEditor', () => {
     expect(getCell(19, 19)).toBeNull();
   });
 
+  it('should scroll editor to a cell, if trying to edit cell that is outside of the viewport (multi-cells selection)', async() => {
+    handsontable({
+      data: createSpreadsheetData(100, 20),
+      width: 150,
+      height: 100
+    });
+
+    selectCells([[0, 3, 75, 3]]);
+    listen();
+
+    expect(getCell(0, 3)).toBeNull();
+
+    keyDownUp('enter');
+
+    expect(getCell(0, 3)).not.toBeNull();
+    expect(isEditorVisible()).toBeTruthy();
+  });
+
   it('should open empty editor after clearing cell value width BACKSPACE', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4)
+      data: createSpreadsheetData(4, 4)
     });
 
     expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1234,7 +1311,7 @@ describe('TextEditor', () => {
 
   it('should open empty editor after clearing cell value width DELETE', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4)
+      data: createSpreadsheetData(4, 4)
     });
 
     expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1254,7 +1331,7 @@ describe('TextEditor', () => {
 
   it('should not open editor after hitting ALT (#1239)', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4)
+      data: createSpreadsheetData(4, 4)
     });
 
     expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1269,7 +1346,7 @@ describe('TextEditor', () => {
 
   it('should open editor at the same coordinates as the edited cell', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(16, 8),
+      data: createSpreadsheetData(16, 8),
       fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
@@ -1309,7 +1386,7 @@ describe('TextEditor', () => {
     spec().$container[0].style = 'width: 400px';
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(30, 30),
+      data: createSpreadsheetData(30, 30),
       preventOverflow: 'horizontal',
       fixedColumnsStart: 2,
       fixedRowsTop: 2,
@@ -1357,7 +1434,7 @@ describe('TextEditor', () => {
     spec().$container[0].style = 'width: 400px';
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(300, 300),
+      data: createSpreadsheetData(300, 300),
       preventOverflow: 'horizontal',
       fixedColumnsStart: 2,
       fixedRowsTop: 2,
@@ -1405,7 +1482,7 @@ describe('TextEditor', () => {
 
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (corner)', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(16, 8),
+      data: createSpreadsheetData(16, 8),
       fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
@@ -1432,7 +1509,7 @@ describe('TextEditor', () => {
 
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (top)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(50, 50),
+      data: createSpreadsheetData(50, 50),
       fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
@@ -1462,7 +1539,7 @@ describe('TextEditor', () => {
 
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (left)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(50, 50),
+      data: createSpreadsheetData(50, 50),
       fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
@@ -1491,7 +1568,7 @@ describe('TextEditor', () => {
 
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (non-fixed)', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(50, 50),
+      data: createSpreadsheetData(50, 50),
       fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
@@ -1550,7 +1627,7 @@ describe('TextEditor', () => {
   it('should display editor with the proper size, when the edited column is beyond the tables container', () => {
     spec().$container.css('overflow', '');
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 9)
+      data: createSpreadsheetData(3, 9)
     });
 
     selectCell(0, 7);
@@ -1562,7 +1639,7 @@ describe('TextEditor', () => {
 
   it('should display editor with the proper size, when editing a last row after the table is scrolled to the bottom', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 8),
+      data: createSpreadsheetData(3, 8),
       minSpareRows: 1,
       height: 100
     });
@@ -1583,21 +1660,6 @@ describe('TextEditor', () => {
       expect(Handsontable.dom.outerHeight(hot.getActiveEditor().TEXTAREA)).toEqual(regularHeight - 2);
     }
 
-  });
-
-  it('should render the text without trimming out the whitespace, if trimWhitespace is set to false', () => {
-    spec().$container.css('overflow', '');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 9),
-      trimWhitespace: false
-    });
-
-    selectCell(0, 2);
-    keyDownUp('enter');
-    hot.getActiveEditor().TEXTAREA.value = '       test    of    whitespace      ';
-    keyDownUp('enter');
-
-    expect(getDataAtCell(0, 2).length).toEqual(37);
   });
 
   it('should insert new line on caret position when pressing ALT + ENTER, CTRL + ENTER or META + ENTER', () => {
@@ -1747,7 +1809,7 @@ describe('TextEditor', () => {
 
   it('should keep editor open, focusable and with untouched value when allowInvalid is set as false', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       allowInvalid: false,
       validator(val, cb) {
         cb(false);
@@ -1786,8 +1848,8 @@ describe('TextEditor', () => {
   });
 
   it('should not prepare editor after the close editor and selecting the read-only cell', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       columns: [
         { readOnly: true },
         {}
@@ -1799,16 +1861,62 @@ describe('TextEditor', () => {
     keyDownUp('enter');
     keyDownUp('enter');
 
+    expect(getActiveEditor()).not.toBe(void 0);
+
     selectCell(0, 0);
 
     keyDownUp('enter');
 
-    expect(hot.getActiveEditor()).toBe(void 0);
+    expect(getActiveEditor()).toBe(void 0);
+  });
+
+  it('should not prepare editor after the close editor and selecting the hidden cell', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(3, 3),
+    });
+
+    const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(1, true);
+    render();
+
+    selectCell(0, 0);
+
+    keyDownUp('enter');
+    keyDownUp('enter');
+
+    expect(getActiveEditor()).not.toBe(void 0);
+
+    selectCell(1, 0); // select hidden row
+
+    keyDownUp('enter');
+
+    expect(getActiveEditor()).toBe(void 0);
+  });
+
+  it('should clear the active editor instance after the cell is hidden', () => {
+    const hot = handsontable({
+      data: createSpreadsheetData(3, 3),
+    });
+
+    selectCell(1, 0);
+
+    expect(getActiveEditor()).not.toBe(void 0);
+
+    // while the editor was prepared hide the editor's cell
+    const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(1, true);
+    render();
+
+    keyDownUp('enter');
+
+    expect(getActiveEditor()).toBe(void 0);
   });
 
   it('should render an editable editor\'s element without messing with "dir" attribute', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      data: createSpreadsheetData(2, 5),
       editor: 'text',
     });
 
@@ -1833,7 +1941,7 @@ describe('TextEditor', () => {
 
     it('editor size should change after composition started', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 5),
+        data: createSpreadsheetData(10, 5),
         width: 400,
         height: 400,
       });

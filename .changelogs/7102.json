@@ -1,7 +1,0 @@
-{
-  "title": "Fixed overlay desynchronization for multiline cell values",
-  "type": "fixed",
-  "issue": 7102,
-  "breaking": false,
-  "framework": "none"
-}

@@ -180,7 +180,8 @@ export default class TableRenderer {
    * Sets row and column filter instances.
    *
    * @param {RowFilter} rowFilter Row filter instance which contains all necessary information about row index transformation.
-   * @param {ColumnFilter} columnFilter Cokumn filter instance  which contains all necessary information about row index transformation.
+   * @param {ColumnFilter} columnFilter Column filter instance which contains all necessary information about row
+   * index transformation.
    */
   setFilters(rowFilter, columnFilter) {
     this.rowFilter = rowFilter;

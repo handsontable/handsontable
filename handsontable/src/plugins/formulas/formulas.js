@@ -121,7 +121,7 @@ export class Formulas extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link Formulas#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link Formulas#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -158,6 +158,11 @@ export class Formulas extends BasePlugin {
 
     this.addHook('beforeLoadData', (...args) => this.onBeforeLoadData(...args));
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
+
+    // The `updateData` hooks utilize the same logic as the `loadData` hooks.
+    this.addHook('beforeUpdateData', (...args) => this.onBeforeLoadData(...args));
+    this.addHook('afterUpdateData', (...args) => this.onAfterLoadData(...args));
+
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
     this.addHook('beforeValidate', (...args) => this.onBeforeValidate(...args));
@@ -774,7 +779,7 @@ export class Formulas extends BasePlugin {
    * @private
    * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
   onAfterSetDataAtCell(changes, source) {
     if (isBlockedSource(source)) {
@@ -830,7 +835,7 @@ export class Formulas extends BasePlugin {
    * @private
    * @param {Array[]} changes An array of changes in format [[row, column, oldValue, value], ...].
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
   onAfterSetSourceDataAtCell(changes, source) {
     if (isBlockedSource(source)) {
@@ -944,7 +949,7 @@ export class Formulas extends BasePlugin {
    * @param {number} row Represents the visual index of first newly created row in the data source array.
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
   onAfterCreateRow(row, amount, source) {
     if (isBlockedSource(source)) {
@@ -963,7 +968,7 @@ export class Formulas extends BasePlugin {
    * @param {number} col Represents the visual index of first newly created column in the data source.
    * @param {number} amount Number of newly created columns in the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
   onAfterCreateCol(col, amount, source) {
     if (isBlockedSource(source)) {
@@ -983,7 +988,7 @@ export class Formulas extends BasePlugin {
    * @param {number} amount An amount of removed rows.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
   onAfterRemoveRow(row, amount, physicalRows, source) {
     if (isBlockedSource(source)) {
@@ -1009,7 +1014,7 @@ export class Formulas extends BasePlugin {
    * @param {number} amount An amount of removed columns.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
   onAfterRemoveCol(col, amount, physicalColumns, source) {
     if (isBlockedSource(source)) {

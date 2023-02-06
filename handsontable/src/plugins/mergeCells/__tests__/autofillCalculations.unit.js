@@ -218,7 +218,9 @@ describe('MergeCells-Autofill calculations', () => {
       };
       const instance = new AutofillCalculations({
         mergedCellsCollection: new MergedCellsCollection({ hot: hotMock }),
-        hot: hotMock
+        hot: hotMock,
+        // Mock needed for the workaround from https://github.com/handsontable/dev-handsontable/issues/521.
+        ifChromeForceRepaint: () => {},
       });
 
       const changes = [
@@ -287,7 +289,9 @@ describe('MergeCells-Autofill calculations', () => {
       };
       const instance = new AutofillCalculations({
         mergedCellsCollection: new MergedCellsCollection({ hot: hotMock }),
-        hot: hotMock
+        hot: hotMock,
+        // Mock needed for the workaround from https://github.com/handsontable/dev-handsontable/issues/521.
+        ifChromeForceRepaint: () => {},
       });
 
       const changes = [

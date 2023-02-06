@@ -1,5 +1,6 @@
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { stopImmediatePropagation } from './helpers/dom/event';
+import { isOutsideInput } from './helpers/dom/element';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
 import { isDefined } from './helpers/mixed';
@@ -80,7 +81,7 @@ class EditorManager {
 
     // Open editor when text composition is started (IME editor)
     this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'compositionstart', (event) => {
-      if (!this.destroyed && this.activeEditor && !this.activeEditor.isOpened() && this.instance.isListening()) {
+      if (!this.destroyed && this.instance.isListening()) {
         this.openEditor('', event);
       }
     });
@@ -116,11 +117,7 @@ class EditorManager {
     gridContext.addShortcuts([{
       keys: [['F2']],
       callback: (event) => {
-        if (this.activeEditor) {
-          this.activeEditor.enableFullEditMode();
-        }
-
-        this.openEditor(null, event);
+        this.openEditor(null, event, true);
       },
     }, {
       keys: [['Backspace'], ['Delete']],
@@ -135,9 +132,8 @@ class EditorManager {
           if (this.cellProperties.readOnly) {
             this.moveSelectionAfterEnter();
 
-          } else if (this.activeEditor) {
-            this.activeEditor.enableFullEditMode();
-            this.openEditor(null, event);
+          } else {
+            this.openEditor(null, event, true);
           }
 
         } else {
@@ -204,7 +200,7 @@ class EditorManager {
       return;
     }
 
-    const { row, col } = this.instance.selection.selectedRange.current().highlight;
+    const { row, col } = this.instance.getSelectedRangeLast().highlight;
     const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', row, col);
     let visualRowToCheck = row;
     let visualColumnToCheck = col;
@@ -218,26 +214,27 @@ class EditorManager {
 
     const { activeElement } = this.instance.rootDocument;
 
-    if (activeElement) {
-      // Bluring the activeElement removes unwanted border around the focusable element
-      // (and resets activeElement prop). Without blurring the activeElement points to the
-      // previously focusable element after clicking onto the cell (#6877).
+    // Blurring the `activeElement` removes the unwanted border around the focusable element (#6877)
+    // and resets the `document.activeElement` property. The blurring should happen only when the
+    // previously selected input element has not belonged to the Handsontable editor. If blurring is
+    // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
+    if (activeElement && isOutsideInput(activeElement)) {
       activeElement.blur();
     }
 
-    if (this.cellProperties.readOnly) {
+    if (!this.isCellEditable()) {
       this.clearActiveEditor();
 
       return;
     }
 
-    const editorClass = this.instance.getCellEditor(this.cellProperties);
-    // Getting element using coordinates from the selection.
     const td = this.instance.getCell(row, col, true);
 
-    if (editorClass && td) {
+    // Skip the preparation when the cell is not rendered in the DOM. The cell is scrolled out of
+    // the table's viewport.
+    if (td) {
+      const editorClass = this.instance.getCellEditor(this.cellProperties);
       const prop = this.instance.colToProp(visualColumnToCheck);
-
       const originalValue =
         this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
 
@@ -245,9 +242,6 @@ class EditorManager {
       // Using not modified coordinates, as we need to get the table element using selection coordinates.
       // There is an extra translation in the editor for saving value.
       this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
-
-    } else {
-      this.clearActiveEditor();
     }
   }
 
@@ -265,13 +259,33 @@ class EditorManager {
    *
    * @param {null|string} newInitialValue New value from which editor will start if handled property it's not the `null`.
    * @param {Event} event The event object.
+   * @param {boolean} [enableFullEditMode=false] When true, an editor works in full editing mode. Mode disallows closing an editor
+   *                                             when arrow keys are pressed.
    */
-  openEditor(newInitialValue, event) {
-    if (!this.activeEditor) {
+  openEditor(newInitialValue, event, enableFullEditMode = false) {
+    if (!this.isCellEditable()) {
+      this.clearActiveEditor();
+
       return;
     }
 
-    this.activeEditor.beginEditing(newInitialValue, event);
+    if (!this.activeEditor) {
+      const { row, col } = this.instance.getSelectedRangeLast().highlight;
+      const renderableRowIndex = this.instance.rowIndexMapper.getRenderableFromVisualIndex(row);
+      const renderableColumnIndex = this.instance.columnIndexMapper.getRenderableFromVisualIndex(col);
+
+      this.instance.view.scrollViewport(this.instance._createCellCoords(renderableRowIndex, renderableColumnIndex));
+      this.instance.view.render();
+      this.prepareEditor();
+    }
+
+    if (this.activeEditor) {
+      if (enableFullEditMode) {
+        this.activeEditor.enableFullEditMode();
+      }
+
+      this.activeEditor.beginEditing(newInitialValue, event);
+    }
   }
 
   /**
@@ -318,6 +332,33 @@ class EditorManager {
   }
 
   /**
+   * Checks if the currently selected cell (pointed by selection highlight coords) is editable.
+   * Editable cell is when:
+   *   - the cell has defined an editor type;
+   *   - the cell is not marked as read-only;
+   *   - the cell is not hidden.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isCellEditable() {
+    const editorClass = this.instance.getCellEditor(this.cellProperties);
+    const { row, col } = this.instance.getSelectedRangeLast().highlight;
+    const {
+      rowIndexMapper,
+      columnIndexMapper
+    } = this.instance;
+    const isCellHidden = rowIndexMapper.isHidden(this.instance.toPhysicalRow(row)) ||
+      columnIndexMapper.isHidden(this.instance.toPhysicalColumn(col));
+
+    if (this.cellProperties.readOnly || !editorClass || isCellHidden) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Controls selection's behaviour after clicking `Enter`.
    *
    * @private
@@ -349,12 +390,6 @@ class EditorManager {
 
     const { keyCode } = event;
 
-    // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
-    // character is entering (using IME editor). It is fired mainly on linux (ubuntu) with installed ibus-pinyin package.
-    if (keyCode === 229) {
-      return;
-    }
-
     if (!this.selection.isSelected()) {
       return;
     }
@@ -362,7 +397,7 @@ class EditorManager {
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
 
-    if (this.activeEditor && !this.activeEditor.isWaiting()) {
+    if (!this.activeEditor || (this.activeEditor && !this.activeEditor.isWaiting())) {
       if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
         const shortcutManager = this.instance.getShortcutManager();
         const editorContext = shortcutManager.getContext('editor');
@@ -409,10 +444,7 @@ class EditorManager {
   onCellDblClick(event, coords, elem) {
     // may be TD or TH
     if (elem.nodeName === 'TD') {
-      if (this.activeEditor) {
-        this.activeEditor.enableFullEditMode();
-      }
-      this.openEditor(null, event);
+      this.openEditor(null, event, true);
     }
   }
 

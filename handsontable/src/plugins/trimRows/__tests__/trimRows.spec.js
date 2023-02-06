@@ -215,8 +215,8 @@ describe('TrimRows', () => {
       height: 300
     });
 
-    alter('insert_row', 1);
-    alter('insert_row', 3);
+    alter('insert_row_above', 1);
+    alter('insert_row_above', 3);
     alter('remove_row', 0, 3);
 
     expect(getDataAtCell(0, 0)).toBe(null);
@@ -279,7 +279,7 @@ describe('TrimRows', () => {
     const plugin = getPlugin('trimRows');
 
     plugin.trimRows([1, 7, 3]); // physical row indexes after move
-    alter('insert_row', 0, 3); // visual row indexes
+    alter('insert_row_above', 0, 3); // visual row indexes
 
     expect(plugin.isTrimmed(1)).toBeTruthy();
     expect(plugin.isTrimmed(3)).toBeTruthy();
@@ -708,7 +708,7 @@ describe('TrimRows', () => {
         beforeCreateRow: onBeforeCreateRowCallback
       });
 
-      alter('insert_row', 1);
+      alter('insert_row_above', 1);
 
       expect(onBeforeCreateRowCallback).toHaveBeenCalledWith(1, 1);
     });
@@ -837,7 +837,7 @@ describe('TrimRows', () => {
       });
 
       setTimeout(() => {
-        alter('insert_row', 2, 1);
+        alter('insert_row_above', 2, 1);
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
@@ -867,11 +867,11 @@ describe('TrimRows', () => {
       });
 
       setTimeout(() => {
-        alter('insert_row', 2, 1);
+        alter('insert_row_above', 2, 1);
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-        alter('insert_row', 0, 1);
+        alter('insert_row_above', 0, 1);
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
         getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
@@ -1279,7 +1279,7 @@ describe('TrimRows', () => {
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      alter('insert_row', 0, insertedRows);
+      alter('insert_row_above', 0, insertedRows);
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 

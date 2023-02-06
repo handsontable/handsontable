@@ -65,10 +65,12 @@ describe('Walkontable.Selection', () => {
       fixedRowsTop: 2
     });
 
-    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(1, 1));
-    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(1, 2));
-    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(2, 1));
-    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(2, 2));
+    const area = wt.selections.createOrGetArea();
+
+    area.add(new Walkontable.CellCoords(1, 1));
+    area.add(new Walkontable.CellCoords(1, 2));
+    area.add(new Walkontable.CellCoords(2, 1));
+    area.add(new Walkontable.CellCoords(2, 2));
 
     wt.draw();
 
@@ -79,6 +81,61 @@ describe('Walkontable.Selection', () => {
     for (let i = 0, ilen = tds.length; i < ilen; i++) {
       expect(tds[i].className).toContain('area');
     }
+  });
+
+  it('should create the area selection that does not flicker when the table is scrolled back and forth near its left edge (#8317)', async function() {
+    spec().$wrapper.width(300).height(300);
+
+    this.data = createSpreadsheetData(10, 10);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      selections: createSelectionController(),
+      rowHeaders: [function(row, TH) {
+        TH.innerHTML = row + 1;
+      }],
+      columnHeaders: [function(col, TH) {
+        TH.innerHTML = col + 1;
+      }],
+    });
+
+    const area1 = wt.selections.createOrGetArea({ layerLevel: 1 });
+
+    area1.add(new Walkontable.CellCoords(0, 0));
+    area1.add(new Walkontable.CellCoords(0, 2));
+    area1.add(new Walkontable.CellCoords(2, 0));
+    area1.add(new Walkontable.CellCoords(2, 2));
+
+    const area2 = wt.selections.createOrGetArea({ layerLevel: 2 });
+
+    area2.add(new Walkontable.CellCoords(2, 0));
+    area2.add(new Walkontable.CellCoords(2, 2));
+    area2.add(new Walkontable.CellCoords(4, 0));
+    area2.add(new Walkontable.CellCoords(4, 2));
+
+    wt.draw();
+
+    wt.wtOverlays.inlineStartOverlay.setScrollPosition(1);
+
+    await sleep(100);
+
+    const tds = spec().$wrapper.find('td:contains(A2), td:contains(A3), td:contains(A4)');
+
+    expect(tds.length).toBe(3);
+    expect(tds[0].className).toBe('area');
+    expect(tds[1].className).toBe('area area-1');
+    expect(tds[2].className).toBe('area');
+
+    wt.wtOverlays.inlineStartOverlay.setScrollPosition(0);
+
+    await sleep(100);
+
+    expect(tds.length).toBe(3);
+    expect(tds[0].className).toBe('area');
+    expect(tds[1].className).toBe('area area-1');
+    expect(tds[2].className).toBe('area');
   });
 
   it('should not add class to selection until it is rerendered', () => {

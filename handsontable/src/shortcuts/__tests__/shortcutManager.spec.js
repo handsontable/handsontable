@@ -136,6 +136,39 @@ describe('shortcutManager', () => {
     expect(spy.calls.count()).toBe(1);
   });
 
+  it('should not trigger a callback when IME event is triggered (keyCode 229)', () => {
+    const hot = handsontable();
+    const shortcutManager = hot.getShortcutManager();
+    const gridContext = shortcutManager.getContext('grid');
+    const callback = jasmine.createSpy();
+
+    gridContext.removeShortcutsByKeys(['a']);
+    gridContext.addShortcut({
+      keys: [['a']],
+      callback,
+      group: 'spy',
+    });
+    gridContext.removeShortcutsByKeys(['Enter']);
+    gridContext.addShortcut({
+      keys: [['Enter']],
+      callback,
+      group: 'spy',
+    });
+    hot.listen();
+
+    keyDownUp(['a'], { ime: true });
+
+    expect(callback.calls.count()).toBe(0);
+
+    keyDownUp(['Enter'], { ime: true });
+
+    expect(callback.calls.count()).toBe(0);
+
+    keyDownUp(['Enter'], { ime: false });
+
+    expect(callback.calls.count()).toBe(1);
+  });
+
   it('should run action for specified Command/Control modifier key depending on the operating system the table runs on', () => {
     const hot = handsontable();
     const shortcutManager = hot.getShortcutManager();
@@ -444,5 +477,24 @@ describe('shortcutManager', () => {
     }).not.toThrow();
 
     document.body.removeChild(externalInputElement);
+  });
+
+  it('should check if there is a need of releasing keys on click #dev-1025', () => {
+    const hot = handsontable();
+    const shortcutManager = hot.getShortcutManager();
+    const releasePressedKeys = spyOn(shortcutManager, 'releasePressedKeys');
+
+    keyDown('control/meta');
+    simulateClick(getCell(0, 0));
+
+    expect(releasePressedKeys).not.toHaveBeenCalled();
+
+    keyUp('control/meta');
+    // Any key other than control/meta.
+    keyDown('f');
+
+    simulateClick(getCell(0, 0));
+
+    expect(releasePressedKeys).toHaveBeenCalled();
   });
 });

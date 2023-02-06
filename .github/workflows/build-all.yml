@@ -12,21 +12,47 @@ env:
   NODE_VERSION: 16
 
 jobs:
-  build-all:
+  build-on-unix:
     name: Build all packages in ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        os: [ ubuntu-latest, macos-latest ]
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+
       - name: Install the dependencies
         run: npm ci
+
       - name: Build all packages
+        run: npm run all build
+
+  build-on-windows:
+    name: Build all packages in windows-latest
+    runs-on: windows-latest
+    steps:
+      # on C drive there is more free space left to do this job (https://github.com/actions/runner-images/issues/1341#issuecomment-667478747)
+      - name: Checkout
+        run: |
+          mkdir C:/handsontable
+          git clone https://github.com/handsontable/handsontable C:/handsontable --depth 1
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install the dependencies
+        working-directory: C:/handsontable
+        run: npm ci
+
+      - name: Build all packages
+        working-directory: C:/handsontable
         run: npm run all build

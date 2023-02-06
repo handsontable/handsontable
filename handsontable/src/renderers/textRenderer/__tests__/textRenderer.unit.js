@@ -8,16 +8,15 @@ import {
   getRenderer,
   registerRenderer,
 } from '../../registry';
+import {
+  registerCellType,
+  TextCellType,
+} from '../../../cellTypes';
+
+registerCellType(TextCellType);
 
 describe('textRenderer', () => {
   describe('registering', () => {
-    it('should throw an error if renderer is not registered', () => {
-      expect(getRegisteredRendererNames()).toEqual([]);
-      expect(() => {
-        getRenderer(RENDERER_TYPE);
-      }).toThrowError();
-    });
-
     it('should register renderer', () => {
       registerRenderer(RENDERER_TYPE, textRenderer);
 
@@ -59,9 +58,9 @@ describe('textRenderer', () => {
     it('should trim whitespaces if trimWhitespace is set as true', () => {
       const TD = document.createElement('td');
       const instance = getInstance({
-        trimWhitespace: true,
+        trimWhitespace: false,
       });
-      const cellMeta = {};
+      const cellMeta = { trimWhitespace: true }; // cell meta layer has priority
 
       textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
 
@@ -72,9 +71,9 @@ describe('textRenderer', () => {
       const TD = document.createElement('td');
       const instance = getInstance({
         wordWrap: true,
-        trimWhitespace: true
+        trimWhitespace: false
       });
-      const cellMeta = {};
+      const cellMeta = { trimWhitespace: true }; // cell meta layer has priority
 
       textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
 

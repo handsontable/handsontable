@@ -24,67 +24,85 @@ const privatePool = new WeakMap();
  */
 class TableView {
   /**
+   * Instance of {@link Handsontable}.
+   *
+   * @private
+   * @type {Handsontable}
+   */
+  instance;
+  /**
+   * Instance of {@link EventManager}.
+   *
+   * @private
+   * @type {EventManager}
+   */
+  eventManager;
+  /**
+   * Current Handsontable's GridSettings object.
+   *
+   * @private
+   * @type {GridSettings}
+   */
+  settings;
+  /**
+   * Main <THEAD> element.
+   *
+   * @private
+   * @type {HTMLTableSectionElement}
+   */
+  THEAD;
+  /**
+   * Main <TBODY> element.
+   *
+   * @private
+   * @type {HTMLTableSectionElement}
+   */
+  TBODY;
+  /**
+   * Main Walkontable instance.
+   *
+   * @private
+   * @type {Walkontable}
+   */
+  _wt;
+  /**
+   * Main Walkontable instance.
+   *
+   * @private
+   * @type {Walkontable}
+   */
+  activeWt;
+  /**
+   * The total number of the column header renderers applied to the table through the
+   * `afterGetColumnHeaderRenderers` hook.
+   *
+   * @type {number}
+   */
+  #columnHeadersCount = 0;
+  /**
+   * The total number of the row header renderers applied to the table through the
+   * `afterGetRowHeaderRenderers` hook.
+   *
+   * @type {number}
+   */
+  #rowHeadersCount = 0;
+  /**
+   * The flag determines if the `adjustElementsSize` method call was made during
+   * the render suspending. If true, the method has to be triggered once after render
+   * resuming.
+   *
+   * @private
+   * @type {boolean}
+   */
+  postponedAdjustElementsSize = false;
+
+  /**
    * @param {Hanstontable} instance Instance of {@link Handsontable}.
    */
   constructor(instance) {
-    /**
-     * Instance of {@link Handsontable}.
-     *
-     * @private
-     * @type {Handsontable}
-     */
     this.instance = instance;
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(instance);
-    /**
-     * Current Handsontable's GridSettings object.
-     *
-     * @private
-     * @type {GridSettings}
-     */
-    this.settings = instance.getSettings();
-    /**
-     * Main <THEAD> element.
-     *
-     * @private
-     * @type {HTMLTableSectionElement}
-     */
-    this.THEAD = void 0;
-    /**
-     * Main <TBODY> element.
-     *
-     * @private
-     * @type {HTMLTableSectionElement}
-     */
-    this.TBODY = void 0;
-    /**
-     * Main Walkontable instance.
-     *
-     * @private
-     * @type {Walkontable}
-     */
-    this._wt = void 0;
-    /**
-     * Main Walkontable instance.
-     *
-     * @private
-     * @type {Walkontable}
-     */
-    this.activeWt = void 0;
-    /**
-     * The flag determines if the `adjustElementsSize` method call was made during
-     * the render suspending. If true, the method has to be triggered once after render
-     * resuming.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.postponedAdjustElementsSize = false;
+    this.eventManager = new EventManager(this.instance);
+    this.settings = this.instance.getSettings();
 
     privatePool.set(this, {
       /**
@@ -624,6 +642,7 @@ class TableView {
         }
 
         this.instance.runHooks('afterGetRowHeaderRenderers', headerRenderers);
+        this.#rowHeadersCount = headerRenderers.length;
 
         return headerRenderers;
       },
@@ -642,6 +661,7 @@ class TableView {
         }
 
         this.instance.runHooks('afterGetColumnHeaderRenderers', headerRenderers);
+        this.#columnHeadersCount = headerRenderers.length;
 
         return headerRenderers;
       },
@@ -695,11 +715,14 @@ class TableView {
       selections: this.instance.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
       onWindowResize: () => {
-        if (!this.instance || this.instance.isDestroyed) {
-          return;
+        if (this.instance && !this.instance.isDestroyed) {
+          this.instance.refreshDimensions();
         }
-
-        this.instance.refreshDimensions();
+      },
+      onContainerElementResize: () => {
+        if (this.instance && !this.instance.isDestroyed) {
+          this.instance.refreshDimensions();
+        }
       },
       onCellMouseDown: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
@@ -1129,18 +1152,21 @@ class TableView {
    *
    * @private
    * @param {number} visualColumnIndex Visual column index.
-   * @param {HTMLTableHeaderCellElement} TH The table header element.
+   * @param {HTMLTableCellElement} TH The table header element.
+   * @param {Function} [label] The function that returns the header label.
+   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
+   *                                 values counting from 0 to N).
    */
-  appendColHeader(visualColumnIndex, TH) {
+  appendColHeader(visualColumnIndex, TH, label = this.instance.getColHeader, headerLevel = 0) {
     if (TH.firstChild) {
       const container = TH.firstChild;
 
       if (hasClass(container, 'relative')) {
-        this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, this.instance.getColHeader);
+        this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, label, headerLevel);
 
       } else {
         empty(TH);
-        this.appendColHeader(visualColumnIndex, TH);
+        this.appendColHeader(visualColumnIndex, TH, label, headerLevel);
       }
 
     } else {
@@ -1150,24 +1176,26 @@ class TableView {
 
       div.className = 'relative';
       span.className = 'colHeader';
-      this.updateCellHeader(span, visualColumnIndex, this.instance.getColHeader);
+      this.updateCellHeader(span, visualColumnIndex, label, headerLevel);
 
       div.appendChild(span);
       TH.appendChild(div);
     }
 
-    this.instance.runHooks('afterGetColHeader', visualColumnIndex, TH);
+    this.instance.runHooks('afterGetColHeader', visualColumnIndex, TH, headerLevel);
   }
 
   /**
    * Updates header cell content.
    *
-   * @since 0.15.0-beta4
+   * @private
    * @param {HTMLElement} element Element to update.
    * @param {number} index Row index or column index.
    * @param {Function} content Function which should be returns content for this cell.
+   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
+   *                                 values counting from 0 to N).
    */
-  updateCellHeader(element, index, content) {
+  updateCellHeader(element, index, content, headerLevel = 0) {
     let renderedIndex = index;
     const parentOverlay = this._wt.wtOverlays.getParentOverlay(element) || this._wt;
 
@@ -1182,7 +1210,7 @@ class TableView {
     }
 
     if (renderedIndex > -1) {
-      fastInnerHTML(element, content(index));
+      fastInnerHTML(element, content(index, headerLevel));
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946
@@ -1282,6 +1310,24 @@ class TableView {
   getLastFullyVisibleColumn() {
     return this.instance.columnIndexMapper
       .getVisualFromRenderableIndex(this.instance.view._wt.wtScroll.getLastVisibleColumn());
+  }
+
+  /**
+   * Returns the total count of the rendered column headers.
+   *
+   * @returns {number}
+   */
+  getColumnHeadersCount() {
+    return this.#columnHeadersCount;
+  }
+
+  /**
+   * Returns the total count of the rendered row headers.
+   *
+   * @returns {number}
+   */
+  getRowHeadersCount() {
+    return this.#rowHeadersCount;
   }
 
   /**

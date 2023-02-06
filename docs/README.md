@@ -46,19 +46,17 @@ From the `docs` directory, you can run the following npm scripts:
 
 * `npm run docs:start` – Starts a local documentation server at `localhost:8080/docs/`.
 * `npm run docs:start:no-cache` – Starts a local documentation server without cache.
-* `npm run docs:api` – Generates the Handsontable API reference into `/next/api`.
+* `npm run docs:api` – Generates the Handsontable API reference into `/content/api`.
 * `npm run docs:build` – Builds the documentation output into `/.vuepress/dist`.
 * `npm run docs:docker:build` – Builds a Docker image for the staging environment (includes the docs for the `next` version).
 * `npm run docs:docker:build:staging` – Builds a Docker image for the staging environment (includes the docs for the `next` version).
 * `npm run docs:docker:build:production` – Builds a Docker image for the production environment (excludes the docs for the `next` version).
-* `npm run docs:version <semver.version>` – Creates a new documentation version in a new `/<semver.version>/` directory.
 * `npm run docs:check-links` – Checks for broken links (first, run `npm run docs:build`). You can also run it for a specific URL (e.g. `npm run docs:check-links https://handsontable.com`).
 * `npm run docs:lint` – Runs ESLint on the `/next/` directory's content.
 * `npm run docs:lint:fix` – Runs ESLint on the `/next/` directory's content and auto-fixes problems.
-* `npm run docs:assets:next` – Prepares the `next` documentation version's CSS and JavaScript.
+* `npm run docs:scripts:link-assets` – Prepares the `next` documentation version's CSS and JavaScript.
 * `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a `[COMMIT_HASH]` commit.
-* `DOCS_VERSION=<semver.version> npm run docs:start:no-cache` – Starts a local documentation server, just for the <semver.version> documentation version.
-* `DOCS_VERSION=next npm run docs:start:no-cache` – Starts a local documentation server, just for the `next` documentation version.
+* `npm run docs:test:example-checker` – Runs the tests that checks if all Docs examples work.
 
 ## Handsontable documentation directory structure
 
@@ -69,30 +67,72 @@ docs                            # All documentation files
 │   ├── containers              # Markdown containers
 │   │   ├── examples            # Code examples container
 │   │   └── sourceCodeLink.js   # `source-code-link` container.
-│   ├── handsontable-manager    # A module that runs Handsontable examples in different Handsontable versions
+│   ├── handsontable-manager    # A module that runs Handsontable examples in different Handsontable versions and frameworks
 │   ├── plugins                 # VuePress plugins
+|   |   ├── active-header-links                # Plugin responsible for updating the URL with hash after scrolling the page to the nearest anchor
+|   |   ├── dump-docs-data                     # Plugin responsible for generating the all available Docs version and canonical URLs to the JSON file. Then, the file is consumed by other Docs Docker images as source of true about Docs versions and canonicals.
+|   |   ├── extend-page-data                   # Plugin responsible for extending `$page` object and rewriting some properties to add framework ID/name
+|   |   ├── generate-nginx-redirects           # Plugin responsible for generating nginx redirects
+|   |   ├── generate-nginx-variables           # Plugin responsible for generating nginx variables
+|   |   ├── markdown-it-header-injection       # Plugin responsible for injecting `<FRAMEWORK NAME> Data Grid` string before the first header
+|   |   ├── markdown-it-conditional-container  # Plugin responsible for creating conditional containers used for displaying/hiding blocks of content relevant to specific frameworks
 │   ├── public                  # The documentation's public (static) assets
 │   ├── theme                   # Theme overwrites and customizations
 │   ├── tools                   # Our custom documentation tools
+│   │   ├── build.mjs           # Builds the documentation for staging or production
 │   │   ├── check-links.js      # The documentation's link checker
 │   │   ├── jsdoc-convert       # JSDoc-to-Markdown converter
 │   │   ├── utils.js            # Tools utilities
-│   │   └── version             # A tool that creates new documentation versions
 │   ├── config.js               # VuePress configuration
-│   ├── docs-links.js           # Lets us link within the currently-selected docs version with `@` (e.g. [link](@/guides/path/file.md).)
+│   ├── docs-links.js           # Lets us link within the currently-selected docs version and framework with `@` (e.g. [link](@/guides/path/file.md).)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
-│   ├── helpers.js              # Common helpers that set up sidebars and the documentation version picker
+│   ├── helpers.js              # Common helpers that set up sidebars and the documentation version and framework picker
 │   └── highlight.js            # Code highlight configuration
 ├── docker                      # Docker configuration
 │   ├── ...                     # Docker configuration files
 │   └── redirects.conf          # File that allows create custom redirects for documentation
-├── next                        # The documentation's draft version, unavailable on the production environment
-│   ├── api                     # The API reference output, generated automatically from JSDoc. Do not edit!
-│   ├── examples                # The Handsontable examples
+├── content                     # The documentation content files
+│   ├── api                     # The API reference output, generated automatically from JSDoc. Do not edit for "next" Docs version!
 │   ├── guides                  # The guides' source files: Markdown content
 │   └── sidebars.js             # Sidebars configuration
-├── <semver.version>            # Multiple <semver.version> versions of the documentation (for example, 8.4 or 9.0).
+├── .build-tmp                  # Temporary directory created for storing symlinked directories, containing .MD files. It's needed for generating multi-frameworked Docs content.
+│   ├── javascript-data-grid  # Symbolic link to content directory. Do not edit! Make changes in the source content directory.
+│   └── react-data-grid       # As above
 ├── README-DEPLOYMENT.md        # Documentation deployment guidelines
 ├── README-EDITING.md           # Documentation editing guidelines
 └── README.md                   # The file you're looking at right now!
+```
+
+## Handsontable documentation branches structure
+
+Each documentation version has its own production branch from which the deployment is happening. The documentation branches are created using the following pattern `prod-docs/<MAJOR.MINOR>`.
+
+The documentation branches are created automatically once the Handsontable release script finishes its job. Depending on the Handsontable release version, two scenarios may happen:
+1. Patch release:
+    * Checkout to the existing branch;
+    * Regenerate Docs content for the API by executing `npm run docs:api`;
+    * Commit and push the changes to the origin;
+2. Major or Minor release:
+    * Create a new Docs branch, e.g. `prod-docs/13.0` from the `develop` branch (after the release branch is merged to the `develop` branch);
+    * Generate Docs content for the API by executing `npm run docs:api`;
+    * Commit and push the changes to the origin;
+
+Committing directly to the Documentation production branch triggers GitHub workflow that deploys the changes to the server. The exception is the `develop` branch that holds the changes for the "next" version. The staging version can be deployed only [manually](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment).
+
+```bash
+[branch] `prod-docs/12.0`       # All documentation files related to documentation 12.0
+  docs
+  ├── .vuepress                 # All VuePress files
+  ├── content                   # The documentation content files
+  └── docker                    # Docker configuration
+[branch] `prod-docs/12.1`       # All documentation files related to documentation 12.1
+  docs
+  ├── .vuepress                 # All VuePress files
+  ├── content                   # The documentation content files
+  └── docker                    # Docker configuration
+[branch] `develop`              # All documentation files related to the "next" documentation version
+  docs
+  ├── .vuepress                 # All VuePress files
+  ├── content                   # The documentation content files
+  └── docker                    # Docker configuration
 ```

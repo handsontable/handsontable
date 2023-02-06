@@ -2,7 +2,7 @@
 
 <a href="https://handsontable.com" rel="nofollow"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-blue.svg" alt="Handsontable - data grid for React" width="300"></a>
 
-# Data Grid for React <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="22" height="22">
+# React Data Grid <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="22" height="22">
 
 Handsontable's wrapper for React combines data grid features with spreadsheet-like UX. <br>
 It provides data binding, data validation, filtering, sorting, and CRUD operations.
@@ -46,57 +46,70 @@ The most popular features of Handsontable for React:
 
 <div id="installation"></div>
 
-## Get Started
-### Install with npm
+## Get started
 
-Run the following command in your terminal
-```
+### 1. Install Handsontable
+
+Get Handsontable from [npm](https://www.npmjs.com/package/@handsontable/react) or [Yarn](https://yarnpkg.com/package/@handsontable/react).
+
+```bash
 npm install handsontable @handsontable/react
 ```
 
-You can load it directly from [jsDelivr](https://jsdelivr.com/package/npm/@handsontable/react) as well.
-```html
-<script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.min.js"></script>
+Import Handsontable's CSS:
 
-<link href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" rel="stylesheet">
+```jsx
+import 'handsontable/dist/handsontable.full.min.css';
 ```
 
-The component will be available as `Handsontable.react.HotTable`.
+### 2. Register Handsontable's modules
 
-### Usage
+```jsx
+import { registerAllModules } from 'handsontable/registry';
 
-Use this data grid as you would any other component in your application. [Options](https://handsontable.com/docs/api/options/) can be set as `HotTable` props.
-
-**Styles**
-```css
-@import '~handsontable/dist/handsontable.full.css';
+registerAllModules();
 ```
 
-**React Component**
-```js
-import React from 'react';
-import ReactDOM from 'react-dom';
+### 3. Use the `HotTable` component
+
+The main Handsontable component is called `HotTable`.
+
+```jsx
 import { HotTable } from '@handsontable/react';
-
-class HotApp extends React.Component {
-  constructor(props) {
-    super(props);
-    this.data = [
-      ['', 'Tesla', 'Mercedes', 'Toyota', 'Volvo'],
-      ['2019', 10, 11, 12, 13],
-      ['2020', 20, 11, 14, 13],
-      ['2021', 30, 15, 12, 13]
-    ];
-  }
-
-  render() {
-    return (<HotTable data={this.data} colHeaders={true} rowHeaders={true} width="600" height="300" />);
-  }
-}
 ```
 
-### [View live demo](https://handsontable.com/docs/react-simple-example/)
+To set Handsontable's [configuration options](https://handsontable.com/docs/react-data-grid/configuration-options), use `HotTable`'s props. For example:
+
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+registerAllModules();
+
+export const ExampleComponent = () => {
+
+  return (
+      <HotTable
+        // set `HotTable`'s props here
+        data={[
+          ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+          ['2019', 10, 11, 12, 13],
+          ['2020', 20, 11, 14, 13],
+          ['2021', 30, 15, 12, 13]
+        ]}
+        rowHeaders={true}
+        colHeaders={true}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation" // for non-commercial use only
+      />
+  );
+};
+```
+
+
+
+### [View live demo](https://handsontable.com/docs/react-data-grid/demo/)
 
 ## Support
 

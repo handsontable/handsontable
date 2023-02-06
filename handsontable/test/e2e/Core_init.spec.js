@@ -62,4 +62,154 @@ describe('Core_init', () => {
 
     expect(onErrorSpy).not.toHaveBeenCalled();
   });
+
+  it('should rerender the table after changing the `display` property to anything other than `none` on the root' +
+    ' element if it was initialized with `display: none` with inline styles', async() => {
+    const initialDisplayValue = spec().$container.css('display');
+
+    spec().$container.css('display', 'none');
+
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(15, 15),
+      rowHeaders: true,
+      colHeaders: true,
+      stretchH: 'all'
+    });
+
+    // Make sure the table is not visible.
+    expect(hot.rootElement.offsetParent).toEqual(null);
+
+    spec().$container.css('display', initialDisplayValue);
+
+    await sleep(100);
+
+    const $topHolderElement = getTopClone().find('.wtHolder');
+    const $testTopHeader = $(hot.getCell(-1, 0, true));
+
+    expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
+    expect(
+      [...Array(15).keys()].map(index => $(hot.getCell(-1, index, true)).outerWidth())
+    ).toEqual(
+      [...Array(15).keys()].map(index => $(hot.getCell(0, index, true)).outerWidth())
+    );
+    expect($topHolderElement.outerWidth()).toBe(getTopClone().find('.htCore').outerWidth());
+  });
+
+  it('should rerender the table after changing the `display` property to anything other than `none` on the root' +
+    ' element\'s parent if it was initialized with `display: none` with inline styles', async() => {
+    const $testParentContainer = $('<div id="test-parent-container"></div>');
+
+    $('body').append($testParentContainer);
+
+    spec().$container.detach();
+
+    $testParentContainer.append(spec().$container);
+
+    $testParentContainer.css('display', 'none');
+
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(15, 15),
+      rowHeaders: true,
+      colHeaders: true,
+      stretchH: 'all'
+    });
+
+    // Make sure the table is not visible.
+    expect(hot.rootElement.offsetParent).toEqual(null);
+
+    $testParentContainer.css('display', 'block');
+
+    await sleep(100);
+
+    const $topHolderElement = getTopClone().find('.wtHolder');
+    const $testTopHeader = $(hot.getCell(-1, 0, true));
+
+    expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
+    expect(
+      [...Array(15).keys()].map(index => $(hot.getCell(-1, index, true)).outerWidth())
+    ).toEqual(
+      [...Array(15).keys()].map(index => $(hot.getCell(0, index, true)).outerWidth())
+    );
+    expect($topHolderElement.outerWidth()).toBe(getTopClone().find('.htCore').outerWidth());
+
+    spec().$container.detach();
+    $('body').append(spec().$container);
+    $testParentContainer.remove();
+  });
+
+  it('should rerender the table after changing the `display` property to anything other than `none` on the root' +
+    ' element if it was initialized with `display: none` using the stylesheet', async() => {
+    const $style = $('<style>#test-hot {display: none;}</style>').appendTo('head');
+
+    spec().$container.attr('id', 'test-hot');
+
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(15, 15),
+      rowHeaders: true,
+      colHeaders: true,
+      stretchH: 'all'
+    });
+
+    // Make sure the table is not visible.
+    expect(hot.rootElement.offsetParent).toEqual(null);
+
+    spec().$container.css('display', 'block');
+
+    await sleep(100);
+
+    const $topHolderElement = getTopClone().find('.wtHolder');
+    const $testTopHeader = $(hot.getCell(-1, 0, true));
+
+    expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
+    expect(
+      [...Array(15).keys()].map(index => $(hot.getCell(-1, index, true)).outerWidth())
+    ).toEqual(
+      [...Array(15).keys()].map(index => $(hot.getCell(0, index, true)).outerWidth())
+    );
+    expect($topHolderElement.outerWidth()).toBe(getTopClone().find('.htCore').outerWidth());
+
+    $style.remove();
+  });
+
+  it('should rerender the table after changing the `display` property to anything other than `none` on the root' +
+    ' element\'s parent if it was initialized with `display: none` with a stylesheet', async() => {
+    const $style = $('<style>#test-parent-container {display: none;}</style>').appendTo('head');
+    const $testParentContainer = $('<div id="test-parent-container"></div>');
+
+    $('body').append($testParentContainer);
+
+    spec().$container.detach();
+
+    $testParentContainer.append(spec().$container);
+
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(15, 15),
+      rowHeaders: true,
+      colHeaders: true,
+      stretchH: 'all'
+    });
+
+    // Make sure the table is not visible.
+    expect(hot.rootElement.offsetParent).toEqual(null);
+
+    $testParentContainer.css('display', 'block');
+
+    await sleep(100);
+
+    const $topHolderElement = getTopClone().find('.wtHolder');
+    const $testTopHeader = $(hot.getCell(-1, 0, true));
+
+    expect($topHolderElement.height()).toBeGreaterThanOrEqual($testTopHeader.height());
+    expect(
+      [...Array(15).keys()].map(index => $(hot.getCell(-1, index, true)).outerWidth())
+    ).toEqual(
+      [...Array(15).keys()].map(index => $(hot.getCell(0, index, true)).outerWidth())
+    );
+    expect($topHolderElement.outerWidth()).toBe(getTopClone().find('.htCore').outerWidth());
+
+    spec().$container.detach();
+    $('body').append(spec().$container);
+    $testParentContainer.remove();
+    $style.remove();
+  });
 });

@@ -183,7 +183,6 @@ describe('Filters', () => {
     'a dropdown menu (`dropdownMenu` plugin is enabled)', () => {
     const warnSpy = spyOn(console, 'warn');
     const hot = handsontable({
-      licenseKey: 'non-commercial-and-evaluation',
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       dropdownMenu: true,
@@ -943,7 +942,7 @@ describe('Filters', () => {
       plugin.addCondition(1, 'contains', ['b']);
       plugin.filter();
 
-      alter('insert_col', 1);
+      alter('insert_col_start', 1);
       dropdownMenu(2);
 
       expect(getData()).toEqual([

@@ -66,7 +66,7 @@ function createRegister() {
     return null;
   }
 
-  const register = new Set();
+  const register = new Map();
 
   const listen = () => {
     try {
@@ -77,8 +77,9 @@ function createRegister() {
 
           if (rootExampleElement) {
             const examplePresetType = rootExampleElement.getAttribute('data-preset-type');
+            const exampleId = rootExampleElement.getAttribute('data-example-id');
 
-            register.add(createDestroyableResource(examplePresetType, {
+            register.set(exampleId, createDestroyableResource(examplePresetType, {
               rootExampleElement,
               hotInstance: this,
             }));
@@ -96,9 +97,17 @@ function createRegister() {
     register.clear();
   };
 
+  const destroyExample = (exampleId) => {
+    if (register.has(exampleId)) {
+      register.get(exampleId)();
+      register.delete(exampleId);
+    }
+  };
+
   return {
     listen,
     destroyAll,
+    destroyExample,
   };
 }
 

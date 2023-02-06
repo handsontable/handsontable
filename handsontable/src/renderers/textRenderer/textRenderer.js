@@ -26,7 +26,7 @@ export function textRenderer(instance, TD, row, col, prop, value, cellProperties
 
   escaped = stringify(escaped);
 
-  if (instance.getSettings().trimWhitespace) {
+  if (cellProperties.trimWhitespace) {
     escaped = escaped.trim();
   }
 

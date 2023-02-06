@@ -3,7 +3,7 @@ name: "Handsontable Documentation"
 about: Issues regarding Handsontable documentation.
 title: "Docs: "
 labels: "Docs: Content"
-assignees: "kirszenbaum"
+assignees: ""
 ---
 
 ### Description

@@ -21,6 +21,7 @@ import {
 import { registerCellType } from './cellTypes/registry';
 import { TextCellType } from './cellTypes/textType';
 import { BaseEditor } from './editors/baseEditor';
+import { CellCoords, CellRange } from './3rdparty/walkontable/src';
 
 // register default mandatory cell type for the Base package
 registerCellType(TextCellType);
@@ -49,7 +50,8 @@ Handsontable.Core = function(rootElement, userSettings = {}) {
 
 Handsontable.DefaultSettings = metaSchemaFactory();
 Handsontable.hooks = Hooks.getSingleton();
-
+Handsontable.CellCoords = CellCoords;
+Handsontable.CellRange = CellRange;
 Handsontable.packageName = 'handsontable';
 Handsontable.buildDate = process.env.HOT_BUILD_DATE;
 Handsontable.version = process.env.HOT_VERSION;
@@ -62,4 +64,8 @@ Handsontable.languages = {
   getTranslatedPhrase,
 };
 
+export {
+  CellCoords,
+  CellRange,
+};
 export default Handsontable;

@@ -551,12 +551,13 @@ class Selection {
     }
 
     const startCoords = this.tableProps.createCellCoords(includeColumnHeaders ? -1 : 0, includeRowHeaders ? -1 : 0);
+    const endCoords = this.tableProps.createCellCoords(nrOfRows - 1, nrOfColumns - 1);
 
     this.clear();
     this.setRangeStartOnly(startCoords);
     this.selectedByRowHeader.add(this.getLayerLevel());
     this.selectedByColumnHeader.add(this.getLayerLevel());
-    this.setRangeEnd(this.tableProps.createCellCoords(nrOfRows - 1, nrOfColumns - 1));
+    this.setRangeEnd(endCoords);
     this.finish();
   }
 

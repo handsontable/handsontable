@@ -16,7 +16,22 @@
     :rel="rel"
     @focusout="focusoutAction"
   >
-    {{ item.text }}
+    <section v-if="item.subTexts && item.subTexts.length">
+      <p>{{ item.text }}</p>
+      <ul>
+        <li
+          v-for="(subText, i) in item.subTexts"
+          :key="i"
+          class="subtext"
+        >
+          {{ subText  }}
+        </li>
+      </ul>
+    </section>
+
+    <template v-else>
+      {{ item.text }}
+    </template>
     <OutboundLink v-if="isBlankTarget" />
   </a>
 </template>
@@ -41,11 +56,11 @@ export default {
       return !!this.item.isHtmlLink;
     },
     exact() {
-      if (this.$site.locales) {
-        return Object.keys(this.$site.locales).some(rootLink => rootLink === this.link);
+      if (this.link === `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`) {
+        return /\/api\//.test(this.$route.fullPath);
       }
 
-      return this.link === '/';
+      return false;
     },
 
     isNonHttpURI() {
@@ -95,3 +110,16 @@ export default {
   }
 };
 </script>
+
+<style lang="stylus">
+  section
+    p
+      margin 0
+    ul
+      list-style none
+      padding 0
+      li.subtext
+        position: relative;
+        left: 1.5rem;
+        opacity: .6
+</style>

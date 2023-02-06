@@ -311,47 +311,74 @@ class Border {
   updateMultipleSelectionHandlesPosition(row, col, top, left, width, height) {
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
     const inlinePosProperty = isRtl ? 'right' : 'left';
-    const handleWidth = parseInt(this.selectionHandles.styles.top.width, 10);
-    const hitAreaWidth = parseInt(this.selectionHandles.styles.topHitArea.width, 10);
+    const {
+      top: topStyles,
+      topHitArea: topHitAreaStyles,
+      bottom: bottomStyles,
+      bottomHitArea: bottomHitAreaStyles,
+    } = this.selectionHandles.styles;
 
-    this.selectionHandles.styles.top.top = `${parseInt(top - handleWidth - 1, 10)}px`;
-    this.selectionHandles.styles.top[inlinePosProperty] = `${parseInt(left - handleWidth - 1, 10)}px`;
+    const handleBorderSize = parseInt(topStyles.borderWidth, 10);
+    const handleSize = parseInt(topStyles.width, 10);
+    const hitAreaSize = parseInt(topHitAreaStyles.width, 10);
+    const totalTableWidth = this.wot.wtTable.getWidth();
+    const totalTableHeight = this.wot.wtTable.getHeight();
 
-    this.selectionHandles.styles.topHitArea.top = `${parseInt(top - ((hitAreaWidth / 4) * 3), 10)}px`;
-    this.selectionHandles.styles.topHitArea[inlinePosProperty] = `${parseInt(left - ((hitAreaWidth / 4) * 3), 10)}px`;
+    topStyles.top = `${parseInt(top - handleSize - 1, 10)}px`;
+    topStyles[inlinePosProperty] = `${parseInt(left - handleSize - 1, 10)}px`;
 
-    this.selectionHandles.styles.bottom.top = `${parseInt(top + height, 10)}px`;
-    this.selectionHandles.styles.bottom[inlinePosProperty] = `${parseInt(left + width, 10)}px`;
+    topHitAreaStyles.top = `${parseInt(top - ((hitAreaSize / 4) * 3), 10)}px`;
+    topHitAreaStyles[inlinePosProperty] = `${parseInt(left - ((hitAreaSize / 4) * 3), 10)}px`;
 
-    this.selectionHandles.styles.bottomHitArea.top = `${parseInt(top + height - (hitAreaWidth / 4), 10)}px`;
-    this.selectionHandles.styles
-      .bottomHitArea[inlinePosProperty] = `${parseInt(left + width - (hitAreaWidth / 4), 10)}px`;
+    const bottomHandlerInline = Math.min(
+      parseInt(left + width, 10),
+      totalTableWidth - handleSize - (handleBorderSize * 2),
+    );
+    const bottomHandlerAreaInline = Math.min(
+      parseInt(left + width - (hitAreaSize / 4), 10),
+      totalTableWidth - hitAreaSize - (handleBorderSize * 2),
+    );
+
+    bottomStyles[inlinePosProperty] = `${bottomHandlerInline}px`;
+    bottomHitAreaStyles[inlinePosProperty] = `${bottomHandlerAreaInline}px`;
+
+    const bottomHandlerTop = Math.min(
+      parseInt(top + height, 10),
+      totalTableHeight - handleSize - (handleBorderSize * 2),
+    );
+    const bottomHandlerAreaTop = Math.min(
+      parseInt(top + height - (hitAreaSize / 4), 10),
+      totalTableHeight - hitAreaSize - (handleBorderSize * 2),
+    );
+
+    bottomStyles.top = `${bottomHandlerTop}px`;
+    bottomHitAreaStyles.top = `${bottomHandlerAreaTop}px`;
 
     if (this.settings.border.cornerVisible && this.settings.border.cornerVisible()) {
-      this.selectionHandles.styles.top.display = 'block';
-      this.selectionHandles.styles.topHitArea.display = 'block';
+      topStyles.display = 'block';
+      topHitAreaStyles.display = 'block';
 
       if (this.isPartRange(row, col)) {
-        this.selectionHandles.styles.bottom.display = 'none';
-        this.selectionHandles.styles.bottomHitArea.display = 'none';
+        bottomStyles.display = 'none';
+        bottomHitAreaStyles.display = 'none';
       } else {
-        this.selectionHandles.styles.bottom.display = 'block';
-        this.selectionHandles.styles.bottomHitArea.display = 'block';
+        bottomStyles.display = 'block';
+        bottomHitAreaStyles.display = 'block';
       }
     } else {
-      this.selectionHandles.styles.top.display = 'none';
-      this.selectionHandles.styles.bottom.display = 'none';
-      this.selectionHandles.styles.topHitArea.display = 'none';
-      this.selectionHandles.styles.bottomHitArea.display = 'none';
+      topStyles.display = 'none';
+      bottomStyles.display = 'none';
+      topHitAreaStyles.display = 'none';
+      bottomHitAreaStyles.display = 'none';
     }
 
     if (row === this.wot.wtSettings.getSetting('fixedRowsTop') ||
         col === this.wot.wtSettings.getSetting('fixedColumnsStart')) {
-      this.selectionHandles.styles.top.zIndex = '9999';
-      this.selectionHandles.styles.topHitArea.zIndex = '9999';
+      topStyles.zIndex = '9999';
+      topHitAreaStyles.zIndex = '9999';
     } else {
-      this.selectionHandles.styles.top.zIndex = '';
-      this.selectionHandles.styles.topHitArea.zIndex = '';
+      topStyles.zIndex = '';
+      topHitAreaStyles.zIndex = '';
     }
   }
 
@@ -541,6 +568,9 @@ class Border {
         trimmingContainer = rootDocument.documentElement;
       }
 
+      const cornerHalfWidth = parseInt(this.cornerDefaultStyle.width, 10) / 2;
+      const cornerHalfHeight = parseInt(this.cornerDefaultStyle.height, 10) / 2;
+
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
         const toTdOffsetLeft = trimToWindow ? toTD.getBoundingClientRect().left : toTD.offsetLeft;
         let cornerOverlappingContainer = false;
@@ -556,7 +586,8 @@ class Border {
         }
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle[inlinePosProperty] = `${Math.floor(inlineStartPos + width + this.cornerCenterPointOffset - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`; // eslint-disable-line max-len
+          this.cornerStyle[inlinePosProperty] = `${Math
+            .floor(inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth)}px`;
           this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
         }
       }
@@ -567,7 +598,7 @@ class Border {
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle.top = `${Math.floor(top + height + this.cornerCenterPointOffset - (parseInt(this.cornerDefaultStyle.height, 10) / 2))}px`; // eslint-disable-line max-len
+          this.cornerStyle.top = `${Math.floor(top + height + this.cornerCenterPointOffset - cornerHalfHeight)}px`;
           this.cornerStyle.borderBottomWidth = 0;
         }
       }
@@ -749,7 +780,9 @@ class Border {
 
     if (isMobileBrowser()) {
       this.selectionHandles.styles.top.display = 'none';
+      this.selectionHandles.styles.topHitArea.display = 'none';
       this.selectionHandles.styles.bottom.display = 'none';
+      this.selectionHandles.styles.bottomHitArea.display = 'none';
     }
   }
 

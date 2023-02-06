@@ -29,7 +29,7 @@
     return string[0].toUpperCase() + string.substr(1);
   }
 
-  // Necessery for jsFiddle environment
+  // Necessary for jsFiddle environment
   if (!isInternalFixer && window.addEventListener) {
     function appendScript(code) {
       const scriptEl = document.createElement('script');
@@ -85,6 +85,9 @@
 
       } else if (key === 'handsontable/base') {
         ns = 'Handsontable';
+
+      } else if (key === 'hyperformula') {
+        ns = 'HyperFormula';
 
       } else if (key === 'react-dom') {
         ns = 'ReactDOM';
@@ -167,6 +170,34 @@
 
           ns.split('.').forEach((n) => {
             moduleToReturn = moduleToReturn[n];
+          });
+        }
+
+        // Covers `import plPL from 'handsontable/languages'` expressions
+        if (ns === 'Handsontable.languages') {
+          Handsontable.languages.getLanguagesDictionaries().forEach((lang) => {
+            moduleToReturn[lang.languageCode.replace('-', '')] = lang;
+          });
+
+        // Covers `import { textRenderer } from 'handsontable/renderers'` expressions
+        } else if (ns === 'Handsontable.renderers') {
+          moduleToReturn = Handsontable.renderers;
+
+          Object.keys(Handsontable.renderers).forEach((rendererKey) => {
+            if (rendererKey.endsWith('Renderer')) {
+              const camelCase = rendererKey.replace(/^[A-Z]/, (firstChar) => firstChar.toLowerCase());
+
+              moduleToReturn[camelCase] = moduleToReturn[rendererKey];
+            }
+          });
+        }
+
+        // Covers default import expressions
+        if (typeof moduleToReturn.default === 'undefined') {
+          Object.defineProperty(moduleToReturn, 'default', {
+            value: moduleToReturn,
+            writable: false,
+            enumerable: false,
           });
         }
       }

@@ -372,8 +372,10 @@ class Table {
       }
     }
 
+    let positionChanged = false;
+
     if (this.isMaster) {
-      let positionChanged = wtOverlays.topOverlay.resetFixedPosition();
+      positionChanged = wtOverlays.topOverlay.resetFixedPosition();
 
       if (wtOverlays.bottomOverlay.clone) {
         positionChanged = wtOverlays.bottomOverlay.resetFixedPosition() || positionChanged;
@@ -388,17 +390,17 @@ class Table {
       if (wtOverlays.bottomInlineStartCornerOverlay && wtOverlays.bottomInlineStartCornerOverlay.clone) {
         wtOverlays.bottomInlineStartCornerOverlay.resetFixedPosition();
       }
-
-      if (positionChanged) {
-        // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
-        // remove `innerBorderTop` and `innerBorderInlineStart` CSS classes to the DOM element. This happens
-        // when there is a switch between rendering from 0 to N rows/columns and vice versa).
-        wtOverlays.refreshAll();
-        wtOverlays.adjustElementsSize();
-      }
     }
 
-    this.refreshSelections(runFastDraw);
+    if (positionChanged) {
+      // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
+      // remove `innerBorderTop` and `innerBorderInlineStart` CSS classes to the DOM element. This happens
+      // when there is a switch between rendering from 0 to N rows/columns and vice versa).
+      wtOverlays.refreshAll(); // `refreshAll()` internally already calls `refreshSelections()` method
+      wtOverlays.adjustElementsSize();
+    } else {
+      this.refreshSelections(runFastDraw);
+    }
 
     if (syncScroll) {
       wtOverlays.syncScrollWithMaster();
@@ -620,13 +622,7 @@ class Table {
       return -4;
     }
 
-    let TR;
-
-    if (row < 0) {
-      TR = this.THEAD.childNodes[this.rowFilter.sourceRowToVisibleColHeadedRow(row)];
-    } else {
-      TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
-    }
+    const TR = this.getRow(row);
 
     if (!TR && row >= 0) {
       throw new Error('TR was expected to be rendered but is not');
@@ -639,6 +635,39 @@ class Table {
     }
 
     return TD;
+  }
+
+  /**
+   * Get the DOM element of the row with the provided index.
+   *
+   * @param {number} rowIndex Row index.
+   * @returns {HTMLTableRowElement|boolean} Return the row's DOM element or `false` if the row with the provided
+   * index doesn't exist.
+   */
+  getRow(rowIndex) {
+    let renderedRowIndex = null;
+    let parentElement = null;
+
+    if (rowIndex < 0) {
+      renderedRowIndex = this.rowFilter?.sourceRowToVisibleColHeadedRow(rowIndex);
+      parentElement = this.THEAD;
+
+    } else {
+      renderedRowIndex = this.rowFilter?.sourceToRendered(rowIndex);
+      parentElement = this.TBODY;
+    }
+
+    if (renderedRowIndex !== void 0 && parentElement !== void 0) {
+      if (parentElement.childNodes.length < renderedRowIndex + 1) {
+        return false;
+
+      } else {
+        return parentElement.childNodes[renderedRowIndex];
+      }
+
+    } else {
+      return false;
+    }
   }
 
   /**
