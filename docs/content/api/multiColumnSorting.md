@@ -70,7 +70,7 @@ columns: [{
 
 ### multiColumnSorting
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/dataMap/metaManager/metaSchema.js#L3186
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/dataMap/metaManager/metaSchema.js#L3186
 
 :::
 
@@ -151,7 +151,7 @@ multiColumnSorting: {
 
 ### clearSort
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L150
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L150
 
 :::
 
@@ -163,7 +163,7 @@ Clear the sort performed on the table.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L114
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L114
 
 :::
 
@@ -175,7 +175,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L103
 
 :::
 
@@ -187,7 +187,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getSortConfig
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L171
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L171
 
 :::
 
@@ -206,7 +206,7 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L96
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L96
 
 :::
 
@@ -219,7 +219,7 @@ hook and if it returns `true` then the [MultiColumnSorting#enablePlugin](@/api/m
 
 ### isSorted
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L159
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L159
 
 :::
 
@@ -231,7 +231,7 @@ Checks if the table is sorted (any column have to be sorted).
 
 ### setSortConfig
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L199
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L199
 
 :::
 
@@ -263,7 +263,7 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
 
 ### sort
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L143
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/multiColumnSorting/multiColumnSorting.js#L143
 
 :::
 

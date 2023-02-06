@@ -61,7 +61,7 @@ const hot = new Handsontable(container, {
 
 ### nestedHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/dataMap/metaManager/metaSchema.js#L3227
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/dataMap/metaManager/metaSchema.js#L3227
 
 :::
 
@@ -104,7 +104,7 @@ nestedHeaders: [
 
 ### detectedOverlappedHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L106
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L106
 
 :::
 
@@ -118,7 +118,7 @@ configuration.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L702
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L702
 
 :::
 
@@ -130,7 +130,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L215
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L215
 
 :::
 
@@ -142,7 +142,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L120
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L120
 
 :::
 
@@ -154,7 +154,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L113
 
 :::
 
@@ -166,7 +166,7 @@ Check if plugin is enabled.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L157
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L157
 
 :::
 

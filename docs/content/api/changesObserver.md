@@ -27,7 +27,7 @@ provided by the ChangesObservable module.
 
 ### subscribe
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/translations/changesObservable/observer.js#L26
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/translations/changesObservable/observer.js#L26
 
 :::
 
@@ -44,7 +44,7 @@ Subscribes to the observer.
 
 ### unsubscribe
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e9439222cc4617ee0f522aff8aa21fff934ffa81/handsontable/src/translations/changesObservable/observer.js#L39
+::: source-code-link https://github.com/handsontable/handsontable/blob/b65c638d70a897b843edad1831e05f97f8407ef6/handsontable/src/translations/changesObservable/observer.js#L39
 
 :::
 
