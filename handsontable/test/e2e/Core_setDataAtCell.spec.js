@@ -333,21 +333,18 @@ describe('Core_setDataAtCell', () => {
   });
 
   it('should trigger `beforeChange` and `afterSetDataAtRowProp` in the correct order', () => {
-    let hooksOrder = '';
+    const beforeChange = jasmine.createSpy('beforeChange');
+    const afterSetDataAtRowProp = jasmine.createSpy('afterSetDataAtRowProp');
 
     handsontable({
       data: [[1, 1]],
-      beforeChange() {
-        hooksOrder += '1';
-      },
-      afterSetDataAtRowProp() {
-        hooksOrder += '2';
-      },
+      beforeChange,
+      afterSetDataAtRowProp,
     });
 
     setDataAtRowProp(0, 0, 5);
 
-    expect(hooksOrder).toBe('12');
+    expect(beforeChange).toHaveBeenCalledBefore(afterSetDataAtRowProp);
   });
 
   it('should override set values using `beforeChange` hook', () => {
