@@ -66,6 +66,7 @@ Features not mentioned in the table may well work properly, but we don't test th
 | [Column headers](@/guides/columns/column-header.md)                                            |     &check;      |   &check;    |   &check;    |
 | [Column groups](@/guides/columns/column-groups.md)                                             |     &check;      |   &check;    |   &check;    |
 | [Column hiding](@/guides/columns/column-hiding.md)                                             |     &check;      |   &check;    |   &check;    |
+| [Column freezing](@/guides/columns/column-freezing.md)                                         |     &check;      |   &check;    |   &check;    |
 | [Column summary](@/guides/columns/column-summary.md)                                           |     &check;      |   &check;    |   &check;    |
 | [Column virtualization](@/guides/columns/column-virtualization.md)                             |     &check;      |   &check;    |   &check;    |
 | [Column menu](@/guides/columns/column-menu.md)                                                 |     &check;      |   &check;    |   &check;    |
@@ -81,10 +82,13 @@ Features not mentioned in the table may well work properly, but we don't test th
 | [Conditional formatting](@/guides/cell-features/conditional-formatting.md)                     |     &check;      |   &check;    |   &check;    |
 | [Text alignment](@/guides/cell-features/text-alignment.md)                                     |     &check;      |   &check;    |   &check;    |
 | [Disabled cells](@/guides/cell-features/disabled-cells.md)                                     |     &check;      |   &check;    |   &check;    |
+| [Comments](@/guides/cell-features/comments.md)                                                 |     &check;      |   &check;    |   &check;    |
 | [Formula calculation](@/guides/formulas/formula-calculation.md)                                |     &check;      |   &check;    |   &check;    |
 | [Context menu](@/guides/accessories-and-menus/context-menu.md)[<sup>*</sup>](#troubleshooting) |     &check;      |   &cross;    |   &cross;    |
 | [Undo and redo](@/guides/accessories-and-menus/undo-redo.md)                                   |     &check;      |   &check;    |   &check;    |
 | [Searching values](@/guides/accessories-and-menus/searching-values.md)                         |     &check;      |   &check;    |   &check;    |
+| [Export to CSV](@/guides/accessories-and-menus/export-to-csv.md)                               |     &check;      |   &check;    |   &check;    |
+| [Layout direction](@/guides/internationalization/layout-direction.md)                          |     &check;      |   &check;    |   &check;    |
 
 <sup>*</sup>Although the context menu is not supported on iOS,
 you can easily assign all of its actions to the [column menu](@/guides/columns/column-menu.md).
