@@ -1,6 +1,6 @@
 # Handsontable visual testing
 
-To avoid unintended changes to Handsontable's UI, we perform automated visual regression tests.
+To avoid unintended changes to Handsontable's UI, we use automated visual regression testing.
 
 ## Overview
 
@@ -9,22 +9,42 @@ We use the following tools:
 | Tool                                                                                                   | Description                                                                                    |
 | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
 | [Playwright](https://playwright.dev/docs/intro)                                                        | An open-source testing framework backed by Microsoft. We use it to write and run visual tests. |
-| [Argos](https://argos-ci.com/docs/visual-testing)                                                      | A visual testing platform. We use it to compare screenshots.                                   |
+| [Argos](https://argos-ci.com/docs/visual-testing)                                                      | An external visual testing service. We use it to compare screenshots.                          |
 | [GitHub Actions](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) | A CI platform. We use it to automate our testing workflows.                                    |
 
-Here's an overview of the visual testing workflow:
+Developers add Playwright visual tests to the `/visual-tests/tests` directory.
+Then, on pushing a commit to a pull request's feature branch:
+1. The [Visual tests Linter](https://github.com/handsontable/handsontable/actions/workflows/visual-tests-linter.yml)
+   workflow checks the code of all the visual tests.
+2. As part of the [Tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) workflow,
+   the [Visual tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml#L432-L502)
+   job runs all the visual tests and uploads the resulting screenshots to Argos.
+3. Argos compares the feature branch screenshots against the `develop` branch screenshots (so-called "golden screenshots").
+   It adds a URL with the results to the GitHub Actions log.
+4. If Argos detects differences between the screenshots, the **Visual tests** check in GitHub prevents you from merging the PR.
+   You can either fix the issue, or accept the changes in Argos.
 
-1. Developers add Playwright tests (as `*.spec.ts` files) to the `/visual-tests/tests` directory.
-2. On pushing a commit to a feature branch, the
-   [Visual tests Linter](https://github.com/handsontable/handsontable/actions/workflows/visual-tests-linter.yml) workflow
-   checks the code of all the visual tests.
-3. The [Tests](https://github.com/handsontable/handsontable/actions/workflows/test.yml) workflow runs all the visual tests
-   and uploads the resulting screenshots to Argos.
-4. Argos compares the feature branch screenshots against the base branch (`develop`) screenshots
-   (so-called "golden screenshots").
-5. 
+## Write a visual test
 
-- which browsers? (I think only Chromium)
+To add a new visual test:
+1. On your machine, in the `/visual-tests/tests/` folder, create a `.spec.ts` file.
+2. Give your file a descriptive name. This name is used in test logs and screenshot names.
+   - ✅ Good: `open-dropdown-menu.spec.ts`.
+   - ❌ Bad: `my-test-1.spec.ts`.
+3. Copy the template from `/visual-tests/tests/.empty-test-template.ts` into your file.
+4. Write your test, following the [Playwright docs](https://playwright.dev/docs/writing-tests).
+5. Keep your file in the `/visual-tests/tests/` folder.
+
+## Manually run visual tests through GitHub Actions
+
+1. On GitHub, at the bottom of your PR, find the **Visual tests** check. Select **Details**.
+2. On the left, next to **Visual tests**, select 🔄.
+3. Select **Re-run jobs**.
+
+## Manually run visual tests locally
+
+
+
 
 ## Installation
 
@@ -55,14 +75,6 @@ After that launch `npm run in visual-tests upload` in main directory or `npm run
 After upload you can find URL to your set of images in console or Github Actions logs as a result of `Visual testing - upload` job (NOTE: add example link when first build from official repo will be ready).
 
 If you open Pull Request and try to merge to the base branch, you will be informed in Github `checks` section if there are detected some differences between images and merge will be not possible until fix or decision that differences were expected (in Argos there is option `Accept this build`).
-
-## Writing tests
-
-In `tests` folder there is file `.empty-test-template.ts` - copy-paste it if you want to add new test, it will make some configuration things faster. There is marked place for your code also.
-
-Test file must have `.spec.ts` in the name of file.
-Test files must be stored in `tests` folder.
-Test filename should describe as much as possible what test is doing - it will be used as a title in logs and in screenshots names, you do not have to define them manually anymore. Example: `./tests/open-dropdown-menu.spec.ts`.
 
 ## Making screenshots
 
@@ -126,7 +138,3 @@ Example:
 const cell = helpers.tbody.locator(helpers.findCell({ row: 2, cell: 2, cellType: 'td' }));
 await cell.click();
 ```
-
-## External docs:
-As a testing tool we decided to use Playwright: https://playwright.dev/docs/intro
-As a service comparing screenshots we have chosen Argos: https://argos-ci.com/docs/visual-testing
