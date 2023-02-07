@@ -25,7 +25,7 @@ On pushing a commit to a pull request's feature branch:
 
 ## Run visual tests through GitHub Actions
 
-GitHub Actions runs the visual tests automatically, but you can run them manually as well:
+Our GitHub Actions configuration runs the visual tests automatically, but you can run them manually as well:
 
 1. On GitHub, at the bottom of your PR, find the **Visual tests** check. Select **Details**.
 2. On the left, next to the **Visual tests** job, select 🔄.
@@ -53,6 +53,7 @@ To run the visual tests locally:
    | ------------------------------------- | -------------------------------------------------------------------------------------------------- |
    | `npm run test`                        | Run all the visual tests,<br>for all the configured frameworks,<br>for all the supported browsers. |
    | `npx playwright test {{ file name }}` | Run a specific test.<br><br>For example: `npx playwright test mouse-wheel`                         |
+
    The resulting screenshots are saved in `./visual-tests/screenshots/`.
 2. From the `./visual-tests/` directory, run `npm run upload`.
 3. Open the Argos URL displayed in the terminal.
@@ -115,7 +116,7 @@ await page.keyboard.press(`${helpers.modifier}+c`);
 
 #### `isMac`
 
-Returns `true` if the test is run on Mac.
+Returns `true` if the test runs on Mac.
 
 ```js
 if (helpers.isMac) {
