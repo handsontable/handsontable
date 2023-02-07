@@ -8,9 +8,8 @@ import path from 'path';
 import execa from 'execa';
 import fse from 'fs-extra';
 import chalk from 'chalk';
-import terminate from 'terminate/promise.js';
 import mainPackageJSON from '../package.json' assert { type: 'json' };
-import { isReferenceBranch, getFrameworkList, sleep } from './utils/utils.mjs';
+import { isReferenceBranch, getFrameworkList, sleep, killProcess } from './utils/utils.mjs';
 import { WRAPPERS, REFERENCE_FRAMEWORK, EXAMPLES_SERVER_PORT } from '../src/config.mjs';
 
 const playwrightVersion = mainPackageJSON.devDependencies.playwright;
@@ -72,11 +71,11 @@ for (let i = 0; i < frameworksToTest.length; i++) {
       await execa.command(dockerCommand, { stdio: 'inherit' });
     }
   } catch (ex) {
-    await terminate(localhostProcess.pid);
+    await killProcess(localhostProcess.pid);
     throw new Error(ex.message);
   }
 
-  await terminate(localhostProcess.pid);
+  await killProcess(localhostProcess.pid);
 
   console.log(chalk.green(`Finished testing "${frameworkName}" examples.`));
   console.log('');
