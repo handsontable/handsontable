@@ -1516,12 +1516,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   function processChanges(changes, source) {
     const activeEditor = instance.getActiveEditor();
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
-    let filteredChanges = changes;
-
-    if (Array.isArray(beforeChangeResult)) {
-      // The `beforeChange` hook could add a `null` for purpose of cancelling some dataset's change.
-      filteredChanges = beforeChangeResult.filter(change => change !== null);
-    }
+    // The `beforeChange` hook could add a `null` for purpose of cancelling some dataset's change.
+    const filteredChanges = changes.filter(change => change !== null);
 
     if (beforeChangeResult === false || filteredChanges.length === 0) {
       if (activeEditor) {
