@@ -1,5 +1,9 @@
+import psTree from 'ps-tree';
+import { promisify } from 'util';
 import execa from 'execa';
 import { BASE_BRANCH, REFERENCE_FRAMEWORK, WRAPPERS } from '../../src/config.mjs';
+
+const psTreePromisified = promisify(psTree);
 
 /**
  * Returns a Promise which is resolved after some milliseconds.
@@ -46,4 +50,20 @@ export function getFrameworkList() {
   }
 
   return [REFERENCE_FRAMEWORK, ...WRAPPERS];
+}
+
+/**
+ * Kills the main process and all its children.
+ *
+ * @param {number} pid The process id to kill.
+ * @param {string} [signal='SIGKILL'] The signal type to send.
+ */
+export async function killProcess(pid, signal = 'SIGKILL') {
+  const pids = await psTreePromisified(pid);
+
+  pids.forEach(({ PID }) => {
+    process.kill(PID, signal);
+  });
+
+  process.kill(pid, signal);
 }
