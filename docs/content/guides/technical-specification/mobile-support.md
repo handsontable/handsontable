@@ -74,6 +74,7 @@ Features not mentioned in the table may well work properly, but we don't test th
 | [Row headers](@/guides/rows/row-header.md)                                                     |     &check;      |   &check;    |   &check;    |
 | [Row parent-child](@/guides/rows/row-parent-child.md)                                          |     &check;      |   &check;    |   &check;    |
 | [Row hiding](@/guides/rows/row-hiding.md)                                                      |     &check;      |   &check;    |   &check;    |
+| [Row freezing](@/guides/rows/row-freezing.md)                                                  |     &check;      |   &check;    |   &check;    |
 | [Row virtualization](@/guides/rows/row-virtualization.md)                                      |     &check;      |   &check;    |   &check;    |
 | [Rows sorting](@/guides/rows/row-sorting.md)                                                   |     &check;      |   &check;    |   &check;    |
 | [Row trimming](@/guides/rows/row-trimming.md)                                                  |     &check;      |   &check;    |   &check;    |
