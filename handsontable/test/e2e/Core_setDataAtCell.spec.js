@@ -318,21 +318,18 @@ describe('Core_setDataAtCell', () => {
   });
 
   it('should trigger `beforeChange` and `afterSetDataAtCell` in the correct order', () => {
-    let hooksOrder = '';
+    const beforeChange = jasmine.createSpy('beforeChange');
+    const afterSetDataAtCell = jasmine.createSpy('afterSetDataAtCell');
 
     handsontable({
       data: [[1, 1]],
-      beforeChange() {
-        hooksOrder += '1';
-      },
-      afterSetDataAtCell() {
-        hooksOrder += '2';
-      },
+      beforeChange,
+      afterSetDataAtCell,
     });
 
     setDataAtCell(0, 0, 5);
 
-    expect(hooksOrder).toBe('12');
+    expect(beforeChange).toHaveBeenCalledBefore(afterSetDataAtCell);
   });
 
   it('should trigger `beforeChange` and `afterSetDataAtRowProp` in the correct order', () => {
