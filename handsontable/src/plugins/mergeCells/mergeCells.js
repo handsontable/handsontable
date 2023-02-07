@@ -193,7 +193,7 @@ export class MergeCells extends BasePlugin {
    *
    * @private
    */
-  #ifChromeForceRepaint() {
+  ifChromeForceRepaint() {
     if (!isChrome()) {
       return;
     }
@@ -459,7 +459,7 @@ export class MergeCells extends BasePlugin {
       }
 
       if (!auto) {
-        this.#ifChromeForceRepaint();
+        this.ifChromeForceRepaint();
       }
 
       this.hot.runHooks('afterMergeCells', cellRange, mergeParent, auto);
