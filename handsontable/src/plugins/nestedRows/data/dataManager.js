@@ -105,9 +105,11 @@ class DataManager {
       nodeInfo: new WeakMap()
     };
 
-    rangeEach(0, this.data.length - 1, (i) => {
-      this.cacheNode(this.data[i], 0, null);
-    });
+    if (this.data) {
+      rangeEach(0, this.data.length - 1, (i) => {
+        this.cacheNode(this.data[i], 0, null);
+      });
+    }
   }
 
   /**
