@@ -35,6 +35,9 @@
     "vue-template-compiler": "2.6.14",
     "typescript": "4.9.5"
   },
+  "overrides": {
+    "typescript": "4.9.5"
+  },
   "license": "SEE LICENSE IN LICENSE.txt",
   "eslintConfig": {
     "root": true,
