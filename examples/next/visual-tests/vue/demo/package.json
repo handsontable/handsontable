@@ -37,6 +37,7 @@
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
     "puppeteer": "14.3.0",
+    "ts-loader": "8.4.0",
     "typescript": "4.9.5",
     "vue-template-compiler": "2.6.14"
   },
