@@ -28,10 +28,10 @@ the **Visual tests** check on on your pull request fails, and you can't merge yo
    At the bottom of your pull request, find the **Visual tests** check. Select **Details**.
 2. Open the Argos URL and [review the differences](https://argos-ci.com/docs/visual-testing#reviewing-visual-changes).<br>
    You can:
-      - [Reject the modified screenshots in Argos](https://argos-ci.com/docs/visual-testing#-reject-a-build-workflow), update your code,
+      - [Reject the modified screenshots](https://argos-ci.com/docs/visual-testing#-reject-a-build-workflow), update your code,
         and [re-run the visual tests](#run-visual-tests-through-github-actions).
-      - [Accept the modified screenshots in Argos](https://argos-ci.com/docs/visual-testing#-approving-a-build).
-        You can now merge your changes to `develop`.
+      - [Accept the modified screenshots](https://argos-ci.com/docs/visual-testing#-approving-a-build).
+        You can then merge your changes to `develop`.
         As a result, the modified screenshots become the new baseline.
 
 ## Run visual tests through GitHub Actions
