@@ -12,7 +12,7 @@ We run visual tests automatically by using the following tools:
 | [Argos](https://argos-ci.com/docs/visual-testing)                      | An external visual testing service. We use it to compare screenshots.                                                                                   |
 | [GitHub Actions](https://github.com/handsontable/handsontable/actions) | GitHub's CI platform. We use it to automate our [test workflows](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml). |
 
-When you push changes to a GitHub pull request, you trigger the following:
+When you push changes to a GitHub pull request:
 1. The [Visual tests linter](https://github.com/handsontable/handsontable/actions/workflows/visual-tests-linter.yml)
    workflow checks the code of each visual test.
 2. The [Tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) workflow runs all
@@ -23,15 +23,16 @@ When you push changes to a GitHub pull request, you trigger the following:
    (so-called "baseline" or "golden" screenshots).
 
 If Argos spots differences between two corresponding screenshots,
-the **Visual tests** check on on your pull request fails, and you can't merge it. In that case:
-1. Open the log of the visual tests workflow:
+the **Visual tests** check on on your pull request fails, and you can't merge your changes to `develop`. In that case:
+1. Open the log of the visual tests job:<br>
    At the bottom of your pull request, find the **Visual tests** check. Select **Details**.
 2. Open the Argos URL and [review the differences](https://argos-ci.com/docs/visual-testing#reviewing-visual-changes).<br>
    You can:
-      - [Reject the changes](https://argos-ci.com/docs/visual-testing#-reject-a-build-workflow), update your code,
+      - [Reject the changes in Argos](https://argos-ci.com/docs/visual-testing#-reject-a-build-workflow), update your code,
         and [re-run the visual tests](#run-visual-tests-through-github-actions).
-      - [Accept the changes](https://argos-ci.com/docs/visual-testing#-approving-a-build).<br>
-        As a result, after you merge your changes to `develop`, the modified screenshots become the new baseline.
+      - [Accept the changes in Argos](https://argos-ci.com/docs/visual-testing#-approving-a-build).
+        You can now merge your changes to `develop`.
+        As a result, the new, modified screenshots become the new baseline.
 
 ## Run visual tests through GitHub Actions
 
