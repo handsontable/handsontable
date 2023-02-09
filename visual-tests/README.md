@@ -6,18 +6,18 @@ To avoid unintended changes to Handsontable's UI, we use visual regression testi
 
 We run visual tests automatically by using the following tools:
 
-| Tool                                                                                                   | Description                                                                                    |
-| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| [Playwright](https://playwright.dev/docs/intro)                                                        | An open-source testing framework backed by Microsoft. We use it to write and run visual tests. |
-| [Argos](https://argos-ci.com/docs/visual-testing)                                                      | An external visual testing service. We use it to compare screenshots.                          |
-| [GitHub Actions](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) | A CI platform. We use it to automate our testing workflows.                                    |
+| Tool                                                                   | Description                                                                                                                                     |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Playwright](https://playwright.dev/docs/intro)                        | An open-source testing framework backed by Microsoft. We use it to write and run visual tests.                                                  |
+| [Argos](https://argos-ci.com/docs/visual-testing)                      | An external visual testing service. We use it to compare screenshots.                                                                           |
+| [GitHub Actions](https://github.com/handsontable/handsontable/actions) | A CI platform. We use it to automate our [test workflow](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml). |
 
 On pushing a commit to a pull request's feature branch:
 1. The [Visual tests Linter](https://github.com/handsontable/handsontable/actions/workflows/visual-tests-linter.yml)
    workflow checks the code of each visual test.
 2. The [Tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) workflow runs all
    of Handsontable's tests.
-3. If all the tests pass successfully, the [Visual tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml#L432-L502) job runs the visual tests and uploads the resulting screenshots to Argos.
+3. If all the tests pass successfully, the [Visual tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml#L432-L502) job runs the visual tests and uploads the resulting screenshots to Argos.<br>
    You can find the Argos URL in the logs of the [Tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) workflow.
 4. Argos compares the feature branch screenshots against the `develop` branch screenshots (so-called "golden screenshots").
 5. If Argos detects differences between the screenshots, the **Visual tests** check in GitHub prevents you from merging the PR.
@@ -92,8 +92,7 @@ await page.screenshot({ path: helpers.screenshotPath() });
 ```
 
 To take a screenshot of a specific element of Handsontable,
-use Playwright's [`locator`](https://playwright.dev/docs/locators#locate-by-css-or-xpath),
-and the [helper](#helpers). For example:
+use Playwright's [`locator()`](https://playwright.dev/docs/locators#locate-by-css-or-xpath) method. For example:
 
 ```js
 const dropdownMenu = page.locator(helpers.selectors.dropdownMenu);
