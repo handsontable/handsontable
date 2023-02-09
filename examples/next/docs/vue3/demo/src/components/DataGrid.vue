@@ -1,0 +1,101 @@
+<script src="./DataGrid.js"></script>
+
+<template>
+  <div id="example">
+    <HotTable
+      :data=dataProp
+      :height=450
+      :colWidths="[140, 192, 100, 90, 90, 110, 97, 100, 126]"
+      :colHeaders="[
+        'Company name',
+        'Name',
+        'Sell date',
+        'In stock',
+        'Qty',
+        'Progress',
+        'Rating',
+        'Order ID',
+        'Country'
+      ]"
+      :dropdownMenu=true
+      :hiddenColumns='{
+        indicators: true
+      }'
+      :contextMenu=true
+      :multiColumnSorting=true
+      :filters=true
+      :rowHeaders=true
+      :afterGetColHeader=alignHeadersProp 
+      :beforeRenderer=addClassesToRowsProp
+      :afterGetRowHeader=drawCheckboxInRowHeadersProp
+      :afterOnCellMouseDown=changeCheckboxCellProp
+      :manualRowMove=true
+      licenseKey="non-commercial-and-evaluation"
+    >
+      <HotColumn data="companyName" />
+      <HotColumn data="name" />
+      <HotColumn data="sellDate" type="date" :allowInvalid=false />
+      <HotColumn data="inStock" type="checkbox" className="htCenter" />
+      <HotColumn data="quantity" type="numeric" />
+      <HotColumn
+        data="progress"
+        className="htMiddle"
+        :renderer=progressBarRendererProp
+      />
+      <HotColumn
+        data="rating"
+        className="star htCenter" 
+        :renderer=starsRendererProp
+      >
+      </HotColumn>
+      <HotColumn data="orderId" />
+      <HotColumn data="country" />
+    </HotTable>
+  </div>
+</template>
+
+<style lang="scss">
+/*
+  A stylesheet customizing app (custom renderers)
+*/
+
+
+table.htCore {
+  tr.odd td {
+    background: #fafbff;
+  }
+
+  tr.selected td {
+    background: #edf3fd;
+  }
+
+  td .progressBar {
+    background: #37bc6c;
+    height: 10px;
+    transform: translate(0, 50%);
+  }
+
+  td .star {
+    color: #fcb515;
+  }
+}
+
+/*
+  A stylesheet customizing Handsontable style
+*/
+
+.handsontable {
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  'Ubuntu', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 400;
+
+  .collapsibleIndicator {
+    text-align: center;
+  }
+}
+
+td .error {
+  background: #ff4c42;
+}
+</style>
