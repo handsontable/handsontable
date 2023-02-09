@@ -361,6 +361,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+
       # ---------------------------------------------------------
       # --- Only applicable if processing the `next` version. ---
       # ------------------------ START --------------------------
