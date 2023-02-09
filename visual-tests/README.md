@@ -24,15 +24,15 @@ When you push changes to a GitHub pull request:
 
 If Argos spots differences between two corresponding screenshots,
 the **Visual tests** check on on your pull request fails, and you can't merge your changes to `develop`. In that case:
-1. Open the log of the visual tests job:<br>
+1. Open the log of the **Visual tests** job:<br>
    At the bottom of your pull request, find the **Visual tests** check. Select **Details**.
 2. Open the Argos URL and [review the differences](https://argos-ci.com/docs/visual-testing#reviewing-visual-changes).<br>
    You can:
-      - [Reject the changes in Argos](https://argos-ci.com/docs/visual-testing#-reject-a-build-workflow), update your code,
+      - [Reject the modified screenshots in Argos](https://argos-ci.com/docs/visual-testing#-reject-a-build-workflow), update your code,
         and [re-run the visual tests](#run-visual-tests-through-github-actions).
-      - [Accept the changes in Argos](https://argos-ci.com/docs/visual-testing#-approving-a-build).
+      - [Accept the modified screenshots in Argos](https://argos-ci.com/docs/visual-testing#-approving-a-build).
         You can now merge your changes to `develop`.
-        As a result, the new, modified screenshots become the new baseline.
+        As a result, the modified screenshots become the new baseline.
 
 ## Run visual tests through GitHub Actions
 
