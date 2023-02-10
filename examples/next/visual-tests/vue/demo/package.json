@@ -15,7 +15,6 @@
     "start": "vue-cli-service serve",
     "serve": "http-server dist",
     "build": "vue-cli-service build",
-    "tsc": "tsc --version",
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {

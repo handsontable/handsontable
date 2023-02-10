@@ -336,8 +336,7 @@ jobs:
       fail-fast: false
       matrix:
         version: ${{fromJson(needs.prepare-matrix.outputs.versions)}}
-        framework: [vue]
-        # framework: [angular, angular-9, angular-10, angular-11, angular-12, angular-13, js, react, vue, vue3, ts]
+        framework: [angular, angular-9, angular-10, angular-11, angular-12, angular-13, js, react, vue, vue3, ts]
 
     env:
       FRAMEWORK_EXAMPLES_PATH: examples/${{ matrix.version }}/docs/${{ matrix.framework }}
@@ -461,11 +460,6 @@ jobs:
       # ---------------------------------------------------------
       # --- Only applicable if processing the `next` version ---
       # -------------------- END --------------------------------
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
-      #   with:
-      #     limit-access-to-actor: true
-
       - name: Install dependencies for examples/${{ matrix.version }}/docs/${{ matrix.framework }}
         if: steps.path-check.outputs.n-a != 'true'
         run: |
