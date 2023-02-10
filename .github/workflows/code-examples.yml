@@ -470,7 +470,6 @@ jobs:
         run: |
           cd ./examples
           npm run link-packages -- --f ${{ matrix.framework }} --examples-version ${{ matrix.version }}
-
       - name: Build all examples in ${{ env.FRAMEWORK_EXAMPLES_PATH }}
         if: steps.path-check.outputs.n-a != 'true'
         run: |
