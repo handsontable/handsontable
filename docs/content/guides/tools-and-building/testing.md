@@ -64,7 +64,9 @@ Keep in mind that running wrapper tests require building the Handsontable (`npm 
 
 ## Visual testing
 
+To avoid unintended changes to Handsontable's UI, we use automated visual regression testing.
 
+Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/develop/visual-tests/README.md).
 
 ## Related guides
 
