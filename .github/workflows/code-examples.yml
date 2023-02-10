@@ -336,7 +336,8 @@ jobs:
       fail-fast: false
       matrix:
         version: ${{fromJson(needs.prepare-matrix.outputs.versions)}}
-        framework: [angular, angular-9, angular-10, angular-11, angular-12, angular-13, js, react, vue, vue3, ts]
+        framework: [vue]
+        # framework: [angular, angular-9, angular-10, angular-11, angular-12, angular-13, js, react, vue, vue3, ts]
 
     env:
       FRAMEWORK_EXAMPLES_PATH: examples/${{ matrix.version }}/docs/${{ matrix.framework }}
@@ -360,11 +361,6 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
 
       # ---------------------------------------------------------
       # --- Only applicable if processing the `next` version. ---
@@ -475,6 +471,12 @@ jobs:
         run: |
           cd ./examples
           npm run link-packages -- --f ${{ matrix.framework }} --examples-version ${{ matrix.version }}
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+
       - name: Build all examples in ${{ env.FRAMEWORK_EXAMPLES_PATH }}
         if: steps.path-check.outputs.n-a != 'true'
         run: |
