@@ -461,6 +461,11 @@ jobs:
       # ---------------------------------------------------------
       # --- Only applicable if processing the `next` version ---
       # -------------------- END --------------------------------
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+
       - name: Install dependencies for examples/${{ matrix.version }}/docs/${{ matrix.framework }}
         if: steps.path-check.outputs.n-a != 'true'
         run: |
@@ -471,11 +476,6 @@ jobs:
         run: |
           cd ./examples
           npm run link-packages -- --f ${{ matrix.framework }} --examples-version ${{ matrix.version }}
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
 
       - name: Build all examples in ${{ env.FRAMEWORK_EXAMPLES_PATH }}
         if: steps.path-check.outputs.n-a != 'true'
