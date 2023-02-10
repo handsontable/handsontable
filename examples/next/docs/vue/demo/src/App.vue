@@ -7,6 +7,7 @@
 <script>
 import DataGrid from "./components/DataGrid";
 
+// temp
 export default {
   name: "App",
   components: {
