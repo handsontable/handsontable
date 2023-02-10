@@ -9,6 +9,7 @@ import { HotTable } from '@handsontable/vue';
 import 'handsontable/dist/handsontable.full.css';
 import './assets/styles.css';
 
+// temp
 export default {
   name: 'App',
   data: function () {
