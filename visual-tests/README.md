@@ -19,8 +19,8 @@ When you push changes to a GitHub pull request:
    of Handsontable's tests.
 3. After all tests pass successfully, the [Visual tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml#L432-L502)
    job runs the visual tests and uploads the resulting screenshots to Argos.
-4. Argos compares your feature branch screenshots against the `develop` screenshots
-   (so-called "baseline" or "golden" screenshots).
+4. Argos compares your feature branch screenshots against the reference branch (`develop`) screenshots
+   (so-called "reference", "baseline" or "golden" screenshots).
 
 If Argos spots differences between two corresponding screenshots,
 the **Visual tests** check on on your pull request fails, and you can't merge your changes to `develop`. In that case:
