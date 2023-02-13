@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { RowObject } from 'handsontable/common';
 import {
   SELECTED_CLASS,
   ODD_ROW_CLASS
@@ -32,11 +33,9 @@ export const addClassesToRows: AddClassesToRows = function(
     return;
   }
 
-  // Add class to selected rows
-  if (
-    cellProperties.instance.getSourceDataAtCell(row, -1) ||
-    (cellProperties.instance.getDataAtRowProp(row, 'checked') && cellProperties.instance.getSourceDataAtCell(row, -1) === undefined))
-  {
+  const rowData = cellProperties.instance.getSourceDataAtRow(row) as RowObject;
+
+  if (!!rowData?.checked) {
     Handsontable.dom.addClass(parentElement, SELECTED_CLASS);
   } else {
     Handsontable.dom.removeClass(parentElement, SELECTED_CLASS);
@@ -61,14 +60,10 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawC
   TH
 ) {
   const input = document.createElement('input');
-  input.type = 'checkbox';
+  const rowData = this?.getSourceDataAtRow(row) as RowObject;
   
-  if (
-    (row >= 0 && (this.getSourceDataAtCell(row, -1))) || 
-    (this.getDataAtRowProp(row, 'checked') && this.getSourceDataAtCell(row, -1) === undefined))
-  {
-    input.checked = true;
-  }
+  input.type = 'checkbox';
+  input.checked = !!rowData?.checked;
   
   Handsontable.dom.empty(TH);
 
@@ -101,6 +96,6 @@ export const changeCheckboxCell: ChangeCheckboxCell = function changeCheckboxCel
 
   if (coords.col === -1 && event.target && target.nodeName === 'INPUT') {
     event.preventDefault(); // Handsontable will render checked/unchecked checkbox by it own.
-    this.setSourceDataAtCell(coords.row, coords.col, !target.checked);
+    this.setSourceDataAtCell(coords.row, 'checked', !target.checked);
   }
 };
