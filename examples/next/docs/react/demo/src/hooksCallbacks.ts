@@ -75,11 +75,12 @@ export function alignHeaders(this: Handsontable, column: number, TH: HTMLTableCe
     return;
   }
 
-  const alignmentClass = this.isRtl() ? 'htRight' : 'htLeft';
-
-  if (TH.firstChild) {
-      Handsontable.dom.addClass(TH.firstChild as HTMLElement, alignmentClass);
+  if (!TH.firstChild) {
+    return;
   }
+  
+  const alignmentClass = this.isRtl() ? 'htRight' : 'htLeft';
+  Handsontable.dom.addClass(TH.firstChild as HTMLElement, alignmentClass);
 }
 
 type ChangeCheckboxCell = (
