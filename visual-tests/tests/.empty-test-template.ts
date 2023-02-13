@@ -9,5 +9,7 @@ test(__filename, async({ page }) => {
   // const tbody = table.locator(helpers.selectors.mainTableBody);
   // const thead = table.locator(helpers.selectors.mainTableHead);
 
-  /* your test here */
+  /*
+  write your test here
+  */
 });
