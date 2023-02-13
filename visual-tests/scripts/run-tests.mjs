@@ -5,7 +5,7 @@
  * - Takes screenshots and prepares them for upload to an external service (Argos).
  */
 import path from 'path';
-import execa from 'execa';
+import { execa } from 'execa';
 import fse from 'fs-extra';
 import chalk from 'chalk';
 import mainPackageJSON from '../package.json' assert { type: 'json' };

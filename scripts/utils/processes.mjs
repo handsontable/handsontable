@@ -1,4 +1,4 @@
-import execa from 'execa';
+import { execa } from 'execa';
 
 /**
  * Spawn a process.

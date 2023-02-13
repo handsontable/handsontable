@@ -1,7 +1,7 @@
 /**
  * This script uploads the screenshots package to an external service (Argos).
  */
-import execa from 'execa';
+import { execa } from 'execa';
 import { isReferenceBranch } from './utils/utils.mjs';
 
 console.log('Upload to Argos');

@@ -3,7 +3,7 @@
  * - Installs the examples' dependencies.
  * - Builds all the examples, for each framework that is going to be tested.
  */
-import execa from 'execa';
+import { execa } from 'execa';
 import chalk from 'chalk';
 import { getFrameworkList } from './utils/utils.mjs';
 

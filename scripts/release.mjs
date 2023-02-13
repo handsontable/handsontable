@@ -5,7 +5,7 @@
  * It merges the release branch to the `develop` and `master` branches and pushes them, along with the created tags.
  */
 import inquirer from 'inquirer';
-import execa from 'execa';
+import { execa } from 'execa';
 import {
   displayErrorMessage,
   displaySeparator,

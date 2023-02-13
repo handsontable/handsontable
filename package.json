@@ -55,21 +55,21 @@
     "babel-plugin-forbidden-imports": "^0.1.2",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-plugin-transform-require-ignore": "^0.1.1",
-    "chalk": "^4.1.0",
-    "cross-env": "^5.0.1",
+    "chalk": "^5.2.0",
+    "cross-env": "^7.0.3",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsdoc": "^32.3.3",
-    "execa": "^5.0.0",
-    "fs-extra": "^4.0.2",
-    "inquirer": "^7.3.3",
-    "jsdom-global": "^3.0.2",
+    "execa": "^6.1.0",
+    "fs-extra": "^11.0.1",
+    "inquirer": "^9.1.4",
+    "global-jsdom": "^8.7.0",
     "moment": "2.29.4",
     "replace-in-file": "^6.1.0",
-    "rimraf": "^2.5.4",
-    "semver": "^5.7.1",
-    "yargs": "^16.2.0"
+    "rimraf": "^4.1.2",
+    "semver": "^7.3.8",
+    "yargs": "^17.6.2"
   },
   "overrides": {
     "@types/babel__traverse": "7.18.2"
@@ -79,9 +79,6 @@
     "babel-core": "7.0.0-bridge.0"
   },
   "workspaces": [
-    "handsontable",
-    "wrappers/*",
-    "visual-tests",
-    "examples"
+    "handsontable"
   ]
 }

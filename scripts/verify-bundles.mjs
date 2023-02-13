@@ -1,4 +1,4 @@
-import JSDOMGlobal from 'jsdom-global';
+import 'global-jsdom/register'
 import chalk from 'chalk';
 import glob from 'glob';
 import {
@@ -44,8 +44,6 @@ const {
 } = await import('../package.json', { assert: { type: 'json' } });
 const workspacePackages = mainPackageJson.workspaces;
 const mismatchedVersions = [];
-
-JSDOMGlobal();
 
 console.log(`\nHOT config version:\n${chalk.green(hotConfig.HOT_VERSION)}\n`);
 

@@ -2,7 +2,7 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import concurrently from 'concurrently';
 import { Writable } from 'stream';
-import { command as execaCommand } from 'execa';
+import { execaCommand } from 'execa';
 import debounce from 'lodash.debounce';
 
 const argv = yargs(hideBin(process.argv))
