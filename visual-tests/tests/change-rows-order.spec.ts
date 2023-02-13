@@ -9,11 +9,9 @@ test(__filename, async({ page }) => {
   const cloneInlineStartTable = table.locator(helpers.selectors.cloneInlineStartTable);
   const cell = cloneInlineStartTable.locator(helpers.findCell({ row: 4, cell: 1, cellType: 'th' }));
 
-  // Without coordinates `click` works on the middle of element,
-  // what means that in this case it will deselect checkbox.
-  // We do not want it, so we should define coordinates out of checkbox, but still in cell
-  // - here it can be { 1, 1 }.
-
+  // without coordinates, `click()` works in the middle of the element,
+  // so in this case, it would deselect the checkbox
+  // to avoid it, let's define coordinates inside of the cell, but outside of the checkbox
   await cell.click({ position: { x: 1, y: 1 } });
   await page.screenshot({ path: helpers.screenshotPath() });
 
