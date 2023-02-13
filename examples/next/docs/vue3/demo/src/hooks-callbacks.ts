@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { RowObject } from 'handsontable/common';
 import {
   SELECTED_CLASS,
   ODD_ROW_CLASS
@@ -32,8 +33,10 @@ export const addClassesToRows: AddClassesToRows = (
     return;
   }
 
+  const rowData = cellProperties.instance.getSourceDataAtRow(row) as RowObject;
+
   // Add class to selected rows
-  if (cellProperties.instance.getDataAtRowProp(row, '0')) {
+  if (rowData?.checked) {
     Handsontable.dom.addClass(parentElement, SELECTED_CLASS);
   } else {
     Handsontable.dom.removeClass(parentElement, SELECTED_CLASS);
@@ -58,13 +61,11 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawC
   TH
 ) {
   const input = document.createElement('input');
-
+  const rowData = this.getSourceDataAtRow(row) as RowObject;
+  
   input.type = 'checkbox';
-
-  if (row >= 0 && this.getDataAtRowProp(row, '0')) {
-    input.checked = true;
-  }
-
+  input.checked = !!rowData?.checked;
+  
   Handsontable.dom.empty(TH);
 
   TH.appendChild(input);
@@ -75,11 +76,12 @@ export function alignHeaders(this: Handsontable, column: number, TH: HTMLTableCe
     return;
   }
 
-  const alignmentClass = this.isRtl() ? 'htRight' : 'htLeft';
-
-  if (TH.firstChild) {
-    Handsontable.dom.addClass(TH.firstChild as HTMLElement, alignmentClass);
+  if (!TH.firstChild) {
+    return;
   }
+  
+  const alignmentClass = this.isRtl() ? 'htRight' : 'htLeft';
+  Handsontable.dom.addClass(TH.firstChild as HTMLElement, alignmentClass);
 }
 
 type ChangeCheckboxCell = (
@@ -96,7 +98,6 @@ export const changeCheckboxCell: ChangeCheckboxCell = function changeCheckboxCel
 
   if (coords.col === -1 && event.target && target.nodeName === 'INPUT') {
     event.preventDefault(); // Handsontable will render checked/unchecked checkbox by it own.
-
-    this.setDataAtRowProp(coords.row, '0', !target.checked);
+    this.setSourceDataAtCell(coords.row, 'checked', !target.checked);
   }
 };
