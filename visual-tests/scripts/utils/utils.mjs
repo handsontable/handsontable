@@ -6,9 +6,9 @@ import { BASE_BRANCH, REFERENCE_FRAMEWORK, WRAPPERS } from '../../src/config.mjs
 const psTreePromisified = promisify(psTree);
 
 /**
- * Returns a Promise which is resolved after some milliseconds.
+ * Returns a Promise that's resolved after the specified number of milliseconds.
  *
- * @param {number} [delay=100] The delay in ms after which the Promise is resolved.
+ * @param {number} [delay=100] The delay after which the Promise is resolved (in milliseconds).
  * @returns {Promise}
  */
 export function sleep(delay = 100) {
@@ -20,7 +20,7 @@ export function sleep(delay = 100) {
 }
 
 /**
- * Gets the current branch name.
+ * Returns the name of the current branch.
  *
  * @returns {string}
  */
@@ -30,7 +30,7 @@ export function getCurrentBranchName() {
 }
 
 /**
- * Checks if tests are run on the base/reference branch.
+ * Returns `true` if tests are run on the reference branch (`develop`).
  *
  * @returns {boolean}
  */
@@ -39,8 +39,8 @@ export function isReferenceBranch() {
 }
 
 /**
- * Returns list of the frameworks that should be tested. The list differs depends on that branch the
- * scripts are currently run.
+ * Returns a list of frameworks to be tested,
+ * depending on which branch the scripts are run on.
  *
  * @returns {string[]}
  */
@@ -55,8 +55,8 @@ export function getFrameworkList() {
 /**
  * Kills the main process and all its children.
  *
- * @param {number} pid The process id to kill.
- * @param {string} [signal='SIGKILL'] The signal type to send.
+ * @param {number} pid The ID of the process to kill.
+ * @param {string} [signal='SIGKILL'] The type of the signal to send.
  */
 export async function killProcess(pid, signal = 'SIGKILL') {
   const pids = await psTreePromisified(pid);

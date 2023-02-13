@@ -8,9 +8,9 @@ const stylesToAdd = [
 ];
 
 /**
- * Exports "test" function from playwright but covered with some predefined initial setup.
+ * Exports the `test` function from Playwright, and configures its initial settings.
  *
- * @param {string} filename The test name.
+ * @param {string} filename The name of the test.
  * @param {Function} callback The function to call for the test case.
  */
 export async function test(filename: string, callback: (pageInfo: { page: Page }) => Promise<void>) {
