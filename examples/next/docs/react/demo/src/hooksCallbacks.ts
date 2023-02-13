@@ -60,7 +60,7 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawC
   TH
 ) {
   const input = document.createElement('input');
-  const rowData = this?.getSourceDataAtRow(row) as RowObject;
+  const rowData = this.getSourceDataAtRow(row) as RowObject;
   
   input.type = 'checkbox';
   input.checked = !!rowData?.checked;
