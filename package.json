@@ -79,6 +79,9 @@
     "babel-core": "7.0.0-bridge.0"
   },
   "workspaces": [
-    "handsontable"
+    "handsontable",
+    "wrappers/*",
+    "visual-tests",
+    "examples"
   ]
 }
