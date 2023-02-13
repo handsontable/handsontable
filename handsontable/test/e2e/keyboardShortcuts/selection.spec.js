@@ -1080,4 +1080,54 @@ describe('Core selection keyboard shortcut', () => {
       ], 'edit');
     });
   });
+
+  describe('"Ctrl/Cmd + A"', () => {
+    it('should reset the current selection and select all cells with headers', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectCells([[1, 1, 1, 1], [2, 2, 3, 3]]);
+      keyDownUp(['control/meta', 'a']);
+
+      expect(`
+        |   ║ * : * : * : * : * |
+        |===:===:===:===:===:===|
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
+    });
+  });
+
+  describe('"Ctrl/Cmd + Shift + Space"', () => {
+    it('should reset the current selection and select all cells with headers', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      selectCells([[1, 1, 1, 1], [2, 2, 3, 3]]);
+      keyDownUp(['control/meta', 'shift', 'space']);
+
+      expect(`
+        |   ║ * : * : * : * : * |
+        |===:===:===:===:===:===|
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
+    });
+  });
 });

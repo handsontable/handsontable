@@ -4745,7 +4745,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   shortcutManager.setActiveContextName('grid');
 
   gridContext.addShortcuts([{
-    keys: [['Control/Meta', 'A']],
+    keys: [['Control/Meta', 'A'], ['Control/Meta', 'Shift', 'Space']],
     callback: () => {
       instance.selectAll();
     },
