@@ -1,5 +1,5 @@
 export const data = [{
-  0: false,
+  checked: false,
   companyName: 'Tagcat',
   country: 'United Kingdom',
   name: 'Classic Vest',
@@ -10,7 +10,7 @@ export const data = [{
   progress: 20,
   rating: 2
 }, {
-  0: true,
+  checked: true,
   companyName: 'Zoomzone',
   country: 'Indonesia',
   name: 'Cycling Cap',
@@ -21,7 +21,7 @@ export const data = [{
   progress: 60,
   rating: 2
 }, {
-  0: true,
+  checked: true,
   companyName: 'Meeveo',
   country: 'United States',
   name: 'Full-Finger Gloves',
@@ -32,7 +32,7 @@ export const data = [{
   progress: 10,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Buzzdog',
   country: 'Philippines',
   name: 'HL Mountain Frame',
@@ -43,7 +43,7 @@ export const data = [{
   progress: 70,
   rating: 1
 }, {
-  0: true,
+  checked: true,
   companyName: 'Katz',
   country: 'India',
   name: 'Half-Finger Gloves',
@@ -54,7 +54,7 @@ export const data = [{
   progress: 10,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Jaxbean',
   country: 'China',
   name: 'HL Road Frame',
@@ -65,7 +65,7 @@ export const data = [{
   progress: 80,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Wikido',
   country: 'Brazil',
   name: 'HL Touring Frame',
@@ -76,7 +76,7 @@ export const data = [{
   progress: 40,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Browsedrive',
   country: 'United States',
   name: 'LL Mountain Frame',
@@ -87,7 +87,7 @@ export const data = [{
   progress: 40,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Twinder',
   country: 'United Kingdom',
   name: 'LL Road Frame',
@@ -98,7 +98,7 @@ export const data = [{
   progress: 60,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Jetwire',
   country: 'China',
   name: 'LL Touring Frame',
@@ -109,7 +109,7 @@ export const data = [{
   progress: 80,
   rating: 5
 }, {
-  0: false,
+  checked: false,
   companyName: 'Chatterpoint',
   country: 'China',
   name: 'Long-Sleeve Logo Jersey',
@@ -120,7 +120,7 @@ export const data = [{
   progress: 70,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Twinder',
   country: 'Egypt',
   name: 'Men\'s Bib-Shorts',
@@ -131,7 +131,7 @@ export const data = [{
   progress: 60,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Midel',
   country: 'United States',
   name: 'Men\'s Sports Shorts',
@@ -142,7 +142,7 @@ export const data = [{
   progress: 100,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Yodo',
   country: 'India',
   name: 'ML Mountain Frame',
@@ -153,7 +153,7 @@ export const data = [{
   progress: 10,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Camido',
   country: 'Russia',
   name: 'ML Mountain Frame-W',
@@ -164,7 +164,7 @@ export const data = [{
   progress: 80,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Eire',
   country: 'Thailand',
   name: 'ML Road Frame',
@@ -175,7 +175,7 @@ export const data = [{
   progress: 10,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Vinte',
   country: 'United Kingdom',
   name: 'ML Road Frame-W',
@@ -186,7 +186,7 @@ export const data = [{
   progress: 40,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Twitterlist',
   country: 'China',
   name: 'Mountain Bike Socks',
@@ -197,7 +197,7 @@ export const data = [{
   progress: 80,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Eidel',
   country: 'Bangladesh',
   name: 'Mountain-100',
@@ -208,7 +208,7 @@ export const data = [{
   progress: 60,
   rating: 5
 }, {
-  0: false,
+  checked: false,
   companyName: 'Trunyx',
   country: 'Nigeria',
   name: 'Mountain-200',
@@ -219,7 +219,7 @@ export const data = [{
   progress: 40,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Katz',
   country: 'Turkey',
   name: 'Mountain-300',
@@ -230,7 +230,7 @@ export const data = [{
   progress: 50,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Kaymbo',
   country: 'United States',
   name: 'Mountain-400-W',
@@ -241,7 +241,7 @@ export const data = [{
   progress: 50,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Ozu',
   country: 'Pakistan',
   name: 'Mountain-500',
@@ -252,7 +252,7 @@ export const data = [{
   progress: 20,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Rhynyx',
   country: 'India',
   name: 'Racing Socks',
@@ -263,7 +263,7 @@ export const data = [{
   progress: 20,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Flashset',
   country: 'Iran',
   name: 'Road-150',
@@ -274,7 +274,7 @@ export const data = [{
   progress: 70,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Yata',
   country: 'Congo (Kinshasa)',
   name: 'Road-250',
@@ -285,7 +285,7 @@ export const data = [{
   progress: 40,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Brainlounge',
   country: 'Vietnam',
   name: 'Road-350-W',
@@ -296,7 +296,7 @@ export const data = [{
   progress: 20,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Babblestorm',
   country: 'United States',
   name: 'Road-450',
@@ -307,7 +307,7 @@ export const data = [{
   progress: 60,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Youspan',
   country: 'Brazil',
   name: 'Road-550-W',
@@ -318,7 +318,7 @@ export const data = [{
   progress: 100,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Nlounge',
   country: 'China',
   name: 'Road-650',
@@ -329,7 +329,7 @@ export const data = [{
   progress: 40,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Twinte',
   country: 'India',
   name: 'Road-750',
@@ -340,7 +340,7 @@ export const data = [{
   progress: 90,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Oyonder',
   country: 'United Kingdom',
   name: 'Short-Sleeve Classic Jersey',
@@ -351,7 +351,7 @@ export const data = [{
   progress: 40,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Gigabox',
   country: 'Pakistan',
   name: 'Sport-100',
@@ -362,7 +362,7 @@ export const data = [{
   progress: 40,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Livetube',
   country: 'France',
   name: 'Touring-1000',
@@ -373,7 +373,7 @@ export const data = [{
   progress: 40,
   rating: 5
 }, {
-  0: false,
+  checked: false,
   companyName: 'Voomm',
   country: 'United Kingdom',
   name: 'Touring-2000',
@@ -384,7 +384,7 @@ export const data = [{
   progress: 40,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Voonyx',
   country: 'China',
   name: 'Touring-3000',
@@ -395,7 +395,7 @@ export const data = [{
   progress: 20,
   rating: 5
 }, {
-  0: false,
+  checked: false,
   companyName: 'Zoombeat',
   country: 'United States',
   name: 'Women\'s Mountain Shorts',
@@ -406,7 +406,7 @@ export const data = [{
   progress: 20,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Roomm',
   country: 'China',
   name: 'Women\'s Tights',
@@ -417,7 +417,7 @@ export const data = [{
   progress: 10,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Leenti',
   country: 'China',
   name: 'Mountain-400',
@@ -428,7 +428,7 @@ export const data = [{
   progress: 10,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Jetpulse',
   country: 'United States',
   name: 'Road-550',
@@ -439,7 +439,7 @@ export const data = [{
   progress: 90,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Katz',
   country: 'Peru',
   name: 'Road-350',
@@ -450,7 +450,7 @@ export const data = [{
   progress: 40,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Cogidoo',
   country: 'India',
   name: 'LL Mountain Front Wheel',
@@ -461,7 +461,7 @@ export const data = [{
   progress: 90,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Divavu',
   country: 'Colombia',
   name: 'Touring Rear Wheel',
@@ -472,7 +472,7 @@ export const data = [{
   progress: 100,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Mydeo',
   country: 'China',
   name: 'Touring Front Wheel',
@@ -483,7 +483,7 @@ export const data = [{
   progress: 30,
   rating: 5
 }, {
-  0: false,
+  checked: false,
   companyName: 'Browsebug',
   country: 'Japan',
   name: 'ML Mountain Front Wheel',
@@ -494,7 +494,7 @@ export const data = [{
   progress: 50,
   rating: 5
 }, {
-  0: false,
+  checked: false,
   companyName: 'Layo',
   country: 'China',
   name: 'HL Mountain Front Wheel',
@@ -505,7 +505,7 @@ export const data = [{
   progress: 10,
   rating: 5
 }, {
-  0: false,
+  checked: false,
   companyName: 'Snaptags',
   country: 'United Kingdom',
   name: 'LL Touring Handlebars',
@@ -516,7 +516,7 @@ export const data = [{
   progress: 40,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Cogilith',
   country: 'China',
   name: 'HL Touring Handlebars',
@@ -527,7 +527,7 @@ export const data = [{
   progress: 40,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Reallinks',
   country: 'United Kingdom',
   name: 'LL Road Front Wheel',
@@ -538,7 +538,7 @@ export const data = [{
   progress: 30,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Quaxo',
   country: 'United States',
   name: 'ML Road Front Wheel',
@@ -549,7 +549,7 @@ export const data = [{
   progress: 30,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Devify',
   country: 'China',
   name: 'HL Road Front Wheel',
@@ -560,7 +560,7 @@ export const data = [{
   progress: 40,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Youopia',
   country: 'Angola',
   name: 'LL Mountain Handlebars',
@@ -571,7 +571,7 @@ export const data = [{
   progress: 60,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Ainyx',
   country: 'China',
   name: 'Touring Pedal',
@@ -582,7 +582,7 @@ export const data = [{
   progress: 60,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Browsetype',
   country: 'Malaysia',
   name: 'ML Mountain Handlebars',
@@ -593,7 +593,7 @@ export const data = [{
   progress: 70,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Muxo',
   country: 'China',
   name: 'HL Mountain Handlebars',
@@ -604,7 +604,7 @@ export const data = [{
   progress: 70,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Bubbletube',
   country: 'China',
   name: 'LL Road Handlebars',
@@ -615,7 +615,7 @@ export const data = [{
   progress: 80,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Fadeo',
   country: 'Vietnam',
   name: 'ML Road Handlebars',
@@ -626,7 +626,7 @@ export const data = [{
   progress: 100,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Yadel',
   country: 'United Kingdom',
   name: 'HL Road Handlebars',
@@ -637,7 +637,7 @@ export const data = [{
   progress: 80,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Blognation',
   country: 'China',
   name: 'LL Headset',
@@ -648,7 +648,7 @@ export const data = [{
   progress: 100,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Devpoint',
   country: 'China',
   name: 'ML Headset',
@@ -659,7 +659,7 @@ export const data = [{
   progress: 40,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Aibox',
   country: 'United Kingdom',
   name: 'HL Headset',
@@ -670,7 +670,7 @@ export const data = [{
   progress: 80,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Brightdog',
   country: 'China',
   name: 'LL Mountain Pedal',
@@ -681,7 +681,7 @@ export const data = [{
   progress: 20,
   rating: 5
 }, {
-  0: false,
+  checked: false,
   companyName: 'Gabcube',
   country: 'Nigeria',
   name: 'ML Mountain Pedal',
@@ -692,7 +692,7 @@ export const data = [{
   progress: 10,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Muxo',
   country: 'China',
   name: 'HL Mountain Pedal',
@@ -703,7 +703,7 @@ export const data = [{
   progress: 40,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Tambee',
   country: 'China',
   name: 'ML Touring Seat/Saddle',
@@ -714,7 +714,7 @@ export const data = [{
   progress: 90,
   rating: 5
 }, {
-  0: false,
+  checked: false,
   companyName: 'Cogilith',
   country: 'India',
   name: 'LL Touring Seat/Saddle',
@@ -725,7 +725,7 @@ export const data = [{
   progress: 100,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Dynabox',
   country: 'Hong Kong',
   name: 'HL Touring Seat/Saddle',
@@ -736,7 +736,7 @@ export const data = [{
   progress: 100,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Shuffledrive',
   country: 'Sudan',
   name: 'LL Road Pedal',
@@ -747,7 +747,7 @@ export const data = [{
   progress: 90,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Fivechat',
   country: 'China',
   name: 'ML Road Pedal',
@@ -758,7 +758,7 @@ export const data = [{
   progress: 40,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Meembee',
   country: 'United States',
   name: 'HL Road Pedal',
@@ -769,7 +769,7 @@ export const data = [{
   progress: 20,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Dynazzy',
   country: 'United Kingdom',
   name: 'LL Mountain Seat/Saddle 1',
@@ -780,7 +780,7 @@ export const data = [{
   progress: 100,
   rating: 5
 }, {
-  0: false,
+  checked: false,
   companyName: 'Eare',
   country: 'China',
   name: 'ML Mountain Seat/Saddle 1',
@@ -791,7 +791,7 @@ export const data = [{
   progress: 90,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Yozio',
   country: 'China',
   name: 'HL Mountain Seat/Saddle 1',
@@ -802,7 +802,7 @@ export const data = [{
   progress: 80,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Quinu',
   country: 'Xi\'an',
   name: '425-777-7829',
@@ -813,7 +813,7 @@ export const data = [{
   progress: 90,
   rating: 5
 }, {
-  0: false,
+  checked: false,
   companyName: 'Jazzy',
   country: 'United Kingdom',
   name: 'ML Road Seat/Saddle 1',
@@ -824,7 +824,7 @@ export const data = [{
   progress: 100,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Thoughtsphere',
   country: 'China',
   name: 'HL Road Seat/Saddle 1',
@@ -835,7 +835,7 @@ export const data = [{
   progress: 70,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Leenti',
   country: 'China',
   name: 'ML Road Rear Wheel',
@@ -846,7 +846,7 @@ export const data = [{
   progress: 10,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Quaxo',
   country: 'United Kingdom',
   name: 'HL Road Rear Wheel',
@@ -857,7 +857,7 @@ export const data = [{
   progress: 50,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Tanoodle',
   country: 'Chile',
   name: 'LL Mountain Seat/Saddle 2',
@@ -868,7 +868,7 @@ export const data = [{
   progress: 20,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Feednation',
   country: 'China',
   name: 'ML Mountain Seat/Saddle 2',
@@ -879,7 +879,7 @@ export const data = [{
   progress: 10,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Kayveo',
   country: 'China',
   name: 'HL Mountain Seat/Saddle 2',
@@ -890,7 +890,7 @@ export const data = [{
   progress: 70,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Meevee',
   country: 'Saudi Arabia',
   name: 'LL Road Seat/Saddle 1',
@@ -901,7 +901,7 @@ export const data = [{
   progress: 90,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Twitterworks',
   country: 'China',
   name: 'ML Road Seat/Saddle 2',
@@ -912,7 +912,7 @@ export const data = [{
   progress: 30,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Wikizz',
   country: 'Tanzania',
   name: 'HL Road Seat/Saddle 2',
@@ -923,7 +923,7 @@ export const data = [{
   progress: 30,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Yoveo',
   country: 'United States',
   name: 'LL Mountain Tire',
@@ -934,7 +934,7 @@ export const data = [{
   progress: 20,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Yakidoo',
   country: 'China',
   name: 'ML Mountain Tire',
@@ -945,7 +945,7 @@ export const data = [{
   progress: 80,
   rating: 5
 }, {
-  0: false,
+  checked: false,
   companyName: 'Oyope',
   country: 'China',
   name: 'HL Mountain Tire',
@@ -956,7 +956,7 @@ export const data = [{
   progress: 100,
   rating: 5
 }, {
-  0: false,
+  checked: false,
   companyName: 'Skipstorm',
   country: 'United States',
   name: 'LL Road Tire',
@@ -967,7 +967,7 @@ export const data = [{
   progress: 70,
   rating: 3
 }, {
-  0: false,
+  checked: false,
   companyName: 'Minyx',
   country: 'United States',
   name: 'ML Road Tire',
@@ -978,7 +978,7 @@ export const data = [{
   progress: 100,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Miboo',
   country: 'China',
   name: 'HL Road Tire',
@@ -989,7 +989,7 @@ export const data = [{
   progress: 90,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Realfire',
   country: 'United States',
   name: 'Touring Tire',
@@ -1000,7 +1000,7 @@ export const data = [{
   progress: 50,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Shufflester',
   country: 'China',
   name: 'Mountain Tire Tube',
@@ -1011,7 +1011,7 @@ export const data = [{
   progress: 20,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Ntag',
   country: 'China',
   name: 'Road Tire Tube',
@@ -1022,7 +1022,7 @@ export const data = [{
   progress: 60,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Jabberbean',
   country: 'United States',
   name: 'Touring Tire Tube',
@@ -1033,7 +1033,7 @@ export const data = [{
   progress: 10,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Thoughtblab',
   country: 'China',
   name: 'LL Bottom Bracket',
@@ -1044,7 +1044,7 @@ export const data = [{
   progress: 50,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Jabbertype',
   country: 'China',
   name: 'Classic Vest',
@@ -1055,7 +1055,7 @@ export const data = [{
   progress: 40,
   rating: 2
 }, {
-  0: false,
+  checked: false,
   companyName: 'Buzzshare',
   country: 'United Kingdom',
   name: 'Cycling Cap',
@@ -1066,7 +1066,7 @@ export const data = [{
   progress: 10,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Roodel',
   country: 'United States',
   name: 'Full-Finger Gloves',
@@ -1077,7 +1077,7 @@ export const data = [{
   progress: 60,
   rating: 4
 }, {
-  0: false,
+  checked: false,
   companyName: 'Zoovu',
   country: 'China',
   name: 'Half-Finger Gloves',
@@ -1088,7 +1088,7 @@ export const data = [{
   progress: 60,
   rating: 1
 }, {
-  0: false,
+  checked: false,
   companyName: 'Photofeed',
   country: 'China',
   name: 'HL Mountain Frame',

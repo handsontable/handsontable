@@ -13,14 +13,14 @@ type AddClassesToRows = (
   cellProperties: Handsontable.CellProperties
 ) => void;
 
-export const addClassesToRows: AddClassesToRows = (
+export const addClassesToRows: AddClassesToRows = function(
   TD,
   row,
   column,
   prop,
   value,
   cellProperties
-) => {
+) {
   // Adding classes to `TR` just while rendering first visible `TD` element
   if (column !== 0) {
     return;
@@ -33,7 +33,10 @@ export const addClassesToRows: AddClassesToRows = (
   }
 
   // Add class to selected rows
-  if (cellProperties.instance.getDataAtRowProp(row, '0')) {
+  if (
+    cellProperties.instance.getSourceDataAtCell(row, -1) ||
+    (cellProperties.instance.getDataAtRowProp(row, 'checked') && cellProperties.instance.getSourceDataAtCell(row, -1) === undefined))
+  {
     Handsontable.dom.addClass(parentElement, SELECTED_CLASS);
   } else {
     Handsontable.dom.removeClass(parentElement, SELECTED_CLASS);
@@ -58,13 +61,15 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawC
   TH
 ) {
   const input = document.createElement('input');
-
   input.type = 'checkbox';
-
-  if (row >= 0 && this.getDataAtRowProp(row, '0')) {
+  
+  if (
+    (row >= 0 && (this.getSourceDataAtCell(row, -1))) || 
+    (this.getDataAtRowProp(row, 'checked') && this.getSourceDataAtCell(row, -1) === undefined))
+  {
     input.checked = true;
   }
-
+  
   Handsontable.dom.empty(TH);
 
   TH.appendChild(input);
@@ -96,6 +101,6 @@ export const changeCheckboxCell: ChangeCheckboxCell = function changeCheckboxCel
 
   if (coords.col === -1 && event.target && target.nodeName === 'INPUT') {
     event.preventDefault(); // Handsontable will render checked/unchecked checkbox by it own.
-    this.setDataAtRowProp(coords.row, '0', !target.checked);
+    this.setSourceDataAtCell(coords.row, coords.col, !target.checked);
   }
 };
