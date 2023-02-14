@@ -1,7 +1,7 @@
 /**
  * Run the npm install command for the examples monorepo and all of the framework mini-monorepos.
  */
-import execa from 'execa';
+import { execa } from 'execa';
 import thisPackageJson from '../package.json' assert { type: 'json' };
 import glob from 'glob';
 import yargs from 'yargs';

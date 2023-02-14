@@ -1,6 +1,6 @@
 import psTree from 'ps-tree';
 import { promisify } from 'util';
-import { execa } from 'execa';
+import { execaSync } from 'execa';
 import { BASE_BRANCH, REFERENCE_FRAMEWORK, WRAPPERS } from '../../src/config.mjs';
 
 const psTreePromisified = promisify(psTree);
@@ -26,7 +26,7 @@ export function sleep(delay = 100) {
  */
 export function getCurrentBranchName() {
   return process.env.GITHUB_REF_NAME ||
-    execa.sync('git rev-parse --abbrev-ref HEAD', { shell: true }).stdout;
+    execaSync('git rev-parse --abbrev-ref HEAD', { shell: true }).stdout;
 }
 
 /**

@@ -1,5 +1,5 @@
 import Handsontable from "handsontable";
-import { baseRenderer } from "handsontable/renderers";
+import type { baseRenderer } from "handsontable/renderers";
 
 type AddClassWhenNeeded = (
   td: HTMLTableCellElement,

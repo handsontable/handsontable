@@ -12,8 +12,9 @@
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
-    "start": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "start": "vite",
+    "serve": "http-server dist",
+    "build": "vite build",
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
@@ -23,18 +24,13 @@
     "vue": "2.7.14"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "5.0.8",
-    "@vue/cli-plugin-eslint": "5.0.8",
-    "@vue/cli-service": "5.0.8",
-    "babel-eslint": "10.1.0",
-    "eslint": "^7.5.0",
-    "eslint-plugin-vue": "^7.5.0",
-    "jasmine": "3.7.0",
-    "jasmine-console-reporter": "3.1.0",
-    "puppeteer": "14.3.0",
-    "vue-template-compiler": "2.7.14",
-    "ts-loader": "8.4.0",
-    "typescript": "4.9.5"
+    "@vitejs/plugin-legacy": "^2.0.0",
+    "@vitejs/plugin-vue2": "^1.1.2",
+    "eslint": "^8.5.0",
+    "eslint-plugin-cypress": "^2.12.1",
+    "eslint-plugin-vue": "^9.0.0",
+    "terser": "^5.14.2",
+    "vite": "^3.0.2"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "eslintConfig": {

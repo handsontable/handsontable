@@ -67,7 +67,7 @@
     "global-jsdom": "^8.7.0",
     "moment": "2.29.4",
     "replace-in-file": "^6.1.0",
-    "rimraf": "^4.1.2",
+    "rimraf": "^3.0.2",
     "semver": "^7.3.8",
     "yargs": "^17.6.2"
   },

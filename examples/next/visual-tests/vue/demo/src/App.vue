@@ -4,8 +4,8 @@
   </div>
 </template>
 
-<script>
-import DataGrid from "./components/DataGrid";
+<script lang="ts">
+import DataGrid from "./components/DataGrid.vue";
 
 export default {
   name: "App",

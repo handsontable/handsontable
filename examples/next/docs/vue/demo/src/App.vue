@@ -1,11 +1,11 @@
 <template>
-  <div id="app">
+  <div id="root">
     <DataGrid/>
   </div>
 </template>
 
-<script>
-import DataGrid from "./components/DataGrid";
+<script lang="ts">
+import DataGrid from "./components/DataGrid.vue";
 
 export default {
   name: "App",

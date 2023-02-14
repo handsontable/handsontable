@@ -3,7 +3,7 @@
  * - Installs the examples' dependencies.
  * - Builds all the examples, for each framework that is going to be tested.
  */
-import { execa } from 'execa';
+import { execaCommand } from 'execa';
 import chalk from 'chalk';
 import { getFrameworkList } from './utils/utils.mjs';
 
@@ -16,7 +16,7 @@ const dirs = {
 
 console.log(chalk.green('Installing dependencies for Visual Tests Examples project...'));
 
-await execa.command('npm run examples:install next/visual-tests', {
+await execaCommand('npm run examples:install next/visual-tests', {
   stdout: 'ignore',
   stderr: 'inherit',
   cwd: dirs.monorepoRoot
@@ -30,11 +30,11 @@ for (let i = 0; i < frameworksToTest.length; ++i) {
 
   console.log(chalk.green(`Building "${frameworkName}" examples...`));
 
-  await execa.command(`node --experimental-json-modules ./scripts/swap-package-links.mjs ${packageName}`, {
+  await execaCommand(`node --experimental-json-modules ./scripts/swap-package-links.mjs ${packageName}`, {
     stdio: 'inherit',
     cwd: dirs.monorepoRoot
   });
-  await execa.command('npm run build', {
+  await execaCommand('npm run build', {
     stdout: 'ignore',
     stderr: 'inherit',
     cwd: `${dirs.examples}/${frameworkName}/${dirs.codeToRun}`

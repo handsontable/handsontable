@@ -12,8 +12,10 @@
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
-    "start": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "start": "vite",
+    "serve": "http-server dist",
+    "build": "vite build",
+    "lint": "vue-tsc --noEmit && eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
@@ -23,20 +25,21 @@
     "vue": "2.7.14"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.18.0",
-    "@typescript-eslint/parser": "^4.18.0",
-    "@vue/cli-plugin-eslint": "5.0.8",
-    "@vue/cli-plugin-typescript": "5.0.8",
-    "@vue/cli-service": "5.0.8",
-    "babel-eslint": "10.1.0",
-    "eslint": "^7.5.0",
-    "eslint-plugin-vue": "^7.5.0",
-    "jasmine": "3.7.0",
+    "@rushstack/eslint-patch": "^1.1.0",
+    "@types/node": "^16.11.45",
+    "@vitejs/plugin-legacy": "^2.0.0",
+    "@vitejs/plugin-vue2": "^1.1.2",
+    "@vue/eslint-config-typescript": "^11.0.0",
+    "@vue/tsconfig": "^0.1.3",
+    "eslint-plugin-vue": "^9.0.0",
+    "eslint": "^8.5.0",
     "jasmine-console-reporter": "3.1.0",
+    "jasmine": "3.7.0",
     "puppeteer": "14.3.0",
-    "ts-loader": "8.4.0",
-    "typescript": "4.9.5",
-    "vue-template-compiler": "2.7.14"
+    "terser": "^5.14.2",
+    "typescript": "~4.7.4",
+    "vite": "^3.0.2",
+    "vue-tsc": "^0.38.8"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "eslintConfig": {

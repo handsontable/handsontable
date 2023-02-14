@@ -5,7 +5,7 @@
  * - Takes screenshots and prepares them for upload to an external service (Argos).
  */
 import path from 'path';
-import { execa } from 'execa';
+import { execaCommand } from 'execa';
 import fse from 'fs-extra';
 import chalk from 'chalk';
 import mainPackageJSON from '../package.json' assert { type: 'json' };
@@ -27,7 +27,7 @@ const frameworksToTest = getFrameworkList();
 
 for (let i = 0; i < frameworksToTest.length; i++) {
   const frameworkName = frameworksToTest[i];
-  const localhostProcess = execa.command(`npm run serve -- --port=${EXAMPLES_SERVER_PORT}`, {
+  const localhostProcess = execaCommand(`npm run serve -- --port=${EXAMPLES_SERVER_PORT}`, {
     detached: true,
     stdio: 'ignore',
     windowsHide: true,
@@ -45,7 +45,7 @@ for (let i = 0; i < frameworksToTest.length; i++) {
 
   try {
     if (process.env.CI) {
-      await execa.command('npx playwright test', {
+      await execaCommand('npx playwright test', {
         env: {
           HOT_FRAMEWORK: frameworkName
         },
@@ -66,7 +66,7 @@ for (let i = 0; i < frameworksToTest.length; i++) {
         --reporter=dot \
         --timeout=7000`;
 
-      await execa.command(dockerCommand, { stdio: 'inherit' });
+      await execaCommand(dockerCommand, { stdio: 'inherit' });
     }
   } catch (ex) {
     await killProcess(localhostProcess.pid);

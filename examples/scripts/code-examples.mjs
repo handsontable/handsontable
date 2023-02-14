@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
-import execa from 'execa';
+import { execaSync } from 'execa';
 import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 import rimraf from 'rimraf';
@@ -87,7 +87,7 @@ const runNpmCommandInExample = (exampleDir, command) => {
   console.log(chalk.cyan(`"${command}" STARTED IN DIRECTORY "${exampleDir}"`));
 
   try {
-    execa.sync(command, {
+    execaSync(command, {
       cwd: exampleDir,
       stdio: 'inherit',
       shell: true

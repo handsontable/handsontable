@@ -1,4 +1,4 @@
-import 'global-jsdom/register'
+import globalJsdom from 'global-jsdom';
 import chalk from 'chalk';
 import glob from 'glob';
 import {
@@ -18,6 +18,8 @@ import hotConfig from '../hot.config.js';
  * - UMD (if it's declared under the 'jsdelivr' key in the package.json file or a `umd` key in this function's
  * settings).
  */
+
+globalJsdom();
 
 const packagesInfo = {
   handsontable: {

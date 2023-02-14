@@ -1,5 +1,5 @@
 import Handsontable from "handsontable";
-import { baseRenderer } from "handsontable/renderers";
+import type { baseRenderer } from "handsontable/renderers";
 
 export const starsRenderer: typeof baseRenderer = function(
   this: Handsontable,
