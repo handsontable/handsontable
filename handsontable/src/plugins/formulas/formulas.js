@@ -132,6 +132,13 @@ export class Formulas extends BasePlugin {
     return this.hot.getSettings()[PLUGIN_KEY] ? true : false;
   }
 
+  getTrimmedIndex(indexesType, visualIndex) {
+    const indexesSequence = this.hot[`${indexesType}IndexMapper`].getIndexesSequence();
+    const notTrimmedIndexes = this.hot[`${indexesType}IndexMapper`].getNotTrimmedIndexes();
+
+    return indexesSequence.indexOf(notTrimmedIndexes[visualIndex]);
+  }
+
   /**
    * Enables the plugin functionality for this Handsontable instance.
    */
@@ -185,10 +192,42 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
-    const setMoveFlag = (indexesType) => {
-      return (movedIndexes) => {
-        this[`is${indexesType}SequentialMove`] =
-          movedIndexes.every((movedIndex, i) => movedIndexes[0] === movedIndex + i);
+    const countMovePositions = () => {
+      return (movedIndexes, finalIndex) => {
+        // TODO: Can it be moved to after* hook?
+        this.moves = movedIndexes.map((movedIndex, index) => {
+          const target = finalIndex + index;
+          let offset = 0;
+
+          if (movedIndex < target) {
+            // TODO: Rethink, describe.
+            offset = movedIndexes.filter((movedIndex2, index2) => {
+              return movedIndex2 < finalIndex + index2;
+            }).length;
+          }
+
+          return {
+            from: movedIndex,
+            to: target + offset,
+          };
+        });
+
+        // TODO: Property should be defined for both axes.
+        this.moves.forEach((movedIndex, index) => {
+          const isMovingFromStartToEnd = movedIndex.from < finalIndex + index;
+
+          if (index > 0 && isMovingFromStartToEnd) {
+            const previouslyMoved = this.moves[index - 1].from;
+
+            for (let i = index; i < this.moves.length; i += 1) {
+              if (previouslyMoved < this.moves[i].from) {
+                // Reindexing as shifted some element.
+                this.moves[i].from -= 1;
+                this.moves[i].to -= 1;
+              }
+            }
+          }
+        });
       };
     };
 
@@ -200,7 +239,7 @@ export class Formulas extends BasePlugin {
 
         const newSequence = this.hot[`${indexesType}IndexMapper`].getIndexesSequence();
 
-        if (source === 'update' || (source === 'move' && this[`is${indexesType}SequentialMove`] === false)) {
+        if (source === 'update') {
           const relativeTransformation = this[`${indexesType}IndexesSequence`].map(index => newSequence.indexOf(index));
           const syncMethodName = `set${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}Order`;
 
@@ -221,24 +260,18 @@ export class Formulas extends BasePlugin {
           return;
         }
 
-        if (this[`is${indexesType}SequentialMove`] === false) {
-          return;
-        }
-
-        if (finalIndex > movedIndexes[0]) {
-          finalIndex += 1;
-        }
-
         const syncMethodName = `move${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}s`;
 
-        this.engine[syncMethodName](this.sheetId, movedIndexes[0], movedIndexes.length, finalIndex);
+        this.moves.forEach((move) => {
+          this.engine[syncMethodName](this.sheetId, move.from, 1, move.to);
+        });
       };
     };
 
     this.hot.addHook('afterRowSequenceChange', getIndexesChangeSyncMethod('row'));
     this.hot.addHook('afterColumnSequenceChange', getIndexesChangeSyncMethod('column'));
-    this.hot.addHook('beforeRowMove', setMoveFlag('row'));
-    this.hot.addHook('beforeColumnMove', setMoveFlag('column'));
+    this.hot.addHook('beforeRowMove', countMovePositions('row'));
+    this.hot.addHook('beforeColumnMove', countMovePositions('column'));
     this.hot.addHook('afterRowMove', getIndexMoveSyncMethod('row'));
     this.hot.addHook('afterColumnMove', getIndexMoveSyncMethod('column'));
 
@@ -494,8 +527,8 @@ export class Formulas extends BasePlugin {
   isFormulaCellType(row, column, sheet = this.sheetId) {
     return this.engine.doesCellHaveFormula({
       sheet,
-      row,
-      col: column
+      row: this.getTrimmedIndex('row', row),
+      col: this.getTrimmedIndex('column', column),
     });
   }
 
@@ -709,12 +742,12 @@ export class Formulas extends BasePlugin {
       if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
 
-        const notTrimmedRows = this.hot.rowIndexMapper.getNotTrimmedIndexes();
+        const rowIndexes = this.hot.rowIndexMapper.getIndexesSequence();
         const dependentCells = this.engine.setSheetContent(this.sheetId,
-          notTrimmedRows.map(notTrimmedRow => sourceDataArray[notTrimmedRow]));
+          rowIndexes.map(rowIndex => sourceDataArray[rowIndex]));
 
-        this.rowIndexesSequence = notTrimmedRows;
-        this.columnIndexesSequence = this.hot.columnIndexMapper.getNotTrimmedIndexes();
+        this.rowIndexesSequence = rowIndexes;
+        this.columnIndexesSequence = this.hot.columnIndexMapper.getIndexesSequence();
 
         this.renderDependentSheets(dependentCells);
 
@@ -769,8 +802,8 @@ export class Formulas extends BasePlugin {
 
     // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `DataMap`.
     const address = {
-      row: visualRow,
-      col: column,
+      row: this.getTrimmedIndex('row', visualRow),
+      col: this.getTrimmedIndex('column', column),
       sheet: this.sheetId
     };
     const cellValue = this.engine.getCellValue(address);
