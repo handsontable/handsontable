@@ -246,7 +246,7 @@ describe('Formulas: Integration with other features', () => {
   });
 
   describe('Integration with ManualColumnMove', () => {
-    describe('should move from the left to the right properly', () => {
+    describe('should not move elements for some calls', () => {
       it('#1', () => {
         const hot = handsontable({
           data: [
@@ -289,6 +289,35 @@ describe('Formulas: Integration with other features', () => {
           manualColumnMove: true,
         });
 
+        hot.getPlugin('manualColumnMove').moveColumns([3, 4], 3);
+        hot.render();
+
+        expect(getData()).toEqual([
+          [1, 11, 111, 1111, 1001111],
+          [2, 12, 112, 1112, 1001112],
+          [3, 13, 113, 1113, 1001113],
+          [4, 14, 114, 1114, 1001114],
+          [5, 15, 115, 1115, 1001115],
+        ]);
+      });
+    });
+
+    describe('should move elements from the left to the right properly', () => {
+      it('#1', () => {
+        const hot = handsontable({
+          data: [
+            [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
+            [2, '=A2+10', '=B2+100', '=C2+1000', '=D2+1000000'],
+            [3, '=A3+10', '=B3+100', '=C3+1000', '=D3+1000000'],
+            [4, '=A4+10', '=B4+100', '=C4+1000', '=D4+1000000'],
+            [5, '=A5+10', '=B5+100', '=C5+1000', '=D5+1000000'],
+          ],
+          formulas: {
+            engine: HyperFormula,
+          },
+          manualColumnMove: true,
+        });
+
         hot.getPlugin('manualColumnMove').moveColumns([0, 1], 1);
         hot.render();
 
@@ -301,7 +330,7 @@ describe('Formulas: Integration with other features', () => {
         ]);
       });
 
-      it('#3', () => {
+      it('#2', () => {
         const hot = handsontable({
           data: [
             [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
@@ -328,7 +357,7 @@ describe('Formulas: Integration with other features', () => {
         ]);
       });
 
-      it('#4', () => {
+      it('#3', () => {
         const hot = handsontable({
           data: [
             [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
@@ -355,7 +384,7 @@ describe('Formulas: Integration with other features', () => {
         ]);
       });
 
-      it('#5', () => {
+      it('#4', () => {
         const hot = handsontable({
           data: [
             [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
@@ -382,7 +411,7 @@ describe('Formulas: Integration with other features', () => {
         ]);
       });
 
-      it('#6', () => {
+      it('#5', () => {
         const hot = handsontable({
           data: [
             [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
@@ -409,7 +438,7 @@ describe('Formulas: Integration with other features', () => {
         ]);
       });
 
-      it('#7', () => {
+      it('#6', () => {
         const hot = handsontable({
           data: [
             [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
@@ -534,33 +563,6 @@ describe('Formulas: Integration with other features', () => {
           manualColumnMove: true,
         });
 
-        hot.getPlugin('manualColumnMove').moveColumns([3, 4], 3);
-        hot.render();
-
-        expect(getData()).toEqual([
-          [1, 11, 111, 1111, 1001111],
-          [2, 12, 112, 1112, 1001112],
-          [3, 13, 113, 1113, 1001113],
-          [4, 14, 114, 1114, 1001114],
-          [5, 15, 115, 1115, 1001115],
-        ]);
-      });
-
-      it('#5', () => {
-        const hot = handsontable({
-          data: [
-            [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
-            [2, '=A2+10', '=B2+100', '=C2+1000', '=D2+1000000'],
-            [3, '=A3+10', '=B3+100', '=C3+1000', '=D3+1000000'],
-            [4, '=A4+10', '=B4+100', '=C4+1000', '=D4+1000000'],
-            [5, '=A5+10', '=B5+100', '=C5+1000', '=D5+1000000'],
-          ],
-          formulas: {
-            engine: HyperFormula,
-          },
-          manualColumnMove: true,
-        });
-
         hot.getPlugin('manualColumnMove').moveColumns([2, 4], 0);
         hot.render();
 
@@ -573,7 +575,7 @@ describe('Formulas: Integration with other features', () => {
         ]);
       });
 
-      it('#6', () => {
+      it('#5', () => {
         const hot = handsontable({
           data: [
             [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
@@ -600,7 +602,7 @@ describe('Formulas: Integration with other features', () => {
         ]);
       });
 
-      it('#7', () => {
+      it('#6', () => {
         const hot = handsontable({
           data: [
             [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
