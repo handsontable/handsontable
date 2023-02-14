@@ -246,7 +246,7 @@ describe('Formulas: Integration with other features', () => {
   });
 
   describe('Integration with ManualColumnMove', () => {
-    describe('should move from left to right properly', () => {
+    describe('should move from the left to the right properly', () => {
       it('#1', () => {
         const hot = handsontable({
           data: [
@@ -437,7 +437,7 @@ describe('Formulas: Integration with other features', () => {
       });
     });
 
-    describe('should move from right to left properly', () => {
+    describe('should move elements from the right to the left properly', () => {
       it('#1', () => {
         const hot = handsontable({
           data: [
@@ -600,7 +600,7 @@ describe('Formulas: Integration with other features', () => {
         ]);
       });
 
-      xit('#7', () => {
+      it('#7', () => {
         const hot = handsontable({
           data: [
             [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
@@ -624,6 +624,62 @@ describe('Formulas: Integration with other features', () => {
           [3, 13, 113, 1001113, 1113],
           [4, 14, 114, 1001114, 1114],
           [5, 15, 115, 1001115, 1115],
+        ]);
+      });
+    });
+
+    describe('should move elements, placed on both sides, to the middle properly', () => {
+      it('#1', () => {
+        const hot = handsontable({
+          data: [
+            [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
+            [2, '=A2+10', '=B2+100', '=C2+1000', '=D2+1000000'],
+            [3, '=A3+10', '=B3+100', '=C3+1000', '=D3+1000000'],
+            [4, '=A4+10', '=B4+100', '=C4+1000', '=D4+1000000'],
+            [5, '=A5+10', '=B5+100', '=C5+1000', '=D5+1000000'],
+          ],
+          formulas: {
+            engine: HyperFormula,
+          },
+          manualColumnMove: true,
+        });
+
+        hot.getPlugin('manualColumnMove').moveColumns([2, 4], 3);
+        hot.render();
+
+        expect(getData()).toEqual([
+          [1, 11, 1111, 111, 1001111],
+          [2, 12, 1112, 112, 1001112],
+          [3, 13, 1113, 113, 1001113],
+          [4, 14, 1114, 114, 1001114],
+          [5, 15, 1115, 115, 1001115],
+        ]);
+      });
+
+      it('#2', () => {
+        const hot = handsontable({
+          data: [
+            [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
+            [2, '=A2+10', '=B2+100', '=C2+1000', '=D2+1000000'],
+            [3, '=A3+10', '=B3+100', '=C3+1000', '=D3+1000000'],
+            [4, '=A4+10', '=B4+100', '=C4+1000', '=D4+1000000'],
+            [5, '=A5+10', '=B5+100', '=C5+1000', '=D5+1000000'],
+          ],
+          formulas: {
+            engine: HyperFormula,
+          },
+          manualColumnMove: true,
+        });
+
+        hot.getPlugin('manualColumnMove').moveColumns([0, 3, 4], 1);
+        hot.render();
+
+        expect(getData()).toEqual([
+          [11, 1, 1111, 1001111, 111],
+          [12, 2, 1112, 1001112, 112],
+          [13, 3, 1113, 1001113, 113],
+          [14, 4, 1114, 1001114, 114],
+          [15, 5, 1115, 1001115, 115],
         ]);
       });
     });

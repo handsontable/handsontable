@@ -263,7 +263,9 @@ export class Formulas extends BasePlugin {
         const syncMethodName = `move${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}s`;
 
         this.moves.forEach((move) => {
-          this.engine[syncMethodName](this.sheetId, move.from, 1, move.to);
+          if (move.from !== move.to) {
+            this.engine[syncMethodName](this.sheetId, move.from, 1, move.to);
+          }
         });
       };
     };
