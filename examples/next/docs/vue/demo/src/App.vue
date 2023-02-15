@@ -7,7 +7,7 @@
 <script>
 import DataGrid from "./components/DataGrid";
 
-// trigger example tests32
+// trigger example tests3
 export default {
   name: "App",
   components: {
