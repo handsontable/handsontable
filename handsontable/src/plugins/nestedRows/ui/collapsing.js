@@ -77,7 +77,7 @@ class CollapsingUI extends BaseUI {
       rowIndex = row;
     }
 
-    if (this.dataManager.hasChildren(rowObject)) {
+    if (rowObject && this.dataManager.hasChildren(rowObject)) {
       arrayEach(rowObject.__children, (elem) => {
         rowsToCollapse.push(this.dataManager.getRowIndex(elem));
       });
