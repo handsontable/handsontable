@@ -1,8 +1,8 @@
-/**
- * Visual testing runner and screenshots package builder responsible for following steps:
- * - Runs in the background http-server for each framework example;
- * - Runs visual testing;
- * - Creates and saves screenshots that are ready to upload.
+/*
+ * This script:
+ * - Runs a background `http-server` for each framework example.
+ * - Runs Handsontable's visual tests.
+ * - Takes screenshots and prepares them for upload to an external service (Argos).
  */
 import path from 'path';
 import execa from 'execa';
@@ -22,9 +22,7 @@ const dirs = {
 
 console.log(chalk.green('Running Visual Tests...'));
 
-// If we are on a base branch, we do not want to run all of tests
-// and make screenshots for all of frameworks.
-// On base branch we need to create golden screenshots from main framework only.
+// if we're on the reference branch, we create screenshots for the main framework only
 const frameworksToTest = getFrameworkList();
 
 for (let i = 0; i < frameworksToTest.length; i++) {
@@ -36,7 +34,7 @@ for (let i = 0; i < frameworksToTest.length; i++) {
     cwd: `${dirs.examples}/${frameworkName}/${dirs.codeToRun}`
   });
 
-  // Make sure that the `http-server` has time to load and serve example
+  // make sure that the `http-server` has time to load and serve examples
   await sleep(1000);
 
   if (localhostProcess.exitCode > 0) {
@@ -54,9 +52,9 @@ for (let i = 0; i < frameworksToTest.length; i++) {
         stdout: 'inherit'
       });
     } else {
-      // we need access to `examples` and `virtual-tests` directories,
-      // so here we mount entire HoT directory as a virtual `vtests`
-      // and on start open `visual-tests` in it
+      // we need access to the `examples` and `virtual-tests` directories,
+      // so we mount the entire Handsontable directory as a virtual `vtests` directory,
+      // and then open the `visual-tests` directory inside of `vtests`
       const dockerCommand = `docker run \
         --rm \
         -it \
@@ -81,23 +79,21 @@ for (let i = 0; i < frameworksToTest.length; i++) {
   console.log('');
 }
 
+// the screenshots are ready
 console.log(chalk.green('Done.'));
 
+// if we're on the reference branch, we copy the screenshots to the remaining frameworks
 if (isReferenceBranch()) {
-  // Golden screenshots are already done,
-  // now we need to copy them into rest of frameworks -
-  // external services compares files with the same name and path,
-  // so we have to make this trick to make comparison available.
-  // On other branches we will generate screenshots for frameworks in a "normal" way
-  // and then we will be able to see differences
   if (!fse.existsSync(dirs.screenshots)) {
-    throw new Error(`Directory \`${dirs.screenshots}\` doesn't exists`);
+    throw new Error(`Directory \`${dirs.screenshots}\` doesn't exist.`);
   }
 
   if (!fse.existsSync(`${dirs.screenshots}/${REFERENCE_FRAMEWORK}`)) {
-    throw new Error(`Directory \`${dirs.screenshots}/${REFERENCE_FRAMEWORK}\` doesn't exists`);
+    throw new Error(`Directory \`${dirs.screenshots}/${REFERENCE_FRAMEWORK}\` doesn't exist.`);
   }
 
+  // Argos compares screenshot files of the same name and path,
+  // so we need to make sure the paths are the same
   for (let i = 0; i < WRAPPERS.length; ++i) {
     fse.copySync(
       path.resolve(`${dirs.screenshots}/${REFERENCE_FRAMEWORK}`),
