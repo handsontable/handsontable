@@ -1,39 +1,40 @@
-# Demo
+# HoT Vue3 demo
 
-## Description
+This template should help get you started developing with Vue 3 in Vite.
 
-This is a general purpose demo that showcases the most popular features of Handsontable in Vue 3.
+## Recommended IDE Setup
 
-## How to run this example
+[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
 
-### Installation
+## Type Support for `.vue` Imports in TS
 
-Call `npm install` to install all necessary dependencies.
+TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
 
-### Development
+If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
 
-To start local development server call `npm run start`. Now you can visit http://localhost:8080 to view this project.
+1. Disable the built-in TypeScript Extension
+    1) Run `Extensions: Show Built-in Extensions` from VSCode's command palette
+    2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
+2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
 
-### Testing
+## Customize configuration
 
-In order to run tests for this project call `npm run start` which will launch the development server and after the server is running, call `npm run test` to run test specs.
+See [Vite Configuration Reference](https://vitejs.dev/config/).
 
-### Forking
+## Project Setup
 
-This example is one of many projects in a common repository (monorepo). If you want to modify it, you have two options of forking it:
+```sh
+npm install
+```
 
-1. you can fork this entire repository
-2. you can copy the example into a new repository. We have detailed instructions [here](../../../../README.md#copying-an-example-to-a-separate-repo) ("Copying an example to a separate repo").
+### Compile and Hot-Reload for Development
 
-## License
+```sh
+npm run dev
+```
 
-Handsontable is a commercial software with two licenses available:
+### Type-Check, Compile and Minify for Production
 
-- Free for non-commercial purposes such as teaching, academic research, and evaluation. [Read it here](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).
-- Commercial license with support and maintenance included. See [pricing plans](https://handsontable.com/pricing).
-
-## Technical support
-
-If you have a commercial license and your support plan is active, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
-
-We also support free-tier users through [GitHub issues](https://github.com/handsontable/handsontable/issues).
+```sh
+npm run build
+```
