@@ -78,7 +78,7 @@ const rowsItems = [
   { path: 'guides/rows/row-freezing' },
   { path: 'guides/rows/row-height' },
   { path: 'guides/rows/row-virtualization' },
-  { path: 'guides/rows/row-sorting' },
+  { path: 'guides/rows/rows-sorting' },
   { path: 'guides/rows/row-trimming' },
   { path: 'guides/rows/row-prepopulating' },
 ];
