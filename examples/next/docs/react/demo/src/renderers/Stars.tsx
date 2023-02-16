@@ -7,7 +7,7 @@ const maxAllowedValue = 5;
 
 export const StarsRenderer = (props: HandsontableProps) => {
   let isValid = props.cellProperties.valid;
-  // Run the validator for the cell at initization.
+  // Run the validator for the cell at initialization.
   if (isValid === void 0) {
     (props.cellProperties.validator as Function)(props.value, (isValueValid: boolean) => {
       isValid = isValueValid;
