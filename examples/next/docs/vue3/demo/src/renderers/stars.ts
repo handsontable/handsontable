@@ -1,4 +1,4 @@
-import { baseRenderer } from 'handsontable/renderers';
+import type { baseRenderer } from 'handsontable/renderers';
 import { getRangeValue } from '../utils';
 import { MESSAGE } from '../constants';
 
