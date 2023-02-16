@@ -106,7 +106,7 @@
     "babel-plugin-forbidden-imports": "^0.1.2",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-plugin-transform-require-ignore": "^0.1.1",
-    "chalk": "^5.2.0",
+    "chalk": "^4.1.2",
     "concurrently": "^6.4.0",
     "copy-webpack-plugin": "^6.0.3",
     "cpy-cli": "^3.1.1",
