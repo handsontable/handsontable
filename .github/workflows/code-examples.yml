@@ -150,7 +150,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
-      - run: npm ci --no-audit
 
       - name: Build
         run: |
@@ -181,7 +180,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
-      - run: npm ci --no-audit
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
@@ -217,7 +215,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
-      - run: npm ci --no-audit
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
@@ -253,7 +250,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
-      - run: npm ci --no-audit
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
@@ -289,7 +285,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
-      - run: npm ci --no-audit
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
@@ -353,7 +348,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
-      - run: npm ci --no-audit
 
       # ---------------------------------------------------------
       # --- Only applicable if processing the `next` version. ---
