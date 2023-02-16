@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import { HotTable } from "@handsontable/vue3";
+import { HotTable } from '@handsontable/vue3';
 import { createApp } from 'vue'
 import App from './App.vue'
 

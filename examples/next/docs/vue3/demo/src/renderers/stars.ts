@@ -14,11 +14,14 @@ export const starsRenderer: typeof baseRenderer = function(
   value,
   cellProperties
 ) {
-  if (!value) {
-    value = 0;
-  }
+  let isValid = cellProperties.valid;
 
-  const isValid = /^\d+$/.test(value.toString());
+  // Run the validator for the cell at initialization.
+  if (isValid === void 0) {
+    (cellProperties.validator as Function)(value, (isValueValid: boolean) => {
+      isValid = isValueValid;
+    });
+  }
 
   if (!isValid) {
     td.innerHTML = `<div class="error"> ${MESSAGE?.BAD_VALUE} </div>`;

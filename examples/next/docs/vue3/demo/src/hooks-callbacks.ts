@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import type { RowObject } from 'handsontable/types/common';
 
 import {
   SELECTED_CLASS,
@@ -33,10 +34,10 @@ export const addClassesToRows: AddClassesToRows = (
     return;
   }
 
-  const rowData = cellProperties.instance.getSourceDataAtRow(row) as { checked: boolean };
+  const rowData = cellProperties.instance.getSourceDataAtRow(row) as RowObject;
 
   // Add class to selected rows
-  if (!!rowData?.checked) {
+  if (rowData?.checked) {
     Handsontable.dom.addClass(parentElement, SELECTED_CLASS);
   } else {
     Handsontable.dom.removeClass(parentElement, SELECTED_CLASS);
@@ -61,7 +62,7 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawC
   TH
 ) {
   const input = document.createElement('input');
-  const rowData = this.getSourceDataAtRow(row) as { checked: boolean };
+  const rowData = this.getSourceDataAtRow(row) as RowObject;
   
   input.type = 'checkbox';
   input.checked = !!rowData?.checked;
