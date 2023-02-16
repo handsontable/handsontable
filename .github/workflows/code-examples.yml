@@ -120,14 +120,15 @@ jobs:
         uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # https://github.com/actions/setup-node/releases/tag/v3.5.1
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
-        with:
-          path: ${{ env.NODE_MODULES_PATHS }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+      # - uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # https://github.com/actions/cache/releases/tag/v3.0.11
+      #   with:
+      #     path: ${{ env.NODE_MODULES_PATHS }}
+      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-node-
       - name: Build
         run: |
+          npm ci
           cd handsontable
           npm run build:umd && npm run build:languages
           npm run build:umd.min && npm run build:languages.min
