@@ -74,9 +74,9 @@ export default defineComponent({
         'Country'
       ]"
       :dropdownMenu=true
-      :hiddenColumns='{
+      :hiddenColumns="{
         indicators: true
-      }'
+      }"
       :contextMenu=true
       :multiColumnSorting=true
       :filters=true
