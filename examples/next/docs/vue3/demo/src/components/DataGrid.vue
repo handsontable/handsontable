@@ -130,7 +130,6 @@ table.htCore {
   td .progressBar {
     background: #37bc6c;
     height: 10px;
-    transform: translate(0, 50%);
   }
 
   td .star {

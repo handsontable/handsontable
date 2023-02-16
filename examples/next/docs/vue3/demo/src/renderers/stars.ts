@@ -1,19 +1,23 @@
-import type { baseRenderer } from 'handsontable/renderers';
+import { baseRenderer } from 'handsontable/renderers';
 import { getRangeValue } from '../utils';
 import { MESSAGE } from '../constants';
 
 const minAllowedValue = 0;
 const maxAllowedValue = 5;
 
-export const starsRenderer: typeof baseRenderer = function(
-  instance,
-  td,
-  row,
-  column,
-  prop,
-  value,
-  cellProperties
-) {
+export const starsRenderer: typeof baseRenderer = (...args) => {
+  const [
+    instance,
+    td,
+    row,
+    column,
+    prop,
+    value,
+    cellProperties
+  ] = args;
+
+  baseRenderer(...args);
+
   let isValid = cellProperties.valid;
 
   // Run the validator for the cell at initialization.
