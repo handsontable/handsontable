@@ -43,7 +43,7 @@ on:
 
 env:
   NODE_VERSION: 16
-  PACKAGE_LOCKS_PATHS: |
+  PACKAGE_LOCK_PATHS: |
     package-lock.json
     handsontable/package-lock.json
     wrappers/angular/package-lock.json
@@ -62,6 +62,15 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # https://github.com/actions/checkout/releases/tag/v3.1.0
         with:
           fetch-depth: 2
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # https://github.com/actions/setup-node/releases/tag/v3.6.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
+      - run: npm ci --no-audit
+
       - id: get-dispatch-value
         run: echo "matrix=${{ format('[\"{0}\"]', github.event.inputs.hotVersion) }}" >> $GITHUB_OUTPUT
         if: github.event_name == 'workflow_dispatch'
@@ -110,7 +119,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: ${{ env.PACKAGE_LOCKS_PATHS }}
+          cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
       - run: npm ci --no-audit
 
       - name: Build
@@ -140,7 +149,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: ${{ env.PACKAGE_LOCKS_PATHS }}
+          cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
       - run: npm ci --no-audit
 
       - name: Build
@@ -171,7 +180,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: ${{ env.PACKAGE_LOCKS_PATHS }}
+          cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
       - run: npm ci --no-audit
 
       - name: Download the Handsontable build artifact
@@ -207,7 +216,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: ${{ env.PACKAGE_LOCKS_PATHS }}
+          cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
       - run: npm ci --no-audit
 
       - name: Download the Handsontable build artifact
@@ -243,7 +252,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: ${{ env.PACKAGE_LOCKS_PATHS }}
+          cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
       - run: npm ci --no-audit
 
       - name: Download the Handsontable build artifact
@@ -279,7 +288,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: ${{ env.PACKAGE_LOCKS_PATHS }}
+          cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
       - run: npm ci --no-audit
 
       - name: Download the Handsontable build artifact
@@ -343,7 +352,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: ${{ env.PACKAGE_LOCKS_PATHS }}
+          cache-dependency-path: ${{ env.PACKAGE_LOCK_PATHS }}
       - run: npm ci --no-audit
 
       # ---------------------------------------------------------
