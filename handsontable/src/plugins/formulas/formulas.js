@@ -246,7 +246,7 @@ export class Formulas extends BasePlugin {
             to: moveLine,
           };
 
-          // Moved element from left to right.
+          // Moved element from right to left.
           if (movedIndex >= moveLine) {
             moveLine += 1;
           }
@@ -255,17 +255,29 @@ export class Formulas extends BasePlugin {
         });
 
         moves.forEach((move, index) => {
-          moves.slice(index + 1).forEach((nextMovedIndex) => {
+          const nextMoved = moves.slice(index + 1);
+          const prevMoved = moves.slice(0, index);
+
+          nextMoved.forEach((nextMovedIndex) => {
             if (nextMovedIndex.from > move.from && nextMovedIndex.from < nextMovedIndex.to) {
-              nextMovedIndex.from = nextMovedIndex.from - 1;
+              nextMovedIndex.from -= 1;
             }
 
             return nextMovedIndex;
           });
+
+          prevMoved.forEach((previouslyMovedIndex, nrOfPreviouslyMoved) => {
+            if (previouslyMovedIndex.from > move.from && previouslyMovedIndex.from > previouslyMovedIndex.to) {
+              [move].concat(nextMoved).slice(nrOfPreviouslyMoved).forEach((nextMovedIndex) => {
+                nextMovedIndex.from += 1;
+              });
+            }
+
+            return previouslyMovedIndex;
+          });
         });
 
         moves.forEach((move) => {
-          console.log(`${move.from} => ${move.to}`);
           if (move.from !== move.to) {
             this.engine[syncMethodName](this.sheetId, move.from, 1, move.to);
           }
