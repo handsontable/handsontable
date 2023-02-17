@@ -228,22 +228,26 @@ export class Formulas extends BasePlugin {
         }
 
         const syncMethodName = `move${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}s`;
+        const numberOfElements = this.hot.columnIndexMapper.getNumberOfIndexes();
+        const notMovedElements = Array.from(Array(numberOfElements).keys())
+          .filter(index => movedIndexes.includes(index) === false);
+        let moveLine;
 
-        let moveLine = finalIndex;
+        if (finalIndex === 0) {
+          moveLine = notMovedElements[finalIndex];
 
-        // Adding number of shifted elements from left to right.
-        moveLine += movedIndexes.filter((movedIndex, index) => {
-          return movedIndex < finalIndex + index;
-        }).length;
+        } else {
+          moveLine = notMovedElements[finalIndex - 1] + 1;
+        }
 
-        const moves = movedIndexes.map((movedIndex, index) => {
+        const moves = movedIndexes.map((movedIndex) => {
           const move = {
             from: movedIndex,
             to: moveLine,
           };
 
           // Moved element from left to right.
-          if (movedIndex >= finalIndex + index) {
+          if (movedIndex >= moveLine) {
             moveLine += 1;
           }
 
@@ -261,6 +265,7 @@ export class Formulas extends BasePlugin {
         });
 
         moves.forEach((move) => {
+          console.log(`${move.from} => ${move.to}`);
           if (move.from !== move.to) {
             this.engine[syncMethodName](this.sheetId, move.from, 1, move.to);
           }
