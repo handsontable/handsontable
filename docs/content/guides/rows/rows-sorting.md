@@ -1643,7 +1643,7 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  className: 'handsontable1',
+  className: 'custom-sort-icon-1',
   columnSorting: {
     initialConfig: {
       column: 1,
@@ -1656,8 +1656,8 @@ const handsontableInstance = new Handsontable(container, {
 
 ```css
 /* custom sort icon for both ascending and descending order */
-.handsontable1 span.colHeader.columnSorting.ascending::before,
-.handsontable1 span.colHeader.columnSorting.descending::before {
+.custom-sort-icon-1 span.colHeader.columnSorting.ascending::before,
+.custom-sort-icon-1 span.colHeader.columnSorting.descending::before {
   background-image: url("../../../img/custom_sort_icon.png") !important;
   /* minor adjustments, as the custom icon has a different size than the original */
   top: 12px;
@@ -1668,7 +1668,7 @@ const handsontableInstance = new Handsontable(container, {
 }
 
 /* same icon as for ascending order, but pointed downward – rotated 180 degrees */
-.handsontable1 span.colHeader.columnSorting.descending:before {
+.custom-sort-icon-1 span.colHeader.columnSorting.descending:before {
   top: 16px;
   transform: rotate(180deg);
 }
@@ -1782,7 +1782,7 @@ export const HandsontableComponent = () => {
           sortOrder: 'desc',
         },
       }}
-      className="handsontable1"
+      className="custom-sort-icon-1"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1795,8 +1795,8 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example6'));
 
 ```css
 /* custom sort icon for both ascending and descending order */
-.handsontable1 span.colHeader.columnSorting.ascending::before,
-.handsontable1 span.colHeader.columnSorting.descending::before {
+.custom-sort-icon-1 span.colHeader.columnSorting.ascending::before,
+.custom-sort-icon-1 span.colHeader.columnSorting.descending::before {
   background-image: url("../../../img/custom_sort_icon.png") !important;
   /* minor adjustments, as the custom icon has a different size than the original */
   top: 12px;
@@ -1807,7 +1807,7 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example6'));
 }
 
 /* same icon as for ascending order, but pointed downward – rotated 180 degrees */
-.handsontable1 span.colHeader.columnSorting.descending:before {
+.custom-sort-icon-1 span.colHeader.columnSorting.descending:before {
   top: 16px;
   transform: rotate(180deg);
 }
@@ -1916,7 +1916,7 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  className: 'handsontable2',
+  className: 'custom-sort-icon-2',
   columnSorting: {
     initialConfig: {
       column: 1,
@@ -1929,13 +1929,13 @@ const handsontableInstance = new Handsontable(container, {
 
 ```css
 /* the icon for ascending order */
-.handsontable2 span.colHeader.columnSorting.ascending::before {
+.custom-sort-icon-2 span.colHeader.columnSorting.ascending::before {
   content: '△';
   background-image: none !important;
 }
 
 /* the icon for descending order */
-.handsontable2 span.colHeader.columnSorting.descending::before {
+.custom-sort-icon-2 span.colHeader.columnSorting.descending::before {
   content: '▽';
   background-image: none !important;
 }
@@ -2049,7 +2049,7 @@ export const HandsontableComponent = () => {
           sortOrder: 'desc',
         },
       }}
-      className="handsontable2"
+      className="custom-sort-icon-2"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -2062,13 +2062,13 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example7'));
 
 ```css
 /* the icon for ascending order */
-.handsontable2 span.colHeader.columnSorting.ascending::before {
+.custom-sort-icon-2 span.colHeader.columnSorting.ascending::before {
   content: '△';
   background-image: none !important;
 }
 
 /* the icon for descending order */
-.handsontable2 span.colHeader.columnSorting.descending::before {
+.custom-sort-icon-2 span.colHeader.columnSorting.descending::before {
   content: '▽';
   background-image: none !important;
 }
@@ -2080,17 +2080,29 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example7'));
 
 ## Add a custom comparator
 
-To implement your own [compare function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#description), use the [`compareFunctionFactory`](@/api/options.md#columnsorting) option.
+A comparator is a function that determines the final sort order, based on specified criteria.
+
+Adding a custom comparator lets you go beyond Handsontable's built-in sorting features:
+- Apply a custom sort order. For example, instead of sorting data alphabetically or numerically, you can sort it by length or by the occurrence of a specific character.
+- Handle exceptions. For example, in a list of employees, you could exclude workers of a specific job title from sorting.
+- Implement a custom sorting logic based on your own criteria.
+
+To add a custom comparator, use the [`compareFunctionFactory`](@/api/options.md#columnsorting) option.
 
 ::: only-for javascript
 
 ```js
 const configurationOptions = {
   columnSorting: {
-    compareFunctionFactory(sortOrder, columnMeta) {
+    compareFunctionFactory: function(sortOrder, columnMeta) {
       return function(value, nextValue) {
-        // here, add a compare function
-        // that returns `-1`, or `0`, or `1`
+        if (`value` is less than `nextValue` by some ordering criterion) {
+          return -1;
+        }
+        if (`value` is greater than `nextValue` by the same ordering criterion) {
+          return 1;
+        }
+        return 0;
       }
     },
   },
