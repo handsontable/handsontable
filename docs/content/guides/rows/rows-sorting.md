@@ -2082,9 +2082,9 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example7'));
 
 A comparator is a function that determines the final sort order, based on specified criteria.
 
-Adding a custom comparator lets you go beyond Handsontable's built-in sorting features:
+Adding a custom comparator lets you go beyond Handsontable's built-in sorting features. You can:
 - Apply a custom sort order. For example, instead of sorting data alphabetically or numerically, you can sort it by length or by the occurrence of a specific character.
-- Handle exceptions. For example, in a list of employees, you could exclude workers of a specific job title from sorting.
+- Handle exceptions. For example, in a list of employees, you can exclude workers with a specific job title from sorting.
 - Implement a custom sorting logic based on your own criteria.
 
 To add a custom comparator, use the [`compareFunctionFactory`](@/api/options.md#columnsorting) option.
@@ -2095,6 +2095,7 @@ To add a custom comparator, use the [`compareFunctionFactory`](@/api/options.md#
 const configurationOptions = {
   columnSorting: {
     compareFunctionFactory: function(sortOrder, columnMeta) {
+      // implement your own comparator
       return function(value, nextValue) {
         if (`value` is less than `nextValue` by some ordering criterion) {
           return -1;
@@ -2116,12 +2117,17 @@ const configurationOptions = {
 ```jsx
 <HotTable
   columnSorting={{
-    // implement your own comparator
-    compareFunctionFactory(sortOrder, columnMeta) {
+    compareFunctionFactory: function(sortOrder, columnMeta) {
+      // implement your own comparator
       return function(value, nextValue) {
-        // here, add a compare function
-        // that returns `-1`, or `0`, or `1`
-      },
+        if (`value` is less than `nextValue` by some ordering criterion) {
+          return -1;
+        }
+        if (`value` is greater than `nextValue` by the same ordering criterion) {
+          return 1;
+        }
+        return 0;
+      }
     },
   }}
 />
