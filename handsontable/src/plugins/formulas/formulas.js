@@ -194,40 +194,7 @@ export class Formulas extends BasePlugin {
 
     const countMovePositions = () => {
       return (movedIndexes, finalIndex) => {
-        // TODO: Can it be moved to after* hook?
-        this.moves = movedIndexes.map((movedIndex, index) => {
-          const target = finalIndex + index;
-          let offset = 0;
-
-          if (movedIndex < target) {
-            // TODO: Rethink, describe.
-            offset = movedIndexes.filter((movedIndex2, index2) => {
-              return movedIndex2 < finalIndex + index2;
-            }).length;
-          }
-
-          return {
-            from: movedIndex,
-            to: target + offset,
-          };
-        });
-
-        // TODO: Property should be defined for both axes.
-        this.moves.forEach((movedIndex, index) => {
-          const isMovingFromStartToEnd = movedIndex.from < finalIndex + index;
-
-          if (index > 0 && isMovingFromStartToEnd) {
-            const previouslyMoved = this.moves[index - 1].from;
-
-            for (let i = index; i < this.moves.length; i += 1) {
-              if (previouslyMoved < this.moves[i].from) {
-                // Reindexing as shifted some element.
-                this.moves[i].from -= 1;
-                this.moves[i].to -= 1;
-              }
-            }
-          }
-        });
+        this.from = this.hot.columnIndexMapper.getIndexesSequence();
       };
     };
 
@@ -262,7 +229,38 @@ export class Formulas extends BasePlugin {
 
         const syncMethodName = `move${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}s`;
 
-        this.moves.forEach((move) => {
+        let moveLine = finalIndex;
+
+        // Adding number of shifted elements from left to right.
+        moveLine += movedIndexes.filter((movedIndex, index) => {
+          return movedIndex < finalIndex + index;
+        }).length;
+
+        const moves = movedIndexes.map((movedIndex, index) => {
+          const move = {
+            from: movedIndex,
+            to: moveLine,
+          };
+
+          // Moved element from left to right.
+          if (movedIndex >= finalIndex + index) {
+            moveLine += 1;
+          }
+
+          return move;
+        });
+
+        moves.forEach((move, index) => {
+          moves.slice(index + 1).forEach((nextMovedIndex) => {
+            if (nextMovedIndex.from > move.from && nextMovedIndex.from < nextMovedIndex.to) {
+              nextMovedIndex.from = nextMovedIndex.from - 1;
+            }
+
+            return nextMovedIndex;
+          });
+        });
+
+        moves.forEach((move) => {
           if (move.from !== move.to) {
             this.engine[syncMethodName](this.sheetId, move.from, 1, move.to);
           }
