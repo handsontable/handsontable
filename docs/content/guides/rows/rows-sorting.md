@@ -666,7 +666,8 @@ const configurationOptions = {
 
 ## Sort different types of data
 
-Handsontable automatically sorts different types of data, such as text, numbers, dates, and more. Just configure each column's [`type`](@/api/options.md#type).
+Handsontable automatically sorts different [types of data](@/guides/cell-types/cell-type.md#available-cell-types),
+based on which [`type`](@/api/options.md#type) you configure for each column.
 
 ::: only-for javascript
 
@@ -696,7 +697,17 @@ const configurationOptions = {
 
 :::
 
-This demo uses a different [`type`](@/api/options.md#type) in each column.
+You can configure the following types:
+- [`text`](@/guides/cell-types/cell-type.md) gets sorted by default, so you don't have to configure it.
+- [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
+- [`checkbox`](@/guides/cell-types/checkbox-cell-type.md)
+- [`date`](@/guides/cell-types/date-cell-type.md)
+- [`dropdown`](@/guides/cell-types/dropdown-cell-type.md)
+- [`handsontable`](@/guides/cell-types/handsontable-cell-type.md)
+- [`numeric`](@/guides/cell-types/numeric-cell-type.md)
+- [`password`](@/guides/cell-types/password-cell-type.md)
+- [`select`](@/guides/cell-types/select-cell-type.md)
+- [`time`](@/guides/cell-types/time-cell-type.md)
 
 ::: only-for javascript
 
@@ -1245,9 +1256,9 @@ const configurationOptions = {
 
 ## Set an initial sort order
 
-You can set a default sort order that's applied every time Handsontable is launched.
+You can set a default sort order that's applied every time you initialize Handsontable.
 
-In this demo, the data is initially sorted:
+In the following demo, the data is initially sorted:
 - By the **Brand** column, in ascending order.
 - By the **Model** column, in descending order.
 
@@ -1647,7 +1658,7 @@ const handsontableInstance = new Handsontable(container, {
 /* custom sort icon for both ascending and descending order */
 .handsontable1 span.colHeader.columnSorting.ascending::before,
 .handsontable1 span.colHeader.columnSorting.descending::before {
-  background-image: url("https://cdn-icons-png.flaticon.com/512/130/130906.png") !important;
+  background-image: url("../../../img/custom_sort_icon.png") !important;
   /* minor adjustments, as the custom icon has a different size than the original */
   top: 12px;
   right: -35px;
@@ -1786,7 +1797,7 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example6'));
 /* custom sort icon for both ascending and descending order */
 .handsontable1 span.colHeader.columnSorting.ascending::before,
 .handsontable1 span.colHeader.columnSorting.descending::before {
-  background-image: url("https://cdn-icons-png.flaticon.com/512/130/130906.png") !important;
+  background-image: url("../../../img/custom_sort_icon.png") !important;
   /* minor adjustments, as the custom icon has a different size than the original */
   top: 12px;
   right: -35px;
@@ -2895,7 +2906,7 @@ const exclude = () => {
 ```
 :::
 
-In this demo, click on any column name. The rows get sorted, but the the first row and the last row stay in place.
+In the following demo, click on any column name. The rows get sorted, but the the first row and the last row stay in place.
 
 ::: only-for javascript
 
