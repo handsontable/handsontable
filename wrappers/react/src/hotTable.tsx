@@ -3,6 +3,7 @@ import Handsontable from 'handsontable/base';
 import { SettingsMapper } from './settingsMapper';
 import { PortalManager } from './portalManager';
 import { HotColumn } from './hotColumn';
+import { EditorHolder } from './editorHolder';
 import * as packageJson from '../package.json';
 import {
   HotTableProps,
@@ -14,14 +15,11 @@ import {
   HOT_DESTROYED_WARNING,
   AUTOSIZE_WARNING,
   GLOBAL_EDITOR_SCOPE,
-  createEditorPortal,
   createPortal,
   getChildElementByType,
   getContainerAttributesProps,
   getExtendedEditorElement,
   getOriginalEditorClass,
-  addUnsafePrefixes,
-  removeEditorContainers,
   warn
 } from './helpers';
 import PropTypes from 'prop-types';
@@ -101,14 +99,6 @@ class HotTable extends React.Component<HotTableProps, {}> {
   portalCacheArray: React.ReactPortal[] = [];
 
   /**
-   * Global editor portal cache.
-   *
-   * @private
-   * @type {React.ReactPortal}
-   */
-  private globalEditorPortal: React.ReactPortal = null;
-
-  /**
    * The rendered cells cache.
    *
    * @private
@@ -132,18 +122,6 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @type {Map}
    */
   private componentRendererColumns: Map<number | string, boolean> = new Map();
-
-  /**
-   * HotTable class constructor.
-   *
-   * @param {HotTableProps} props Component props.
-   * @param {*} [context] Component context.
-   */
-  constructor(props: HotTableProps, context?: any) {
-    super(props, context);
-
-    addUnsafePrefixes(this);
-  }
 
   /**
    * Package version getter.
@@ -206,35 +184,11 @@ class HotTable extends React.Component<HotTableProps, {}> {
   }
 
   /**
-   * Get the global editor portal property.
-   *
-   * @return {React.ReactPortal} The global editor portal.
-   */
-  getGlobalEditorPortal(): React.ReactPortal {
-    return this.globalEditorPortal;
-  }
-
-  /**
-   * Set the private editor portal cache property.
-   *
-   * @param {React.ReactPortal} portal Global editor portal.
-   */
-  setGlobalEditorPortal(portal: React.ReactPortal): void {
-    this.globalEditorPortal = portal;
-  }
-
-  /**
    * Clear both the editor and the renderer cache.
    */
   clearCache(): void {
-    const renderedCellCache = this.getRenderedCellCache();
-
-    this.setGlobalEditorPortal(null);
-    removeEditorContainers(this.getOwnerDocument());
     this.getEditorCache().clear();
-
-    renderedCellCache.clear();
-
+    this.getRenderedCellCache().clear();
     this.componentRendererColumns.clear();
   }
 
@@ -282,7 +236,6 @@ class HotTable extends React.Component<HotTableProps, {}> {
           value,
           cellProperties,
           isRenderer: true
-        }, () => {
         }, TD.ownerDocument);
 
         while (TD.firstChild) {
@@ -370,32 +323,16 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @returns {React.ReactElement} React renderer component element.
    */
   getGlobalRendererElement(): React.ReactElement {
-    const hotTableSlots: React.ReactNode = this.props.children;
-
-    return getChildElementByType(hotTableSlots, 'hot-renderer');
+    return getChildElementByType(this.props.children, 'hot-renderer');
   }
 
   /**
    * Get the editor element for the entire HotTable instance.
    *
-   * @param {React.ReactNode} [children] Children of the HotTable instance. Defaults to `this.props.children`.
    * @returns {React.ReactElement} React editor component element.
    */
-  getGlobalEditorElement(children: React.ReactNode = this.props.children): HotEditorElement | null {
-    return getExtendedEditorElement(children, this.getEditorCache());
-  }
-
-  /**
-   * Create the global editor portal and its destination HTML element if needed.
-   *
-   * @param {React.ReactNode} [children] Children of the HotTable instance. Defaults to `this.props.children`.
-   */
-  createGlobalEditorPortal(children: React.ReactNode = this.props.children): void {
-    const globalEditorElement: HotEditorElement = this.getGlobalEditorElement(children);
-
-    if (globalEditorElement) {
-      this.setGlobalEditorPortal(createEditorPortal(this.getOwnerDocument(), globalEditorElement, this.getEditorCache()));
-    }
+  getGlobalEditorElement(): HotEditorElement | null {
+    return getExtendedEditorElement(this.props.children, this.getEditorCache());
   }
 
   /**
@@ -503,31 +440,16 @@ class HotTable extends React.Component<HotTableProps, {}> {
   ------- React lifecycle methods -------
   ---------------------------------------
   */
-
-  /**
-   * Logic performed before the mounting of the component.
-   */
-  componentWillMount(): void {
-    this.clearCache();
-    this.createGlobalEditorPortal();
-  }
-
   /**
    * Initialize Handsontable after the component has mounted.
    */
   componentDidMount(): void {
-    const hotTableComponent = this;
     const newGlobalSettings = this.createNewGlobalSettings();
 
     this.hotInstance = new Handsontable.Core(this.hotElementRef, newGlobalSettings);
 
-    this.hotInstance.addHook('beforeViewRender', function (isForced) {
-      hotTableComponent.handsontableBeforeViewRender();
-    });
-
-    this.hotInstance.addHook('afterViewRender', function () {
-      hotTableComponent.handsontableAfterViewRender();
-    });
+    this.hotInstance.addHook('beforeViewRender', () => this.handsontableBeforeViewRender());
+    this.hotInstance.addHook('afterViewRender', () => this.handsontableAfterViewRender());
 
     // `init` missing in Handsontable's type definitions.
     (this.hotInstance as any).init();
@@ -536,21 +458,12 @@ class HotTable extends React.Component<HotTableProps, {}> {
   }
 
   /**
-   * Logic performed before the component update.
-   */
-  componentWillUpdate(nextProps: Readonly<HotTableProps>, nextState: Readonly<{}>, nextContext: any): void {
-    this.clearCache();
-    removeEditorContainers(this.getOwnerDocument());
-    this.createGlobalEditorPortal(nextProps.children);
-  }
-
-  /**
    * Logic performed after the component update.
    */
   componentDidUpdate(): void {
     const newGlobalSettings = this.createNewGlobalSettings();
-    this.updateHot(newGlobalSettings);
 
+    this.updateHot(newGlobalSettings);
     this.displayAutoSizeWarning(newGlobalSettings);
   }
 
@@ -558,18 +471,18 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Destroy the Handsontable instance when the parent component unmounts.
    */
   componentWillUnmount(): void {
+    this.clearCache();
+
     if (this.hotInstance) {
       this.hotInstance.destroy();
     }
-
-    removeEditorContainers(this.getOwnerDocument());
   }
 
   /**
    * Render the component.
    */
   render(): React.ReactElement {
-    const {id, className, style} = getContainerAttributesProps(this.props);
+    const containerProps = getContainerAttributesProps(this.props);
     const isHotColumn = (childNode: any) => childNode.type === HotColumn;
     let children = React.Children.toArray(this.props.children);
 
@@ -593,13 +506,11 @@ class HotTable extends React.Component<HotTableProps, {}> {
       } as object);
     });
 
-    // add the global editor to the list of children
-    childClones.push(this.getGlobalEditorPortal());
-
     return (
       <React.Fragment>
-        <div ref={this.setHotElementRef.bind(this)} id={id} className={className} style={style}>
+        <div ref={this.setHotElementRef.bind(this)} {...containerProps}>
           {childClones}
+          <EditorHolder editorElement={this.getGlobalEditorElement()}></EditorHolder>
         </div>
         <PortalManager ref={this.setPortalManagerRef.bind(this)}></PortalManager>
       </React.Fragment>
