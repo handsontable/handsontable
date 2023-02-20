@@ -298,7 +298,6 @@ class Scroll {
    */
   getLastVisibleColumn() {
     const {
-      wtSettings,
       inlineStartOverlay,
       wtTable,
       wtViewport,
@@ -309,33 +308,18 @@ class Scroll {
     let lastVisibleColumn = wtTable.getLastVisibleColumn();
 
     if (inlineStartOverlay.mainTableScrollableElement === rootWindow) {
-      const isRtl = wtSettings.getSetting('rtlMode');
-      let inlineStartRootElementOffset = null;
-
-      if (isRtl) {
-        const tableRect = wtTable.TABLE.getBoundingClientRect();
-        const rootDocument = this.dataAccessObject.rootWindow.document;
-        const docOffsetWidth = rootDocument.documentElement.offsetWidth;
-
-        inlineStartRootElementOffset = Math.abs(tableRect.right - docOffsetWidth);
-
-      } else {
-        const rootElementOffset = offset(wtTable.wtRootElement);
-
-        inlineStartRootElementOffset = rootElementOffset.left;
-      }
-
+      const rootElementOffset = offset(wtTable.wtRootElement);
       const windowScrollLeft = Math.abs(getScrollLeft(rootWindow, rootWindow));
 
       // Only calculate lastVisibleColumn when table didn't filled (from right) whole viewport space
-      if (inlineStartRootElementOffset > windowScrollLeft) {
+      if (rootElementOffset.left > windowScrollLeft) {
         const windowWidth = innerWidth(rootWindow);
         let columnsWidth = wtViewport.getRowHeaderWidth();
 
         for (let column = 1; column <= totalColumns; column++) {
           columnsWidth += inlineStartOverlay.sumCellSizes(column - 1, column);
 
-          if (inlineStartRootElementOffset + columnsWidth - windowScrollLeft >= windowWidth) {
+          if (rootElementOffset.left + columnsWidth - windowScrollLeft >= windowWidth) {
             // Return physical column - 1 (-2 because rangeEach gives column index + 1 - sumCellSizes requirements)
             lastVisibleColumn = column - 2;
             break;
