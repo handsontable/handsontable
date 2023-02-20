@@ -134,6 +134,7 @@ class ViewportRowsCalculator {
 
     if (mostBottomScrollOffset < 0 || scrollOffset > startPositions.at(-1) + rowOffset) {
       this.isInViewport = false;
+
     } else {
       this.isInViewport = true;
     }

@@ -380,6 +380,7 @@ class Viewport {
       stretchingItemWidthFn: (stretchedWidth, column) => {
         return wtSettings.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column);
       },
+      inlineStartOffset: this.dataAccessObject.inlineStartParentOffset
     });
   }
 
@@ -484,6 +485,7 @@ class Viewport {
 
     } else if (endColumn > renderedEndColumn ||
               (endColumn === renderedEndColumn && endColumn < this.wtSettings.getSetting('totalColumns') - 1)) {
+
       return false;
     }
 
