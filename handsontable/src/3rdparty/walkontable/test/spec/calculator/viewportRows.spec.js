@@ -44,7 +44,7 @@ describe('Walkontable viewport rows calculator', () => {
 
       window.scrollBy(0, tableOffset + (tableHeight / 2));
 
-      await sleep(100);
+      await sleep(200);
 
       expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(true);
       expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(true);
@@ -52,7 +52,7 @@ describe('Walkontable viewport rows calculator', () => {
 
       window.scrollBy(0, (tableHeight / 2) - 1);
 
-      await sleep(100);
+      await sleep(200);
 
       expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(true);
       expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(false);
@@ -60,7 +60,7 @@ describe('Walkontable viewport rows calculator', () => {
 
       window.scrollBy(0, 1);
 
-      await sleep(100);
+      await sleep(200);
 
       expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(false);
       expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(false);
@@ -68,7 +68,7 @@ describe('Walkontable viewport rows calculator', () => {
 
       window.scrollBy(0, 1000);
 
-      await sleep(100);
+      await sleep(200);
 
       expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(false);
       expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(false);
@@ -100,7 +100,7 @@ describe('Walkontable viewport rows calculator', () => {
 
       window.scrollBy(0, tableOffset - window.innerHeight + getScrollbarWidth() - 1);
 
-      await sleep(100);
+      await sleep(200);
 
       expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(false);
       expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(false);
@@ -108,7 +108,7 @@ describe('Walkontable viewport rows calculator', () => {
 
       window.scrollBy(0, 1);
 
-      await sleep(100);
+      await sleep(200);
 
       expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(true);
       expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(true);
@@ -116,7 +116,7 @@ describe('Walkontable viewport rows calculator', () => {
 
       window.scrollBy(0, tableHeight / 2);
 
-      await sleep(100);
+      await sleep(200);
 
       expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(true);
       expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(true);
@@ -124,7 +124,7 @@ describe('Walkontable viewport rows calculator', () => {
 
       window.scrollBy(0, tableHeight / 2);
 
-      await sleep(100);
+      await sleep(200);
 
       expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(true);
       expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(true);
