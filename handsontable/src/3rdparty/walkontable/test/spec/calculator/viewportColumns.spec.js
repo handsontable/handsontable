@@ -18,133 +18,118 @@ describe('Walkontable viewport columns calculator', () => {
   });
 
   describe('isInViewport property', () => {
-    using('document layout direction', [
-      { htmlDir: 'ltr' },
-      { htmlDir: 'rtl' },
-    ], ({ htmlDir }) => {
-      beforeEach(() => {
-        $('html').attr('dir', htmlDir);
+    it('Should be `true` if the entire table is in the viewport when checking for fully visible columns AND if the' +
+      ' entire table except for the last column is in the viewport when checking for partially visible columns,' +
+      ' `false` otherwise (table on the "start" side of the viewport)', async() => {
+      spec().$wrapper.css({
+        paddingInlineEnd: '10000px'
       });
 
-      afterEach(() => {
-        $('html').attr('dir', 'ltr');
+      createDataArray(50, 50);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
       });
 
-      it('Should be `true` if the entire table is in the viewport when checking for fully visible columns AND if the' +
-        ' entire table except for the last column is in the viewport when checking for partially visible columns,' +
-        ' `false` otherwise (table on the "start" side of the viewport)', async() => {
-        spec().$wrapper.css({
-          paddingInlineEnd: '10000px'
-        });
+      wt.draw();
 
-        createDataArray(50, 50);
+      const tableWidth = $(wt.wtTable.hider).width();
+      const tableOffset = spec().$container.offset().left;
 
-        const wt = walkontable({
-          rtlMode: htmlDir === 'rtl',
-          data: getData,
-          totalRows: getTotalRows,
-          totalColumns: getTotalColumns
-        });
+      expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
 
-        wt.draw();
+      window.scrollBy(tableOffset + (tableWidth / 2), 0);
 
-        const tableWidth = $(wt.wtTable.hider).width();
-        const tableOffset = spec().$container.offset().left;
+      await sleep(100);
 
-        expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
-        expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
-        expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
 
-        window.scrollBy(tableOffset + (tableWidth / 2), 0);
+      window.scrollBy(tableWidth / 2, 0);
 
-        await sleep(100);
+      await sleep(100);
 
-        expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
-        expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
-        expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
+      expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
 
-        window.scrollBy(tableWidth / 2, 0);
+      window.scrollBy(1, 0);
 
-        await sleep(100);
+      await sleep(100);
 
-        expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
-        expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
-        expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(false);
+      expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
+      expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(false);
 
-        window.scrollBy(1, 0);
+      window.scrollBy(1000, 0);
 
-        await sleep(100);
+      await sleep(100);
 
-        expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(false);
-        expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
-        expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(false);
-
-        window.scrollBy(1000, 0);
-
-        await sleep(100);
-
-        expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(false);
-        expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
-        expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(false);
-      });
-
-      it('Should be `true` if the entire table is in the viewport,' +
-        ' `false` otherwise (table on the "end" side of the viewport)', async() => {
-        spec().$wrapper.css({
-          marginInlineStart: '10000px'
-        });
-
-        createDataArray(50, 50);
-
-        const wt = walkontable({
-          rtlMode: htmlDir === 'rtl',
-          data: getData,
-          totalRows: getTotalRows,
-          totalColumns: getTotalColumns
-        });
-
-        wt.draw();
-
-        const tableWidth = $(wt.wtTable.hider).width();
-        const tableOffset = spec().$container.offset().left;
-
-        expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(false);
-        expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
-        expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(false);
-
-        window.scrollBy(tableOffset - window.innerWidth + getScrollbarWidth() - 1, 0);
-
-        await sleep(100);
-
-        expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(false);
-        expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
-        expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(false);
-
-        window.scrollBy(1, 0);
-
-        await sleep(100);
-
-        expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
-        expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
-        expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
-
-        window.scrollBy(tableWidth / 2, 0);
-
-        await sleep(100);
-
-        expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
-        expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
-        expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
-
-        window.scrollBy(tableWidth / 2, 0);
-
-        await sleep(100);
-
-        expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
-        expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
-        expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
-      });
-
+      expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(false);
+      expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
+      expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(false);
     });
+
+    it('Should be `true` if the entire table is in the viewport,' +
+      ' `false` otherwise (table on the "end" side of the viewport)', async() => {
+      spec().$wrapper.css({
+        marginInlineStart: '10000px'
+      });
+
+      createDataArray(50, 50);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+
+      wt.draw();
+
+      const tableWidth = $(wt.wtTable.hider).width();
+      const tableOffset = spec().$container.offset().left;
+
+      expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(false);
+      expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
+      expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(false);
+
+      window.scrollBy(tableOffset - window.innerWidth + getScrollbarWidth() - 1, 0);
+
+      await sleep(100);
+
+      expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(false);
+      expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
+      expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(false);
+
+      window.scrollBy(1, 0);
+
+      await sleep(100);
+
+      expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
+
+      window.scrollBy(tableWidth / 2, 0);
+
+      await sleep(100);
+
+      expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
+
+      window.scrollBy(tableWidth / 2, 0);
+
+      await sleep(100);
+
+      expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
+    });
+
   });
 });
