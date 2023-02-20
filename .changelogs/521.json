@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a Chrome issue, where the freshly-merged cells were missing right and bottom borders.",
-  "type": "fixed",
-  "issueOrPR": 10212,
-  "breaking": false,
-  "framework": "none"
-}

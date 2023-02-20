@@ -367,6 +367,10 @@ class AutofillCalculations {
 
     this.currentFillData = null;
     this.plugin.hot.render();
+
+    if (foundMergedCells.length > 0) {
+      this.plugin.ifChromeForceRepaint();
+    }
   }
 
   /**
