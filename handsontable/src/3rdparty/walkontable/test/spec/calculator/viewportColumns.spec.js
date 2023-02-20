@@ -42,17 +42,17 @@ describe('Walkontable viewport columns calculator', () => {
       expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
       expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
 
-      window.scrollBy(tableOffset + (tableWidth / 2), 0);
+      window.scrollBy(Math.floor(tableOffset + (tableWidth / 2)), 0);
 
-      await sleep(200);
+      await sleep(100);
 
       expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
       expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
       expect(wt.wtViewport.createColumnsCalculator(1).isInViewport).toBe(true);
 
-      window.scrollBy(tableWidth / 2, 0);
+      window.scrollBy(Math.ceil(tableWidth / 2), 0);
 
-      await sleep(200);
+      await sleep(100);
 
       expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
       expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
@@ -60,7 +60,7 @@ describe('Walkontable viewport columns calculator', () => {
 
       window.scrollBy(1, 0);
 
-      await sleep(200);
+      await sleep(100);
 
       expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(false);
       expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
@@ -68,7 +68,7 @@ describe('Walkontable viewport columns calculator', () => {
 
       window.scrollBy(1000, 0);
 
-      await sleep(200);
+      await sleep(100);
 
       expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(false);
       expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
@@ -100,7 +100,7 @@ describe('Walkontable viewport columns calculator', () => {
 
       window.scrollBy(tableOffset - window.innerWidth + getScrollbarWidth() - 1, 0);
 
-      await sleep(200);
+      await sleep(100);
 
       expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(false);
       expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(false);
@@ -108,7 +108,7 @@ describe('Walkontable viewport columns calculator', () => {
 
       window.scrollBy(1, 0);
 
-      await sleep(200);
+      await sleep(100);
 
       expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
       expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
@@ -116,7 +116,7 @@ describe('Walkontable viewport columns calculator', () => {
 
       window.scrollBy(tableWidth / 2, 0);
 
-      await sleep(200);
+      await sleep(100);
 
       expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
       expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
@@ -124,7 +124,7 @@ describe('Walkontable viewport columns calculator', () => {
 
       window.scrollBy(tableWidth / 2, 0);
 
-      await sleep(200);
+      await sleep(100);
 
       expect(wt.wtViewport.createColumnsCalculator(3).isInViewport).toBe(true);
       expect(wt.wtViewport.createColumnsCalculator(2).isInViewport).toBe(true);
