@@ -47,7 +47,8 @@ You can sort data in different ways:
 - By a single column, or by [multiple columns](#sort-by-multiple-columns).
 - Using Handsontable's [UI](#demo) or [API](#control-sorting-programmatically).
 
-Handsontable sorts data only visually, so your source data remains in the original order. To save your sorting changes in the data source, see: [Saving data](@/guides/getting-started/saving-data.md).
+Handsontable sorts data only visually, so your source data remains in the original order. To save your sorting changes
+in the data source, see: [Saving data](@/guides/getting-started/saving-data.md).
 
 ### Demo
 
@@ -372,7 +373,7 @@ const handsontableInstance = new Handsontable(container, {
       title: 'Brand<br>(non-sortable)',
       type: 'text',
       data: 'brand',
-      // disable sorting for the first column
+      // disable sorting for the 'Brand' column
       columnSorting: {
         headerAction: false,
       },
@@ -391,7 +392,7 @@ const handsontableInstance = new Handsontable(container, {
         culture: 'en-US'
       },
       className: 'htLeft',
-      // disable sorting for the third column
+      // disable sorting for the 'Price' column
       columnSorting: {
         headerAction: false,
       },
@@ -408,7 +409,7 @@ const handsontableInstance = new Handsontable(container, {
       data: 'sellTime',
       correctFormat: true,
       className: 'htRight',
-      // disable sorting for the fifth column
+      // disable sorting for the 'Time' column
       columnSorting: {
         headerAction: false,
       },
@@ -492,7 +493,7 @@ export const HandsontableComponent = () => {
           title: 'Brand<br>(non-sortable)',
           type: 'text',
           data: 'brand',
-          // disable sorting for the first column
+          // disable sorting for the 'Brand' column
           columnSorting: {
             headerAction: false,
           },
@@ -511,7 +512,7 @@ export const HandsontableComponent = () => {
             culture: 'en-US'
           },
           className: 'htLeft',
-          // disable sorting for the third column
+          // disable sorting for the 'Price' column
           columnSorting: {
             headerAction: false,
           },
@@ -528,7 +529,7 @@ export const HandsontableComponent = () => {
           data: 'sellTime',
           correctFormat: true,
           className: 'htRight',
-          // disable sorting for the fifth column
+          // disable sorting for the 'Time' column
           columnSorting: {
             headerAction: false,
           },
@@ -556,13 +557,14 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example2'));
 
 ## Configure sorting
 
-You can configure the sort UI, set an initial sort order, and implement your own compare function.
+You can configure the sorting UI, set an initial sort order,
+and implement your own [comparator](#add-a-custom-comparator).
 
 By default:
 - Sorting is enabled for all columns.
 - The end user can sort data by clicking on the column name.
 - The sort order indicator is visible.
-- No rows are sorted initially.
+- Initially, no rows are sorted.
 
 This is the default sorting configuration:
 
@@ -1485,7 +1487,7 @@ export const HandsontableComponent = () => {
             column: 0,
             sortOrder: 'asc',
           },
-            // at initialization, sort the data by the 'Model' column, in ascending order
+            // at initialization, sort the data by the 'Model' column, in descending order
           {
             column: 1,
             sortOrder: 'desc',
@@ -1655,11 +1657,11 @@ const handsontableInstance = new Handsontable(container, {
 ```
 
 ```css
-/* custom sort icon for both ascending and descending order */
+/* the icon for both ascending and descending order */
 .custom-sort-icon-1 span.colHeader.columnSorting.ascending::before,
 .custom-sort-icon-1 span.colHeader.columnSorting.descending::before {
   background-image: url("../../../img/custom_sort_icon.png") !important;
-  /* minor adjustments, as the custom icon has a different size than the original */
+  /* minor adjustments, as the custom icon is of a different size than the original */
   top: 12px;
   right: -35px;
   width: 16px;
@@ -1667,7 +1669,7 @@ const handsontableInstance = new Handsontable(container, {
   zoom: .4;
 }
 
-/* same icon as for ascending order, but pointed downward – rotated 180 degrees */
+/* the same icon as for ascending order, but rotated 180 degrees */
 .custom-sort-icon-1 span.colHeader.columnSorting.descending:before {
   top: 16px;
   transform: rotate(180deg);
@@ -1776,7 +1778,6 @@ export const HandsontableComponent = () => {
         },
       ]}
       columnSorting={{
-        // at initialization, sort the data by the 'Brand' column, in descending order
         initialConfig: {
           column: 1,
           sortOrder: 'desc',
@@ -1794,11 +1795,11 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example6'));
 ```
 
 ```css
-/* custom sort icon for both ascending and descending order */
+/* the icon for both ascending and descending order */
 .custom-sort-icon-1 span.colHeader.columnSorting.ascending::before,
 .custom-sort-icon-1 span.colHeader.columnSorting.descending::before {
   background-image: url("../../../img/custom_sort_icon.png") !important;
-  /* minor adjustments, as the custom icon has a different size than the original */
+  /* minor adjustments, as the custom icon is of a different size than the original */
   top: 12px;
   right: -35px;
   width: 16px;
@@ -1806,7 +1807,7 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example6'));
   zoom: .4;
 }
 
-/* same icon as for ascending order, but pointed downward – rotated 180 degrees */
+/* the same icon as for ascending order, but rotated 180 degrees */
 .custom-sort-icon-1 span.colHeader.columnSorting.descending:before {
   top: 16px;
   transform: rotate(180deg);
@@ -2043,7 +2044,6 @@ export const HandsontableComponent = () => {
         },
       ]}
       columnSorting={{
-        // at initialization, sort the data by the 'Brand' column, in descending order
         initialConfig: {
           column: 1,
           sortOrder: 'desc',
@@ -3389,8 +3389,12 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example10'))
 
 ## Import the sorting module
 
-If you're using Handsontable through [modules](@/guides/tools-and-building/modules.md),
-you need to do the following before you can [enable sorting](#enable-sorting):
+You can reduce the size of your JavaScript bundle by importing and registering only the
+[modules](@/guides/tools-and-building/modules.md) that you need.
+
+To use sorting, you need only the following modules:
+- The [base module](@/guides/tools-and-building/modules.md#import-the-base-module)
+- [`ColumnSorting`](@/api/columnSorting.md) or [`MultiColumnSorting`](@/api/multiColumnSorting.md)
 
 ```js
 // import the base module
@@ -3421,8 +3425,8 @@ registerPlugin(MultiColumnSorting);
 
 Didn't find what you need? Try this:
 
-- View [GitHub issues](https://github.com/handsontable/handsontable/labels/Column%20sorting) related to sorting.
-- Report a [new GitHub issue](https://github.com/handsontable/handsontable/issues/new/choose).
-- Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/handsontable).
-- Ask a question on [Handsontable's forum](https://forum.handsontable.com/c/getting-help/questions).
-- Contact Handsontable's [technical support](https://handsontable.com/contact?category=technical_support).
+- [View related topics](https://github.com/handsontable/handsontable/labels/Column%20sorting) on GitHub
+- [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
+- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
+- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
