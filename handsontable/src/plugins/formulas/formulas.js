@@ -234,7 +234,7 @@ export class Formulas extends BasePlugin {
         let moveLine;
 
         if (finalIndex === 0) {
-          moveLine = notMovedElements[finalIndex];
+          moveLine = notMovedElements[finalIndex] ?? 0;
 
         } else {
           moveLine = notMovedElements[finalIndex - 1] + 1;
@@ -259,21 +259,21 @@ export class Formulas extends BasePlugin {
           const prevMoved = moves.slice(0, index);
 
           nextMoved.forEach((nextMovedIndex) => {
-            if (nextMovedIndex.from > move.from && nextMovedIndex.from < nextMovedIndex.to) {
+            const isMovingFromStartToEnd = nextMovedIndex.from < nextMovedIndex.to;
+
+            if (nextMovedIndex.from > move.from && isMovingFromStartToEnd) {
               nextMovedIndex.from -= 1;
             }
 
             return nextMovedIndex;
           });
 
-          prevMoved.forEach((previouslyMovedIndex, nrOfPreviouslyMoved) => {
-            if (previouslyMovedIndex.from > move.from && previouslyMovedIndex.from > previouslyMovedIndex.to) {
-              [move].concat(nextMoved).slice(nrOfPreviouslyMoved).forEach((nextMovedIndex) => {
-                nextMovedIndex.from += 1;
-              });
-            }
+          prevMoved.forEach((previouslyMovedIndex) => {
+            const isMovingFromEndToStart = previouslyMovedIndex.from > previouslyMovedIndex.to;
 
-            return previouslyMovedIndex;
+            if (previouslyMovedIndex.from > move.from && isMovingFromEndToStart) {
+              move.from += 1;
+            }
           });
         });
 

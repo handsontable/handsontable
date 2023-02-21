@@ -875,7 +875,7 @@ describe('Formulas: Integration with other features', () => {
           ]);
         });
 
-        xit('#4', () => {
+        it('#4', () => {
           const hot = handsontable({
             data: [
               [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
