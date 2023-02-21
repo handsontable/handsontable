@@ -316,6 +316,33 @@ describe('Formulas: Integration with other features', () => {
           manualColumnMove: true,
         });
 
+        hot.getPlugin('manualColumnMove').moveColumns([1, 2, 3, 4], 1);
+        hot.render();
+
+        expect(getData()).toEqual([
+          [1, 11, 111, 1111, 1001111],
+          [2, 12, 112, 1112, 1001112],
+          [3, 13, 113, 1113, 1001113],
+          [4, 14, 114, 1114, 1001114],
+          [5, 15, 115, 1115, 1001115],
+        ]);
+      });
+
+      it('#4', () => {
+        const hot = handsontable({
+          data: [
+            [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
+            [2, '=A2+10', '=B2+100', '=C2+1000', '=D2+1000000'],
+            [3, '=A3+10', '=B3+100', '=C3+1000', '=D3+1000000'],
+            [4, '=A4+10', '=B4+100', '=C4+1000', '=D4+1000000'],
+            [5, '=A5+10', '=B5+100', '=C5+1000', '=D5+1000000'],
+          ],
+          formulas: {
+            engine: HyperFormula,
+          },
+          manualColumnMove: true,
+        });
+
         hot.getPlugin('manualColumnMove').moveColumns([0, 1, 2, 3, 4], 0);
         hot.render();
 
@@ -899,6 +926,33 @@ describe('Formulas: Integration with other features', () => {
             [1001113, 113, 1113, 13, 3],
             [1001114, 114, 1114, 14, 4],
             [1001115, 115, 1115, 15, 5],
+          ]);
+        });
+
+        it('#5', () => {
+          const hot = handsontable({
+            data: [
+              [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000', '=E1*0'],
+              [2, '=A2+10', '=B2+100', '=C2+1000', '=D2+1000000', '=E2*0'],
+              [3, '=A3+10', '=B3+100', '=C3+1000', '=D3+1000000', '=E3*0'],
+              [4, '=A4+10', '=B4+100', '=C4+1000', '=D4+1000000', '=E4*0'],
+              [5, '=A5+10', '=B5+100', '=C5+1000', '=D5+1000000', '=E5*0'],
+            ],
+            formulas: {
+              engine: HyperFormula,
+            },
+            manualColumnMove: true,
+          });
+
+          hot.getPlugin('manualColumnMove').moveColumns([5, 4, 3, 2, 1, 0], 0);
+          hot.render();
+
+          expect(getData()).toEqual([
+            [0, 1001111, 1111, 111, 11, 1],
+            [0, 1001112, 1112, 112, 12, 2],
+            [0, 1001113, 1113, 113, 13, 3],
+            [0, 1001114, 1114, 114, 14, 4],
+            [0, 1001115, 1115, 115, 15, 5],
           ]);
         });
       });

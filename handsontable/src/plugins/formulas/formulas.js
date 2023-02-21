@@ -192,12 +192,6 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
-    const countMovePositions = () => {
-      return (movedIndexes, finalIndex) => {
-        this.from = this.hot.columnIndexMapper.getIndexesSequence();
-      };
-    };
-
     const getIndexesChangeSyncMethod = (indexesType) => {
       return (source) => {
         if (this.redo === true || this.undo === true || this.sheetId === null) {
@@ -240,23 +234,32 @@ export class Formulas extends BasePlugin {
           moveLine = notMovedElements[finalIndex - 1] + 1;
         }
 
-        const moves = movedIndexes.map((movedIndex) => {
+        const moves = [];
+
+        movedIndexes.forEach((movedIndex) => {
           const move = {
             from: movedIndex,
             to: moveLine,
           };
 
+          moves.forEach((previouslyMovedIndex) => {
+            const isMovingFromEndToStart = previouslyMovedIndex.from > previouslyMovedIndex.to;
+
+            if (previouslyMovedIndex.from > move.from && isMovingFromEndToStart) {
+              move.from += 1;
+            }
+          });
+
           // Moved element from right to left.
-          if (movedIndex >= moveLine) {
+          if (move.from >= moveLine) {
             moveLine += 1;
           }
 
-          return move;
+          moves.push(move);
         });
 
         moves.forEach((move, index) => {
           const nextMoved = moves.slice(index + 1);
-          const prevMoved = moves.slice(0, index);
 
           nextMoved.forEach((nextMovedIndex) => {
             const isMovingFromStartToEnd = nextMovedIndex.from < nextMovedIndex.to;
@@ -266,14 +269,6 @@ export class Formulas extends BasePlugin {
             }
 
             return nextMovedIndex;
-          });
-
-          prevMoved.forEach((previouslyMovedIndex) => {
-            const isMovingFromEndToStart = previouslyMovedIndex.from > previouslyMovedIndex.to;
-
-            if (previouslyMovedIndex.from > move.from && isMovingFromEndToStart) {
-              move.from += 1;
-            }
           });
         });
 
@@ -287,8 +282,6 @@ export class Formulas extends BasePlugin {
 
     this.hot.addHook('afterRowSequenceChange', getIndexesChangeSyncMethod('row'));
     this.hot.addHook('afterColumnSequenceChange', getIndexesChangeSyncMethod('column'));
-    this.hot.addHook('beforeRowMove', countMovePositions('row'));
-    this.hot.addHook('beforeColumnMove', countMovePositions('column'));
     this.hot.addHook('afterRowMove', getIndexMoveSyncMethod('row'));
     this.hot.addHook('afterColumnMove', getIndexMoveSyncMethod('column'));
 
