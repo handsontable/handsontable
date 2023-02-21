@@ -17,7 +17,7 @@ describe('Walkontable viewport rows calculator', () => {
     }
   });
 
-  describe('isInViewport property', () => {
+  describe('isVisibleInTrimmingContainer property', () => {
     it('Should be `true` if the entire table is in the viewport when checking for fully visible rows AND if the' +
       ' entire table except for the last column is in the viewport when checking for partially visible rows,' +
       ' `false` otherwise (table on top of the viewport)', async() => {
@@ -38,41 +38,41 @@ describe('Walkontable viewport rows calculator', () => {
       const tableHeight = $(wt.wtTable.hider).height();
       const tableOffset = spec().$container.offset().top;
 
-      expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(1).isInViewport).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
 
       window.scrollBy(0, Math.floor(tableOffset + (tableHeight / 2)));
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(1).isInViewport).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
 
       window.scrollBy(0, Math.ceil((tableHeight / 2) - 1));
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(1).isInViewport).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
+      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
 
       window.scrollBy(0, 1);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(1).isInViewport).toBe(false);
+      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(false);
+      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
+      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(false);
 
       window.scrollBy(0, 1000);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(1).isInViewport).toBe(false);
+      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(false);
+      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
+      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(false);
     });
 
     it('Should be `true` if the entire table is in the viewport,' +
@@ -94,41 +94,41 @@ describe('Walkontable viewport rows calculator', () => {
       const tableHeight = $(wt.wtTable.hider).height();
       const tableOffset = spec().$container.offset().top;
 
-      expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(1).isInViewport).toBe(false);
+      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(false);
+      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
+      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(false);
 
       window.scrollBy(0, tableOffset - window.innerHeight + getScrollbarWidth() - 1);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(false);
-      expect(wt.wtViewport.createRowsCalculator(1).isInViewport).toBe(false);
+      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(false);
+      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
+      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(false);
 
       window.scrollBy(0, 1);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(1).isInViewport).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
 
       window.scrollBy(0, tableHeight / 2);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(1).isInViewport).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
 
       window.scrollBy(0, tableHeight / 2);
 
       await sleep(100);
 
-      expect(wt.wtViewport.createRowsCalculator(3).isInViewport).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(2).isInViewport).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(1).isInViewport).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
     });
   });
 });

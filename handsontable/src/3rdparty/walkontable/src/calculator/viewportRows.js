@@ -74,7 +74,7 @@ class ViewportRowsCalculator {
      * @type {number|null}
      */
     this.startPosition = null;
-    this.isInViewport = false;
+    this.isVisibleInTrimmingContainer = false;
 
     this.calculate();
   }
@@ -133,10 +133,10 @@ class ViewportRowsCalculator {
     const rowOffset = calculationType === FULLY_VISIBLE_TYPE ? 0 : lastVisibleRowHeight;
 
     if (mostBottomScrollOffset < 0 || scrollOffset > startPositions.at(-1) + rowOffset) {
-      this.isInViewport = false;
+      this.isVisibleInTrimmingContainer = false;
 
     } else {
-      this.isInViewport = true;
+      this.isVisibleInTrimmingContainer = true;
     }
 
     // If the estimation has reached the last row and there is still some space available in the viewport,

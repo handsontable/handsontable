@@ -80,7 +80,7 @@ class ViewportColumnsCalculator {
      * @type {number|null}
      */
     this.startPosition = null;
-    this.isInViewport = false;
+    this.isVisibleInTrimmingContainer = false;
 
     this.stretchAllRatio = 0;
     this.stretchLastWidth = 0;
@@ -156,10 +156,10 @@ class ViewportColumnsCalculator {
       // The table is on the right of the viewport
       (((-1) * priv.scrollOffset) - priv.viewportWidth > 0)
     ) {
-      this.isInViewport = false;
+      this.isVisibleInTrimmingContainer = false;
 
     } else {
-      this.isInViewport = true;
+      this.isVisibleInTrimmingContainer = true;
     }
 
     if (this.endColumn === totalColumns - 1 && needReverse) {

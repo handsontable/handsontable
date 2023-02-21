@@ -438,11 +438,11 @@ class Viewport {
       return false;
     }
 
-    const { startRow, endRow, isInViewport } = proposedRowsVisibleCalculator;
+    const { startRow, endRow, isVisibleInTrimmingContainer } = proposedRowsVisibleCalculator;
 
     // if there are no fully visible rows at all, return false
     if (startRow === null && endRow === null) {
-      return !isInViewport;
+      return !isVisibleInTrimmingContainer;
     }
 
     const { startRow: renderedStartRow, endRow: renderedEndRow } = this.rowsRenderCalculator;
@@ -471,11 +471,11 @@ class Viewport {
       return false;
     }
 
-    const { startColumn, endColumn, isInViewport } = proposedColumnsVisibleCalculator;
+    const { startColumn, endColumn, isVisibleInTrimmingContainer } = proposedColumnsVisibleCalculator;
 
     // if there are no fully visible columns at all, return false
     if (startColumn === null && endColumn === null) {
-      return !isInViewport;
+      return !isVisibleInTrimmingContainer;
     }
 
     const { startColumn: renderedStartColumn, endColumn: renderedEndColumn } = this.columnsRenderCalculator;
