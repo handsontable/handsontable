@@ -52,7 +52,8 @@ in the data source, see: [Saving data](@/guides/getting-started/saving-data.md).
 
 ### Demo
 
-Click on a colum name to sort the values in ascending (↑) or descending (↓) order, or to go back to the original order.
+Click on one of the column names to sort the values in ascending (↑) or descending (↓) order,
+or to go back to the original order.
 
 ::: only-for javascript
 
@@ -943,8 +944,10 @@ This way, you can easily sort the list even if there are multiple employees with
 Try it out:
 
 1. Click on the **Brand** column name. The data gets sorted by brand.
-2. Hold down <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd>.
-3. Click on the **Model** column name. The data gets sorted by model, but within each brand.
+2. Hold down <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> and click on the **Model** column name.<br>
+   The data gets sorted by model, but within each brand.
+3. Hold down <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> and click on the **Price** column name.<br>
+   The data gets sorted by price, but within each model.
 
 ::: only-for javascript
 
@@ -964,7 +967,7 @@ const handsontableInstance = new Handsontable(container, {
     {
       brand: 'Jetpulse',
       model: 'HL Mountain Frame',
-      price: 30,
+      price: 1890.90,
       sellDate: '11/10/2023',
       sellTime: '01:23',
       inStock: false,
@@ -972,7 +975,7 @@ const handsontableInstance = new Handsontable(container, {
     {
       brand: 'Jetpulse',
       model: 'HL Mountain Frame',
-      price: 1890.90,
+      price: 30,
       sellDate: '03/05/2023',
       sellTime: '11:27',
       inStock: false,
@@ -988,7 +991,7 @@ const handsontableInstance = new Handsontable(container, {
     {
       brand: 'Chatterpoint',
       model: 'Road Tire Tube',
-      price: 59,
+      price: 279.99,
       sellDate: '28/08/2023',
       sellTime: '08:01',
       inStock: true,
@@ -996,7 +999,7 @@ const handsontableInstance = new Handsontable(container, {
     {
       brand: 'Chatterpoint',
       model: 'HL Road Tire',
-      price: 279.99,
+      price: 59,
       sellDate: '02/10/2023',
       sellTime: '13:23',
       inStock: true,
@@ -1073,7 +1076,7 @@ export const HandsontableComponent = () => {
         {
           brand: 'Jetpulse',
           model: 'HL Mountain Frame',
-          price: 30,
+          price: 1890.90,
           sellDate: '11/10/2023',
           sellTime: '01:23',
           inStock: false,
@@ -1081,7 +1084,7 @@ export const HandsontableComponent = () => {
         {
           brand: 'Jetpulse',
           model: 'HL Mountain Frame',
-          price: 1890.90,
+          price: 30,
           sellDate: '03/05/2023',
           sellTime: '11:27',
           inStock: false,
@@ -1097,7 +1100,7 @@ export const HandsontableComponent = () => {
         {
           brand: 'Chatterpoint',
           model: 'Road Tire Tube',
-          price: 59,
+          price: 279.99,
           sellDate: '28/08/2023',
           sellTime: '08:01',
           inStock: true,
@@ -1105,7 +1108,7 @@ export const HandsontableComponent = () => {
         {
           brand: 'Chatterpoint',
           model: 'HL Road Tire',
-          price: 279.99,
+          price: 59,
           sellDate: '02/10/2023',
           sellTime: '13:23',
           inStock: true,
@@ -1219,7 +1222,7 @@ const configurationOptions = {
 ```jsx
 <HotTable
   // enable sorting by multiple columns, for all columns
-  columnSorting={true}
+  multiColumnSorting={true}
   columns={[
     {
       // disable sorting by multiple columns for the first column
@@ -1285,7 +1288,7 @@ const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
-      model: 'Racing Socks',
+      model: 'HL Mountain Frame',
       price: 30,
       sellDate: '11/10/2023',
       sellTime: '01:23',
@@ -1405,7 +1408,7 @@ export const HandsontableComponent = () => {
       data={[
         {
           brand: 'Jetpulse',
-          model: 'Racing Socks',
+          model: 'HL Mountain Frame',
           price: 30,
           sellDate: '11/10/2023',
           sellTime: '01:23',
@@ -1546,10 +1549,60 @@ const configurationOptions = {
 
 :::
 
+To initially sort data [by multiple columns](#sort-by-multiple-columns),
+set [`initialConfig`](@/api/options.md#columnsorting) to an array.
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  // enable sorting by multiple columns
+  multiColumnSorting: {
+    initialConfig: [
+      // at initialization, sort data by the first column, in ascending order
+      {
+        column: 0,
+        sortOrder: 'asc',
+      },
+      // at initialization, sort data by the second column, in descending order
+      {
+        column: 1,
+        sortOrder: 'desc',
+      },
+    ]
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  // enable sorting by multiple columns
+  multiColumnSorting={{
+    initialConfig: [
+      // at initialization, sort data by the first column, in ascending order
+      {
+        column: 0,
+        sortOrder: 'asc',
+      },
+      // at initialization, sort data by the second column, in descending order
+      {
+        column: 1,
+        sortOrder: 'desc',
+      },
+    ]
+  }}
+/>
+```
+
+:::
+
 ## Add custom sort icons
 
-The default sort icons (↑↓) are encoded in Base64. You can replace them with PNG files by changing the `background-image`
-property in the following pseudo-elements of Handsontable's CSS:
+In Handsontable's CSS, the default sort icons (↑↓) are encoded in Base64.
+You can replace them by changing the `background-image` of the following pseudo-elements:
 - `.columnSorting.ascending::before`
 - `.columnSorting.descending::before`
 
@@ -1649,7 +1702,7 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  className: 'custom-sort-icon-1',
+  className: 'custom-sort-icon-example-1',
   columnSorting: {
     initialConfig: {
       column: 1,
@@ -1663,8 +1716,8 @@ const handsontableInstance = new Handsontable(container, {
 
 ```css
 /* the icon for both ascending and descending order */
-.custom-sort-icon-1 span.colHeader.columnSorting.ascending::before,
-.custom-sort-icon-1 span.colHeader.columnSorting.descending::before {
+.custom-sort-icon-example-1 span.colHeader.columnSorting.ascending::before,
+.custom-sort-icon-example-1 span.colHeader.columnSorting.descending::before {
   background-image: url('data:image/png;base64,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') !important;
   /* minor adjustments, as the custom icon is of a different size than the original */
   top: 12px;
@@ -1675,7 +1728,7 @@ const handsontableInstance = new Handsontable(container, {
 }
 
 /* the same icon as for ascending order, but rotated 180 degrees */
-.custom-sort-icon-1 span.colHeader.columnSorting.descending:before {
+.custom-sort-icon-example-1 span.colHeader.columnSorting.descending:before {
   top: 16px;
   transform: rotate(180deg);
 }
@@ -1788,7 +1841,7 @@ export const HandsontableComponent = () => {
           sortOrder: 'desc',
         },
       }}
-      className="custom-sort-icon-1"
+      className=".custom-sort-icon-example-1"
       height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
@@ -1802,8 +1855,8 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example6'));
 
 ```css
 /* the icon for both ascending and descending order */
-.custom-sort-icon-1 span.colHeader.columnSorting.ascending::before,
-.custom-sort-icon-1 span.colHeader.columnSorting.descending::before {
+.custom-sort-icon-example-1 span.colHeader.columnSorting.ascending::before,
+.custom-sort-icon-example-1 span.colHeader.columnSorting.descending::before {
   background-image: url('data:image/png;base64,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') !important;
   /* minor adjustments, as the custom icon is of a different size than the original */
   top: 12px;
@@ -1814,7 +1867,7 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example6'));
 }
 
 /* the same icon as for ascending order, but rotated 180 degrees */
-.custom-sort-icon-1 span.colHeader.columnSorting.descending:before {
+.custom-sort-icon-example-1 span.colHeader.columnSorting.descending:before {
   top: 16px;
   transform: rotate(180deg);
 }
@@ -1824,7 +1877,7 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example6'));
 
 :::
 
-You can also change the sort icons by changing the `content` property of the same psuedo-elements:
+You can also replace the sort icons by changing the `content` of the same pseudo-elements:
 
 ::: only-for javascript
 
@@ -1922,7 +1975,7 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
-  className: 'custom-sort-icon-2',
+  className: 'custom-sort-icon-example-2',
   columnSorting: {
     initialConfig: {
       column: 1,
@@ -1936,13 +1989,13 @@ const handsontableInstance = new Handsontable(container, {
 
 ```css
 /* the icon for ascending order */
-.custom-sort-icon-2 span.colHeader.columnSorting.ascending::before {
+.custom-sort-icon-example-2 span.colHeader.columnSorting.ascending::before {
   content: '△';
   background-image: none !important;
 }
 
 /* the icon for descending order */
-.custom-sort-icon-2 span.colHeader.columnSorting.descending::before {
+.custom-sort-icon-example-2 span.colHeader.columnSorting.descending::before {
   content: '▽';
   background-image: none !important;
 }
@@ -2055,7 +2108,7 @@ export const HandsontableComponent = () => {
           sortOrder: 'desc',
         },
       }}
-      className="custom-sort-icon-2"
+      className=".custom-sort-icon-example-2"
       height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
@@ -2069,15 +2122,431 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example7'));
 
 ```css
 /* the icon for ascending order */
-.custom-sort-icon-2 span.colHeader.columnSorting.ascending::before {
+.custom-sort-icon-example-2 span.colHeader.columnSorting.ascending::before {
   content: '△';
   background-image: none !important;
 }
 
 /* the icon for descending order */
-.custom-sort-icon-2 span.colHeader.columnSorting.descending::before {
+.custom-sort-icon-example-2 span.colHeader.columnSorting.descending::before {
   content: '▽';
   background-image: none !important;
+}
+```
+
+:::
+
+:::
+
+To replace the icons that indicate sorting [by multiple columns](#sort-by-multiple-columns)
+(<sub>1</sub>, <sub>2</sub> etc.), change the `background-image` of the following pseudo-elements:
+- `.handsontable span.colHeader.columnSorting.sort-1::after`
+- `.handsontable span.colHeader.columnSorting.sort-2::after`
+- `.handsontable span.colHeader.columnSorting.sort-3::after`
+- `.handsontable span.colHeader.columnSorting.sort-4::after`
+- `.handsontable span.colHeader.columnSorting.sort-5::after`
+- `.handsontable span.colHeader.columnSorting.sort-6::after`
+- `.handsontable span.colHeader.columnSorting.sort-7::after`
+
+::: only-for javascript
+
+::: example #example8 --html 1 --js 2 --css 3
+
+```html
+<div id="example8"></div>
+```
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const container = document.querySelector('#example8');
+const handsontableInstance = new Handsontable(container, {
+  data: [
+    {
+      brand: 'Jetpulse',
+      model: 'Racing Socks',
+      color: 'White',
+      price: 30,
+      sellDate: '11/10/2023',
+      sellTime: '01:23',
+      inStock: false,
+    },
+    {
+      brand: 'Gigabox',
+      model: 'HL Mountain Frame',
+      color: 'Black',
+      price: 1890.90,
+      sellDate: '03/05/2023',
+      sellTime: '11:27',
+      inStock: false,
+    },
+    {
+      brand: 'Camido',
+      model: 'Cycling Cap',
+      color: 'Red',
+      price: 130.10,
+      sellDate: '27/03/2023',
+      sellTime: '03:17',
+      inStock: true,
+    },
+    {
+      brand: 'Chatterpoint',
+      model: 'Road Tire Tube',
+      color: 'Green',
+      price: 59,
+      sellDate: '28/08/2023',
+      sellTime: '08:01',
+      inStock: true,
+    },
+    {
+      brand: 'Eidel',
+      model: 'HL Road Tire',
+      color: 'Blue',
+      price: 279.99,
+      sellDate: '02/10/2023',
+      sellTime: '13:23',
+      inStock: true,
+    },
+  ],
+  columns: [
+    {
+      title: 'Brand',
+      type: 'text',
+      data: 'brand',
+    },
+    {
+      title: 'Model',
+      type: 'text',
+      data: 'model',
+    },
+    {
+      title: 'Color',
+      type: 'text',
+      data: 'color',
+    },
+    {
+      title: 'Price',
+      type: 'numeric',
+      data: 'price',
+      numericFormat: {
+        pattern: '$ 0,0.00',
+        culture: 'en-US'
+      },
+      className: 'htLeft',
+    },
+    {
+      title: 'Date',
+      type: 'date',
+      data: 'sellDate',
+      className: 'htRight',
+    },
+    {
+      title: 'Time',
+      type: 'time',
+      data: 'sellTime',
+      className: 'htRight',
+    },
+    {
+      title: 'In stock',
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+  ],
+  className: 'custom-sort-icon-example-3',
+  multiColumnSorting: {
+    initialConfig: [
+      {
+        column: 0,
+        sortOrder: 'asc',
+      },
+      {
+        column: 1,
+        sortOrder: 'desc',
+      },
+      {
+        column: 2,
+        sortOrder: 'asc',
+      },
+      {
+        column: 3,
+        sortOrder: 'desc',
+      },
+      {
+        column: 4,
+        sortOrder: 'asc',
+      },
+      {
+        column: 5,
+        sortOrder: 'desc',
+      },
+      {
+        column: 6,
+        sortOrder: 'asc',
+      },
+    ],
+  },
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```css
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-1::after {
+  content: '①';
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-2::after {
+  content: '②';
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-3::after {
+  content: '③';
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-4::after {
+  content: '④';
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-5::after {
+  content: '⑤';
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-6::after {
+  content: '⑥';
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-7::after {
+  content: '⑦';
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
+}
+```
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example8 :react --js 1 --css 2
+
+```jsx
+import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/dist/handsontable.full.min.css';
+
+// register Handsontable's modules
+registerAllModules();
+
+export const HandsontableComponent = () => {
+  return (
+    <HotTable
+      data={[
+        {
+          brand: 'Jetpulse',
+          model: 'Racing Socks',
+          color: 'White',
+          price: 30,
+          sellDate: '11/10/2023',
+          sellTime: '01:23',
+          inStock: false,
+        },
+        {
+          brand: 'Gigabox',
+          model: 'HL Mountain Frame',
+          color: 'Black',
+          price: 1890.90,
+          sellDate: '03/05/2023',
+          sellTime: '11:27',
+          inStock: false,
+        },
+        {
+          brand: 'Camido',
+          model: 'Cycling Cap',
+          color: 'Red',
+          price: 130.10,
+          sellDate: '27/03/2023',
+          sellTime: '03:17',
+          inStock: true,
+        },
+        {
+          brand: 'Chatterpoint',
+          model: 'Road Tire Tube',
+          color: 'Green',
+          price: 59,
+          sellDate: '28/08/2023',
+          sellTime: '08:01',
+          inStock: true,
+        },
+        {
+          brand: 'Eidel',
+          model: 'HL Road Tire',
+          color: 'Blue',
+          price: 279.99,
+          sellDate: '02/10/2023',
+          sellTime: '13:23',
+          inStock: true,
+        },
+      ]}
+      columns={[
+        {
+          title: 'Brand',
+          type: 'text',
+          data: 'brand',
+        },
+        {
+          title: 'Model',
+          type: 'text',
+          data: 'model',
+        },
+        {
+          title: 'Model',
+          type: 'text',
+          data: 'model',
+        },
+        {
+          title: 'Price',
+          type: 'numeric',
+          data: 'price',
+          numericFormat: {
+            pattern: '$ 0,0.00',
+            culture: 'en-US'
+          },
+          className: 'htLeft',
+        },
+        {
+          title: 'Date',
+          type: 'date',
+          data: 'sellDate',
+          className: 'htRight',
+        },
+        {
+          title: 'Time',
+          type: 'time',
+          data: 'sellTime',
+          className: 'htRight',
+        },
+        {
+          title: 'In stock',
+          type: 'checkbox',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+      ]}
+      columnSorting={{
+        initialConfig: [
+          {
+            column: 0,
+            sortOrder: 'asc',
+          },
+          {
+            column: 1,
+            sortOrder: 'desc',
+          },
+          {
+            column: 2,
+            sortOrder: 'asc',
+          },
+          {
+            column: 3,
+            sortOrder: 'desc',
+          },
+          {
+            column: 4,
+            sortOrder: 'asc',
+          },
+          {
+            column: 5,
+            sortOrder: 'desc',
+          },
+          {
+            column: 6,
+            sortOrder: 'asc',
+          },
+        ],
+      }}
+      className="custom-sort-icon-example-3"
+      height="auto"
+      licenseKey="non-commercial-and-evaluation"
+    />
+  );
+};
+
+/* start:skip-in-preview */
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example8'));
+/* end:skip-in-preview */
+```
+
+```css
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-1::after {
+  content: '①';
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-2::after {
+  content: '②';
+  right: -13px;
+  top: 1px;
+  top: -5px
+  zoom: 200%;
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-3::after {
+  content: '③';
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-4::after {
+  content: '④';
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-5::after {
+  content: '⑤';
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-6::after {
+  content: '⑥';
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
+}
+
+.custom-sort-icon-example-3 .handsontable span.colHeader.columnSorting.sort-7::after {
+  content: '⑦';
+  right: -13px;
+  top: 1px;
+  zoom: 200%;
 }
 ```
 
@@ -2303,10 +2772,10 @@ Try it out:
 
 ::: only-for javascript
 
-::: example #example8 --html 1 --js 2
+::: example #example9 --html 1 --js 2
 
 ```html
-<div id="example8"></div>
+<div id="example9"></div>
 
 <div class="controls">
   <button id="sort_asc" class="button">Sort by the "Brand" column, in ascending order</button>
@@ -2320,7 +2789,7 @@ Try it out:
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example8');
+const container = document.querySelector('#example9');
 const buttonSortAscending = document.querySelector('#sort_asc');
 const buttonUnsort = document.querySelector('#unsort');
 const handsontableInstance = new Handsontable(container, {
@@ -2431,7 +2900,7 @@ buttonUnsort.addEventListener('click', () => {
 
 ::: only-for react
 
-::: example #example8 :react
+::: example #example9 :react
 
 ```jsx
 import { useRef } from 'react';
@@ -2564,7 +3033,7 @@ export const HandsontableComponent = () => {
 }
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example8'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example9'));
 /* end:skip-in-preview */
 ```
 
@@ -2636,10 +3105,10 @@ Try it out:
 
 ::: only-for javascript
 
-::: example #example9 --html 1 --js 2
+::: example #example10 --html 1 --js 2
 
 ```html
-<div id="example9"></div>
+<div id="example10"></div>
 
 <div class="controls">
   <button id="sort" class="button">Sort</button>
@@ -2650,7 +3119,7 @@ Try it out:
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example9');
+const container = document.querySelector('#example10');
 const buttonSort = document.querySelector('#sort');
 const handsontableInstance = new Handsontable(container, {
   data: [
@@ -2764,7 +3233,7 @@ buttonSort.addEventListener('click', () => {
 
 ::: only-for react
 
-::: example #example9 :react
+::: example #example10 :react
 
 ```jsx
 import { useRef } from 'react';
@@ -2893,7 +3362,7 @@ export const HandsontableComponent = () => {
 }
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example9'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example10'));
 /* end:skip-in-preview */
 ```
 
@@ -2911,17 +3380,17 @@ you can prevent those frozen rows from sorting, so they always stay in place.
 
 ::: only-for javascript
 
-::: example #example10 --html 1 --js 2
+::: example #example11 --html 1 --js 2
 
 ```html
-<div id="example10"></div>
+<div id="example11"></div>
 ```
 
 ```js
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
-const container = document.querySelector('#example10');
+const container = document.querySelector('#example11');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -3145,7 +3614,7 @@ const handsontableInstance = new Handsontable(container, {
 
 ::: only-for react
 
-::: example #example10 :react
+::: example #example11 :react
 
 ```jsx
 // you need `useRef` to call Handsontable's instance methods
@@ -3380,7 +3849,7 @@ export const HandsontableComponent = () => {
 };
 
 /* start:skip-in-preview */
-ReactDOM.render(<HandsontableComponent />, document.getElementById('example10'));
+ReactDOM.render(<HandsontableComponent />, document.getElementById('example11'));
 /* end:skip-in-preview */
 ```
 
