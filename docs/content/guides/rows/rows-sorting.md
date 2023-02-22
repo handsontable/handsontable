@@ -3086,26 +3086,28 @@ const handsontableInstance = new Handsontable(container, {
   columnSorting: true,
   // `afterColumnSort` is a Handsontable hook: it's fired after each sorting
   afterColumnSort() {
+    const lastRowIndex = handsontableInstance.countRows() - 1;
+    
     // after each sorting, take row 1 and change its index to 0
-    handsontableInstance.rowIndexMapper.moveIndexes(
-      [
-        handsontableInstance.toVisualRow(0),
-      ], 0);
+    handsontableInstance.rowIndexMapper
+    	.moveIndexes(handsontableInstance
+      	.toVisualRow(0), 0);
 
     // after each sorting, take row 16 and change its index to 15
-    handsontableInstance.rowIndexMapper.moveIndexes(
-      [
-        handsontableInstance.toVisualRow(15),
-      ], 15);
+    handsontableInstance.rowIndexMapper
+    	.moveIndexes(handsontableInstance
+      	.toVisualRow(lastRowIndex), lastRowIndex);
   },
   cells(row, col, prop) {
+    const lastRowIndex = this.instance.countRows() - 1;
+    
     if (row === 0) {
       return {
         type: 'text',
         className: 'htCenter',
       };
     }
-    if (row === 15) {
+    if (row === lastRowIndex) {
       return {
         type: 'numeric',
         className: 'htCenter',
