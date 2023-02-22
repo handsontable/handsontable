@@ -821,7 +821,7 @@ describe('Formulas general', () => {
     });
   });
 
-  describe('Updating HF settings', () => {
+  describe('HF settings', () => {
     it('should initialize HyperFormula with the default set of settings', () => {
       handsontable({
         formulas: {
@@ -884,8 +884,8 @@ describe('Formulas general', () => {
       expect(hfConfig.useStats).toEqual(true);
     });
 
-    it('should update the external HyperFormula instance config with the Handsontable/HF licenseKey, if none was' +
-      ' provided', () => {
+    it('should initialize the HF licenseKey with the internal-use-in-handsontable string, if none was provided (HF' +
+      ' instance created manually)', () => {
       const hfInstance1 = HyperFormula.buildEmpty();
 
       handsontable({
@@ -897,8 +897,18 @@ describe('Formulas general', () => {
       expect(hfInstance1.getConfig().licenseKey).toEqual('internal-use-in-handsontable');
     });
 
-    it('should NOT update the external HyperFormula instance config with the Handsontable/HF licenseKey, if it was' +
-      ' provided beforehand', () => {
+    it('should initialize the HF licenseKey with the internal-use-in-handsontable string, if none was provided (HF' +
+      ' instance created automatically by HOT)', () => {
+      const hot = handsontable({
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      expect(hot.getPlugin('formulas').engine.getConfig().licenseKey).toEqual('internal-use-in-handsontable');
+    });
+
+    it('should overwrite the provided HF licenseKey with the internal-use-in-handsontable string', () => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'dummy-license-key' });
 
       handsontable({
@@ -907,7 +917,7 @@ describe('Formulas general', () => {
         },
       });
 
-      expect(hfInstance1.getConfig().licenseKey).toEqual('dummy-license-key');
+      expect(hfInstance1.getConfig().licenseKey).toEqual('internal-use-in-handsontable');
     });
 
     it('should not update HyperFormula settings when Handsontable#updateSettings was called without the `formulas` key', () => {
