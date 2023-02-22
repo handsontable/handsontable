@@ -1601,8 +1601,8 @@ const configurationOptions = {
 
 ## Add custom sort icons
 
-In Handsontable's CSS, the default sort icons (↑↓) are encoded in Base64.
-You can replace them by changing the `background-image` of the following pseudo-elements:
+The default sort icons (↑↓) are encoded in Base64.
+You can replace them by changing `background-image` for the following pseudo-elements of Handsontable's CSS:
 - `.columnSorting.ascending::before`
 - `.columnSorting.descending::before`
 
@@ -1841,7 +1841,7 @@ export const HandsontableComponent = () => {
           sortOrder: 'desc',
         },
       }}
-      className=".custom-sort-icon-example-1"
+      className="custom-sort-icon-example-1"
       height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
@@ -1877,7 +1877,7 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example6'));
 
 :::
 
-You can also replace the sort icons by changing the `content` of the same pseudo-elements:
+You can also replace the sort icons by changing `content` for the same pseudo-elements:
 
 ::: only-for javascript
 
@@ -2108,7 +2108,7 @@ export const HandsontableComponent = () => {
           sortOrder: 'desc',
         },
       }}
-      className=".custom-sort-icon-example-2"
+      className="custom-sort-icon-example-2"
       height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
@@ -2139,7 +2139,7 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example7'));
 :::
 
 To replace the icons that indicate sorting [by multiple columns](#sort-by-multiple-columns)
-(<sub>1</sub>, <sub>2</sub> etc.), change the `background-image` of the following pseudo-elements:
+(<sub>1</sub>, <sub>2</sub> etc.), change `content` for the following pseudo-elements:
 - `.handsontable span.colHeader.columnSorting.sort-1::after`
 - `.handsontable span.colHeader.columnSorting.sort-2::after`
 - `.handsontable span.colHeader.columnSorting.sort-3::after`
@@ -2421,9 +2421,9 @@ export const HandsontableComponent = () => {
           data: 'model',
         },
         {
-          title: 'Model',
+          title: 'Color',
           type: 'text',
-          data: 'model',
+          data: 'color',
         },
         {
           title: 'Price',
@@ -2454,7 +2454,7 @@ export const HandsontableComponent = () => {
           className: 'htCenter',
         },
       ]}
-      columnSorting={{
+      multiColumnSorting={{
         initialConfig: [
           {
             column: 0,
@@ -2510,7 +2510,6 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example8'));
   content: '②';
   right: -13px;
   top: 1px;
-  top: -5px
   zoom: 200%;
 }
 
