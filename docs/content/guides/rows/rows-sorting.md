@@ -69,7 +69,6 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example1');
-
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -156,6 +155,7 @@ const handsontableInstance = new Handsontable(container, {
   ],
   // enable sorting for all columns
   columnSorting: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -266,6 +266,7 @@ export const HandsontableComponent = () => {
       ]}
       // enable sorting for all columns
       columnSorting={true}
+      height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -322,7 +323,6 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example2');
-
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -421,6 +421,7 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htCenter',
     },
   ],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -541,6 +542,7 @@ export const HandsontableComponent = () => {
           className: 'htCenter',
         },
       ]}
+      height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -724,7 +726,6 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example3');
-
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -809,6 +810,7 @@ const handsontableInstance = new Handsontable(container, {
     },
   ],
   columnSorting: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -915,6 +917,7 @@ export const HandsontableComponent = () => {
         },
       ]}
       columnSorting={true}
+      height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -956,12 +959,11 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example4');
-
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
       brand: 'Jetpulse',
-      model: 'Racing Socks',
+      model: 'HL Mountain Frame',
       price: 30,
       sellDate: '11/10/2023',
       sellTime: '01:23',
@@ -1043,6 +1045,7 @@ const handsontableInstance = new Handsontable(container, {
 
   // enable sorting by multiple columns, for all columns
   multiColumnSorting: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1069,7 +1072,7 @@ export const HandsontableComponent = () => {
       data={[
         {
           brand: 'Jetpulse',
-          model: 'Racing Socks',
+          model: 'HL Mountain Frame',
           price: 30,
           sellDate: '11/10/2023',
           sellTime: '01:23',
@@ -1150,6 +1153,7 @@ export const HandsontableComponent = () => {
       ]}
       // enable sorting by multiple columns, for all columns
       multiColumnSorting={true}
+      height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1277,7 +1281,6 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example5');
-
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -1375,6 +1378,7 @@ const handsontableInstance = new Handsontable(container, {
       },
     ],
   },
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1494,6 +1498,7 @@ export const HandsontableComponent = () => {
           },
         ],
       }}
+      height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1561,7 +1566,6 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example6');
-
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -1652,6 +1656,7 @@ const handsontableInstance = new Handsontable(container, {
       sortOrder: 'desc',
     },
   },
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -1784,6 +1789,7 @@ export const HandsontableComponent = () => {
         },
       }}
       className="custom-sort-icon-1"
+      height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -1833,7 +1839,6 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example7');
-
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -1924,6 +1929,7 @@ const handsontableInstance = new Handsontable(container, {
       sortOrder: 'desc',
     },
   },
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2050,6 +2056,7 @@ export const HandsontableComponent = () => {
         },
       }}
       className="custom-sort-icon-2"
+      height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -2273,7 +2280,6 @@ columnSortingPluginInstance.clearSort();
 
 ```jsx
 const hotTableComponentRef = useRef(null);
-
 // get the `ColumnSorting` plugin instance
 const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
 
@@ -2313,11 +2319,8 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example8');
-
-const button_sort_ascending = document.querySelector('#sort_asc');
-const button_unsort = document.querySelector('#unsort');
-
-
+const buttonSortAscending = document.querySelector('#sort_asc');
+const buttonUnsort = document.querySelector('#unsort');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -2402,19 +2405,20 @@ const handsontableInstance = new Handsontable(container, {
     },
   ],
   columnSorting: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
 const columnSortingPluginInstance = handsontableInstance.getPlugin('columnSorting');
 
-button_sort_ascending.addEventListener('click', () => {
+buttonSortAscending.addEventListener('click', () => {
   columnSortingPluginInstance.sort({
     column: 0,
     sortOrder: 'asc',
   });
 });
 
-button_unsort.addEventListener('click', () => {
+buttonUnsort.addEventListener('click', () => {
   columnSortingPluginInstance.clearSort();
 });
 ```
@@ -2438,11 +2442,9 @@ registerAllModules();
 
 export const HandsontableComponent = () => {
   const hotTableComponentRef = useRef(null);
-
-  const sort_asc = () => {
-  
-   // get the `ColumnSorting` plugin instance
-  const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
+  const sortAsc = () => {
+    // get the `ColumnSorting` plugin instance
+    const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
   
     columnSortingPluginInstance.sort(
       {
@@ -2451,12 +2453,11 @@ export const HandsontableComponent = () => {
       },
     );
   };
-  
-    const unsort = () => {
-    
+
+  const unsort = () => {
     // get the `ColumnSorting` plugin instance
     const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
-    
+
     columnSortingPluginInstance.clearSort();
   };
 
@@ -2547,10 +2548,11 @@ export const HandsontableComponent = () => {
           },
         ]}
         columnSorting={true}
+        height="auto"
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
-        <button onClick={sort_asc}>Sort by the "Brand" column, in ascending order</button>
+        <button onClick={sortAsc}>Sort by the "Brand" column, in ascending order</button>
         <br />
         <br />
         <button onClick={unsort}>Go back to the original order</button>
@@ -2606,7 +2608,6 @@ multiColumnSortingPluginInstance.sort(
 
 ```jsx
 const hotTableComponentRef = useRef(null);
-
 // get the `ColumnSorting` plugin instance
 const multiColumnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('multiColumnSorting');
 
@@ -2648,9 +2649,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example9');
-
-const button_sort = document.querySelector('#sort');
-
+const buttonSort = document.querySelector('#sort');
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -2735,12 +2734,13 @@ const handsontableInstance = new Handsontable(container, {
     },
   ],
   multiColumnSorting: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
 });
 
 const multiColumnSortingPluginInstance = handsontableInstance.getPlugin('multiColumnSorting');
 
-button_sort.addEventListener('click', () => {
+buttonSort.addEventListener('click', () => {
   multiColumnSortingPluginInstance.sort(
     [
       {
@@ -2775,9 +2775,7 @@ registerAllModules();
 
 export const HandsontableComponent = () => {
   const hotTableComponentRef = useRef(null);
-
   const sort = () => {
-
     // get the `MultiColumnSorting` plugin instance
     const multiColumnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('multiColumnSorting');
 
@@ -2882,6 +2880,7 @@ export const HandsontableComponent = () => {
           },
         ]}
         multiColumnSorting={true}
+        height="auto"
         licenseKey="non-commercial-and-evaluation"
       />
       <div className="controls">
@@ -2921,7 +2920,6 @@ import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 
 const container = document.querySelector('#example10');
-
 const handsontableInstance = new Handsontable(container, {
   data: [
     {
@@ -3134,6 +3132,7 @@ const handsontableInstance = new Handsontable(container, {
       suppressDataTypeErrors: true,
     },
   ],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -3157,7 +3156,6 @@ registerAllModules();
 
 export const HandsontableComponent = () => {
   const hotTableComponentRef = useRef(null);
-
   const exclude = () => {
     // take row 1 and change its index to 0
     hotTableComponentRef.current.hotInstance.rowIndexMapper.moveIndexes(
@@ -3373,6 +3371,7 @@ export const HandsontableComponent = () => {
           suppressDataTypeErrors: true,
         },
       ]}
+      height="auto"
       licenseKey="non-commercial-and-evaluation"
     />
   );
