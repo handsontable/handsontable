@@ -264,6 +264,9 @@ export default class CoreAbstract {
       get wtViewport() {
         return wot.wtViewport; // TODO refactoring: move outside dao, use IOC
       },
+      get wtSettings() {
+        return wot.wtSettings;
+      },
       get rootWindow() {
         return wot.domBindings.rootWindow; // TODO refactoring: move outside dao
       },
