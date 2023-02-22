@@ -100,6 +100,7 @@ class ViewportColumnsCalculator {
     let needReverse = true;
     const startPositions = [];
     let columnWidth;
+    let firstVisibleColumnWidth = 0;
     let lastVisibleColumnWidth = 0;
 
     const priv = privatePool.get(this);
@@ -117,6 +118,8 @@ class ViewportColumnsCalculator {
 
       if (sum <= zeroBasedScrollOffset && calculationType !== FULLY_VISIBLE_TYPE) {
         this.startColumn = i;
+
+        firstVisibleColumnWidth = columnWidth;
       }
 
       if (
@@ -126,6 +129,8 @@ class ViewportColumnsCalculator {
       ) {
         if (this.startColumn === null || this.startColumn === void 0) {
           this.startColumn = i;
+
+          firstVisibleColumnWidth = columnWidth;
         }
 
         this.endColumn = i;
@@ -148,13 +153,17 @@ class ViewportColumnsCalculator {
     }
 
     const mostRightScrollOffset = scrollOffset + viewportWidth - compensatedViewportWidth;
-    const columnOffset = calculationType === FULLY_VISIBLE_TYPE ? 0 : lastVisibleColumnWidth;
+    const inlineEndColumnOffset = calculationType === FULLY_VISIBLE_TYPE ? 0 : lastVisibleColumnWidth;
+    const inlineStartColumnOffset = calculationType === FULLY_VISIBLE_TYPE ? firstVisibleColumnWidth : 0;
 
     if (
       // The table is on the left of the viewport
-      (mostRightScrollOffset < (-1) * priv.inlineStartOffset || scrollOffset > startPositions.at(-1) + columnOffset) ||
+      (
+        mostRightScrollOffset < (-1) * priv.inlineStartOffset ||
+        scrollOffset > startPositions.at(-1) + inlineEndColumnOffset
+      ) ||
       // The table is on the right of the viewport
-      (((-1) * priv.scrollOffset) - priv.viewportWidth > 0)
+      (((-1) * priv.scrollOffset) - priv.viewportWidth > (-1) * inlineStartColumnOffset)
     ) {
       this.isVisibleInTrimmingContainer = false;
 

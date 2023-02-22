@@ -96,6 +96,7 @@ class ViewportRowsCalculator {
     let needReverse = true;
     const startPositions = [];
     let rowHeight;
+    let firstVisibleRowHeight = 0;
     let lastVisibleRowHeight = 0;
 
     // Calculate the number (start and end index) of rows needed
@@ -107,11 +108,15 @@ class ViewportRowsCalculator {
       }
       if (sum <= zeroBasedScrollOffset && calculationType !== FULLY_VISIBLE_TYPE) {
         this.startRow = i;
+
+        firstVisibleRowHeight = rowHeight;
       }
 
       if (sum >= zeroBasedScrollOffset && sum + (calculationType === FULLY_VISIBLE_TYPE ? rowHeight : 0) <= zeroBasedScrollOffset + viewportHeight - horizontalScrollbarHeight) { // eslint-disable-line max-len
         if (this.startRow === null) {
           this.startRow = i;
+
+          firstVisibleRowHeight = rowHeight;
         }
         this.endRow = i;
       }
@@ -130,7 +135,7 @@ class ViewportRowsCalculator {
     }
 
     const mostBottomScrollOffset = scrollOffset + viewportHeight - horizontalScrollbarHeight;
-    const topRowOffset = calculationType === FULLY_VISIBLE_TYPE ? lastVisibleRowHeight : 0;
+    const topRowOffset = calculationType === FULLY_VISIBLE_TYPE ? firstVisibleRowHeight : 0;
     const bottomRowOffset = calculationType === FULLY_VISIBLE_TYPE ? 0 : lastVisibleRowHeight;
 
     if (mostBottomScrollOffset < topRowOffset || scrollOffset > startPositions.at(-1) + bottomRowOffset) {

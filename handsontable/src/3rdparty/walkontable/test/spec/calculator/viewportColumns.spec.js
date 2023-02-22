@@ -111,7 +111,7 @@ describe('Walkontable viewport columns calculator', () => {
       await sleep(100);
 
       expect(wt.wtViewport.createColumnsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createColumnsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
+      expect(wt.wtViewport.createColumnsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
       expect(wt.wtViewport.createColumnsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
 
       window.scrollBy(tableWidth / 2, 0);
