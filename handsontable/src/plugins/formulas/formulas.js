@@ -192,6 +192,16 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
+    const syncMoves = (syncMethodName, moves) => {
+      this.engine.batch(() => {
+        moves.forEach((move) => {
+          if (move.from !== move.to) {
+            this.engine[syncMethodName](this.sheetId, move.from, 1, move.to);
+          }
+        });
+      });
+    };
+
     const getIndexesChangeSyncMethod = (indexesType) => {
       return (source) => {
         if (this.redo === true || this.undo === true || this.sheetId === null) {
@@ -217,12 +227,12 @@ export class Formulas extends BasePlugin {
           return;
         }
 
-        if (movePossible === false || orderChanged === false || this.sheetId === null) {
+        if (movePossible === false || orderChanged === false) {
           return;
         }
 
         const syncMethodName = `move${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}s`;
-        const numberOfElements = this.hot.columnIndexMapper.getNumberOfIndexes();
+        const numberOfElements = this.hot[`${indexesType}IndexMapper`].getNumberOfIndexes();
         const notMovedElements = Array.from(Array(numberOfElements).keys())
           .filter(index => movedIndexes.includes(index) === false);
         let moveLine;
@@ -244,8 +254,10 @@ export class Formulas extends BasePlugin {
 
           moves.forEach((previouslyMovedIndex) => {
             const isMovingFromEndToStart = previouslyMovedIndex.from > previouslyMovedIndex.to;
+            const isMovingElementBefore = previouslyMovedIndex.to <= move.from;
+            const isMovingAfterElement = previouslyMovedIndex.from > move.from;
 
-            if (previouslyMovedIndex.from > move.from && isMovingFromEndToStart) {
+            if (isMovingAfterElement && isMovingElementBefore && isMovingFromEndToStart) {
               move.from += 1;
             }
           });
@@ -272,11 +284,14 @@ export class Formulas extends BasePlugin {
           });
         });
 
-        moves.forEach((move) => {
-          if (move.from !== move.to) {
-            this.engine[syncMethodName](this.sheetId, move.from, 1, move.to);
-          }
-        });
+        if (this.sheetId === null) {
+          this.hot.addHookOnce('init', () => {
+            syncMoves(syncMethodName, moves);
+          });
+
+        } else {
+          syncMoves(syncMethodName, moves);
+        }
       };
     };
 
@@ -752,11 +767,9 @@ export class Formulas extends BasePlugin {
       if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
 
-        const rowIndexes = this.hot.rowIndexMapper.getIndexesSequence();
-        const dependentCells = this.engine.setSheetContent(this.sheetId,
-          rowIndexes.map(rowIndex => sourceDataArray[rowIndex]));
+        const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
 
-        this.rowIndexesSequence = rowIndexes;
+        this.rowIndexesSequence = this.hot.rowIndexMapper.getIndexesSequence();
         this.columnIndexesSequence = this.hot.columnIndexMapper.getIndexesSequence();
 
         this.renderDependentSheets(dependentCells);

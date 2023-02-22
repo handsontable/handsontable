@@ -334,7 +334,7 @@ describe('Formulas general', () => {
       hot.rowIndexMapper.setIndexesSequence([0, 2, 3, 4, 1]);
 
       render();
-      hot.setDataAtCell(3, 0, 6);
+      setDataAtCell(3, 0, 6);
 
       await sleep(100); // Validator is asynchronous.
 
