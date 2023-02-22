@@ -24,8 +24,10 @@ class ViewportColumnsCalculator {
    * @param {number} options.scrollOffset Current horizontal scroll position of the viewport.
    * @param {number} options.totalItems Total number of columns.
    * @param {Function} options.itemSizeFn Function that returns the width of the column at a given index (in px).
-   * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin).
+   * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by
+   *   MergeCells plugin).
    * @param {string} options.calculationType String which describes types of calculation which will be performed.
+   * @param {string} options.inlineStartOffset Inline-start offset of the parent container.
    * @param {string} [options.stretchMode] Stretch mode 'all' or 'last'.
    * @param {Function} [options.stretchingItemWidthFn] Function that returns the new width of the stretched column.
    */
@@ -37,7 +39,8 @@ class ViewportColumnsCalculator {
     overrideFn,
     calculationType,
     stretchMode,
-    stretchingItemWidthFn = width => width
+    stretchingItemWidthFn = width => width,
+    inlineStartOffset,
   } = {}) {
     privatePool.set(this, {
       viewportWidth: viewportSize,
@@ -47,6 +50,7 @@ class ViewportColumnsCalculator {
       overrideFn,
       calculationType,
       stretchingColumnWidthFn: stretchingItemWidthFn,
+      inlineStartOffset,
     });
 
     /**
@@ -76,6 +80,7 @@ class ViewportColumnsCalculator {
      * @type {number|null}
      */
     this.startPosition = null;
+    this.isVisibleInTrimmingContainer = false;
 
     this.stretchAllRatio = 0;
     this.stretchLastWidth = 0;
@@ -95,43 +100,75 @@ class ViewportColumnsCalculator {
     let needReverse = true;
     const startPositions = [];
     let columnWidth;
+    let firstVisibleColumnWidth = 0;
+    let lastVisibleColumnWidth = 0;
 
     const priv = privatePool.get(this);
     const calculationType = priv.calculationType;
     const overrideFn = priv.overrideFn;
     const scrollOffset = priv.scrollOffset;
+    const zeroBasedScrollOffset = Math.max(priv.scrollOffset, 0);
     const totalColumns = priv.totalColumns;
     const viewportWidth = priv.viewportWidth;
+    // +1 pixel for row header width compensation for horizontal scroll > 0
+    const compensatedViewportWidth = zeroBasedScrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
 
     for (let i = 0; i < totalColumns; i++) {
       columnWidth = this._getColumnWidth(i);
 
-      if (sum <= scrollOffset && calculationType !== FULLY_VISIBLE_TYPE) {
+      if (sum <= zeroBasedScrollOffset && calculationType !== FULLY_VISIBLE_TYPE) {
         this.startColumn = i;
+
+        firstVisibleColumnWidth = columnWidth;
       }
 
-      // +1 pixel for row header width compensation for horizontal scroll > 0
-      const compensatedViewportWidth = scrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
-
       if (
-        sum >= scrollOffset &&
-        sum + (calculationType === FULLY_VISIBLE_TYPE ? columnWidth : 0) <= scrollOffset + compensatedViewportWidth
+        sum >= zeroBasedScrollOffset &&
+        sum + (calculationType === FULLY_VISIBLE_TYPE ? columnWidth : 0) <=
+        zeroBasedScrollOffset + compensatedViewportWidth
       ) {
         if (this.startColumn === null || this.startColumn === void 0) {
           this.startColumn = i;
+
+          firstVisibleColumnWidth = columnWidth;
         }
+
         this.endColumn = i;
       }
+
       startPositions.push(sum);
+
       sum += columnWidth;
+
+      lastVisibleColumnWidth = columnWidth;
 
       if (calculationType !== FULLY_VISIBLE_TYPE) {
         this.endColumn = i;
       }
-      if (sum >= scrollOffset + viewportWidth) {
+
+      if (sum >= zeroBasedScrollOffset + viewportWidth) {
         needReverse = false;
         break;
       }
+    }
+
+    const mostRightScrollOffset = scrollOffset + viewportWidth - compensatedViewportWidth;
+    const inlineEndColumnOffset = calculationType === FULLY_VISIBLE_TYPE ? 0 : lastVisibleColumnWidth;
+    const inlineStartColumnOffset = calculationType === FULLY_VISIBLE_TYPE ? firstVisibleColumnWidth : 0;
+
+    if (
+      // The table is on the left of the viewport
+      (
+        mostRightScrollOffset < (-1) * priv.inlineStartOffset ||
+        scrollOffset > startPositions.at(-1) + inlineEndColumnOffset
+      ) ||
+      // The table is on the right of the viewport
+      (((-1) * priv.scrollOffset) - priv.viewportWidth > (-1) * inlineStartColumnOffset)
+    ) {
+      this.isVisibleInTrimmingContainer = false;
+
+    } else {
+      this.isVisibleInTrimmingContainer = true;
     }
 
     if (this.endColumn === totalColumns - 1 && needReverse) {
