@@ -111,7 +111,7 @@ describe('Walkontable viewport rows calculator', () => {
       await sleep(100);
 
       expect(wt.wtViewport.createRowsCalculator(3).isVisibleInTrimmingContainer).toBe(true);
-      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(true);
+      expect(wt.wtViewport.createRowsCalculator(2).isVisibleInTrimmingContainer).toBe(false);
       expect(wt.wtViewport.createRowsCalculator(1).isVisibleInTrimmingContainer).toBe(true);
 
       window.scrollBy(0, tableHeight / 2);

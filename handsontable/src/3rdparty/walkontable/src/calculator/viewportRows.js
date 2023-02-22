@@ -130,9 +130,10 @@ class ViewportRowsCalculator {
     }
 
     const mostBottomScrollOffset = scrollOffset + viewportHeight - horizontalScrollbarHeight;
-    const rowOffset = calculationType === FULLY_VISIBLE_TYPE ? 0 : lastVisibleRowHeight;
+    const topRowOffset = calculationType === FULLY_VISIBLE_TYPE ? lastVisibleRowHeight : 0;
+    const bottomRowOffset = calculationType === FULLY_VISIBLE_TYPE ? 0 : lastVisibleRowHeight;
 
-    if (mostBottomScrollOffset < 0 || scrollOffset > startPositions.at(-1) + rowOffset) {
+    if (mostBottomScrollOffset < topRowOffset || scrollOffset > startPositions.at(-1) + bottomRowOffset) {
       this.isVisibleInTrimmingContainer = false;
 
     } else {
