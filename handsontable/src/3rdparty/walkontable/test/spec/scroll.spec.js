@@ -1519,4 +1519,60 @@ describe('WalkontableScroll', () => {
       });
     });
   });
+
+  describe('API', () => {
+    describe('getLastVisibleColumn', () => {
+      it('should return the same results when calling the `getLastVisibleColumn` method for RTL and LTR modes, when' +
+        ' there\'s a gap at the inline-end-side of the table', async() => {
+        let lastVisibleColumn = null;
+
+        $('html').attr('dir', 'rtl');
+
+        spec().$wrapper.css({
+          overflow: '',
+          paddingInlineEnd: '10000px'
+        });
+        spec().$wrapper.width('auto').height('auto');
+
+        createDataArray(100, 100);
+
+        const wt1 = walkontable({
+          rtlMode: true,
+          data: getData,
+          totalRows: getTotalRows,
+          totalColumns: getTotalColumns
+        });
+
+        wt1.draw();
+
+        await sleep(300);
+
+        lastVisibleColumn = wt1.wtScroll.getLastVisibleColumn();
+
+        // Reset the DOM setup
+        $('html').attr('dir', 'ltr');
+
+        spec().$wrapper.remove();
+        spec().wotInstance.destroy();
+        spec().$wrapper = $('<div></div>').addClass('handsontable').css({ paddingInlineEnd: '10000px' });
+        spec().$container = $('<div></div>');
+        spec().$table = $('<table></table>').addClass('htCore'); // create a table that is not attached to document
+        spec().$wrapper.append(spec().$container);
+        spec().$container.append(spec().$table);
+        spec().$wrapper.appendTo('body');
+
+        const wt2 = walkontable({
+          data: getData,
+          totalRows: getTotalRows,
+          totalColumns: getTotalColumns
+        });
+
+        wt2.draw();
+
+        await sleep(300);
+
+        expect(wt2.wtScroll.getLastVisibleColumn()).toEqual(lastVisibleColumn);
+      });
+    });
+  });
 });
