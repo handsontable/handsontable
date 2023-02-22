@@ -78,11 +78,9 @@ export function setupEngine(hotInstance) {
       sharedEngineUsage.push(hotInstance.guid);
     }
 
-    if (!engineConfigItem.getConfig().licenseKey) {
-      engineConfigItem.updateConfig({
-        licenseKey: DEFAULT_LICENSE_KEY
-      });
-    }
+    engineConfigItem.updateConfig({
+      licenseKey: DEFAULT_LICENSE_KEY
+    });
 
     return engineConfigItem;
   }
