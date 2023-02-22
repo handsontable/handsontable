@@ -31,7 +31,7 @@ Perform calculations on cells' values, using a powerful calculation engine that 
 
 The _Formulas_ plugin provides you an extensive calculation capabilities based on formulas using the spreadsheet notation. Under the hood, it uses an engine called [HyperFormula](https://hyperformula.handsontable.com/) created by the Handsontable team as an independent library to help developers build complex data management apps.
 
-This plugin comes with a library of 386 functions grouped into categories, such as Math and trigonometry, Engineering, Statistical, Financial, and Logical. Using these, you can create complex data entry rules in business apps and much more. Below are some ideas on what you can do with it:
+This plugin comes with a library of [380+ functions](https://hyperformula.handsontable.com/guide/built-in-functions.html) grouped into categories, such as Math and trigonometry, Engineering, Statistical, Financial, and Logical. Using these, you can create complex data entry rules in business apps and much more. Below are some ideas on what you can do with it:
 
 *   Fully-featured spreadsheet apps
 *   Smart documents
@@ -56,8 +56,6 @@ To find out which HyperFormula version to use, see the table below:
 | [`12.x.x`](https://github.com/handsontable/handsontable/releases/tag/12.0.0) and higher | [`^2.0.0`](https://github.com/handsontable/hyperformula/releases/tag/2.0.0)                                    |
 
 ::: tip
-You can use the `'internal-use-in-handsontable'` license key only in those HyperFormula instances that are connected to a Handsontable instance.
-
 To use HyperFormula outside of a Handsontable instance (e.g., on a server), you need a dedicated [HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html). For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 :::
 
@@ -129,11 +127,7 @@ const data2 = [
 ];
 
 // create an external HyperFormula instance
-const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
-});
+const hyperformulaInstance = HyperFormula.buildEmpty();
 
 const container1 = document.querySelector('#example-basic-multi-sheet-1');
 new Handsontable(container1, {
@@ -198,11 +192,7 @@ export const ExampleComponent = () => {
     ['Number of sheets in this workbook', '=SHEETS()'],
   ];
   //  create an external HyperFormula instance
-  const hyperformulaInstance = HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
-  });
+  const hyperformulaInstance = HyperFormula.buildEmpty();
 
   return (
     <>
@@ -526,19 +516,6 @@ import { HyperFormula } from 'hyperformula';
 
 There are also other installation methods available. Check out [HyperFormula's installation documentation](https://handsontable.github.io/hyperformula/guide/client-side-installation.html).
 
-::: tip HyperFormula instance
-To use the [`Formulas`](@/api/formulas.md) plugin with an external HyperFormula instance,
-initialize HyperFormula with the `'internal-use-in-handsontable'` license key:
-
-```js
-// create an external HyperFormula instance
-const hyperformulaInstance = HyperFormula.buildEmpty({
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
-});
-```
-:::
-
 ### Pass the HyperFormula class/instance to Handsontable
 
 ::: only-for javascript
@@ -601,11 +578,7 @@ or
 
 ::: only-for javascript
 ```js
-const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
-});
+const hyperformulaInstance = HyperFormula.buildEmpty();
 
 {
   formulas: {
@@ -618,11 +591,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ::: only-for react
 ```jsx
 export const ExampleComponent = () => {
-  const hyperformulaInstance = HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
-  });
+  const hyperformulaInstance = HyperFormula.buildEmpty();
 
   return (
     <HotTable
@@ -708,11 +677,7 @@ export const ExampleComponent = () => {
 
 ::: only-for javascript
 ```js
-const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
-});
+const hyperformulaInstance = HyperFormula.buildEmpty();
 
 // Instance 1
 {
@@ -737,11 +702,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ::: only-for react
 ```jsx
 export const ExampleComponent = () => {
-  const hyperformulaInstance = HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
-  });
+  const hyperformulaInstance = HyperFormula.buildEmpty();
 
   return (
     <>
