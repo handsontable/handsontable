@@ -45,7 +45,7 @@ To run individual tests, go to to the `/handsontable` directory, and use the fol
 * `npm test:walkontable` - runs only Walkontable tests.
 * `npm test:e2e` - runs all end-to-end tests.
 * `npm run test:e2e --testPathPattern=selection` - runs only end-to-end tests and suites matching the filename "selection".
-* `npm run test:unit --testPathPattern=array` - runs only end-to-end tests and suites matching the filename "array".
+* `npm run test:unit --testPathPattern=array` - runs only unit tests and suites matching the filename "array".
 * `npm run test:e2e.dump` - generates the `test/E2ERunner.html` file which can by executed in the browser environment (Chrome, Firefox etc.) to check if tests passes.
 * `npm run test:e2e.dump -- --watch` - generates the `E2ERunner.html` file on every change detected in test files. It can be helpful for debugging proposes.
 
