@@ -127,6 +127,5 @@ Contribute to the development of Handsontable:
 ## Stay in the loop
 
 - [Release notes](@/guides/upgrade-and-migration/release-notes.md)
-- [Roadmap](https://github.com/handsontable/handsontable/milestones)
 - [Blog](https://handsontable.com/blog)
 - [Twitter](https://twitter.com/handsontable)
