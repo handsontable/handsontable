@@ -683,7 +683,7 @@ export default () => {
      * | A function | Define your own column headers, using a function                     |
      *
      * Read more:
-     * - [Column header](@/guides/columns/column-header.md)
+     * - [Column header](@/guides/columns/column-headers.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -4260,12 +4260,12 @@ export default () => {
 
     /**
      * @description
-     * The `title` option configures [column header](@/guides/columns/column-header.md) names.
+     * The `title` option configures [column header](@/guides/columns/column-headers.md) names.
      *
      * You can set the `title` option to a string.
      *
      * Read more:
-     * - [Column header](@/guides/columns/column-header.md)
+     * - [Column header](@/guides/columns/column-headers.md)
      * - [`columns`](#columns)
      *
      * @memberof Options#
