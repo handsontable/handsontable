@@ -2174,7 +2174,7 @@ const handsontableInstance = new Handsontable(container, {
     },
     {
       brand: 'Gigabox',
-      model: 'HL Mountain Frame',
+      model: 'HL Frame',
       color: 'Black',
       price: 1890.90,
       sellDate: '03/05/2023',
@@ -2288,6 +2288,7 @@ const handsontableInstance = new Handsontable(container, {
     ],
   },
   height: 'auto',
+  colWidths: 100,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -2374,7 +2375,7 @@ export const HandsontableComponent = () => {
         },
         {
           brand: 'Gigabox',
-          model: 'HL Mountain Frame',
+          model: 'HL Frame',
           color: 'Black',
           price: 1890.90,
           sellDate: '03/05/2023',
@@ -2488,6 +2489,7 @@ export const HandsontableComponent = () => {
       }}
       className="custom-sort-icon-example-3"
       height="auto"
+      colWidths={100}
       licenseKey="non-commercial-and-evaluation"
     />
   );
