@@ -876,7 +876,7 @@ export const HandsontableComponent = () => {
           sellTime: '13:23',
           inStock: true,
         },
-    ]}
+      ]}
       columns={[
         {
           title: 'Model',
@@ -1113,7 +1113,7 @@ export const HandsontableComponent = () => {
           sellTime: '13:23',
           inStock: true,
         },
-    ]}
+      ]}
       columns={[
         {
           title: 'Brand',
@@ -1446,7 +1446,7 @@ export const HandsontableComponent = () => {
           sellTime: '13:23',
           inStock: true,
         },
-    ]}
+      ]}
       columns={[
         {
           title: 'Brand',
@@ -1794,7 +1794,7 @@ export const HandsontableComponent = () => {
           sellTime: '13:23',
           inStock: true,
         },
-    ]}
+      ]}
       columns={[
         {
           title: 'Brand',
@@ -2061,7 +2061,7 @@ export const HandsontableComponent = () => {
           sellTime: '13:23',
           inStock: true,
         },
-    ]}
+      ]}
       columns={[
         {
           title: 'Brand',
@@ -3630,17 +3630,17 @@ registerAllModules();
 export const HandsontableComponent = () => {
   const hotTableComponentRef = useRef(null);
   const exclude = () => {
-    // take row 1 and change its index to 0
-    hotTableComponentRef.current.hotInstance.rowIndexMapper.moveIndexes(
-      [
-        hotTableComponentRef.current.hotInstance.toVisualRow(0),
-      ], 0);
-
-    // take row 16 and change its index to 15
-    hotTableComponentRef.current.hotInstance.rowIndexMapper.moveIndexes(
-      [
-        hotTableComponentRef.current.hotInstance.toVisualRow(15),
-      ], 15);
+    const handsontableInstance = hotTableComponentRef.current.hotInstance;
+    const lastRowIndex = handsontableInstance.countRows() - 1;
+    
+    // after each sorting, take row 1 and change its index to 0
+    handsontableInstance.rowIndexMapper
+    	.moveIndexes(handsontableInstance
+      	.toVisualRow(0), 0);
+    // after each sorting, take row 16 and change its index to 15
+    handsontableInstance.rowIndexMapper
+    	.moveIndexes(handsontableInstance
+      	.toVisualRow(lastRowIndex), lastRowIndex);
   };
 
   return (
