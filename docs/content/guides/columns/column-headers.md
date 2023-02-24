@@ -25,15 +25,63 @@ Use default column headers (A, B, C), or set them to custom values provided by a
 
 ## Overview
 
+Describe what column headers do UI-wise:
+- Look differently
+- Display column names
+- Click on the column name to sort
+- Hover between column headers to resize
+- Drag column headers to move columns
+- You can display column menu
+
+To copy column headers, see: [Copy].
+
 ### Demo
 
 ## Enable column headers
 
 ## Configure column headers
 
+## Add custom column names
+
+https://handsontable.com/docs/react-data-grid/column-header/#header-labels-as-an-array
+
+## Generate custom column names
+
+https://handsontable.com/docs/react-data-grid/column-header/#header-labels-as-a-function
+
+## Render custom HTML in column headers
+
+https://examples.handsontable.com/demo/renderers_html.html#header
+
+https://jsfiddle.net/handsoncode/0gfjkesd
+
+## Add vertical column headers
+
+https://jsfiddle.net/handsoncode/ejokx71y
+
+## Add column header tooltips
+
+https://jsfiddle.net/handsoncode/cqmbLnz4
+
+## Automatically set column headers' height
+
+https://www.ag-grid.com/javascript-data-grid/column-headers/#auto-header-height
+
+## Style column headers
+
+https://mui.com/x/react-data-grid/style/#styling-column-headers
+
+## Use nested column headers
+
+You can use multiple levels of nested column headers, to better reflect the structure of your data.
+
+To learn more, see: [Column groups](@/guides/columns/column-groups.md).
+
 ## Control column headers programmatically
 
 ### Enable or disable column headers programmatically
+
+https://examples.handsontable.com/demo/buttons.html
 
 To enable or disable column headers programmatically, use the [`updateSettings()`](@/api/core.md#updatesettings) method.
 
