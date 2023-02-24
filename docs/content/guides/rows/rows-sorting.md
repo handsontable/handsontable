@@ -223,7 +223,7 @@ export const HandsontableComponent = () => {
           sellTime: '13:23',
           inStock: true,
         },
-    ]}
+      ]}
       columns={[
         {
           title: 'Brand',
