@@ -74,6 +74,7 @@ class ViewportRowsCalculator {
      * @type {number|null}
      */
     this.startPosition = null;
+    this.isVisibleInTrimmingContainer = false;
 
     this.calculate();
   }
@@ -82,19 +83,21 @@ class ViewportRowsCalculator {
    * Calculates viewport.
    */
   calculate() {
-    let sum = 0;
-    let needReverse = true;
-    const startPositions = [];
-
     const priv = privatePool.get(this);
     const calculationType = priv.calculationType;
     const overrideFn = priv.overrideFn;
     const rowHeightFn = priv.rowHeightFn;
     const scrollOffset = priv.scrollOffset;
+    const zeroBasedScrollOffset = Math.max(priv.scrollOffset, 0);
     const totalRows = priv.totalRows;
     const viewportHeight = priv.viewportHeight;
     const horizontalScrollbarHeight = priv.horizontalScrollbarHeight || 0;
+    let sum = 0;
+    let needReverse = true;
+    const startPositions = [];
     let rowHeight;
+    let firstVisibleRowHeight = 0;
+    let lastVisibleRowHeight = 0;
 
     // Calculate the number (start and end index) of rows needed
     for (let i = 0; i < totalRows; i++) {
@@ -103,27 +106,43 @@ class ViewportRowsCalculator {
       if (isNaN(rowHeight)) {
         rowHeight = ViewportRowsCalculator.DEFAULT_HEIGHT;
       }
-      if (sum <= scrollOffset && calculationType !== FULLY_VISIBLE_TYPE) {
+      if (sum <= zeroBasedScrollOffset && calculationType !== FULLY_VISIBLE_TYPE) {
         this.startRow = i;
+
+        firstVisibleRowHeight = rowHeight;
       }
 
-      if (sum >= scrollOffset && sum + (calculationType === FULLY_VISIBLE_TYPE ? rowHeight : 0) <= scrollOffset + viewportHeight - horizontalScrollbarHeight) { // eslint-disable-line max-len
+      if (sum >= zeroBasedScrollOffset && sum + (calculationType === FULLY_VISIBLE_TYPE ? rowHeight : 0) <= zeroBasedScrollOffset + viewportHeight - horizontalScrollbarHeight) { // eslint-disable-line max-len
         if (this.startRow === null) {
           this.startRow = i;
+
+          firstVisibleRowHeight = rowHeight;
         }
         this.endRow = i;
       }
 
       startPositions.push(sum);
       sum += rowHeight;
+      lastVisibleRowHeight = rowHeight;
 
       if (calculationType !== FULLY_VISIBLE_TYPE) {
         this.endRow = i;
       }
-      if (sum >= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
+      if (sum >= zeroBasedScrollOffset + viewportHeight - horizontalScrollbarHeight) {
         needReverse = false;
         break;
       }
+    }
+
+    const mostBottomScrollOffset = scrollOffset + viewportHeight - horizontalScrollbarHeight;
+    const topRowOffset = calculationType === FULLY_VISIBLE_TYPE ? firstVisibleRowHeight : 0;
+    const bottomRowOffset = calculationType === FULLY_VISIBLE_TYPE ? 0 : lastVisibleRowHeight;
+
+    if (mostBottomScrollOffset < topRowOffset || scrollOffset > startPositions.at(-1) + bottomRowOffset) {
+      this.isVisibleInTrimmingContainer = false;
+
+    } else {
+      this.isVisibleInTrimmingContainer = true;
     }
 
     // If the estimation has reached the last row and there is still some space available in the viewport,
