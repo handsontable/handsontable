@@ -20,6 +20,7 @@ import { getEngineSettingsWithOverrides } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
 import Hooks from '../../pluginHooks';
+import IndexSyncer from './indexSyncer';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
@@ -108,9 +109,12 @@ export class Formulas extends BasePlugin {
    * @type {string|null}
    */
   sheetName = null;
-
-  rowIndexesSequence = [];
-  columnIndexesSequence = [];
+  /**
+   * Index synchronizer responsible for syncing the order of HOT and HF's data.
+   *
+   * @type {IndexSyncer|null}
+   */
+  indexSyncer = null;
 
   /**
    * HyperFormula's sheet id.
@@ -130,13 +134,6 @@ export class Formulas extends BasePlugin {
   isEnabled() {
     /* eslint-disable no-unneeded-ternary */
     return this.hot.getSettings()[PLUGIN_KEY] ? true : false;
-  }
-
-  getTrimmedIndex(indexesType, visualIndex) {
-    const indexesSequence = this.hot[`${indexesType}IndexMapper`].getIndexesSequence();
-    const notTrimmedIndexes = this.hot[`${indexesType}IndexMapper`].getNotTrimmedIndexes();
-
-    return indexesSequence.indexOf(notTrimmedIndexes[visualIndex]);
   }
 
   /**
@@ -192,134 +189,39 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
-    const syncMoves = (syncMethodName, moves) => {
-      this.engine.batch(() => {
-        moves.forEach((move) => {
-          if (move.from !== move.to) {
-            this.engine[syncMethodName](this.sheetId, move.from, 1, move.to);
-          }
-        });
+    this.indexSyncer = new IndexSyncer(this.hot.rowIndexMapper, this.hot.columnIndexMapper, (action) => {
+      this.hot.addHookOnce('init', () => {
+        action();
       });
-    };
+    });
 
-    const getIndexesChangeSyncMethod = (indexesType) => {
-      return (source) => {
-        if (this.redo === true || this.undo === true || this.sheetId === null) {
-          return;
-        }
-
-        const newSequence = this.hot[`${indexesType}IndexMapper`].getIndexesSequence();
-
-        if (source === 'update') {
-          const relativeTransformation = this[`${indexesType}IndexesSequence`].map(index => newSequence.indexOf(index));
-          const syncMethodName = `set${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}Order`;
-
-          this.engine[syncMethodName](this.sheetId, relativeTransformation);
-        }
-
-        this[`${indexesType}IndexesSequence`] = newSequence;
-      };
-    };
-
-    const getIndexMoveSyncMethod = (indexesType) => {
-      return (movedIndexes, finalIndex, dropIndex, movePossible, orderChanged) => {
-        if (this.redo === true || this.undo === true) {
-          return;
-        }
-
-        if (movePossible === false || orderChanged === false) {
-          return;
-        }
-
-        const syncMethodName = `move${indexesType.charAt(0).toUpperCase() + indexesType.slice(1)}s`;
-        const numberOfElements = this.hot[`${indexesType}IndexMapper`].getNumberOfIndexes();
-        const notMovedElements = Array.from(Array(numberOfElements).keys())
-          .filter(index => movedIndexes.includes(index) === false);
-        let moveLine;
-
-        if (finalIndex === 0) {
-          moveLine = notMovedElements[finalIndex] ?? 0;
-
-        } else {
-          moveLine = notMovedElements[finalIndex - 1] + 1;
-        }
-
-        const moves = [];
-
-        movedIndexes.forEach((movedIndex) => {
-          const move = {
-            from: movedIndex,
-            to: moveLine,
-          };
-
-          moves.forEach((previouslyMovedIndex) => {
-            const isMovingFromEndToStart = previouslyMovedIndex.from > previouslyMovedIndex.to;
-            const isMovingElementBefore = previouslyMovedIndex.to <= move.from;
-            const isMovingAfterElement = previouslyMovedIndex.from > move.from;
-
-            if (isMovingAfterElement && isMovingElementBefore && isMovingFromEndToStart) {
-              move.from += 1;
-            }
-          });
-
-          // Moved element from right to left.
-          if (move.from >= moveLine) {
-            moveLine += 1;
-          }
-
-          moves.push(move);
-        });
-
-        moves.forEach((move, index) => {
-          const nextMoved = moves.slice(index + 1);
-
-          nextMoved.forEach((nextMovedIndex) => {
-            const isMovingFromStartToEnd = nextMovedIndex.from < nextMovedIndex.to;
-
-            if (nextMovedIndex.from > move.from && isMovingFromStartToEnd) {
-              nextMovedIndex.from -= 1;
-            }
-
-            return nextMovedIndex;
-          });
-        });
-
-        if (this.sheetId === null) {
-          this.hot.addHookOnce('init', () => {
-            syncMoves(syncMethodName, moves);
-          });
-
-        } else {
-          syncMoves(syncMethodName, moves);
-        }
-      };
-    };
-
-    this.hot.addHook('afterRowSequenceChange', getIndexesChangeSyncMethod('row'));
-    this.hot.addHook('afterColumnSequenceChange', getIndexesChangeSyncMethod('column'));
-    this.hot.addHook('afterRowMove', getIndexMoveSyncMethod('row'));
-    this.hot.addHook('afterColumnMove', getIndexMoveSyncMethod('column'));
+    this.hot.addHook('afterRowSequenceChange', this.indexSyncer.getIndexesChangeSyncMethod('row'));
+    this.hot.addHook('afterColumnSequenceChange', this.indexSyncer.getIndexesChangeSyncMethod('column'));
+    this.hot.addHook('beforeRowMove', this.indexSyncer.getBeforeMoveMethod('row'));
+    this.hot.addHook('beforeColumnMove', this.indexSyncer.getBeforeMoveMethod('column'));
+    this.hot.addHook('afterRowMove', this.indexSyncer.getIndexMoveSyncMethod('row'));
+    this.hot.addHook('afterColumnMove', this.indexSyncer.getIndexMoveSyncMethod('column'));
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => {
-      this.undo = true;
+      this.indexSyncer.setPerformUndo(true);
 
       this.engine.undo();
     });
 
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeRedo', () => {
-      this.redo = true;
+      this.indexSyncer.setPerformRedo(true);
 
       this.engine.redo();
     });
 
     this.addHook('afterUndo', () => {
-      this.undo = false;
+      this.indexSyncer.setPerformUndo(false);
     });
 
     this.addHook('afterUndo', () => {
-      this.redo = false;
+      this.indexSyncer.setPerformRedo(false);
     });
 
     this.addHook('afterDetachChild', (...args) => this.onAfterDetachChild(...args));
@@ -552,8 +454,8 @@ export class Formulas extends BasePlugin {
   isFormulaCellType(row, column, sheet = this.sheetId) {
     return this.engine.doesCellHaveFormula({
       sheet,
-      row: this.getTrimmedIndex('row', row),
-      col: this.getTrimmedIndex('column', column),
+      row: this.indexSyncer.getTrimmedIndex('row', row),
+      col: this.indexSyncer.getTrimmedIndex('column', column),
     });
   }
 
@@ -769,9 +671,7 @@ export class Formulas extends BasePlugin {
 
         const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
 
-        this.rowIndexesSequence = this.hot.rowIndexMapper.getIndexesSequence();
-        this.columnIndexesSequence = this.hot.columnIndexMapper.getIndexesSequence();
-
+        this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
         this.renderDependentSheets(dependentCells);
 
         this.#internalOperationPending = false;
@@ -825,8 +725,8 @@ export class Formulas extends BasePlugin {
 
     // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `DataMap`.
     const address = {
-      row: this.getTrimmedIndex('row', visualRow),
-      col: this.getTrimmedIndex('column', column),
+      row: this.indexSyncer.getTrimmedIndex('row', visualRow),
+      col: this.indexSyncer.getTrimmedIndex('column', column),
       sheet: this.sheetId
     };
     const cellValue = this.engine.getCellValue(address);
