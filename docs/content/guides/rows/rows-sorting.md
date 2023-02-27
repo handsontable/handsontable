@@ -711,7 +711,6 @@ You can configure the following types:
 - [`handsontable`](@/guides/cell-types/handsontable-cell-type.md)
 - [`numeric`](@/guides/cell-types/numeric-cell-type.md)
 - [`password`](@/guides/cell-types/password-cell-type.md)
-- [`select`](@/guides/cell-types/select-cell-type.md)
 - [`time`](@/guides/cell-types/time-cell-type.md)
 
 ::: only-for javascript
@@ -729,56 +728,66 @@ import 'handsontable/dist/handsontable.full.min.css';
 const container = document.querySelector('#example3');
 const handsontableInstance = new Handsontable(container, {
   data: [
-    {
-      brand: 'Jetpulse',
-      model: 'Racing Socks',
-      price: 30,
-      sellDate: '11/10/2023',
-      sellTime: '01:23',
-      inStock: false,
-    },
-    {
-      brand: 'Gigabox',
-      model: 'HL Mountain Frame',
-      price: 1890.90,
-      sellDate: '03/05/2023',
-      sellTime: '11:27',
-      inStock: false,
-    },
-    {
-      brand: 'Camido',
-      model: 'Cycling Cap',
-      price: 130.10,
-      sellDate: '27/03/2023',
-      sellTime: '03:17',
-      inStock: true,
-    },
-    {
-      brand: 'Chatterpoint',
-      model: 'Road Tire Tube',
-      price: 59,
-      sellDate: '28/08/2023',
-      sellTime: '08:01',
-      inStock: true,
-    },
-    {
-      brand: 'Eidel',
-      model: 'HL Road Tire',
-      price: 279.99,
-      sellDate: '02/10/2023',
-      sellTime: '13:23',
-      inStock: true,
-    },
+    { model: 'Racing Socks', size: 'S', price: 30, sellDate: '11/10/2023', sellTime: '01:23', inStock: false, color: 'Black', email: '8576@all.xyz' },
+    { model: 'HL Mountain Shirt', size: 'XS', price: 1890.90, sellDate: '03/05/2023', sellTime: '11:27', inStock: false, color: 'White', email: 'tayn@all.xyz' },
+    { model: 'Cycling Cap', size: 'L', price: 130.10, sellDate: '27/03/2023', sellTime: '03:17', inStock: true, color: 'Green', email: '6lights@far.com' },
+    { model: 'Ski Jacket', size: 'M', price: 59, sellDate: '28/08/2023', sellTime: '08:01', inStock: true, color: 'Blue', email: 'raj@fq1my2c.com' },
+    { model: 'HL Goggles', size: 'XL', price: 279.99, sellDate: '02/10/2023', sellTime: '13:23', inStock: true, color: 'Black', email: 'da@pdc.ga' },
   ],
   columns: [
     {
-      title: 'Model',
+      title: 'Model<br>(text)',
       // set the data type of the 'Model' column
-      type: 'text', // 'text' is the default type, so you can omit it
+      type: 'text', // 'text' is the default type, so you can omit this line
       data: 'model',
     },
     {
-      title: 'Price',
+      title: 'Color<br>(autocomplete)',
+      // set the data type of the 'Size' column
+      type: 'autocomplete',
+      data: 'color',
+      source: ['White', 'Black', 'Yellow', 'Blue', 'Green'],
+      className: 'htCenter',
+    },
+    {
+      title: 'In stock<br>(checkbox)',
+      // set the data type of the 'In stock' column
+      type: 'checkbox',
+      data: 'inStock',
+      className: 'htCenter',
+    },
+    {
+      title: 'Sold on<br>(date)',
+      // set the data type of the 'Date' column
+      type: 'date',
+      data: 'sellDate',
+      className: 'htRight',
+    },
+    {
+      title: 'Size<br>(dropdown)',
+      // set the data type of the 'Size' column
+      type: 'dropdown',
+      data: 'size',
+      source: ['XS', 'S', 'M', 'L', 'XL'],
+      className: 'htCenter',
+    },
+    {
+      title: 'Country<br>(handsontable)',
+      // set the data type of the 'Country' column
+      type: 'handsontable',
+      handsontable: {
+        autoColumnSize: true,
+        colHeaders: false,
+        data: [
+          { country: 'USA', language: 'Mexico' },
+          { country: 'Canada', language: 'Japan' },
+          { country: 'China', language: 'France' },
+          { country: 'UK', language: 'Italy' },
+        ],
+      },
+    },
+    {
+      title: 'Price<br>(numeric)',
       // set the data type of the 'Price' column
       type: 'numeric',
       data: 'price',
@@ -789,25 +798,17 @@ const handsontableInstance = new Handsontable(container, {
       className: 'htLeft',
     },
     {
-      title: 'Date',
-      // set the data type of the 'Date' column
-      type: 'date',
-      data: 'sellDate',
-      className: 'htRight',
+      title: 'Email<br>(password)',
+      // set the data type of the 'Email' column
+      type: 'password',
+      data: 'email',
     },
     {
-      title: 'Time',
+      title: 'Time<br>(time)',
       // set the data type of the 'Time' column
       type: 'time',
       data: 'sellTime',
       className: 'htRight',
-    },
-    {
-      title: 'In stock',
-      // set the data type of the 'In stock' column
-      type: 'checkbox',
-      data: 'inStock',
-      className: 'htCenter',
     },
   ],
   columnSorting: true,
@@ -836,56 +837,66 @@ export const HandsontableComponent = () => {
   return (
     <HotTable
       data={[
-        {
-          brand: 'Jetpulse',
-          model: 'Racing Socks',
-          price: 30,
-          sellDate: '11/10/2023',
-          sellTime: '01:23',
-          inStock: false,
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.90,
-          sellDate: '03/05/2023',
-          sellTime: '11:27',
-          inStock: false,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.10,
-          sellDate: '27/03/2023',
-          sellTime: '03:17',
-          inStock: true,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: '28/08/2023',
-          sellTime: '08:01',
-          inStock: true,
-        },
-        {
-          brand: 'Eidel',
-          model: 'HL Road Tire',
-          price: 279.99,
-          sellDate: '02/10/2023',
-          sellTime: '13:23',
-          inStock: true,
-        },
+        { model: 'Racing Socks', size: 'S', price: 30, sellDate: '11/10/2023', sellTime: '01:23', inStock: false, color: 'Black', email: '8576@all.xyz' },
+        { model: 'HL Mountain Shirt', size: 'XS', price: 1890.90, sellDate: '03/05/2023', sellTime: '11:27', inStock: false, color: 'White', email: 'tayn@all.xyz' },
+        { model: 'Cycling Cap', size: 'L', price: 130.10, sellDate: '27/03/2023', sellTime: '03:17', inStock: true, color: 'Green', email: '6lights@far.com' },
+        { model: 'Ski Jacket', size: 'M', price: 59, sellDate: '28/08/2023', sellTime: '08:01', inStock: true, color: 'Blue', email: 'raj@fq1my2c.com' },
+        { model: 'HL Goggles', size: 'XL', price: 279.99, sellDate: '02/10/2023', sellTime: '13:23', inStock: true, color: 'Black', email: 'da@pdc.ga' },
       ]}
       columns={[
         {
-          title: 'Model',
+          title: 'Model<br>(text)',
           // set the data type of the 'Model' column
-          type: 'text', // 'text' is the default type, so you can omit it
+          type: 'text', // 'text' is the default type, so you can omit this line
           data: 'model',
         },
         {
-          title: 'Price',
+          title: 'Color<br>(autocomplete)',
+          // set the data type of the 'Size' column
+          type: 'autocomplete',
+          data: 'color',
+          source: ['White', 'Black', 'Yellow', 'Blue', 'Green'],
+          className: 'htCenter',
+        },
+        {
+          title: 'In stock<br>(checkbox)',
+          // set the data type of the 'In stock' column
+          type: 'checkbox',
+          data: 'inStock',
+          className: 'htCenter',
+        },
+        {
+          title: 'Sold on<br>(date)',
+          // set the data type of the 'Date' column
+          type: 'date',
+          data: 'sellDate',
+          className: 'htRight',
+        },
+        {
+          title: 'Size<br>(dropdown)',
+          // set the data type of the 'Size' column
+          type: 'dropdown',
+          data: 'size',
+          source: ['XS', 'S', 'M', 'L', 'XL'],
+          className: 'htCenter',
+        },
+        {
+          title: 'Country<br>(handsontable)',
+          // set the data type of the 'Country' column
+          type: 'handsontable',
+          handsontable: {
+            autoColumnSize: true,
+            colHeaders: false,
+            data: [
+              { country: 'USA', language: 'Mexico' },
+              { country: 'Canada', language: 'Japan' },
+              { country: 'China', language: 'France' },
+              { country: 'UK', language: 'Italy' },
+            ],
+          },
+        },
+        {
+          title: 'Price<br>(numeric)',
           // set the data type of the 'Price' column
           type: 'numeric',
           data: 'price',
@@ -896,25 +907,17 @@ export const HandsontableComponent = () => {
           className: 'htLeft',
         },
         {
-          title: 'Date',
-          // set the data type of the 'Date' column
-          type: 'date',
-          data: 'sellDate',
-          className: 'htRight',
+          title: 'Email<br>(password)',
+          // set the data type of the 'Email' column
+          type: 'password',
+          data: 'email',
         },
         {
-          title: 'Time',
+          title: 'Time<br>(time)',
           // set the data type of the 'Time' column
           type: 'time',
           data: 'sellTime',
           className: 'htRight',
-        },
-        {
-          title: 'In stock',
-          // set the data type of the 'In stock' column
-          type: 'checkbox',
-          data: 'inStock',
-          className: 'htCenter',
         },
       ]}
       columnSorting={true}
@@ -2729,10 +2732,10 @@ Mind that using [`columnSorting.sort()`](@/api/columnSorting.md#sort) overwrites
 ::: only-for javascript
 
 ```js
-// get the `ColumnSorting` plugin instance
-const columnSortingPluginInstance = handsontableInstance.getPlugin('columnSorting');
+// get the `ColumnSorting` plugin
+const columnSorting = handsontableInstance.getPlugin('columnSorting');
 
-columnSortingPluginInstance.sort(
+columnSorting.sort(
   // sort data by the first column, in ascending order
   {
     column: 0,
@@ -2741,7 +2744,7 @@ columnSortingPluginInstance.sort(
 );
 
 // go back to the original order
-columnSortingPluginInstance.clearSort();
+columnSorting.clearSort();
 ```
 
 :::
@@ -2750,10 +2753,10 @@ columnSortingPluginInstance.clearSort();
 
 ```jsx
 const hotTableComponentRef = useRef(null);
-// get the `ColumnSorting` plugin instance
-const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
+// get the `ColumnSorting` plugin
+const columnSorting = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
 
-columnSortingPluginInstance.sort(
+columnSorting.sort(
   // sort data by the first column, in ascending order
   {
     column: 0,
@@ -2762,7 +2765,7 @@ columnSortingPluginInstance.sort(
 );
 
 // go back to the original order
-columnSortingPluginInstance.clearSort();
+columnSorting.clearSort();
 ```
 
 :::
@@ -2879,17 +2882,17 @@ const handsontableInstance = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-const columnSortingPluginInstance = handsontableInstance.getPlugin('columnSorting');
+const columnSorting = handsontableInstance.getPlugin('columnSorting');
 
 buttonSortAscending.addEventListener('click', () => {
-  columnSortingPluginInstance.sort({
+  columnSorting.sort({
     column: 0,
     sortOrder: 'asc',
   });
 });
 
 buttonUnsort.addEventListener('click', () => {
-  columnSortingPluginInstance.clearSort();
+  columnSorting.clearSort();
 });
 ```
 :::
@@ -2913,10 +2916,10 @@ registerAllModules();
 export const HandsontableComponent = () => {
   const hotTableComponentRef = useRef(null);
   const sortAsc = () => {
-    // get the `ColumnSorting` plugin instance
-    const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
+    // get the `ColumnSorting` plugin
+    const columnSorting = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
   
-    columnSortingPluginInstance.sort(
+    columnSorting.sort(
       {
         column: 0,
         sortOrder: 'asc',
@@ -2925,10 +2928,10 @@ export const HandsontableComponent = () => {
   };
 
   const unsort = () => {
-    // get the `ColumnSorting` plugin instance
-    const columnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
+    // get the `ColumnSorting` plugin
+    const columnSorting = hotTableComponentRef.current.hotInstance.getPlugin('columnSorting');
 
-    columnSortingPluginInstance.clearSort();
+    columnSorting.clearSort();
   };
 
   return (
@@ -3052,10 +3055,10 @@ Mind that using [`multiColumnSorting.sort()`](@/api/multiColumnSorting.md#sort) 
 ::: only-for javascript
 
 ```js
-// get the `MultiColumnSorting` plugin instance
-const multiColumnSortingPluginInstance = handsontableInstance.getPlugin('multiColumnSorting');
+// get the `MultiColumnSorting` plugin
+const multiColumnSorting = handsontableInstance.getPlugin('multiColumnSorting');
 
-multiColumnSortingPluginInstance.sort(
+multiColumnSorting.sort(
   [
     // sort data by the first column, in ascending order
     {
@@ -3078,10 +3081,10 @@ multiColumnSortingPluginInstance.sort(
 
 ```jsx
 const hotTableComponentRef = useRef(null);
-// get the `ColumnSorting` plugin instance
-const multiColumnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('multiColumnSorting');
+// get the `ColumnSorting` plugin
+const multiColumnSorting = hotTableComponentRef.current.hotInstance.getPlugin('multiColumnSorting');
 
-multiColumnSortingPluginInstance.sort(
+multiColumnSorting.sort(
   [
     // sort data by the first column, in ascending order
     {
@@ -3208,10 +3211,10 @@ const handsontableInstance = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-const multiColumnSortingPluginInstance = handsontableInstance.getPlugin('multiColumnSorting');
+const multiColumnSorting = handsontableInstance.getPlugin('multiColumnSorting');
 
 buttonSort.addEventListener('click', () => {
-  multiColumnSortingPluginInstance.sort(
+  multiColumnSorting.sort(
     [
       {
         column: 0,
@@ -3246,10 +3249,10 @@ registerAllModules();
 export const HandsontableComponent = () => {
   const hotTableComponentRef = useRef(null);
   const sort = () => {
-    // get the `MultiColumnSorting` plugin instance
-    const multiColumnSortingPluginInstance = hotTableComponentRef.current.hotInstance.getPlugin('multiColumnSorting');
+    // get the `MultiColumnSorting` plugin
+    const multiColumnSorting = hotTableComponentRef.current.hotInstance.getPlugin('multiColumnSorting');
 
-    multiColumnSortingPluginInstance.sort(
+    multiColumnSorting.sort(
       [
         {
           column: 0,
@@ -3855,6 +3858,49 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example11'))
 :::
 
 :::
+
+### Use sorting hooks
+
+You can run your code before or after data sorting,
+using the following [Handsontable hooks](@/guides/getting-started/events-and-hooks.md):
+- [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort)
+- [`afterColumnSort`](@/api/hooks.md#aftercolumnsort)
+
+For example, you can use [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) for server-side sorting,
+or use [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) to [exclude rows from sorting](#exclude-rows-from-sorting).
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  beforeColumnSort() {
+    // add your code here
+  },
+  afterColumnSort() {
+    // add your code here
+  },
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  beforeColumnSort={
+    // add your code here
+  }
+  afterColumnSort={
+    // add your code here
+  }
+/>
+```
+
+:::
+
+
+
 
 ## Import the sorting module
 
