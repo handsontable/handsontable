@@ -20,8 +20,21 @@ class BaseEditorComponent<P = {}, S = {}, SS = any> extends React.Component<P | 
     super(props);
 
     if (props.emitEditorInstance) {
+      console.log('EDITOR emitEditorInstance');
       props.emitEditorInstance(this, props.editorColumnScope);
     }
+  }
+
+  componentDidMount() {
+    console.log('EDITOR componentDidMount');
+  }
+
+  componentDidUpdate() {
+    console.log('EDITOR componentDidUpdate');
+  }
+
+  componentWillUnmount() {
+    console.log('EDITOR componentWillUnmount');
   }
 
   // BaseEditor methods:

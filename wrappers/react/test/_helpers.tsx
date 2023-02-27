@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import { render } from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { HotTable } from '../src/hotTable';
-import { addUnsafePrefixes } from '../src/helpers';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
 
 const SPEC = {
@@ -42,7 +41,9 @@ export function mountComponent(Component, container = SPEC.container) {
   }
 
   act(() => {
-    render(<App/>, container);
+    render(
+        <App/>
+      , container);
   });
 
   return hotTableComponent?.current;
@@ -169,16 +170,7 @@ export function simulateMouseEvent(element, type) {
 
 class IndividualPropsWrapper extends React.Component<{ref?: string, id?: string}, {hotSettings?: object}> {
   hotTable: typeof HotTable;
-
-  constructor(props) {
-    super(props);
-
-    addUnsafePrefixes(this);
-  }
-
-  componentWillMount() {
-    this.setState({});
-  }
+  state = {};
 
   private setHotElementRef(component: typeof HotTable): void {
     this.hotTable = component;
@@ -203,19 +195,10 @@ export { IndividualPropsWrapper };
 
 class SingleObjectWrapper extends React.Component<{ref?: string, id?: string}, {hotSettings?: object}> {
   hotTable: typeof HotTable;
-
-  constructor(props) {
-    super(props);
-
-    addUnsafePrefixes(this);
-  }
+  state = {};
 
   private setHotElementRef(component: typeof HotTable): void {
     this.hotTable = component;
-  }
-
-  componentWillMount() {
-    this.setState({});
   }
 
   render(): React.ReactElement {
