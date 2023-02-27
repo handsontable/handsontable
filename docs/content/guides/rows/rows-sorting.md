@@ -671,7 +671,7 @@ const configurationOptions = {
 
 ## Sort different types of data
 
-Handsontable automatically sorts different [types of data](@/guides/cell-types/cell-type.md#available-cell-types),
+Handsontable handles different [types of data](@/guides/cell-types/cell-type.md#available-cell-types) automatically,
 based on which [`type`](@/api/options.md#type) you configure for each column.
 
 ::: only-for javascript
