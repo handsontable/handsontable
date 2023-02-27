@@ -715,7 +715,7 @@ You can configure the following types:
 
 ::: only-for javascript
 
-::: example #example3 --html 1 --js 2 --css 3
+::: example #example3 --html 1 --js 2
 
 ```html
 <div id="example3"></div>
@@ -778,7 +778,6 @@ const handsontableInstance = new Handsontable(container, {
       handsontable: {
         autoColumnSize: true,
         colHeaders: false,
-        className: 'sorting-handsontable-cell-type-example',
         data: [
           [ 'USA', 'Mexico' ],
           [ 'Canada', 'Japan' ],
@@ -813,15 +812,9 @@ const handsontableInstance = new Handsontable(container, {
     },
   ],
   columnSorting: true,
-  height: 'auto',
+  height: 250,
   licenseKey: 'non-commercial-and-evaluation',
 });
-```
-
-```css
-.sorting-handsontable-cell-type-example {
-  overflow: visible !important;
-}
 ```
 
 :::
@@ -928,7 +921,7 @@ export const HandsontableComponent = () => {
         },
       ]}
       columnSorting={true}
-      height="auto"
+      height={250}
       licenseKey="non-commercial-and-evaluation"
     />
   );
