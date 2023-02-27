@@ -2621,7 +2621,7 @@ const configurationOptions = {
 You can control sorting at the grid's runtime by using Handsontable's
 [hooks](@/guides/getting-started/events-and-hooks.md) and [API methods](@/api/columnSorting.md#methods).
 
-For example, you can:
+This allows you to:
 - Enable or disable sorting depending on specified conditions. For example, you can disable sorting
   for very large data sets.
 - Implement your own UI. For example, you can let the end user sort data by clicking on external buttons.
