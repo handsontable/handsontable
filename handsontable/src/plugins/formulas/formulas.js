@@ -20,7 +20,7 @@ import { getEngineSettingsWithOverrides } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
 import Hooks from '../../pluginHooks';
-import IndexSyncer from './indexSyncer';
+import IndexSyncer from './indexSyncer/index';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
@@ -110,11 +110,23 @@ export class Formulas extends BasePlugin {
    */
   sheetName = null;
   /**
-   * Index synchronizer responsible for syncing the order of HOT and HF's data.
+   * Index synchronizer responsible for manipulating with some general options related to indexes synchronization.
    *
-   * @type {IndexSyncer|null}
+   * @type {Index|null}
    */
   indexSyncer = null;
+  /**
+   * Index synchronizer responsible for syncing the order of HOT and HF's data for the axis of the rows.
+   *
+   * @type {Index|null}
+   */
+  rowAxisSyncer = null;
+  /**
+   * Index synchronizer responsible for syncing the order of HOT and HF's data for the axis of the columns.
+   *
+   * @type {Index|null}
+   */
+  columnAxisSyncer = null;
 
   /**
    * HyperFormula's sheet id.
@@ -195,14 +207,17 @@ export class Formulas extends BasePlugin {
       });
     });
 
-    this.hot.addHook('afterRowSequenceChange', this.indexSyncer.getIndexesChangeSyncMethod('row'));
-    this.hot.addHook('afterColumnSequenceChange', this.indexSyncer.getIndexesChangeSyncMethod('column'));
+    this.rowAxisSyncer = this.indexSyncer.getForAxis('row');
+    this.columnAxisSyncer = this.indexSyncer.getForAxis('column');
 
-    this.hot.addHook('beforeRowMove', this.indexSyncer.getBeforeMoveMethod('row'));
-    this.hot.addHook('beforeColumnMove', this.indexSyncer.getBeforeMoveMethod('column'));
+    this.hot.addHook('afterRowSequenceChange', this.rowAxisSyncer.getIndexesChangeSyncMethod());
+    this.hot.addHook('afterColumnSequenceChange', this.columnAxisSyncer.getIndexesChangeSyncMethod());
 
-    this.hot.addHook('afterRowMove', this.indexSyncer.getIndexMoveSyncMethod('row'));
-    this.hot.addHook('afterColumnMove', this.indexSyncer.getIndexMoveSyncMethod('column'));
+    this.hot.addHook('beforeRowMove', this.rowAxisSyncer.getBeforeMoveMethod());
+    this.hot.addHook('beforeColumnMove', this.columnAxisSyncer.getBeforeMoveMethod());
+
+    this.hot.addHook('afterRowMove', this.rowAxisSyncer.getIndexMoveSyncMethod());
+    this.hot.addHook('afterColumnMove', this.columnAxisSyncer.getIndexMoveSyncMethod());
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => {
@@ -435,8 +450,8 @@ export class Formulas extends BasePlugin {
     if (physicalRow !== null && physicalColumn !== null) {
       return this.engine.getCellType({
         sheet,
-        row: this.indexSyncer.getHfIndexFromVisualIndex('row', row),
-        col: this.indexSyncer.getHfIndexFromVisualIndex('column', column),
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(row),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(column),
       });
 
     } else {
@@ -456,8 +471,8 @@ export class Formulas extends BasePlugin {
   isFormulaCellType(row, column, sheet = this.sheetId) {
     return this.engine.doesCellHaveFormula({
       sheet,
-      row: this.indexSyncer.getHfIndexFromVisualIndex('row', row),
-      col: this.indexSyncer.getHfIndexFromVisualIndex('column', column),
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(row),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(column),
     });
   }
 
@@ -557,8 +572,8 @@ export class Formulas extends BasePlugin {
    */
   syncChangeWithEngine(row, column, newValue) {
     const address = {
-      row: this.indexSyncer.getHfIndexFromVisualIndex('row', row),
-      col: this.indexSyncer.getHfIndexFromVisualIndex('column', column),
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(row),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(column),
       sheet: this.sheetId
     };
 
@@ -586,8 +601,8 @@ export class Formulas extends BasePlugin {
 
     if (this.isFormulaCellType(visualRow, visualColumn)) {
       const address = {
-        row: this.indexSyncer.getHfIndexFromVisualIndex('row', visualRow),
-        col: this.indexSyncer.getHfIndexFromVisualIndex('column', visualColumn),
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
         sheet: this.sheetId,
       };
 
@@ -726,8 +741,8 @@ export class Formulas extends BasePlugin {
     }
 
     const address = {
-      row: this.indexSyncer.getHfIndexFromVisualIndex('row', visualRow),
-      col: this.indexSyncer.getHfIndexFromVisualIndex('column', column),
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(column),
       sheet: this.sheetId
     };
     const cellValue = this.engine.getCellValue(address);
@@ -787,8 +802,8 @@ export class Formulas extends BasePlugin {
     }
 
     const address = {
-      row: this.indexSyncer.getHfIndexFromVisualIndex('row', visualRow),
-      col: this.indexSyncer.getHfIndexFromVisualIndex('column', visualColumn),
+      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
       sheet: this.sheetId
     };
 
@@ -817,8 +832,8 @@ export class Formulas extends BasePlugin {
         const physicalRow = this.hot.toPhysicalRow(visualRow);
         const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
         const address = {
-          row: this.indexSyncer.getHfIndexFromVisualIndex('row', visualRow),
-          col: this.indexSyncer.getHfIndexFromVisualIndex('column', visualColumn),
+          row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+          col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
           sheet: this.sheetId,
         };
 
@@ -940,7 +955,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeRemoveRow(row, amount, physicalRows) {
-    const hfRows = this.indexSyncer.setRemovedHfIndexes('row', physicalRows);
+    const hfRows = this.rowAxisSyncer.setRemovedHfIndexes(physicalRows);
 
     const possible = hfRows.every((hfRow) => {
       return this.engine.isItPossibleToRemoveRows(this.sheetId, [hfRow, 1]);
@@ -959,7 +974,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeRemoveCol(col, amount, physicalColumns) {
-    const hfColumns = this.indexSyncer.setRemovedHfIndexes('column', physicalColumns);
+    const hfColumns = this.columnAxisSyncer.setRemovedHfIndexes(physicalColumns);
 
     const possible = hfColumns.every((hfColumn) => {
       return this.engine.isItPossibleToRemoveColumns(this.sheetId, [hfColumn, 1]);
@@ -983,7 +998,7 @@ export class Formulas extends BasePlugin {
     }
 
     const changes = this.engine.addRows(this.sheetId,
-      [this.indexSyncer.getHfIndexFromVisualIndex('row', visualRow), amount]);
+      [this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow), amount]);
 
     this.renderDependentSheets(changes);
   }
@@ -1003,7 +1018,7 @@ export class Formulas extends BasePlugin {
     }
 
     const changes = this.engine.addColumns(this.sheetId,
-      [this.indexSyncer.getHfIndexFromVisualIndex('column', visualColumn), amount]);
+      [this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn), amount]);
 
     this.renderDependentSheets(changes);
   }
@@ -1023,7 +1038,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const descendingHfRows = this.indexSyncer.getRemovedHfIndexes('row').sort().reverse();
+    const descendingHfRows = this.rowAxisSyncer.getRemovedHfIndexes().sort().reverse();
     const changes = this.engine.batch(() => {
       descendingHfRows.forEach((hfRow) => {
         this.engine.removeRows(this.sheetId, [hfRow, 1]);
@@ -1048,7 +1063,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const descendingHfColumns = this.indexSyncer.getRemovedHfIndexes('column').sort().reverse();
+    const descendingHfColumns = this.columnAxisSyncer.getRemovedHfIndexes().sort().reverse();
 
     const changes = this.engine.batch(() => {
       descendingHfColumns.forEach((hfColumn) => {

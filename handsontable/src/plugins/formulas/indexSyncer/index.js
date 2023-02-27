@@ -1,4 +1,4 @@
-import { toUpperCaseFirst } from '../../../helpers/string';
+import AxisSyncer from './axisSyncer';
 
 /**
  * @private
@@ -13,75 +13,17 @@ import { toUpperCaseFirst } from '../../../helpers/string';
 class IndexSyncer {
   constructor(rowIndexMapper, columnIndexMapper, postponeAction) {
     /**
-     * Reference to row index mapper.
+     * Indexes synchronizer for the axis of the rows.
      *
-     * @private
-     * @type {IndexMapper}
+     * @type {AxisSyncer}
      */
-    this.rowIndexMapper = rowIndexMapper;
+    this.rowIndexSyncer = new AxisSyncer('row', rowIndexMapper, this);
     /**
-     * Reference to column index mapper.
+     * Indexes synchronizer for the axis of the columns.
      *
-     * @private
-     * @type {IndexMapper}
+     * @type {AxisSyncer}
      */
-    this.columnIndexMapper = columnIndexMapper;
-    /**
-     * Sequence of physical row indexes stored for watching changes and calculating some transformations.
-     *
-     * @private
-     * @type {Array<number>}
-     */
-    this.rowIndexesSequence = [];
-    /**
-     * Sequence of physical column indexes, stored for watching changes and calculating some transformations.
-     *
-     * @private
-     * @type {Array<number>}
-     */
-    this.columnIndexesSequence = [];
-    /**
-     * List of moved HF row indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
-     *
-     * @private
-     * @type {Array<number>}
-     */
-    this.movedRowIndexes = [];
-    /**
-     * Final HF's place where to move rows, stored before performing move on HOT to calculate transformation needed on HF's engine.
-     *
-     * @private
-     * @type {number|undefined}
-     */
-    this.finalRowIndex = undefined;
-    /**
-     * List of moved HF column indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
-     *
-     * @private
-     * @type {Array<number>}
-     */
-    this.movedColumnIndexes = [];
-    /**
-     * Final HF's place where to move rows, stored before performing move on HOT to calculate transformation needed on HF's engine.
-     *
-     * @private
-     * @type {number|undefined}
-     */
-    this.finalColumnIndex = undefined;
-    /**
-     * List of removed HF row indexes, stored before performing removal on HOT to calculate transformation needed on HF's engine.
-     *
-     * @private
-     * @type {Array<number>}
-     */
-    this.removedRowIndexes = [];
-    /**
-     * List of removed HF column indexes, stored before performing removal on HOT to calculate transformation needed on HF's engine.
-     *
-     * @private
-     * @type {Array<number>}
-     */
-    this.removedColumnIndexes = [];
+    this.columnIndexSyncer = new AxisSyncer('column', columnIndexMapper, this);
     /**
      * Method which will postpone execution of some action (needed when synchronization endpoint isn't setup yet).
      *
@@ -120,6 +62,16 @@ class IndexSyncer {
   }
 
   /**
+   * Gets index synchronizer for a particular axis.
+   *
+   * @param {'row'|'column'} indexType Type of indexes.
+   * @returns {AxisSyncer}
+   */
+  getForAxis(indexType) {
+    return this[`${indexType}IndexSyncer`];
+  }
+
+  /**
    * Sets flag informing whether an undo action is already performed (we don't execute synchronization in such case).
    *
    * @param {boolean} flagValue Boolean value for the flag.
@@ -148,302 +100,30 @@ class IndexSyncer {
   }
 
   /**
-   * Gets index mapper for a particular axis.
+   * Gets HyperFormula's sheet id.
    *
-   * @private
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @returns {IndexMapper}
+   * @returns {string|null}
    */
-  getIndexMapper(indexesType) {
-    return this[`${indexesType}IndexMapper`];
+  getSheetId() {
+    return this.sheetId;
   }
 
   /**
-   * Gets physical indexes sequence for a particular axis.
+   * Gets engine instance that will be used for handled instance of Handsontable.
    *
-   * @private
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @returns {Array<number>}
+   * @type {HyperFormula|null}
    */
-  getPhysicalIndexesSequence(indexesType) {
-    return this[`${indexesType}IndexesSequence`];
+  getEngine() {
+    return this.engine;
   }
 
   /**
-   * Sets physical indexes sequence for a particular axis.
+   * Gets method which will postpone execution of some action (needed when synchronization endpoint isn't setup yet).
    *
-   * @private
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @param {Array<number>} indexesSequence Sequence of physical indexes for certain axis.
-   */
-  setPhysicalIndexesSequence(indexesType, indexesSequence) {
-    this[`${indexesType}IndexesSequence`] = indexesSequence;
-  }
-
-  /**
-   * Gets moved HF indexes for a particular axis (right before performing move on HOT).
-   *
-   * @private
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @returns {Array<number>}
-   */
-  getMovedHfIndexes(indexesType) {
-    return this[`moved${toUpperCaseFirst(indexesType)}Indexes`];
-  }
-
-  /**
-   * Sets moved HF indexes for certain axis (it should be done right before performing move on HOT).
-   *
-   * @private
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @param {Array<number>} movedIndexes Sequence of moved HF indexes for certain axis.
-   */
-  setMovedHfIndexes(indexesType, movedIndexes) {
-    this[`moved${toUpperCaseFirst(indexesType)}Indexes`] = movedIndexes;
-  }
-
-  /**
-   * Gets final HF index for moving indexes (right before performing move on HOT).
-   *
-   * @private
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @returns {number}
-   */
-  getFinalHfIndex(indexesType) {
-    return this[`final${toUpperCaseFirst(indexesType)}Index`];
-  }
-
-  /**
-   * Sets final HF index for moving indexes (it should be done right before performing move on HOT).
-   *
-   * @private
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @param {number} finalIndex Final HF place where to move rows.
-   */
-  setFinalHfIndex(indexesType, finalIndex) {
-    this[`final${toUpperCaseFirst(indexesType)}Index`] = finalIndex;
-  }
-
-  /**
-   * Gets removed HF indexes (right before performing removal on HOT).
-   *
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @returns {Array<number>} List of removed HF indexes.
-   */
-  getRemovedHfIndexes(indexesType) {
-    return this[`removed${toUpperCaseFirst(indexesType)}Indexes`];
-  }
-
-  /**
-   * Sets removed HF indexes (it should be done right before performing move on HOT).
-   *
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @param {Array<number>} removedIndexes List of removed physical indexes.
-   * @returns {Array<number>} List of removed visual indexes.
-   */
-  setRemovedHfIndexes(indexesType, removedIndexes) {
-    this[`removed${toUpperCaseFirst(indexesType)}Indexes`] =
-      removedIndexes.map((physicalIndex) => {
-        const visualIndex = this.getIndexMapper(indexesType).getVisualFromPhysicalIndex(physicalIndex);
-
-        return this.getHfIndexFromVisualIndex(indexesType, visualIndex);
-      });
-
-    return this[`removed${toUpperCaseFirst(indexesType)}Indexes`];
-  }
-
-  /**
-   * Gets corresponding HyperFormula index for particular visual index. It's respecting the idea that HF's engine
-   * is fed also with trimmed indexes (business requirements for formula result calculation also for trimmed elements).
-   *
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @param {number} visualIndex Visual index.
-   * @returns {number}
-   */
-  getHfIndexFromVisualIndex(indexesType, visualIndex) {
-    const indexesSequence = this.getIndexMapper(indexesType).getIndexesSequence();
-    const notTrimmedIndexes = this.getIndexMapper(indexesType).getNotTrimmedIndexes();
-
-    return indexesSequence.indexOf(notTrimmedIndexes[visualIndex]);
-  }
-
-  /**
-   * Synchronizes moves done on HOT to HF engine (based on previously calculated positions).
-   *
-   * @private
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @param {Array<{from: number, to: number}>} moves Calculated HF's move positions.
-   */
-  syncMoves = (indexesType, moves) => {
-    const NUMBER_OF_MOVED_INDEXES = 1;
-    const SYNC_MOVE_METHOD_NAME = `move${toUpperCaseFirst(indexesType)}s`;
-
-    this.engine.batch(() => {
-      moves.forEach((move) => {
-        if (move.from !== move.to) {
-          this.engine[SYNC_MOVE_METHOD_NAME](this.sheetId, move.from, NUMBER_OF_MOVED_INDEXES, move.to);
-        }
-      });
-    });
-  }
-
-  /**
-   * Gets callback for hook triggered before moving elements.
-   *
-   * @param {'row'|'column'} indexesType Type of an index.
    * @returns {Function}
    */
-  getBeforeMoveMethod(indexesType) {
-    return (movedIndexes, finalIndex) => {
-      this.setMovedHfIndexes(
-        indexesType, movedIndexes.map(index => this.getHfIndexFromVisualIndex(indexesType, index)));
-      this.setFinalHfIndex(indexesType, this.getHfIndexFromVisualIndex(indexesType, finalIndex));
-    };
-  }
-
-  /**
-   * Gets first position where to move element (respecting the fact that some element will be sooner or later
-   * taken out of the dataset in order to move them).
-   *
-   * @private
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @param {Array<number>} movedHfIndexes Sequence of moved HF indexes for certain axis.
-   * @param {number} finalHfIndex Final HF place where to move rows.
-   * @returns {number} HF's index informing where to move the first element.
-   * @private
-   */
-  getMoveLine(indexesType, movedHfIndexes, finalHfIndex) {
-    const numberOfElements = this.getIndexMapper(indexesType).getNumberOfIndexes();
-    const notMovedElements = Array.from(Array(numberOfElements).keys())
-      .filter(index => movedHfIndexes.includes(index) === false);
-
-    if (finalHfIndex === 0) {
-      return notMovedElements[finalHfIndex] ?? 0; // Moving before the first dataset's element.
-    }
-
-    return notMovedElements[finalHfIndex - 1] + 1; // Moving before another element.
-  }
-
-  /**
-   * Gets initially calculated HF's move positions.
-   *
-   * @private
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @param {Array<number>} movedHfIndexes Sequence of moved HF indexes for certain axis.
-   * @param {number} finalHfIndex Final HF place where to move rows.
-   * @returns {Array<{from: number, to: number}>} Initially calculated HF's move positions.
-   */
-  getInitiallyCalculatedMoves(indexesType, movedHfIndexes, finalHfIndex) {
-    let moveLine = this.getMoveLine(indexesType, movedHfIndexes, finalHfIndex);
-    const moves = [];
-
-    movedHfIndexes.forEach((movedHfIndex) => {
-      const move = {
-        from: movedHfIndex,
-        to: moveLine,
-      };
-
-      moves.forEach((previouslyMovedIndex) => {
-        const isMovingFromEndToStart = previouslyMovedIndex.from > previouslyMovedIndex.to;
-        const isMovingElementBefore = previouslyMovedIndex.to <= move.from;
-        const isMovingAfterElement = previouslyMovedIndex.from > move.from;
-
-        if (isMovingAfterElement && isMovingElementBefore && isMovingFromEndToStart) {
-          move.from += 1;
-        }
-      });
-
-      // Moved element from right to left.
-      if (move.from >= moveLine) {
-        moveLine += 1;
-      }
-
-      moves.push(move);
-    });
-
-    return moves;
-  }
-
-  /**
-   * Gets finally calculated HF's move positions (after adjusting).
-   *
-   * @private
-   * @param {Array<{from: number, to: number}>} moves Initially calculated HF's move positions.
-   * @returns {Array<{from: number, to: number}>} Finally calculated HF's move positions (after adjusting).
-   */
-  adjustedCalculatedMoves(moves) {
-    moves.forEach((move, index) => {
-      const nextMoved = moves.slice(index + 1);
-
-      nextMoved.forEach((nextMovedIndex) => {
-        const isMovingFromStartToEnd = nextMovedIndex.from < nextMovedIndex.to;
-
-        if (nextMovedIndex.from > move.from && isMovingFromStartToEnd) {
-          nextMovedIndex.from -= 1;
-        }
-      });
-    });
-
-    return moves;
-  }
-
-  /**
-   * Gets callback for hook triggered after performing move.
-   *
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @returns {Function}
-   */
-  getIndexMoveSyncMethod(indexesType) {
-    return (_, __, ___, movePossible, orderChanged) => {
-      const movedHfIndexes = this.getMovedHfIndexes(indexesType);
-      const finalHfIndex = this.getFinalHfIndex(indexesType);
-
-      if (this.isPerformingUndoRedo()) {
-        return;
-      }
-
-      if (movePossible === false || orderChanged === false) {
-        return;
-      }
-
-      const calculatedMoves = this.adjustedCalculatedMoves(
-        this.getInitiallyCalculatedMoves(indexesType, movedHfIndexes, finalHfIndex)
-      );
-
-      if (this.sheetId === null) {
-        this.postponeAction(() => this.syncMoves(indexesType, calculatedMoves));
-
-      } else {
-        this.syncMoves(indexesType, calculatedMoves);
-      }
-    };
-  }
-
-  /**
-   * Gets callback for hook triggered after performing change of indexes order.
-   *
-   * @param {'row'|'column'} indexesType Type of an index.
-   * @returns {Function}
-   */
-  getIndexesChangeSyncMethod(indexesType) {
-    const SYNC_ORDER_CHANGE_METHOD_NAME = `set${toUpperCaseFirst(indexesType)}Order`;
-
-    return (source) => {
-      if (this.isPerformingUndoRedo()) {
-        return;
-      }
-
-      const newSequence = this.getIndexMapper(indexesType).getIndexesSequence();
-
-      if (source === 'update') {
-        const relativeTransformation =
-          this.getPhysicalIndexesSequence(indexesType).map(index => newSequence.indexOf(index));
-
-        this.engine[SYNC_ORDER_CHANGE_METHOD_NAME](this.sheetId, relativeTransformation);
-      }
-
-      this.setPhysicalIndexesSequence(indexesType, newSequence);
-    };
+  getPostponeAction() {
+    return this.postponeAction;
   }
 
   /**
@@ -456,8 +136,8 @@ class IndexSyncer {
     this.engine = engine;
     this.sheetId = sheetId;
 
-    this.setPhysicalIndexesSequence('row', this.rowIndexMapper.getIndexesSequence());
-    this.setPhysicalIndexesSequence('column', this.columnIndexMapper.getIndexesSequence());
+    this.rowIndexSyncer.init();
+    this.columnIndexSyncer.init();
   }
 }
 
