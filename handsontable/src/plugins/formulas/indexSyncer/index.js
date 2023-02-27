@@ -1,4 +1,4 @@
-import { toUpperCaseFirst } from '../../helpers/string';
+import { toUpperCaseFirst } from '../../../helpers/string';
 
 /**
  * @private
