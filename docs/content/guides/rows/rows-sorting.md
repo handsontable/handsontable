@@ -680,7 +680,7 @@ based on which [`type`](@/api/options.md#type) you configure for each column.
 const configurationOptions = {
   columns: [
     {
-      // set the data type of the first column
+      // set the type of the first column
       type: 'numeric',
     },
   ],
@@ -694,7 +694,7 @@ const configurationOptions = {
 ```jsx
 <HotTable>
   <HotColumn
-    // set the data type of the first column
+    // set the type of the first column
     type={'numeric'}
   />
 </HotTable>
@@ -715,7 +715,7 @@ You can configure the following types:
 
 ::: only-for javascript
 
-::: example #example3 --html 1 --js 2
+::: example #example3 --html 1 --js 2 --css 3
 
 ```html
 <div id="example3"></div>
@@ -737,13 +737,13 @@ const handsontableInstance = new Handsontable(container, {
   columns: [
     {
       title: 'Model<br>(text)',
-      // set the data type of the 'Model' column
+      // set the type of the 'Model' column
       type: 'text', // 'text' is the default type, so you can omit this line
       data: 'model',
     },
     {
       title: 'Color<br>(autocomplete)',
-      // set the data type of the 'Size' column
+      // set the type of the 'Size' column
       type: 'autocomplete',
       data: 'color',
       source: ['White', 'Black', 'Yellow', 'Blue', 'Green'],
@@ -751,21 +751,21 @@ const handsontableInstance = new Handsontable(container, {
     },
     {
       title: 'In stock<br>(checkbox)',
-      // set the data type of the 'In stock' column
+      // set the type of the 'In stock' column
       type: 'checkbox',
       data: 'inStock',
       className: 'htCenter',
     },
     {
       title: 'Sold on<br>(date)',
-      // set the data type of the 'Date' column
+      // set the type of the 'Date' column
       type: 'date',
       data: 'sellDate',
       className: 'htRight',
     },
     {
       title: 'Size<br>(dropdown)',
-      // set the data type of the 'Size' column
+      // set the type of the 'Size' column
       type: 'dropdown',
       data: 'size',
       source: ['XS', 'S', 'M', 'L', 'XL'],
@@ -773,22 +773,23 @@ const handsontableInstance = new Handsontable(container, {
     },
     {
       title: 'Country<br>(handsontable)',
-      // set the data type of the 'Country' column
+      // set the type of the 'Country' column
       type: 'handsontable',
       handsontable: {
         autoColumnSize: true,
         colHeaders: false,
+        className: 'sorting-handsontable-cell-type-example',
         data: [
-          { country: 'USA', language: 'Mexico' },
-          { country: 'Canada', language: 'Japan' },
-          { country: 'China', language: 'France' },
-          { country: 'UK', language: 'Italy' },
+          [ 'USA', 'Mexico' ],
+          [ 'Canada', 'Japan' ],
+          [ 'China', 'France' ],
+          [ 'UK', 'Italy' ],
         ],
       },
     },
     {
       title: 'Price<br>(numeric)',
-      // set the data type of the 'Price' column
+      // set the type of the 'Price' column
       type: 'numeric',
       data: 'price',
       numericFormat: {
@@ -799,13 +800,13 @@ const handsontableInstance = new Handsontable(container, {
     },
     {
       title: 'Email<br>(password)',
-      // set the data type of the 'Email' column
+      // set the type of the 'Email' column
       type: 'password',
       data: 'email',
     },
     {
       title: 'Time<br>(time)',
-      // set the data type of the 'Time' column
+      // set the type of the 'Time' column
       type: 'time',
       data: 'sellTime',
       className: 'htRight',
@@ -815,6 +816,12 @@ const handsontableInstance = new Handsontable(container, {
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
+```
+
+```css
+.sorting-handsontable-cell-type-example {
+  overflow: visible !important;
+}
 ```
 
 :::
@@ -846,13 +853,13 @@ export const HandsontableComponent = () => {
       columns={[
         {
           title: 'Model<br>(text)',
-          // set the data type of the 'Model' column
+          // set the type of the 'Model' column
           type: 'text', // 'text' is the default type, so you can omit this line
           data: 'model',
         },
         {
           title: 'Color<br>(autocomplete)',
-          // set the data type of the 'Size' column
+          // set the type of the 'Size' column
           type: 'autocomplete',
           data: 'color',
           source: ['White', 'Black', 'Yellow', 'Blue', 'Green'],
@@ -860,21 +867,21 @@ export const HandsontableComponent = () => {
         },
         {
           title: 'In stock<br>(checkbox)',
-          // set the data type of the 'In stock' column
+          // set the type of the 'In stock' column
           type: 'checkbox',
           data: 'inStock',
           className: 'htCenter',
         },
         {
           title: 'Sold on<br>(date)',
-          // set the data type of the 'Date' column
+          // set the type of the 'Date' column
           type: 'date',
           data: 'sellDate',
           className: 'htRight',
         },
         {
           title: 'Size<br>(dropdown)',
-          // set the data type of the 'Size' column
+          // set the type of the 'Size' column
           type: 'dropdown',
           data: 'size',
           source: ['XS', 'S', 'M', 'L', 'XL'],
@@ -882,22 +889,22 @@ export const HandsontableComponent = () => {
         },
         {
           title: 'Country<br>(handsontable)',
-          // set the data type of the 'Country' column
+          // set the type of the 'Country' column
           type: 'handsontable',
           handsontable: {
             autoColumnSize: true,
             colHeaders: false,
             data: [
-              { country: 'USA', language: 'Mexico' },
-              { country: 'Canada', language: 'Japan' },
-              { country: 'China', language: 'France' },
-              { country: 'UK', language: 'Italy' },
+              [ 'USA', 'Mexico' ],
+              [ 'Canada', 'Japan' ],
+              [ 'China', 'France' ],
+              [ 'UK', 'Italy' ],
             ],
           },
         },
         {
           title: 'Price<br>(numeric)',
-          // set the data type of the 'Price' column
+          // set the type of the 'Price' column
           type: 'numeric',
           data: 'price',
           numericFormat: {
@@ -908,13 +915,13 @@ export const HandsontableComponent = () => {
         },
         {
           title: 'Email<br>(password)',
-          // set the data type of the 'Email' column
+          // set the type of the 'Email' column
           type: 'password',
           data: 'email',
         },
         {
           title: 'Time<br>(time)',
-          // set the data type of the 'Time' column
+          // set the type of the 'Time' column
           type: 'time',
           data: 'sellTime',
           className: 'htRight',
