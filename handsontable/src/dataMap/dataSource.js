@@ -208,7 +208,7 @@ class DataSource {
    *
    * @private
    * @param {number} row Physical row index.
-   * @param {string|number|Function} column Physical column index / property / function.
+   * @param {string|number|Function} column Visual column index / property / function.
    * @param {Array|object} dataRow A representation of a data row.
    * @returns {*} Value at the provided coordinates.
    */
@@ -230,7 +230,7 @@ class DataSource {
     if (this.hot.hasHook('modifySourceData')) {
       const valueHolder = createObjectPropListener(result);
 
-      this.hot.runHooks('modifySourceData', row, column, valueHolder, 'get');
+      this.hot.runHooks('modifySourceData', row, this.colToProp(column), valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         result = valueHolder.value;
@@ -244,18 +244,13 @@ class DataSource {
    * Returns a single value from the data.
    *
    * @param {number} row Physical row index.
-   * @param {number} prop Column property which may be also a physical column index.
+   * @param {number} column Visual column index.
    * @returns {*}
    */
-  getAtCell(row, prop) {
+  getAtCell(row, column) {
     const dataRow = this.modifyRowData(row);
-    let visualColumnOrProp = prop;
 
-    if (typeof prop !== 'string') {
-      visualColumnOrProp = this.hot.toVisualColumn(prop);
-    }
-
-    return this.getAtPhysicalCell(row, this.colToProp(visualColumnOrProp), dataRow);
+    return this.getAtPhysicalCell(row, this.colToProp(column), dataRow);
   }
 
   /**
