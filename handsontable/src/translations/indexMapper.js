@@ -538,7 +538,7 @@ export class IndexMapper {
    * @param {Array} indexes Physical indexes.
    */
   setIndexesSequence(indexes) {
-    if (this.indexesChangeSource === null) {
+    if (this.indexesChangeSource === void 0) {
       this.indexesChangeSource = 'update';
     }
 
