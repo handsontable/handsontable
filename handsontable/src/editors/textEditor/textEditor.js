@@ -312,7 +312,8 @@ export class TextEditor extends BaseEditor {
    */
   refreshValue() {
     const physicalRow = this.hot.toPhysicalRow(this.row);
-    const sourceData = this.hot.getSourceDataAtCell(physicalRow, this.col);
+    const physicalColumn = this.hot.toPhysicalRow(this.col);
+    const sourceData = this.hot.getSourceDataAtCell(physicalRow, physicalColumn);
 
     this.originalValue = sourceData;
 

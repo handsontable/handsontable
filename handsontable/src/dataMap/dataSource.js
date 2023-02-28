@@ -244,13 +244,18 @@ class DataSource {
    * Returns a single value from the data.
    *
    * @param {number} row Physical row index.
-   * @param {number} column Visual column index.
+   * @param {number} prop Column property which may be also a physical column index.
    * @returns {*}
    */
-  getAtCell(row, column) {
+  getAtCell(row, prop) {
     const dataRow = this.modifyRowData(row);
+    let visualColumnOrProp = prop;
 
-    return this.getAtPhysicalCell(row, this.colToProp(column), dataRow);
+    if (typeof prop !== 'string') {
+      visualColumnOrProp = this.hot.toVisualColumn(prop);
+    }
+
+    return this.getAtPhysicalCell(row, this.colToProp(visualColumnOrProp), dataRow);
   }
 
   /**
