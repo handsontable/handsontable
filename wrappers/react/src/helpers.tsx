@@ -96,7 +96,11 @@ export function createEditorPortal(doc: Document = document, editorElement: HotE
 
   containerProps.className = `${DEFAULT_CLASSNAME} ${containerProps.className}`;
 
-  return ReactDOM.createPortal(<div {...containerProps}>{editorElement}</div>, doc.body);
+  return ReactDOM.createPortal(
+    <div {...containerProps}>
+      {editorElement}
+    </div>
+    , doc.body);
 }
 
 /**
@@ -136,11 +140,10 @@ export function getExtendedEditorElement(children: React.ReactNode, editorCache:
  *
  * @param {React.ReactElement} rElement React element to be used as a base for the component.
  * @param {Object} props Props to be passed to the cloned element.
- * @param {Function} callback Callback to be called after the component has been mounted.
  * @param {Document} [ownerDocument] The owner document to set the portal up into.
  * @returns {{portal: React.ReactPortal, portalContainer: HTMLElement}} An object containing the portal and its container.
  */
-export function createPortal(rElement: React.ReactElement, props, callback: Function, ownerDocument: Document = document): {
+export function createPortal(rElement: React.ReactElement, props, ownerDocument: Document = document): {
   portal: React.ReactPortal,
   portalContainer: HTMLElement
 } {

@@ -42,7 +42,7 @@ export function mountComponent(Component, container = SPEC.container) {
   }
 
   act(() => {
-    render(<App/>, container);
+    render(<React.StrictMode><App/></React.StrictMode>, container);
   });
 
   return hotTableComponent?.current;

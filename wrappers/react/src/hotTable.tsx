@@ -93,20 +93,17 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @type {React.Component}
    */
   renderersPortalManager: RenderersPortalManager = null;
-  editorsPortalManager: EditorsPortalManager = null;
+  /**
+   * Component used to manage the editor portals.
+   *
+   * @type {React.Component}
+   */
+  private editorsPortalManager: EditorsPortalManager = null;
 
   /**
    * Array containing the portals cashed to be rendered in bulk after Handsontable's render cycle.
    */
   portalCacheArray: React.ReactPortal[] = [];
-
-  /**
-   * Global editor portal cache.
-   *
-   * @private
-   * @type {React.ReactPortal}
-   */
-  private globalEditorPortal: React.ReactPortal = null;
 
   /**
    * The rendered cells cache.
@@ -246,7 +243,6 @@ class HotTable extends React.Component<HotTableProps, {}> {
           value,
           cellProperties,
           isRenderer: true
-        }, () => {
         }, TD.ownerDocument);
 
         while (TD.firstChild) {
@@ -333,9 +329,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @returns {React.ReactElement} React renderer component element.
    */
   getGlobalRendererElement(): React.ReactElement {
-    const hotTableSlots: React.ReactNode = this.props.children;
-
-    return getChildElementByType(hotTableSlots, 'hot-renderer');
+    return getChildElementByType(this.props.children, 'hot-renderer');
   }
 
   /**
@@ -349,11 +343,11 @@ class HotTable extends React.Component<HotTableProps, {}> {
   }
 
   /**
-   * Create the global editor portal and its destination HTML element if needed.
+   * Creates the global editor portal and renders it within the editors portal manager component.
    *
-   * @param {Function} callback
+   * @param {Function} callback Callback to call which is triggered after the editors portal is rendered.
    */
-  createGlobalEditorPortal(callback: () => void): void {
+  renderGlobalEditorPortal(callback: () => void): void {
     const globalEditorElement = this.getGlobalEditorElement();
     const editorPortal = createEditorPortal(this.getOwnerDocument(), globalEditorElement)
 
@@ -454,13 +448,18 @@ class HotTable extends React.Component<HotTableProps, {}> {
   }
 
   /**
-   * Set the portal manager ref.
+   * Set the renderers portal manager ref.
    *
    * @param {React.ReactComponent} pmComponent The PortalManager component.
    */
   private setRenderersPortalManagerRef(pmComponent: RenderersPortalManager): void {
     this.renderersPortalManager = pmComponent;
   }
+  /**
+   * Set the editors portal manager ref.
+   *
+   * @param {React.ReactComponent} pmComponent The PortalManager component.
+   */
   private setEditorsPortalManagerRef(pmComponent: EditorsPortalManager): void {
     this.editorsPortalManager = pmComponent;
   }
@@ -476,7 +475,13 @@ class HotTable extends React.Component<HotTableProps, {}> {
    */
   componentDidMount(): void {
     this.clearCache();
-    this.createGlobalEditorPortal(() => {
+    this.renderGlobalEditorPortal(() => {
+      // In React strict mode the mount/unmount is triggered twice. The `if` prevents
+      // creating two Handsontable instances for the same component in that mode.
+      if (this.hotInstance) {
+        return;
+      }
+
       const newGlobalSettings = this.createNewGlobalSettings();
 
       this.hotInstance = new Handsontable.Core(this.hotElementRef, newGlobalSettings);
@@ -496,7 +501,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
    */
   componentDidUpdate(): void {
     this.clearCache();
-    this.createGlobalEditorPortal(() => {
+    this.renderGlobalEditorPortal(() => {
       const newGlobalSettings = this.createNewGlobalSettings();
 
       this.updateHot(newGlobalSettings);
@@ -517,7 +522,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Render the component.
    */
   render(): React.ReactElement {
-    const {id, className, style} = getContainerAttributesProps(this.props);
+    const containerProps = getContainerAttributesProps(this.props);
     const isHotColumn = (childNode: any) => childNode.type === HotColumn;
     let children = React.Children.toArray(this.props.children);
 
@@ -543,7 +548,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
 
     return (
       <React.Fragment>
-        <div ref={this.setHotElementRef.bind(this)} id={id} className={className} style={style}>
+        <div ref={this.setHotElementRef.bind(this)} {...containerProps}>
           {childClones}
         </div>
         <RenderersPortalManager ref={this.setRenderersPortalManagerRef.bind(this)} />
