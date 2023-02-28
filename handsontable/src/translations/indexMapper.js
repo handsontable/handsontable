@@ -122,7 +122,7 @@ export class IndexMapper {
     /**
      * Flag informing about source of the change.
      *
-     * @type {null|string}
+     * @type {undefined|string}
      */
     this.indexesChangeSource = void 0;
     /**
