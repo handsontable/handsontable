@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { render } from 'react-dom';
+import { render, unmountComponentAtNode } from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { HotTable } from '../src/hotTable';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
@@ -19,6 +19,7 @@ beforeEach(() => {
 afterEach(() => {
   const container = document.querySelector('#hotContainer');
 
+  unmountComponentAtNode(container);
   container.parentNode.removeChild(container);
   SPEC.container = null;
 });
@@ -41,9 +42,7 @@ export function mountComponent(Component, container = SPEC.container) {
   }
 
   act(() => {
-    render(
-        <App/>
-      , container);
+    render(<App/>, container);
   });
 
   return hotTableComponent?.current;
