@@ -333,6 +333,9 @@ class AxisSyncer {
     };
   }
 
+  /**
+   * Initialize the AxisSyncer.
+   */
   init() {
     this.setPhysicalIndexesSequence(this.indexMapper.getIndexesSequence());
   }

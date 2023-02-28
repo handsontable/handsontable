@@ -276,6 +276,11 @@ const REGISTERED_HOOKS = [
   'beforeCreateCol',
 
   /**
+   * @param {'remove'|'insert'|'move'|'update'} [source] String that identifies source of column sequence change.
+   */
+  'afterColumnSequenceChange',
+
+  /**
    * Fired after created a new column.
    *
    * @event Hooks#afterCreateCol
@@ -562,6 +567,11 @@ const REGISTERED_HOOKS = [
    * @param {object} cellProperties Object containing the cell's properties.
    */
   'afterRenderer',
+
+  /**
+   * @param {'remove'|'insert'|'move'|'update'} [source] String that identifies source of row sequence change.
+   */
+  'afterRowSequenceChange',
 
   /**
    * Fired after the horizontal scroll event.

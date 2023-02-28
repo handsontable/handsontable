@@ -20,7 +20,7 @@ import { getEngineSettingsWithOverrides } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
 import Hooks from '../../pluginHooks';
-import IndexSyncer from './indexSyncer/index';
+import IndexSyncer from './indexSyncer/';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;

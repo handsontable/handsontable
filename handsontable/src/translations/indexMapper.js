@@ -124,7 +124,7 @@ export class IndexMapper {
      *
      * @type {null|string}
      */
-    this.indexesChangeSource = null;
+    this.indexesChangeSource = void 0;
     /**
      * Flag determining whether any action on trimmed indexes has been performed. It's used for cache management.
      *
@@ -488,7 +488,7 @@ export class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'init';
     this.indexesSequence.init(length);
-    this.indexesChangeSource = null;
+    this.indexesChangeSource = void 0;
     this.trimmingMapsCollection.initEvery(length);
     this.resumeOperations();
 
@@ -545,7 +545,7 @@ export class IndexMapper {
     this.indexesSequence.setValues(indexes);
 
     if (this.indexesChangeSource === 'update') {
-      this.indexesChangeSource = null;
+      this.indexesChangeSource = void 0;
     }
   }
 
@@ -677,7 +677,7 @@ export class IndexMapper {
     // Adding indexes without re-indexing.
     this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, destinationPosition, physicalMovedIndexes));
 
-    this.indexesChangeSource = null;
+    this.indexesChangeSource = void 0;
   }
 
   /**
@@ -718,7 +718,7 @@ export class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'insert';
     this.indexesSequence.insert(insertionIndex, insertedIndexes);
-    this.indexesChangeSource = null;
+    this.indexesChangeSource = void 0;
     this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
@@ -735,7 +735,7 @@ export class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'remove';
     this.indexesSequence.remove(removedIndexes);
-    this.indexesChangeSource = null;
+    this.indexesChangeSource = void 0;
     this.trimmingMapsCollection.removeFromEvery(removedIndexes);
     this.hidingMapsCollection.removeFromEvery(removedIndexes);
     this.variousMapsCollection.removeFromEvery(removedIndexes);
