@@ -2,7 +2,7 @@ import Highlight from './highlight/highlight';
 import {
   AREA_TYPE,
   HEADER_TYPE,
-  CELL_TYPE,
+  FOCUS_TYPE,
 } from './highlight/constants';
 import SelectionRange from './range';
 import { createObjectPropListener, mixin } from './../helpers/object';
@@ -99,6 +99,8 @@ class Selection {
     this.transformation = new Transformation(this.selectedRange, {
       countRows: () => this.tableProps.countRowsTranslated(),
       countCols: () => this.tableProps.countColsTranslated(),
+      countRowHeaders: () => this.tableProps.countRowHeaders(),
+      countColHeaders: () => this.tableProps.countColHeaders(),
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
       createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
@@ -242,7 +244,7 @@ class Selection {
     // Set up current selection.
     this.highlight.getCell().clear();
 
-    if (this.highlight.isEnabledFor(CELL_TYPE, cellRange.highlight)) {
+    if (this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight)) {
       this.highlight.getCell()
         .add(this.selectedRange.current().highlight)
         .commit()

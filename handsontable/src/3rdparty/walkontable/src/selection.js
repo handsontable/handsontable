@@ -196,15 +196,20 @@ class Selection {
     const corners = this.getCorners();
     const [topRow, topColumn, bottomRow, bottomColumn] = corners;
     const {
+      className,
       highlightHeaderClassName,
       highlightColumnClassName,
       highlightRowClassName,
       highlightOnlyClosestHeader,
+      highlightWhenCellsAreSelected,
       selectionType,
     } = this.settings;
-    const isHeaderSelectionType = selectionType === void 0 || ['active-header', 'header'].includes(selectionType);
+    const isFocusType = selectionType === 'focus';
+    const allowsHighlightingHeaders = selectionType === void 0
+      || ['active-header', 'header', 'focus'].includes(selectionType);
 
-    if (isHeaderSelectionType && topColumn !== null && bottomColumn !== null) {
+    if (allowsHighlightingHeaders && topColumn !== null && bottomColumn !== null
+        && (topRow >= 0 && bottomRow >= 0 || isFocusType)) {
       let selectionColumnCursor = 0;
 
       for (let column = 0; column < renderedColumns; column += 1) {
@@ -225,9 +230,11 @@ class Selection {
             if (highlightHeaderClassName) {
               newClasses.push(highlightHeaderClassName);
             }
-
             if (highlightColumnClassName) {
               newClasses.push(highlightColumnClassName);
+            }
+            if (isFocusType && className && topRow < 0 && THs.length + topRow === headerLevel) {
+              newClasses.push(className);
             }
 
             headerLevel = highlightOnlyClosestHeader ? closestHeaderLevel : headerLevel;
@@ -258,7 +265,8 @@ class Selection {
       for (let row = 0; row < renderedRows; row += 1) {
         const sourceRow = wotInstance.wtTable.rowFilter.renderedToSource(row);
 
-        if (isHeaderSelectionType && sourceRow >= topRow && sourceRow <= bottomRow) {
+        if (allowsHighlightingHeaders && sourceRow >= topRow && sourceRow <= bottomRow
+            && (topColumn >= 0 && bottomColumn >= 0 || isFocusType)) {
           let THs = wotInstance.wtTable.getRowHeaders(sourceRow);
           const closestHeaderLevel = THs.length - 1;
 
@@ -273,9 +281,11 @@ class Selection {
             if (highlightHeaderClassName) {
               newClasses.push(highlightHeaderClassName);
             }
-
             if (highlightRowClassName) {
               newClasses.push(highlightRowClassName);
+            }
+            if (isFocusType && className && topColumn < 0 && THs.length + topColumn === headerLevel) {
+              newClasses.push(className);
             }
 
             headerLevel = highlightOnlyClosestHeader ? closestHeaderLevel : headerLevel;
@@ -304,9 +314,9 @@ class Selection {
 
             if (sourceRow >= topRow && sourceRow <= bottomRow && sourceCol >= topColumn && sourceCol <= bottomColumn) {
               // selected cell
-              if (this.settings.className) {
+              if (className) {
                 this.addClassAtCoords(wotInstance, sourceRow, sourceCol,
-                  this.settings.className, this.settings.markIntersections);
+                  className, this.settings.markIntersections);
               }
 
             } else if (sourceRow >= topRow && sourceRow <= bottomRow) {
@@ -332,7 +342,7 @@ class Selection {
       }
     }
 
-    wotInstance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
+    wotInstance.getSetting('onBeforeDrawBorders', corners, className);
 
     if (this.settings.border) {
       // warning! border.appear modifies corners!

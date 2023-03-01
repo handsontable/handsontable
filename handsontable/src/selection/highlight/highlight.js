@@ -2,7 +2,7 @@ import { createHighlight } from './types';
 import {
   ACTIVE_HEADER_TYPE,
   AREA_TYPE,
-  CELL_TYPE,
+  FOCUS_TYPE,
   CUSTOM_SELECTION_TYPE,
   FILL_TYPE,
   HEADER_TYPE,
@@ -49,7 +49,7 @@ class Highlight {
      *
      * @type {Selection}
      */
-    this.cell = createHighlight(CELL_TYPE, options);
+    this.cell = createHighlight(FOCUS_TYPE, options);
     /**
      * `fill` highlight object which describes attributes for the borders for autofill functionality.
      * It can only occur only once on the table.
@@ -98,11 +98,15 @@ class Highlight {
     let type = highlightType;
 
     // Legacy compatibility.
-    if (highlightType === CELL_TYPE) {
+    if (highlightType === FOCUS_TYPE) {
       type = 'current'; // One from settings for `disableVisualSelection` up to Handsontable 0.36/Handsontable Pro 1.16.0.
     }
 
-    let disableHighlight = this.options.disabledCellSelection(coords.row, coords.col);
+    let disableHighlight = false;
+
+    if (coords.isCell()) {
+      disableHighlight = this.options.disabledCellSelection(coords.row, coords.col);
+    }
 
     if (typeof disableHighlight === 'string') {
       disableHighlight = [disableHighlight];

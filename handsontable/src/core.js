@@ -274,6 +274,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
     countColsTranslated: () => this.view.countRenderableColumns(),
     countRowsTranslated: () => this.view.countRenderableRows(),
+    countRowHeaders: () => this.countRowHeaders(),
+    countColHeaders: () => this.countColHeaders(),
     getShortcutManager: () => instance.getShortcutManager(),
     createCellCoords: (row, column) => instance._createCellCoords(row, column),
     createCellRange: (highlight, from, to) => instance._createCellRange(highlight, from, to),
@@ -304,13 +306,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.selection.addLocalHook('beforeSetRangeEnd', (cellCoords) => {
     this.runHooks('beforeSetRangeEnd', cellCoords);
-
-    if (cellCoords.row < 0) {
-      cellCoords.row = this.view._wt.wtTable.getFirstVisibleRow();
-    }
-    if (cellCoords.col < 0) {
-      cellCoords.col = this.view._wt.wtTable.getFirstVisibleColumn();
-    }
   });
 
   this.selection.addLocalHook('afterSetRangeEnd', (cellCoords) => {
@@ -3937,6 +3932,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countVisibleCols = function() {
     return instance.view._wt.drawn ? instance.view._wt.wtTable.getVisibleColumnsCount() : -1;
+  };
+
+  this.countRowHeaders = function() {
+    return this.view.getRowHeadersCount();
+  };
+  this.countColHeaders = function() {
+    return this.view.getColumnHeadersCount();
   };
 
   /**

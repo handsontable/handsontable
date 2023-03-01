@@ -135,6 +135,20 @@ class CellCoords {
   }
 
   /**
+   * @returns {boolean}
+   */
+  isHeader() {
+    return !this.isCell();
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  isCell() {
+    return this.row >= 0 && this.col >= 0;
+  }
+
+  /**
    * Normalizes the coordinates in your `CellCoords` instance to the nearest valid position.
    *
    * Coordinates that point to headers (negative values) are normalized to `0`.
