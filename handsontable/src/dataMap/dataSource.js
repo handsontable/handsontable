@@ -125,17 +125,13 @@ class DataSource {
 
       if (getAllProps) {
         dataRow.forEach((cell, column) => {
-          const visualColumn = this.hot.toVisualColumn(column);
-
-          newDataRow[column] = this.getAtPhysicalCell(row, visualColumn, dataRow);
+          newDataRow[column] = this.getAtPhysicalCell(row, column, dataRow);
         });
 
       } else {
         // Only the columns from the provided range
         rangeEach(startColumn, endColumn, (column) => {
-          const visualColumn = this.hot.toVisualColumn(column);
-
-          newDataRow[column - startColumn] = this.getAtPhysicalCell(row, visualColumn, dataRow);
+          newDataRow[column - startColumn] = this.getAtPhysicalCell(row, column, dataRow);
         });
       }
 
@@ -212,30 +208,29 @@ class DataSource {
    *
    * @private
    * @param {number} row Physical row index.
-   * @param {string|number|Function} column Visual column index / property / function.
+   * @param {string|number|Function} column Physical column index / property / function.
    * @param {Array|object} dataRow A representation of a data row.
    * @returns {*} Value at the provided coordinates.
    */
   getAtPhysicalCell(row, column, dataRow) {
-    const prop = this.colToProp(column);
     let result = null;
 
     if (dataRow) {
-      if (typeof prop === 'string') {
-        result = getProperty(dataRow, prop);
+      if (typeof column === 'string') {
+        result = getProperty(dataRow, column);
 
-      } else if (typeof prop === 'function') {
-        result = prop(dataRow);
+      } else if (typeof column === 'function') {
+        result = column(dataRow);
 
       } else {
-        result = dataRow[this.hot.toPhysicalColumn(column)];
+        result = dataRow[column];
       }
     }
 
     if (this.hot.hasHook('modifySourceData')) {
       const valueHolder = createObjectPropListener(result);
 
-      this.hot.runHooks('modifySourceData', row, prop, valueHolder, 'get');
+      this.hot.runHooks('modifySourceData', row, column, valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         result = valueHolder.value;
@@ -249,13 +244,13 @@ class DataSource {
    * Returns a single value from the data.
    *
    * @param {number} row Physical row index.
-   * @param {number} column Visual column index.
+   * @param {number} columnOrProp Visual column index or property.
    * @returns {*}
    */
-  getAtCell(row, column) {
+  getAtCell(row, columnOrProp) {
     const dataRow = this.modifyRowData(row);
 
-    return this.getAtPhysicalCell(row, column, dataRow);
+    return this.getAtPhysicalCell(row, this.colToProp(columnOrProp), dataRow);
   }
 
   /**
