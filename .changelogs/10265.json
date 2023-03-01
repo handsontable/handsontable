@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added support for keyboard navigation in headers.",
+  "type": "added",
+  "issueOrPR": 10265,
+  "breaking": false,
+  "framework": "none"
+}
