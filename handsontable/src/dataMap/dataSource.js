@@ -125,13 +125,17 @@ class DataSource {
 
       if (getAllProps) {
         dataRow.forEach((cell, column) => {
-          newDataRow[column] = this.getAtPhysicalCell(row, column, dataRow);
+          const visualColumn = this.hot.toVisualColumn(column);
+
+          newDataRow[column] = this.getAtPhysicalCell(row, visualColumn, dataRow);
         });
 
       } else {
         // Only the columns from the provided range
         rangeEach(startColumn, endColumn, (column) => {
-          newDataRow[column - startColumn] = this.getAtPhysicalCell(row, column, dataRow);
+          const visualColumn = this.hot.toVisualColumn(column);
+
+          newDataRow[column - startColumn] = this.getAtPhysicalCell(row, visualColumn, dataRow);
         });
       }
 
@@ -213,24 +217,25 @@ class DataSource {
    * @returns {*} Value at the provided coordinates.
    */
   getAtPhysicalCell(row, column, dataRow) {
+    const prop = this.colToProp(column);
     let result = null;
 
     if (dataRow) {
-      if (typeof column === 'string') {
-        result = getProperty(dataRow, column);
+      if (typeof prop === 'string') {
+        result = getProperty(dataRow, prop);
 
-      } else if (typeof column === 'function') {
-        result = column(dataRow);
+      } else if (typeof prop === 'function') {
+        result = prop(dataRow);
 
       } else {
-        result = dataRow[column];
+        result = dataRow[this.hot.toPhysicalColumn(column)];
       }
     }
 
     if (this.hot.hasHook('modifySourceData')) {
       const valueHolder = createObjectPropListener(result);
 
-      this.hot.runHooks('modifySourceData', row, this.colToProp(column), valueHolder, 'get');
+      this.hot.runHooks('modifySourceData', row, prop, valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         result = valueHolder.value;
@@ -250,7 +255,7 @@ class DataSource {
   getAtCell(row, column) {
     const dataRow = this.modifyRowData(row);
 
-    return this.getAtPhysicalCell(row, this.colToProp(column), dataRow);
+    return this.getAtPhysicalCell(row, column, dataRow);
   }
 
   /**
