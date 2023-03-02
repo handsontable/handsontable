@@ -50,6 +50,7 @@
  * @property {number} totalRows TotalRows.
  * @property {Window} rootWindow RootWindow.
  * @property {Viewport} wtViewport WtViewport.
+ * @property {Settings} wtSettings Walkontable Settings.
  */
 /**
  * The Data Access Object for Table class.
