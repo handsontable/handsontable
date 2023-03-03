@@ -651,5 +651,47 @@ describe('Formulas', () => {
         ]);
       });
     });
+
+    describe('moving elements when there are some trimmed elements', () => {
+      it('#1', () => {
+        const hot = handsontable({
+          data: dataset,
+          formulas: {
+            engine: HyperFormula,
+          },
+          manualRowMove: true,
+          trimRows: [0, 1]
+        });
+
+        hot.getPlugin('manualRowMove').moveRows([0], 1);
+        hot.render();
+
+        expect(getData()).toEqual([
+          [1111, 1112, 1113, 1114, 1115],
+          [111, 112, 113, 114, 115],
+          [1001111, 1001112, 1001113, 1001114, 1001115],
+        ]);
+      });
+
+      it('#2', () => {
+        const hot = handsontable({
+          data: dataset,
+          formulas: {
+            engine: HyperFormula,
+          },
+          manualRowMove: true,
+          trimRows: [0, 1]
+        });
+
+        hot.getPlugin('manualRowMove').moveRows([2, 1], 0);
+        hot.render();
+
+        expect(getData()).toEqual([
+          [1001111, 1001112, 1001113, 1001114, 1001115],
+          [1111, 1112, 1113, 1114, 1115],
+          [111, 112, 113, 114, 115],
+        ]);
+      });
+    });
   });
 });

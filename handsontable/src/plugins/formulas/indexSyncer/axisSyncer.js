@@ -190,7 +190,11 @@ class AxisSyncer {
    * @returns {Function}
    */
   getBeforeMoveMethod() {
-    return (movedVisualIndexes, visualFinalIndex) => {
+    return (movedVisualIndexes, visualFinalIndex, _, movePossible) => {
+      if (movePossible === false) {
+        return;
+      }
+
       this.setMovedHfIndexes(movedVisualIndexes.map(index => this.getHfIndexFromVisualIndex(index)));
       this.setFinalHfIndex(this.getHfIndexFromVisualIndex(visualFinalIndex));
     };
