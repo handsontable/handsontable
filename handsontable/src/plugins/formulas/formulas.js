@@ -219,6 +219,22 @@ export class Formulas extends BasePlugin {
     this.hot.addHook('afterRowMove', this.rowAxisSyncer.getIndexMoveSyncMethod());
     this.hot.addHook('afterColumnMove', this.columnAxisSyncer.getIndexMoveSyncMethod());
 
+    this.hot.addHook('beforeColumnFreeze', (column) => {
+      this.columnAxisSyncer.getBeforeMoveMethod()([column], this.hot.getSettings().fixedColumnsStart);
+    });
+
+    this.hot.addHook('afterColumnFreeze', (_, freezePerformed) => {
+      this.columnAxisSyncer.getIndexMoveSyncMethod()(undefined, undefined, undefined, freezePerformed);
+    });
+
+    this.hot.addHook('beforeColumnUnfreeze', (column) => {
+      this.columnAxisSyncer.getBeforeMoveMethod()([column], this.hot.getSettings().fixedColumnsStart - 1);
+    });
+
+    this.hot.addHook('afterColumnUnfreeze', (_, unfreezePerformed) => {
+      this.columnAxisSyncer.getIndexMoveSyncMethod()(undefined, undefined, undefined, unfreezePerformed);
+    });
+
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => {
       this.indexSyncer.setPerformUndo(true);

@@ -172,7 +172,11 @@ class AxisSyncer {
 
     this.indexSyncer.getEngine().batch(() => {
       moves.forEach((move) => {
-        if (move.from !== move.to) {
+        const moveToTheSamePosition = move.from !== move.to;
+        // Moving from left to right (or top to bottom) to a line (drop index) right after already moved element.
+        const anotherMoveWithoutEffect = move.from + 1 !== move.to;
+
+        if (moveToTheSamePosition && anotherMoveWithoutEffect) {
           this.indexSyncer.getEngine()[SYNC_MOVE_METHOD_NAME](this.indexSyncer.getSheetId(), move.from,
             NUMBER_OF_MOVED_INDEXES, move.to);
         }
@@ -241,7 +245,7 @@ class AxisSyncer {
         }
       });
 
-      // Moved element from right to left.
+      // Moved element from right to left (or bottom to top).
       if (move.from >= moveLine) {
         moveLine += 1;
       }

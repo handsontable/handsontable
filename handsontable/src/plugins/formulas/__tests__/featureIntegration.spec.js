@@ -244,4 +244,90 @@ describe('Formulas: Integration with other features', () => {
       expect(hot.getDataAtCell(6, 0)).toEqual('PARENT1');
     });
   });
+
+  describe('Integration with Frozen Columns', () => {
+    it('should calculate result of formula properly after freezing/unfreezing column using ManualColumnFreeze plugin API', () => {
+      const hot = handsontable({
+        data: [
+          [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
+          [2, '=A2+10', '=B2+100', '=C2+1000', '=D2+1000000'],
+          [3, '=A3+10', '=B3+100', '=C3+1000', '=D3+1000000'],
+          [4, '=A4+10', '=B4+100', '=C4+1000', '=D4+1000000'],
+          [5, '=A5+10', '=B5+100', '=C5+1000', '=D5+1000000'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        manualColumnFreeze: true,
+        manualColumnMove: true,
+      });
+
+      hot.getPlugin('manualColumnFreeze').freezeColumn(2);
+      hot.render();
+
+      expect(getData()).toEqual([
+        [111, 1, 11, 1111, 1001111],
+        [112, 2, 12, 1112, 1001112],
+        [113, 3, 13, 1113, 1001113],
+        [114, 4, 14, 1114, 1001114],
+        [115, 5, 15, 1115, 1001115],
+      ]);
+
+      hot.getPlugin('manualColumnFreeze').freezeColumn(4);
+      hot.render();
+
+      expect(getData()).toEqual([
+        [111, 1001111, 1, 11, 1111],
+        [112, 1001112, 2, 12, 1112],
+        [113, 1001113, 3, 13, 1113],
+        [114, 1001114, 4, 14, 1114],
+        [115, 1001115, 5, 15, 1115],
+      ]);
+
+      hot.getPlugin('manualColumnFreeze').freezeColumn(4);
+      hot.render();
+
+      expect(getData()).toEqual([
+        [111, 1001111, 1111, 1, 11],
+        [112, 1001112, 1112, 2, 12],
+        [113, 1001113, 1113, 3, 13],
+        [114, 1001114, 1114, 4, 14],
+        [115, 1001115, 1115, 5, 15],
+      ]);
+
+      hot.getPlugin('manualColumnFreeze').unfreezeColumn(0);
+      hot.render();
+
+      expect(getData()).toEqual([
+        [1001111, 1111, 111, 1, 11],
+        [1001112, 1112, 112, 2, 12],
+        [1001113, 1113, 113, 3, 13],
+        [1001114, 1114, 114, 4, 14],
+        [1001115, 1115, 115, 5, 15],
+      ]);
+
+      hot.getPlugin('manualColumnFreeze').unfreezeColumn(0);
+      hot.render();
+
+      expect(getData()).toEqual([
+        [1111, 1001111, 111, 1, 11],
+        [1112, 1001112, 112, 2, 12],
+        [1113, 1001113, 113, 3, 13],
+        [1114, 1001114, 114, 4, 14],
+        [1115, 1001115, 115, 5, 15],
+      ]);
+
+      hot.getPlugin('manualColumnFreeze').unfreezeColumn(0);
+      hot.render();
+
+      expect(getData()).toEqual([
+        [1111, 1001111, 111, 1, 11],
+        [1112, 1001112, 112, 2, 12],
+        [1113, 1001113, 113, 3, 13],
+        [1114, 1001114, 114, 4, 14],
+        [1115, 1001115, 115, 5, 15],
+      ]);
+    });
+  });
 });

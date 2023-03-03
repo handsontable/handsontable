@@ -109,7 +109,7 @@ describe('Formulas', () => {
       });
     });
 
-    describe('should move elements from the left to the right properly', () => {
+    describe('should move elements from top to bottom properly', () => {
       it('#1', () => {
         const hot = handsontable({
           data: dataset,
@@ -344,7 +344,7 @@ describe('Formulas', () => {
       });
     });
 
-    describe('should move elements from the right to the left properly', () => {
+    describe('should move elements from bottom to top properly', () => {
       it('#1', () => {
         const hot = handsontable({
           data: dataset,
