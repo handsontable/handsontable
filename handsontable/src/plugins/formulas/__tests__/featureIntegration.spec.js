@@ -36,6 +36,73 @@ describe('Formulas: Integration with other features', () => {
 
       expect(hot.countCols()).toEqual(5);
     });
+
+    it('should work properly when indexes are reorganised and some rows/columns are inserted', () => {
+      handsontable({
+        data: [
+          [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
+          [2, '=A2+10', '=B2+100', '=C2+1000', '=D2+1000000'],
+          [3, '=A3+10', '=B3+100', '=C3+1000', '=D3+1000000'],
+          [4, '=A4+10', '=B4+100', '=C4+1000', '=D4+1000000'],
+          [5, '=A5+10', '=B5+100', '=C5+1000', '=D5+1000000'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        manualRowMove: true,
+        manualColumnMove: true,
+      });
+
+      getPlugin('manualRowMove').moveRows([4, 3, 2, 1, 0], 0);
+      getPlugin('manualColumnMove').moveColumns([4, 3, 2, 1, 0], 0);
+      render();
+
+      alter('insert_col_start', 0, 1);
+      alter('insert_row_above', 0, 1);
+      alter('insert_row_below', 1, 1);
+
+      expect(getData()).toEqual([
+        [null, null, null, null, null, null],
+        [null, 1001115, 1115, 115, 15, 5],
+        [null, null, null, null, null, null],
+        [null, 1001114, 1114, 114, 14, 4],
+        [null, 1001113, 1113, 113, 13, 3],
+        [null, 1001112, 1112, 112, 12, 2],
+        [null, 1001111, 1111, 111, 11, 1],
+      ]);
+    });
+
+    it('should work properly when indexes are reorganised and some rows/columns are removed', () => {
+      handsontable({
+        data: [
+          [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
+          [2, '=A2+10', '=B2+100', '=C2+1000', '=D2+1000000'],
+          [3, '=A3+10', '=B3+100', '=C3+1000', '=D3+1000000'],
+          [4, '=A4+10', '=B4+100', '=C4+1000', '=D4+1000000'],
+          [5, '=A5+10', '=B5+100', '=C5+1000', '=D5+1000000'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        manualRowMove: true,
+        manualColumnMove: true,
+      });
+
+      getPlugin('manualRowMove').moveRows([4, 3, 2, 1, 0], 0);
+      getPlugin('manualColumnMove').moveColumns([4, 3, 2, 1, 0], 0);
+      render();
+
+      alter('remove_row', 2, 2);
+      alter('remove_row', 2, 1);
+      render();
+
+      expect(getData()).toEqual([
+        [1001115, 1115, 115, 15, 5],
+        [1001114, 1114, 114, 14, 4],
+      ]);
+    });
   });
 
   describe('Integration with Copy/Paste', () => {
