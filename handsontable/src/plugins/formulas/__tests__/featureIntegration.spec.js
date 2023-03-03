@@ -310,6 +310,124 @@ describe('Formulas: Integration with other features', () => {
 
       expect(hot.getDataAtCell(6, 0)).toEqual('PARENT1');
     });
+
+    it('should allow collapsing/expanding while retaining the formulas functionality', () => {
+      const hot = handsontable({
+        data: [{
+          col1: 1,
+          __children: [{
+            col1: '=A1+10',
+            __children: [{
+              col1: '=A2+100',
+            }, {
+              col1: '=A3+1000',
+              __children: [{
+                col1: '=A4+1000000',
+              }, {
+                col1: '=A5+2000000',
+              }, {
+                col1: '=A6+3000000',
+              }]
+            }, {
+              col1: '=A1*0',
+            }]
+          }],
+        }, {
+          col1: '=A7 & "+"',
+        }],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        nestedRows: true,
+        rowHeaders: true,
+        colHeaders: true
+      });
+      const plugin = hot.getPlugin('nestedRows');
+
+      plugin.collapsingUI.collapseAll();
+
+      expect(getData()).toEqual([
+        [1],
+        ['6001111+'],
+      ]);
+
+      plugin.collapsingUI.expandAll();
+
+      expect(getData()).toEqual([
+        [1],
+        [11],
+        [111],
+        [1111],
+        [1001111],
+        [3001111],
+        [6001111],
+        [0],
+        ['6001111+'],
+      ]);
+    });
+
+    it('should allow moving while retaining the formulas functionality', () => {
+      const hot = handsontable({
+        data: [{
+          col1: 1,
+          __children: [{
+            col1: '=A1+10',
+            __children: [{
+              col1: '=A2+100',
+            }, {
+              col1: '=A3+1000',
+              __children: [{
+                col1: '=A4+1000000',
+              }, {
+                col1: '=A5+2000000',
+              }, {
+                col1: '=A6+3000000',
+              }]
+            }, {
+              col1: '=A1*0',
+            }]
+          }],
+        }, {
+          col1: '=A7 & "+"',
+        }],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        nestedRows: true,
+        rowHeaders: true,
+        colHeaders: true
+      });
+
+      hot.getPlugin('manualRowMove').dragRows([4], 7);
+
+      expect(getData()).toEqual([
+        [1],
+        [11],
+        [111],
+        [1111],
+        [3001111],
+        [6001111],
+        [1001111],
+        [0],
+        ['6001111+'],
+      ]);
+
+      hot.getPlugin('manualRowMove').dragRows([7], 1);
+
+      expect(getData()).toEqual([
+        [1],
+        [0],
+        [11],
+        [111],
+        [1111],
+        [3001111],
+        [6001111],
+        [1001111],
+        ['6001111+'],
+      ]);
+    });
   });
 
   describe('Integration with Frozen Columns', () => {
