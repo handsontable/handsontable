@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Make manualColumnResize.js more customizable",
+  "type": "changed",
+  "issueOrPR": 10266,
+  "breaking": false,
+  "framework": "none"
+}
