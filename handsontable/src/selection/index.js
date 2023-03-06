@@ -6,7 +6,6 @@ import {
   normalizeSelectionFactory,
 } from './utils';
 
-export * from './highlight/constants';
 export {
   handleMouseEvent,
   Highlight,

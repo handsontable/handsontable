@@ -1,4 +1,4 @@
-import { CUSTOM_SELECTION_TYPE } from '../constants';
+import { HIGHLIGHT_CUSTOM_SELECTION_TYPE } from '../../../3rdparty/walkontable/src';
 import VisualSelection from '../visualSelection';
 
 /**
@@ -14,7 +14,7 @@ function createHighlight({ border, visualCellRange, ...restOptions }) {
   const s = new VisualSelection({
     ...border,
     ...restOptions,
-    selectionType: CUSTOM_SELECTION_TYPE,
+    selectionType: HIGHLIGHT_CUSTOM_SELECTION_TYPE,
   }, visualCellRange);
 
   return s;

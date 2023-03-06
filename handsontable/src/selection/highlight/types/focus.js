@@ -1,4 +1,4 @@
-import { FOCUS_TYPE } from '../constants';
+import { HIGHLIGHT_FOCUS_TYPE } from '../../../3rdparty/walkontable/src';
 import VisualSelection from '../visualSelection';
 
 /**
@@ -18,7 +18,7 @@ function createHighlight({ cellCornerVisible, ...restOptions }) {
       cornerVisible: cellCornerVisible,
     },
     ...restOptions,
-    selectionType: FOCUS_TYPE,
+    selectionType: HIGHLIGHT_FOCUS_TYPE,
   });
 
   return s;

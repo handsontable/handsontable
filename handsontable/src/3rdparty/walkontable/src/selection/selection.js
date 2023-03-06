@@ -1,5 +1,5 @@
-import { addClass, hasClass } from './../../../helpers/dom/element';
-import Border from './border';
+import { addClass, hasClass } from '../../../../helpers/dom/element';
+import Border from '../border';
 
 /**
  * @class Selection
@@ -193,26 +193,29 @@ class Selection {
 
     const renderedRows = wotInstance.wtTable.getRenderedRowsCount();
     const renderedColumns = wotInstance.wtTable.getRenderedColumnsCount();
+    const renderedRowHeaders = wotInstance.wtTable.getRowHeadersCount();
+    const renderedColumnHeaders = wotInstance.wtTable.getColumnHeadersCount();
     const corners = this.getCorners();
     const [topRow, topColumn, bottomRow, bottomColumn] = corners;
+
+    console.log(corners);
+
     const {
       className,
       highlightHeaderClassName,
       highlightColumnClassName,
       highlightRowClassName,
       highlightOnlyClosestHeader,
-      highlightWhenCellsAreSelected,
       selectionType,
     } = this.settings;
     const isFocusType = selectionType === 'focus';
     const allowsHighlightingHeaders = selectionType === void 0
       || ['active-header', 'header', 'focus'].includes(selectionType);
 
-    if (allowsHighlightingHeaders && topColumn !== null && bottomColumn !== null
-        && (topRow >= 0 && bottomRow >= 0 || isFocusType)) {
+    if (allowsHighlightingHeaders && topColumn !== null && bottomColumn !== null) {
       let selectionColumnCursor = 0;
 
-      for (let column = 0; column < renderedColumns; column += 1) {
+      for (let column = -renderedRowHeaders; column < renderedColumns; column += 1) {
         const sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column);
 
         if (sourceCol >= topColumn && sourceCol <= bottomColumn) {
@@ -265,8 +268,7 @@ class Selection {
       for (let row = 0; row < renderedRows; row += 1) {
         const sourceRow = wotInstance.wtTable.rowFilter.renderedToSource(row);
 
-        if (allowsHighlightingHeaders && sourceRow >= topRow && sourceRow <= bottomRow
-            && (topColumn >= 0 && bottomColumn >= 0 || isFocusType)) {
+        if (allowsHighlightingHeaders && sourceRow >= topRow && sourceRow <= bottomRow) {
           let THs = wotInstance.wtTable.getRowHeaders(sourceRow);
           const closestHeaderLevel = THs.length - 1;
 
@@ -278,10 +280,10 @@ class Selection {
             const newClasses = [];
             let TH = THs[headerLevel];
 
-            if (highlightHeaderClassName) {
+            if (sourceRow >= 0 && highlightHeaderClassName) {
               newClasses.push(highlightHeaderClassName);
             }
-            if (highlightRowClassName) {
+            if (sourceRow >= 0 && highlightRowClassName) {
               newClasses.push(highlightRowClassName);
             }
             if (isFocusType && className && topColumn < 0 && THs.length + topColumn === headerLevel) {

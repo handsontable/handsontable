@@ -1,4 +1,4 @@
-import { AREA_TYPE } from '../constants';
+import { HIGHLIGHT_AREA_TYPE } from '../../../3rdparty/walkontable/src';
 import VisualSelection from '../visualSelection';
 
 /**
@@ -20,7 +20,7 @@ function createHighlight({ layerLevel, areaCornerVisible, ...restOptions }) {
       cornerVisible: areaCornerVisible,
     },
     ...restOptions,
-    selectionType: AREA_TYPE,
+    selectionType: HIGHLIGHT_AREA_TYPE,
   });
 
   return s;

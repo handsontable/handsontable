@@ -1,9 +1,9 @@
 import Highlight from './highlight/highlight';
 import {
-  AREA_TYPE,
-  HEADER_TYPE,
-  FOCUS_TYPE,
-} from './highlight/constants';
+  HIGHLIGHT_AREA_TYPE,
+  HIGHLIGHT_HEADER_TYPE,
+  HIGHLIGHT_FOCUS_TYPE,
+} from '../3rdparty/walkontable/src';
 import SelectionRange from './range';
 import { createObjectPropListener, mixin } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
@@ -244,7 +244,7 @@ class Selection {
     // Set up current selection.
     this.highlight.getCell().clear();
 
-    if (this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight)) {
+    if (this.highlight.isEnabledFor(HIGHLIGHT_FOCUS_TYPE, cellRange.highlight)) {
       this.highlight.getCell()
         .add(this.selectedRange.current().highlight)
         .commit()
@@ -266,12 +266,16 @@ class Selection {
     const areaHighlight = this.highlight.createOrGetArea();
     const headerHighlight = this.highlight.createOrGetHeader();
     const activeHeaderHighlight = this.highlight.createOrGetActiveHeader();
+    const rowHighlight = this.highlight.createOrGetRowHighlight();
+    const columnHighlight = this.highlight.createOrGetColumnHighlight();
 
     areaHighlight.clear();
     headerHighlight.clear();
     activeHeaderHighlight.clear();
+    rowHighlight.clear();
+    columnHighlight.clear();
 
-    if (this.highlight.isEnabledFor(AREA_TYPE, cellRange.highlight) && (this.isMultiple() || layerLevel >= 1)) {
+    if (this.highlight.isEnabledFor(HIGHLIGHT_AREA_TYPE, cellRange.highlight) && (this.isMultiple() || layerLevel >= 1)) {
       areaHighlight
         .add(cellRange.from)
         .add(cellRange.to)
@@ -295,7 +299,7 @@ class Selection {
       }
     }
 
-    if (this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
+    if (this.highlight.isEnabledFor(HIGHLIGHT_HEADER_TYPE, cellRange.highlight)) {
       // The header selection generally contains cell selection. In a case when all rows (or columns)
       // are hidden that visual coordinates are translated to renderable coordinates that do not exist.
       // Hence no header highlight is generated. In that case, to make a column (or a row) header
@@ -322,9 +326,19 @@ class Selection {
         }
 
         headerHighlight.add(headerCellRange.from).commit();
+        rowHighlight.add(headerCellRange.from).commit();
+        columnHighlight.add(headerCellRange.from).commit();
 
       } else {
         headerHighlight
+          .add(headerCellRange.from)
+          .add(headerCellRange.to)
+          .commit();
+        rowHighlight
+          .add(headerCellRange.from)
+          .add(headerCellRange.to)
+          .commit();
+        columnHighlight
           .add(headerCellRange.from)
           .add(headerCellRange.to)
           .commit();
@@ -695,10 +709,14 @@ class Selection {
       const areaHighlight = this.highlight.createOrGetArea();
       const headerHighlight = this.highlight.createOrGetHeader();
       const activeHeaderHighlight = this.highlight.createOrGetActiveHeader();
+      const rowHighlight = this.highlight.createOrGetRowHighlight();
+      const columnHighlight = this.highlight.createOrGetColumnHighlight();
 
       areaHighlight.commit();
       headerHighlight.commit();
       activeHeaderHighlight.commit();
+      rowHighlight.commit();
+      columnHighlight.commit();
     }
 
     // Reverting starting layer for the Highlight.

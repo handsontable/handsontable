@@ -187,9 +187,9 @@ export class InlineStartOverlay extends Overlay {
    */
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
-    const { selections } = this.wot;
+    const { selectionManager } = this.wot;
     const facade = this.facadeGetter();
-    const selectionCornerOffset = Math.abs(selections?.getCell().getBorder(facade).cornerCenterPointOffset ?? 0);
+    const selectionCornerOffset = Math.abs(selectionManager.getFocusSelection().getBorder(facade).cornerCenterPointOffset ?? 0);
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     holder.style.height = holder.parentNode.style.height;

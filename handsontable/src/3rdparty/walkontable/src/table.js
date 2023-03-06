@@ -2,7 +2,6 @@ import {
   hasClass,
   index,
   offset,
-  removeClass,
   removeTextNodes,
   overlayContainsElement,
   closest,
@@ -399,7 +398,7 @@ class Table {
       wtOverlays.refreshAll(); // `refreshAll()` internally already calls `refreshSelections()` method
       wtOverlays.adjustElementsSize();
     } else {
-      this.refreshSelections(runFastDraw);
+      this.dataAccessObject.selectionManager.render(this.facadeGetter(), runFastDraw);
     }
 
     if (syncScroll) {
@@ -498,82 +497,6 @@ class Table {
           wtViewport.oversizedRows[sourceRow] = void 0;
         }
       }
-    }
-  }
-
-  /**
-   * @param {string} className The CSS class name to remove from the table cells.
-   */
-  removeClassFromCells(className) {
-    const nodes = this.TABLE.querySelectorAll(`.${className}`);
-
-    for (let i = 0, len = nodes.length; i < len; i++) {
-      removeClass(nodes[i], className);
-    }
-  }
-
-  /**
-   * Refresh the table selection by re-rendering Selection instances connected with that instance.
-   *
-   * @param {boolean} fastDraw If fast drawing is enabled than additionally className clearing is applied.
-   */
-  refreshSelections(fastDraw) {
-    const { wtSettings } = this;
-    const { selections } = this.dataAccessObject;
-
-    if (!selections) {
-      return;
-    }
-    const highlights = Array.from(selections);
-    const len = highlights.length;
-
-    if (fastDraw) {
-      const classesToRemove = [];
-
-      for (let i = 0; i < len; i++) {
-        const {
-          highlightHeaderClassName,
-          highlightRowClassName,
-          highlightColumnClassName,
-        } = highlights[i].settings;
-        const classNames = highlights[i].classNames;
-        const classNamesLength = classNames.length;
-
-        for (let j = 0; j < classNamesLength; j++) {
-          if (!classesToRemove.includes(classNames[j])) {
-            classesToRemove.push(classNames[j]);
-          }
-        }
-
-        if (highlightHeaderClassName && !classesToRemove.includes(highlightHeaderClassName)) {
-          classesToRemove.push(highlightHeaderClassName);
-        }
-        if (highlightRowClassName && !classesToRemove.includes(highlightRowClassName)) {
-          classesToRemove.push(highlightRowClassName);
-        }
-        if (highlightColumnClassName && !classesToRemove.includes(highlightColumnClassName)) {
-          classesToRemove.push(highlightColumnClassName);
-        }
-      }
-
-      const additionalClassesToRemove = wtSettings.getSetting('onBeforeRemoveCellClassNames');
-
-      if (Array.isArray(additionalClassesToRemove)) {
-        for (let i = 0; i < additionalClassesToRemove.length; i++) {
-          classesToRemove.push(additionalClassesToRemove[i]);
-        }
-      }
-
-      const classesToRemoveLength = classesToRemove.length;
-
-      for (let i = 0; i < classesToRemoveLength; i++) {
-        // there was no rerender, so we need to remove classNames by ourselves
-        this.removeClassFromCells(classesToRemove[i]);
-      }
-    }
-
-    for (let i = 0; i < len; i++) {
-      highlights[i].draw(this.facadeGetter(), fastDraw);
     }
   }
 
@@ -1074,6 +997,26 @@ class Table {
 
   allColumnsInViewport() {
     return this.wtSettings.getSetting('totalColumns') === this.getVisibleColumnsCount();
+  }
+
+  /**
+   * Get the number of rendered column headers.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getColumnHeadersCount() {
+    return this.dataAccessObject.columnHeaders.length;
+  }
+
+  /**
+   * Get the number of rendered row headers.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getRowHeadersCount() {
+    return this.dataAccessObject.rowHeaders.length;
   }
 
   /**

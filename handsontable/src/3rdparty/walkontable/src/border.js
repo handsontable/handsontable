@@ -289,7 +289,7 @@ class Border {
    * @returns {boolean}
    */
   isPartRange(row, col) {
-    const areaSelection = this.wot.selections.createOrGetArea();
+    const areaSelection = this.wot.selectionManager.getAreaSelection();
 
     if (areaSelection.cellRange) {
       if (row !== areaSelection.cellRange.to.row || col !== areaSelection.cellRange.to.col) {

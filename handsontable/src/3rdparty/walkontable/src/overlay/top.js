@@ -215,9 +215,9 @@ export class TopOverlay extends Overlay {
    */
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
-    const { selections } = this.wot;
+    const { selectionManager } = this.wot;
     const facade = this.facadeGetter();
-    const selectionCornerOffset = Math.abs(selections?.getCell().getBorder(facade).cornerCenterPointOffset ?? 0);
+    const selectionCornerOffset = Math.abs(selectionManager.getFocusSelection().getBorder(facade).cornerCenterPointOffset ?? 0);
 
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     holder.style.width = holder.parentNode.style.width;

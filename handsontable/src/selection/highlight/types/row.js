@@ -1,4 +1,4 @@
-import { HIGHLIGHT_HEADER_TYPE } from '../../../3rdparty/walkontable/src';
+import { HIGHLIGHT_ROW_TYPE } from '../../../3rdparty/walkontable/src';
 import VisualSelection from '../visualSelection';
 
 /**
@@ -6,17 +6,17 @@ import VisualSelection from '../visualSelection';
  * can occur multiple times.
  *
  * @param {object} highlightParams A configuration object to create a highlight.
- * @param {string} highlightParams.headerClassName Highlighted headers' class name.
+ * @param {string} highlightParams.rowClassName Highlighted row' class name.
  * @returns {Selection}
  */
 function createHighlight({
-  headerClassName,
+  rowClassName,
   ...restOptions
 }) {
   const s = new VisualSelection({
-    className: headerClassName,
+    className: rowClassName,
     ...restOptions,
-    selectionType: HIGHLIGHT_HEADER_TYPE,
+    selectionType: HIGHLIGHT_ROW_TYPE,
   });
 
   return s;

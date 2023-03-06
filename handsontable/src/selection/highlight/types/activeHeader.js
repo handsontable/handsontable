@@ -1,4 +1,4 @@
-import { ACTIVE_HEADER_TYPE } from '../constants';
+import { HIGHLIGHT_ACTIVE_HEADER_TYPE } from '../../../3rdparty/walkontable/src';
 import VisualSelection from '../visualSelection';
 
 /**
@@ -8,9 +8,9 @@ import VisualSelection from '../visualSelection';
  */
 function createHighlight({ activeHeaderClassName, ...restOptions }) {
   const s = new VisualSelection({
-    highlightHeaderClassName: activeHeaderClassName,
+    className: activeHeaderClassName,
     ...restOptions,
-    selectionType: ACTIVE_HEADER_TYPE,
+    selectionType: HIGHLIGHT_ACTIVE_HEADER_TYPE,
   });
 
   return s;

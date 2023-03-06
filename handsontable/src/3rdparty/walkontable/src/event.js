@@ -21,14 +21,14 @@ class Event {
    * @param {Settings} wtSettings The walkontable settings.
    * @param {EventManager} eventManager The walkontable event manager.
    * @param {Table} wtTable The table.
-   * @param {Selections} selections Selections.
+   * @param {Selections} selectionManager Selections.
    * @param {Event} [parent=null] The main Event instance.
    */
-  constructor(facadeGetter, domBindings, wtSettings, eventManager, wtTable, selections, parent = null) {
+  constructor(facadeGetter, domBindings, wtSettings, eventManager, wtTable, selectionManager, parent = null) {
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
     this.wtTable = wtTable;
-    this.selections = selections;
+    this.selectionManager = selectionManager;
     this.parent = parent;
 
     /**
@@ -151,12 +151,12 @@ class Event {
       cell.TD = TD;
 
     } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'current')) {
-      cell.coords = this.selections.getCell().cellRange.highlight;
+      cell.coords = this.selectionManager.getFocusSelection().cellRange.highlight;
       cell.TD = this.wtTable.getCell(cell.coords);
 
     } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'area')) {
-      if (this.selections.createOrGetArea().cellRange) {
-        cell.coords = this.selections.createOrGetArea().cellRange.to;
+      if (this.selectionManager.getAreaSelection().cellRange) {
+        cell.coords = this.selectionManager.getAreaSelection().cellRange.to;
         cell.TD = this.wtTable.getCell(cell.coords);
       }
     }
@@ -310,7 +310,7 @@ class Event {
   onTouchStart(event) {
     const priv = privatePool.get(this);
 
-    priv.selectedCellBeforeTouchEnd = this.selections.getCell().cellRange;
+    priv.selectedCellBeforeTouchEnd = this.selectionManager.getFocusSelection().cellRange;
     this.touchApplied = true;
 
     this.onMouseDown(event);

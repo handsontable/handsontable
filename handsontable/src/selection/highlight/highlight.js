@@ -1,12 +1,14 @@
 import { createHighlight } from './types';
 import {
-  ACTIVE_HEADER_TYPE,
-  AREA_TYPE,
-  FOCUS_TYPE,
-  CUSTOM_SELECTION_TYPE,
-  FILL_TYPE,
-  HEADER_TYPE,
-} from './constants';
+  HIGHLIGHT_ACTIVE_HEADER_TYPE,
+  HIGHLIGHT_AREA_TYPE,
+  HIGHLIGHT_FOCUS_TYPE,
+  HIGHLIGHT_CUSTOM_SELECTION_TYPE,
+  HIGHLIGHT_FILL_TYPE,
+  HIGHLIGHT_HEADER_TYPE,
+  HIGHLIGHT_ROW_TYPE,
+  HIGHLIGHT_COLUMN_TYPE,
+} from '../../3rdparty/walkontable/src';
 import { arrayEach } from './../../helpers/array';
 
 /**
@@ -49,14 +51,14 @@ class Highlight {
      *
      * @type {Selection}
      */
-    this.cell = createHighlight(FOCUS_TYPE, options);
+    this.focus = createHighlight(HIGHLIGHT_FOCUS_TYPE, options);
     /**
      * `fill` highlight object which describes attributes for the borders for autofill functionality.
      * It can only occur only once on the table.
      *
      * @type {Selection}
      */
-    this.fill = createHighlight(FILL_TYPE, options);
+    this.fill = createHighlight(HIGHLIGHT_FILL_TYPE, options);
     /**
      * Collection of the `area` highlights. That objects describes attributes for the borders and selection of
      * the multiple selected cells. It can occur multiple times on the table.
@@ -80,6 +82,20 @@ class Highlight {
      */
     this.activeHeaders = new Map();
     /**
+     * Collection of the `rows` highlights. That objects describes attributes for the selection of
+     * the multiple selected rows. It can occur multiple times on the table.
+     *
+     * @type {Map.<number, Selection>}
+     */
+    this.rowHighlights = new Map();
+    /**
+     * Collection of the `columns` highlights. That objects describes attributes for the selection of
+     * the multiple selected columns. It can occur multiple times on the table.
+     *
+     * @type {Map.<number, Selection>}
+     */
+    this.columnHighlights = new Map();
+    /**
      * Collection of the `custom-selection`, holder for example borders added through CustomBorders plugin.
      *
      * @type {Selection[]}
@@ -98,7 +114,7 @@ class Highlight {
     let type = highlightType;
 
     // Legacy compatibility.
-    if (highlightType === FOCUS_TYPE) {
+    if (highlightType === HIGHLIGHT_FOCUS_TYPE) {
       type = 'current'; // One from settings for `disableVisualSelection` up to Handsontable 0.36/Handsontable Pro 1.16.0.
     }
 
@@ -133,7 +149,7 @@ class Highlight {
    * @returns {Selection}
    */
   getCell() {
-    return this.cell;
+    return this.focus;
   }
 
   /**
@@ -158,7 +174,7 @@ class Highlight {
     if (this.areas.has(layerLevel)) {
       area = this.areas.get(layerLevel);
     } else {
-      area = createHighlight(AREA_TYPE, { layerLevel, ...this.options });
+      area = createHighlight(HIGHLIGHT_AREA_TYPE, { layerLevel, ...this.options });
 
       this.areas.set(layerLevel, area);
     }
@@ -188,7 +204,7 @@ class Highlight {
     if (this.headers.has(layerLevel)) {
       header = this.headers.get(layerLevel);
     } else {
-      header = createHighlight(HEADER_TYPE, { ...this.options });
+      header = createHighlight(HIGHLIGHT_HEADER_TYPE, { ...this.options });
 
       this.headers.set(layerLevel, header);
     }
@@ -218,7 +234,7 @@ class Highlight {
     if (this.activeHeaders.has(layerLevel)) {
       header = this.activeHeaders.get(layerLevel);
     } else {
-      header = createHighlight(ACTIVE_HEADER_TYPE, { ...this.options });
+      header = createHighlight(HIGHLIGHT_ACTIVE_HEADER_TYPE, { ...this.options });
 
       this.activeHeaders.set(layerLevel, header);
     }
@@ -236,6 +252,66 @@ class Highlight {
   }
 
   /**
+   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
+   * of the multiple selected rows.
+   *
+   * @returns {Selection}
+   */
+  createOrGetRowHighlight() {
+    const layerLevel = this.layerLevel;
+    let header;
+
+    if (this.rowHighlights.has(layerLevel)) {
+      header = this.rowHighlights.get(layerLevel);
+    } else {
+      header = createHighlight(HIGHLIGHT_ROW_TYPE, { ...this.options });
+
+      this.rowHighlights.set(layerLevel, header);
+    }
+
+    return header;
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the rows highlighting.
+   *
+   * @returns {Selection[]}
+   */
+  getRowHighlights() {
+    return [...this.rowHighlights.values()];
+  }
+
+  /**
+   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
+   * of the multiple selected columns.
+   *
+   * @returns {Selection}
+   */
+  createOrGetColumnHighlight() {
+    const layerLevel = this.layerLevel;
+    let header;
+
+    if (this.columnHighlights.has(layerLevel)) {
+      header = this.columnHighlights.get(layerLevel);
+    } else {
+      header = createHighlight(HIGHLIGHT_COLUMN_TYPE, { ...this.options });
+
+      this.columnHighlights.set(layerLevel, header);
+    }
+
+    return header;
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the columns highlighting.
+   *
+   * @returns {Selection[]}
+   */
+  getColumnHighlights() {
+    return [...this.columnHighlights.values()];
+  }
+
+  /**
    * Get Walkontable Selection instance created for controlling highlight of the custom selection functionality.
    *
    * @returns {Selection}
@@ -250,19 +326,24 @@ class Highlight {
    * @param {object} selectionInstance The selection instance.
    */
   addCustomSelection(selectionInstance) {
-    this.customSelections.push(createHighlight(CUSTOM_SELECTION_TYPE, { ...this.options, ...selectionInstance }));
+    this.customSelections.push(createHighlight(HIGHLIGHT_CUSTOM_SELECTION_TYPE, {
+      ...this.options,
+      ...selectionInstance
+    }));
   }
 
   /**
    * Perform cleaning visual highlights for the whole table.
    */
   clear() {
-    this.cell.clear();
+    this.focus.clear();
     this.fill.clear();
 
     arrayEach(this.areas.values(), highlight => void highlight.clear());
     arrayEach(this.headers.values(), highlight => void highlight.clear());
     arrayEach(this.activeHeaders.values(), highlight => void highlight.clear());
+    arrayEach(this.rowHighlights.values(), highlight => void highlight.clear());
+    arrayEach(this.columnHighlights.values(), highlight => void highlight.clear());
   }
 
   /**
@@ -272,11 +353,13 @@ class Highlight {
    */
   [Symbol.iterator]() {
     return [
-      this.cell,
+      this.focus,
       this.fill,
       ...this.areas.values(),
       ...this.headers.values(),
       ...this.activeHeaders.values(),
+      ...this.rowHighlights.values(),
+      ...this.columnHighlights.values(),
       ...this.customSelections,
     ][Symbol.iterator]();
   }

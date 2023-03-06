@@ -1,4 +1,4 @@
-import { FILL_TYPE } from '../constants';
+import { HIGHLIGHT_FILL_TYPE } from '../../../3rdparty/walkontable/src';
 import VisualSelection from '../visualSelection';
 
 /**
@@ -16,7 +16,7 @@ function createHighlight({ ...restOptions }) {
       color: '#ff0000',
     },
     ...restOptions,
-    selectionType: FILL_TYPE,
+    selectionType: HIGHLIGHT_FILL_TYPE,
   });
 
   return s;
