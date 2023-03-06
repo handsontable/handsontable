@@ -515,4 +515,122 @@ describe('Formulas: Integration with other features', () => {
       ]);
     });
   });
+
+  describe('Integration with TrimRows and ColumnSorting plugins', () => {
+    it('sorting dataset with one trimmed element', () => {
+      const hot = handsontable({
+        data: [
+          ['$B$2', 1, '=$B$2'],
+          ['$B$1', 100, '=$B$1'],
+          ['$B$3', 10, '=$B$3'],
+          ['$B$5', 5, '=$B$5'], // Trimmed row
+          ['$B$1', 7, '=$B$1'],
+          ['SUM($B$1:$B$3)', 3, '=SUM($B$1:$B$3)'],
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        formulas: {
+          engine: HyperFormula
+        },
+        columnSorting: true,
+        trimRows: [3],
+      });
+
+      hot.getPlugin('trimRows').untrimAll();
+      hot.render();
+
+      expect(getData()).toEqual([
+        ['$B$2', 1, 100],
+        ['$B$1', 100, 1],
+        ['$B$3', 10, 10],
+        ['$B$5', 5, 7], // Previously trimmed row
+        ['$B$1', 7, 1],
+        ['SUM($B$1:$B$3)', 3, 111],
+      ]);
+
+      hot.getPlugin('trimRows').trimRows([3]);
+      hot.render();
+
+      hot.getPlugin('columnSorting').sort({
+        column: 1,
+        sortOrder: 'asc'
+      });
+
+      expect(getData()).toEqual([
+        ['$B$2', 1, 3],
+        ['SUM($B$1:$B$3)', 3, 11],
+        ['$B$1', 7, 1],
+        // ['$B$5', 5, 10], // Trimmed row
+        ['$B$3', 10, 7],
+        ['$B$1', 100, 1],
+      ]);
+
+      hot.getPlugin('trimRows').untrimAll();
+      hot.render();
+
+      expect(getData()).toEqual([
+        ['$B$2', 1, 3],
+        ['SUM($B$1:$B$3)', 3, 11],
+        ['$B$1', 7, 1],
+        ['$B$5', 5, 10], // Previously trimmed row
+        ['$B$3', 10, 7],
+        ['$B$1', 100, 1],
+      ]);
+
+      hot.getPlugin('trimRows').trimRows([3]);
+      hot.render();
+
+      hot.getPlugin('columnSorting').sort({
+        column: 1,
+        sortOrder: 'desc'
+      });
+
+      expect(getData()).toEqual([
+        ['$B$1', 100, 100],
+        ['$B$3', 10, 7],
+        ['$B$1', 7, 100],
+        // ['$B$5', 5, 3], // Trimmed row
+        ['SUM($B$1:$B$3)', 3, 117],
+        ['$B$2', 1, 10],
+      ]);
+
+      hot.getPlugin('trimRows').untrimAll();
+      hot.render();
+
+      expect(getData()).toEqual([
+        ['$B$1', 100, 100],
+        ['$B$3', 10, 7],
+        ['$B$1', 7, 100],
+        ['$B$5', 5, 3], // Previously trimmed row
+        ['SUM($B$1:$B$3)', 3, 117],
+        ['$B$2', 1, 10],
+      ]);
+
+      hot.getPlugin('trimRows').trimRows([3]);
+      hot.getPlugin('columnSorting').clearSort();
+      hot.render();
+
+      expect(hot.getData()).toEqual([
+        ['$B$2', 1, 100],
+        ['$B$1', 100, 1],
+        ['$B$3', 10, 10],
+        // ['$B$5', 5, 7], // Trimmed row
+        ['$B$1', 7, 1],
+        ['SUM($B$1:$B$3)', 3, 111],
+      ]);
+
+      hot.getPlugin('trimRows').untrimAll();
+      hot.render();
+
+      expect(hot.getData()).toEqual([
+        ['$B$2', 1, 100],
+        ['$B$1', 100, 1],
+        ['$B$3', 10, 10],
+        ['$B$5', 5, 7], // Previously trimmed row
+        ['$B$1', 7, 1],
+        ['SUM($B$1:$B$3)', 3, 111],
+      ]);
+    });
+  });
 });

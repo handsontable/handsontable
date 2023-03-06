@@ -203,6 +203,8 @@ export class Formulas extends BasePlugin {
 
     this.indexSyncer = new IndexSyncer(this.hot.rowIndexMapper, this.hot.columnIndexMapper, (postponedAction) => {
       this.hot.addHookOnce('init', () => {
+        // Engine is initialized after executing callback to `afterLoadData` hook. Thus, some actions on indexes should
+        // be postponed.
         postponedAction();
       });
     });
@@ -326,68 +328,6 @@ export class Formulas extends BasePlugin {
     this.engine = null;
 
     super.destroy();
-  }
-
-  /**
-   * Helper function for `toPhysicalRowPosition` and `toPhysicalColumnPosition`.
-   *
-   * @private
-   * @param {number} visualIndex Visual entry index.
-   * @param {number} physicalIndex Physical entry index.
-   * @param {number} entriesCount Visual entries count.
-   * @param {number} sourceEntriesCount Source entries count.
-   * @param {boolean} contained `true` if it should return only indexes within boundaries of the table (basically
-   * `toPhysical` alias.
-   * @returns {*}
-   */
-  getPhysicalIndexPosition(visualIndex, physicalIndex, entriesCount, sourceEntriesCount, contained) {
-    if (!contained) {
-      if (visualIndex >= entriesCount) {
-        return sourceEntriesCount + (visualIndex - entriesCount);
-      }
-    }
-
-    return physicalIndex;
-  }
-
-  /**
-   * Returns the physical row index. The difference between this and Core's `toPhysical` is that it doesn't return
-   * `null` on rows with indexes higher than the number of rows.
-   *
-   * @private
-   * @param {number} row Visual row index.
-   * @param {boolean} [contained] `true` if it should return only indexes within boundaries of the table (basically
-   * `toPhysical` alias.
-   * @returns {number} The physical row index.
-   */
-  toPhysicalRowPosition(row, contained = false) {
-    return this.getPhysicalIndexPosition(
-      row,
-      this.hot.toPhysicalRow(row),
-      this.hot.countRows(),
-      this.hot.countSourceRows(),
-      contained
-    );
-  }
-
-  /**
-   * Returns the physical column index. The difference between this and Core's `toPhysical` is that it doesn't return
-   * `null` on columns with indexes higher than the number of columns.
-   *
-   * @private
-   * @param {number} column Visual column index.
-   * @param {boolean} [contained] `true` if it should return only indexes within boundaries of the table (basically
-   * `toPhysical` alias.
-   * @returns {number} The physical column index.
-   */
-  toPhysicalColumnPosition(column, contained = false) {
-    return this.getPhysicalIndexPosition(
-      column,
-      this.hot.toPhysicalColumn(column),
-      this.hot.countCols(),
-      this.hot.countSourceCols(),
-      contained
-    );
   }
 
   /**
@@ -719,13 +659,13 @@ export class Formulas extends BasePlugin {
    * `modifyData` hook callback.
    *
    * @private
-   * @param {number} row Physical row height.
-   * @param {number} column Visual column index.
+   * @param {number} physicalRow Physical row index.
+   * @param {number} visualColumn Visual column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
    *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
-  onModifyData(row, column, valueHolder, ioMode) {
+  onModifyData(physicalRow, visualColumn, valueHolder, ioMode) {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||
@@ -735,17 +675,17 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const visualRow = this.hot.toVisualRow(row);
+    const visualRow = this.hot.toVisualRow(physicalRow);
 
-    if (visualRow === null || column === null) {
+    if (visualRow === null || visualColumn === null) {
       return;
     }
 
     // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = this.isFormulaCellType(visualRow, column);
+    const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
 
     if (!isFormulaCellType) {
-      const cellType = this.getCellType(visualRow, column);
+      const cellType = this.getCellType(visualRow, visualColumn);
 
       if (cellType !== 'ARRAY') {
         if (isEscapedFormulaExpression(valueHolder.value)) {
@@ -758,7 +698,7 @@ export class Formulas extends BasePlugin {
 
     const address = {
       row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
-      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(column),
+      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
       sheet: this.sheetId
     };
     const cellValue = this.engine.getCellValue(address);
@@ -898,16 +838,16 @@ export class Formulas extends BasePlugin {
     const dependentCells = [];
     const changedCells = [];
 
-    changes.forEach(([row, prop, , newValue]) => {
-      const column = this.hot.propToCol(prop);
+    changes.forEach(([visualRow, prop, , newValue]) => {
+      const visualColumn = this.hot.propToCol(prop);
 
-      if (!isNumeric(column)) {
+      if (!isNumeric(visualColumn)) {
         return;
       }
 
       const address = {
-        row,
-        col: this.toPhysicalColumnPosition(column),
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
+        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
         sheet: this.sheetId
       };
 
@@ -929,15 +869,21 @@ export class Formulas extends BasePlugin {
    * `beforeCreateRow` hook callback.
    *
    * @private
-   * @param {number} row Represents the visual index of first newly created row in the data source array.
+   * @param {number} visualRow Represents the visual index of first newly created row in the data source array.
    * @param {number} amount Number of newly created rows in the data source array.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  onBeforeCreateRow(row, amount) {
+  onBeforeCreateRow(visualRow, amount) {
+    let hfRowIndex = this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow);
+
+    if (visualRow >= this.hot.countRows()) {
+      hfRowIndex = visualRow; // Row beyond the table boundaries.
+    }
+
     if (
       this.sheetId === null ||
       !this.engine.doesSheetExist(this.sheetName) ||
-      !this.engine.isItPossibleToAddRows(this.sheetId, [this.toPhysicalRowPosition(row), amount])
+      !this.engine.isItPossibleToAddRows(this.sheetId, [hfRowIndex, amount])
     ) {
       return false;
     }
@@ -947,15 +893,21 @@ export class Formulas extends BasePlugin {
    * `beforeCreateCol` hook callback.
    *
    * @private
-   * @param {number} col Represents the visual index of first newly created column in the data source.
+   * @param {number} visualColumn Represents the visual index of first newly created column in the data source.
    * @param {number} amount Number of newly created columns in the data source.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  onBeforeCreateCol(col, amount) {
+  onBeforeCreateCol(visualColumn, amount) {
+    let hfColumnIndex = this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn);
+
+    if (visualColumn >= this.hot.countCols()) {
+      hfColumnIndex = visualColumn; // Column beyond the table boundaries.
+    }
+
     if (
       this.sheetId === null ||
       !this.engine.doesSheetExist(this.sheetName) ||
-      !this.engine.isItPossibleToAddColumns(this.sheetId, [this.toPhysicalColumnPosition(col), amount])
+      !this.engine.isItPossibleToAddColumns(this.sheetId, [hfColumnIndex, amount])
     ) {
       return false;
     }

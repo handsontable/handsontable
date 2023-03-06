@@ -276,7 +276,7 @@ const REGISTERED_HOOKS = [
   'beforeCreateCol',
 
   /**
-   * @param {'remove'|'insert'|'move'|'update'} [source] String that identifies source of column sequence change.
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [source] String that identifies source of column sequence change.
    */
   'afterColumnSequenceChange',
 
@@ -569,7 +569,7 @@ const REGISTERED_HOOKS = [
   'afterRenderer',
 
   /**
-   * @param {'remove'|'insert'|'move'|'update'} [source] String that identifies source of row sequence change.
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [source] String that identifies source of row sequence change.
    */
   'afterRowSequenceChange',
 
@@ -1270,8 +1270,8 @@ const REGISTERED_HOOKS = [
    * Fired when a data was retrieved or modified.
    *
    * @event Hooks#modifyData
-   * @param {number} row Physical row height.
-   * @param {number} column Physical column index.
+   * @param {number} row Physical row index.
+   * @param {number} column Visual column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
