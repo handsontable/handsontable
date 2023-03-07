@@ -656,7 +656,6 @@ You can configure the following types:
 - [`dropdown`](@/guides/cell-types/dropdown-cell-type.md)
 - [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
 - [`password`](@/guides/cell-types/password-cell-type.md)
-- [Custom type](@/guides/cell-types/cell-type.md)
 
 ::: only-for javascript
 
@@ -787,7 +786,7 @@ const handsontableInstance = new Handsontable(container, {
     },
   ],
   columnSorting: true,
-  height: 175,
+  height: 168,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -926,7 +925,7 @@ export const HandsontableComponent = () => {
         },
       ]}
       columnSorting={true}
-      height={175}
+      height={168}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -940,6 +939,8 @@ ReactDOM.render(<HandsontableComponent />, document.getElementById('example3'));
 :::
 
 :::
+
+You can also create a custom type. For details, see this guide: [Cell type](@/guides/cell-types/cell-type.md).
 
 ## Sort by multiple columns
 
