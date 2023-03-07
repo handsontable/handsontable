@@ -112,19 +112,19 @@ export class Formulas extends BasePlugin {
   /**
    * Index synchronizer responsible for manipulating with some general options related to indexes synchronization.
    *
-   * @type {Index|null}
+   * @type {IndexSyncer|null}
    */
   indexSyncer = null;
   /**
    * Index synchronizer responsible for syncing the order of HOT and HF's data for the axis of the rows.
    *
-   * @type {Index|null}
+   * @type {AxisSyncer|null}
    */
   rowAxisSyncer = null;
   /**
    * Index synchronizer responsible for syncing the order of HOT and HF's data for the axis of the columns.
    *
-   * @type {Index|null}
+   * @type {AxisSyncer|null}
    */
   columnAxisSyncer = null;
 

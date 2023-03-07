@@ -6,8 +6,7 @@ import AxisSyncer from './axisSyncer';
  * @description
  *
  * Indexes synchronizer responsible for providing logic for syncing actions done on indexes for HOT to actions performed
- * on HF's. It respects an idea to represent trimmed elements in HF's engine to perform formulas calculations on them.
- * It also provides method for translation from visual row/column indexes to HF's row/column indexes.
+ * on HF's.
  *
  */
 class IndexSyncer {

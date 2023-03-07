@@ -5,7 +5,9 @@ import { toUpperCaseFirst } from '../../../helpers/string';
  * @class IndexSyncer
  * @description
  *
- * Indexes synchronizer responsible for providing logic for particular axis.
+ * Indexes synchronizer responsible for providing logic for particular axis. It respects an idea to represent trimmed
+ * elements in HF's engine to perform formulas calculations on them. It also provides method for translation from visual
+ * row/column indexes to HF's row/column indexes.
  */
 class AxisSyncer {
   constructor(axis, indexMapper, indexSyncer) {
