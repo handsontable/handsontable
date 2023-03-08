@@ -130,6 +130,8 @@ hotTableComponentRef.current.hotInstance.updateSettings({
 });
 ```
 
+:::
+
 ### Get column header values
 
 ### Use column header hooks
