@@ -70,7 +70,7 @@ function negativeValueRenderer(instance, td, row, col, prop, value, cellProperti
     td.style.background = '#EEE';
 
   } else {
-    if (instance.getDataAtCell(0,cell) === 'Nissan') {
+    if (instance.getDataAtCell(0,col) === 'Nissan') {
       td.style.fontStyle = 'italic';
     }
 
