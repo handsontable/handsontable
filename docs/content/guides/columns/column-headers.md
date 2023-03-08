@@ -134,8 +134,6 @@ hotTableComponentRef.current.hotInstance.updateSettings({
 
 ### Use column header hooks
 
-:::
-
 ## Import the column headers module
 
 You can reduce the size of your JavaScript bundle by importing and registering only the
