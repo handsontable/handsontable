@@ -752,7 +752,12 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.setCopyableText();
-    this.focusableElement.focus();
+
+    this.hot.getCell(...this.hot.getSelected()[0].slice(0, 2)).focus();
+
+    setTimeout(() => {
+      this.focusableElement.focus();
+    }, 1);
   }
 
   /**

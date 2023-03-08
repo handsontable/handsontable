@@ -220,6 +220,8 @@ export class TextEditor extends BaseEditor {
     this.TEXTAREA.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
     this.TEXTAREA.tabIndex = -1;
 
+    this.TEXTAREA.setAttribute('aria-hidden', 'true');
+
     addClass(this.TEXTAREA, 'handsontableInput');
 
     this.textareaStyle = this.TEXTAREA.style;

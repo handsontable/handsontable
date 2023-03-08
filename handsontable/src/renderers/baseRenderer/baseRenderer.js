@@ -43,6 +43,8 @@ export function baseRenderer(instance, TD, row, col, prop, value, cellProperties
 
   removeClass(TD, classesToRemove);
   addClass(TD, classesToAdd);
+
+  TD.setAttribute('tabindex', '-1');
 }
 
 baseRenderer.RENDERER_TYPE = RENDERER_TYPE;
