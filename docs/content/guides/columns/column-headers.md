@@ -2,7 +2,9 @@
 id: qiasr3y1
 title: Column headers
 metaTitle: Column headers - JavaScript Data Grid | Handsontable
-description: Use default column headers (A, B, C), or set them to custom values provided by an array or a function.
+description:
+  Use the default column headers (A, B, C), or set them to custom values provided by an array or a
+  function.
 permalink: /column-headers
 canonicalUrl: /column-headers
 tags:
@@ -19,13 +21,15 @@ searchCategory: Guides
 
 # Column headers
 
-Use default column headers (A, B, C), or set them to custom values provided by an array or a function.
+Use the default column headers (A, B, C), or set them to custom values provided by an array or a
+function.
 
 [[toc]]
 
 ## Overview
 
 Describe what column headers do UI-wise:
+
 - Look differently
 - Display column names
 - Click on the column name to sort
@@ -35,7 +39,7 @@ Describe what column headers do UI-wise:
 
 To copy column headers, see: [Copy].
 
-### Demo
+## Column headers demo
 
 ## Enable column headers
 
@@ -45,11 +49,13 @@ To copy column headers, see: [Copy].
 
 https://handsontable.com/docs/react-data-grid/column-header/#header-labels-as-an-array
 
+http://localhost:8083/docs/javascript-data-grid/api/options/#title
+
 ## Generate custom column names
 
 https://handsontable.com/docs/react-data-grid/column-header/#header-labels-as-a-function
 
-## Render custom HTML in column headers
+## Render HTML in column headers
 
 https://examples.handsontable.com/demo/renderers_html.html#header
 
@@ -71,6 +77,12 @@ https://www.ag-grid.com/javascript-data-grid/column-headers/#auto-header-height
 
 https://mui.com/x/react-data-grid/style/#styling-column-headers
 
+http://localhost:8083/docs/javascript-data-grid/api/options/#activeheaderclassname
+
+http://localhost:8083/docs/javascript-data-grid/api/options/#columnheaderheight
+
+http://localhost:8083/docs/javascript-data-grid/api/options/#currentheaderclassname
+
 ## Use nested column headers
 
 You can use multiple levels of nested column headers, to better reflect the structure of your data.
@@ -83,7 +95,8 @@ To learn more, see: [Column groups](@/guides/columns/column-groups.md).
 
 https://examples.handsontable.com/demo/buttons.html
 
-To enable or disable column headers programmatically, use the [`updateSettings()`](@/api/core.md#updatesettings) method.
+To enable or disable column headers programmatically, use the
+[`updateSettings()`](@/api/core.md#updatesettings) method.
 
 ::: only-for javascript
 
@@ -117,6 +130,10 @@ hotTableComponentRef.current.hotInstance.updateSettings({
 });
 ```
 
+### Get column header values
+
+### Use column header hooks
+
 :::
 
 ## Import the column headers module
@@ -124,7 +141,8 @@ hotTableComponentRef.current.hotInstance.updateSettings({
 You can reduce the size of your JavaScript bundle by importing and registering only the
 [modules](@/guides/tools-and-building/modules.md) that you need.
 
-To use column headers, you only need the [base module](@/guides/tools-and-building/modules.md#import-the-base-module).
+To use column headers, you only need the
+[base module](@/guides/tools-and-building/modules.md#import-the-base-module).
 
 ```js
 // import the base module
@@ -147,5 +165,7 @@ Didn't find what you need? Try this:
 - [View related topics](https://github.com/handsontable/handsontable/labels/Headers) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
 - [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
-- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
+- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's
+  forum
+- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to
+  get help
