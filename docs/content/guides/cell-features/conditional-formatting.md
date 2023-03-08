@@ -63,15 +63,14 @@ function negativeValueRenderer(instance, td, row, col, prop, value, cellProperti
 
   // if the row contains a negative number
   if (parseInt(value, 10) < 0) {
-    // add class 'make-me-red'
-    td.className = 'make-me-red';
+    td.style.color = 'red';
   }
 
   if (!value || value === '') {
     td.style.background = '#EEE';
 
   } else {
-    if (value === 'Nissan') {
+    if (instance.getDataAtCell(0,cell) === 'Nissan') {
       td.style.fontStyle = 'italic';
     }
 
