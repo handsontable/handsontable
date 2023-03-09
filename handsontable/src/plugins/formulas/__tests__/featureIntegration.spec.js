@@ -343,6 +343,7 @@ describe('Formulas: Integration with other features', () => {
         rowHeaders: true,
         colHeaders: true
       });
+
       const plugin = hot.getPlugin('nestedRows');
 
       plugin.collapsingUI.collapseAll();
@@ -459,6 +460,16 @@ describe('Formulas: Integration with other features', () => {
         [115, 5, 15, 1115, 1001115],
       ]);
 
+      // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+      // (the same as at the start).
+      expect(getSourceData()).toEqual([
+        [1, '=B1+10', '=C1+100', '=A1+1000', '=D1+1000000'],
+        [2, '=B2+10', '=C2+100', '=A2+1000', '=D2+1000000'],
+        [3, '=B3+10', '=C3+100', '=A3+1000', '=D3+1000000'],
+        [4, '=B4+10', '=C4+100', '=A4+1000', '=D4+1000000'],
+        [5, '=B5+10', '=C5+100', '=A5+1000', '=D5+1000000'],
+      ]);
+
       hot.getPlugin('manualColumnFreeze').freezeColumn(4);
       hot.render();
 
@@ -468,6 +479,16 @@ describe('Formulas: Integration with other features', () => {
         [113, 1001113, 3, 13, 1113],
         [114, 1001114, 4, 14, 1114],
         [115, 1001115, 5, 15, 1115],
+      ]);
+
+      // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+      // (the same as at the start).
+      expect(getSourceData()).toEqual([
+        [1, '=C1+10', '=D1+100', '=A1+1000', '=E1+1000000'],
+        [2, '=C2+10', '=D2+100', '=A2+1000', '=E2+1000000'],
+        [3, '=C3+10', '=D3+100', '=A3+1000', '=E3+1000000'],
+        [4, '=C4+10', '=D4+100', '=A4+1000', '=E4+1000000'],
+        [5, '=C5+10', '=D5+100', '=A5+1000', '=E5+1000000'],
       ]);
 
       hot.getPlugin('manualColumnFreeze').freezeColumn(4);
@@ -481,6 +502,16 @@ describe('Formulas: Integration with other features', () => {
         [115, 1001115, 1115, 5, 15],
       ]);
 
+      // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+      // (the same as at the start).
+      expect(getSourceData()).toEqual([
+        [1, '=D1+10', '=E1+100', '=A1+1000', '=C1+1000000'],
+        [2, '=D2+10', '=E2+100', '=A2+1000', '=C2+1000000'],
+        [3, '=D3+10', '=E3+100', '=A3+1000', '=C3+1000000'],
+        [4, '=D4+10', '=E4+100', '=A4+1000', '=C4+1000000'],
+        [5, '=D5+10', '=E5+100', '=A5+1000', '=C5+1000000'],
+      ]);
+
       hot.getPlugin('manualColumnFreeze').unfreezeColumn(0);
       hot.render();
 
@@ -492,15 +523,14 @@ describe('Formulas: Integration with other features', () => {
         [1001115, 1115, 115, 5, 15],
       ]);
 
-      hot.getPlugin('manualColumnFreeze').unfreezeColumn(0);
-      hot.render();
-
-      expect(getData()).toEqual([
-        [1111, 1001111, 111, 1, 11],
-        [1112, 1001112, 112, 2, 12],
-        [1113, 1001113, 113, 3, 13],
-        [1114, 1001114, 114, 4, 14],
-        [1115, 1001115, 115, 5, 15],
+      // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+      // (the same as at the start).
+      expect(getSourceData()).toEqual([
+        [1, '=D1+10', '=E1+100', '=C1+1000', '=B1+1000000'],
+        [2, '=D2+10', '=E2+100', '=C2+1000', '=B2+1000000'],
+        [3, '=D3+10', '=E3+100', '=C3+1000', '=B3+1000000'],
+        [4, '=D4+10', '=E4+100', '=C4+1000', '=B4+1000000'],
+        [5, '=D5+10', '=E5+100', '=C5+1000', '=B5+1000000'],
       ]);
 
       hot.getPlugin('manualColumnFreeze').unfreezeColumn(0);
@@ -512,6 +542,37 @@ describe('Formulas: Integration with other features', () => {
         [1113, 1001113, 113, 3, 13],
         [1114, 1001114, 114, 4, 14],
         [1115, 1001115, 115, 5, 15],
+      ]);
+
+      // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+      // (the same as at the start).
+      expect(getSourceData()).toEqual([
+        [1, '=D1+10', '=E1+100', '=C1+1000', '=A1+1000000'],
+        [2, '=D2+10', '=E2+100', '=C2+1000', '=A2+1000000'],
+        [3, '=D3+10', '=E3+100', '=C3+1000', '=A3+1000000'],
+        [4, '=D4+10', '=E4+100', '=C4+1000', '=A4+1000000'],
+        [5, '=D5+10', '=E5+100', '=C5+1000', '=A5+1000000'],
+      ]);
+
+      hot.getPlugin('manualColumnFreeze').unfreezeColumn(0);
+      hot.render();
+
+      expect(getData()).toEqual([
+        [1111, 1001111, 111, 1, 11],
+        [1112, 1001112, 112, 2, 12],
+        [1113, 1001113, 113, 3, 13],
+        [1114, 1001114, 114, 4, 14],
+        [1115, 1001115, 115, 5, 15],
+      ]);
+
+      // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+      // (the same as at the start).
+      expect(getSourceData()).toEqual([
+        [1, '=D1+10', '=E1+100', '=C1+1000', '=A1+1000000'],
+        [2, '=D2+10', '=E2+100', '=C2+1000', '=A2+1000000'],
+        [3, '=D3+10', '=E3+100', '=C3+1000', '=A3+1000000'],
+        [4, '=D4+10', '=E4+100', '=C4+1000', '=A4+1000000'],
+        [5, '=D5+10', '=E5+100', '=C5+1000', '=A5+1000000'],
       ]);
     });
   });
@@ -549,6 +610,15 @@ describe('Formulas: Integration with other features', () => {
         ['SUM($B$1:$B$3)', 3, 111],
       ]);
 
+      expect(getSourceData()).toEqual([
+        ['$B$2', 1, '=$B$2'],
+        ['$B$1', 100, '=$B$1'],
+        ['$B$3', 10, '=$B$3'],
+        ['$B$5', 5, '=$B$5'], // Previously trimmed row
+        ['$B$1', 7, '=$B$1'],
+        ['SUM($B$1:$B$3)', 3, '=SUM($B$1:$B$3)'],
+      ]);
+
       hot.getPlugin('trimRows').trimRows([3]);
       hot.render();
 
@@ -566,6 +636,15 @@ describe('Formulas: Integration with other features', () => {
         ['$B$1', 100, 1],
       ]);
 
+      expect(getSourceData()).toEqual([
+        ['$B$2', 1, '=$B$2'],
+        ['$B$1', 100, '=$B$1'],
+        ['$B$3', 10, '=$B$3'],
+        ['$B$5', 5, '=$B$5'], // Trimmed row
+        ['$B$1', 7, '=$B$1'],
+        ['SUM($B$1:$B$3)', 3, '=SUM($B$1:$B$3)'],
+      ]);
+
       hot.getPlugin('trimRows').untrimAll();
       hot.render();
 
@@ -576,6 +655,15 @@ describe('Formulas: Integration with other features', () => {
         ['$B$5', 5, 10], // Previously trimmed row
         ['$B$3', 10, 7],
         ['$B$1', 100, 1],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['$B$2', 1, '=$B$2'],
+        ['$B$1', 100, '=$B$1'],
+        ['$B$3', 10, '=$B$3'],
+        ['$B$5', 5, '=$B$5'], // Previously trimmed row
+        ['$B$1', 7, '=$B$1'],
+        ['SUM($B$1:$B$3)', 3, '=SUM($B$1:$B$3)'],
       ]);
 
       hot.getPlugin('trimRows').trimRows([3]);
@@ -595,6 +683,15 @@ describe('Formulas: Integration with other features', () => {
         ['$B$2', 1, 10],
       ]);
 
+      expect(getSourceData()).toEqual([
+        ['$B$2', 1, '=$B$2'],
+        ['$B$1', 100, '=$B$1'],
+        ['$B$3', 10, '=$B$3'],
+        ['$B$5', 5, '=$B$5'], // Trimmed row
+        ['$B$1', 7, '=$B$1'],
+        ['SUM($B$1:$B$3)', 3, '=SUM($B$1:$B$3)'],
+      ]);
+
       hot.getPlugin('trimRows').untrimAll();
       hot.render();
 
@@ -605,6 +702,15 @@ describe('Formulas: Integration with other features', () => {
         ['$B$5', 5, 3], // Previously trimmed row
         ['SUM($B$1:$B$3)', 3, 117],
         ['$B$2', 1, 10],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['$B$2', 1, '=$B$2'],
+        ['$B$1', 100, '=$B$1'],
+        ['$B$3', 10, '=$B$3'],
+        ['$B$5', 5, '=$B$5'], // Previously trimmed row
+        ['$B$1', 7, '=$B$1'],
+        ['SUM($B$1:$B$3)', 3, '=SUM($B$1:$B$3)'],
       ]);
 
       hot.getPlugin('trimRows').trimRows([3]);
@@ -620,6 +726,15 @@ describe('Formulas: Integration with other features', () => {
         ['SUM($B$1:$B$3)', 3, 111],
       ]);
 
+      expect(getSourceData()).toEqual([
+        ['$B$2', 1, '=$B$2'],
+        ['$B$1', 100, '=$B$1'],
+        ['$B$3', 10, '=$B$3'],
+        ['$B$5', 5, '=$B$5'], // Trimmed row
+        ['$B$1', 7, '=$B$1'],
+        ['SUM($B$1:$B$3)', 3, '=SUM($B$1:$B$3)'],
+      ]);
+
       hot.getPlugin('trimRows').untrimAll();
       hot.render();
 
@@ -630,6 +745,15 @@ describe('Formulas: Integration with other features', () => {
         ['$B$5', 5, 7], // Previously trimmed row
         ['$B$1', 7, 1],
         ['SUM($B$1:$B$3)', 3, 111],
+      ]);
+
+      expect(getSourceData()).toEqual([
+        ['$B$2', 1, '=$B$2'],
+        ['$B$1', 100, '=$B$1'],
+        ['$B$3', 10, '=$B$3'],
+        ['$B$5', 5, '=$B$5'], // Previously trimmed row
+        ['$B$1', 7, '=$B$1'],
+        ['SUM($B$1:$B$3)', 3, '=SUM($B$1:$B$3)'],
       ]);
     });
   });

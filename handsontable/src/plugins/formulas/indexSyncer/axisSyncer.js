@@ -348,7 +348,7 @@ class AxisSyncer {
 
         // Sheet dimension can be changed by HF's engine for purpose of calculating values. It extends dependency
         // graph to calculate values outside of a defined dataset. This part of code could be removed after resolving
-        // feature request from HF issue board (#1179).
+        // feature request from HF issue board (handsontable/hyperformula#1179).
         for (let i = numberOfReorganisedIndexes; i < sizeForAxis; i += 1) {
           relativeTransformation.push(i);
         }
