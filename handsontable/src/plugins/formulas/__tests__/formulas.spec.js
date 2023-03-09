@@ -2307,6 +2307,14 @@ describe('Formulas general', () => {
       ['B1', 99, 3.5],
     ]);
 
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      ['B2', 3.5, '=B3'],
+      ['B1', 99, '=B2'],
+      ['SUM(B1:B2)', 1.5, '=SUM(#REF!)'],
+    ]);
+
     hot.getPlugin('columnSorting').sort({
       column: 1,
       sortOrder: 'desc'
@@ -2318,12 +2326,97 @@ describe('Formulas general', () => {
       ['SUM(B1:B2)', 1.5, '#REF!'],
     ]);
 
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      ['B2', 3.5, '=B3'],
+      ['B1', 99, '=#REF!'],
+      ['SUM(B1:B2)', 1.5, '=SUM(#REF!)'],
+    ]);
+
     hot.getPlugin('columnSorting').clearSort();
 
     expect(hot.getData()).toEqual([
       ['B2', 3.5, 99],
       ['B1', 99, '#REF!'],
       ['SUM(B1:B2)', 1.5, '#REF!'],
+    ]);
+
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      ['B2', 3.5, '=B2'],
+      ['B1', 99, '=#REF!'],
+      ['SUM(B1:B2)', 1.5, '=SUM(#REF!)'],
+    ]);
+  });
+
+  it('should sort properly when some cell is referencing to element outside the table boundaries', () => {
+    const hot = handsontable({
+      data: [
+        [1, '=A3'],
+        [2, '=A1'],
+        [3, '=A2'],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      contextMenu: true,
+      formulas: {
+        engine: HyperFormula
+      },
+      columnSorting: true,
+    });
+
+    hot.getPlugin('columnSorting').sort({
+      column: 0,
+      sortOrder: 'asc'
+    });
+
+    expect(getData()).toEqual([
+      [1, 3],
+      [2, 1],
+      [3, 2],
+    ]);
+
+    expect(getSourceData()).toEqual([
+      [1, '=A3'],
+      [2, '=A1'],
+      [3, '=A2'],
+    ]);
+
+    hot.getPlugin('columnSorting').sort({
+      column: 0,
+      sortOrder: 'desc'
+    });
+
+    expect(getData()).toEqual([
+      [3, '#REF!'],
+      [2, 3],
+      [1, 0],
+    ]);
+
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      [1, '=A5'],
+      [2, '=A1'],
+      [3, '=#REF!'],
+    ]);
+
+    hot.getPlugin('columnSorting').clearSort();
+
+    expect(getData()).toEqual([
+      [1, 3],
+      [2, 1],
+      [3, '#REF!'],
+    ]);
+
+    // Currently chosen approach, please keep in mind that it could be changed to represent pure source data
+    // (the same as at the start).
+    expect(getSourceData()).toEqual([
+      [1, '=A3'],
+      [2, '=A1'],
+      [3, '=#REF!'],
     ]);
   });
 

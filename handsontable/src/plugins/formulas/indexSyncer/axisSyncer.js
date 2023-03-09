@@ -334,6 +334,24 @@ class AxisSyncer {
       if (source === 'update') {
         const relativeTransformation =
           this.getPhysicalIndexesSequence().map(index => newSequence.indexOf(index));
+        const sheetDimensions = this.indexSyncer.getEngine().getSheetDimensions(this.indexSyncer.getSheetId());
+        let sizeForAxis;
+
+        if (this.axis === 'row') {
+          sizeForAxis = sheetDimensions.height;
+
+        } else {
+          sizeForAxis = sheetDimensions.width;
+        }
+
+        const numberOfReorganisedIndexes = relativeTransformation.length;
+
+        // Sheet dimension can be changed by HF's engine for purpose of calculating values. It extends dependency
+        // graph to calculate values outside of a defined dataset. This part of code could be removed after resolving
+        // feature request from HF issue board (#1179).
+        for (let i = numberOfReorganisedIndexes; i < sizeForAxis; i += 1) {
+          relativeTransformation.push(i);
+        }
 
         this.indexSyncer.getEngine()[SYNC_ORDER_CHANGE_METHOD_NAME](this.indexSyncer.getSheetId(),
           relativeTransformation);
