@@ -3,19 +3,18 @@ import Hooks from '../../pluginHooks';
 import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
 import { sanitize } from '../../helpers/string';
-import { getSelectionText } from '../../helpers/dom/element';
 import copyItem from './contextMenuItem/copy';
 import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
 import copyWithColumnGroupHeadersItem from './contextMenuItem/copyWithColumnGroupHeaders';
 import copyWithColumnHeadersItem from './contextMenuItem/copyWithColumnHeaders';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
-import { createElement, destroyElement } from './focusableElement';
 import {
   CopyableRangesFactory,
   normalizeRanges,
 } from './copyableRanges';
 import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
+import EventManager from '../../eventManager';
 
 import './copyPaste.css';
 
@@ -227,11 +226,11 @@ export class CopyPaste extends BasePlugin {
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
     this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
 
-    this.focusableElement = createElement(this.uiContainer);
-    this.focusableElement
-      .addLocalHook('copy', event => this.onCopy(event))
-      .addLocalHook('cut', event => this.onCut(event))
-      .addLocalHook('paste', event => this.onPaste(event));
+    this.eventManager = new EventManager(this);
+
+    this.eventManager.addEventListener(this.hot.rootDocument, 'copy', (...args) => this.onCopy(...args));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'cut', (...args) => this.onCut(...args));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'paste', (...args) => this.onPaste(...args));
 
     super.enablePlugin();
   }
@@ -247,7 +246,6 @@ export class CopyPaste extends BasePlugin {
   updatePlugin() {
     this.disablePlugin();
     this.enablePlugin();
-    this.getOrCreateFocusableElement();
 
     super.updatePlugin();
   }
@@ -256,10 +254,6 @@ export class CopyPaste extends BasePlugin {
    * Disables the [`CopyPaste`](#copypaste) plugin for your Handsontable instance.
    */
   disablePlugin() {
-    if (this.focusableElement) {
-      destroyElement(this.focusableElement);
-    }
-
     super.disablePlugin();
   }
 
@@ -280,8 +274,6 @@ export class CopyPaste extends BasePlugin {
   copy(copyMode = 'cells-only') {
     this.#copyMode = copyMode;
     this.#isTriggeredByCopy = true;
-    this.getOrCreateFocusableElement();
-    this.focusableElement.focus();
     this.hot.rootDocument.execCommand('copy');
   }
 
@@ -315,8 +307,6 @@ export class CopyPaste extends BasePlugin {
    */
   cut() {
     this.#isTriggeredByCut = true;
-    this.getOrCreateFocusableElement();
-    this.focusableElement.focus();
     this.hot.rootDocument.execCommand('cut');
   }
 
@@ -381,7 +371,6 @@ export class CopyPaste extends BasePlugin {
       pasteData.clipboardData.setData('text/html', pastableHtml);
     }
 
-    this.getOrCreateFocusableElement();
     this.onPaste(pasteData);
   }
 
@@ -431,21 +420,6 @@ export class CopyPaste extends BasePlugin {
 
       this.hot.runHooks('afterCopyLimit',
         endRow - startRow + 1, endCol - startCol + 1, this.rowsLimit, this.columnsLimit);
-    }
-  }
-
-  /**
-   * Force focus on editable element.
-   *
-   * @private
-   */
-  getOrCreateFocusableElement() {
-    const editableElement = this.hot.getActiveEditor()?.TEXTAREA;
-
-    if (editableElement) {
-      this.focusableElement.setFocusableElement(editableElement);
-    } else {
-      this.focusableElement.useSecondaryElement();
     }
   }
 
@@ -729,9 +703,6 @@ export class CopyPaste extends BasePlugin {
     if (!this.hot.isListening() || this.isEditorOpened() || this.hot.getSettings().fragmentSelection) {
       return;
     }
-
-    this.getOrCreateFocusableElement();
-    this.focusableElement.focus();
   }
 
   /**
@@ -744,20 +715,13 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    this.getOrCreateFocusableElement();
-
-    if (this.hot.getSettings().fragmentSelection &&
-        this.focusableElement.getFocusableElement() !== this.hot.rootDocument.activeElement && getSelectionText()) {
+    if (this.hot.getSettings().fragmentSelection) {
       return;
     }
 
     this.setCopyableText();
 
     this.hot.getCell(...this.hot.getSelected()[0].slice(0, 2)).focus();
-
-    setTimeout(() => {
-      this.focusableElement.focus();
-    }, 1);
   }
 
   /**
@@ -769,27 +733,18 @@ export class CopyPaste extends BasePlugin {
     if (!this.hot.isListening() || this.isEditorOpened()) {
       return;
     }
-    const activeElement = this.hot.rootDocument.activeElement;
+
     const activeEditor = this.hot.getActiveEditor();
 
-    if (!activeEditor ||
-        (activeElement !== this.focusableElement.getFocusableElement() && activeElement !== activeEditor.select)) {
+    if (!activeEditor) {
       return;
     }
-
-    this.getOrCreateFocusableElement();
-    this.focusableElement.focus();
   }
 
   /**
    * Destroys the `CopyPaste` plugin instance.
    */
   destroy() {
-    if (this.focusableElement) {
-      destroyElement(this.focusableElement);
-      this.focusableElement = null;
-    }
-
     super.destroy();
   }
 }

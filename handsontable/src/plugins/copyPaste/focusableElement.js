@@ -82,8 +82,6 @@ class FocusableWrapper {
     this.mainElement.value = ' ';
 
     if (!isMobileBrowser()) {
-      this.mainElement.focus();
-
       selectElementIfAllowed(this.mainElement);
     }
   }

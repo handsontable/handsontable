@@ -179,7 +179,7 @@ export class TextEditor extends BaseEditor {
       const restoreFocus = !fragmentSelection;
 
       if (restoreFocus && !isMobileBrowser()) {
-        this.focus();
+        // this.focus();
       }
     }
   }
@@ -219,8 +219,6 @@ export class TextEditor extends BaseEditor {
     this.TEXTAREA = rootDocument.createElement('TEXTAREA');
     this.TEXTAREA.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
     this.TEXTAREA.tabIndex = -1;
-
-    this.TEXTAREA.setAttribute('aria-hidden', 'true');
 
     addClass(this.TEXTAREA, 'handsontableInput');
 
@@ -389,8 +387,8 @@ export class TextEditor extends BaseEditor {
    * @private
    */
   bindEvents() {
-    this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => event.stopPropagation());
-    this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => event.stopPropagation());
+    // this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => event.stopPropagation());
+    // this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => event.stopPropagation());
 
     if (isIOS()) {
       // on iOS after click "Done" the edit isn't hidden by default, so we need to handle it manually.
@@ -402,12 +400,12 @@ export class TextEditor extends BaseEditor {
 
     this.addHook('afterColumnResize', () => {
       this.refreshDimensions();
-      this.focus();
+      // this.focus();
     });
 
     this.addHook('afterRowResize', () => {
       this.refreshDimensions();
-      this.focus();
+      // this.focus();
     });
   }
 
