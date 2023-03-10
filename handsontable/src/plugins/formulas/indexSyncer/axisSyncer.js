@@ -10,56 +10,60 @@ import { toUpperCaseFirst } from '../../../helpers/string';
  * row/column indexes to HF's row/column indexes.
  */
 class AxisSyncer {
+  /**
+   * The axis for which the actions are performed.
+   *
+   * @private
+   * @type {'row'|'column'}
+   */
+  axis;
+  /**
+   * Reference to index mapper.
+   *
+   * @private
+   * @type {IndexMapper}
+   */
+  indexMapper;
+  /**
+   * The index synchronizer for both axis (is storing some more general information).
+   *
+   * @private
+   * @type {IndexSyncer}
+   */
+  indexSyncer;
+  /**
+   * Sequence of physical indexes stored for watching changes and calculating some transformations.
+   *
+   * @private
+   * @type {Array<number>}
+   */
+  indexesSequence = [];
+  /**
+   * List of moved HF indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
+   *
+   * @private
+   * @type {Array<number>}
+   */
+  movedIndexes = [];
+  /**
+   * Final HF's place where to move indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
+   *
+   * @private
+   * @type {number|undefined}
+   */
+  finalIndex;
+  /**
+   * List of removed HF indexes, stored before performing removal on HOT to calculate transformation needed on HF's engine.
+   *
+   * @private
+   * @type {Array<number>}
+   */
+  removedIndexes = [];
+    
   constructor(axis, indexMapper, indexSyncer) {
-    /**
-     * The axis for which the actions are performed.
-     *
-     * @private
-     * @type {string}
-     */
     this.axis = axis;
-    /**
-     * Reference to index mapper.
-     *
-     * @private
-     * @type {IndexMapper}
-     */
     this.indexMapper = indexMapper;
-    /**
-     * The index synchronizer for both axis (is storing some more general information).
-     *
-     * @private
-     * @type {IndexSyncer}
-     */
     this.indexSyncer = indexSyncer;
-    /**
-     * Sequence of physical indexes stored for watching changes and calculating some transformations.
-     *
-     * @private
-     * @type {Array<number>}
-     */
-    this.indexesSequence = [];
-    /**
-     * List of moved HF indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
-     *
-     * @private
-     * @type {Array<number>}
-     */
-    this.movedIndexes = [];
-    /**
-     * Final HF's place where to move indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
-     *
-     * @private
-     * @type {number|undefined}
-     */
-    this.finalIndex = undefined;
-    /**
-     * List of removed HF indexes, stored before performing removal on HOT to calculate transformation needed on HF's engine.
-     *
-     * @private
-     * @type {Array<number>}
-     */
-    this.removedIndexes = [];
   }
 
   /**
