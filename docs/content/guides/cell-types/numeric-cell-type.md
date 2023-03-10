@@ -2,7 +2,7 @@
 id: l5a447bl
 title: Numeric cell type
 metaTitle: Numeric cell type - JavaScript Data Grid | Handsontable
-description: Use the numeric cell type to correctly display, format, sort, and filter numbers.
+description: Display, format, sort, and filter numbers correctly by using the numeric cell type.
 permalink: /numeric-cell-type
 canonicalUrl: /numeric-cell-type
 react:
@@ -13,7 +13,7 @@ searchCategory: Guides
 
 # Numeric cell type
 
-Use the numeric cell type to correctly display, format, sort, and filter numbers.
+Display, format, sort, and filter numbers correctly by using the numeric cell type.
 
 [[toc]]
 
@@ -24,89 +24,9 @@ type that corresponds to the value of the text editor's internal `<textarea>` el
 there are many cases where you need cell values to be treated as a `number` type. The numeric cell
 type allows you to format displayed numbers nicely and sort them correctly.
 
-## Usage
+## Numeric cell type demo
 
-::: tip
-
-Ensure your numeric cell values are stored as numbers and not strings in the data source, as
-Handsontable doesn't parse strings to numbers.
-
-:::
-
-To use the `numeric` cell type, set the [`type`](@/api/options.md#type) option to `'numeric'`:
-
-::: only-for javascript
-
-```js
-// set the `numeric` cell type for each cell of the entire grid
-type: 'numeric',
-
-// set the `numeric` cell type for each cell of a single column
-columns: [
-  {
-    type: 'numeric',
-  },
-]
-
-// set the `numeric` cell type for a single cell
-cell: [
-  {
-    row: 0,
-    col: 0,
-    type: 'numeric',
-  }
-],
-```
-
-:::
-
-::: only-for react
-
-```jsx
-// set the `numeric` cell type for each cell of the entire grid
-type={'numeric'},
-
-// set the `numeric` cell type for each cell of a single column
-columns={[{
-  type: 'numeric',
-}]}
-
-// set the `numeric` cell type for a single cell
-cell={[{
-  row: 0,
-  col: 0,
-  type: 'numeric',
-}]}
-```
-
-:::
-
-### Numeric values in the editor
-
-In the cell editor of a `numeric` cell:
-
-- The number is initially presented with a dot (`50.5`) as the decimal separator and without the
-  thousands separator.
-- A dot (`50.5`) or a comma (`50,5`) can be entered as the decimal separator.
-- No character can be used as the thousands separator.
-
-::: tip
-
-All the positive and negative integers whose magnitude is no greater than 253 (+/- 9007199254740991)
-are representable in the `Number` type, i.e., safe integer. Any calculations that are performed on
-bigger numbers won't be calculated precisely due to JavaScript limitations.
-
-:::
-
-### Numeric values in the renderer
-
-To format the look of numeric values in cell renderers, use the
-[`numericFormat`](@/api/options.md#numericformat) option.
-
-Note that the [`numericFormat`](@/api/options.md#numericformat) option doesn't change the way
-numbers are presented or parsed by the [cell editor](#numeric-values-in-the-editor).
-
-## Basic example
+In the following demo, columns **Year**, **Price ($)**, and **Price (€)** use the numeric cell type.
 
 ::: only-for javascript
 
@@ -241,7 +161,87 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 :::
 
+## Use the numeric cell type
+
+To use the `numeric` cell type, set the [`type`](@/api/options.md#type) option to `'numeric'`:
+
+::: only-for javascript
+
+```js
+// set the `numeric` cell type for each cell of the entire grid
+type: 'numeric',
+
+// set the `numeric` cell type for each cell of a single column
+columns: [
+  {
+    type: 'numeric',
+  },
+]
+
+// set the `numeric` cell type for a single cell
+cell: [
+  {
+    row: 0,
+    col: 0,
+    type: 'numeric',
+  }
+],
+```
+
+:::
+
+::: only-for react
+
+```jsx
+// set the `numeric` cell type for each cell of the entire grid
+type={'numeric'},
+
+// set the `numeric` cell type for each cell of a single column
+columns={[{
+  type: 'numeric',
+}]}
+
+// set the `numeric` cell type for a single cell
+cell={[{
+  row: 0,
+  col: 0,
+  type: 'numeric',
+}]}
+```
+
+:::
+
+By default:
+
+- Uses a period (`.`) as the decimal separator: `50.5`.
+- Uses a comma (`,`) as the thousands separator: 
+
+- The decimal separator is a period (`50.5`).
+- 
+
+- Numbers are presented with a dot (`50.5`) as the decimal separator and without the
+  thousands separator.
+- A dot (`50.5`) or a comma (`50,5`) can be entered as the decimal separator.
+- No character can be used as the thousands separator.
+
+Ensure your numeric cell values are stored as numbers and not strings in the data source, as
+Handsontable doesn't parse strings to numbers.
+
+::: tip
+
+All positive and negative integers whose magnitude is no greater than 253 (+/- 9007199254740991)
+are representable in the `Number` type, i.e., as a safe integer. Any calculations that are performed on
+bigger numbers won't be calculated precisely due to JavaScript limitations.
+
+:::
+
 ## Format numbers
+
+To format the look of numeric values in cell renderers, use the
+[`numericFormat`](@/api/options.md#numericformat) option.
+
+Note that the [`numericFormat`](@/api/options.md#numericformat) option doesn't change the way
+numbers are presented or parsed by the cell editor.
 
 ::: only-for javascript
 
