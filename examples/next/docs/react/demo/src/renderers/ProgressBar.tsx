@@ -1,4 +1,5 @@
 import React from 'react';
+import { baseRenderer } from 'handsontable/renderers';
 import { getRangeValue, HandsontableProps } from './utils';
 import { MESSAGE } from '../constants';
 
@@ -6,23 +7,34 @@ const minAllowedValue = 0;
 const maxAllowedValue = 100;
 
 export const ProgressBarRenderer = (props: HandsontableProps) => {
-  let isValid = props.cellProperties.valid;
+  const {
+    TD,
+    row,
+    col,
+    prop,
+    value,
+    cellProperties
+  } = props;
+  let isValid = cellProperties.valid;
+
+  baseRenderer(cellProperties.instance, TD, row, col, prop, value, cellProperties);
+
   // Run the validator for the cell at initialization.
   if (isValid === void 0) {
-    (props.cellProperties.validator as Function)(props.value, (isValueValid: boolean) => {
+    (cellProperties.validator as Function)(value, (isValueValid: boolean) => {
       isValid = isValueValid;
     });
   }
-  
+
   if (isValid === true) {
     return (
       <div
-        className="progressBar" 
+        className="progressBar"
         style={{ width: `${getRangeValue(props.value, minAllowedValue, maxAllowedValue)}px` }}
       />
     );
   }
-    
+
   return (
     <div className="error"> { MESSAGE?.BAD_VALUE } </div>
   );
