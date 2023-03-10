@@ -215,26 +215,38 @@ export class Formulas extends BasePlugin {
     this.hot.addHook('afterRowSequenceChange', this.rowAxisSyncer.getIndexesChangeSyncMethod());
     this.hot.addHook('afterColumnSequenceChange', this.columnAxisSyncer.getIndexesChangeSyncMethod());
 
-    this.hot.addHook('beforeRowMove', this.rowAxisSyncer.getBeforeMoveMethod());
-    this.hot.addHook('beforeColumnMove', this.columnAxisSyncer.getBeforeMoveMethod());
+    this.hot.addHook('beforeRowMove', (movedRows, finalIndex, _, movePossible) => {
+      this.rowAxisSyncer.storeMovesInformation(movedRows, finalIndex, movePossible);
+    });
 
-    this.hot.addHook('afterRowMove', this.rowAxisSyncer.getIndexMoveSyncMethod());
-    this.hot.addHook('afterColumnMove', this.columnAxisSyncer.getIndexMoveSyncMethod());
+    this.hot.addHook('beforeColumnMove', (movedColumns, finalIndex, _, movePossible) => {
+      this.columnAxisSyncer.storeMovesInformation(movedColumns, finalIndex, movePossible);
+    });
 
-    this.hot.addHook('beforeColumnFreeze', (column) => {
-      this.columnAxisSyncer.getBeforeMoveMethod()([column], this.hot.getSettings().fixedColumnsStart);
+    this.hot.addHook('afterRowMove', (movedRows, finalIndex, dropIndex, movePossible, orderChanged) => {
+      this.rowAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
+    });
+
+    this.hot.addHook('afterColumnMove', (movedColumns, finalIndex, dropIndex, movePossible, orderChanged) => {
+      this.columnAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
+    });
+
+    this.hot.addHook('beforeColumnFreeze', (column, freezePerformed) => {
+      this.columnAxisSyncer.storeMovesInformation(
+        [column], this.hot.getSettings().fixedColumnsStart, freezePerformed);
     });
 
     this.hot.addHook('afterColumnFreeze', (_, freezePerformed) => {
-      this.columnAxisSyncer.getIndexMoveSyncMethod()(undefined, undefined, undefined, freezePerformed);
+      this.columnAxisSyncer.calculateAndSyncMoves(freezePerformed, freezePerformed);
     });
 
-    this.hot.addHook('beforeColumnUnfreeze', (column) => {
-      this.columnAxisSyncer.getBeforeMoveMethod()([column], this.hot.getSettings().fixedColumnsStart - 1);
+    this.hot.addHook('beforeColumnUnfreeze', (column, unfreezePerformed) => {
+      this.columnAxisSyncer.storeMovesInformation(
+        [column], this.hot.getSettings().fixedColumnsStart - 1, unfreezePerformed);
     });
 
     this.hot.addHook('afterColumnUnfreeze', (_, unfreezePerformed) => {
-      this.columnAxisSyncer.getIndexMoveSyncMethod()(undefined, undefined, undefined, unfreezePerformed);
+      this.columnAxisSyncer.calculateAndSyncMoves(unfreezePerformed, unfreezePerformed);
     });
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism

@@ -130,19 +130,19 @@ class AxisSyncer {
   }
 
   /**
-   * Gets callback for hook triggered before moving elements.
+   * Stores information about performed HOT moves for purpose of calculating where to move HF elements.
    *
-   * @returns {Function}
+   * @param {Array<number>} movedVisualIndexes Sequence of moved visual indexes for certain axis.
+   * @param {number} visualFinalIndex Final visual place where to move HOT indexes.
+   * @param {boolean} movePossible Indicates if it's possible to move HOT indexes to the desired position.
    */
-  getBeforeMoveMethod() {
-    return (movedVisualIndexes, visualFinalIndex, _, movePossible) => {
-      if (movePossible === false) {
-        return;
-      }
+  storeMovesInformation(movedVisualIndexes, visualFinalIndex, movePossible) {
+    if (movePossible === false) {
+      return;
+    }
 
-      this.#movedIndexes = movedVisualIndexes.map(index => this.getHfIndexFromVisualIndex(index));
-      this.#finalIndex = this.getHfIndexFromVisualIndex(visualFinalIndex);
-    };
+    this.#movedIndexes = movedVisualIndexes.map(index => this.getHfIndexFromVisualIndex(index));
+    this.#finalIndex = this.getHfIndexFromVisualIndex(visualFinalIndex);
   }
 
   /**
@@ -229,31 +229,30 @@ class AxisSyncer {
   }
 
   /**
-   * Gets callback for hook triggered after performing move.
+   * Calculating where to move HF elements and performing already calculated moves.
    *
-   * @returns {Function}
+   * @param {boolean} movePossible Indicates if it was possible to move HOT indexes to the desired position.
+   * @param {boolean} orderChanged Indicates if order of HOT indexes was changed by move.
    */
-  getIndexMoveSyncMethod() {
-    return (_, __, ___, movePossible, orderChanged) => {
-      if (this.#indexSyncer.isPerformingUndoRedo()) {
-        return;
-      }
+  calculateAndSyncMoves(movePossible, orderChanged) {
+    if (this.#indexSyncer.isPerformingUndoRedo()) {
+      return;
+    }
 
-      if (movePossible === false || orderChanged === false) {
-        return;
-      }
+    if (movePossible === false || orderChanged === false) {
+      return;
+    }
 
-      const calculatedMoves = this.adjustedCalculatedMoves(
-        this.getInitiallyCalculatedMoves(this.#movedIndexes, this.#finalIndex)
-      );
+    const calculatedMoves = this.adjustedCalculatedMoves(
+      this.getInitiallyCalculatedMoves(this.#movedIndexes, this.#finalIndex)
+    );
 
-      if (this.#indexSyncer.getSheetId() === null) {
-        this.#indexSyncer.getPostponeAction(() => this.syncMoves(calculatedMoves));
+    if (this.#indexSyncer.getSheetId() === null) {
+      this.#indexSyncer.getPostponeAction(() => this.syncMoves(calculatedMoves));
 
-      } else {
-        this.syncMoves(calculatedMoves);
-      }
-    };
+    } else {
+      this.syncMoves(calculatedMoves);
+    }
   }
 
   /**
