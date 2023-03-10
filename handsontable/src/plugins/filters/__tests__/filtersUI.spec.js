@@ -1706,6 +1706,47 @@ describe('Filters UI', () => {
     }, 100);
   });
 
+  it('should not reset the selection status of the "Filter by value" section after scrolling the table outside of' +
+    ' the viewport', async() => {
+    spec().$container.css({
+      marginBottom: 10000,
+      marginRight: 10000
+    });
+
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+    });
+
+    dropdownMenu(1);
+
+    const multipleSelectElement = byValueMultipleSelect().element;
+
+    await sleep(100);
+
+    $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
+
+    await sleep(200);
+
+    expect(byValueMultipleSelect().items.map(o => o.checked).indexOf(true)).toBe(-1);
+
+    window.scrollBy(0, 9500);
+
+    await sleep(200);
+
+    window.scrollBy(0, -9500);
+
+    await sleep(200);
+
+    multipleSelectElement.querySelector('.handsontable .wtHolder').scrollBy(0, 10);
+
+    await sleep(200);
+
+    expect(byValueMultipleSelect().items.map(o => o.checked).indexOf(true)).toBe(-1);
+  });
+
   it('should open dropdown menu properly, when there are multiple Handsontable instances present', () => {
     handsontable({
       data: getDataForFilters(),

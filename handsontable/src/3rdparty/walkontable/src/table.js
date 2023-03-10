@@ -622,13 +622,7 @@ class Table {
       return -4;
     }
 
-    let TR;
-
-    if (row < 0) {
-      TR = this.THEAD.childNodes[this.rowFilter.sourceRowToVisibleColHeadedRow(row)];
-    } else {
-      TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
-    }
+    const TR = this.getRow(row);
 
     if (!TR && row >= 0) {
       throw new Error('TR was expected to be rendered but is not');
@@ -641,6 +635,39 @@ class Table {
     }
 
     return TD;
+  }
+
+  /**
+   * Get the DOM element of the row with the provided index.
+   *
+   * @param {number} rowIndex Row index.
+   * @returns {HTMLTableRowElement|boolean} Return the row's DOM element or `false` if the row with the provided
+   * index doesn't exist.
+   */
+  getRow(rowIndex) {
+    let renderedRowIndex = null;
+    let parentElement = null;
+
+    if (rowIndex < 0) {
+      renderedRowIndex = this.rowFilter?.sourceRowToVisibleColHeadedRow(rowIndex);
+      parentElement = this.THEAD;
+
+    } else {
+      renderedRowIndex = this.rowFilter?.sourceToRendered(rowIndex);
+      parentElement = this.TBODY;
+    }
+
+    if (renderedRowIndex !== void 0 && parentElement !== void 0) {
+      if (parentElement.childNodes.length < renderedRowIndex + 1) {
+        return false;
+
+      } else {
+        return parentElement.childNodes[renderedRowIndex];
+      }
+
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -682,7 +709,8 @@ class Table {
    *
    * @param {number} row Row index.
    * @param {number} [level=0] Header level (0 = most distant to the table).
-   * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have row headers`.
+   * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have
+   *   row headers`.
    */
   getRowHeader(row, level = 0) {
     if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
@@ -730,7 +758,8 @@ class Table {
    * Returns cell coords object for a given TD (or a child element of a TD element).
    *
    * @param {HTMLTableCellElement} TD A cell DOM element (or a child of one).
-   * @returns {CellCoords|null} The coordinates of the provided TD element (or the closest TD element) or null, if the provided element is not applicable.
+   * @returns {CellCoords|null} The coordinates of the provided TD element (or the closest TD element) or null, if the
+   *   provided element is not applicable.
    */
   getCoords(TD) {
     let cellElement = TD;

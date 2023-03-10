@@ -1,7 +1,0 @@
-{
-  "title": "Fixed the _NestedRows_ plugin that did not react when the Core `updateData` method was called.",
-  "type": "fixed",
-  "issue": 466,
-  "breaking": false,
-  "framework": "none"
-}
