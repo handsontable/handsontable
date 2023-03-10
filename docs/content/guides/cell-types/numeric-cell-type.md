@@ -26,7 +26,7 @@ type allows you to format displayed numbers nicely and sort them correctly.
 
 ## Numeric cell type demo
 
-In the following demo, columns **Year**, **Price ($)**, and **Price (€)** use the numeric cell type. Click on their names to sort them.
+In the following demo, columns **Year**, **Price ($)**, and **Price (€)** use the numeric cell type. Click on the column names to sort them.
 
 ::: only-for javascript
 
@@ -381,7 +381,7 @@ numbers are presented or parsed by the [cell editor](@/guides/cell-functions/cel
 you edit a numeric cell:
 
 - The number displays with a period (`.`) as the decimal separator, and has no thousands separator
-  or currency symbol. For example, `$7,000.00` displays as `7000`.
+  or currency symbol. For example, `$7,000.02` displays as `7000.02`.
 - To enter the decimal separator, use either a period (`.`) or a comma (`,`).
 - You can't use the thousands separator.
 
