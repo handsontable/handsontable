@@ -172,7 +172,7 @@ class AxisSyncer {
    * @private
    * @param {Array<{from: number, to: number}>} moves Calculated HF's move positions.
    */
-  syncMoves = (moves) => {
+  syncMoves(moves) {
     const NUMBER_OF_MOVED_INDEXES = 1;
     const SYNC_MOVE_METHOD_NAME = `move${toUpperCaseFirst(this.axis)}s`;
 
