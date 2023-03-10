@@ -13,55 +13,57 @@ class IndexSyncer {
   /**
    * Indexes synchronizer for the axis of the rows.
    *
+   * @private
    * @type {AxisSyncer}
    */
-  rowIndexSyncer = new AxisSyncer('row', rowIndexMapper, this);
+  #rowIndexSyncer;
   /**
    * Indexes synchronizer for the axis of the columns.
    *
+   * @private
    * @type {AxisSyncer}
    */
-  columnIndexSyncer;
+  #columnIndexSyncer;
   /**
    * Method which will postpone execution of some action (needed when synchronization endpoint isn't setup yet).
    *
    * @private
    * @type {Function}
    */
-  postponeAction;
+  #postponeAction;
   /**
    * Flag informing whether undo is already performed (we don't perform synchronization in such case).
    *
    * @private
    * @type {boolean}
    */
-  isPerformingUndo = false;
+  #isPerformingUndo = false;
   /**
    * Flag informing whether redo is already performed (we don't perform synchronization in such case).
    *
    * @private
    * @type {boolean}
    */
-  isPerformingRedo = false;
+  #isPerformingRedo = false;
   /**
    * The HF's engine instance which will be synced.
    *
    * @private
    * @type {HyperFormula|null}
    */
-  engine = null;
+  #engine = null;
   /**
    * HyperFormula's sheet name.
    *
    * @private
    * @type {string|null}
    */
-  sheetId = null;
-  
+  #sheetId = null;
+
   constructor(rowIndexMapper, columnIndexMapper, postponeAction) {
-    this.rowIndexSyncer = new AxisSyncer('row', rowIndexMapper, this);
-    this.columnIndexSyncer = new AxisSyncer('column', columnIndexMapper, this);
-    this.postponeAction = postponeAction;
+    this.#rowIndexSyncer = new AxisSyncer('row', rowIndexMapper, this);
+    this.#columnIndexSyncer = new AxisSyncer('column', columnIndexMapper, this);
+    this.#postponeAction = postponeAction;
   }
 
   /**
@@ -71,7 +73,11 @@ class IndexSyncer {
    * @returns {AxisSyncer}
    */
   getForAxis(indexType) {
-    return this[`${indexType}IndexSyncer`];
+    if (indexType === 'row') {
+      return this.#rowIndexSyncer;
+    }
+
+    return this.#columnIndexSyncer;
   }
 
   /**
@@ -80,7 +86,7 @@ class IndexSyncer {
    * @param {boolean} flagValue Boolean value for the flag.
    */
   setPerformUndo(flagValue) {
-    this.isPerformingUndo = flagValue;
+    this.#isPerformingUndo = flagValue;
   }
 
   /**
@@ -89,7 +95,7 @@ class IndexSyncer {
    * @param {boolean} flagValue Boolean value for the flag.
    */
   setPerformRedo(flagValue) {
-    this.isPerformingRedo = flagValue;
+    this.#isPerformingRedo = flagValue;
   }
 
   /**
@@ -99,7 +105,7 @@ class IndexSyncer {
    * @returns {boolean}
    */
   isPerformingUndoRedo() {
-    return this.isPerformingUndo || this.isPerformingRedo;
+    return this.#isPerformingUndo || this.#isPerformingRedo;
   }
 
   /**
@@ -108,7 +114,7 @@ class IndexSyncer {
    * @returns {string|null}
    */
   getSheetId() {
-    return this.sheetId;
+    return this.#sheetId;
   }
 
   /**
@@ -117,7 +123,7 @@ class IndexSyncer {
    * @type {HyperFormula|null}
    */
   getEngine() {
-    return this.engine;
+    return this.#engine;
   }
 
   /**
@@ -126,7 +132,7 @@ class IndexSyncer {
    * @returns {Function}
    */
   getPostponeAction() {
-    return this.postponeAction;
+    return this.#postponeAction;
   }
 
   /**
@@ -136,11 +142,11 @@ class IndexSyncer {
    * @param {string|null} sheetId HyperFormula's sheet name.
    */
   setupSyncEndpoint(engine, sheetId) {
-    this.engine = engine;
-    this.sheetId = sheetId;
+    this.#engine = engine;
+    this.#sheetId = sheetId;
 
-    this.rowIndexSyncer.init();
-    this.columnIndexSyncer.init();
+    this.#rowIndexSyncer.init();
+    this.#columnIndexSyncer.init();
   }
 }
 

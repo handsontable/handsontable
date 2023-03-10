@@ -16,123 +16,54 @@ class AxisSyncer {
    * @private
    * @type {'row'|'column'}
    */
-  axis;
+  #axis;
   /**
    * Reference to index mapper.
    *
    * @private
    * @type {IndexMapper}
    */
-  indexMapper;
+  #indexMapper;
   /**
    * The index synchronizer for both axis (is storing some more general information).
    *
    * @private
    * @type {IndexSyncer}
    */
-  indexSyncer;
+  #indexSyncer;
   /**
    * Sequence of physical indexes stored for watching changes and calculating some transformations.
    *
    * @private
    * @type {Array<number>}
    */
-  indexesSequence = [];
+  #indexesSequence = [];
   /**
    * List of moved HF indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
    *
    * @private
    * @type {Array<number>}
    */
-  movedIndexes = [];
+  #movedIndexes = [];
   /**
    * Final HF's place where to move indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
    *
    * @private
    * @type {number|undefined}
    */
-  finalIndex;
+  #finalIndex;
   /**
    * List of removed HF indexes, stored before performing removal on HOT to calculate transformation needed on HF's engine.
    *
    * @private
    * @type {Array<number>}
    */
-  removedIndexes = [];
-    
+  #removedIndexes = [];
+
   constructor(axis, indexMapper, indexSyncer) {
-    this.axis = axis;
-    this.indexMapper = indexMapper;
-    this.indexSyncer = indexSyncer;
-  }
-
-  /**
-   * Gets physical indexes sequence for a particular axis.
-   *
-   * @private
-   * @returns {Array<number>}
-   */
-  getPhysicalIndexesSequence() {
-    return this[`${this.axis}IndexesSequence`];
-  }
-
-  /**
-   * Sets physical indexes sequence for a particular axis.
-   *
-   * @private
-   * @param {Array<number>} indexesSequence Sequence of physical indexes for certain axis.
-   */
-  setPhysicalIndexesSequence(indexesSequence) {
-    this[`${this.axis}IndexesSequence`] = indexesSequence;
-  }
-
-  /**
-   * Gets moved HF indexes for a particular axis (right before performing move on HOT).
-   *
-   * @private
-   * @returns {Array<number>}
-   */
-  getMovedHfIndexes() {
-    return this[`moved${toUpperCaseFirst(this.axis)}Indexes`];
-  }
-
-  /**
-   * Sets moved HF indexes for certain axis (it should be done right before performing move on HOT).
-   *
-   * @private
-   * @param {Array<number>} movedIndexes Sequence of moved HF indexes for certain axis.
-   */
-  setMovedHfIndexes(movedIndexes) {
-    this[`moved${toUpperCaseFirst(this.axis)}Indexes`] = movedIndexes;
-  }
-
-  /**
-   * Gets final HF index for moving indexes (right before performing move on HOT).
-   *
-   * @private
-   * @returns {number}
-   */
-  getFinalHfIndex() {
-    return this[`final${toUpperCaseFirst(this.axis)}Index`];
-  }
-
-  /**
-   * Sets final HF index for moving indexes (it should be done right before performing move on HOT).
-   *
-   * @private
-   * @param {number} finalIndex Final HF place where to move rows.
-   */
-  setFinalHfIndex(finalIndex) {
-    this[`final${toUpperCaseFirst(this.axis)}Index`] = finalIndex;
-  }
-
-  /**
-   * Gets removed HF indexes (right before performing removal on HOT).
-   *
-   * @returns {Array<number>} List of removed HF indexes.
-   */
-  getRemovedHfIndexes() {
-    return this[`removed${toUpperCaseFirst(this.axis)}Indexes`];
+    this.#axis = axis;
+    this.#indexMapper = indexMapper;
+    this.#indexSyncer = indexSyncer;
   }
 
   /**
@@ -142,14 +73,22 @@ class AxisSyncer {
    * @returns {Array<number>} List of removed visual indexes.
    */
   setRemovedHfIndexes(removedIndexes) {
-    this[`removed${toUpperCaseFirst(this.axis)}Indexes`] =
-      removedIndexes.map((physicalIndex) => {
-        const visualIndex = this.indexMapper.getVisualFromPhysicalIndex(physicalIndex);
+    this.#removedIndexes = removedIndexes.map((physicalIndex) => {
+      const visualIndex = this.#indexMapper.getVisualFromPhysicalIndex(physicalIndex);
 
-        return this.getHfIndexFromVisualIndex(visualIndex);
-      });
+      return this.getHfIndexFromVisualIndex(visualIndex);
+    });
 
-    return this[`removed${toUpperCaseFirst(this.axis)}Indexes`];
+    return this.#removedIndexes;
+  }
+
+  /**
+   * Gets removed HF indexes (right before performing removal on HOT).
+   *
+   * @returns {Array<number>} List of removed HF indexes.
+   */
+  getRemovedHfIndexes() {
+    return this.#removedIndexes;
   }
 
   /**
@@ -160,8 +99,8 @@ class AxisSyncer {
    * @returns {number}
    */
   getHfIndexFromVisualIndex(visualIndex) {
-    const indexesSequence = this.indexMapper.getIndexesSequence();
-    const notTrimmedIndexes = this.indexMapper.getNotTrimmedIndexes();
+    const indexesSequence = this.#indexMapper.getIndexesSequence();
+    const notTrimmedIndexes = this.#indexMapper.getNotTrimmedIndexes();
 
     return indexesSequence.indexOf(notTrimmedIndexes[visualIndex]);
   }
@@ -174,16 +113,16 @@ class AxisSyncer {
    */
   syncMoves = (moves) => {
     const NUMBER_OF_MOVED_INDEXES = 1;
-    const SYNC_MOVE_METHOD_NAME = `move${toUpperCaseFirst(this.axis)}s`;
+    const SYNC_MOVE_METHOD_NAME = `move${toUpperCaseFirst(this.#axis)}s`;
 
-    this.indexSyncer.getEngine().batch(() => {
+    this.#indexSyncer.getEngine().batch(() => {
       moves.forEach((move) => {
         const moveToTheSamePosition = move.from !== move.to;
         // Moving from left to right (or top to bottom) to a line (drop index) right after already moved element.
         const anotherMoveWithoutEffect = move.from + 1 !== move.to;
 
         if (moveToTheSamePosition && anotherMoveWithoutEffect) {
-          this.indexSyncer.getEngine()[SYNC_MOVE_METHOD_NAME](this.indexSyncer.getSheetId(), move.from,
+          this.#indexSyncer.getEngine()[SYNC_MOVE_METHOD_NAME](this.#indexSyncer.getSheetId(), move.from,
             NUMBER_OF_MOVED_INDEXES, move.to);
         }
       });
@@ -201,8 +140,8 @@ class AxisSyncer {
         return;
       }
 
-      this.setMovedHfIndexes(movedVisualIndexes.map(index => this.getHfIndexFromVisualIndex(index)));
-      this.setFinalHfIndex(this.getHfIndexFromVisualIndex(visualFinalIndex));
+      this.#movedIndexes = movedVisualIndexes.map(index => this.getHfIndexFromVisualIndex(index));
+      this.#finalIndex = this.getHfIndexFromVisualIndex(visualFinalIndex);
     };
   }
 
@@ -216,7 +155,7 @@ class AxisSyncer {
    * @private
    */
   getMoveLine(movedHfIndexes, finalHfIndex) {
-    const numberOfElements = this.indexMapper.getNumberOfIndexes();
+    const numberOfElements = this.#indexMapper.getNumberOfIndexes();
     const notMovedElements = Array.from(Array(numberOfElements).keys())
       .filter(index => movedHfIndexes.includes(index) === false);
 
@@ -296,10 +235,7 @@ class AxisSyncer {
    */
   getIndexMoveSyncMethod() {
     return (_, __, ___, movePossible, orderChanged) => {
-      const movedHfIndexes = this.getMovedHfIndexes();
-      const finalHfIndex = this.getFinalHfIndex();
-
-      if (this.indexSyncer.isPerformingUndoRedo()) {
+      if (this.#indexSyncer.isPerformingUndoRedo()) {
         return;
       }
 
@@ -308,11 +244,11 @@ class AxisSyncer {
       }
 
       const calculatedMoves = this.adjustedCalculatedMoves(
-        this.getInitiallyCalculatedMoves(movedHfIndexes, finalHfIndex)
+        this.getInitiallyCalculatedMoves(this.#movedIndexes, this.#finalIndex)
       );
 
-      if (this.indexSyncer.getSheetId() === null) {
-        this.indexSyncer.getPostponeAction(() => this.syncMoves(calculatedMoves));
+      if (this.#indexSyncer.getSheetId() === null) {
+        this.#indexSyncer.getPostponeAction(() => this.syncMoves(calculatedMoves));
 
       } else {
         this.syncMoves(calculatedMoves);
@@ -326,22 +262,21 @@ class AxisSyncer {
    * @returns {Function}
    */
   getIndexesChangeSyncMethod() {
-    const SYNC_ORDER_CHANGE_METHOD_NAME = `set${toUpperCaseFirst(this.axis)}Order`;
+    const SYNC_ORDER_CHANGE_METHOD_NAME = `set${toUpperCaseFirst(this.#axis)}Order`;
 
     return (source) => {
-      if (this.indexSyncer.isPerformingUndoRedo()) {
+      if (this.#indexSyncer.isPerformingUndoRedo()) {
         return;
       }
 
-      const newSequence = this.indexMapper.getIndexesSequence();
+      const newSequence = this.#indexMapper.getIndexesSequence();
 
       if (source === 'update') {
-        const relativeTransformation =
-          this.getPhysicalIndexesSequence().map(index => newSequence.indexOf(index));
-        const sheetDimensions = this.indexSyncer.getEngine().getSheetDimensions(this.indexSyncer.getSheetId());
+        const relativeTransformation = this.#indexesSequence.map(index => newSequence.indexOf(index));
+        const sheetDimensions = this.#indexSyncer.getEngine().getSheetDimensions(this.#indexSyncer.getSheetId());
         let sizeForAxis;
 
-        if (this.axis === 'row') {
+        if (this.#axis === 'row') {
           sizeForAxis = sheetDimensions.height;
 
         } else {
@@ -357,11 +292,11 @@ class AxisSyncer {
           relativeTransformation.push(i);
         }
 
-        this.indexSyncer.getEngine()[SYNC_ORDER_CHANGE_METHOD_NAME](this.indexSyncer.getSheetId(),
+        this.#indexSyncer.getEngine()[SYNC_ORDER_CHANGE_METHOD_NAME](this.#indexSyncer.getSheetId(),
           relativeTransformation);
       }
 
-      this.setPhysicalIndexesSequence(newSequence);
+      this.#indexesSequence = newSequence;
     };
   }
 
@@ -369,7 +304,7 @@ class AxisSyncer {
    * Initialize the AxisSyncer.
    */
   init() {
-    this.setPhysicalIndexesSequence(this.indexMapper.getIndexesSequence());
+    this.#indexesSequence = this.#indexMapper.getIndexesSequence();
   }
 }
 
