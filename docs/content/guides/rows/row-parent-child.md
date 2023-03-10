@@ -195,6 +195,7 @@ const hot = new Handsontable(container, {
   colHeaders: ['Category', 'Artist', 'Title', 'Album', 'Label'],
   nestedRows: true,
   contextMenu: true,
+  bindRowsWithHeaders: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -336,6 +337,7 @@ export const ExampleComponent = () => {
       colHeaders={['Category', 'Artist', 'Title', 'Album', 'Label']}
       nestedRows={true}
       contextMenu={true}
+      bindRowsWithHeaders={true}
       licenseKey="non-commercial-and-evaluation"
     />
   );

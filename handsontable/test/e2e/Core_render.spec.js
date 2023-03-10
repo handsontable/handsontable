@@ -147,4 +147,64 @@ describe('Core_render', () => {
     expect(afterRenderer.calls.argsFor(0)[4]).toBe(1);
     expect(afterRenderer.calls.argsFor(0)[5].foo).toBe('bar');
   });
+
+  it('should trigger only the "fast" render when scrolling a page with the window-controlled Handsontable instance' +
+    ' out of the viewport', async() => {
+    spec().$container.css({
+      marginBottom: '10000px',
+      paddingRight: '10000px'
+    });
+
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(50, 50),
+    });
+
+    window.scrollBy(0, 9500);
+
+    await sleep(100);
+
+    const wotRenderSpy = spyOn(hot.view._wt.wtTable.tableRenderer, 'render');
+
+    window.scrollBy(0, 10);
+    await sleep(100);
+    window.scrollBy(0, 10);
+    await sleep(100);
+    window.scrollBy(0, 10);
+    await sleep(100);
+
+    window.scrollBy(9500, -9500);
+
+    window.scrollBy(0, 10);
+    await sleep(100);
+    window.scrollBy(0, 10);
+    await sleep(100);
+    window.scrollBy(0, 10);
+    await sleep(100);
+
+    expect(wotRenderSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it('should trigger only the "fast" render when scrolling a page with the window-controlled Handsontable instance' +
+    ' out of the viewport (margin on the top of the instance)', async() => {
+    spec().$container.css({
+      marginTop: '3000px'
+    });
+
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(50, 50),
+    });
+
+    const wotRenderSpy = spyOn(hot.view._wt.wtTable.tableRenderer, 'render');
+
+    window.scrollBy(0, 10);
+    await sleep(100);
+    window.scrollBy(0, 10);
+    await sleep(100);
+    window.scrollBy(0, 10);
+    await sleep(100);
+    window.scrollBy(0, 2071);
+    await sleep(100);
+
+    expect(wotRenderSpy).toHaveBeenCalledTimes(0);
+  });
 });
