@@ -13,6 +13,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "dev": "vite",
+    "start": "vite",
     "build": "run-p type-check build-only",
     "preview": "vite preview",
     "build-only": "vite build",

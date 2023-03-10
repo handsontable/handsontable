@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { defineComponent } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
@@ -81,7 +81,7 @@ export default defineComponent({
       :multiColumnSorting=true
       :filters=true
       :rowHeaders=true
-      :afterGetColHeader=alignHeadersProp 
+      :afterGetColHeader=alignHeadersProp
       :beforeRenderer=addClassesToRowsProp
       :afterGetRowHeader=drawCheckboxInRowHeadersProp
       :afterOnCellMouseDown=changeCheckboxCellProp
@@ -101,7 +101,7 @@ export default defineComponent({
       />
       <HotColumn
         data="rating"
-        className="star htCenter" 
+        className="star htCenter"
         :renderer=starsRendererProp
         type="numeric"
       >
