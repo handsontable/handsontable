@@ -10,54 +10,58 @@ import AxisSyncer from './axisSyncer';
  *
  */
 class IndexSyncer {
+  /**
+   * Indexes synchronizer for the axis of the rows.
+   *
+   * @type {AxisSyncer}
+   */
+  rowIndexSyncer = new AxisSyncer('row', rowIndexMapper, this);
+  /**
+   * Indexes synchronizer for the axis of the columns.
+   *
+   * @type {AxisSyncer}
+   */
+  columnIndexSyncer;
+  /**
+   * Method which will postpone execution of some action (needed when synchronization endpoint isn't setup yet).
+   *
+   * @private
+   * @type {Function}
+   */
+  postponeAction;
+  /**
+   * Flag informing whether undo is already performed (we don't perform synchronization in such case).
+   *
+   * @private
+   * @type {boolean}
+   */
+  isPerformingUndo = false;
+  /**
+   * Flag informing whether redo is already performed (we don't perform synchronization in such case).
+   *
+   * @private
+   * @type {boolean}
+   */
+  isPerformingRedo = false;
+  /**
+   * The HF's engine instance which will be synced.
+   *
+   * @private
+   * @type {HyperFormula|null}
+   */
+  engine = null;
+  /**
+   * HyperFormula's sheet name.
+   *
+   * @private
+   * @type {string|null}
+   */
+  sheetId = null;
+  
   constructor(rowIndexMapper, columnIndexMapper, postponeAction) {
-    /**
-     * Indexes synchronizer for the axis of the rows.
-     *
-     * @type {AxisSyncer}
-     */
     this.rowIndexSyncer = new AxisSyncer('row', rowIndexMapper, this);
-    /**
-     * Indexes synchronizer for the axis of the columns.
-     *
-     * @type {AxisSyncer}
-     */
     this.columnIndexSyncer = new AxisSyncer('column', columnIndexMapper, this);
-    /**
-     * Method which will postpone execution of some action (needed when synchronization endpoint isn't setup yet).
-     *
-     * @private
-     * @type {Function}
-     */
     this.postponeAction = postponeAction;
-    /**
-     * Flag informing whether undo is already performed (we don't perform synchronization in such case).
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.isPerformingUndo = false;
-    /**
-     * Flag informing whether redo is already performed (we don't perform synchronization in such case).
-     *
-     * @private
-     * @type {boolean}
-     */
-    this.isPerformingRedo = false;
-    /**
-     * The HF's engine instance which will be synced.
-     *
-     * @private
-     * @type {HyperFormula|null}
-     */
-    this.engine = null;
-    /**
-     * HyperFormula's sheet name.
-     *
-     * @private
-     * @type {string|null}
-     */
-    this.sheetId = null;
   }
 
   /**
