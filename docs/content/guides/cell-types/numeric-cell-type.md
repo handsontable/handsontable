@@ -26,7 +26,8 @@ type allows you to format displayed numbers nicely and sort them correctly.
 
 ## Numeric cell type demo
 
-In the following demo, columns **Year**, **Price ($)**, and **Price (€)** use the numeric cell type. Click on the column names to sort them.
+In the following demo, columns **Year**, **Price ($)**, and **Price (€)** use the numeric cell type.
+Click on the column names to sort them.
 
 ::: only-for javascript
 
@@ -211,7 +212,8 @@ cell={[{
 
 :::
 
-Mind that Handsontable doesn't parse strings to numbers. In your data source, make sure to store numeric cell values as numbers, not as strings.
+Mind that Handsontable doesn't parse strings to numbers. In your data source, make sure to store
+numeric cell values as numbers, not as strings.
 
 All positive and negative integers whose magnitude is no greater than 253 (+/- 9007199254740991) are
 representable in the `Number` type, i.e., as a safe integer. Any calculations that are performed on
@@ -219,9 +221,8 @@ bigger numbers won't be calculated precisely, due to JavaScript's limitations.
 
 ## Format numbers
 
-To format the look of numeric values in
-[cell renderers](@/guides/cell-functions/cell-renderer.md), use the
-[`numericFormat`](@/api/options.md#numericformat) option.
+To format the look of numeric values in [cell renderers](@/guides/cell-functions/cell-renderer.md),
+use the [`numericFormat`](@/api/options.md#numericformat) option.
 
 In the following demo, columns **Price in Japan** and **Price in Turkey** use two different
 [`numericFormat`](@/api/options.md#numericformat) configurations.
@@ -257,18 +258,18 @@ const hot = new Handsontable(container, {
   data: [
     {
       productName: 'Product A',
-      JP_price: 1.32,
-      TR_price: 100.56,
+      JP_price: 1450.32,
+      TR_price: 202.14,
     },
     {
       productName: 'Product B',
-      JP_price: 2.22,
-      TR_price: 453.5,
+      JP_price: 2430.22,
+      TR_price: 338.86,
     },
     {
       productName: 'Product C',
-      JP_price: 3.1,
-      TR_price: 678.1,
+      JP_price: 3120.10,
+      TR_price: 435.20,
     },
   ],
   columns: [
@@ -339,18 +340,18 @@ export const ExampleComponent = () => {
       data={[
         {
           productName: 'Product A',
-          JP_price: 1.32,
-          TR_price: 100.56,
+          JP_price: 1450.32,
+          TR_price: 202.14,
         },
         {
           productName: 'Product B',
-          JP_price: 2.22,
-          TR_price: 453.5,
+          JP_price: 2430.22,
+          TR_price: 338.86,
         },
         {
           productName: 'Product C',
-          JP_price: 3.1,
-          TR_price: 678.1,
+          JP_price: 3120.10,
+          TR_price: 435.20,
         },
       ]}
       autoRowSize={false}
@@ -378,12 +379,16 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 
 Mind that the [`numericFormat`](@/api/options.md#numericformat) option doesn't change the way
 numbers are presented or parsed by the [cell editor](@/guides/cell-functions/cell-editor.md). When
-you edit a numeric cell:
+you **edit** a numeric cell:
 
-- The number displays with a period (`.`) as the decimal separator, and has no thousands separator
-  or currency symbol. For example, `$7,000.02` displays as `7000.02`.
-- To enter the decimal separator, use either a period (`.`) or a comma (`,`).
-- You can't use the thousands separator.
+- Regardless of the [`numericFormat`](@/api/options.md#numericformat) configuration, the number
+  that's being edited displays its decimal separator as a period (`.`), and has no thousands
+  separator or currency symbol.<br>For example, during editing `$7,000.02`, the number displays as
+  `7000.02`.
+- You can enter a decimal separator either with a period (`.`), or with a comma (`,`).
+- You can't enter a thousands separator. After you finish editing the cell, the thousands
+  separator is added automatically, based on your [`numericFormat`](@/api/options.md#numericformat)
+  configuration.
 
 ## Related articles
 
