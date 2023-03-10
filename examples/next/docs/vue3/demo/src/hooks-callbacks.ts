@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import type { RowObject } from 'handsontable/types/common';
+import type { RowObject } from 'handsontable/common';
 
 import {
   SELECTED_CLASS,
@@ -63,10 +63,10 @@ export const drawCheckboxInRowHeaders: DrawCheckboxInRowHeaders = function drawC
 ) {
   const input = document.createElement('input');
   const rowData = this.getSourceDataAtRow(row) as RowObject;
-  
+
   input.type = 'checkbox';
   input.checked = !!rowData?.checked;
-  
+
   Handsontable.dom.empty(TH);
 
   TH.appendChild(input);
@@ -80,7 +80,7 @@ export function alignHeaders(this: Handsontable, column: number, TH: HTMLTableCe
   if (!TH.firstChild) {
     return;
   }
-  
+
   const alignmentClass = this.isRtl() ? 'htRight' : 'htLeft';
   Handsontable.dom.addClass(TH.firstChild as HTMLElement, alignmentClass);
 }
