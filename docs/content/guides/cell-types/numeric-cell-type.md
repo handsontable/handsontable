@@ -26,7 +26,7 @@ type allows you to format displayed numbers nicely and sort them correctly.
 
 ## Numeric cell type demo
 
-In the following demo, columns **Year**, **Price ($)**, and **Price (€)** use the numeric cell type.
+In the following demo, columns **Year**, **Price ($)**, and **Price (€)** use the numeric cell type. Click on their names to sort them.
 
 ::: only-for javascript
 
@@ -163,22 +163,22 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ## Use the numeric cell type
 
-To use the `numeric` cell type, set the [`type`](@/api/options.md#type) option to `'numeric'`:
+To use the numeric cell type, set the [`type`](@/api/options.md#type) option to `'numeric'`:
 
 ::: only-for javascript
 
 ```js
-// set the `numeric` cell type for each cell of the entire grid
+// set the numeric cell type for each cell of the entire grid
 type: 'numeric',
 
-// set the `numeric` cell type for each cell of a single column
+// set the numeric cell type for each cell of a single column
 columns: [
   {
     type: 'numeric',
   },
 ]
 
-// set the `numeric` cell type for a single cell
+// set the numeric cell type for a single cell
 cell: [
   {
     row: 0,
@@ -193,15 +193,15 @@ cell: [
 ::: only-for react
 
 ```jsx
-// set the `numeric` cell type for each cell of the entire grid
+// set the numeric cell type for each cell of the entire grid
 type={'numeric'},
 
-// set the `numeric` cell type for each cell of a single column
+// set the numeric cell type for each cell of a single column
 columns={[{
   type: 'numeric',
 }]}
 
-// set the `numeric` cell type for a single cell
+// set the numeric cell type for a single cell
 cell={[{
   row: 0,
   col: 0,
@@ -211,37 +211,20 @@ cell={[{
 
 :::
 
-By default:
+Mind that Handsontable doesn't parse strings to numbers. In your data source, make sure to store numeric cell values as numbers, not as strings.
 
-- Uses a period (`.`) as the decimal separator: `50.5`.
-- Uses a comma (`,`) as the thousands separator: 
-
-- The decimal separator is a period (`50.5`).
-- 
-
-- Numbers are presented with a dot (`50.5`) as the decimal separator and without the
-  thousands separator.
-- A dot (`50.5`) or a comma (`50,5`) can be entered as the decimal separator.
-- No character can be used as the thousands separator.
-
-Ensure your numeric cell values are stored as numbers and not strings in the data source, as
-Handsontable doesn't parse strings to numbers.
-
-::: tip
-
-All positive and negative integers whose magnitude is no greater than 253 (+/- 9007199254740991)
-are representable in the `Number` type, i.e., as a safe integer. Any calculations that are performed on
-bigger numbers won't be calculated precisely due to JavaScript limitations.
-
-:::
+All positive and negative integers whose magnitude is no greater than 253 (+/- 9007199254740991) are
+representable in the `Number` type, i.e., as a safe integer. Any calculations that are performed on
+bigger numbers won't be calculated precisely, due to JavaScript's limitations.
 
 ## Format numbers
 
-To format the look of numeric values in cell renderers, use the
+To format the look of numeric values in
+[cell renderers](@/guides/cell-functions/cell-renderer.md), use the
 [`numericFormat`](@/api/options.md#numericformat) option.
 
-Note that the [`numericFormat`](@/api/options.md#numericformat) option doesn't change the way
-numbers are presented or parsed by the cell editor.
+In the following demo, columns **Price in Japan** and **Price in Turkey** use two different
+[`numericFormat`](@/api/options.md#numericformat) configurations.
 
 ::: only-for javascript
 
@@ -309,6 +292,7 @@ const hot = new Handsontable(container, {
   ],
   autoRowSize: false,
   autoColumnSize: false,
+  columnSorting: true,
   colHeaders: ['Product name', 'Price in Japan', 'Price in Turkey'],
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
@@ -371,6 +355,7 @@ export const ExampleComponent = () => {
       ]}
       autoRowSize={false}
       autoColumnSize={false}
+      columnSorting={true}
       colHeaders={['Product name', 'Price in Japan', 'Price in Turkey']}
       height="auto"
       licenseKey="non-commercial-and-evaluation"
@@ -390,6 +375,15 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
 :::
 
 :::
+
+Mind that the [`numericFormat`](@/api/options.md#numericformat) option doesn't change the way
+numbers are presented or parsed by the [cell editor](@/guides/cell-functions/cell-editor.md). When
+you edit a numeric cell:
+
+- The number displays with a period (`.`) as the decimal separator, and has no thousands separator
+  or currency symbol. For example, `$7,000.00` displays as `7000`.
+- To enter the decimal separator, use either a period (`.`) or a comma (`,`).
+- You can't use the thousands separator.
 
 ## Related articles
 
