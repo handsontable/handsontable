@@ -276,7 +276,9 @@ const REGISTERED_HOOKS = [
   'beforeCreateCol',
 
   /**
-   * @param {'init'|'remove'|'insert'|'move'|'update'} [source] String that identifies source of column sequence change.
+   * Fired after changing a column sequence. It populates every change on indexes captured by {@link IndexMapper}.
+   *
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [source] String that identifies source of row sequence change.
    */
   'afterColumnSequenceChange',
 
@@ -569,6 +571,8 @@ const REGISTERED_HOOKS = [
   'afterRenderer',
 
   /**
+   * Fired after changing a row sequence. It populates every change on indexes captured by {@link IndexMapper}.
+   *
    * @param {'init'|'remove'|'insert'|'move'|'update'} [source] String that identifies source of row sequence change.
    */
   'afterRowSequenceChange',
