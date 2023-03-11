@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@handsontable/vue": "latest",
-    "core-js": "3.9.1",
+    "core-js": "3.28.0",
     "handsontable": "latest",
     "vue": "2.7.14"
   },
