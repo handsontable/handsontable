@@ -125,14 +125,6 @@ export class Filters extends BasePlugin {
       ['filter_action_bar', null]
     ]);
     /**
-     * Object containing information about last selected column physical and visual index for added filter conditions.
-     *
-     * @private
-     * @type {object}
-     * @default null
-     */
-    this.lastSelectedColumn = null;
-    /**
      * Map of skipped rows by plugin.
      *
      * @private
