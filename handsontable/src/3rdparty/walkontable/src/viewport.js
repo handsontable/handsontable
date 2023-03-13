@@ -308,15 +308,11 @@ class Viewport {
 
     let pos = this.dataAccessObject.topScrollPosition - this.dataAccessObject.topParentOffset;
 
-    if (pos < 0) {
-      pos = 0;
-    }
-
     const fixedRowsTop = wtSettings.getSetting('fixedRowsTop');
     const fixedRowsBottom = wtSettings.getSetting('fixedRowsBottom');
     const totalRows = wtSettings.getSetting('totalRows');
 
-    if (fixedRowsTop) {
+    if (fixedRowsTop && pos >= 0) {
       fixedRowsHeight = this.dataAccessObject.topOverlay.sumCellSizes(0, fixedRowsTop);
       pos += fixedRowsHeight;
       height -= fixedRowsHeight;
@@ -361,13 +357,9 @@ class Viewport {
 
     this.columnHeaderHeight = NaN;
 
-    if (pos < 0) {
-      pos = 0;
-    }
-
     const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart');
 
-    if (fixedColumnsStart) {
+    if (fixedColumnsStart && pos >= 0) {
       const fixedColumnsWidth = this.dataAccessObject.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart);
 
       pos += fixedColumnsWidth;
@@ -379,7 +371,7 @@ class Viewport {
 
     return new ViewportColumnsCalculator({
       viewportSize: width,
-      scrollOffset: Math.abs(pos),
+      scrollOffset: pos,
       totalItems: wtSettings.getSetting('totalColumns'),
       itemSizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
@@ -388,6 +380,7 @@ class Viewport {
       stretchingItemWidthFn: (stretchedWidth, column) => {
         return wtSettings.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column);
       },
+      inlineStartOffset: this.dataAccessObject.inlineStartParentOffset
     });
   }
 
@@ -445,11 +438,11 @@ class Viewport {
       return false;
     }
 
-    const { startRow, endRow } = proposedRowsVisibleCalculator;
+    const { startRow, endRow, isVisibleInTrimmingContainer } = proposedRowsVisibleCalculator;
 
     // if there are no fully visible rows at all, return false
     if (startRow === null && endRow === null) {
-      return false;
+      return !isVisibleInTrimmingContainer;
     }
 
     const { startRow: renderedStartRow, endRow: renderedEndRow } = this.rowsRenderCalculator;
@@ -478,11 +471,11 @@ class Viewport {
       return false;
     }
 
-    const { startColumn, endColumn } = proposedColumnsVisibleCalculator;
+    const { startColumn, endColumn, isVisibleInTrimmingContainer } = proposedColumnsVisibleCalculator;
 
     // if there are no fully visible columns at all, return false
     if (startColumn === null && endColumn === null) {
-      return false;
+      return !isVisibleInTrimmingContainer;
     }
 
     const { startColumn: renderedStartColumn, endColumn: renderedEndColumn } = this.columnsRenderCalculator;
@@ -492,6 +485,7 @@ class Viewport {
 
     } else if (endColumn > renderedEndColumn ||
               (endColumn === renderedEndColumn && endColumn < this.wtSettings.getSetting('totalColumns') - 1)) {
+
       return false;
     }
 
