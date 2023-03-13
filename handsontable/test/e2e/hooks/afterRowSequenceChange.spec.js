@@ -25,40 +25,17 @@ describe('Hook', () => {
       expect(afterRowSequenceChange).toHaveBeenCalledTimes(1);
     });
 
-    it('should be fired once after sorting by multiple columns', () => {
+    it('should be fired once after moving multiple columns', () => {
       const afterRowSequenceChange = jasmine.createSpy('afterRowSequenceChange');
 
-      handsontable({
-        colHeaders: true,
-        afterRowSequenceChange,
-        multiColumnSorting: true,
-      });
-
-      afterRowSequenceChange.calls.reset();
-
-      getPlugin('multiColumnSorting').sort([{
-        column: 1,
-        sortOrder: 'asc'
-      }, {
-        column: 0,
-        sortOrder: 'desc'
-      }]);
-
-      expect(afterRowSequenceChange).toHaveBeenCalledWith('update');
-      expect(afterRowSequenceChange).toHaveBeenCalledTimes(1);
-    });
-
-    it('should be fired once after moving multiple columns (using ManualRowMove plugin)', () => {
-      const afterRowSequenceChange = jasmine.createSpy('afterRowSequenceChange');
-
-      handsontable({
+      const hot = handsontable({
         colHeaders: true,
         afterRowSequenceChange,
       });
 
       afterRowSequenceChange.calls.reset();
 
-      getPlugin('manualRowMove').moveRows([1, 2], 0);
+      hot.rowIndexMapper.moveIndexes([1, 2], 0);
 
       expect(afterRowSequenceChange).toHaveBeenCalledWith('move');
       expect(afterRowSequenceChange).toHaveBeenCalledTimes(1);

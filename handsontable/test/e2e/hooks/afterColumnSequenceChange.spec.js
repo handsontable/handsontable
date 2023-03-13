@@ -25,41 +25,20 @@ describe('Hook', () => {
       expect(afterColumnSequenceChange).toHaveBeenCalledTimes(1);
     });
 
-    it('should be fired once after moving multiple columns (using ManualColumnMove plugin)', () => {
+    it('should be fired once after moving multiple columns', () => {
       const afterColumnSequenceChange = jasmine.createSpy('afterColumnSequenceChange');
 
-      handsontable({
+      const hot = handsontable({
         colHeaders: true,
         afterColumnSequenceChange,
       });
 
       afterColumnSequenceChange.calls.reset();
 
-      getPlugin('manualColumnMove').moveColumns([1, 2], 0);
+      hot.columnIndexMapper.moveIndexes([1, 2], 0);
 
       expect(afterColumnSequenceChange).toHaveBeenCalledWith('move');
       expect(afterColumnSequenceChange).toHaveBeenCalledTimes(1);
-    });
-
-    it('should be fired after freezing/unfreezing columns (using ManualColumnFreeze plugin)', () => {
-      const afterColumnSequenceChange = jasmine.createSpy('afterColumnSequenceChange');
-
-      handsontable({
-        colHeaders: true,
-        afterColumnSequenceChange,
-      });
-
-      afterColumnSequenceChange.calls.reset();
-
-      getPlugin('manualColumnFreeze').freezeColumn(0);
-
-      expect(afterColumnSequenceChange).toHaveBeenCalledWith('move');
-      expect(afterColumnSequenceChange).toHaveBeenCalledTimes(1);
-
-      getPlugin('manualColumnFreeze').unfreezeColumn(0);
-
-      expect(afterColumnSequenceChange).toHaveBeenCalledWith('move');
-      expect(afterColumnSequenceChange).toHaveBeenCalledTimes(2);
     });
 
     it('should be fired once after inserting multiple columns', () => {
