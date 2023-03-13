@@ -27,7 +27,7 @@ export const GLOBAL_EDITOR_SCOPE = 'global';
 /**
  * Default classname given to the wrapper container.
  */
-const DEFAULT_CLASSNAME = 'hot-wrapper-editor-container';
+export const DEFAULT_CLASSNAME = 'hot-wrapper-editor-container';
 
 /**
  * Logs warn to the console if the `console` object is exposed.
@@ -81,48 +81,26 @@ export function getOriginalEditorClass(editorElement: HotEditorElement) {
 }
 
 /**
- * Remove editor containers from DOM.
- *
- * @param {Document} [doc] Document to be used.
- * @param {Map} editorCache The editor cache reference.
- */
-export function removeEditorContainers(doc = document): void {
-  doc.querySelectorAll(`[class^="${DEFAULT_CLASSNAME}"]`).forEach((domNode) => {
-    if (domNode.parentNode) {
-      domNode.parentNode.removeChild(domNode);
-    }
-  });
-}
-
-/**
  * Create an editor portal.
  *
  * @param {Document} [doc] Document to be used.
  * @param {React.ReactElement} editorElement Editor's element.
- * @param {Map} editorCache The editor cache reference.
  * @returns {React.ReactPortal} The portal for the editor.
  */
-export function createEditorPortal(doc = document, editorElement: HotEditorElement, editorCache: HotEditorCache): React.ReactPortal {
+export function createEditorPortal(doc: Document = document, editorElement: HotEditorElement): React.ReactPortal | null {
   if (editorElement === null) {
-    return;
+    return null;
   }
 
-  const editorContainer = doc.createElement('DIV');
-  const {id, className, style} = getContainerAttributesProps(editorElement.props, false);
+  const containerProps = getContainerAttributesProps(editorElement.props, false);
 
-  if (id) {
-    editorContainer.id = id;
-  }
+  containerProps.className = `${DEFAULT_CLASSNAME} ${containerProps.className}`;
 
-  editorContainer.className = [DEFAULT_CLASSNAME, className].join(' ');
-
-  if (style) {
-    Object.assign(editorContainer.style, style);
-  }
-
-  doc.body.appendChild(editorContainer);
-
-  return ReactDOM.createPortal(editorElement, editorContainer);
+  return ReactDOM.createPortal(
+    <div {...containerProps}>
+      {editorElement}
+    </div>
+    , doc.body);
 }
 
 /**
@@ -162,11 +140,10 @@ export function getExtendedEditorElement(children: React.ReactNode, editorCache:
  *
  * @param {React.ReactElement} rElement React element to be used as a base for the component.
  * @param {Object} props Props to be passed to the cloned element.
- * @param {Function} callback Callback to be called after the component has been mounted.
  * @param {Document} [ownerDocument] The owner document to set the portal up into.
  * @returns {{portal: React.ReactPortal, portalContainer: HTMLElement}} An object containing the portal and its container.
  */
-export function createPortal(rElement: React.ReactElement, props, callback: Function, ownerDocument: Document = document): {
+export function createPortal(rElement: React.ReactElement, props, ownerDocument: Document = document): {
   portal: React.ReactPortal,
   portalContainer: HTMLElement
 } {
@@ -206,28 +183,5 @@ export function getContainerAttributesProps(props, randomizeId: boolean = true):
     id: props.id || (randomizeId ? 'hot-' + Math.random().toString(36).substring(5) : void 0),
     className: props.className || '',
     style: props.style || {},
-  }
-}
-
-/**
- * Add the `UNSAFE_` prefixes to the deprecated lifecycle methods for React >= 16.3.
- *
- * @param {Object} instance Instance to have the methods renamed.
- */
-export function addUnsafePrefixes(instance: {
-  UNSAFE_componentWillUpdate?: Function,
-  componentWillUpdate: Function,
-  UNSAFE_componentWillMount?: Function,
-  componentWillMount: Function
-}): void {
-  const reactSemverArray = React.version.split('.').map((v) => parseInt(v));
-  const shouldPrefix = (reactSemverArray[0] >= 16 && reactSemverArray[1] >= 3) || reactSemverArray[0] >= 17;
-
-  if (shouldPrefix) {
-    instance.UNSAFE_componentWillUpdate = instance.componentWillUpdate;
-    instance.componentWillUpdate = void 0;
-
-    instance.UNSAFE_componentWillMount = instance.componentWillMount;
-    instance.componentWillMount = void 0;
   }
 }
