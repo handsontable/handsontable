@@ -1,7 +1,7 @@
 /**
  * @preserve
- * Authors: soakit
- * Last updated: Apr 28, 2018
+ * Authors: soakit, HChenZi
+ * Last updated: Mar 09, 2023
  *
  * Description: Definition file for Chinese - China language-country.
  */
@@ -48,6 +48,9 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: '取消合并',
 
   [C.CONTEXTMENU_ITEMS_COPY]: '复制',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: '带标题的复制',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: '带标题组的复制',
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: '仅复制标题',
   [C.CONTEXTMENU_ITEMS_CUT]: '剪切',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: '插入子行',
