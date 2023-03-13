@@ -646,7 +646,7 @@ describe('IndexMapper', () => {
     indexMapper.unregisterMap('trimmingMap');
     indexMapper.unregisterMap('hidingMap');
   });
-  
+
   describe('local hooks', () => {
     it('should trigger `change` hook on initialization once', () => {
       const indexMapper = new IndexMapper();
