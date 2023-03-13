@@ -397,7 +397,6 @@ export class NestedHeaders extends BasePlugin {
     }
 
     const {
-      classNames,
       columnCursor,
       selectionType,
       selectionWidth,
@@ -415,7 +414,7 @@ export class NestedHeaders extends BasePlugin {
     } else if (selectionType === ACTIVE_HEADER_TYPE) {
       if (colspan > selectionWidth - columnCursor || !isRoot) {
         // Reset the class names array so the generated TH element won't be modified.
-        classNames.length = 0;
+        return null;
       }
     }
 

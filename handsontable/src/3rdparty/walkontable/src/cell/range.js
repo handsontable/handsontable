@@ -50,7 +50,8 @@ class CellRange {
   #isRtl = false;
 
   constructor(highlight, from = highlight, to = highlight, isRtl = false) {
-    this.highlight = highlight.clone();
+    // this.highlight = highlight.clone();
+    this.highlight = highlight.clone().normalize();
     this.from = from.clone();
     this.to = to.clone();
     this.#isRtl = isRtl;
@@ -63,7 +64,8 @@ class CellRange {
    * @returns {CellRange}
    */
   setHighlight(coords) {
-    this.highlight = coords.clone();
+    // this.highlight = coords.clone();
+    this.highlight = coords.clone().normalize();
 
     return this;
   }

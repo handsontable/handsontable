@@ -398,7 +398,9 @@ class Table {
       wtOverlays.refreshAll(); // `refreshAll()` internally already calls `refreshSelections()` method
       wtOverlays.adjustElementsSize();
     } else {
-      this.dataAccessObject.selectionManager.render(this.facadeGetter(), runFastDraw);
+      this.dataAccessObject.selectionManager
+        .setActiveOverlay(this.facadeGetter())
+        .render(runFastDraw);
     }
 
     if (syncScroll) {

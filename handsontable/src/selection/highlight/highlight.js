@@ -11,6 +11,17 @@ import {
 } from '../../3rdparty/walkontable/src';
 import { arrayEach } from './../../helpers/array';
 
+export {
+  HIGHLIGHT_ACTIVE_HEADER_TYPE as ACTIVE_HEADER_TYPE,
+  HIGHLIGHT_AREA_TYPE as AREA_TYPE,
+  HIGHLIGHT_FOCUS_TYPE as FOCUS_TYPE,
+  HIGHLIGHT_CUSTOM_SELECTION_TYPE as CUSTOM_SELECTION_TYPE,
+  HIGHLIGHT_FILL_TYPE as FILL_TYPE,
+  HIGHLIGHT_HEADER_TYPE as HEADER_TYPE,
+  HIGHLIGHT_ROW_TYPE as ROW_TYPE,
+  HIGHLIGHT_COLUMN_TYPE as COLUMN_TYPE,
+}
+
 /**
  * Highlight class responsible for managing Walkontable Selection classes.
  *

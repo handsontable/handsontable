@@ -306,6 +306,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.selection.addLocalHook('beforeSetRangeEnd', (cellCoords) => {
     this.runHooks('beforeSetRangeEnd', cellCoords);
+
+    if (cellCoords.row < 0) {
+      cellCoords.row = this.view._wt.wtTable.getFirstVisibleRow();
+    }
+    if (cellCoords.col < 0) {
+      cellCoords.col = this.view._wt.wtTable.getFirstVisibleColumn();
+    }
   });
 
   this.selection.addLocalHook('afterSetRangeEnd', (cellCoords) => {

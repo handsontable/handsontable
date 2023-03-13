@@ -12,7 +12,6 @@ import VisualSelection from '../visualSelection';
 function createHighlight({ layerLevel, areaCornerVisible, ...restOptions }) {
   const s = new VisualSelection({
     className: 'area',
-    markIntersections: true,
     layerLevel: Math.min(layerLevel, 7),
     border: {
       width: 1,

@@ -90,23 +90,23 @@ class Transformation {
       rowTransformDir = 0;
       colTransformDir = 0;
 
-      // if (coords.row < 0) {
-      //   rowTransformDir = -1;
-      //   coords.row = 0;
+      if (coords.row < 0) {
+        rowTransformDir = -1;
+        coords.row = 0;
 
-      // } else if (coords.row > 0 && coords.row >= totalRows) {
-      //   rowTransformDir = 1;
-      //   coords.row = totalRows - 1;
-      // }
+      } else if (coords.row > 0 && coords.row >= totalRows) {
+        rowTransformDir = 1;
+        coords.row = totalRows - 1;
+      }
 
-      // if (coords.col < 0) {
-      //   colTransformDir = -1;
-      //   coords.col = 0;
+      if (coords.col < 0) {
+        colTransformDir = -1;
+        coords.col = 0;
 
-      // } else if (coords.col > 0 && coords.col >= totalCols) {
-      //   colTransformDir = 1;
-      //   coords.col = totalCols - 1;
-      // }
+      } else if (coords.col > 0 && coords.col >= totalCols) {
+        colTransformDir = 1;
+        coords.col = totalCols - 1;
+      }
 
       visualCoords = this.options.renderableToVisualCoords(coords);
     }

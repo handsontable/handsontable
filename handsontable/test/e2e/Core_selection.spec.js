@@ -432,7 +432,7 @@ describe('Core_selection', () => {
 
     expect(getSelected()).toEqual([[-1, -1, -1, 4]]);
     expect(`
-      |   ║ * : * : * : * : * |
+      | * ║ * : * : * : * : * |
       |===:===:===:===:===:===|
     `).toBeMatchToSelectionPattern();
   });
@@ -1544,7 +1544,7 @@ describe('Core_selection', () => {
 
     expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
     expect(`
-    |   ║ * : * : * : * : * |
+    | * ║ * : * : * : * : * |
     |===:===:===:===:===:===|
     | * ║ A : 0 : 0 : 0 : 0 |
     | * ║ 0 : 0 : 0 : 0 : 0 |

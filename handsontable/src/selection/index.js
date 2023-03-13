@@ -1,4 +1,4 @@
-import Highlight from './highlight/highlight';
+export * from './highlight/highlight';
 import Selection from './selection';
 import { handleMouseEvent } from './mouseEventHandler';
 import {
@@ -8,7 +8,6 @@ import {
 
 export {
   handleMouseEvent,
-  Highlight,
   Selection,
   detectSelectionType,
   normalizeSelectionFactory

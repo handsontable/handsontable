@@ -15,6 +15,7 @@ function createHighlight({
 }) {
   const s = new VisualSelection({
     className: columnClassName,
+    highlightOnlyClosestHeader: true,
     ...restOptions,
     selectionType: HIGHLIGHT_COLUMN_TYPE,
   });
