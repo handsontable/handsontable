@@ -28,8 +28,8 @@ Perform calculations on cells' values, using a powerful calculation engine that 
 [[toc]]
 
 ::: warning
-Moving using low-level functionality such as [index mapper's API](@/api/indexMapper.md) doesn't update dataset. Please 
-consider using [ManualRowMove](@/api/manualRowMove.md) and [ManualColumnMove](@/api/manualColumnMove.md) plugins.
+Moving using low-level functionality such as [index mapper's API](@/api/indexMapper.md) doesn't update dataset properly.
+Please consider using [ManualRowMove](@/api/manualRowMove.md) and [ManualColumnMove](@/api/manualColumnMove.md) plugins.
 :::
 
 ## Overview
