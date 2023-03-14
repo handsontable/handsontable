@@ -1,4 +1,5 @@
 ---
+id: j1zswn3i
 title: Row headers
 metaTitle: Row headers - JavaScript Data Grid | Handsontable
 description: Use default row headers (1, 2, 3), or set them to custom values provided by an array or a function.
@@ -9,6 +10,7 @@ tags:
   - bind rows with headers
   - row id
 react:
+  id: prlcpqk8
   metaTitle: Row headers - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -40,6 +42,9 @@ To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowsw
 ::: only-for javascript
 ::: example #example1
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 // Generate an array of arrays with a dummy data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
@@ -74,7 +79,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -82,14 +86,14 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   //  Generate an array of arrays with a dummy data
   const generateData = (rows = 3, columns = 7, additionalRows = true) => {
     let counter = 0;
 
     const array2d = [...new Array(rows)]
-            .map(_ => [...new Array(columns)]
-                    .map(_ => counter++));
+      .map(_ => [...new Array(columns)]
+        .map(_ => counter++));
 
     if (additionalRows) {
       array2d.push([]);
@@ -113,7 +117,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

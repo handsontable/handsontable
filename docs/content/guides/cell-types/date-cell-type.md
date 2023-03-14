@@ -1,10 +1,12 @@
 ---
+id: p25m5sco
 title: Date cell type
 metaTitle: Date cell type - JavaScript Data Grid | Handsontable
 description: Use the date cell type to display, format, and validate date values. Pick a date using an interactive pop-up editor.
 permalink: /date-cell-type
 canonicalUrl: /date-cell-type
 react:
+  id: u7t2rn0n
   metaTitle: Date cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -88,8 +90,10 @@ correctFormat={true}
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -141,7 +145,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -149,7 +152,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       licenseKey="non-commercial-and-evaluation"
@@ -198,7 +201,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

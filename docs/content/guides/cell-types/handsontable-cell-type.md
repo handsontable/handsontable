@@ -1,10 +1,12 @@
 ---
+id: kdie9yhz
 title: Handsontable cell type
 metaTitle: Handsontable cell type - JavaScript Data Grid | Handsontable
 description: Add a spreadsheet editor in a popup, by using the Handsontable cell type.
 permalink: /handsontable-cell-type
 canonicalUrl: /handsontable-cell-type
 react:
+  id: fcxtj167
   metaTitle: Handsontable cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -40,6 +42,9 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 ::: only-for javascript
 ::: example #example1
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example1');
 const colorData = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
 const manufacturerData = [
@@ -100,7 +105,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -108,7 +112,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const colorData = [
     ['yellow'],
     ['red'],
@@ -173,7 +177,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

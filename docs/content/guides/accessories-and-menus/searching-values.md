@@ -1,4 +1,5 @@
 ---
+id: ct5f32ig
 title: Searching values
 metaTitle: Searching values - JavaScript Data Grid | Handsontable
 description: Search data across Handsontable, using built-in API methods and implementing your own search UI.
@@ -9,6 +10,7 @@ tags:
   - highlight values
   - search values
 react:
+  id: 48lhnrbd
   metaTitle: Searching values - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -37,7 +39,7 @@ Read more on the [Instance methods](@/guides/getting-started/react-methods.md) p
 :::
 :::
 
-The [Search](@/api/search.md) plugin provides an easy API to search data across Handsontable.
+The [`Search`](@/api/search.md) plugin provides an easy API to search data across Handsontable.
 
 You should first enable the plugin by setting the [`search`](@/api/options.md#search) option to `true`. When enabled, the [`Search`](@/api/search.md) plugin exposes a new method [`query(queryStr)`](@/api/search.md#query), where [`queryStr`](@/api/search.md#query) is a string to find within the table. By default, the search is case insensitive.
 
@@ -109,9 +111,11 @@ The example below:
 <div id="example1"></div>
 ```
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example1');
 const searchField = document.querySelector('#search_field');
-
 const data = [
   ['Tesla', 2017, 'black', 'black'],
   ['Nissan', 2018, 'blue', 'blue'],
@@ -147,7 +151,6 @@ searchField.addEventListener('keyup', function(event) {
 ::: example #example1 :react
 ```jsx
 import { useRef, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -155,7 +158,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   const data = [
@@ -199,7 +202,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -229,9 +234,11 @@ The example below highlights its search results in bold red. To do this, it:
 <div id="example2"></div>
 ```
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example2');
 const searchField = document.querySelector('#search_field2');
-
 const data = [
   ['Tesla', 2017, 'black', 'black'],
   ['Nissan', 2018, 'blue', 'blue'],
@@ -272,7 +279,6 @@ searchField.addEventListener('keyup', function(event) {
 ````
 ```jsx
 import { useRef, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -280,7 +286,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   const data = [
@@ -324,7 +330,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -348,9 +356,11 @@ The example below searches only for exact search query matches. To do this, it:
 <div id="example3"></div>
 ```
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example3');
 const searchField = document.querySelector('#search_field3');
-
 const data = [
   ['Tesla', 2017, 'black', 'black'],
   ['Nissan', 2018, 'blue', 'blue'],
@@ -392,7 +402,6 @@ searchField.addEventListener('keyup', function(event) {
 ::: example #example3 :react
 ```jsx
 import { useRef, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -400,7 +409,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   const data = [
@@ -451,7 +460,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -476,6 +487,9 @@ The example below displays the number of matching search results. To do this, it
 <div id="example4"></div>
 ```
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example4');
 const searchField = document.querySelector('#search_field4');
 const output = document.querySelector('#output');
@@ -502,7 +516,7 @@ function searchResultCounter(instance, row, col, value, result) {
   }
 }
 
-const hot4 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data,
   colHeaders: true,
   // enable the `Search` plugin
@@ -517,12 +531,12 @@ const hot4 = new Handsontable(container, {
 searchField.addEventListener('keyup', function(event) {
   searchResultCount = 0;
 
-  const search = hot4.getPlugin('search');
+  const search = hot.getPlugin('search');
   const queryResult = search.query(event.target.value);
 
   console.log(queryResult);
   output.innerText = `${searchResultCount} results`;
-  hot4.render();
+  hot.render();
 });
 ```
 :::
@@ -532,7 +546,6 @@ searchField.addEventListener('keyup', function(event) {
 ::: example #example4 :react
 ```jsx
 import { useRef, useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -540,7 +553,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hot4Ref = useRef(null);
   const [output, setOutput] = useState('');
 
@@ -603,7 +616,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example4'));
+/* end:skip-in-preview */
 ```
 :::
 :::

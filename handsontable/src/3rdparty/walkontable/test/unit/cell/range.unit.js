@@ -103,6 +103,12 @@ describe('CellRange', () => {
 
       expect(range.getHeight()).toBe(6);
     });
+
+    it('should return 0 when the range targets only column headers (negative values)', () => {
+      const range = createRange(-1, -2, -1, 5, -1, 1);
+
+      expect(range.getHeight()).toBe(0);
+    });
   });
 
   describe('getWidth()', () => {
@@ -128,6 +134,12 @@ describe('CellRange', () => {
       const range = createRange(-1, -2, 5, 5, 1, -2);
 
       expect(range.getWidth()).toBe(6);
+    });
+
+    it('should return 0 when the range targets only row headers (negative values)', () => {
+      const range = createRange(-1, -2, 5, -1, 1, -1);
+
+      expect(range.getWidth()).toBe(0);
     });
   });
 

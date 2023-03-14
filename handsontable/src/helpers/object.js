@@ -10,7 +10,8 @@ export function duckSchema(object) {
   let schema;
 
   if (Array.isArray(object)) {
-    schema = [];
+    schema = object.length ? new Array(object.length).fill(null) : [];
+
   } else {
     schema = {};
 
@@ -368,7 +369,7 @@ export function createObjectPropListener(defaultValue, propertyToListen = 'value
 /**
  * Check if at specified `key` there is any value for `object`.
  *
- * @param {object} object Object to search value at specyfic key.
+ * @param {object} object Object to search value at specific key.
  * @param {string} key String key to check.
  * @returns {boolean}
  */

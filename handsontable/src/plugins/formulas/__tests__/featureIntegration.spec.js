@@ -22,7 +22,6 @@ describe('Formulas: Integration with other features', () => {
           engine: HyperFormula,
           sheetName: 'Sheet1'
         },
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       alter('insert_row_above', 0, 1);
@@ -47,7 +46,6 @@ describe('Formulas: Integration with other features', () => {
           engine: HyperFormula,
           sheetName: 'Sheet1'
         },
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const copyEvent = getClipboardEvent();
@@ -81,7 +79,6 @@ describe('Formulas: Integration with other features', () => {
         },
         minSpareRows: 3,
         minSpareCols: 3,
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       expect(hot.countRows()).toEqual(5);

@@ -1,5 +1,5 @@
 import { extend } from '../../../helpers/object';
-import { expandMetaType } from '../utils';
+import { extendByMetaType } from '../utils';
 
 /**
  * The table meta object is a layer that keeps all settings of the Handsontable that was passed in
@@ -54,6 +54,6 @@ export default class TableMeta {
    */
   updateMeta(settings) {
     extend(this.meta, settings);
-    extend(this.meta, expandMetaType(settings.type, settings));
+    extendByMetaType(this.meta, settings, settings);
   }
 }

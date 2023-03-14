@@ -34,7 +34,6 @@ describe('Formulas general', () => {
           engine: hfInstance1,
           sheetName: 'Test Sheet'
         },
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       updateSettings({
@@ -64,7 +63,6 @@ describe('Formulas general', () => {
           engine: hfInstance1,
           sheetName: 'Test Sheet'
         },
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const plugin = getPlugin('formulas');
@@ -88,7 +86,6 @@ describe('Formulas general', () => {
           engine: hfInstance1,
           sheetName: 'Test Sheet'
         },
-        licenseKey: 'non-commercial-and-evaluation'
       });
 
       const plugin = getPlugin('formulas');

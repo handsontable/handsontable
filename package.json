@@ -26,6 +26,7 @@
     "publish-all": "npm run all publish-package -- -e=examples",
     "prein": "npm run swap-package-links",
     "preall": "npm run swap-package-links",
+    "pre-release": "node scripts/pre-release.mjs && npm run build && npm run publish-all --tag next",
     "swap-package-links": "node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable",
     "examples:version": "node examples/scripts/code-examples.mjs version",
     "examples:install": "node examples/scripts/code-examples.mjs install",
@@ -54,21 +55,24 @@
     "babel-plugin-forbidden-imports": "^0.1.2",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-plugin-transform-require-ignore": "^0.1.1",
-    "chalk": "^4.1.0",
-    "cross-env": "^5.0.1",
+    "chalk": "^4.1.2",
+    "cross-env": "^7.0.3",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsdoc": "^32.3.3",
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2",
+    "global-jsdom": "^8.7.0",
     "inquirer": "^7.3.3",
-    "jsdom-global": "^3.0.2",
     "moment": "2.29.4",
     "replace-in-file": "^6.1.0",
-    "rimraf": "^2.5.4",
+    "rimraf": "^3.0.2",
     "semver": "^5.7.1",
     "yargs": "^16.2.0"
+  },
+  "overrides": {
+    "@types/babel__traverse": "7.18.2"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "resolutions": {
@@ -77,6 +81,7 @@
   "workspaces": [
     "handsontable",
     "wrappers/*",
+    "visual-tests",
     "examples"
   ]
 }

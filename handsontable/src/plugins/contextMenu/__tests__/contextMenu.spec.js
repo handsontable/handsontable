@@ -3164,19 +3164,19 @@ describe('ContextMenu', () => {
         height: 200
       });
 
-      $(getCell(0, 0)).simulate('mousedown');
-      $(getCell(2, 2)).simulate('mouseover');
-      $(getCell(2, 2)).simulate('mouseup');
+      mouseDown(getCell(0, 0));
+      mouseOver(getCell(2, 2));
+      mouseUp(getCell(2, 2));
 
       keyDown('control/meta');
 
-      $(getCell(2, 2)).simulate('mousedown');
-      $(getCell(7, 2)).simulate('mouseover');
-      $(getCell(7, 2)).simulate('mouseup');
+      mouseDown(getCell(2, 2));
+      mouseOver(getCell(7, 2));
+      mouseUp(getCell(7, 2));
 
-      $(getCell(2, 4)).simulate('mousedown');
-      $(getCell(2, 4)).simulate('mouseover');
-      $(getCell(2, 4)).simulate('mouseup');
+      mouseDown(getCell(2, 4));
+      mouseOver(getCell(2, 4));
+      mouseUp(getCell(2, 4));
 
       keyUp('control/meta');
       contextMenu(getCell(0, 0));
@@ -3192,19 +3192,19 @@ describe('ContextMenu', () => {
         height: 200
       });
 
-      $(getCell(0, 0)).simulate('mousedown');
-      $(getCell(2, 2)).simulate('mouseover');
-      $(getCell(2, 2)).simulate('mouseup');
+      mouseDown(getCell(0, 0));
+      mouseOver(getCell(2, 2));
+      mouseUp(getCell(2, 2));
 
       keyDown('control/meta');
 
-      $(getCell(2, 2)).simulate('mousedown');
-      $(getCell(7, 2)).simulate('mouseover');
-      $(getCell(7, 2)).simulate('mouseup');
+      mouseDown(getCell(2, 2));
+      mouseOver(getCell(7, 2));
+      mouseUp(getCell(7, 2));
 
-      $(getCell(2, 4)).simulate('mousedown');
-      $(getCell(2, 4)).simulate('mouseover');
-      $(getCell(2, 4)).simulate('mouseup');
+      mouseDown(getCell(2, 4));
+      mouseOver(getCell(2, 4));
+      mouseUp(getCell(2, 4));
 
       keyUp('control/meta');
       contextMenu(getCell(2, 2));
@@ -3220,19 +3220,19 @@ describe('ContextMenu', () => {
         height: 200
       });
 
-      $(getCell(0, 0)).simulate('mousedown');
-      $(getCell(2, 2)).simulate('mouseover');
-      $(getCell(2, 2)).simulate('mouseup');
+      mouseDown(getCell(0, 0));
+      mouseOver(getCell(2, 2));
+      mouseUp(getCell(2, 2));
 
       keyDown('control/meta');
 
-      $(getCell(2, 2)).simulate('mousedown');
-      $(getCell(7, 2)).simulate('mouseover');
-      $(getCell(7, 2)).simulate('mouseup');
+      mouseDown(getCell(2, 2));
+      mouseOver(getCell(7, 2));
+      mouseUp(getCell(7, 2));
 
-      $(getCell(2, 4)).simulate('mousedown');
-      $(getCell(2, 4)).simulate('mouseover');
-      $(getCell(2, 4)).simulate('mouseup');
+      mouseDown(getCell(2, 4));
+      mouseOver(getCell(2, 4));
+      mouseUp(getCell(2, 4));
 
       keyUp('control/meta');
       contextMenu(getCell(2, 4));

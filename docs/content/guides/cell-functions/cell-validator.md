@@ -1,10 +1,12 @@
 ---
+id: h840od8r
 title: Cell validator
 metaTitle: Cell validator - JavaScript Data Grid | Handsontable
 description: Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 permalink: /cell-validator
 canonicalUrl: /cell-validator
 react:
+  id: fvou30a5
   metaTitle: Cell validator - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -158,6 +160,9 @@ Callback console log:
 <output class="console" id="output">Here you will see the log</output>
 ```
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example1');
 const output = document.querySelector('#output');
 
@@ -230,7 +235,6 @@ const hot = new Handsontable(container, {
 ::: example #example1 :react
 ```jsx
 import { useState } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -238,7 +242,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const [output, setOutput] = useState('');
 
   const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
@@ -308,7 +312,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

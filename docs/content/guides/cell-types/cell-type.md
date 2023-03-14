@@ -1,10 +1,12 @@
 ---
+id: de2hxgso
 title: Cell type
 metaTitle: Cell type - JavaScript Data Grid | Handsontable
 description: Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
 permalink: /cell-type
 canonicalUrl: /cell-type
 react:
+  id: m60w87tn
   metaTitle: Cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -388,6 +390,9 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 ::: only-for javascript
 ::: example #example1
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example1');
 const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
 
@@ -436,23 +441,22 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
   const yellowRenderer = function(instance, td, row, col, prop, value, cellProperties) {
-    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    textRenderer.apply(this, arguments);
     td.style.backgroundColor = 'yellow';
   };
   const greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
-    Handsontable.renderers.TextRenderer.apply(this, arguments);
+    textRenderer.apply(this, arguments);
 
     td.style.backgroundColor = 'green';
   };
@@ -489,7 +493,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -497,7 +503,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ## Empty cells
 
-It's worth to mention that values such as `''` (empty string), `null` and `undefined` are considered empty values. You can use the `Handsontable.helper.isEmpty` method to check whether a value is considered empty. Cells with empty values are displayed in a similar way for most of the data types (see below).
+It's worth to mention that values such as `''` (empty string), `null` and `undefined` are considered empty values. Cells with empty values are displayed in a similar way for most of the data types (see below).
 
 :::tip
 Please keep in mind that opening a cell with `undefined` and `null` values results in **overwriting** the original value with an empty string. Moreover, copying and pasting that values will result in pasting the empty string.
@@ -506,8 +512,10 @@ Please keep in mind that opening a cell with `undefined` and `null` values resul
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -554,7 +562,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -562,7 +569,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       licenseKey="non-commercial-and-evaluation"
@@ -606,13 +613,15 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::
 
 
-Empty cells may be treated differently in different contexts, for example, the [ColumnSorting](@/api/columnSorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.
+Empty cells may be treated differently in different contexts, for example, the [`ColumnSorting`](@/api/columnSorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.
 
 ## Related articles
 

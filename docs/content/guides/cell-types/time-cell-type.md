@@ -1,10 +1,12 @@
 ---
+id: q63yhvq5
 title: Time cell type
 metaTitle: Time cell type - JavaScript Data Grid | Handsontable
 description: Use the time cell type to display, format, and validate values as times. The time cell type uses Moment.js as a time formatter.
 permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
+  id: 34n5nwja
   metaTitle: Time cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -35,8 +37,10 @@ By default, the values entered into the time-type column are **not** validated, 
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     ['Mercedes', 'A 160', 1332284400000, 6999.95],
@@ -79,7 +83,6 @@ hot.validateCells();
 ::: example #example1 :react
 ```jsx
 import { useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -87,7 +90,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   useEffect(() => {
@@ -132,7 +135,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

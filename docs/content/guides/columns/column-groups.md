@@ -1,4 +1,5 @@
 ---
+id: k4mb003v
 title: Column groups
 metaTitle: Column groups - JavaScript Data Grid | Handsontable
 description: Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
@@ -9,6 +10,7 @@ tags:
   - nestedHeaders
   - collapsing columns
 react:
+  id: 2ei1omu0
   metaTitle: Column groups - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -56,10 +58,18 @@ nestedHeaders={[
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 10),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+  ],
   colHeaders: true,
   rowHeaders: true,
   height: 'auto',
@@ -78,8 +88,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -87,10 +95,16 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
   <HotTable
-    data={Handsontable.helper.createSpreadsheetData(5, 10)}
+    data={[
+      ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
+      ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+      ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+      ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+      ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+    ]}
     colHeaders={true}
     rowHeaders={true}
     height="auto"
@@ -106,7 +120,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -114,7 +130,7 @@ ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
 
 ## Collapsible headers
 
-The [CollapsibleColumns](@/api/collapsibleColumns.md) plugin enables columns and their headers to be collapsed/expanded.
+The [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin enables columns and their headers to be collapsed/expanded.
 
 This plugin adds multi-column headers which have buttons. Clicking these buttons will collapse or expand all "child" headers, leaving the first one visible.
 
@@ -150,10 +166,18 @@ collapsibleColumns={[
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 10),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+  ],
   colHeaders: true,
   rowHeaders: true,
   colWidths: 60,
@@ -179,8 +203,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -188,10 +210,16 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
-      data={Handsontable.helper.createSpreadsheetData(5, 10)}
+      data={[
+        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+        ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+      ]}
       colHeaders={true}
       rowHeaders={true}
       colWidths={60}
@@ -214,7 +242,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::

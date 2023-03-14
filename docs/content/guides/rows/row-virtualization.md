@@ -1,4 +1,5 @@
 ---
+id: vasj6t6t
 title: Row virtualization
 metaTitle: Row virtualization - JavaScript Data Grid | Handsontable
 description: Render thousands of rows without freezing the browser, using row virtualization.
@@ -9,6 +10,7 @@ tags:
   - render all rows
   - offset
 react:
+  id: kjsl63sh
   metaTitle: Row virtualization - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -43,10 +45,20 @@ The example below presents a data grid displaying 1 million cells (1000 rows x 1
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// generate an array of arrays with dummy data
+const data = new Array(1000) // number of rows
+  .fill()
+  .map((_, row) => new Array(1000) // number of columns
+    .fill()
+    .map((_, column) => `${row}, ${column}`)
+  );
+
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(1000, 1000),
+  data,
   colWidths: 100,
   width: '100%',
   height: 320,
@@ -61,8 +73,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -70,10 +80,18 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+// generate an array of arrays with dummy data
+const data = new Array(1000) // number of rows
+  .fill()
+  .map((_, row) => new Array(1000) // number of columns
+    .fill()
+    .map((_, column) => `${row}, ${column}`)
+  );
+
+export const ExampleComponent = () => {
   return (
     <HotTable
-      data={Handsontable.helper.createSpreadsheetData(1000, 1000)}
+      data={data}
       colWidths={100}
       width="100%"
       height={320}
@@ -84,7 +102,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

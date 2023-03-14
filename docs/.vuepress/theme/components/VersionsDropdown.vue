@@ -14,65 +14,47 @@ export default {
   components: {
     DropdownLink
   },
-  data() {
-    return {
-      item: [],
-    };
+  computed: {
+    item() {
+      return {
+        text: this.addLatest(this.$page.currentVersion),
+        items:
+          [
+            ...(this.$page.versionsWithPatches ? Array.from(this.$page.versionsWithPatches.keys()).map(v => ({
+              text: v,
+              subTexts: this.$page.versionsWithPatches.get(v),
+              link: this.getLink(v),
+              target: '_self',
+              isHtmlLink: true,
+            })) : []),
+          ]
+      };
+    }
   },
   methods: {
     addLatest(version) {
-      if (version === this.$page.latestVersion) {
-        return `${version} (Current)`;
+      const latestMinor = this.$page.latestVersion;
+
+      if (version === latestMinor) {
+        if (version !== 'next') {
+          version = this.$page.versionsWithPatches.get(latestMinor)[0]; // Latest version in a format major.minor.patch
+        }
+
+        return `${version} (Latest)`;
       }
 
       return version;
     },
     getLink(version) {
-      if (version === this.$page.latestVersion) {
-        return '/docs/';
+      if (version === this.$page.currentVersion) {
+        const isLatest = version === this.$page.latestVersion;
+
+        return `/docs${isLatest ? '' : `/${version}`}${this.$route.path}`;
       }
 
-      return `/docs/${version}/`;
+      // Using `location.origin` disables injecting `.html` postfix at the end of the URL
+      return `${location.origin}/docs/${version}/redirect?pageId=${this.$page.frontmatter.id}`;
     },
-    getLegacyVersions() {
-      return [
-        '8.4.0',
-        '8.3.2',
-        '8.2.0',
-        '8.1.0',
-        '8.0.0',
-        '7.4.2',
-        '7.3.0',
-        '7.2.2',
-        '7.1.1',
-        '7.0.3',
-        '6.2.2',
-        '6.1.1',
-        '6.0.1',
-        '5.0.2',
-        '4.0.0',
-      ].map(version => ({
-        text: version.replace(/\.\d+$/, ''),
-        link: `/docs/${version}/`,
-        target: '_blank',
-        isHtmlLink: true,
-      }));
-    }
-  },
-  mounted() {
-    this.item = {
-      text: this.addLatest(this.$page.currentVersion),
-      items:
-        [
-          ...this.$page.versions.map(v => ({
-            text: `${this.addLatest(v)}`,
-            link: this.getLink(v),
-            target: '_self',
-            isHtmlLink: true
-          })),
-          ...this.getLegacyVersions()
-        ]
-    };
   }
 };
 </script>

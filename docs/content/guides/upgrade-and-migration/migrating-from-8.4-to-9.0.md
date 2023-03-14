@@ -1,4 +1,5 @@
 ---
+id: 3cqz2dy9
 title: Migrating from 8.4 to 9.0
 metaTitle: Migrate from 8.4 to 9.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 8.4 to Handsontable 9.0, released on June 1, 2021.
@@ -6,6 +7,7 @@ permalink: /migration-from-8.4-to-9.0
 canonicalUrl: /migration-from-8.4-to-9.0
 pageClass: migration-guide
 react:
+  id: yns5r79k
   metaTitle: Migrate from 8.4 to 9.0 - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -138,14 +140,17 @@ See the snippet below for example implementation.
 
 ::: only-for javascript
 ```js
-const example = document.getElementById('tooltip-example');
-
 const onAfterGetHeader = function(index, TH) {
   TH.setAttribute('title', TH.querySelector('span').textContent);
 };
 
+const example = document.querySelector('#tooltip-example');
 const hot = new Handsontable(example, {
-  data: Handsontable.helper.createSpreadsheetData(3, 3),
+  data: [
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+    ['A3', 'B3', 'C3'],
+  ],
   rowHeights: 23,
   autoColumnSize: true,
   rowHeaders: ['1st', '2nd', '3rd'],
@@ -159,14 +164,16 @@ const hot = new Handsontable(example, {
 
 ::: only-for react
 ```jsx
-const example = document.getElementById('tooltip-example');
-
 const onAfterGetHeader = function(index, TH) {
   TH.setAttribute('title', TH.querySelector('span').textContent);
 };
 
 <HotTable
-  data={Handsontable.helper.createSpreadsheetData(3, 3)}
+  data={[
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+    ['A3', 'B3', 'C3'],
+  ]}
   rowHeights={23}
   autoColumnSize={true}
   rowHeaders={['1st', '2nd', '3rd']}

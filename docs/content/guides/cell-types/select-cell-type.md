@@ -1,10 +1,12 @@
 ---
+id: pqe1xozj
 title: Select cell type
 metaTitle: Select cell type - JavaScript Data Grid | Handsontable
 description: Use the select cell type to collect user input with an HTML <select> element that creates a multi-item dropdown list.
 permalink: /select-cell-type
 canonicalUrl: /select-cell-type
 react:
+  id: xmdreeu3
   metaTitle: Select cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -26,8 +28,10 @@ The select editor should be considered an example of how to write editors rather
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     ['2017', 'Honda', 10],
@@ -53,7 +57,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -61,7 +64,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -84,7 +87,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

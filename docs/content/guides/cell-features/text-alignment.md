@@ -1,10 +1,12 @@
 ---
+id: chduupye
 title: Text alignment
 metaTitle: Text alignment - JavaScript Data Grid | Handsontable
 description: "Align values within cells: horizontally (to the right, left, center, or by justifying them), and vertically (to the top, middle, or bottom of the cell)."
 permalink: /text-alignment
 canonicalUrl: /text-alignment
 react:
+  id: 959g5cbf
   metaTitle: Text alignment - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -47,10 +49,20 @@ The following code sample configures the grid to use `htCenter` and configures i
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+// generate an array of arrays with dummy data
+const data = new Array(100) // number of rows
+  .fill()
+  .map((_, row) => new Array(18) // number of columns
+    .fill()
+    .map((_, column) => `${row}, ${column}`)
+  );
+
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(100, 18),
+  data,
   colWidths: 100,
   height: 320,
   rowHeaders: true,
@@ -78,8 +90,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -87,10 +97,18 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+// generate an array of arrays with dummy data
+const data = new Array(100) // number of rows
+  .fill()
+  .map((_, row) => new Array(18) // number of columns
+    .fill()
+    .map((_, column) => `${row}, ${column}`)
+  );
+
+export const ExampleComponent = () => {
   return (
     <HotTable
-      data={Handsontable.helper.createSpreadsheetData(100, 18)}
+      data={data}
       colWidths={100}
       height={320}
       rowHeaders={true}
@@ -114,7 +132,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

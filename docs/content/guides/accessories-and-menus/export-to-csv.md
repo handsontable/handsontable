@@ -1,4 +1,5 @@
 ---
+id: 51aacis1
 title: Export to CSV
 metaTitle: Export to CSV - JavaScript Data Grid | Handsontable
 description: Export your grid's data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
@@ -8,6 +9,7 @@ tags:
   - export to file
   - save file
 react:
+  id: sfxo3g54
   metaTitle: Export to CSV - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -32,11 +34,21 @@ Export your grid's data to the CSV format, as a downloadable file, a blob, or a 
 </div>
 ```
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example1');
 const button = document.querySelector('#export-file');
-
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(7, 7),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5'],
+    ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6'],
+    ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7'],
+  ],
   colHeaders: true,
   rowHeaders: true,
   hiddenRows: { rows: [1, 3, 5], indicators: true },
@@ -69,8 +81,6 @@ button.addEventListener('click', () => {
 ::: example #example1 :react
 ```jsx
 import { useRef, useEffect } from 'react';
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -78,7 +88,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   let buttonClickCallback;
@@ -107,7 +117,15 @@ const ExampleComponent = () => {
     <>
       <HotTable
         ref={hotRef}
-        data={Handsontable.helper.createSpreadsheetData(7, 7)}
+        data={[
+          ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4'],
+          ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5'],
+          ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6'],
+          ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7'],
+        ]}
         colHeaders={true}
         rowHeaders={true}
         hiddenRows={{ rows: [1, 3, 5], indicators: true }}
@@ -122,7 +140,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -142,11 +162,21 @@ Open a console in browser developer tools to see the result for the below exampl
 </div>
 ```
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example2');
 const button = document.querySelector('#export-blob');
-
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(7, 7),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5'],
+    ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6'],
+    ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7'],
+  ],
   colHeaders: true,
   rowHeaders: true,
   hiddenRows: { rows: [1, 3, 5], indicators: true },
@@ -179,8 +209,6 @@ button.addEventListener('click', () => {
 ::: example #example2 :react
 ```jsx
 import { useRef, useEffect } from 'react';
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -188,7 +216,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   let buttonClickCallback;
@@ -217,7 +245,15 @@ const ExampleComponent = () => {
     <>
       <HotTable
         ref={hotRef}
-        data={Handsontable.helper.createSpreadsheetData(7, 7)}
+        data={[
+          ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4'],
+          ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5'],
+          ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6'],
+          ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7'],
+        ]}
         colHeaders={true}
         rowHeaders={true}
         hiddenRows={{ rows: [1, 3, 5], indicators: true }}
@@ -232,7 +268,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -252,11 +290,21 @@ Open a console in browser developer tools to see the result for the below exampl
 </div>
 ```
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 const container = document.querySelector('#example3');
 const button = document.querySelector('#export-string');
-
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(7, 7),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5'],
+    ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6'],
+    ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7'],
+  ],
   colHeaders: true,
   rowHeaders: true,
   hiddenRows: { rows: [1, 3, 5], indicators: true },
@@ -288,8 +336,6 @@ button.addEventListener('click', () => {
 ::: example #example3 :react
 ```jsx
 import { useRef, useEffect } from 'react';
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -297,7 +343,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   let buttonClickCallback;
@@ -325,7 +371,15 @@ const ExampleComponent = () => {
     <>
       <HotTable
         ref={hotRef}
-        data={Handsontable.helper.createSpreadsheetData(7, 7)}
+        data={[
+          ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2'],
+          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4'],
+          ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5'],
+          ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6'],
+          ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7'],
+        ]}
         colHeaders={true}
         rowHeaders={true}
         hiddenRows={{ rows: [1, 3, 5], indicators: true }}
@@ -340,7 +394,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -366,9 +422,9 @@ Read more on the [Instance methods](@/guides/getting-started/react-methods.md) p
 
 The plugin exposes the following methods to export data.
 
-* [**downloadFile(format, options)**](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
-* [**exportAsBlob(format, options)**](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
-* [**exportAsString(format, options)**](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
+* [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
+* [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
+* [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
 
 All of them accept the same arguments:
 

@@ -366,13 +366,13 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after retrieving information about a column header and appending it to the table header.
    *
-   * Since the 12.2 the hook is triggered with the 3rd `headerLevel` argument.
-   *
    * @event Hooks#afterGetColHeader
    * @param {number} column Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
-   * @param {number} [headerLevel=0] The index of header level counting from the top (positive
-   *                                 values counting from 0 to N).
+   * @param {number} [headerLevel=0] (Since 12.2.0) Header level index. Accepts positive (0 to n)
+   *                                 and negative (-1 to -n) values. For positive values, 0 points to the
+   *                                 topmost header. For negative values, -1 points to the bottom-most
+   *                                 header (the header closest to the cells).
    */
   'afterGetColHeader',
 
@@ -1405,7 +1405,7 @@ const REGISTERED_HOOKS = [
   'modifyCopyableRange',
 
   /**
-   * Fired by {@link CopyPaste} plugin before copying the values into clipboard and before clearing values of
+   * Fired by {@link CopyPaste} plugin before copying the values to the clipboard and before clearing values of
    * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforeCut
@@ -1461,19 +1461,20 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterCut
-   * @param {Array[]} data An array of arrays which contains the cutted out data.
+   * @param {Array[]} data An array of arrays with the cut data.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                       which was cut out.
    */
   'afterCut',
 
   /**
-   * Fired before values are copied into clipboard.
+   * Fired before values are copied to the clipboard.
    *
    * @event Hooks#beforeCopy
    * @param {Array[]} data An array of arrays which contains data to copied.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                         which will copied.
+   * @param {{ columnHeadersCount: number }} copiedHeadersCount (Since 12.3.0) The number of copied column headers.
    * @returns {*} If returns `false` then copying is canceled.
    *
    * @example
@@ -1537,6 +1538,7 @@ const REGISTERED_HOOKS = [
    * @param {Array[]} data An array of arrays which contains the copied data.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                         which was copied.
+   * @param {{ columnHeadersCount: number }} copiedHeadersCount (Since 12.3.0) The number of copied column headers.
    */
   'afterCopy',
 
@@ -1597,7 +1599,7 @@ const REGISTERED_HOOKS = [
    * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterPaste
-   * @param {Array[]} data An array of arrays which contains the pasted data.
+   * @param {Array[]} data An array of arrays with the pasted data.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
    *                       that correspond to the previously selected area.
    */
@@ -1798,13 +1800,22 @@ const REGISTERED_HOOKS = [
   'beforeStretchingColumnWidth',
 
   /**
-   * Fired by {@link Filters} plugin before applying [filtering](@/guides/columns/column-filter.md).
-   * This hook is fired when {@link Options#filters} option is enabled.
+   * Fired by the [`Filters`](@/api/filters.md) plugin,
+   * before a [column filter](@/guides/columns/column-filter.md) gets applied.
    *
-   * @event Hooks#beforeFilter
-   * @param {object[]} conditionsStack An array of objects with added formulas.
+   * [`beforeFilter`](#beforefilter) takes one argument (`conditionsStack`), which is an array of objects.
+   * Each object represents one of your [column filters](@/api/filters.md#addcondition),
+   * and consists of the following properties:
+   *
+   * | Property     | Possible values                                                         | Description                                                                                                              |
+   * | ------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+   * | `column`     | Number                                                                  | A visual index of the column to which the filter will be applied.                                                        |
+   * | `conditions` | Array of objects                                                        | Each object represents one condition. For details, see [`addCondition()`](@/api/filters.md#addcondition).                |
+   * | `operation`  | `'conjunction'` \| `'disjunction'` \| `'disjunctionWithExtraCondition'` | An operation to perform on your set of `conditions`. For details, see [`addCondition()`](@/api/filters.md#addcondition). |
+   *
+   * An example of the format of the `conditionsStack` argument:
+   *
    * ```js
-   * // Example format of the conditionsStack argument:
    * [
    *   {
    *     column: 2,
@@ -1822,18 +1833,48 @@ const REGISTERED_HOOKS = [
    *   },
    * ]
    * ```
-   * @returns {boolean} If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).
+   *
+   * To perform server-side filtering (i.e., to not apply filtering to Handsontable's UI),
+   * set [`beforeFilter`](#beforefilter) to return `false`:
+   *
+   * ```js
+   * new Handsontable(document.getElementById('example'), {
+   *   beforeFilter: (conditionsStack) => {
+   *     return false;
+   *   }
+   * });
+   *```
+   *
+   * Read more:
+   * - [Guides: Column filter](@/guides/columns/column-filter.md)
+   * - [Hooks: `afterFilter`](#afterfilter)
+   * - [Options: `filters`](@/api/options.md#filters)
+   * - [Plugins: `Filters`](@/api/filters.md)
+   * – [Plugin methods: `addCondition()`](@/api/filters.md#addcondition)
+   *
+   * @event Hooks#beforeFilter
+   * @param {object[]} conditionsStack An array of objects with your [column filters](@/api/filters.md#addcondition).
+   * @returns {boolean} To perform server-side filtering (i.e., to not apply filtering to Handsontable's UI), return `false`.
    */
   'beforeFilter',
 
   /**
-   * Fired by {@link Filters} plugin after applying [filtering](@/guides/columns/column-filter.md).
-   * This hook is fired when {@link Options#filters} option is enabled.
+   * Fired by the [`Filters`](@/api/filters.md) plugin,
+   * after a [column filter](@/guides/columns/column-filter.md) gets applied.
    *
-   * @event Hooks#afterFilter
-   * @param {object[]} conditionsStack An array of objects with added conditions.
+   * [`afterFilter`](#afterfilter) takes one argument (`conditionsStack`), which is an array of objects.
+   * Each object represents one of your [column filters](@/api/filters.md#addcondition),
+   * and consists of the following properties:
+   *
+   * | Property     | Possible values                                                         | Description                                                                                                              |
+   * | ------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+   * | `column`     | Number                                                                  | A visual index of the column to which the filter was applied.                                                            |
+   * | `conditions` | Array of objects                                                        | Each object represents one condition. For details, see [`addCondition()`](@/api/filters.md#addcondition).                |
+   * | `operation`  | `'conjunction'` \| `'disjunction'` \| `'disjunctionWithExtraCondition'` | An operation to perform on your set of `conditions`. For details, see [`addCondition()`](@/api/filters.md#addcondition). |
+   *
+   * An example of the format of the `conditionsStack` argument:
+   *
    * ```js
-   * // Example format of the conditionsStack argument:
    * [
    *   {
    *     column: 2,
@@ -1851,6 +1892,16 @@ const REGISTERED_HOOKS = [
    *   },
    * ]
    * ```
+   *
+   * Read more:
+   * - [Guides: Column filter](@/guides/columns/column-filter.md)
+   * - [Hooks: `beforeFilter`](#beforefilter)
+   * - [Options: `filters`](@/api/options.md#filters)
+   * - [Plugins: `Filters`](@/api/filters.md)
+   * – [Plugin methods: `addCondition()`](@/api/filters.md#addcondition)
+   *
+   * @event Hooks#afterFilter
+   * @param {object[]} conditionsStack An array of objects with your [column filters](@/api/filters.md#addcondition).
    */
   'afterFilter',
 
@@ -1928,6 +1979,21 @@ const REGISTERED_HOOKS = [
    * @event Hooks#modifyColumnHeaderHeight
    */
   'modifyColumnHeaderHeight',
+
+  /**
+   * Fired while retrieving a column header's value.
+   *
+   * @since 12.3.0
+   * @event Hooks#modifyColumnHeaderValue
+   * @param {string} value A column header value.
+   * @param {number} visualColumnIndex A visual column index.
+   * @param {number} [headerLevel=0] Header level index. Accepts positive (0 to n)
+   *                                 and negative (-1 to -n) values. For positive values, 0 points to the
+   *                                 topmost header. For negative values, -1 points to the bottom-most
+   *                                 header (the header closest to the cells).
+   * @returns {string} The column header value to be updated.
+   */
+  'modifyColumnHeaderValue',
 
   /**
    * Fired by {@link UndoRedo} plugin before the undo action. Contains information about the action that is being undone.
@@ -2372,7 +2438,7 @@ const REGISTERED_HOOKS = [
   'afterUnlisten',
 
   /**
-   * Fired after the window was resized.
+   * Fired after the window was resized or the size of the Handsontable root element was changed.
    *
    * @event Hooks#afterRefreshDimensions
    * @param {object} previousDimensions Previous dimensions of the container.
@@ -2382,7 +2448,8 @@ const REGISTERED_HOOKS = [
   'afterRefreshDimensions',
 
   /**
-   * Cancellable hook, called after resizing a window, but before redrawing a table.
+   * Cancellable hook, called after resizing a window or after detecting size change of the
+   * Handsontable root element, but before redrawing a table.
    *
    * @event Hooks#beforeRefreshDimensions
    * @param {object} previousDimensions Previous dimensions of the container.

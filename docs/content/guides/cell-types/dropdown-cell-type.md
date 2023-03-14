@@ -1,10 +1,12 @@
 ---
+id: oi78d8nv
 title: Dropdown cell type
 metaTitle: Dropdown cell type - JavaScript Data Grid | Handsontable
 description: Collect user input with a searchable list of choices, by using the dropdown cell type.
 permalink: /dropdown-cell-type
 canonicalUrl: /dropdown-cell-type
 react:
+  id: 5i86kjqu
   metaTitle: Dropdown cell type - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -34,8 +36,10 @@ Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" st
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   data: [
     ['Tesla', 2017, 'black', 'black'],
@@ -65,7 +69,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -73,7 +76,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={[
@@ -100,7 +103,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::

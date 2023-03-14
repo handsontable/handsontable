@@ -1,7 +1,7 @@
 /**
  * @preserve
- * Authors: Edgars Voroboks
- * Last updated: Jun 14, 2018
+ * Authors: Edgars Voroboks, NullIsNot0
+ * Last updated: Dec 5, 2022
  *
  * Description: Definition file for Latvian - Latvia language-country.
  */
@@ -9,6 +9,7 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'lv-LV',
+  [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nav pieejamu opciju',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Ievietot rindu augšā',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Ievietot rindu apakšā',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Ievietot kolonnu pa kreisi',
@@ -42,12 +43,15 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_ADD_COMMENT]: 'Pievienot komentāru',
   [C.CONTEXTMENU_ITEMS_EDIT_COMMENT]: 'Labot komentāru',
   [C.CONTEXTMENU_ITEMS_REMOVE_COMMENT]: 'Dzēst komentāru',
-  [C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT]: 'Lasīšanas režīma komentārs',
+  [C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT]: 'Tikai lasāms komentārs',
 
-  [C.CONTEXTMENU_ITEMS_MERGE_CELLS]: 'Sapludināt šūnas',
-  [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Nesapludināt šunas',
+  [C.CONTEXTMENU_ITEMS_MERGE_CELLS]: 'Apvienot šūnas',
+  [C.CONTEXTMENU_ITEMS_UNMERGE_CELLS]: 'Atvienot šunas',
 
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopēt',
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS]: ['Kopēt ar galveni', 'Kopēt ar galvenēm'],
+  [C.CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS]: ['Kopēt ar grupas galveni', 'Kopēt ar grupas galvenēm'],
+  [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Kopēt tikai galveni', 'Kopēt tikai galvenes'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Izgriezt',
 
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Ievietot pakārtoto rindu',

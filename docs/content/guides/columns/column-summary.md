@@ -1,4 +1,5 @@
 ---
+id: xndxqkoc
 title: Column summary
 metaTitle: Column summary - JavaScript Data Grid | Handsontable
 description: Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
@@ -10,6 +11,7 @@ tags:
   - formulas
   - functions
 react:
+  id: r3x4l0gp
   metaTitle: Column summary - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -27,7 +29,7 @@ The [`ColumnSummary`](@/api/columnSummary.md) plugin lets you quickly calculate 
 To customize your column summaries, you can:
 - Decide how a summary is calculated:
     - Either select one of the [built-in summary functions](#built-in-summary-functions)
-    - Or implement a [custom summary function](#implementing-a-custom-summary-function)
+    - Or implement a [custom summary function](#implement-a-custom-summary-function)
 - [Select columns and ranges of rows](#step-2-select-cells-that-you-want-to-summarize) that you want to summarize
 - [Display your summary result](#step-4-provide-the-destination-cell-s-coordinates) in a specific cell
 
@@ -38,8 +40,10 @@ This example calculates and displays five different column summaries:
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -48,7 +52,7 @@ const hot = new Handsontable(container, {
     [11, 12, 13, 14, 15],
     [null]
   ],
-  colHeaders: true,
+  colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   rowHeaders: true,
   // enable and configure the `ColumnSummary` plugin
   columnSummary: [
@@ -93,7 +97,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -101,7 +104,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       licenseKey="non-commercial-and-evaluation"
@@ -111,7 +114,7 @@ const ExampleComponent = () => {
         [11, 12, 13, 14, 15],
         [null]
       ]}
-      colHeaders={true}
+      colHeaders={['sum', 'min', 'max', 'count', 'average']}
       rowHeaders={true}
       columnSummary={[
         {
@@ -151,7 +154,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -168,7 +173,7 @@ To decide how a column summary is calculated, you can use one of the following s
 | `max`     | Returns the highest value in a column.                                                                 |
 | `count`   | Returns the number of all non-empty cells in a column.                                                 |
 | `average` | Returns the sum of all values in a column,<br>divided by the number of non-empty cells in that column. |
-| `custom`  | Lets you implement a [custom summary function](#implementing-a-custom-summary-function).               |
+| `custom`  | Lets you implement a [custom summary function](#implement-a-custom-summary-function).               |
 
 ### Column summary options
 
@@ -188,7 +193,10 @@ Each object represents a single column summary.
 
 ::: only-for javascript
 ```js
-const hot = new Handsontable(container, {
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+const hot = new Handsontable(document.querySelector('#example'), {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     [1, 2, 3, 4, 5],
@@ -215,7 +223,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       licenseKey="non-commercial-and-evaluation"
@@ -330,7 +338,7 @@ Now, decide how you want to calculate your column summary.
 
 You can:
 - Either select one of the [built-in summary functions](#built-in-summary-functions)
-- Or implement a [custom summary function](#implementing-a-custom-summary-function)
+- Or implement a [custom summary function](#implement-a-custom-summary-function)
 
 ::: only-for javascript
 ```js
@@ -434,8 +442,10 @@ To reverse row coordinates for your column summary, set the [`reversedRowCoords`
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -477,7 +487,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -485,7 +494,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       licenseKey="non-commercial-and-evaluation"
@@ -524,14 +533,16 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::
 
 ## Set up column summaries, using a function
 
-Instead of [setting up the column summary options manually](#setting-up-a-column-summary), you can provide the whole column summary configuration as a function that returns a required array of objects.
+Instead of [setting up the column summary options manually](#set-up-a-column-summary), you can provide the whole column summary configuration as a function that returns a required array of objects.
 
 The example below sets up five different column summaries. To do this, it:
 - Defines a function named `generateData` which generates an array of arrays with dummy numeric data, and which lets you add an empty row at the bottom of the grid (to make room for displaying column summaries)
@@ -543,6 +554,9 @@ The example below sets up five different column summaries. To do this, it:
 ::: only-for javascript
 ::: example #example7
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 // generate an array of arrays with dummy numeric data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
@@ -560,7 +574,6 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 };
 
 const container = document.querySelector('#example7');
-
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   // initialize a Handsontable instance with the generated data
@@ -597,7 +610,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example7 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -605,7 +617,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   //  generate an array of arrays with dummy numeric data
   const generateData = (rows = 3, columns = 7, additionalRows = true) => {
     let counter = 0;
@@ -653,7 +665,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example7'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -664,8 +678,10 @@ Using a function to provide a column summary configuration lets you set up all s
 ::: only-for javascript
 ::: example #example8
 ```js
-const container = document.getElementById('example8');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example8');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -738,7 +754,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example8 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -746,7 +761,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       licenseKey="non-commercial-and-evaluation"
@@ -816,7 +831,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example8'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -828,7 +845,7 @@ Apart from using the [built-in summary functions](#built-in-summary-functions), 
 
 To implement a custom summary function:
 
-1. [Set up your column summary](#setting-up-a-column-summary).
+1. [Set up your column summary](#set-up-a-column-summary).
 2. In your [column summary object](#step-1-enable-the-columnsummary-plugin), set the [`type`](@/api/options.md#type) option to `'custom'`:
 
 ::: only-for javascript
@@ -894,6 +911,9 @@ This example implements a function that counts the number of even values in a co
 ::: only-for javascript
 ::: example #example9
 ```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
 // generate an array of arrays with dummy numeric data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
@@ -911,7 +931,6 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 };
 
 const container = document.querySelector('#example9');
-
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   // initialize a Handsontable instance with the generated numeric data
@@ -940,29 +959,29 @@ const hot = new Handsontable(container, {
           let counter = 0;
 
           do {
-              if (parseInt(hotInstance.getDataAtCell(i, endpoint.sourceColumn), 10) % 2 === 0) {
-                counter++;
-              }
-
-              i--;
-            } while (i >= rowRange[0]);
-
-            return counter;
-          }
-
-          // go through all declared ranges
-          for (const r in endpoint.ranges) {
-            if (endpoint.ranges.hasOwnProperty(r)) {
-              evenCount += checkRange(endpoint.ranges[r]);
+            if (parseInt(hotInstance.getDataAtCell(i, endpoint.sourceColumn), 10) % 2 === 0) {
+              counter++;
             }
-          }
 
-          return evenCount;
-        },
-        forceNumeric: true
-      }
-    ]
-  });
+            i--;
+          } while (i >= rowRange[0]);
+
+          return counter;
+        }
+
+        // go through all declared ranges
+        for (const r in endpoint.ranges) {
+          if (endpoint.ranges.hasOwnProperty(r)) {
+            evenCount += checkRange(endpoint.ranges[r]);
+          }
+        }
+
+        return evenCount;
+      },
+      forceNumeric: true
+    }
+  ]
+});
 ```
 :::
 :::
@@ -970,7 +989,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example9 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -978,7 +996,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   //  generate an array of arrays with dummy numeric data
   const generateData = (rows = 3, columns = 7, additionalRows = true) => {
     let counter = 0;
@@ -1048,7 +1066,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example9'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -1063,8 +1083,10 @@ To enable this feature, set the [`roundFloat`](@/api/columnSummary.md) option to
 ::: only-for javascript
 ::: example #example12
 ```js
-const container = document.querySelector('#example12');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example12');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -1099,7 +1121,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example12 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -1107,7 +1128,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       licenseKey="non-commercial-and-evaluation"
@@ -1139,7 +1160,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example12'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -1168,8 +1191,10 @@ To enable this feature, set the [`forceNumeric`](@/api/columnSummary.md) option 
 ::: only-for javascript
 ::: example #example10
 ```js
-const container = document.querySelector('#example10');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example10');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -1205,7 +1230,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example10 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -1213,7 +1237,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       licenseKey="non-commercial-and-evaluation"
@@ -1247,7 +1271,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example10'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -1262,8 +1288,10 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 ::: only-for javascript
 ::: example #example11 --tab code
 ```js
-const container = document.querySelector('#example11');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example11');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -1299,7 +1327,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example11 :react --tab code
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -1307,7 +1334,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       licenseKey="non-commercial-and-evaluation"
@@ -1341,7 +1368,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example11'));
+/* end:skip-in-preview */
 ```
 :::
 :::

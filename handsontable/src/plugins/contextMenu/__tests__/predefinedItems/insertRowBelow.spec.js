@@ -147,12 +147,12 @@ describe('ContextMenu', () => {
       expect(`
         |   |
         |===|
-        | - |
-        | - |
-        | - |
-        | - |
-        | - |
-        | - |
+        | * |
+        | * |
+        | * |
+        | * |
+        | * |
+        | * |
         `).toBeMatchToSelectionPattern();
     });
 
@@ -180,7 +180,7 @@ describe('ContextMenu', () => {
       expect(`
         |   |
         |===|
-        | - |
+        | * |
         `).toBeMatchToSelectionPattern();
     });
 

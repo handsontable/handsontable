@@ -1,4 +1,4 @@
-import { addClass, empty, removeClass } from './helpers/dom/element';
+import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -20,12 +20,13 @@ import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray,
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin, getPluginsNames } from './plugins/registry';
 import { getRenderer } from './renderers/registry';
+import { getEditor } from './editors/registry';
 import { getValidator } from './validators/registry';
 import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse, isNumericLike } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataMap/dataSource';
-import { cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
+import { spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { ViewportColumnsCalculator } from './3rdparty/walkontable/src';
@@ -53,7 +54,7 @@ const deprecationWarns = new Set();
  *
  * ::: only-for react
  * To use these methods, associate a Handsontable instance with your instance
- * of the [`HotTable` component](@/guides/getting-started/installation.md#hottable-component),
+ * of the [`HotTable` component](@/guides/getting-started/installation.md#_4-use-the-hottable-component),
  * by using React's `ref` feature (read more on the [Instance methods](@/guides/getting-started/react-methods.md) page).
  * :::
  *
@@ -504,8 +505,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           } = datamap.createRow(index, amount, { source, mode: insertRowMode });
 
           if (rowDelta) {
-            metaManager.createRow(startRowPhysicalIndex, amount);
-
             const currentSelectedRange = selection.selectedRange.current();
             const currentFromRange = currentSelectedRange?.from;
             const currentFromRow = currentFromRange?.row;
@@ -563,8 +562,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           } = datamap.createCol(index, amount, { source, mode: insertColumnMode });
 
           if (colDelta) {
-            metaManager.createColumn(startColumnPhysicalIndex, amount);
-
             if (Array.isArray(tableMeta.colHeaders)) {
               const spliceArray = [instance.toVisualColumn(startColumnPhysicalIndex), 0];
 
@@ -630,8 +627,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 return;
               }
 
-              metaManager.removeRow(instance.toPhysicalRow(calcIndex), groupAmount);
-
               const totalRows = instance.countRows();
               const fixedRowsTop = tableMeta.fixedRowsTop;
 
@@ -683,8 +678,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               if (!wasRemoved) {
                 return;
               }
-
-              metaManager.removeColumn(physicalColumnIndex, groupAmount);
 
               const fixedColumnsStart = tableMeta.fixedColumnsStart;
 
@@ -1069,9 +1062,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                   const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : (orgValue[0] || orgValue));
                   const valueSchema = duckSchema(Array.isArray(value) ? value : (value[0] || value));
 
-                  /* eslint-disable max-depth */
-                  if (isObjectEqual(orgValueSchema, valueSchema)) {
+                  // Allow overwriting values with the same object-based schema or any array-based schema.
+                  if (
+                    isObjectEqual(orgValueSchema, valueSchema) ||
+                    (Array.isArray(orgValueSchema) && Array.isArray(valueSchema))
+                  ) {
                     value = deepClone(value);
+
                   } else {
                     pushData = false;
                   }
@@ -1175,10 +1172,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.forceFullRender = true; // used when data was changed
     this.view.render();
 
+    // Run the logic only if it's the table's initialization and the root element is not visible.
+    if (!!firstRun && instance.rootElement.offsetParent === null) {
+      observeVisibilityChangeOnce(instance.rootElement, () => {
+        // Update the spreader size cache before rendering.
+        instance.view._wt.wtOverlays.updateLastSpreaderSize();
+        instance.render();
+        instance.view.adjustElementsSize();
+      });
+    }
+
     if (typeof firstRun === 'object') {
       instance.runHooks('afterChange', firstRun[0], firstRun[1]);
+
       firstRun = false;
     }
+
     instance.runHooks('afterInit');
   };
 
@@ -1342,9 +1351,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             delta: numberOfCreatedRows
           } = datamap.createRow(void 0, void 0, { source });
 
-          if (numberOfCreatedRows >= 1) {
-            metaManager.createRow(null, numberOfCreatedRows);
-          } else {
+          if (numberOfCreatedRows === 0) {
             skipThisChange = true;
             break;
           }
@@ -1358,9 +1365,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             delta: numberOfCreatedColumns
           } = datamap.createCol(void 0, void 0, { source });
 
-          if (numberOfCreatedColumns >= 1) {
-            metaManager.createColumn(null, numberOfCreatedColumns);
-          } else {
+          if (numberOfCreatedColumns === 0) {
             skipThisChange = true;
             break;
           }
@@ -2224,6 +2229,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         dataSource,
         internalSource: 'updateData',
         source,
+        metaManager,
         firstRun
       });
   };
@@ -2270,6 +2276,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         dataSource,
         internalSource: 'loadData',
         source,
+        metaManager,
         firstRun
       });
   };
@@ -2908,11 +2915,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} Array of cell values.
    */
   this.getDataAtCol = function(column) {
-    return [].concat(...datamap.getRange(
+    const columnData = [];
+    const dataByRows = datamap.getRange(
       instance._createCellCoords(0, column),
       instance._createCellCoords(tableMeta.data.length - 1, column),
       datamap.DESTINATION_RENDERER
-    ));
+    );
+
+    for (let i = 0; i < dataByRows.length; i += 1) {
+      for (let j = 0; j < dataByRows[i].length; j += 1) {
+        columnData.push(dataByRows[i][j]);
+      }
+    }
+
+    return columnData;
   };
 
   /**
@@ -2926,12 +2942,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   // TODO: Getting data from `datamap` should work on visual indexes.
   this.getDataAtProp = function(prop) {
-    const range = datamap.getRange(
+    const columnData = [];
+    const dataByRows = datamap.getRange(
       instance._createCellCoords(0, datamap.propToCol(prop)),
       instance._createCellCoords(tableMeta.data.length - 1, datamap.propToCol(prop)),
       datamap.DESTINATION_RENDERER);
 
-    return [].concat(...range);
+    for (let i = 0; i < dataByRows.length; i += 1) {
+      for (let j = 0; j < dataByRows[i].length; j += 1) {
+        columnData.push(dataByRows[i][j]);
+      }
+    }
+
+    return columnData;
   };
 
   /**
@@ -3326,16 +3349,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return !(instance.dataType === 'object' || tableMeta.columns);
   };
 
-  const rendererLookup = cellMethodLookupFactory('renderer');
-
   /**
    * Returns the cell renderer function by given `row` and `column` arguments.
    *
    * @memberof Core#
    * @function getCellRenderer
-   * @param {number|object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {number|object} rowOrMeta Visual row index or cell meta object (see {@link Core#getCellMeta}).
    * @param {number} column Visual column index.
-   * @returns {Function} The renderer function.
+   * @returns {Function} Returns the renderer function.
    * @example
    * ```js
    * // Get cell renderer using `row` and `column` coordinates.
@@ -3344,8 +3365,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.getCellRenderer(hot.getCellMeta(1, 1));
    * ```
    */
-  this.getCellRenderer = function(row, column) {
-    return getRenderer(rendererLookup.call(this, row, column));
+  this.getCellRenderer = function(rowOrMeta, column) {
+    const cellRenderer = typeof rowOrMeta === 'number' ?
+      instance.getCellMeta(rowOrMeta, column).renderer : rowOrMeta.renderer;
+
+    if (typeof cellRenderer === 'string') {
+      return getRenderer(cellRenderer);
+    }
+
+    return isUndefined(cellRenderer) ? getRenderer('text') : cellRenderer;
   };
 
   /**
@@ -3353,9 +3381,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getCellEditor
-   * @param {number} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {number} rowOrMeta Visual row index or cell meta object (see {@link Core#getCellMeta}).
    * @param {number} column Visual column index.
-   * @returns {Function} The editor class.
+   * @returns {Function|boolean} Returns the editor class or `false` is cell editor is disabled.
    * @example
    * ```js
    * // Get cell editor class using `row` and `column` coordinates.
@@ -3364,34 +3392,42 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.getCellEditor(hot.getCellMeta(1, 1));
    * ```
    */
-  this.getCellEditor = cellMethodLookupFactory('editor');
+  this.getCellEditor = function(rowOrMeta, column) {
+    const cellEditor = typeof rowOrMeta === 'number' ?
+      instance.getCellMeta(rowOrMeta, column).editor : rowOrMeta.editor;
 
-  const validatorLookup = cellMethodLookupFactory('validator');
+    if (typeof cellEditor === 'string') {
+      return getEditor(cellEditor);
+    }
+
+    return isUndefined(cellEditor) ? getEditor('text') : cellEditor;
+  };
 
   /**
    * Returns the cell validator by `row` and `column`.
    *
    * @memberof Core#
    * @function getCellValidator
-   * @param {number|object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {number|object} rowOrMeta Visual row index or cell meta object (see {@link Core#getCellMeta}).
    * @param {number} column Visual column index.
    * @returns {Function|RegExp|undefined} The validator function.
    * @example
    * ```js
-   * // Get cell valiator using `row` and `column` coordinates.
+   * // Get cell validator using `row` and `column` coordinates.
    * hot.getCellValidator(1, 1);
-   * // Get cell valiator using cell meta object.
+   * // Get cell validator using cell meta object.
    * hot.getCellValidator(hot.getCellMeta(1, 1));
    * ```
    */
-  this.getCellValidator = function(row, column) {
-    let validator = validatorLookup.call(this, row, column);
+  this.getCellValidator = function(rowOrMeta, column) {
+    const cellValidator = typeof rowOrMeta === 'number' ?
+      instance.getCellMeta(rowOrMeta, column).validator : rowOrMeta.validator;
 
-    if (typeof validator === 'string') {
-      validator = getValidator(validator);
+    if (typeof cellValidator === 'string') {
+      return getValidator(cellValidator);
     }
 
-    return validator;
+    return cellValidator;
   };
 
   /**
@@ -3590,18 +3626,46 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns an array of column headers (in string format, if they are enabled). If param `column` is given, it
-   * returns the header at the given column.
+   * Gets the values of column headers (if column headers are [enabled](@/api/options.md#colheaders)).
+   *
+   * To get an array with the values of all
+   * [bottom-most](@/guides/cell-features/clipboard.md#copy-with-headers) column headers,
+   * call `getColHeader()` with no arguments.
+   *
+   * To get the value of the bottom-most header of a specific column, use the `column` parameter.
+   *
+   * To get the value of a [specific-level](@/guides/columns/column-groups.md) header
+   * of a specific column, use the `column` and `headerLevel` parameters.
+   *
+   * Read more:
+   * - [Guides: Column groups](@/guides/columns/column-groups.md)
+   * - [Options: `colHeaders`](@/api/options.md#colheaders)
+   * - [Guides: Copy with headers](@/guides/cell-features/clipboard.md#copy-with-headers)
+   *
+   * ```js
+   * // get the contents of all bottom-most column headers
+   * hot.getColHeader();
+   *
+   * // get the contents of the bottom-most header of a specific column
+   * hot.getColHeader(5);
+   *
+   * // get the contents of a specific column header at a specific level
+   * hot.getColHeader(5, -2);
+   * ```
    *
    * @memberof Core#
    * @function getColHeader
-   * @param {number} [column] Visual column index.
+   * @param {number} [column] A visual column index.
+   * @param {number} [headerLevel=-1] (Since 12.3.0) Header level index. Accepts positive (0 to n)
+   *                                  and negative (-1 to -n) values. For positive values, 0 points to the
+   *                                  topmost header. For negative values, -1 points to the bottom-most
+   *                                  header (the header closest to the cells).
    * @fires Hooks#modifyColHeader
-   * @returns {Array|string|number} The column header(s).
+   * @fires Hooks#modifyColumnHeaderValue
+   * @returns {Array|string|number} Column header values.
    */
-  this.getColHeader = function(column) {
+  this.getColHeader = function(column, headerLevel = -1) {
     const columnIndex = instance.runHooks('modifyColHeader', column);
-    let result = tableMeta.colHeaders;
 
     if (columnIndex === void 0) {
       const out = [];
@@ -3611,48 +3675,51 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         out.push(instance.getColHeader(i));
       }
 
-      result = out;
-
-    } else {
-      const translateVisualIndexToColumns = function(visualColumnIndex) {
-        const arr = [];
-        const columnsLen = instance.countCols();
-        let index = 0;
-
-        for (; index < columnsLen; index++) {
-          if (isFunction(tableMeta.columns) && tableMeta.columns(index)) {
-            arr.push(index);
-          }
-        }
-
-        return arr[visualColumnIndex];
-      };
-
-      const physicalColumn = instance.toPhysicalColumn(columnIndex);
-      const prop = translateVisualIndexToColumns(physicalColumn);
-
-      if (tableMeta.colHeaders === false) {
-        result = null;
-
-      } else if (tableMeta.columns && isFunction(tableMeta.columns) && tableMeta.columns(prop) &&
-                 tableMeta.columns(prop).title) {
-        result = tableMeta.columns(prop).title;
-
-      } else if (tableMeta.columns && tableMeta.columns[physicalColumn] &&
-                 tableMeta.columns[physicalColumn].title) {
-        result = tableMeta.columns[physicalColumn].title;
-
-      } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== void 0) {
-        result = tableMeta.colHeaders[physicalColumn];
-
-      } else if (isFunction(tableMeta.colHeaders)) {
-        result = tableMeta.colHeaders(physicalColumn);
-
-      } else if (tableMeta.colHeaders && typeof tableMeta.colHeaders !== 'string' &&
-                 typeof tableMeta.colHeaders !== 'number') {
-        result = spreadsheetColumnLabel(columnIndex); // see #1458
-      }
+      return out;
     }
+
+    let result = tableMeta.colHeaders;
+
+    const translateVisualIndexToColumns = function(visualColumnIndex) {
+      const arr = [];
+      const columnsLen = instance.countCols();
+      let index = 0;
+
+      for (; index < columnsLen; index++) {
+        if (isFunction(tableMeta.columns) && tableMeta.columns(index)) {
+          arr.push(index);
+        }
+      }
+
+      return arr[visualColumnIndex];
+    };
+
+    const physicalColumn = instance.toPhysicalColumn(columnIndex);
+    const prop = translateVisualIndexToColumns(physicalColumn);
+
+    if (tableMeta.colHeaders === false) {
+      result = null;
+
+    } else if (tableMeta.columns && isFunction(tableMeta.columns) && tableMeta.columns(prop) &&
+               tableMeta.columns(prop).title) {
+      result = tableMeta.columns(prop).title;
+
+    } else if (tableMeta.columns && tableMeta.columns[physicalColumn] &&
+               tableMeta.columns[physicalColumn].title) {
+      result = tableMeta.columns[physicalColumn].title;
+
+    } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== void 0) {
+      result = tableMeta.colHeaders[physicalColumn];
+
+    } else if (isFunction(tableMeta.colHeaders)) {
+      result = tableMeta.colHeaders(physicalColumn);
+
+    } else if (tableMeta.colHeaders && typeof tableMeta.colHeaders !== 'string' &&
+               typeof tableMeta.colHeaders !== 'number') {
+      result = spreadsheetColumnLabel(columnIndex); // see #1458
+    }
+
+    result = instance.runHooks('modifyColumnHeaderValue', result, column, headerLevel);
 
     return result;
   };
@@ -3760,14 +3827,29 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the row height.
+   * Returns a row's height, as recognized by Handsontable.
    *
-   * Mind that this method is different from the [AutoRowSize](@/api/autoRowSize.md) plugin's [`getRowHeight()`](@/api/autoRowSize.md#getrowheight) method.
+   * Depending on your configuration, the method returns (in order of priority):
+   *   1. The row height set by the [`ManualRowResize`](@/api/manualRowResize.md) plugin
+   *     (if the plugin is enabled).
+   *   2. The row height set by the [`rowHeights`](@/api/options.md#rowheights) configuration option
+   *     (if the option is set).
+   *   3. The row height as measured in the DOM by the [`AutoRowSize`](@/api/autoRowSize.md) plugin
+   *     (if the plugin is enabled).
+   *   4. `undefined`, if neither [`ManualRowResize`](@/api/manualRowResize.md),
+   *     nor [`rowHeights`](@/api/options.md#rowheights),
+   *     nor [`AutoRowSize`](@/api/autoRowSize.md) is used.
+   *
+   * The height returned includes 1 px of the row's bottom border.
+   *
+   * Mind that this method is different from the
+   * [`getRowHeight()`](@/api/autoRowSize.md#getrowheight) method
+   * of the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
    *
    * @memberof Core#
    * @function getRowHeight
-   * @param {number} row Visual row index.
-   * @returns {number} The given row's height.
+   * @param {number} row A visual row index.
+   * @returns {number|undefined} The height of the specified row, in pixels.
    * @fires Hooks#modifyRowHeight
    */
   this.getRowHeight = function(row) {
@@ -3946,35 +4028,48 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Select cell specified by `row` and `column` values or a range of cells finishing at `endRow`, `endCol`. If the table
-   * was configured to support data column properties that properties can be used to making a selection.
+   * Select a single cell, or a single range of adjacent cells.
    *
-   * By default, viewport will be scrolled to the selection. After the `selectCell` method had finished, the instance
-   * will be listening to keyboard input on the document.
+   * To select a cell, pass its visual row and column indexes, for example: `selectCell(2, 4)`.
+   *
+   * To select a range, pass the visual indexes of the first and last cell in the range, for example: `selectCell(2, 4, 3, 5)`.
+   *
+   * If your columns have properties, you can pass those properties' values instead of column indexes, for example: `selectCell(2, 'first_name')`.
+   *
+   * By default, `selectCell()` also:
+   *  - Scrolls the viewport to the newly-selected cells.
+   *  - Switches the keyboard focus to Handsontable (by calling Handsontable's [`listen()`](#listen) method).
    *
    * @example
    * ```js
    * // select a single cell
    * hot.selectCell(2, 4);
-   * // select a single cell using column property
-   * hot.selectCell(2, 'address');
+   *
    * // select a range of cells
    * hot.selectCell(2, 4, 3, 5);
-   * // select a range of cells using column properties
-   * hot.selectCell(2, 'address', 3, 'phone_number');
-   * // select a range of cells without scrolling to them
-   * hot.selectCell(2, 'address', 3, 'phone_number', false);
+   *
+   * // select a single cell, using a column property
+   * hot.selectCell(2, 'first_name');
+   *
+   * // select a range of cells, using column properties
+   * hot.selectCell(2, 'first_name', 3, 'last_name');
+   *
+   * // select a range of cells, without scrolling to them
+   * hot.selectCell(2, 4, 3, 5, false);
+   *
+   * // select a range of cells, without switching the keyboard focus to Handsontable
+   * hot.selectCell(2, 4, 3, 5, null, false);
    * ```
    *
    * @memberof Core#
    * @function selectCell
-   * @param {number} row Visual row index.
-   * @param {number|string} column Visual column index or column property.
-   * @param {number} [endRow] Visual end row index (if selecting a range).
-   * @param {number|string} [endColumn] Visual end column index or column property (if selecting a range).
-   * @param {boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
-   * @param {boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
-   * @returns {boolean} `true` if selection was successful, `false` otherwise.
+   * @param {number} row A visual row index.
+   * @param {number|string} column A visual column index (`number`), or a column property's value (`string`).
+   * @param {number} [endRow] If selecting a range: the visual row index of the last cell in the range.
+   * @param {number|string} [endColumn] If selecting a range: the visual column index (or a column property's value) of the last cell in the range.
+   * @param {boolean} [scrollToCell=true] `true`: scroll the viewport to the newly-selected cells. `false`: keep the previous viewport.
+   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the previous keyboard focus.
+   * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
    */
   this.selectCell = function(row, column, endRow, endColumn, scrollToCell = true, changeListener = true) {
     if (isUndefined(row) || isUndefined(column)) {
@@ -3985,24 +4080,48 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Make multiple, non-contiguous selection specified by `row` and `column` values or a range of cells
-   * finishing at `endRow`, `endColumn`. The method supports two input formats which are the same as that
-   * produces by `getSelected` and `getSelectedRange` methods.
+   * Select multiple cells or ranges of cells, adjacent or non-adjacent.
    *
-   * By default, viewport will be scrolled to selection. After the `selectCells` method had finished, the instance
-   * will be listening to keyboard input on the document.
+   * You can pass one of the below:
+   * - An array of arrays (which matches the output of Handsontable's [`getSelected()`](#getselected) method).
+   * - An array of [`CellRange`](@/api/cellRange.md) objects (which matches the output of Handsontable's [`getSelectedRange()`](#getselectedrange) method).
+   *
+   * To select multiple cells, pass the visual row and column indexes of each cell, for example: `hot.selectCells([[1, 1], [5, 5]])`.
+   *
+   * To select multiple ranges, pass the visual indexes of the first and last cell in each range, for example: `hot.selectCells([[1, 1, 2, 2], [6, 2, 0, 2]])`.
+   *
+   * If your columns have properties, you can pass those properties' values instead of column indexes, for example: `hot.selectCells([[1, 'first_name'], [5, 'last_name']])`.
+   *
+   * By default, `selectCell()` also:
+   *  - Scrolls the viewport to the newly-selected cells.
+   *  - Switches the keyboard focus to Handsontable (by calling Handsontable's [`listen()`](#listen) method).
    *
    * @example
    * ```js
-   * // Using an array of arrays.
+   * // select non-adjacent cells
+   * hot.selectCells([[1, 1], [5, 5], [10, 10]]);
+   *
+   * // select non-adjacent ranges of cells
+   * hot.selectCells([[1, 1, 2, 2], [10, 10, 20, 20]]);
+   *
+   * // select cells and ranges of cells
    * hot.selectCells([[1, 1, 2, 2], [3, 3], [6, 2, 0, 2]]);
-   * // Using an array of arrays with defined columns as props.
+   *
+   * // select cells, using column properties
    * hot.selectCells([[1, 'id', 2, 'first_name'], [3, 'full_name'], [6, 'last_name', 0, 'first_name']]);
-   * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
+   *
+   * // select multiple ranges, using an array of `CellRange` objects
    * const selected = hot.getSelectedRange();
    *
    * selected[0].from.row = 0;
    * selected[0].from.col = 0;
+   * selected[0].to.row = 5;
+   * selected[0].to.col = 5;
+   *
+   * selected[1].from.row = 10;
+   * selected[1].from.col = 10;
+   * selected[1].to.row = 20;
+   * selected[1].to.col = 20;
    *
    * hot.selectCells(selected);
    * ```
@@ -4010,12 +4129,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @since 0.38.0
    * @function selectCells
-   * @param {Array[]|CellRange[]} coords Visual coords passed as an array of array (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
-   *                                     the same format as `getSelected` method returns or as an CellRange objects
-   *                                     which is the same format what `getSelectedRange` method returns.
-   * @param {boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
-   * @param {boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
-   * @returns {boolean} `true` if selection was successful, `false` otherwise.
+   * @param {Array[]|CellRange[]} coords Visual coordinates,
+   * passed either as an array of arrays (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
+   * or as an array of [`CellRange`](@/api/cellRange.md) objects.
+   * @param {boolean} [scrollToCell=true] `true`: scroll the viewport to the newly-selected cells. `false`: keep the previous viewport.
+   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the previous keyboard focus.
+   * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
    */
   this.selectCells = function(coords = [[]], scrollToCell = true, changeListener = true) {
     if (scrollToCell === false) {
@@ -4093,13 +4212,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Select the whole table. The previous selection will be overwritten.
+   * Select the whole table.
+   *
+   * The previous selection is overwritten.
+   *
+   * ```js
+   * // select all cells in the table, including all headers
+   * hot.selectAll();
+   *
+   * // select all cells in the table, without headers
+   * hot.selectAll(false);
+   * ```
    *
    * @since 0.38.2
    * @memberof Core#
    * @function selectAll
-   * @param {boolean} [includeHeaders=true] `true` If the selection should include the row, column and corner headers,
-   * `false` otherwise.
+   * @param {boolean} [includeHeaders=true] `true`: include all row, column and corner headers.
+   * `false`: don't include any headers.
    */
   this.selectAll = function(includeHeaders = true) {
     const includeRowHeaders = includeHeaders && this.hasRowHeaders();
@@ -4203,7 +4332,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     metaManager.clearCache();
 
     if (isRootInstance(instance)) {
-      const licenseInfo = this.rootDocument.querySelector('#hot-display-license-info');
+      const licenseInfo = this.rootDocument.querySelector('.hot-display-license-info');
 
       if (licenseInfo) {
         licenseInfo.parentNode.removeChild(licenseInfo);
@@ -4597,6 +4726,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.runHooks('afterDocumentKeyDown', event);
     },
     ownerWindow: this.rootWindow,
+  });
+
+  this.addHook('beforeOnCellMouseDown', (event) => {
+    // Releasing keys as some browser/system shortcuts break events sequence (thus the `keyup` event isn't triggered).
+    if (event.ctrlKey === false && event.metaKey === false) {
+      shortcutManager.releasePressedKeys();
+    }
   });
 
   /**

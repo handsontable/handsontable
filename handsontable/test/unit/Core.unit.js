@@ -16,9 +16,13 @@ import {
 import {
   registerCellType,
   CheckboxCellType,
+  TextCellType,
 } from 'handsontable/cellTypes';
+import { IntersectionObserverMock } from '../__mocks__/intersectionObserverMock';
+import { ResizeObserverMock } from '../__mocks__/resizeObserverMock';
 
 registerCellType(CheckboxCellType);
+registerCellType(TextCellType);
 
 registerPlugin(AutoColumnSize);
 registerPlugin(AutoRowSize);
@@ -35,12 +39,22 @@ registerPlugin(TrimRows);
 describe('Core', () => {
   let container;
 
+  beforeAll(() => {
+    window.IntersectionObserver = IntersectionObserverMock;
+    window.ResizeObserver = ResizeObserverMock;
+  });
+
   beforeEach(() => {
     container = document.createElement('div');
   });
 
   afterEach(() => {
     container.remove();
+  });
+
+  afterAll(() => {
+    delete window.IntersectionObserver;
+    delete window.ResizeObserver;
   });
 
   it('should reset cache only once after initialization with an Array of Arrays data source', () => {

@@ -1,4 +1,5 @@
 ---
+id: if13we5c
 title: Autofill values
 metaTitle: Autofill values - JavaScript Data Grid | Handsontable
 description: Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable's API.
@@ -13,6 +14,7 @@ tags:
   - auto-fill
   - auto fill
 react:
+  id: m4x3zpiw
   metaTitle: Autofill values - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -30,8 +32,10 @@ Using the tiny square known as the 'fill handle' in the corner of the selected c
 ::: only-for javascript
 ::: example #example1
 ```js
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
   ['2017', 10, 11, 12, 13],
@@ -58,7 +62,6 @@ hot.loadData(data);
 ::: only-for react
 ::: example #example1 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -66,7 +69,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
     ['2017', 10, 11, 12, 13],
@@ -88,7 +91,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -101,8 +106,10 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 ::: only-for javascript
 ::: example #example2
 ```js
-const container = document.querySelector('#example2');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example2');
 const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
   ['2017', 10, 11, 12, 13],
@@ -130,7 +137,6 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -138,7 +144,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   const data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
     ['2017', 10, 11, 12, 13],
@@ -163,7 +169,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::

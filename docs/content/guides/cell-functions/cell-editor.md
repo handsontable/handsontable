@@ -1,10 +1,12 @@
 ---
+id: u00oul7m
 title: Cell editor
 metaTitle: Cell editor - JavaScript Data Grid | Handsontable
 description: Create a custom cell editor function, to have full control over how editing works in the cells of your data grid.
 permalink: /cell-editor
 canonicalUrl: /cell-editor
 react:
+  id: 6i8ttta0
   metaTitle: Cell editor - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -28,7 +30,7 @@ This tutorial will give you a comprehensive understanding of how the whole proce
 
 You can use React components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/react`.
 
-This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close`, and `focus` methods, which are abstract in the `BaseEditor`. For more info, check the section on [creating custom editors from scratch](#selecteditor-creating-editor-from-scratch).
+This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close`, and `focus` methods, which are abstract in the `BaseEditor`. For more info, check the section on [creating custom editors from scratch](#how-to-create-a-custom-editor).
 
 It's also worth noting that by default, the editors in Handsontable will close after clicking on them if the `outsideClickDeselects` option is enabled.
 To prevent that, the `mousedown` event on the editor container must call `event.stopPropagation()`.
@@ -40,8 +42,6 @@ Note that in case of React 16 and older, it wouldn't work out of the box because
 ::: example #example1 :react --tab preview
 ```jsx
 import React from 'react';
-import ReactDOM from 'react-dom';
-import Handsontable from 'handsontable';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/react';
 import 'handsontable/dist/handsontable.full.min.css';
 
@@ -155,7 +155,7 @@ const data = [
     ['Dean Stapleton']
 ];
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       data={data}
@@ -170,7 +170,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 
@@ -182,8 +184,6 @@ The following example implements the `@handsontable/react` component with a cust
 
 ::: example #example2 :react  --no-edit
 ```jsx
-import React from 'react';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
@@ -193,10 +193,6 @@ import 'handsontable/dist/handsontable.full.min.css';
 registerAllModules();
 
 class CustomEditor extends TextEditor {
-  constructor(props) {
-    super(props);
-  }
-
   createElements() {
     super.createElements();
 
@@ -209,7 +205,7 @@ class CustomEditor extends TextEditor {
   }
 }
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
       id="hot"
@@ -226,7 +222,9 @@ const ExampleComponent = () => {
   );
 }
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 
@@ -359,7 +357,7 @@ Common methods, are methods implemented by [`BaseEditor`](@/api/baseEditor.md) c
 **Example** - overriding common method
 
 ```js
-// CustomEditor is a class, inheriting form BaseEditor
+// CustomEditor is a class, inheriting from BaseEditor
 class CustomEditor extends BaseEditor {
   prepare(row, col, prop, td, originalValue, cellProperties) {
     // Invoke the original method...
@@ -529,7 +527,7 @@ class CalendarEditor extends TextEditor {
     return calendar.getDate();
   }
 
-  setValue() {
+  setValue(newValue) {
     // highlights given date on calendar
     calendar.highlightDate(newValue);
   }
@@ -623,7 +621,7 @@ All the undermentioned properties are available in editor instance through `this
 ### How to create a custom editor?
 :::
 
-Now you know the philosophy behind the Handsontable editors and you're ready to write your own editor. Basically, you can build a new editor from scratch, by creating a new editor class, which inherits form [`BaseEditor`](@/api/baseEditor.md), or if you just want to enhance an existing editor, you can extend its class and override only a few of its methods.
+Now you know the philosophy behind the Handsontable editors and you're ready to write your own editor. Basically, you can build a new editor from scratch, by creating a new editor class, which inherits from [`BaseEditor`](@/api/baseEditor.md), or if you just want to enhance an existing editor, you can extend its class and override only a few of its methods.
 
 In this tutorial we will examine both approaches. We will create a completely new `SelectEditor` which uses `<select>` list to alter the value of cell. We will also create a `PasswordEditor` which works exactly like regular `TextEditor` except that it displays a password input instead of textarea.
 
@@ -657,7 +655,7 @@ class PasswordEditor extends Handsontable.editors.TextEditor {
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
 
-    Handsontable.dom.empty(this.TEXTAREA_PARENT);
+    this.TEXTAREA_PARENT.innerText = '';
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }
@@ -668,7 +666,6 @@ That's it! You can now use your new editor:
 ::: only-for javascript
 ```js
 const container = document.querySelector('#container')
-
 const hot = new Handsontable(container, {
   columns: [
     {
@@ -777,7 +774,7 @@ class SelectEditor extends Handsontable.editors.BaseEditor {
   init() {
     // Create detached node, add CSS class and make sure its not visible
     this.select = this.hot.rootDocument.createElement('SELECT');
-    Handsontable.dom.addClass(this.select, 'htSelectEditor');
+    this.select.classList.add('htSelectEditor');
     this.select.style.display = 'none';
 
     // Attach node to DOM, by appending it to the container holding the table
@@ -814,7 +811,6 @@ We want to be able to define an option list like this:
 ::: only-for javascript
 ```js
 const container = document.querySelector('#container')
-
 const hot = new Handsontable(container, {
   columns: [
     {
@@ -858,13 +854,12 @@ prepare(row, col, prop, td, originalValue, cellProperties) {
     options = this.prepareOptions(selectOptions);
   }
 
-  Handsontable.dom.empty(this.select);
+  this.select.innerText = '';
 
-  Handsontable.helper.objectEach(options, (value, key) => {
+  Object.keys(options).forEach((key) => {
     const optionElement = this.hot.rootDocument.createElement('OPTION');
     optionElement.value = key;
-
-    Handsontable.dom.fastInnerHTML(optionElement, value);
+    optionElement.innerText = options[key];
     this.select.appendChild(optionElement);
   });
 }
@@ -995,21 +990,21 @@ onBeforeKeyDown() {
   const nextOptionIndex = this.select.selectedIndex + 1;
 
   switch (event.keyCode) {
-    case Handsontable.helper.KEY_CODES.ARROW_UP:
+    case 38: // Arrow Up
       if (previousOptionIndex >= 0) {
         this.select[previousOptionIndex].selected = true;
       }
 
-      Handsontable.dom.stopImmediatePropagation(event);
+      event.stopImmediatePropagation();
       event.preventDefault();
       break;
 
-    case Handsontable.helper.KEY_CODES.ARROW_DOWN:
+    case 40: // Arrow Down
       if (nextOptionIndex <= this.select.length - 1){
         this.select[nextOptionIndex].selected=true;
       }
 
-      Handsontable.dom.stopImmediatePropagation(event);
+      event.stopImmediatePropagation();
       event.preventDefault();
       break;
 

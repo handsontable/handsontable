@@ -1,10 +1,12 @@
 ---
+id: epmvqw9m
 title: Formatting cells
 metaTitle: Formatting cells - JavaScript Data Grid | Handsontable
 description: Change the appearance of cells, using custom CSS classes, inline styles, or custom cell borders.
 permalink: /formatting-cells
 canonicalUrl: /formatting-cells
 react:
+  id: qywqgovy
   metaTitle: Formatting cells - React Data Grid | Handsontable
 searchCategory: Guides
 ---
@@ -36,10 +38,18 @@ td.custom-cell {
 }
 ```
 ```javascript
-const container = document.querySelector('#example1');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5'],
+  ],
   rowHeaders: true,
   colHeaders: true,
   stretchH: 'all',
@@ -71,8 +81,6 @@ td.custom-cell {
 }
 ```
 ```jsx
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -80,10 +88,16 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
-      data={Handsontable.helper.createSpreadsheetData(5, 5)}
+      data={[
+        ['A1', 'B1', 'C1', 'D1', 'E1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4'],
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+      ]}
       rowHeaders={true}
       colHeaders={true}
       stretchH="all"
@@ -99,7 +113,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example1'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -112,20 +128,26 @@ You can apply inline styles directly to the DOM element using its `style` proper
 ::: only-for javascript
 ::: example #example2
 ```javascript
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+
+Handsontable.renderers.registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
+  Handsontable.renderers.TextRenderer(hotInstance, TD, ...rest);
+
+  TD.style.fontWeight = 'bold';
+  TD.style.color = 'green';
+  TD.style.background = '#d7f1e1';
+});
+
 const container = document.querySelector('#example2');
-
-Handsontable
-  .renderers
-  .registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
-    Handsontable.renderers.getRenderer('text')(hotInstance, TD, ...rest);
-
-    TD.style.fontWeight = 'bold';
-    TD.style.color = 'green';
-    TD.style.background = '#d7f1e1';
-  });
-
 const hot = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5'],
+  ],
   rowHeaders: true,
   colHeaders: true,
   stretchH: 'all',
@@ -146,29 +168,32 @@ const hot = new Handsontable(container, {
 ::: only-for react
 ::: example #example2 :react
 ```jsx
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import { textRenderer, registerRenderer } from 'handsontable/renderers';
 import 'handsontable/dist/handsontable.full.min.css';
 
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
-  Handsontable
-    .renderers
-    .registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
-      Handsontable.renderers.getRenderer('text')(hotInstance, TD, ...rest);
+export const ExampleComponent = () => {
+  registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
+    textRenderer(hotInstance, TD, ...rest);
 
-      TD.style.fontWeight = 'bold';
-      TD.style.color = 'green';
-      TD.style.background = '#d7f1e1';
-    });
+    TD.style.fontWeight = 'bold';
+    TD.style.color = 'green';
+    TD.style.background = '#d7f1e1';
+  });
 
   return (
     <HotTable
-      data={Handsontable.helper.createSpreadsheetData(5, 5)}
+      data={[
+        ['A1', 'B1', 'C1', 'D1', 'E1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4'],
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+      ]}
       rowHeaders={true}
       colHeaders={true}
       stretchH="all"
@@ -183,7 +208,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example2'));
+/* end:skip-in-preview */
 ```
 :::
 :::
@@ -202,10 +229,18 @@ The `start` and `end` properties used to be called `left` and `right` before Han
 ::: only-for javascript
 ::: example #example3
 ```js
-const container = document.getElementById('example3');
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
 
+const container = document.querySelector('#example3');
 const hot = Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 6),
+  data: [
+    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5'],
+  ],
   rowHeaders: true,
   colHeaders: true,
   stretchH: 'all',
@@ -261,8 +296,6 @@ const hot = Handsontable(container, {
 ::: only-for react
 ::: example #example3 :react
 ```jsx
-import Handsontable from 'handsontable';
-import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
@@ -270,10 +303,16 @@ import 'handsontable/dist/handsontable.full.min.css';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
+export const ExampleComponent = () => {
   return (
     <HotTable
-      data={Handsontable.helper.createSpreadsheetData(5, 6)}
+      data={[
+        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3', 'F3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4', 'F4'],
+        ['A5', 'B5', 'C5', 'D5', 'E5', 'F5'],
+      ]}
       rowHeaders={true}
       colHeaders={true}
       stretchH="all"
@@ -324,7 +363,9 @@ const ExampleComponent = () => {
   );
 };
 
+/* start:skip-in-preview */
 ReactDOM.render(<ExampleComponent />, document.getElementById('example3'));
+/* end:skip-in-preview */
 ```
 :::
 :::
