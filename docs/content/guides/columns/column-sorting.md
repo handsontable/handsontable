@@ -20,7 +20,7 @@ Sort the view (not the source data) in ascending, descending, or a custom order,
 ## This guide has been moved permanently
 
 ::: tip
-Visit the [Row sorting](@/guides/rows/row-sorting.md) page to learn about sorting data in Handsontable.
+Visit the [Rows sorting](@/guides/rows/rows-sorting.md) page to learn about sorting data in Handsontable.
 :::
 
 ## Why and when it's been moved
