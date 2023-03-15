@@ -21,12 +21,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed an issue where column-filter checkboxes were resetting when the table was scrolled out
   of view. We solved this by preventing the table from triggering a complete render each time it
   goes outside of the viewport. [#10206](https://github.com/handsontable/handsontable/pull/10206)
-- Fixed an issue where clicking on a cell in certain RTL configurations scrolled the table sideways.
+- Fixed an issue where clicking on a cell scrolled the table sideways in certain RTL configurations.
   [#10206](https://github.com/handsontable/handsontable/pull/10206)
 - Fixed an issue where calling
   [`getDataAtCol()`](https://handsontable.com/docs/javascript-data-grid/api/core/#getdataatcol) or
-  [`getDataAtProp()`](https://handsontable.com/docs/javascript-data-grid/api/core/#getdataatprop) on
-  data sets with more than 125 000 rows caused an error.
+  [`getDataAtProp()`](https://handsontable.com/docs/javascript-data-grid/api/core/#getdataatprop) caused an error when the data set had more than 125 000 rows.
   [#10226](https://github.com/handsontable/handsontable/pull/10226)
 - React: Fixed React 18 warnings about deprecated lifecycle methods. We removed
   `componentWillMount()` and `componentWillUpdate()` from Handsontable's codebase and recreated
