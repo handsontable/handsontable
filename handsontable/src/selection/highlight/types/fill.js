@@ -8,7 +8,7 @@ import VisualSelection from '../visualSelection';
  * @param {object} highlightParams A configuration object to create a highlight.
  * @returns {Selection}
  */
-function createHighlight({ ...restOptions }) {
+export function createHighlight({ ...restOptions }) {
   const s = new VisualSelection({
     className: 'fill',
     border: {
@@ -21,5 +21,3 @@ function createHighlight({ ...restOptions }) {
 
   return s;
 }
-
-export default createHighlight;

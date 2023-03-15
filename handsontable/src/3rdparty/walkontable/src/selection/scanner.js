@@ -19,49 +19,35 @@ export class SelectionScanner {
 
   scanColumnsInHeadersRange() {
     const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
-    const { highlightOnlyClosestHeader, selectionType } = this.#selection.settings;
-    const isFocusType = selectionType === 'focus';
-    const headers = [];
+    const headers = new Set();
 
+    // TODO: remove this
     if (topColumn === null || bottomColumn === null) {
-      return headers;
-    }
-
-    // if (!isFocusType && (topColumn < 0 || bottomColumn < 0)) {
-    //   return headers;
-    // }
-
-    if (selectionType === 'active-header' && topRow >= 0 && bottomRow >= 0) {
       return headers;
     }
 
     const { wtTable } = this.#activeOverlaysWot;
     const renderedColumnsCount = wtTable.getRenderedColumnsCount();
-    let rowHeadersCount = selectionType === 'header' ? 0 : -wtTable.getRowHeadersCount();
+    const columnHeadersCount = wtTable.getColumnHeadersCount();
     let cursor = 0;
 
-    for (let column = rowHeadersCount; column < renderedColumnsCount; column++) {
-      const sourceColumn = this.#activeOverlaysWot.wtTable.columnFilter.renderedToSource(column);
+    for (let column = -wtTable.getRowHeadersCount(); column < renderedColumnsCount; column++) {
+      const sourceColumn = wtTable.columnFilter.renderedToSource(column);
 
       if (sourceColumn < topColumn || sourceColumn > bottomColumn) {
         continue;
       }
 
-      let THs = this.#activeOverlaysWot.wtTable.getColumnHeaders(sourceColumn);
-      const closestHeaderLevel = THs.length - 1;
+      for (let headerLevel = -columnHeadersCount; headerLevel < 0; headerLevel++) {
+        if (headerLevel < topRow || headerLevel > bottomRow) {
+          continue;
+        }
 
-      if (highlightOnlyClosestHeader && THs.length > 1) {
-        THs = [THs[closestHeaderLevel]];
-      }
-
-      for (let headerLevel = 0; headerLevel < THs.length; headerLevel += 1) {
-        let TH = THs[headerLevel];
-
-        headerLevel = highlightOnlyClosestHeader ? closestHeaderLevel : headerLevel;
-
+        const positiveBasedHeaderLevel = headerLevel + columnHeadersCount;
+        let TH = wtTable.getColumnHeader(sourceColumn, positiveBasedHeaderLevel);
         const newSourceCol = this.#activeOverlaysWot
-          .getSetting('onBeforeHighlightingColumnHeader', sourceColumn, headerLevel, {
-            selectionType,
+          .getSetting('onBeforeHighlightingColumnHeader', sourceColumn, positiveBasedHeaderLevel, {
+            selectionType: this.#selection.settings.selectionType,
             columnCursor: cursor,
             selectionWidth: bottomColumn - topColumn + 1,
           });
@@ -71,12 +57,10 @@ export class SelectionScanner {
         }
 
         if (newSourceCol !== sourceColumn) {
-          TH = this.#activeOverlaysWot.wtTable.getColumnHeader(newSourceCol, headerLevel);
+          TH = wtTable.getColumnHeader(newSourceCol, positiveBasedHeaderLevel);
         }
 
-        if (!isFocusType || isFocusType && topRow < 0 && THs.length + topRow === headerLevel) {
-          headers.push(TH);
-        }
+        headers.add(TH);
       }
 
       cursor += 1;
@@ -87,52 +71,35 @@ export class SelectionScanner {
 
   scanRowsInHeadersRange() {
     const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
-    const { highlightOnlyClosestHeader, selectionType } = this.#selection.settings;
-    const isFocusType = selectionType === 'focus';
-    const headers = [];
+    const headers = new Set();
 
+    // TODO: remove this
     if (topRow === null || bottomRow === null) {
-      return headers;
-    }
-
-    // if (!isFocusType && (topRow < 0 || bottomRow < 0)) {
-    //   return headers;
-    // }
-
-    if (selectionType === 'header' && (topColumn < 0 || bottomColumn < 0)) {
-      return headers;
-    }
-    if (selectionType === 'active-header' && topColumn >= 0 && bottomColumn >= 0) {
       return headers;
     }
 
     const { wtTable } = this.#activeOverlaysWot;
     const renderedRowsCount = wtTable.getRenderedRowsCount();
-    const columnHeadersCount = selectionType === 'header' ? 0 : -wtTable.getColumnHeadersCount();
+    const rowHeadersCount = wtTable.getRowHeadersCount();
     let cursor = 0;
 
-    for (let row = columnHeadersCount; row < renderedRowsCount; row++) {
-      const sourceRow = this.#activeOverlaysWot.wtTable.rowFilter.renderedToSource(row);
+    for (let row = -wtTable.getColumnHeadersCount(); row < renderedRowsCount; row++) {
+      const sourceRow = wtTable.rowFilter.renderedToSource(row);
 
       if (sourceRow < topRow || sourceRow > bottomRow) {
         continue;
       }
 
-      let THs = this.#activeOverlaysWot.wtTable.getRowHeaders(sourceRow);
-      const closestHeaderLevel = THs.length - 1;
+      for (let headerLevel = -rowHeadersCount; headerLevel < 0; headerLevel++) {
+        if (headerLevel < topColumn || headerLevel > bottomColumn) {
+          continue;
+        }
 
-      if (highlightOnlyClosestHeader && THs.length > 1) {
-        THs = [THs[closestHeaderLevel]];
-      }
-
-      for (let headerLevel = 0; headerLevel < THs.length; headerLevel += 1) {
-        let TH = THs[headerLevel];
-
-        headerLevel = highlightOnlyClosestHeader ? closestHeaderLevel : headerLevel;
-
+        const positiveBasedHeaderLevel = headerLevel + rowHeadersCount;
+        let TH = wtTable.getRowHeader(sourceRow, positiveBasedHeaderLevel);
         const newSourceRow = this.#activeOverlaysWot
-          .getSetting('onBeforeHighlightingRowHeader', sourceRow, headerLevel, {
-            selectionType,
+          .getSetting('onBeforeHighlightingRowHeader', sourceRow, positiveBasedHeaderLevel, {
+            selectionType: this.#selection.settings.selectionType,
             rowCursor: cursor,
             selectionHeight: bottomRow - topRow + 1,
           });
@@ -142,12 +109,10 @@ export class SelectionScanner {
         }
 
         if (newSourceRow !== sourceRow) {
-          TH = this.#activeOverlaysWot.wtTable.getRowHeaders(sourceRow, headerLevel);
+          TH = wtTable.getRowHeader(newSourceRow, positiveBasedHeaderLevel);
         }
 
-        if (!isFocusType || isFocusType && topColumn < 0 && THs.length + topColumn === headerLevel) {
-          headers.push(TH);
-        }
+        headers.add(TH);
       }
 
       cursor += 1;
@@ -158,12 +123,12 @@ export class SelectionScanner {
 
   scanCellsRange() {
     const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
-    const cells = [];
+    const { wtTable } = this.#activeOverlaysWot;
+    const cells = new Set();
 
     this.#scanCellsRange((sourceRow, sourceColumn) => {
       if (sourceRow >= topRow && sourceRow <= bottomRow && sourceColumn >= topColumn && sourceColumn <= bottomColumn) {
-        const cell = this.#activeOverlaysWot.wtTable
-          .getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
+        const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
 
         // support for old API
         const additionalSelectionClass = this.#activeOverlaysWot
@@ -173,7 +138,7 @@ export class SelectionScanner {
           addClass(cell, additionalSelectionClass);
         }
 
-        cells.push(cell);
+        cells.add(cell);
       }
     });
 
@@ -182,14 +147,14 @@ export class SelectionScanner {
 
   scanRowsInCellsRange() {
     const [topRow,, bottomRow,] = this.#selection.getCorners();
-    const cells = [];
+    const { wtTable } = this.#activeOverlaysWot;
+    const cells = new Set();
 
     this.#scanCellsRange((sourceRow, sourceColumn) => {
       if (sourceRow >= topRow && sourceRow <= bottomRow) {
-        const cell = this.#activeOverlaysWot.wtTable
-          .getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
+        const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
 
-        cells.push(cell);
+        cells.add(cell);
       }
     });
 
@@ -198,14 +163,14 @@ export class SelectionScanner {
 
   scanColumnsInCellsRange() {
     const [, topColumn,, bottomColumn] = this.#selection.getCorners();
-    const cells = [];
+    const { wtTable } = this.#activeOverlaysWot;
+    const cells = new Set();
 
     this.#scanCellsRange((sourceRow, sourceColumn) => {
       if (sourceColumn >= topColumn && sourceColumn <= bottomColumn) {
-        const cell = this.#activeOverlaysWot.wtTable
-          .getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
+        const cell = wtTable.getCell(this.#activeOverlaysWot.createCellCoords(sourceRow, sourceColumn));
 
-        cells.push(cell);
+        cells.add(cell);
       }
     });
 
@@ -218,12 +183,10 @@ export class SelectionScanner {
     const renderedColumnsCount = wtTable.getRenderedColumnsCount();
 
     for (let row = 0; row < renderedRowsCount; row += 1) {
-      const sourceRow = this.#activeOverlaysWot.wtTable.rowFilter.renderedToSource(row);
+      const sourceRow = wtTable.rowFilter.renderedToSource(row);
 
       for (let column = 0; column < renderedColumnsCount; column += 1) {
-        const sourceColumn = this.#activeOverlaysWot.wtTable.columnFilter.renderedToSource(column);
-
-        callback(sourceRow, sourceColumn);
+        callback(sourceRow, wtTable.columnFilter.renderedToSource(column));
       }
     }
   }

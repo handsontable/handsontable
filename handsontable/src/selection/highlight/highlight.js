@@ -1,4 +1,12 @@
-import { createHighlight } from './types';
+import { createHighlight as createActiveHighlight } from './types/activeHeader';
+import { createHighlight as createAreaLayeredHighlight } from './types/areaLayered';
+import { createHighlight as createAreaHighlight } from './types/area';
+import { createHighlight as createColumnHighlight } from './types/column';
+import { createHighlight as createFocusHighlight } from './types/focus';
+import { createHighlight as createCustomHighlight } from './types/customSelection';
+import { createHighlight as createFillHighlight } from './types/fill';
+import { createHighlight as createHeaderHighlight } from './types/header';
+import { createHighlight as createRowHighlight } from './types/row';
 import {
   HIGHLIGHT_ACTIVE_HEADER_TYPE,
   HIGHLIGHT_AREA_TYPE,
@@ -62,20 +70,21 @@ class Highlight {
      *
      * @type {Selection}
      */
-    this.focus = createHighlight(HIGHLIGHT_FOCUS_TYPE, options);
+    this.focus = createFocusHighlight(options);
     /**
      * `fill` highlight object which describes attributes for the borders for autofill functionality.
      * It can only occur only once on the table.
      *
      * @type {Selection}
      */
-    this.fill = createHighlight(HIGHLIGHT_FILL_TYPE, options);
+    this.fill = createFillHighlight(options);
     /**
      * Collection of the `area` highlights. That objects describes attributes for the borders and selection of
      * the multiple selected cells. It can occur multiple times on the table.
      *
      * @type {Map.<number, Selection>}
      */
+    this.areasLayered = new Map();
     this.areas = new Map();
     /**
      * Collection of the `header` highlights. That objects describes attributes for the selection of
@@ -83,7 +92,8 @@ class Highlight {
      *
      * @type {Map.<number, Selection>}
      */
-    this.headers = new Map();
+    this.rowHeaders = new Map();
+    this.columnHeaders = new Map();
     /**
      * Collection of the `active-header` highlights. That objects describes attributes for the selection of
      * the multiple selected rows and columns in the table header. The table headers which have selected all items in
@@ -91,7 +101,8 @@ class Highlight {
      *
      * @type {Map.<number, Selection>}
      */
-    this.activeHeaders = new Map();
+    this.activeRowHeaders = new Map();
+    this.activeColumnHeaders = new Map();
     /**
      * Collection of the `rows` highlights. That objects describes attributes for the selection of
      * the multiple selected rows. It can occur multiple times on the table.
@@ -178,6 +189,20 @@ class Highlight {
    *
    * @returns {Selection}
    */
+  createOrGetAreaLayered() {
+    const layerLevel = this.layerLevel;
+    let area;
+
+    if (this.areasLayered.has(layerLevel)) {
+      area = this.areasLayered.get(layerLevel);
+    } else {
+      area = createAreaLayeredHighlight({ layerLevel, ...this.options });
+
+      this.areasLayered.set(layerLevel, area);
+    }
+
+    return area;
+  }
   createOrGetArea() {
     const layerLevel = this.layerLevel;
     let area;
@@ -185,7 +210,7 @@ class Highlight {
     if (this.areas.has(layerLevel)) {
       area = this.areas.get(layerLevel);
     } else {
-      area = createHighlight(HIGHLIGHT_AREA_TYPE, { layerLevel, ...this.options });
+      area = createAreaHighlight({ layerLevel, ...this.options });
 
       this.areas.set(layerLevel, area);
     }
@@ -201,6 +226,9 @@ class Highlight {
   getAreas() {
     return [...this.areas.values()];
   }
+  getAreasLayered() {
+    return [...this.areasLayered.values()];
+  }
 
   /**
    * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
@@ -208,16 +236,16 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  createOrGetHeader() {
+  createOrGetRowHeader() {
     const layerLevel = this.layerLevel;
     let header;
 
-    if (this.headers.has(layerLevel)) {
-      header = this.headers.get(layerLevel);
+    if (this.rowHeaders.has(layerLevel)) {
+      header = this.rowHeaders.get(layerLevel);
     } else {
-      header = createHighlight(HIGHLIGHT_HEADER_TYPE, { ...this.options });
+      header = createHeaderHighlight({ ...this.options });
 
-      this.headers.set(layerLevel, header);
+      this.rowHeaders.set(layerLevel, header);
     }
 
     return header;
@@ -228,8 +256,27 @@ class Highlight {
    *
    * @returns {Selection[]}
    */
-  getHeaders() {
-    return [...this.headers.values()];
+  getRowHeaders() {
+    return [...this.rowHeaders.values()];
+  }
+
+  createOrGetColumnHeader() {
+    const layerLevel = this.layerLevel;
+    let header;
+
+    if (this.columnHeaders.has(layerLevel)) {
+      header = this.columnHeaders.get(layerLevel);
+    } else {
+      header = createHeaderHighlight({ ...this.options });
+
+      this.columnHeaders.set(layerLevel, header);
+    }
+
+    return header;
+  }
+
+  getColumnHeaders() {
+    return [...this.columnHeaders.values()];
   }
 
   /**
@@ -238,16 +285,30 @@ class Highlight {
    *
    * @returns {Selection}
    */
-  createOrGetActiveHeader() {
+  createOrGetActiveRowHeader() {
     const layerLevel = this.layerLevel;
     let header;
 
-    if (this.activeHeaders.has(layerLevel)) {
-      header = this.activeHeaders.get(layerLevel);
+    if (this.activeRowHeaders.has(layerLevel)) {
+      header = this.activeRowHeaders.get(layerLevel);
     } else {
-      header = createHighlight(HIGHLIGHT_ACTIVE_HEADER_TYPE, { ...this.options });
+      header = createActiveHighlight({ ...this.options });
 
-      this.activeHeaders.set(layerLevel, header);
+      this.activeRowHeaders.set(layerLevel, header);
+    }
+
+    return header;
+  }
+  createOrGetActiveColumnHeader() {
+    const layerLevel = this.layerLevel;
+    let header;
+
+    if (this.activeColumnHeaders.has(layerLevel)) {
+      header = this.activeColumnHeaders.get(layerLevel);
+    } else {
+      header = createActiveHighlight({ ...this.options });
+
+      this.activeColumnHeaders.set(layerLevel, header);
     }
 
     return header;
@@ -258,8 +319,11 @@ class Highlight {
    *
    * @returns {Selection[]}
    */
-  getActiveHeaders() {
-    return [...this.activeHeaders.values()];
+  getActiveRowHeaders() {
+    return [...this.activeRowHeaders.values()];
+  }
+  getActiveColumnHeaders() {
+    return [...this.activeColumnHeaders.values()];
   }
 
   /**
@@ -275,7 +339,7 @@ class Highlight {
     if (this.rowHighlights.has(layerLevel)) {
       header = this.rowHighlights.get(layerLevel);
     } else {
-      header = createHighlight(HIGHLIGHT_ROW_TYPE, { ...this.options });
+      header = createRowHighlight({ ...this.options });
 
       this.rowHighlights.set(layerLevel, header);
     }
@@ -305,7 +369,7 @@ class Highlight {
     if (this.columnHighlights.has(layerLevel)) {
       header = this.columnHighlights.get(layerLevel);
     } else {
-      header = createHighlight(HIGHLIGHT_COLUMN_TYPE, { ...this.options });
+      header = createColumnHighlight({ ...this.options });
 
       this.columnHighlights.set(layerLevel, header);
     }
@@ -337,7 +401,7 @@ class Highlight {
    * @param {object} selectionInstance The selection instance.
    */
   addCustomSelection(selectionInstance) {
-    this.customSelections.push(createHighlight(HIGHLIGHT_CUSTOM_SELECTION_TYPE, {
+    this.customSelections.push(createCustomHighlight({
       ...this.options,
       ...selectionInstance
     }));
@@ -351,8 +415,11 @@ class Highlight {
     this.fill.clear();
 
     arrayEach(this.areas.values(), highlight => void highlight.clear());
-    arrayEach(this.headers.values(), highlight => void highlight.clear());
-    arrayEach(this.activeHeaders.values(), highlight => void highlight.clear());
+    arrayEach(this.areasLayered.values(), highlight => void highlight.clear());
+    arrayEach(this.rowHeaders.values(), highlight => void highlight.clear());
+    arrayEach(this.columnHeaders.values(), highlight => void highlight.clear());
+    arrayEach(this.activeRowHeaders.values(), highlight => void highlight.clear());
+    arrayEach(this.activeColumnHeaders.values(), highlight => void highlight.clear());
     arrayEach(this.rowHighlights.values(), highlight => void highlight.clear());
     arrayEach(this.columnHighlights.values(), highlight => void highlight.clear());
   }
@@ -367,8 +434,11 @@ class Highlight {
       this.focus,
       this.fill,
       ...this.areas.values(),
-      ...this.headers.values(),
-      ...this.activeHeaders.values(),
+      ...this.areasLayered.values(),
+      ...this.rowHeaders.values(),
+      ...this.columnHeaders.values(),
+      ...this.activeRowHeaders.values(),
+      ...this.activeColumnHeaders.values(),
       ...this.rowHighlights.values(),
       ...this.columnHighlights.values(),
       ...this.customSelections,

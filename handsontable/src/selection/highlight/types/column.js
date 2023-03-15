@@ -9,18 +9,15 @@ import VisualSelection from '../visualSelection';
  * @param {string} highlightParams.columnClassName Highlighted column' class name.
  * @returns {Selection}
  */
-function createHighlight({
+export function createHighlight({
   columnClassName,
   ...restOptions
 }) {
   const s = new VisualSelection({
     className: columnClassName,
-    highlightOnlyClosestHeader: true,
     ...restOptions,
     selectionType: HIGHLIGHT_COLUMN_TYPE,
   });
 
   return s;
 }
-
-export default createHighlight;

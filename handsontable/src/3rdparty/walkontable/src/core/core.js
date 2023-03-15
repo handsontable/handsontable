@@ -25,7 +25,7 @@ export default class Walkontable extends CoreAbstract {
     this.wtViewport = new Viewport(
       this.getViewportDao(), this.domBindings, this.wtSettings, this.eventManager, this.wtTable
     );
-    this.selectionManager = new SelectionManager(this, this.wtSettings.getSetting('selections'));
+    this.selectionManager = new SelectionManager(this.wtSettings.getSetting('selections'));
     this.wtEvent = new Event(
       facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selectionManager
     );

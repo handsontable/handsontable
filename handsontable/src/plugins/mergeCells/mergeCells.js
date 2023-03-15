@@ -146,7 +146,6 @@ export class MergeCells extends BasePlugin {
     this.addHook('afterChange', (...args) => this.onAfterChange(...args));
     this.addHook('beforeDrawBorders', (...args) => this.onBeforeDrawAreaBorders(...args));
     this.addHook('afterDrawSelection', (...args) => this.onAfterDrawSelection(...args));
-    this.addHook('beforeRemoveCellClassNames', (...args) => this.onBeforeRemoveCellClassNames(...args));
     this.addHook('beforeUndoStackChange', (action, source) => {
       if (source === 'MergeCells') {
         return false;
@@ -1269,16 +1268,5 @@ export class MergeCells extends BasePlugin {
 
     return this.selectionCalculations
       .getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
-  }
-
-  /**
-   * `beforeRemoveCellClassNames` hook callback. Used to remove additional class name from all cells in the table.
-   *
-   * @private
-   * @returns {string[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from
-   *   all the cells in the table.
-   */
-  onBeforeRemoveCellClassNames() {
-    return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
   }
 }

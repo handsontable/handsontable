@@ -9,18 +9,15 @@ import VisualSelection from '../visualSelection';
  * @param {string} highlightParams.headerClassName Highlighted headers' class name.
  * @returns {Selection}
  */
-function createHighlight({
+export function createHighlight({
   headerClassName,
   ...restOptions
 }) {
   const s = new VisualSelection({
     className: headerClassName,
-    highlightOnlyClosestHeader: true,
     ...restOptions,
     selectionType: HIGHLIGHT_HEADER_TYPE,
   });
 
   return s;
 }
-
-export default createHighlight;

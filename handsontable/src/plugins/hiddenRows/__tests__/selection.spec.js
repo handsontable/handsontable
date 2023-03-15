@@ -126,7 +126,7 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.row).toBe(4);
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect(`
-        |   ║ * : * : * : * : * |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
     });
@@ -324,7 +324,7 @@ describe('HiddenRows', () => {
 
         expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
         expect(`
-          |   ║ * : * : * : * : * |
+          | * ║ * : * : * : * : * |
           |===:===:===:===:===:===|
           | * ║ A : 0 : 0 : 0 : 0 |
           | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -347,7 +347,7 @@ describe('HiddenRows', () => {
 
         expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
         expect(`
-          |   ║ * : * : * : * : * |
+          | * ║ * : * : * : * : * |
           |===:===:===:===:===:===|
         `).toBeMatchToSelectionPattern();
       });
@@ -527,7 +527,7 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.row).toBe(4);
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect(`
-        |   ║ * : * : * : * : * |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
         | * ║ A : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -555,7 +555,7 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.row).toBe(4);
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect(`
-        |   ║ * : * : * : * : * |
+        | * ║ * : * : * : * : * |
         |===:===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
     });
@@ -1331,7 +1331,7 @@ describe('HiddenRows', () => {
         expect(getSelectedRangeLast().to.row).toBe(4);
         expect(getSelectedRangeLast().to.col).toBe(4);
         expect(`
-          |   ║ * : * : * : * : * |
+          | * ║ * : * : * : * : * |
           |===:===:===:===:===:===|
           | * ║ A : 0 : 0 : 0 : 0 |
           | * ║ 0 : 0 : 0 : 0 : 0 |
@@ -1524,7 +1524,7 @@ describe('HiddenRows', () => {
         expect(getSelectedRangeLast().to.row).toBe(4);
         expect(getSelectedRangeLast().to.col).toBe(4);
         expect(`
-          |   ║ * : * : * : * : * |
+          | * ║ * : * : * : * : * |
           |===:===:===:===:===:===|
         `).toBeMatchToSelectionPattern();
       });

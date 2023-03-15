@@ -6,7 +6,7 @@ import VisualSelection from '../visualSelection';
  * @param {string} highlightParams.activeHeaderClassName Highlighted headers' class name.
  * @returns {Selection}
  */
-function createHighlight({ activeHeaderClassName, ...restOptions }) {
+export function createHighlight({ activeHeaderClassName, ...restOptions }) {
   const s = new VisualSelection({
     className: activeHeaderClassName,
     ...restOptions,
@@ -15,5 +15,3 @@ function createHighlight({ activeHeaderClassName, ...restOptions }) {
 
   return s;
 }
-
-export default createHighlight;

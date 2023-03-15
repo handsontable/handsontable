@@ -10,7 +10,7 @@ import VisualSelection from '../visualSelection';
  * @param {object} highlightParams.visualCellRange Function to translate visual to renderable coords.
  * @returns {Selection}
  */
-function createHighlight({ border, visualCellRange, ...restOptions }) {
+export function createHighlight({ border, visualCellRange, ...restOptions }) {
   const s = new VisualSelection({
     ...border,
     ...restOptions,
@@ -19,5 +19,3 @@ function createHighlight({ border, visualCellRange, ...restOptions }) {
 
   return s;
 }
-
-export default createHighlight;

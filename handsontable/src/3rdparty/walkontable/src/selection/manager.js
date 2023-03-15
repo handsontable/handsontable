@@ -2,14 +2,12 @@ import { removeClass, addClass } from '../../../../helpers/dom/element';
 import { SelectionScanner } from './scanner';
 
 export class SelectionManager {
-  #mainWot;
   #activeOverlaysWot;
   #selections;
   #scanner = new SelectionScanner();
   #appliedClasses = new WeakMap();
 
-  constructor(mainWot, selections) {
-    this.#mainWot = mainWot;
+  constructor(selections) {
     this.#selections = selections;
   }
 
@@ -29,7 +27,7 @@ export class SelectionManager {
   }
 
   getAreaSelection() {
-    return this.#selections.createOrGetArea();
+    return this.#selections.createOrGetAreaLayered();
   }
 
   render(fastDraw) {
@@ -56,46 +54,47 @@ export class SelectionManager {
       const elements = [];
       const {
         className,
-        layerLevel,
-        border
+        createLayers,
+        selectionType,
+        border,
       } = selection.settings;
 
       if (className) {
         this.#scanner.setActiveSelection(selection);
 
-        if (selection.settings.selectionType === 'active-header') {
-          elements.push(...this.#scanner.scanColumnsInHeadersRange());
-          elements.push(...this.#scanner.scanRowsInHeadersRange());
+        if (selectionType === 'active-header') {
+          elements.push(...this.#scanner.scanColumnsInHeadersRange().values());
+          elements.push(...this.#scanner.scanRowsInHeadersRange().values());
 
-        } else if (selection.settings.selectionType === 'area') {
-          elements.push(...this.#scanner.scanCellsRange());
+        } else if (selectionType === 'area') {
+          elements.push(...this.#scanner.scanCellsRange().values());
 
-        } else if (selection.settings.selectionType === 'focus') {
-          elements.push(...this.#scanner.scanColumnsInHeadersRange());
-          elements.push(...this.#scanner.scanRowsInHeadersRange());
-          elements.push(...this.#scanner.scanCellsRange());
+        } else if (selectionType === 'focus') {
+          elements.push(...this.#scanner.scanColumnsInHeadersRange().values());
+          elements.push(...this.#scanner.scanRowsInHeadersRange().values());
+          elements.push(...this.#scanner.scanCellsRange().values());
 
-        } else if (selection.settings.selectionType === 'fill') {
-          elements.push(...this.#scanner.scanCellsRange());
+        } else if (selectionType === 'fill') {
+          elements.push(...this.#scanner.scanCellsRange().values());
 
-        } else if (selection.settings.selectionType === 'header') {
-          elements.push(...this.#scanner.scanColumnsInHeadersRange());
-          elements.push(...this.#scanner.scanRowsInHeadersRange());
+        } else if (selectionType === 'header') {
+          elements.push(...this.#scanner.scanColumnsInHeadersRange().values());
+          elements.push(...this.#scanner.scanRowsInHeadersRange().values());
 
-        } else if (selection.settings.selectionType === 'row') {
-          elements.push(...this.#scanner.scanRowsInHeadersRange());
-          elements.push(...this.#scanner.scanRowsInCellsRange());
+        } else if (selectionType === 'row') {
+          elements.push(...this.#scanner.scanRowsInHeadersRange().values());
+          elements.push(...this.#scanner.scanRowsInCellsRange().values());
 
         } else if (selection.settings.selectionType === 'column') {
-          elements.push(...this.#scanner.scanColumnsInHeadersRange());
-          elements.push(...this.#scanner.scanColumnsInCellsRange());
+          elements.push(...this.#scanner.scanColumnsInHeadersRange().values());
+          elements.push(...this.#scanner.scanColumnsInCellsRange().values());
         }
 
         elements.forEach((element) => {
           if (classNamesMap.has(element)) {
             const classNamesLayers = classNamesMap.get(element);
 
-            if (classNamesLayers.has(className) && layerLevel !== void 0) {
+            if (classNamesLayers.has(className) && createLayers === true) {
               classNamesLayers.set(className, classNamesLayers.get(className) + 1);
             } else {
               classNamesLayers.set(className, 1);
@@ -133,11 +132,11 @@ export class SelectionManager {
 
   #resetCells() {
     const appliedOverlaysClasses = this.#appliedClasses.get(this.#activeOverlaysWot);
-    const additionalClassesToRemove = this.#mainWot.wtSettings.getSetting('onBeforeRemoveCellClassNames');
+    const classesToRemove = this.#activeOverlaysWot.wtSettings.getSetting('onBeforeRemoveCellClassNames');
 
-    if (Array.isArray(additionalClassesToRemove)) {
-      for (let i = 0; i < additionalClassesToRemove.length; i++) {
-        appliedOverlaysClasses.add(additionalClassesToRemove[i]);
+    if (Array.isArray(classesToRemove)) {
+      for (let i = 0; i < classesToRemove.length; i++) {
+        appliedOverlaysClasses.add(classesToRemove[i]);
       }
     }
 

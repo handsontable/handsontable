@@ -638,9 +638,9 @@ class Table {
    *   row headers`.
    */
   getRowHeader(row, level = 0) {
-    if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
-      return;
-    }
+    // if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
+    //   return null;
+    // }
 
     const rowHeadersCount = this.wtSettings.getSetting('rowHeaders').length;
 
@@ -648,7 +648,10 @@ class Table {
       return;
     }
 
-    const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+    const renderedRow = this.rowFilter.sourceToRendered(row);
+    const visibleRow = renderedRow < 0 ? this.rowFilter.sourceRowToVisibleColHeadedRow(row) : renderedRow;
+    const parentElement = renderedRow < 0 ? this.THEAD : this.TBODY;
+    const TR = parentElement.childNodes[visibleRow];
 
     return TR?.childNodes[level];
   }
@@ -660,9 +663,9 @@ class Table {
    * @returns {HTMLTableCellElement[]}
    */
   getRowHeaders(row) {
-    if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
-      return [];
-    }
+    // if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
+    //   return [];
+    // }
 
     const THs = [];
     const rowHeadersCount = this.wtSettings.getSetting('rowHeaders').length;
@@ -999,26 +1002,6 @@ class Table {
 
   allColumnsInViewport() {
     return this.wtSettings.getSetting('totalColumns') === this.getVisibleColumnsCount();
-  }
-
-  /**
-   * Get the number of rendered column headers.
-   *
-   * @returns {number}
-   * @this Table
-   */
-  getColumnHeadersCount() {
-    return this.dataAccessObject.columnHeaders.length;
-  }
-
-  /**
-   * Get the number of rendered row headers.
-   *
-   * @returns {number}
-   * @this Table
-   */
-  getRowHeadersCount() {
-    return this.dataAccessObject.rowHeaders.length;
   }
 
   /**

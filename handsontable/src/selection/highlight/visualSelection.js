@@ -57,12 +57,6 @@ class VisualSelection extends Selection {
     }
 
     if (visibleFromCoords.row > visibleToCoords.row || visibleFromCoords.col > visibleToCoords.col) {
-      const isHeaderTypeSelection = this.settings.type === 'header' || this.settings.type === 'active-header';
-
-      if (!isHeaderTypeSelection) {
-        return null;
-      }
-
       visibleFromCoords = from;
       visibleToCoords = to;
     }
@@ -116,14 +110,7 @@ class VisualSelection extends Selection {
       return visualIndex;
     }
 
-    const nearestVisualIndex = indexMapper.getNearestNotHiddenIndex(visualIndex, searchDirection);
-    const isHeaderSelectionType = this.settings.type === 'header' || this.settings.type === 'active-header';
-
-    if (isHeaderSelectionType && nearestVisualIndex === null) {
-      return -1;
-    }
-
-    return nearestVisualIndex;
+    return indexMapper.getNearestNotHiddenIndex(visualIndex, searchDirection);
   }
 
   /**
@@ -202,22 +189,11 @@ class VisualSelection extends Selection {
   getCorners() {
     const { from, to } = this.cellRange;
 
-    const isRowUndefined = from.row === null || to.row === null;
-    const isColumnUndefined = from.col === null || to.col === null;
-    const topLeftCorner = this.settings.createCellCoords(
-      isRowUndefined ? null : Math.min(from.row, to.row),
-      isColumnUndefined ? null : Math.min(from.col, to.col),
-    );
-    const bottomRightCorner = this.settings.createCellCoords(
-      isRowUndefined ? null : Math.max(from.row, to.row),
-      isColumnUndefined ? null : Math.max(from.col, to.col),
-    );
-
     return [
-      topLeftCorner.row,
-      topLeftCorner.col,
-      bottomRightCorner.row,
-      bottomRightCorner.col,
+      Math.min(from.row, to.row),
+      Math.min(from.col, to.col),
+      Math.max(from.row, to.row),
+      Math.max(from.col, to.col),
     ];
   }
 
@@ -247,11 +223,16 @@ class VisualSelection extends Selection {
    *                                      points to the beginning of the selection.
    * @param {CellCoords} visualToCoords The CellCoords object which contains coordinates that
    *                                    points to the end of the selection.
-   * @returns {CellRange}
+   * @returns {CellRange|null}
    */
   createRenderableCellRange(visualFromCoords, visualToCoords) {
     const renderableFromCoords = this.settings.visualToRenderableCoords(visualFromCoords);
     const renderableToCoords = this.settings.visualToRenderableCoords(visualToCoords);
+
+    if (renderableFromCoords.row === null || renderableFromCoords.col === null ||
+        renderableToCoords.row === null || renderableToCoords.col === null) {
+      return null;
+    }
 
     return this.settings.createCellRange(renderableFromCoords, renderableFromCoords, renderableToCoords);
   }

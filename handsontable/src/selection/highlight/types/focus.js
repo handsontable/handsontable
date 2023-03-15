@@ -9,7 +9,7 @@ import VisualSelection from '../visualSelection';
  * @param {Function} highlightParams.cellCornerVisible Function to determine if cell's corner should be visible.
  * @returns {Selection}
  */
-function createHighlight({ cellCornerVisible, ...restOptions }) {
+export function createHighlight({ cellCornerVisible, ...restOptions }) {
   const s = new VisualSelection({
     className: 'current',
     border: {
@@ -23,5 +23,3 @@ function createHighlight({ cellCornerVisible, ...restOptions }) {
 
   return s;
 }
-
-export default createHighlight;

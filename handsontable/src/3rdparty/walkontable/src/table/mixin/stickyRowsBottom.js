@@ -86,7 +86,17 @@ const stickyRowsBottom = {
    */
   getVisibleRowsCount() {
     return this.getRenderedRowsCount();
-  }
+  },
+
+  /**
+   * Get the number of rendered column headers.
+   *
+   * @returns {number}
+   * @this Table
+   */
+  getColumnHeadersCount() {
+    return 0;
+  },
 };
 
 defineGetter(stickyRowsBottom, 'MIXIN_NAME', MIXIN_NAME, {

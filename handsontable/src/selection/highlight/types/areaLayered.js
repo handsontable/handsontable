@@ -8,12 +8,18 @@ import VisualSelection from '../visualSelection';
  * @param {object} highlightParams.areaCornerVisible Function to determine if area's corner should be visible.
  * @returns {Selection}
  */
-export function createHighlight({ ...restOptions }) {
+export function createHighlight({ areaCornerVisible, ...restOptions }) {
   const s = new VisualSelection({
-    className: 'highlight',
+    className: 'area',
+    createLayers: true,
+    border: {
+      width: 1,
+      color: '#4b89ff',
+      cornerVisible: areaCornerVisible,
+    },
     ...restOptions,
     selectionType: HIGHLIGHT_AREA_TYPE,
   });
 
   return s;
-};
+}

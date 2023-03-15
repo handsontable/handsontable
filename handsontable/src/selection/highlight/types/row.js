@@ -9,18 +9,15 @@ import VisualSelection from '../visualSelection';
  * @param {string} highlightParams.rowClassName Highlighted row' class name.
  * @returns {Selection}
  */
-function createHighlight({
+export function createHighlight({
   rowClassName,
   ...restOptions
 }) {
   const s = new VisualSelection({
     className: rowClassName,
-    highlightOnlyClosestHeader: true,
     ...restOptions,
     selectionType: HIGHLIGHT_ROW_TYPE,
   });
 
   return s;
 }
-
-export default createHighlight;

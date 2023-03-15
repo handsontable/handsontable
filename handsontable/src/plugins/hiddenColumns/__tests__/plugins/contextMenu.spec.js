@@ -774,7 +774,7 @@ describe('HiddenColumns', () => {
           expect(getSelectedRangeLast().to.row).toBe(1);
           expect(getSelectedRangeLast().to.col).toBe(4);
           expect(`
-            |   ║ * : * : * : * : * |
+            | * ║ * : * : * : * : * |
             |===:===:===:===:===:===|
             | * ║ A : 0 : 0 : 0 : 0 |
             | * ║ 0 : 0 : 0 : 0 : 0 |
