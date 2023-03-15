@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [12.3.2] - 2023-03-22
+
+### Fixed
+- Fixed a problem with the checkboxes from the filtering dropdown resetting their state after scrolling the table out of the viewport by preventing the table from triggering a 'full' render every time it was outside the viewport + Fixed an issue where clicking on a cell in some specific configurations of the RTL mode would scroll the table sideways. [#10206](https://github.com/handsontable/handsontable/pull/10206)
+- Using `getDataAtCol` and `getDataAtProp` for dataset with large number of rows won't break the table [#9772](https://github.com/handsontable/handsontable/issues/9772)
+- React: Removed deprecated React method from the wrapper. [#10263](https://github.com/handsontable/handsontable/pull/10263)
+
 ## [12.3.1] - 2023-02-06
 
 ### Added
