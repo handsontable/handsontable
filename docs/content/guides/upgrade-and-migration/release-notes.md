@@ -41,8 +41,8 @@ For more information on this release, see:
 #### Fixed
 
 - Fixed an issue where column-filter checkboxes were resetting when the table was scrolled out of
-  view. We solved this by preventing the table from triggering a complete render each time it goes
-  outside of the viewport. [#10206](https://github.com/handsontable/handsontable/pull/10206)
+  view. We solved this by preventing the table from triggering a complete render each time it leaves
+  the viewport. [#10206](https://github.com/handsontable/handsontable/pull/10206)
 - Fixed an issue where clicking on a cell scrolled the table sideways in certain RTL configurations.
   [#10206](https://github.com/handsontable/handsontable/pull/10206)
 - Fixed an issue where calling
