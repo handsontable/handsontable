@@ -425,7 +425,7 @@ jobs:
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          startsWith(matrix.framework, 'vue')
+          endsWith(matrix.framework, 'vue')
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # https://github.com/actions/download-artifact/releases/tag/v3.0.1
         with:
           name: vue-build
@@ -434,7 +434,7 @@ jobs:
         if: |
           matrix.version == 'next' &&
           steps.path-check.outputs.n-a != 'true' &&
-          startsWith(matrix.framework, 'vue')
+          endsWith(matrix.framework, 'vue')
 
       # Downloading the @handsontable/vue3 build
       - name: Download the @handsontable/vue3 build artifact

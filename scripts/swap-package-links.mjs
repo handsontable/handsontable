@@ -11,7 +11,7 @@ import {
 
 let [pkgName] = process.argv.slice(2);
 
-if (pkgName) {
+if (pkgName && pkgName.endsWith('vue3') === false) {
   // remove version from package name (e.g. @handsontable/angular-13 -> @handsontable/angular)
   pkgName = pkgName.replace(/-\d+/, '');
 }
