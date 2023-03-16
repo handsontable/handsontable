@@ -286,8 +286,10 @@ export function range(start, end) {
  * @param {Selection} [selections.area] An optional instance of the area selection.
  * @param {Selection} [selections.fill] An optional instance of the fill selection.
  * @param {Selection} [selections.custom] An optional instance of the custom selection.
- * @param {Selection} [selections.activeHeader] An optional instance of the active header selection.
- * @param {Selection} [selections.header] An optional instance of the header selection.
+ * @param {Selection} [selections.activeRowHeader] An optional instance of the active header selection.
+ * @param {Selection} [selections.activeColumnHeader] An optional instance of the active header selection.
+ * @param {Selection} [selections.rowHeader] An optional instance of the header selection.
+ * @param {Selection} [selections.columnHeader] An optional instance of the header selection.
  * @returns {object} Selection controller.
  */
 export function createSelectionController({
