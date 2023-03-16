@@ -28,7 +28,7 @@ export {
   HIGHLIGHT_HEADER_TYPE as HEADER_TYPE,
   HIGHLIGHT_ROW_TYPE as ROW_TYPE,
   HIGHLIGHT_COLUMN_TYPE as COLUMN_TYPE,
-}
+};
 
 /**
  * Highlight class responsible for managing Walkontable Selection classes.
@@ -46,83 +46,106 @@ export {
  * @util
  */
 class Highlight {
+  /**
+   * Options consumed by Highlight class and Walkontable Selection classes.
+   *
+   * @type {object}
+   */
+  options;
+  /**
+   * The property which describes which layer level of the visual selection will be modified.
+   * This option is valid only for `area` and `header` highlight types which occurs multiple times on
+   * the table (as a non-consecutive selection).
+   *
+   * An order of the layers is the same as the order of added new non-consecutive selections.
+   *
+   * @type {number}
+   * @default 0
+   */
+  layerLevel = 0;
+  /**
+   * `cell` highlight object which describes attributes for the currently selected cell.
+   * It can only occur only once on the table.
+   *
+   * @type {Selection}
+   */
+  focus;
+  /**
+   * `fill` highlight object which describes attributes for the borders for autofill functionality.
+   * It can only occur only once on the table.
+   *
+   * @type {Selection}
+   */
+  fill;
+  /**
+   * Collection of the `area` highlights. That objects describes attributes for the borders and selection of
+   * the multiple selected cells. It can occur multiple times on the table.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  areasLayered = new Map();
+  /**
+   * Collection of the `highlight` highlights. That objects describes attributes for the borders and selection of
+   * the multiple selected cells. It can occur multiple times on the table.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  areas = new Map();
+  /**
+   * Collection of the `header` highlights. That objects describes attributes for the selection of
+   * the multiple selected rows in the table header. It can occur multiple times on the table.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  rowHeaders = new Map();
+  /**
+   * Collection of the `header` highlights. That objects describes attributes for the selection of
+   * the multiple selected columns in the table header. It can occur multiple times on the table.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  columnHeaders = new Map();
+  /**
+   * Collection of the `active-header` highlights. That objects describes attributes for the selection of
+   * the multiple selected rows in the table header. The table headers which have selected all items in
+   * a row will be marked as `active-header`.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  activeRowHeaders = new Map();
+  /**
+   * Collection of the `active-header` highlights. That objects describes attributes for the selection of
+   * the multiple selected columns in the table header. The table headers which have selected all items in
+   * a row will be marked as `active-header`.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  activeColumnHeaders = new Map();
+  /**
+   * Collection of the `rows` highlights. That objects describes attributes for the selection of
+   * the multiple selected cells in a row. It can occur multiple times on the table.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  rowHighlights = new Map();
+  /**
+   * Collection of the `columns` highlights. That objects describes attributes for the selection of
+   * the multiple selected cells in a column. It can occur multiple times on the table.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  columnHighlights = new Map();
+  /**
+   * Collection of the `custom-selection`, holder for example borders added through CustomBorders plugin.
+   *
+   * @type {Selection[]}
+   */
+  customSelections = [];
+
   constructor(options) {
-    /**
-     * Options consumed by Highlight class and Walkontable Selection classes.
-     *
-     * @type {object}
-     */
     this.options = options;
-    /**
-     * The property which describes which layer level of the visual selection will be modified.
-     * This option is valid only for `area` and `header` highlight types which occurs multiple times on
-     * the table (as a non-consecutive selection).
-     *
-     * An order of the layers is the same as the order of added new non-consecutive selections.
-     *
-     * @type {number}
-     * @default 0
-     */
-    this.layerLevel = 0;
-    /**
-     * `cell` highlight object which describes attributes for the currently selected cell.
-     * It can only occur only once on the table.
-     *
-     * @type {Selection}
-     */
     this.focus = createFocusHighlight(options);
-    /**
-     * `fill` highlight object which describes attributes for the borders for autofill functionality.
-     * It can only occur only once on the table.
-     *
-     * @type {Selection}
-     */
     this.fill = createFillHighlight(options);
-    /**
-     * Collection of the `area` highlights. That objects describes attributes for the borders and selection of
-     * the multiple selected cells. It can occur multiple times on the table.
-     *
-     * @type {Map.<number, Selection>}
-     */
-    this.areasLayered = new Map();
-    this.areas = new Map();
-    /**
-     * Collection of the `header` highlights. That objects describes attributes for the selection of
-     * the multiple selected rows and columns in the table header. It can occur multiple times on the table.
-     *
-     * @type {Map.<number, Selection>}
-     */
-    this.rowHeaders = new Map();
-    this.columnHeaders = new Map();
-    /**
-     * Collection of the `active-header` highlights. That objects describes attributes for the selection of
-     * the multiple selected rows and columns in the table header. The table headers which have selected all items in
-     * a row will be marked as `active-header`.
-     *
-     * @type {Map.<number, Selection>}
-     */
-    this.activeRowHeaders = new Map();
-    this.activeColumnHeaders = new Map();
-    /**
-     * Collection of the `rows` highlights. That objects describes attributes for the selection of
-     * the multiple selected rows. It can occur multiple times on the table.
-     *
-     * @type {Map.<number, Selection>}
-     */
-    this.rowHighlights = new Map();
-    /**
-     * Collection of the `columns` highlights. That objects describes attributes for the selection of
-     * the multiple selected columns. It can occur multiple times on the table.
-     *
-     * @type {Map.<number, Selection>}
-     */
-    this.columnHighlights = new Map();
-    /**
-     * Collection of the `custom-selection`, holder for example borders added through CustomBorders plugin.
-     *
-     * @type {Selection[]}
-     */
-    this.customSelections = [];
   }
 
   /**
@@ -166,11 +189,12 @@ class Highlight {
   }
 
   /**
-   * Get Walkontable Selection instance created for controlling highlight of the currently selected/edited cell.
+   * Get Walkontable Selection instance created for controlling highlight of the currently
+   * focused cell (or header).
    *
    * @returns {Selection}
    */
-  getCell() {
+  getFocus() {
     return this.focus;
   }
 
@@ -184,38 +208,32 @@ class Highlight {
   }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
-   * of the multiple selected cells.
+   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * `area` highlights.
    *
    * @returns {Selection}
    */
   createOrGetAreaLayered() {
-    const layerLevel = this.layerLevel;
-    let area;
-
-    if (this.areasLayered.has(layerLevel)) {
-      area = this.areasLayered.get(layerLevel);
-    } else {
-      area = createAreaLayeredHighlight({ layerLevel, ...this.options });
-
-      this.areasLayered.set(layerLevel, area);
-    }
-
-    return area;
+    return this.#createOrGetHighlight(this.areasLayered, createAreaLayeredHighlight);
   }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the visual highlight of the cells.
+   *
+   * @returns {Selection[]}
+   */
+  getAreasLayered() {
+    return [...this.areasLayered.values()];
+  }
+
+  /**
+   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * `highlight` highlights.
+   *
+   * @returns {Selection}
+   */
   createOrGetArea() {
-    const layerLevel = this.layerLevel;
-    let area;
-
-    if (this.areas.has(layerLevel)) {
-      area = this.areas.get(layerLevel);
-    } else {
-      area = createAreaHighlight({ layerLevel, ...this.options });
-
-      this.areas.set(layerLevel, area);
-    }
-
-    return area;
+    return this.#createOrGetHighlight(this.areas, createAreaHighlight);
   }
 
   /**
@@ -226,29 +244,15 @@ class Highlight {
   getAreas() {
     return [...this.areas.values()];
   }
-  getAreasLayered() {
-    return [...this.areasLayered.values()];
-  }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
-   * of the multiple selected header cells.
+   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * header highlight for rows.
    *
    * @returns {Selection}
    */
   createOrGetRowHeader() {
-    const layerLevel = this.layerLevel;
-    let header;
-
-    if (this.rowHeaders.has(layerLevel)) {
-      header = this.rowHeaders.get(layerLevel);
-    } else {
-      header = createHeaderHighlight({ ...this.options });
-
-      this.rowHeaders.set(layerLevel, header);
-    }
-
-    return header;
+    return this.#createOrGetHighlight(this.rowHeaders, createHeaderHighlight);
   }
 
   /**
@@ -260,58 +264,33 @@ class Highlight {
     return [...this.rowHeaders.values()];
   }
 
+  /**
+   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * header highlight for columns.
+   *
+   * @returns {Selection}
+   */
   createOrGetColumnHeader() {
-    const layerLevel = this.layerLevel;
-    let header;
-
-    if (this.columnHeaders.has(layerLevel)) {
-      header = this.columnHeaders.get(layerLevel);
-    } else {
-      header = createHeaderHighlight({ ...this.options });
-
-      this.columnHeaders.set(layerLevel, header);
-    }
-
-    return header;
+    return this.#createOrGetHighlight(this.columnHeaders, createHeaderHighlight);
   }
 
+  /**
+   * Get all Walkontable Selection instances which describes the state of the visual highlight of the headers.
+   *
+   * @returns {Selection[]}
+   */
   getColumnHeaders() {
     return [...this.columnHeaders.values()];
   }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
-   * of the multiple selected active header cells.
+   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * highlight for active row headers.
    *
    * @returns {Selection}
    */
   createOrGetActiveRowHeader() {
-    const layerLevel = this.layerLevel;
-    let header;
-
-    if (this.activeRowHeaders.has(layerLevel)) {
-      header = this.activeRowHeaders.get(layerLevel);
-    } else {
-      header = createActiveHighlight({ ...this.options });
-
-      this.activeRowHeaders.set(layerLevel, header);
-    }
-
-    return header;
-  }
-  createOrGetActiveColumnHeader() {
-    const layerLevel = this.layerLevel;
-    let header;
-
-    if (this.activeColumnHeaders.has(layerLevel)) {
-      header = this.activeColumnHeaders.get(layerLevel);
-    } else {
-      header = createActiveHighlight({ ...this.options });
-
-      this.activeColumnHeaders.set(layerLevel, header);
-    }
-
-    return header;
+    return this.#createOrGetHighlight(this.activeRowHeaders, createActiveHighlight);
   }
 
   /**
@@ -322,29 +301,34 @@ class Highlight {
   getActiveRowHeaders() {
     return [...this.activeRowHeaders.values()];
   }
+
+  /**
+   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * highlight for active column headers.
+   *
+   * @returns {Selection}
+   */
+  createOrGetActiveColumnHeader() {
+    return this.#createOrGetHighlight(this.activeColumnHeaders, createActiveHighlight);
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the visual highlight of the active headers.
+   *
+   * @returns {Selection[]}
+   */
   getActiveColumnHeaders() {
     return [...this.activeColumnHeaders.values()];
   }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
-   * of the multiple selected rows.
+   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * highlight cells in a row.
    *
    * @returns {Selection}
    */
   createOrGetRowHighlight() {
-    const layerLevel = this.layerLevel;
-    let header;
-
-    if (this.rowHighlights.has(layerLevel)) {
-      header = this.rowHighlights.get(layerLevel);
-    } else {
-      header = createRowHighlight({ ...this.options });
-
-      this.rowHighlights.set(layerLevel, header);
-    }
-
-    return header;
+    return this.#createOrGetHighlight(this.rowHighlights, createRowHighlight);
   }
 
   /**
@@ -357,24 +341,13 @@ class Highlight {
   }
 
   /**
-   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
-   * of the multiple selected columns.
+   * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling
+   * highlight cells in a column.
    *
    * @returns {Selection}
    */
   createOrGetColumnHighlight() {
-    const layerLevel = this.layerLevel;
-    let header;
-
-    if (this.columnHighlights.has(layerLevel)) {
-      header = this.columnHighlights.get(layerLevel);
-    } else {
-      header = createColumnHighlight({ ...this.options });
-
-      this.columnHighlights.set(layerLevel, header);
-    }
-
-    return header;
+    return this.#createOrGetHighlight(this.columnHighlights, createColumnHighlight);
   }
 
   /**
@@ -422,6 +395,27 @@ class Highlight {
     arrayEach(this.activeColumnHeaders.values(), highlight => void highlight.clear());
     arrayEach(this.rowHighlights.values(), highlight => void highlight.clear());
     arrayEach(this.columnHighlights.values(), highlight => void highlight.clear());
+  }
+
+  /**
+   * Get or create (if not exist in the cache) Walkontable Selection instance.
+   *
+   * @param {Map} cacheMap The map where the instance will be cached.
+   * @param {Function} highlightFactory The function factory.
+   * @returns {VisualSelection}
+   */
+  #createOrGetHighlight(cacheMap, highlightFactory) {
+    const layerLevel = this.layerLevel;
+
+    if (cacheMap.has(layerLevel)) {
+      return cacheMap.get(layerLevel);
+    }
+
+    const highlight = highlightFactory({ layerLevel, ...this.options });
+
+    cacheMap.set(layerLevel, highlight);
+
+    return highlight;
   }
 
   /**

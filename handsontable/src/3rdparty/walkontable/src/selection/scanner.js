@@ -1,34 +1,53 @@
+/* eslint-disable no-continue */
 import { addClass } from '../../../../helpers/dom/element';
 
 /**
  * @private
  */
 export class SelectionScanner {
+  /**
+   * Active Selection instance to process.
+   *
+   * @type {Selection}
+   */
   #selection;
+  /**
+   * The Walkontable instance that the scans depends on.
+   *
+   * @type {Walkontable}
+   */
   #activeOverlaysWot;
 
+  /**
+   * Sets the Walkontable instance that will be taking into account while scanning the table.
+   *
+   * @param {Walkontable} activeOverlaysWot The Walkontable instance.
+   */
   setActiveOverlay(activeOverlaysWot) {
     this.#activeOverlaysWot = activeOverlaysWot;
-
-    return this;
   }
 
+  /**
+   * Sets the Selection instance to process.
+   *
+   * @param {Selection} selection The Selection instance.
+   */
   setActiveSelection(selection) {
     this.#selection = selection;
   }
 
+  /**
+   * Scans the table (only rendered headers) and collect all column headers (TH) that match
+   * the coordinates passed in the Selection instance.
+   *
+   * @returns {Set<TH>}
+   */
   scanColumnsInHeadersRange() {
     const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
-    const headers = new Set();
-
-    // TODO: remove this
-    if (topColumn === null || bottomColumn === null) {
-      return headers;
-    }
-
     const { wtTable } = this.#activeOverlaysWot;
     const renderedColumnsCount = wtTable.getRenderedColumnsCount();
     const columnHeadersCount = wtTable.getColumnHeadersCount();
+    const headers = new Set();
     let cursor = 0;
 
     for (let column = -wtTable.getRowHeadersCount(); column < renderedColumnsCount; column++) {
@@ -69,18 +88,18 @@ export class SelectionScanner {
     return headers;
   }
 
+  /**
+   * Scans the table (only rendered headers) and collect all row headers (TH) that match
+   * the coordinates passed in the Selection instance.
+   *
+   * @returns {Set<TH>}
+   */
   scanRowsInHeadersRange() {
     const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
-    const headers = new Set();
-
-    // TODO: remove this
-    if (topRow === null || bottomRow === null) {
-      return headers;
-    }
-
     const { wtTable } = this.#activeOverlaysWot;
     const renderedRowsCount = wtTable.getRenderedRowsCount();
     const rowHeadersCount = wtTable.getRowHeadersCount();
+    const headers = new Set();
     let cursor = 0;
 
     for (let row = -wtTable.getColumnHeadersCount(); row < renderedRowsCount; row++) {
@@ -121,6 +140,12 @@ export class SelectionScanner {
     return headers;
   }
 
+  /**
+   * Scans the table (only rendered cells) and collect all cells (TR) that match
+   * the coordinates passed in the Selection instance.
+   *
+   * @returns {Set<TR>}
+   */
   scanCellsRange() {
     const [topRow, topColumn, bottomRow, bottomColumn] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
@@ -145,7 +170,14 @@ export class SelectionScanner {
     return cells;
   }
 
+  /**
+   * Scans the table (only rendered cells) and collects all cells (TR) that match the coordinates
+   * passed in the Selection instance but only for the X axis (rows).
+   *
+   * @returns {Set<TR>}
+   */
   scanRowsInCellsRange() {
+    // eslint-disable-next-line comma-spacing
     const [topRow,, bottomRow,] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
     const cells = new Set();
@@ -161,6 +193,12 @@ export class SelectionScanner {
     return cells;
   }
 
+  /**
+   * Scans the table (only rendered cells) and collects all cells (TR) that match the coordinates
+   * passed in the Selection instance but only for the Y axis (columns).
+   *
+   * @returns {Set<TR>}
+   */
   scanColumnsInCellsRange() {
     const [, topColumn,, bottomColumn] = this.#selection.getCorners();
     const { wtTable } = this.#activeOverlaysWot;
@@ -177,6 +215,11 @@ export class SelectionScanner {
     return cells;
   }
 
+  /**
+   * The method triggers a callback for each rendered cell.
+   *
+   * @param {function(number, number): void} callback The callback function to trigger.
+   */
   #scanCellsRange(callback) {
     const { wtTable } = this.#activeOverlaysWot;
     const renderedRowsCount = wtTable.getRenderedRowsCount();

@@ -9,7 +9,7 @@ import VisualSelection from '../visualSelection';
  * @returns {Selection}
  */
 export function createHighlight({ ...restOptions }) {
-  const s = new VisualSelection({
+  return new VisualSelection({
     className: 'fill',
     border: {
       width: 1,
@@ -18,6 +18,4 @@ export function createHighlight({ ...restOptions }) {
     ...restOptions,
     selectionType: HIGHLIGHT_FILL_TYPE,
   });
-
-  return s;
 }

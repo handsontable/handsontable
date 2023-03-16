@@ -10,7 +10,7 @@ import VisualSelection from '../visualSelection';
  * @returns {Selection}
  */
 export function createHighlight({ cellCornerVisible, ...restOptions }) {
-  const s = new VisualSelection({
+  return new VisualSelection({
     className: 'current',
     border: {
       width: 2,
@@ -20,6 +20,4 @@ export function createHighlight({ cellCornerVisible, ...restOptions }) {
     ...restOptions,
     selectionType: HIGHLIGHT_FOCUS_TYPE,
   });
-
-  return s;
 }

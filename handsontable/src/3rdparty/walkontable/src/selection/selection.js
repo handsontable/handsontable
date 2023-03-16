@@ -1,4 +1,5 @@
-import Border from '../border';
+import { mixin } from '../../../../helpers/object';
+import localHooks from '../../../../mixins/localHooks';
 
 /**
  * @class Selection
@@ -11,22 +12,6 @@ class Selection {
   constructor(settings, cellRange) {
     this.settings = settings;
     this.cellRange = cellRange || null;
-    this.instanceBorders = {};
-  }
-
-  /**
-   * Each Walkontable clone requires it's own border for every selection. This method creates and returns selection
-   * borders per instance.
-   *
-   * @param {WalkontableFacade} wotInstance The Walkontable instance.
-   * @returns {Border}
-   */
-  getBorder(wotInstance) {
-    if (!this.instanceBorders[wotInstance.guid]) {
-      this.instanceBorders[wotInstance.guid] = new Border(wotInstance, this.settings);
-    }
-
-    return this.instanceBorders[wotInstance.guid];
   }
 
   /**
@@ -108,12 +93,11 @@ class Selection {
     ];
   }
 
-  /**
-   * Cleans up all the DOM state related to a Selection instance. Call this prior to deleting a Selection instance.
-   */
   destroy() {
-    Object.values(this.instanceBorders).forEach(border => border.destroy());
+    this.runLocalHooks('destroy');
   }
 }
+
+mixin(Selection, localHooks);
 
 export default Selection;

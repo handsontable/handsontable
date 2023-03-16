@@ -2,8 +2,8 @@ import { HIGHLIGHT_CUSTOM_SELECTION_TYPE } from '../../../3rdparty/walkontable/s
 import VisualSelection from '../visualSelection';
 
 /**
- * Creates the new instance of Selection responsible for highlighting currently selected cell. This type of selection
- * can present on the table only one at the time.
+ * Creates the new instance of Selection responsible for highlighting currently selected cell.
+ * This type of selection can present on the table only one at the time.
  *
  * @param {object} highlightParams A configuration object to create a highlight.
  * @param {object} highlightParams.border Border configuration.
@@ -11,11 +11,9 @@ import VisualSelection from '../visualSelection';
  * @returns {Selection}
  */
 export function createHighlight({ border, visualCellRange, ...restOptions }) {
-  const s = new VisualSelection({
+  return new VisualSelection({
     ...border,
     ...restOptions,
     selectionType: HIGHLIGHT_CUSTOM_SELECTION_TYPE,
   }, visualCellRange);
-
-  return s;
 }

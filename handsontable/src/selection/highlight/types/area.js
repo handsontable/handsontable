@@ -9,11 +9,9 @@ import VisualSelection from '../visualSelection';
  * @returns {Selection}
  */
 export function createHighlight({ ...restOptions }) {
-  const s = new VisualSelection({
+  return new VisualSelection({
     className: 'highlight',
     ...restOptions,
     selectionType: HIGHLIGHT_AREA_TYPE,
   });
-
-  return s;
-};
+}

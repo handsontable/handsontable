@@ -282,7 +282,7 @@ export function range(start, end) {
  * current selection, area selection, selection for autofill and custom borders.
  *
  * @param {object} selections An object with custom selection instances.
- * @param {Selection} [selections.current] An optional instance of the current selection.
+ * @param {Selection} [selections.focus] An optional instance of the current selection.
  * @param {Selection} [selections.area] An optional instance of the area selection.
  * @param {Selection} [selections.fill] An optional instance of the fill selection.
  * @param {Selection} [selections.custom] An optional instance of the custom selection.
@@ -290,20 +290,28 @@ export function range(start, end) {
  * @param {Selection} [selections.header] An optional instance of the header selection.
  * @returns {object} Selection controller.
  */
-export function createSelectionController({ current, area, fill, custom, activeHeader, header } = {}) {
-  const currentCtrl = current || createSelection({
+export function createSelectionController({
+  focus,
+  area,
+  fill,
+  custom,
+  activeRowHeader,
+  activeColumnHeader,
+  rowHeader,
+  columnHeader,
+} = {}) {
+  const focusCtrl = focus || createSelection({
     className: 'current',
-    selectionType: 'cell',
+    selectionType: 'focus',
     border: {
       width: 2,
       color: '#4b89ff',
     },
   });
   const areaCtrl = area || createSelection({
-    markIntersections: true,
-    layerLevel: 1,
     className: 'area',
     selectionType: 'area',
+    createLayers: true,
     border: {
       width: 1,
       color: '#4b89ff',
@@ -322,30 +330,45 @@ export function createSelectionController({ current, area, fill, custom, activeH
       color: '#ff0000',
     },
   });
-  const activeHeaderCtrl = activeHeader || createSelection({
-    highlightHeaderClassName: 'active_highlight',
+  const activeRowHeaderCtrl = activeRowHeader || createSelection({
+    className: 'active_highlight',
     selectionType: 'active-header',
   });
-  const headerCtrl = header || createSelection({
-    highlightHeaderClassName: 'highlight',
+  const activeColumnHeaderCtrl = activeColumnHeader || createSelection({
+    className: 'active_highlight',
+    selectionType: 'active-header',
+  });
+  const headerRowCtrl = rowHeader || createSelection({
+    className: 'highlight',
     selectionType: 'header',
   });
+  const headerColumnCtrl = columnHeader || createSelection({
+    className: 'highlight',
+    selectionType: 'header',
+  });
+  const rowHighlightCtrl = custom || [];
+  const columnHighlightCtrl = custom || [];
   const customCtrl = custom || [];
 
   return {
-    getCell() {
-      return currentCtrl;
+    getFocus() {
+      return focusCtrl;
     },
-    getHeader() {
-      return headerCtrl;
+    getRowHeader() {
+      return headerRowCtrl;
     },
-    getActiveHeader() {
-      return activeHeaderCtrl;
+    getColumnHeader() {
+      return headerColumnCtrl;
+    },
+    getActiveRowHeader() {
+      return activeRowHeaderCtrl;
+    },
+    getActiveColumnHeader() {
+      return activeColumnHeaderCtrl;
     },
     createOrGetArea(options = {}) {
       const optionsWithDefaults = {
-        markIntersections: true,
-        layerLevel: 1,
+        createLayers: true,
         border: {
           width: 1,
           color: '#4b89ff',
@@ -368,16 +391,42 @@ export function createSelectionController({ current, area, fill, custom, activeH
     getAreas() {
       return Array.from(areaControllers.values());
     },
+    createOrGetRowHighlight(options = {}) {
+      const optionsWithDefaults = {
+        ...options,
+        selectionType: 'row',
+      };
+      const selection = createSelection(optionsWithDefaults);
+
+      rowHighlightCtrl.push(selection);
+
+      return selection;
+    },
+    createOrGetColumnHighlight(options = {}) {
+      const optionsWithDefaults = {
+        ...options,
+        selectionType: 'column',
+      };
+      const selection = createSelection(optionsWithDefaults);
+
+      rowHighlightCtrl.push(selection);
+
+      return selection;
+    },
     getFill() {
       return fillCtrl;
     },
     [Symbol.iterator]() {
       return [
-        currentCtrl,
+        focusCtrl,
         fillCtrl,
         ...this.getAreas(),
-        headerCtrl,
-        activeHeaderCtrl,
+        headerRowCtrl,
+        headerColumnCtrl,
+        activeRowHeaderCtrl,
+        activeColumnHeaderCtrl,
+        ...rowHighlightCtrl,
+        ...columnHighlightCtrl,
         ...customCtrl,
       ][Symbol.iterator]();
     },

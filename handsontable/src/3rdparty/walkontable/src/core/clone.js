@@ -24,7 +24,8 @@ export default class Clone extends CoreAbstract {
     this.wtViewport = clone.viewport;
     this.selectionManager = clone.selectionManager;
     this.wtEvent = new Event(
-      facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selectionManager, clone.event
+      facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable,
+      this.selectionManager, clone.event
     );
 
     this.findOriginalHeaders();

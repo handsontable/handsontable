@@ -241,10 +241,10 @@ class Selection {
     }
 
     // Set up current selection.
-    this.highlight.getCell().clear();
+    this.highlight.getFocus().clear();
 
     if (this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight)) {
-      this.highlight.getCell()
+      this.highlight.getFocus()
         .add(this.selectedRange.current().highlight)
         .commit()
         .syncWith(cellRange);
@@ -709,10 +709,10 @@ class Selection {
       return;
     }
 
-    const cellHighlight = this.highlight.getCell();
+    const focusHighlight = this.highlight.getFocus();
     const currentLayer = this.getLayerLevel();
 
-    cellHighlight.commit().syncWith(this.selectedRange.current());
+    focusHighlight.commit().syncWith(this.selectedRange.current());
 
     // Rewriting rendered ranges going through all layers.
     for (let layerLevel = 0; layerLevel < this.selectedRange.size(); layerLevel += 1) {

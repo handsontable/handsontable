@@ -49,8 +49,8 @@ class Transformation {
     if (renderableRow !== null && renderableColumn !== null) {
       let totalRows = this.options.countRows();
       let totalCols = this.options.countCols();
-      let totalRowHeaders = this.options.countRowHeaders();
-      let totalColHeaders = this.options.countColHeaders();
+      // let totalRowHeaders = this.options.countRowHeaders();
+      // let totalColHeaders = this.options.countColHeaders();
       const fixedRowsBottom = this.options.fixedRowsBottom();
       const minSpareRows = this.options.minSpareRows();
       const minSpareCols = this.options.minSpareCols();

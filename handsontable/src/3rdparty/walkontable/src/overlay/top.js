@@ -11,6 +11,7 @@ import {
 } from '../../../../helpers/dom/element';
 import TopOverlayTable from './../table/top';
 import { Overlay } from './_base';
+import { CORNER_DEFAULT_STYLE } from '../selection';
 import {
   CLONE_TOP,
 } from './constants';
@@ -215,9 +216,7 @@ export class TopOverlay extends Overlay {
    */
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
-    const { selectionManager } = this.wot;
-    const facade = this.facadeGetter();
-    const selectionCornerOffset = Math.abs(selectionManager.getFocusSelection().getBorder(facade).cornerCenterPointOffset ?? 0);
+    const selectionCornerOffset = parseInt(CORNER_DEFAULT_STYLE.width, 10) / 2;
 
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     holder.style.width = holder.parentNode.style.width;

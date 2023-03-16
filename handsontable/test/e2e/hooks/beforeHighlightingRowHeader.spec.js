@@ -45,8 +45,6 @@ describe('Hook', () => {
         selectionHeight: 3,
       });
 
-      console.log(spy.calls.allArgs());
-
       expect(spy.calls.allArgs()).toEqual([
         [2, 0, createHighlightMeta({ rowCursor: 0 })],
         [3, 0, createHighlightMeta({ rowCursor: 1 })],

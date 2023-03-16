@@ -9,7 +9,7 @@ import VisualSelection from '../visualSelection';
  * @returns {Selection}
  */
 export function createHighlight({ areaCornerVisible, ...restOptions }) {
-  const s = new VisualSelection({
+  return new VisualSelection({
     className: 'area',
     createLayers: true,
     border: {
@@ -20,6 +20,4 @@ export function createHighlight({ areaCornerVisible, ...restOptions }) {
     ...restOptions,
     selectionType: HIGHLIGHT_AREA_TYPE,
   });
-
-  return s;
 }

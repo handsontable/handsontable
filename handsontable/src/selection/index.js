@@ -1,4 +1,3 @@
-export * from './highlight/highlight';
 import Selection from './selection';
 import { handleMouseEvent } from './mouseEventHandler';
 import {
@@ -6,6 +5,7 @@ import {
   normalizeSelectionFactory,
 } from './utils';
 
+export * from './highlight/highlight';
 export {
   handleMouseEvent,
   Selection,
