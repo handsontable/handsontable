@@ -220,7 +220,10 @@ export class SelectionManager {
         });
       }
 
-      borderInstance?.appear(selection.getCorners());
+      const corners = selection.getCorners();
+
+      this.#activeOverlaysWot.getSetting('onBeforeDrawBorders', corners, selectionType);
+      borderInstance?.appear(corners);
     }
 
     classNamesMap.forEach((classNamesLayers, element) => {

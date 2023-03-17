@@ -3941,9 +3941,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return instance.view._wt.drawn ? instance.view._wt.wtTable.getVisibleColumnsCount() : -1;
   };
 
+  /**
+   * Returns the number of rendered row headers.
+   *
+   * @since 13.0.0
+   * @memberof Core#
+   * @function countRowHeaders
+   * @returns {number} Number of visible columns.
+   */
   this.countRowHeaders = function() {
     return this.view.getRowHeadersCount();
   };
+
+  /**
+   * Returns the number of rendered column headers.
+   *
+   * @since 13.0.0
+   * @memberof Core#
+   * @function countColHeaders
+   * @returns {number} Number of visible columns.
+   */
   this.countColHeaders = function() {
     return this.view.getColumnHeadersCount();
   };
