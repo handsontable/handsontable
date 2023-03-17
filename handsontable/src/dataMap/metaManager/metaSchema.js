@@ -2940,7 +2940,7 @@ export default () => {
      * The `maxRows` option sets a maximum number of rows.
      *
      * The `maxRows` option is used:
-     * - At initialization: if the `maxRows` value is lower than the initial number of columns,
+     * - At initialization: if the `maxRows` value is lower than the initial number of rows,
      * Handsontable trims rows from the bottom.
      * - At runtime: for example, when inserting rows.
      *
