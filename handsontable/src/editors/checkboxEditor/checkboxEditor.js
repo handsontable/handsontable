@@ -32,5 +32,7 @@ export class CheckboxEditor extends BaseEditor {
   close() {}
   getValue() {}
   setValue() {}
-  focus() {}
+  focus() {
+    super.focus();
+  }
 }

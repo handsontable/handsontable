@@ -76,15 +76,29 @@ class FocusableWrapper {
 
   /**
    * Set focus to the focusable element.
+   *
+   * @param {Function} [timeoutFn] If defined, the element selection will be performed with a slight timeout, using
+   * the provided function as a timeout handler.
    */
-  focus() {
+  focus(timeoutFn) {
+    const focusAndSelectMainElement = () => {
+      this.mainElement.focus();
+
+      selectElementIfAllowed(this.mainElement);
+    };
+
     // Add an empty space to texarea. It is necessary for safari to enable "copy" command from menu bar.
     this.mainElement.value = ' ';
 
     if (!isMobileBrowser()) {
-      this.mainElement.focus();
+      if (timeoutFn) {
+        timeoutFn(() => {
+          focusAndSelectMainElement();
+        }, 50);
 
-      selectElementIfAllowed(this.mainElement);
+      } else {
+        focusAndSelectMainElement();
+      }
     }
   }
 }

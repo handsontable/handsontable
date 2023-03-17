@@ -203,11 +203,15 @@ export class TextEditor extends BaseEditor {
    * Sets focus state on the select element.
    */
   focus() {
-    // For IME editor textarea element must be focused using ".select" method.
-    // Using ".focus" browser automatically scroll into the focused element which
-    // is undesired effect.
-    this.TEXTAREA.select();
-    setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+    super.focus();
+
+    this.hot._registerTimeout(() => {
+      // For IME editor textarea element must be focused using ".select" method.
+      // Using ".focus" browser automatically scroll into the focused element which
+      // is undesired effect.
+      this.TEXTAREA.select();
+      setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+    }, 50);
   }
 
   /**

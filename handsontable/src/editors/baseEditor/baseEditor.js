@@ -637,6 +637,13 @@ export class BaseEditor {
 
     return section;
   }
+
+  /**
+   * Sets the focus on the edited cell.
+   */
+  focus() {
+    this.hot.getCell(this.row, this.col, true).focus();
+  }
 }
 
 mixin(BaseEditor, hooksRefRegisterer);

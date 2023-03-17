@@ -280,8 +280,11 @@ export class CopyPaste extends BasePlugin {
   copy(copyMode = 'cells-only') {
     this.#copyMode = copyMode;
     this.#isTriggeredByCopy = true;
+
     this.getOrCreateFocusableElement();
-    this.focusableElement.focus();
+
+    this.focusCopyableElement();
+
     this.hot.rootDocument.execCommand('copy');
   }
 
@@ -315,8 +318,11 @@ export class CopyPaste extends BasePlugin {
    */
   cut() {
     this.#isTriggeredByCut = true;
+
     this.getOrCreateFocusableElement();
-    this.focusableElement.focus();
+
+    this.focusCopyableElement();
+
     this.hot.rootDocument.execCommand('cut');
   }
 
@@ -553,6 +559,21 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
+   * Sets the focus on the copyable element.
+   *
+   * @param {boolean} [useTimeout=false] If set to `true`, the focus will be performed asynchronously with a slight
+   * timeout.
+   */
+  focusCopyableElement(useTimeout = false) {
+    if (useTimeout) {
+      this.focusableElement.focus(this.hot._registerTimeout.bind(this.hot));
+
+    } else {
+      this.focusableElement.focus();
+    }
+  }
+
+  /**
    * `copy` event callback on textarea element.
    *
    * @param {Event} event ClipboardEvent.
@@ -731,7 +752,8 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.getOrCreateFocusableElement();
-    this.focusableElement.focus();
+
+    this.focusCopyableElement(true);
   }
 
   /**
@@ -753,11 +775,7 @@ export class CopyPaste extends BasePlugin {
 
     this.setCopyableText();
 
-    this.hot.getCell(...this.hot.getSelected()[0].slice(0, 2)).focus();
-
-    setTimeout(() => {
-      this.focusableElement.focus();
-    }, 1);
+    this.focusCopyableElement(true);
   }
 
   /**
@@ -778,7 +796,8 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.getOrCreateFocusableElement();
-    this.focusableElement.focus();
+
+    this.focusCopyableElement(true);
   }
 
   /**
