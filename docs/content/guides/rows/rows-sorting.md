@@ -8,6 +8,7 @@ description:
 permalink: /rows-sorting
 canonicalUrl: /rows-sorting
 tags:
+  - sorting
   - row sorting
   - column sorting
   - columnSorting
@@ -25,7 +26,6 @@ tags:
   - sort data
   - sort rows
   - sort columns
-  - sorting
 react:
   id: h4jfevxj
   metaTitle: Rows sorting - React Data Grid | Handsontable
