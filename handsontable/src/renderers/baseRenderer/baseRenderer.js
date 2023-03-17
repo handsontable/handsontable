@@ -45,6 +45,8 @@ export function baseRenderer(instance, TD, row, col, prop, value, cellProperties
   addClass(TD, classesToAdd);
 
   TD.setAttribute('tabindex', '-1');
+  TD.setAttribute('aria-rowindex', `${row}`);
+  TD.setAttribute('aria-colindex', `${col}`);
 }
 
 baseRenderer.RENDERER_TYPE = RENDERER_TYPE;

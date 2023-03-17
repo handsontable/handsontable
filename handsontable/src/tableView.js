@@ -254,6 +254,9 @@ class TableView {
       addClass(priv.table, this.instance.getSettings().tableClassName);
     }
 
+    priv.table.setAttribute('aria-rowcount', `${this.instance.countRows()}`);
+    priv.table.setAttribute('aria-colcount', `${this.instance.countCols()}`);
+
     this.THEAD = rootDocument.createElement('THEAD');
     priv.table.appendChild(this.THEAD);
 
