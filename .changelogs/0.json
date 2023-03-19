@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "public",
   "title": "Fixed an issue with the developer documentation and the js template example",
-  "type": "changed",
-  "issueOrPR": 0,
+  "type": "fixed",
+  "issueOrPR": 10296,
   "breaking": false,
   "framework": "none"
 }
