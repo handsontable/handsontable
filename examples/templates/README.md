@@ -21,7 +21,7 @@ To create a new code example in Vanilla JavaScript to be used in the Handsontabl
 
 Copy the `examples/templates/js` directory and paste it into `examples/next/docs/js`.
 
-In the next step rename the give that 'js' directory to a name that best describes the purpose of the code example, for instance, "sorting-data-custom-order". Make sure you keep the right file structure, like so:
+Next: Rename the newly copied 'examples/templates/js/js' directory to a name that best describes the purpose of the code example, for instance, "sorting-data-custom-order". Make sure you keep the right file structure, like so:
 
 ```
 examples/
@@ -31,7 +31,7 @@ examples/
 │  │  │  ├─ sorting-data-custom-order/
 ```
 
-This can be achieved using the command: `cp -r templates/js next/docs/js/sorting-data-custom-order`.
+This can be achieved using the command: `cp -r templates/js/ next/docs/js/sorting-data-custom-order`.
 
 It's done! Now take a closer look at files inside templates.
 
