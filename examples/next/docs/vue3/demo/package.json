@@ -12,11 +12,12 @@
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
-    "dev": "vite",
-    "start": "vite",
     "build": "run-p type-check build-only",
-    "preview": "vite preview",
     "build-only": "vite build",
+    "dev": "vite",
+    "preview": "vite preview",
+    "start": "vite",
+    "test": "echo \"Mocked npm script for a while.\"",
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
