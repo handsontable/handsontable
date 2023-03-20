@@ -60,7 +60,7 @@ For more information on the distribution packages, see [this file](https://githu
 
 Handsontable building processes require:
 - [Node.js](https://nodejs.org/) (version **16.19**+)
-- [npm](https://www.npmjs.com/) (version **9.5**+)
+- [npm](https://www.npmjs.com/) (version **8.19**+)
 - Node modules installed through `npm install` (e.g. [webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/))
 
 ### `package.json` files
@@ -80,7 +80,7 @@ Each Handsontable [project](#monorepo) has its own building processes defined in
 
 To run your first build:
 1. Install [Node.js](https://nodejs.org/) (version **16.19**+).
-2. Install [npm](https://www.npmjs.com/) (version **9.5**+).
+2. Install [npm](https://www.npmjs.com/) (version **8.19**+).
 3. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
 4. From the root directory, run `npm install`.<br>All the required dependencies get installed.
 5. From the root directory, run `npm run build`.<br>All the Handsontable packages get built.
