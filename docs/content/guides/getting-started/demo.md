@@ -2980,7 +2980,7 @@ Explore the demo and discover Handsontable's most popular features:
 - [Column menu](@/guides/columns/column-menu.md)
 - [Column filter](@/guides/columns/column-filter.md)
 - [Column hiding](@/guides/columns/column-hiding.md)
-- [Row sorting](@/guides/rows/row-sorting.md)
+- [Rows sorting](@/guides/rows/rows-sorting.md)
 - And more!
 
 ## Edit the demo's source code
