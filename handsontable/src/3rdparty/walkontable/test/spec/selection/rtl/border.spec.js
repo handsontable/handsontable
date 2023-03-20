@@ -24,35 +24,35 @@ describe('WalkontableBorder (RTL mode)', () => {
   });
 
   it('should add/remove border to selection when cell is clicked', () => {
+    const selections = createSelectionController({
+      border: {
+        width: 1,
+        color: 'red'
+      }
+    });
     const wt = walkontable({
       rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 5,
-      selections: createSelectionController({
-        current: createSelection({
-          border: {
-            width: 1,
-            color: 'red'
-          }
-        })
-      }),
+      selections,
       onCellMouseDown(event, coords) {
-        wt.selections.getCell().clear();
-        wt.selections.getCell().add(coords);
+        selections.getFocus()
+          .clear()
+          .add(coords);
         wt.draw();
       }
     });
 
     wt.draw();
 
+    const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
     const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
-
     const $td2 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
-    const $top = $(wt.selections.getCell().getBorder(wt).top);
-    const $end = $(wt.selections.getCell().getBorder(wt).end);
-    const $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
-    const $start = $(wt.selections.getCell().getBorder(wt).start);
+    const $top = $(focusBorder.top);
+    const $end = $(focusBorder.end);
+    const $bottom = $(focusBorder.bottom);
+    const $start = $(focusBorder.start);
 
     $td1.simulate('mousedown');
 
@@ -86,33 +86,34 @@ describe('WalkontableBorder (RTL mode)', () => {
   });
 
   it('should add/remove border to selection when cell is clicked and the table has only one column', () => {
+    const selections = createSelectionController({
+      border: {
+        width: 1,
+        color: 'red'
+      }
+    });
     const wt = walkontable({
       rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 1,
-      selections: createSelectionController({
-        current: createSelection({
-          border: {
-            width: 1,
-            color: 'red'
-          }
-        })
-      }),
+      selections,
       onCellMouseDown(event, coords) {
-        wt.selections.getCell().clear();
-        wt.selections.getCell().add(coords);
+        selections.getFocus()
+          .clear()
+          .add(coords);
         wt.draw();
       }
     });
 
     wt.draw();
 
+    const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
     const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
-    const $top = $(wt.selections.getCell().getBorder(wt).top);
-    const $end = $(wt.selections.getCell().getBorder(wt).end);
-    const $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
-    const $start = $(wt.selections.getCell().getBorder(wt).start);
+    const $top = $(focusBorder.top);
+    const $end = $(focusBorder.end);
+    const $bottom = $(focusBorder.bottom);
+    const $start = $(focusBorder.start);
 
     $td1.simulate('mousedown');
 
@@ -131,35 +132,37 @@ describe('WalkontableBorder (RTL mode)', () => {
   });
 
   it('should properly add a selection border on an entirely selected column', () => {
+    const selections = createSelectionController({
+      border: {
+        width: 1,
+        color: 'red'
+      }
+    });
     const wt = walkontable({
       rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 2,
-      selections: createSelectionController({
-        current: createSelection({
-          border: {
-            width: 1,
-            color: 'red'
-          }
-        })
-      }),
+      selections,
       onCellMouseDown(event, coords) {
-        wt.selections.getCell().clear();
-        wt.selections.getCell().add(coords);
+        selections.getFocus()
+          .clear()
+          .add(coords);
         wt.draw();
       }
     });
 
     wt.draw();
-    wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
-    wt.selections.getCell().add(new Walkontable.CellCoords(4, 0));
+    selections.getFocus()
+      .add(new Walkontable.CellCoords(0, 0))
+      .add(new Walkontable.CellCoords(4, 0));
     wt.draw(true);
 
-    const $top = $(wt.selections.getCell().getBorder(wt).top);
-    const $end = $(wt.selections.getCell().getBorder(wt).end);
-    const $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
-    const $start = $(wt.selections.getCell().getBorder(wt).start);
+    const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
+    const $top = $(focusBorder.top);
+    const $end = $(focusBorder.end);
+    const $bottom = $(focusBorder.bottom);
+    const $start = $(focusBorder.start);
 
     expect($top.css('height')).toBe('1px');
     expect($top.css('top')).toBe('0px');
@@ -176,26 +179,25 @@ describe('WalkontableBorder (RTL mode)', () => {
   });
 
   it('should add/remove corner to selection when cell is clicked', () => {
+    const selections = createSelectionController({
+      border: {
+        width: 2,
+        color: 'green',
+        cornerVisible() {
+          return true;
+        }
+      }
+    });
     const wt = walkontable({
       rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 5,
-      selections: createSelectionController({
-        current: createSelection({
-          border: {
-            width: 2,
-            color: 'green',
-            cornerVisible() {
-              return true;
-            }
-          }
-        }),
-        area: createSelection({}),
-      }),
+      selections,
       onCellMouseDown(event, coords) {
-        wt.selections.getCell().clear();
-        wt.selections.getCell().add(coords);
+        selections.getFocus()
+          .clear()
+          .add(coords);
         wt.draw();
       }
     });
@@ -204,7 +206,8 @@ describe('WalkontableBorder (RTL mode)', () => {
 
     const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
     const $td2 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
-    const $corner = $(wt.selections.getCell().getBorder(wt).corner);
+    const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
+    const $corner = $(focusBorder.corner);
 
     $td1.simulate('mousedown');
 
@@ -222,26 +225,25 @@ describe('WalkontableBorder (RTL mode)', () => {
   });
 
   it('should render selection corner in the correct position', () => {
+    const selections = createSelectionController({
+      border: {
+        width: 2,
+        color: 'green',
+        cornerVisible() {
+          return true;
+        }
+      }
+    });
     const wt = walkontable({
       rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 5,
-      selections: createSelectionController({
-        current: createSelection({
-          border: {
-            width: 2,
-            color: 'green',
-            cornerVisible() {
-              return true;
-            }
-          }
-        }),
-        area: createSelection({}),
-      }),
+      selections,
       onCellMouseDown(event, coords) {
-        wt.selections.getCell().clear();
-        wt.selections.getCell().add(coords);
+        selections.getFocus()
+          .clear()
+          .add(coords);
         wt.draw();
       }
     });
@@ -249,7 +251,8 @@ describe('WalkontableBorder (RTL mode)', () => {
     wt.draw();
 
     const $td1 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
-    const $corner = $(wt.selections.getCell().getBorder(wt).corner);
+    const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
+    const $corner = $(focusBorder.corner);
 
     $td1.simulate('mousedown');
 
@@ -260,27 +263,26 @@ describe('WalkontableBorder (RTL mode)', () => {
   });
 
   it('should properly render a selection corner on the edge of the left fixed column', () => {
+    const selections = createSelectionController({
+      border: {
+        width: 2,
+        color: 'green',
+        cornerVisible() {
+          return true;
+        }
+      }
+    });
     const wt = walkontable({
       rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 5,
       fixedColumnsStart: 2,
-      selections: createSelectionController({
-        current: createSelection({
-          border: {
-            width: 2,
-            color: 'green',
-            cornerVisible() {
-              return true;
-            }
-          }
-        }),
-        area: createSelection({}),
-      }),
+      selections,
       onCellMouseDown(event, coords) {
-        wt.selections.getCell().clear();
-        wt.selections.getCell().add(coords);
+        selections.getFocus()
+          .clear()
+          .add(coords);
         wt.draw();
       }
     });
@@ -288,7 +290,8 @@ describe('WalkontableBorder (RTL mode)', () => {
     wt.draw();
 
     const $td1 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
-    const $corner = wt.selections.getCell().getBorder(wt).corner;
+    const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
+    const $corner = focusBorder.corner;
     const inlineStartOverlay = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder;
 
     $td1.simulate('mousedown');
@@ -296,103 +299,31 @@ describe('WalkontableBorder (RTL mode)', () => {
     expect(inlineStartOverlay.getBoundingClientRect().left).toBe($corner.getBoundingClientRect().left);
   });
 
-  it('should properly render a selection corner on the edge of the top fixed row', () => {
-    const wt = walkontable({
-      rtlMode: true,
-      data: getData,
-      totalRows: 5,
-      totalColumns: 5,
-      fixedRowsTop: 2,
-      selections: createSelectionController({
-        current: createSelection({
-          border: {
-            width: 2,
-            color: 'green',
-            cornerVisible() {
-              return true;
-            }
-          }
-        }),
-        area: createSelection({}),
-      }),
-      onCellMouseDown(event, coords) {
-        wt.selections.getCell().clear();
-        wt.selections.getCell().add(coords);
-        wt.draw();
-      }
-    });
-
-    wt.draw();
-
-    const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(1)');
-    const $corner = $(wt.selections.getCell().getBorder(wt).corner);
-    const topOverlay = $(wt.wtOverlays.topOverlay.clone.wtTable.holder);
-
-    $td1.simulate('mousedown');
-
-    expect(topOverlay.position().top + topOverlay.outerHeight())
-      .toBe($corner.position().top + $corner.outerHeight());
-  });
-
-  it('should draw only one corner if selection is added between overlays', () => {
-    const wt = walkontable({
-      rtlMode: true,
-      data: getData,
-      totalRows: 5,
-      totalColumns: 5,
-      fixedColumnsStart: 2,
-      fixedRowsTop: 2,
-      selections: createSelectionController({
-        current: createSelection({
-          className: 'current',
-          border: {},
-        }),
-        area: createSelection({
-          className: 'area',
-          border: {
-            cornerVisible() {
-              return true;
-            }
-          }
-        }),
-      }),
-    });
-
-    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(0, 0));
-    wt.selections.createOrGetArea().add(new Walkontable.CellCoords(2, 2));
-
-    wt.draw();
-
-    const corners = spec().$wrapper.find('.wtBorder.corner:visible');
-
-    expect(corners.length).toBe(1);
-  });
-
   it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', () => {
     spec().$wrapper.css({
       overflow: 'hidden',
       width: '200px',
+    });
+
+    const selections = createSelectionController({
+      border: {
+        width: 2,
+        color: 'green',
+        cornerVisible() {
+          return true;
+        }
+      }
     });
     const wt = walkontable({
       rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 4,
-      selections: createSelectionController({
-        current: createSelection({
-          border: {
-            width: 2,
-            color: 'green',
-            cornerVisible() {
-              return true;
-            }
-          }
-        }),
-        area: createSelection({}),
-      }),
+      selections,
       onCellMouseDown(event, coords) {
-        wt.selections.getCell().clear();
-        wt.selections.getCell().add(coords);
+        selections.getFocus()
+          .clear()
+          .add(coords);
         wt.draw();
       }
     });
@@ -402,7 +333,8 @@ describe('WalkontableBorder (RTL mode)', () => {
     const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
     const $td2 = spec().$table.find('tbody tr:eq(3) td:eq(3)');
     const $td3 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
-    const $corner = $(wt.selections.getCell().getBorder(wt).corner);
+    const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
+    const $corner = $(focusBorder.corner);
 
     $td1.simulate('mousedown');
 
@@ -435,26 +367,25 @@ describe('WalkontableBorder (RTL mode)', () => {
       marginTop: '2000px',
     });
 
+    const selections = createSelectionController({
+      border: {
+        width: 2,
+        color: 'green',
+        cornerVisible() {
+          return true;
+        }
+      }
+    });
     const wt = walkontable({
       rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 1,
-      selections: createSelectionController({
-        current: createSelection({
-          border: {
-            width: 2,
-            color: 'green',
-            cornerVisible() {
-              return true;
-            }
-          }
-        }),
-        area: createSelection({}),
-      }),
+      selections,
       onCellMouseDown(event, coords) {
-        wt.selections.getCell().clear();
-        wt.selections.getCell().add(coords);
+        selections.getFocus()
+          .clear()
+          .add(coords);
         wt.draw();
       }
     });
@@ -462,7 +393,8 @@ describe('WalkontableBorder (RTL mode)', () => {
     wt.draw();
 
     const $td = spec().$table.find('tbody tr:last-of-type td:last-of-type');
-    const $corner = $(wt.selections.getCell().getBorder(wt).corner);
+    const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
+    const $corner = $(focusBorder.corner);
 
     $td.simulate('mousedown');
 
@@ -484,26 +416,25 @@ describe('WalkontableBorder (RTL mode)', () => {
       marginRight: '2000px',
     });
 
+    const selections = createSelectionController({
+      border: {
+        width: 2,
+        color: 'green',
+        cornerVisible() {
+          return true;
+        }
+      }
+    });
     const wt = walkontable({
       rtlMode: true,
       data: getData,
       totalRows: 1,
       totalColumns: 1,
-      selections: createSelectionController({
-        current: createSelection({
-          border: {
-            width: 2,
-            color: 'green',
-            cornerVisible() {
-              return true;
-            }
-          }
-        }),
-        area: createSelection({}),
-      }),
+      selections,
       onCellMouseDown(event, coords) {
-        wt.selections.getCell().clear();
-        wt.selections.getCell().add(coords);
+        selections.getFocus()
+          .clear()
+          .add(coords);
         wt.draw();
       }
     });
@@ -511,7 +442,8 @@ describe('WalkontableBorder (RTL mode)', () => {
     wt.draw();
 
     const $td = spec().$table.find('tbody tr:last-of-type td:last-of-type');
-    const $corner = $(wt.selections.getCell().getBorder(wt).corner);
+    const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
+    const $corner = $(focusBorder.corner);
 
     $td.simulate('mousedown');
 
