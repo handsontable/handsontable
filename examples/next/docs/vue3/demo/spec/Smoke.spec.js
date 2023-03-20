@@ -28,7 +28,7 @@ describe('Smoke check', () => {
     const progressBarRendererCell = await page.$('.handsontable tbody tr td:nth-child(7) .progressBar');
     const progressBarRendererCellContent = await progressBarRendererCell.evaluate(el => el.getAttribute('style'));
 
-    await expect(progressBarRendererCellContent).toBe('width: 20px;');
+    await expect(progressBarRendererCellContent).toBe('width: 20px');
   });
 
   it('should use startRenderer', async () => {
