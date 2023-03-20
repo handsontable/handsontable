@@ -184,7 +184,7 @@ export default class Settings {
       },
       defaultRowHeight: 23,
       defaultColumnWidth: 50,
-      selections: [],
+      selections: null,
       hideBorderOnMouseDownOver: false,
       viewportRowCalculatorOverride: null,
       viewportColumnCalculatorOverride: null,

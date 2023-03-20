@@ -258,7 +258,7 @@ export function createSelectionController(options = {}) {
       return fillCtrl;
     },
     createOrGetAreaLayered() {
-      return this.getArea();
+      return areaCtrl.at(-1) ?? { cellRange: null };
     },
     getArea(selectionOptions = {}) {
       return addSelectionToCollection(areaCtrl, {

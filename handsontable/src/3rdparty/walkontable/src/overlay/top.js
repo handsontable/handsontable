@@ -216,7 +216,8 @@ export class TopOverlay extends Overlay {
    */
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
-    const selectionCornerOffset = parseInt(CORNER_DEFAULT_STYLE.width, 10) / 2;
+    const selectionCornerOffset = this.wot.selectionManager
+      .getFocusSelection() ? parseInt(CORNER_DEFAULT_STYLE.height, 10) / 2 : 0;
 
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     holder.style.width = holder.parentNode.style.width;

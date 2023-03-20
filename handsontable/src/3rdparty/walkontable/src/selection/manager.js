@@ -15,7 +15,7 @@ export class SelectionManager {
   /**
    * The Highlight instance that holds Selections instances within it.
    *
-   * @type {Highlight}
+   * @type {Highlight|null}
    */
   #selections;
   /**
@@ -69,19 +69,19 @@ export class SelectionManager {
   /**
    * Gets the Selection instance of the "focus" type.
    *
-   * @returns {Selection}
+   * @returns {Selection|null}
    */
   getFocusSelection() {
-    return this.#selections.getFocus();
+    return this.#selections !== null ? this.#selections.getFocus() : null;
   }
 
   /**
    * Gets the Selection instance of the "area" type.
    *
-   * @returns {Selection}
+   * @returns {Selection|null}
    */
   getAreaSelection() {
-    return this.#selections.createOrGetAreaLayered();
+    return this.#selections !== null ? this.#selections.createOrGetAreaLayered() : null;
   }
 
   /**
@@ -142,6 +142,10 @@ export class SelectionManager {
    * @param {boolean} fastDraw Indicates the render cycle type (fast/slow).
    */
   render(fastDraw) {
+    if (this.#selections === null) {
+      return;
+    }
+
     if (fastDraw) {
       // there was no rerender, so we need to remove classNames by ourselves
       this.#resetCells();

@@ -329,9 +329,7 @@ describe('WalkontableBorder', () => {
   });
 
   it('should draw only one corner if selection is added between overlays', () => {
-    const selections = createSelectionController({
-      border: {}
-    });
+    const selections = createSelectionController();
     const wt = walkontable({
       data: getData,
       totalRows: 5,
