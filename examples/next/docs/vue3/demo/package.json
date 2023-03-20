@@ -17,7 +17,7 @@
     "dev": "vite",
     "preview": "vite preview",
     "start": "vite",
-    "test": "echo \"Mocked npm script for a while.\"",
+    "test": "node spec/support/jasmine.config.js",
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
