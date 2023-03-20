@@ -132,7 +132,7 @@ describe('Editor configuration using React components', () => {
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
   });
 
-  it('should be possible to reuse editor components between columns width different props passed to them', async () => {
+  it('should be possible to reuse editor components between columns with different props passed to them', async () => {
     class ReusableEditor extends EditorComponent {
       prepare(row, col, prop, TD, originalValue, cellProperties): any {
         super.prepare(row, col, prop, TD, originalValue, cellProperties);
