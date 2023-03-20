@@ -7,7 +7,7 @@ const maxAllowedValue = 5;
 
 export const starsRenderer: typeof baseRenderer = (...args) => {
   const [
-    _,
+    instance,
     td,
     row,
     column,
