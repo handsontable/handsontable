@@ -203,7 +203,10 @@ export class TextEditor extends BaseEditor {
    * Sets focus state on the select element.
    */
   focus() {
-    super.focus();
+    if (!this.isOpened()) {
+      // Focus on the TD element
+      super.focus();
+    }
 
     this.hot._registerTimeout(() => {
       // For IME editor textarea element must be focused using ".select" method.
