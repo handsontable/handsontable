@@ -638,10 +638,6 @@ class Table {
    *   row headers`.
    */
   getRowHeader(row, level = 0) {
-    // if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
-    //   return null;
-    // }
-
     const rowHeadersCount = this.wtSettings.getSetting('rowHeaders').length;
 
     if (level >= rowHeadersCount) {
@@ -663,10 +659,6 @@ class Table {
    * @returns {HTMLTableCellElement[]}
    */
   getRowHeaders(row) {
-    // if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
-    //   return [];
-    // }
-
     const THs = [];
     const rowHeadersCount = this.wtSettings.getSetting('rowHeaders').length;
 
